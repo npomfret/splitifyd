@@ -1,0 +1,15 @@
+{
+  "name": "fair-split",
+  "version": "1.0.0",
+  "description": "A serverless expense-sharing app",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FairSplit - Expense Sharing Made Simple</title>
+    <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo" onclick="location.reload()">FairSplit</a>
+                <div class="sync-indicator" id="syncIndicator">
+                    <span class="spinner hidden"></span>
+                    <span id="syncStatus">Ready</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Landing Page -->
+    <div class="landing" id="landingPage">
+        <div class="container">
+            <div class="landing-card">
+                <h1 class="landing-title">Welcome to FairSplit</h1>
+                <p class="landing-subtitle">Share expenses with friends, no accounts needed!</p>
+                
+                <div style="background-color: #E0F2FE; border: 1px solid #0284C7; border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 1.5rem; font-size: 0.875rem;">
+                    <strong>Storage:</strong> This app uses JSONBin.io for cloud storage. 
+                    Projects are accessible via shareable URLs and sync automatically across devices.
+                </div>
+                
+                <form id="createProjectForm">
+                    <div class="form-group">
+                        <label for="projectName">Project Name</label>
+                        <input type="text" id="projectName" placeholder="Europe Trip 2024" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="yourName">Your Name</label>
+                        <input type="text" id="yourName" placeholder="John" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Create New Project</button>
+                </form>
+
+                <div class="text-center mt-4 mb-2">
+                    <span class="text-muted">or</span>
+                </div>
+
+                <button class="btn btn-secondary btn-block" onclick="showJoinModal()">Join Existing Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app" id="mainApp">
+        <div class="container">
+            <!-- Project Info and Members -->
+            <div class="app-grid">
+                <div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h2 class="card-title" id="projectTitle">Project Name</h2>
+                            <button class="btn btn-primary btn-sm" onclick="showShareModal()">Share</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="defaultCurrency">Default Currency</label>
+                            <select id="defaultCurrency"></select>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Members (<span id="memberCount">0</span>)</h3>
+                        </div>
+                        <div class="members-list" id="membersList"></div>
+                        <form id="addMemberForm" class="mt-3">
+                            <div class="form-group mb-2">
+                                <input type="text" id="newMemberName" placeholder="Add new member" required>
+                            </div>
+                            <button type="submit" class="btn btn-secondary btn-block btn-sm">Add Member</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Expenses</h3>
+                            <button class="btn btn-primary btn-sm" onclick="showAddExpenseModal()">Add Expense</button>
+                        </div>
+                        <div class="expenses-list" id="expensesList"></div>
+                        <div class="empty-state" id="expensesEmpty" style="display: none;">
+                            <div class="empty-state-icon">💸</div>
+                            <p>No expenses yet</p>
+                            <p class="text-muted">Add your first expense to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settlements -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Suggested Settlements</h3>
+                    <button class="btn btn-success btn-sm" onclick="showSettlementModal()">Record Payment</button>
+                </div>
+                <div class="settlements-list" id="settlementsList"></div>
+                <div class="empty-state" id="settlementsEmpty" style="display: none;">
+                    <div class="empty-state-icon">✅</div>
+                    <p>All settled up!</p>
+                    <p class="text-muted">No payments needed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Join Project Modal -->
+    <div class="modal" id="joinModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Join Project</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="joinProjectForm">
+                <div class="form-group">
+                    <label for="joinProjectId">Project ID or Share Link</label>
+                    <input type="text" id="joinProjectId" placeholder="Enter project ID or paste share link" required>
+                </div>
+                <div class="form-group">
+                    <label for="joinYourName">Your Name</label>
+                    <input type="text" id="joinYourName" placeholder="Enter your name" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Join Project</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Share Project Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Share Project</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <p>Share this link with your friends to invite them to the project:</p>
+            <div class="share-url">
+                <input type="text" id="shareUrl" readonly>
+                <button class="btn btn-secondary" onclick="copyShareUrl()">Copy</button>
+            </div>
+            <p class="text-muted mt-2">Project ID: <span id="shareProjectId"></span></p>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal" id="addExpenseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Expense</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="addExpenseForm">
+                <div class="form-group">
+                    <label for="expenseDescription">Description</label>
+                    <input type="text" id="expenseDescription" placeholder="Dinner at restaurant" required>
+                </div>
+                <div class="form-group">
+                    <label for="expenseAmount">Amount</label>
+                    <input type="number" id="expenseAmount" step="0.01" min="0.01" placeholder="50.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="expenseCurrency">Currency</label>
+                    <select id="expenseCurrency" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="expensePaidBy">Paid by</label>
+                    <select id="expensePaidBy" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Split between</label>
+                    <div class="checkbox-group" id="splitBetweenContainer"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settlement Modal -->
+    <div class="modal" id="settlementModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Record Payment</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="settlementForm">
+                <div class="form-group">
+                    <label for="settlementFrom">From</label>
+                    <select id="settlementFrom" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="settlementTo">To</label>
+                    <select id="settlementTo" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="settlementAmount">Amount</label>
+                    <input type="number" id="settlementAmount" step="0.01" min="0.01" placeholder="25.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="settlementCurrency">Currency</label>
+                    <select id="settlementCurrency" required></select>
+                </div>
+                <button type="submit" class="btn btn-success btn-block">Record Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module" src="/src/app.js"></script>
+</body>
+</html>
