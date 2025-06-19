@@ -2,7 +2,7 @@ import { generateId } from '../utils/helpers.js';
 
 export class ProjectService {
     createProject(name, userName) {
-        const projectId = generateId('fairsplit');
+        const projectId = generateId('splitifyd');
         const userId = generateId('user');
         
         return {

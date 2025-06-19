@@ -78,27 +78,27 @@ export class StorageService {
 // Local storage helpers
 export const LocalStorage = {
     saveProjectInfo(projectId, userId) {
-        localStorage.setItem('fairsplit_project_id', projectId);
-        localStorage.setItem('fairsplit_user_id', userId);
+        localStorage.setItem('splitifyd_project_id', projectId);
+        localStorage.setItem('splitifyd_user_id', userId);
     },
 
     getProjectInfo() {
         return {
-            projectId: localStorage.getItem('fairsplit_project_id'),
-            userId: localStorage.getItem('fairsplit_user_id')
+            projectId: localStorage.getItem('splitifyd_project_id'),
+            userId: localStorage.getItem('splitifyd_user_id')
         };
     },
 
     clearProjectInfo() {
-        localStorage.removeItem('fairsplit_project_id');
-        localStorage.removeItem('fairsplit_user_id');
+        localStorage.removeItem('splitifyd_project_id');
+        localStorage.removeItem('splitifyd_user_id');
     },
 
     saveStorageId(projectId, storageId) {
-        localStorage.setItem(`fairsplit_storage_${projectId}`, storageId);
+        localStorage.setItem(`splitifyd_storage_${projectId}`, storageId);
     },
 
     getStorageId(projectId) {
-        return localStorage.getItem(`fairsplit_storage_${projectId}`);
+        return localStorage.getItem(`splitifyd_storage_${projectId}`);
     }
 };
