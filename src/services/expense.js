@@ -1,29 +1,35 @@
-import { convertCurrency } from '../utils/currency.js';
 import { generateId } from '../utils/helpers.js';
 
 export class ExpenseService {
     calculateBalances(project) {
         if (!project) return {};
         
+        // Structure: { userId: { currency: amount } }
         const balances = {};
         project.members.forEach(member => {
-            balances[member.id] = 0;
+            balances[member.id] = {};
         });
 
         project.expenses.forEach(expense => {
-            // Convert to default currency
-            const amountInDefault = convertCurrency(expense.amount, expense.currency, project.defaultCurrency);
+            const currency = expense.currency;
+            
+            // Initialize currency balance if not exists
+            project.members.forEach(member => {
+                if (!balances[member.id][currency]) {
+                    balances[member.id][currency] = 0;
+                }
+            });
             
             // Credit the payer
-            if (balances[expense.paidBy] !== undefined) {
-                balances[expense.paidBy] += amountInDefault;
+            if (balances[expense.paidBy]) {
+                balances[expense.paidBy][currency] += expense.amount;
             }
 
             // Debit those who owe
-            const splitAmount = amountInDefault / expense.splitBetween.length;
+            const splitAmount = expense.amount / expense.splitBetween.length;
             expense.splitBetween.forEach(userId => {
-                if (balances[userId] !== undefined) {
-                    balances[userId] -= splitAmount;
+                if (balances[userId]) {
+                    balances[userId][currency] -= splitAmount;
                 }
             });
         });
@@ -33,47 +39,59 @@ export class ExpenseService {
 
     calculateSettlements(project) {
         const balances = this.calculateBalances(project);
-        const settlements = [];
+        const settlementsByCurrency = {};
         
-        // Create arrays of debtors and creditors
-        const debtors = [];
-        const creditors = [];
+        // Get all currencies used
+        const currencies = new Set();
+        Object.values(balances).forEach(userBalance => {
+            Object.keys(userBalance).forEach(currency => currencies.add(currency));
+        });
         
-        Object.entries(balances).forEach(([userId, balance]) => {
-            if (balance < -0.01) {
-                debtors.push({ userId, amount: Math.abs(balance) });
-            } else if (balance > 0.01) {
-                creditors.push({ userId, amount: balance });
+        // Calculate settlements for each currency
+        currencies.forEach(currency => {
+            const debtors = [];
+            const creditors = [];
+            
+            Object.entries(balances).forEach(([userId, userBalance]) => {
+                const amount = userBalance[currency] || 0;
+                if (amount < -0.01) {
+                    debtors.push({ userId, amount: Math.abs(amount) });
+                } else if (amount > 0.01) {
+                    creditors.push({ userId, amount: amount });
+                }
+            });
+            
+            // Sort by amount
+            debtors.sort((a, b) => b.amount - a.amount);
+            creditors.sort((a, b) => b.amount - a.amount);
+            
+            settlementsByCurrency[currency] = [];
+            
+            // Calculate minimal transactions for this currency
+            let i = 0, j = 0;
+            while (i < debtors.length && j < creditors.length) {
+                const debtor = debtors[i];
+                const creditor = creditors[j];
+                const amount = Math.min(debtor.amount, creditor.amount);
+                
+                if (amount > 0.01) {
+                    settlementsByCurrency[currency].push({
+                        from: debtor.userId,
+                        to: creditor.userId,
+                        amount: amount,
+                        currency: currency
+                    });
+                }
+                
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+                
+                if (debtor.amount < 0.01) i++;
+                if (creditor.amount < 0.01) j++;
             }
         });
-
-        // Sort by amount
-        debtors.sort((a, b) => b.amount - a.amount);
-        creditors.sort((a, b) => b.amount - a.amount);
-
-        // Calculate minimal transactions
-        let i = 0, j = 0;
-        while (i < debtors.length && j < creditors.length) {
-            const debtor = debtors[i];
-            const creditor = creditors[j];
-            const amount = Math.min(debtor.amount, creditor.amount);
-
-            if (amount > 0.01) {
-                settlements.push({
-                    from: debtor.userId,
-                    to: creditor.userId,
-                    amount: amount
-                });
-            }
-
-            debtor.amount -= amount;
-            creditor.amount -= amount;
-
-            if (debtor.amount < 0.01) i++;
-            if (creditor.amount < 0.01) j++;
-        }
-
-        return settlements;
+        
+        return settlementsByCurrency;
     }
 
     createExpense(description, amount, currency, paidBy, splitBetween, addedBy) {

@@ -1,5 +1,4 @@
 import { generateId } from '../utils/helpers.js';
-import { detectDefaultCurrency } from '../utils/currency.js';
 
 export class ProjectService {
     createProject(name, userName) {
@@ -9,7 +8,6 @@ export class ProjectService {
         return {
             id: projectId,
             name: name,
-            defaultCurrency: detectDefaultCurrency(),
             members: [
                 { id: userId, name: userName }
             ],

@@ -1,7 +1,7 @@
 import { StorageService, LocalStorage } from './services/storage.js';
 import { ProjectService } from './services/project.js';
 import { ExpenseService } from './services/expense.js';
-import { formatCurrency, currencySymbols, currencyRates } from './utils/currency.js';
+import { formatCurrency, currencySymbols, supportedCurrencies } from './utils/currency.js';
 import { generateId, formatDate } from './utils/helpers.js';
 import { showToast, initToastContainer } from './ui/toast.js';
 import { showModal, closeModal, initModals } from './ui/modal.js';
@@ -201,7 +201,6 @@ function renderApp() {
     if (!currentProject) return;
     
     document.getElementById('projectTitle').textContent = currentProject.name;
-    document.getElementById('defaultCurrency').value = currentProject.defaultCurrency;
     
     renderMembers();
     renderExpenses();
@@ -217,16 +216,28 @@ function renderMembers() {
     membersList.innerHTML = '';
     
     currentProject.members.forEach(member => {
-        const balance = balances[member.id] || 0;
+        const memberBalances = balances[member.id] || {};
         const item = document.createElement('div');
         item.className = 'member-item';
         
-        const balanceClass = balance > 0.01 ? 'positive' : balance < -0.01 ? 'negative' : '';
-        const balanceText = balance > 0.01 
-            ? `Gets back ${formatCurrency(balance, currentProject.defaultCurrency)}`
-            : balance < -0.01 
-            ? `Owes ${formatCurrency(Math.abs(balance), currentProject.defaultCurrency)}`
-            : 'Settled up';
+        // Create balance summary for all currencies
+        const balanceTexts = [];
+        let hasAnyBalance = false;
+        
+        Object.entries(memberBalances).forEach(([currency, amount]) => {
+            if (Math.abs(amount) > 0.01) {
+                hasAnyBalance = true;
+                if (amount > 0.01) {
+                    balanceTexts.push(`+${formatCurrency(amount, currency)}`);
+                } else {
+                    balanceTexts.push(`-${formatCurrency(Math.abs(amount), currency)}`);
+                }
+            }
+        });
+        
+        const balanceText = hasAnyBalance ? balanceTexts.join(', ') : 'Settled up';
+        const balanceClass = balanceTexts.some(t => t.startsWith('+')) ? 'positive' : 
+                           balanceTexts.some(t => t.startsWith('-')) ? 'negative' : '';
         
         item.innerHTML = `
             <span class="member-name">${member.name}${member.id === currentUserId ? ' (You)' : ''}</span>
@@ -289,9 +300,12 @@ function renderExpenses() {
 function renderSettlements() {
     const settlementsList = document.getElementById('settlementsList');
     const settlementsEmpty = document.getElementById('settlementsEmpty');
-    const settlements = expenseService.calculateSettlements(currentProject);
+    const settlementsByCurrency = expenseService.calculateSettlements(currentProject);
     
-    if (settlements.length === 0) {
+    // Check if there are any settlements
+    const hasSettlements = Object.values(settlementsByCurrency).some(settlements => settlements.length > 0);
+    
+    if (!hasSettlements) {
         settlementsList.style.display = 'none';
         settlementsEmpty.style.display = 'block';
         return;
@@ -301,26 +315,39 @@ function renderSettlements() {
     settlementsEmpty.style.display = 'none';
     settlementsList.innerHTML = '';
     
-    settlements.forEach(settlement => {
-        const item = document.createElement('div');
-        item.className = 'settlement-item';
-        
-        const fromMember = currentProject.members.find(m => m.id === settlement.from);
-        const toMember = currentProject.members.find(m => m.id === settlement.to);
-        
-        item.innerHTML = `
-            <span class="settlement-text">
-                ${fromMember?.name || 'Unknown'} → ${toMember?.name || 'Unknown'}
-            </span>
-            <span class="settlement-amount">
-                ${formatCurrency(settlement.amount, currentProject.defaultCurrency)}
-            </span>
-            <button class="btn btn-success btn-sm" onclick="recordSettlement('${settlement.from}', '${settlement.to}', ${settlement.amount})">
-                Settle Up
-            </button>
-        `;
-        
-        settlementsList.appendChild(item);
+    // Group settlements by currency
+    Object.entries(settlementsByCurrency).forEach(([currency, settlements]) => {
+        if (settlements.length > 0) {
+            // Add currency header
+            const currencyHeader = document.createElement('div');
+            currencyHeader.className = 'settlements-currency-header';
+            currencyHeader.style.cssText = 'font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: var(--gray-700);';
+            currencyHeader.textContent = `${currencySymbols[currency]} ${currency}`;
+            settlementsList.appendChild(currencyHeader);
+            
+            // Add settlements for this currency
+            settlements.forEach(settlement => {
+                const item = document.createElement('div');
+                item.className = 'settlement-item';
+                
+                const fromMember = currentProject.members.find(m => m.id === settlement.from);
+                const toMember = currentProject.members.find(m => m.id === settlement.to);
+                
+                item.innerHTML = `
+                    <span class="settlement-text">
+                        ${fromMember?.name || 'Unknown'} → ${toMember?.name || 'Unknown'}
+                    </span>
+                    <span class="settlement-amount">
+                        ${formatCurrency(settlement.amount, currency)}
+                    </span>
+                    <button class="btn btn-success btn-sm" onclick="recordSettlement('${settlement.from}', '${settlement.to}', ${settlement.amount}, '${currency}')">
+                        Settle Up
+                    </button>
+                `;
+                
+                settlementsList.appendChild(item);
+            });
+        }
     });
 }
 
@@ -404,13 +431,7 @@ function initEventListeners() {
         e.target.reset();
     });
     
-    // Default currency change
-    document.getElementById('defaultCurrency')?.addEventListener('change', async (e) => {
-        currentProject.defaultCurrency = e.target.value;
-        await saveProject();
-        renderApp();
-        showToast('Default currency updated', 'success');
-    });
+    // Removed default currency change listener
 }
 
 // Modal helpers
@@ -437,11 +458,11 @@ window.copyShareUrl = () => {
     showToast('Link copied to clipboard!', 'success');
 };
 
-window.recordSettlement = (from, to, amount) => {
+window.recordSettlement = (from, to, amount, currency) => {
     document.getElementById('settlementFrom').value = from;
     document.getElementById('settlementTo').value = to;
     document.getElementById('settlementAmount').value = amount.toFixed(2);
-    document.getElementById('settlementCurrency').value = currentProject.defaultCurrency;
+    document.getElementById('settlementCurrency').value = currency || 'USD';
     showModal('settlementModal');
 };
 
@@ -452,10 +473,13 @@ function populateExpenseForm() {
     const currencySelect = document.getElementById('expenseCurrency');
     
     // Populate currency options
-    currencySelect.innerHTML = Object.keys(currencyRates).map(currency => 
+    currencySelect.innerHTML = supportedCurrencies.map(currency => 
         `<option value="${currency}">${currencySymbols[currency]} ${currency}</option>`
     ).join('');
-    currencySelect.value = currentProject.defaultCurrency;
+    // Set to most recently used currency or USD
+    const lastCurrency = currentProject.expenses.length > 0 ? 
+        currentProject.expenses[0].currency : 'USD';
+    currencySelect.value = lastCurrency;
     
     // Populate paid by options
     paidBySelect.innerHTML = currentProject.members.map(member => 
@@ -478,10 +502,13 @@ function populateSettlementForm() {
     const currencySelect = document.getElementById('settlementCurrency');
     
     // Populate currency options
-    currencySelect.innerHTML = Object.keys(currencyRates).map(currency => 
+    currencySelect.innerHTML = supportedCurrencies.map(currency => 
         `<option value="${currency}">${currencySymbols[currency]} ${currency}</option>`
     ).join('');
-    currencySelect.value = currentProject.defaultCurrency;
+    // Set to most recently used currency or USD
+    const lastCurrency = currentProject.expenses.length > 0 ? 
+        currentProject.expenses[0].currency : 'USD';
+    currencySelect.value = lastCurrency;
     
     // Populate member options
     const memberOptions = currentProject.members.map(member => 
