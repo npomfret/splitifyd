@@ -365,8 +365,19 @@ function initEventListeners() {
     // Join project form
     document.getElementById('joinProjectForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const projectId = document.getElementById('joinProjectId').value;
+        let projectId = document.getElementById('joinProjectId').value.trim();
         const userName = document.getElementById('joinYourName').value;
+        
+        // Extract storage ID from URL if a full URL was pasted
+        if (projectId.includes('?project=')) {
+            const urlParams = new URLSearchParams(projectId.split('?')[1]);
+            projectId = urlParams.get('project');
+        } else if (projectId.includes('http')) {
+            // If it's a URL but doesn't have the project param, show error
+            showToast('Invalid share link. Please use the link from the share dialog.', 'error');
+            return;
+        }
+        
         await joinProject(projectId, userName);
         closeModal('joinModal');
         e.target.reset();
@@ -439,7 +450,7 @@ window.showJoinModal = () => showModal('joinModal');
 window.showShareModal = () => {
     const url = `${window.location.origin}${window.location.pathname}?project=${currentProject.storageId}`;
     document.getElementById('shareUrl').value = url;
-    document.getElementById('shareProjectId').textContent = `${currentProject.id} (Storage: ${currentProject.storageId})`;
+    document.getElementById('shareStorageId').value = currentProject.storageId;
     showModal('shareModal');
 };
 window.showAddExpenseModal = () => {
@@ -456,6 +467,13 @@ window.copyShareUrl = () => {
     input.select();
     document.execCommand('copy');
     showToast('Link copied to clipboard!', 'success');
+};
+
+window.copyStorageId = () => {
+    const input = document.getElementById('shareStorageId');
+    input.select();
+    document.execCommand('copy');
+    showToast('Storage ID copied to clipboard!', 'success');
 };
 
 window.recordSettlement = (from, to, amount, currency) => {

@@ -122,8 +122,9 @@
             </div>
             <form id="joinProjectForm">
                 <div class="form-group">
-                    <label for="joinProjectId">Project ID or Share Link</label>
-                    <input type="text" id="joinProjectId" placeholder="Enter project ID or paste share link" required>
+                    <label for="joinProjectId">Storage ID or Share Link</label>
+                    <input type="text" id="joinProjectId" placeholder="Enter storage ID (e.g. 65abc123def456) or paste share link" required>
+                    <small style="color: var(--gray-500); display: block; margin-top: 0.25rem;">You can find this in the share dialog or URL</small>
                 </div>
                 <div class="form-group">
                     <label for="joinYourName">Your Name</label>
@@ -141,12 +142,33 @@
                 <h2 class="modal-title">Share Project</h2>
                 <button class="modal-close">&times;</button>
             </div>
-            <p>Share this link with your friends to invite them to the project:</p>
-            <div class="share-url">
-                <input type="text" id="shareUrl" readonly>
-                <button class="btn btn-secondary" onclick="copyShareUrl()">Copy</button>
+            <p>Share this project with your friends:</p>
+            
+            <div style="margin-top: 1.5rem;">
+                <label style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem; display: block;">Share Link</label>
+                <div class="share-url">
+                    <input type="text" id="shareUrl" readonly style="font-size: 0.875rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="copyShareUrl()" title="Copy link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <p class="text-muted mt-2">Project ID: <span id="shareProjectId"></span></p>
+            
+            <div style="margin-top: 1rem;">
+                <label style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem; display: block;">Storage ID</label>
+                <div class="share-url">
+                    <input type="text" id="shareStorageId" readonly style="font-size: 0.875rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="copyStorageId()" title="Copy ID">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

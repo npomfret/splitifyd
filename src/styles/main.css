@@ -538,10 +538,25 @@ input:focus, select:focus, textarea:focus {
 .share-url {
     display: flex;
     gap: 0.5rem;
-    margin-top: 1rem;
 }
 
 .share-url input {
     flex: 1;
     font-size: 0.875rem;
+    background-color: var(--gray-50);
+}
+
+.share-url .btn-sm {
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.share-url .btn-sm:hover {
+    background-color: var(--gray-300);
+}
+
+.share-url svg {
+    display: block;
 }
