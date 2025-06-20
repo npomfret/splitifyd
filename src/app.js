@@ -557,6 +557,26 @@ function initEventListeners() {
         closeModal('newProjectModal');
         e.target.reset();
     });
+    
+    // Join project form (from switcher modal)
+    document.getElementById('switcherJoinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        let projectId = document.getElementById('switcherJoinId').value.trim();
+        const userName = document.getElementById('switcherJoinName').value;
+        
+        // Extract storage ID from URL if a full URL was pasted
+        if (projectId.includes('?project=')) {
+            const urlParams = new URLSearchParams(projectId.split('?')[1]);
+            projectId = urlParams.get('project');
+        } else if (projectId.includes('http')) {
+            showToast('Invalid share link. Please use the link from the share dialog.', 'error');
+            return;
+        }
+        
+        await joinProject(projectId, userName);
+        closeModal('projectSwitcherModal');
+        e.target.reset();
+    });
 }
 
 // Modal helpers
