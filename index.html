@@ -238,6 +238,34 @@
         </div>
     </div>
 
+    <!-- New Project Modal -->
+    <div class="modal" id="newProjectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Project</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="newProjectForm">
+                <div class="form-group">
+                    <label for="newProjectName">Project Name</label>
+                    <input type="text" id="newProjectName" placeholder="Europe Trip 2024" required>
+                </div>
+                <div class="form-group">
+                    <label for="newProjectYourName">Your Name</label>
+                    <input type="text" id="newProjectYourName" placeholder="John" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Project</button>
+            </form>
+            
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200);">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <span class="text-muted">or choose an existing project</span>
+                </div>
+                <div id="newProjectExistingList"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Project Switcher Modal -->
     <div class="modal" id="projectSwitcherModal">
         <div class="modal-content">

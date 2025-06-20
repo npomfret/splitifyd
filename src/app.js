@@ -482,7 +482,15 @@ function initEventListeners() {
         e.target.reset();
     });
     
-    // Removed default currency change listener
+    // New project form (from modal)
+    document.getElementById('newProjectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newProjectName').value;
+        const userName = document.getElementById('newProjectYourName').value;
+        await createProject(name, userName);
+        closeModal('newProjectModal');
+        e.target.reset();
+    });
 }
 
 // Modal helpers
@@ -524,13 +532,44 @@ window.recordSettlement = (from, to, amount, currency) => {
     showModal('settlementModal');
 };
 
-window.createNewProject = () => {
-    if (confirm('Leave this project and create a new one?')) {
-        // Clear the active project from localStorage
-        LocalStorage.clearProjectInfo();
-        // Reload the page
-        location.reload();
+window.createNewProject = async () => {
+    const existingList = document.getElementById('newProjectExistingList');
+    
+    // Load existing projects
+    const projects = LocalStorage.getProjects();
+    if (projects.length > 0) {
+        existingList.innerHTML = '<div class="loading"><span class="spinner"></span> Loading your projects...</div>';
+        
+        const projectsHtml = [];
+        for (const project of projects) {
+            try {
+                const projectData = await storage.getProject(project.storageId);
+                const member = projectData.members.find(m => m.id === project.userId);
+                if (projectData && member) {
+                    const isCurrentProject = project.storageId === currentProject?.storageId;
+                    projectsHtml.push(`
+                        <div class="project-switcher-item ${isCurrentProject ? 'current-project' : ''}">
+                            <div>
+                                <div class="project-name">${projectData.name}${isCurrentProject ? ' (current)' : ''}</div>
+                                <div class="project-meta">You are: ${member.name}</div>
+                            </div>
+                            ${!isCurrentProject ? `<button class="btn btn-primary btn-sm" onclick="switchToProjectFromModal('${project.storageId}')">Switch</button>` : ''}
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                LocalStorage.removeProject(project.storageId);
+            }
+        }
+        
+        existingList.innerHTML = projectsHtml.length > 0 ? 
+            projectsHtml.join('') : 
+            '<p class="text-muted text-center">No existing projects</p>';
+    } else {
+        existingList.innerHTML = '<p class="text-muted text-center">No existing projects</p>';
     }
+    
+    showModal('newProjectModal');
 };
 
 window.removeMember = async (memberId, memberName) => {
@@ -646,6 +685,12 @@ window.removeProjectFromList = (storageId) => {
     LocalStorage.removeProject(storageId);
     showProjectSwitcher(); // Refresh the list
     showToast('Project removed from your list', 'success');
+};
+
+// Switch to project from new project modal
+window.switchToProjectFromModal = async (storageId) => {
+    closeModal('newProjectModal');
+    await loadProject(storageId);
 };
 
 // Form population helpers

@@ -599,3 +599,14 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     gap: 0.5rem;
 }
+
+.project-switcher-item.current-project {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary-dark);
+}
+
+.project-switcher-item.current-project .project-name,
+.project-switcher-item.current-project .project-meta {
+    color: white;
+}
