@@ -62,7 +62,7 @@ body {
     text-decoration: none;
 }
 
-.sync-indicator {
+.sync-indicator, .bottom-sync-indicator {
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -72,18 +72,32 @@ body {
     transition: opacity 0.2s;
 }
 
-.sync-indicator:hover {
+.sync-indicator:hover, .bottom-sync-indicator:hover {
     opacity: 1;
 }
 
-.sync-indicator.syncing {
+.sync-indicator.syncing, .bottom-sync-indicator.syncing {
     color: var(--gray-500);
     opacity: 1;
 }
 
-.sync-indicator.error {
+.sync-indicator.error, .bottom-sync-indicator.error {
     color: var(--danger);
     opacity: 1;
+}
+
+.bottom-sync-indicator {
+    position: fixed !important;
+    bottom: 1rem !important;
+    right: 1rem !important;
+    left: auto !important;
+    top: auto !important;
+    background: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    z-index: 50;
 }
 
 /* Landing Page */
