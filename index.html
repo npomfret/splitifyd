@@ -13,6 +13,7 @@
             <div class="header-content">
                 <a href="#" class="logo" onclick="location.reload()">Splitifyd</a>
                 <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn btn-secondary btn-sm" id="headerSwitchProject" style="display: none;" onclick="showProjectSwitcher()">Switch Project</button>
                     <button class="btn btn-secondary btn-sm" id="headerNewProject" style="display: none;" onclick="createNewProject()">New Project</button>
                     <div class="sync-indicator" id="syncIndicator">
                         <span class="spinner hidden"></span>
@@ -234,6 +235,17 @@
                 </div>
                 <button type="submit" class="btn btn-success btn-block">Record Payment</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Project Switcher Modal -->
+    <div class="modal" id="projectSwitcherModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Your Projects</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="projectSwitcherList"></div>
         </div>
     </div>
 

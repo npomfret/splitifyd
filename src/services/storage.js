@@ -77,7 +77,48 @@ export class StorageService {
 
 // Local storage helpers
 export const LocalStorage = {
+    // Project list management
+    getProjects() {
+        const projects = localStorage.getItem('splitifyd_projects');
+        return projects ? JSON.parse(projects) : [];
+    },
+
+    addProject(storageId, userId) {
+        const projects = this.getProjects();
+        const filtered = projects.filter(p => p.storageId !== storageId);
+        filtered.unshift({ storageId, userId });
+        const trimmed = filtered.slice(0, 10);
+        localStorage.setItem('splitifyd_projects', JSON.stringify(trimmed));
+    },
+
+    removeProject(storageId) {
+        const projects = this.getProjects();
+        const filtered = projects.filter(p => p.storageId !== storageId);
+        localStorage.setItem('splitifyd_projects', JSON.stringify(filtered));
+    },
+
+    // Active project management
+    setActiveProject(storageId) {
+        localStorage.setItem('splitifyd_active', storageId);
+    },
+
+    getActiveProject() {
+        return localStorage.getItem('splitifyd_active');
+    },
+
+    clearActiveProject() {
+        localStorage.removeItem('splitifyd_active');
+    },
+
+    getUserIdForProject(storageId) {
+        const projects = this.getProjects();
+        const project = projects.find(p => p.storageId === storageId);
+        return project ? project.userId : null;
+    },
+
+    // Legacy compatibility methods
     saveProjectInfo(projectId, userId) {
+        // Keep for compatibility
         localStorage.setItem('splitifyd_project_id', projectId);
         localStorage.setItem('splitifyd_user_id', userId);
     },
@@ -92,6 +133,7 @@ export const LocalStorage = {
     clearProjectInfo() {
         localStorage.removeItem('splitifyd_project_id');
         localStorage.removeItem('splitifyd_user_id');
+        this.clearActiveProject();
     },
 
     saveStorageId(projectId, storageId) {

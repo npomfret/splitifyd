@@ -36,7 +36,28 @@ export async function init() {
             showLanding();
         }
     } else {
-        // Check local storage
+        // Try to load active project from new storage format first
+        const activeStorageId = LocalStorage.getActiveProject();
+        if (activeStorageId) {
+            const userId = LocalStorage.getUserIdForProject(activeStorageId);
+            if (userId) {
+                try {
+                    const projectData = await storage.getProject(activeStorageId);
+                    if (projectData && projectData.members.find(m => m.id === userId)) {
+                        currentProject = projectData;
+                        currentProject.storageId = activeStorageId;
+                        currentUserId = userId;
+                        showApp();
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Failed to load active project:', error);
+                    LocalStorage.removeProject(activeStorageId);
+                }
+            }
+        }
+        
+        // Fall back to old storage format
         const { projectId, userId } = LocalStorage.getProjectInfo();
         if (projectId && userId) {
             try {
@@ -47,6 +68,9 @@ export async function init() {
                         currentProject = projectData;
                         currentProject.storageId = storageId;
                         currentUserId = userId;
+                        // Migrate to new format
+                        LocalStorage.addProject(storageId, userId);
+                        LocalStorage.setActiveProject(storageId);
                         showApp();
                         return;
                     }
@@ -64,6 +88,7 @@ function showApp() {
     document.getElementById('landingPage').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
     document.getElementById('headerNewProject').style.display = 'block';
+    document.getElementById('headerSwitchProject').style.display = 'block';
     renderApp();
     startSync();
 }
@@ -72,6 +97,7 @@ function showLanding() {
     document.getElementById('landingPage').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('headerNewProject').style.display = 'none';
+    document.getElementById('headerSwitchProject').style.display = 'none';
     stopSync();
 }
 
@@ -85,8 +111,11 @@ async function createProject(name, userName) {
         currentProject = projectData;
         currentUserId = projectData.userId;
         
+        // Save to both old and new storage format
         LocalStorage.saveProjectInfo(projectData.id, projectData.userId);
         LocalStorage.saveStorageId(projectData.id, storageId);
+        LocalStorage.addProject(storageId, projectData.userId);
+        LocalStorage.setActiveProject(storageId);
         
         showApp();
         showToast('Project created successfully!', 'success');
@@ -132,8 +161,11 @@ async function joinProject(projectId, userName) {
         currentProject = projectData;
         currentProject.storageId = storageId;
         
+        // Save to both old and new storage format
         LocalStorage.saveProjectInfo(projectData.id, currentUserId);
         LocalStorage.saveStorageId(projectData.id, storageId);
+        LocalStorage.addProject(storageId, currentUserId);
+        LocalStorage.setActiveProject(storageId);
         
         showApp();
         showToast('Joined project successfully!', 'success');
@@ -241,8 +273,14 @@ function renderMembers() {
         const balanceClass = balanceTexts.some(t => t.startsWith('+')) ? 'positive' : 
                            balanceTexts.some(t => t.startsWith('-')) ? 'negative' : '';
         
+        const isCurrentUser = member.id === currentUserId;
+        const canRemove = !isCurrentUser && currentProject.members.length > 1;
+        
         item.innerHTML = `
-            <span class="member-name">${member.name}${member.id === currentUserId ? ' (You)' : ''}</span>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="member-name">${member.name}${isCurrentUser ? ' (You)' : ''}</span>
+                ${canRemove ? `<button class="btn btn-danger btn-sm" style="padding: 0.125rem 0.375rem; font-size: 0.75rem;" onclick="removeMember('${member.id}', '${member.name.replace(/'/g, "\\'")}')">×</button>` : ''}
+            </div>
             <span class="member-balance ${balanceClass}">${balanceText}</span>
         `;
         
@@ -493,6 +531,121 @@ window.createNewProject = () => {
         // Reload the page
         location.reload();
     }
+};
+
+window.removeMember = async (memberId, memberName) => {
+    // Check if member has any expenses
+    const hasExpenses = currentProject.expenses.some(expense => 
+        expense.paidBy === memberId || expense.splitBetween.includes(memberId)
+    );
+    
+    let confirmMessage = `Remove ${memberName} from the project?`;
+    if (hasExpenses) {
+        confirmMessage += '\n\nWarning: This member is part of existing expenses. Removing them will affect balance calculations.';
+    }
+    
+    if (confirm(confirmMessage)) {
+        try {
+            // Remove member from project
+            currentProject.members = currentProject.members.filter(m => m.id !== memberId);
+            
+            // Remove member from all expense splits (but keep them as payer if they paid)
+            currentProject.expenses.forEach(expense => {
+                expense.splitBetween = expense.splitBetween.filter(id => id !== memberId);
+                // If no one is left in the split, remove the expense entirely
+                if (expense.splitBetween.length === 0) {
+                    expense.splitBetween = [expense.paidBy]; // Default to payer only
+                }
+            });
+            
+            await saveProject();
+            renderApp();
+            showToast(`${memberName} has been removed from the project`, 'success');
+        } catch (error) {
+            showToast('Failed to remove member', 'error');
+            console.error('Remove member error:', error);
+        }
+    }
+};
+
+// Show project switcher modal
+window.showProjectSwitcher = async () => {
+    const projects = LocalStorage.getProjects();
+    const projectList = document.getElementById('projectSwitcherList');
+    
+    if (projects.length <= 1) {
+        showToast('No other projects to switch to', 'info');
+        return;
+    }
+    
+    projectList.innerHTML = '<div class="loading"><span class="spinner"></span> Loading projects...</div>';
+    showModal('projectSwitcherModal');
+    
+    const projectsHtml = [];
+    for (const project of projects) {
+        if (project.storageId === currentProject.storageId) continue;
+        
+        try {
+            const projectData = await storage.getProject(project.storageId);
+            const member = projectData.members.find(m => m.id === project.userId);
+            if (projectData && member) {
+                projectsHtml.push(`
+                    <div class="project-switcher-item">
+                        <div>
+                            <div class="project-name">${projectData.name}</div>
+                            <div class="project-meta">You are: ${member.name}</div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="btn btn-primary btn-sm" onclick="loadProject('${project.storageId}')">Switch</button>
+                            <button class="btn btn-danger btn-sm" onclick="removeProjectFromList('${project.storageId}')">Remove</button>
+                        </div>
+                    </div>
+                `);
+            }
+        } catch (error) {
+            LocalStorage.removeProject(project.storageId);
+        }
+    }
+    
+    projectList.innerHTML = projectsHtml.length > 0 ? 
+        projectsHtml.join('') : 
+        '<p class="text-muted text-center">No other projects available</p>';
+};
+
+// Load a project
+window.loadProject = async (storageId) => {
+    try {
+        const userId = LocalStorage.getUserIdForProject(storageId);
+        if (!userId) {
+            showToast('User information not found for this project', 'error');
+            return;
+        }
+        
+        const projectData = await storage.getProject(storageId);
+        if (!projectData.members.find(m => m.id === userId)) {
+            showToast('You are no longer a member of this project', 'error');
+            LocalStorage.removeProject(storageId);
+            return;
+        }
+        
+        currentProject = projectData;
+        currentProject.storageId = storageId;
+        currentUserId = userId;
+        
+        LocalStorage.setActiveProject(storageId);
+        closeModal('projectSwitcherModal');
+        showApp();
+    } catch (error) {
+        showToast('Failed to load project', 'error');
+        console.error('Load project error:', error);
+    }
+};
+
+// Remove project from local list
+window.removeProjectFromList = (storageId) => {
+    LocalStorage.removeProject(storageId);
+    showProjectSwitcher(); // Refresh the list
+    showToast('Project removed from your list', 'success');
 };
 
 // Form population helpers
