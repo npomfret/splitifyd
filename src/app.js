@@ -90,6 +90,8 @@ export async function init() {
             
             // Fall back to join flow
             console.log('Falling back to join flow');
+            // Prefill the project ID in the join modal
+            document.getElementById('joinProjectId').value = projectIdParam;
             await joinProject(projectIdParam, null);
         } catch (error) {
             console.error('Failed to join project from URL:', error);
