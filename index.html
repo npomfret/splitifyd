@@ -12,9 +12,12 @@
         <div class="container">
             <div class="header-content">
                 <a href="#" class="logo" onclick="location.reload()">Splitifyd</a>
-                <div class="sync-indicator" id="syncIndicator">
-                    <span class="spinner hidden"></span>
-                    <span id="syncStatus">Ready</span>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn btn-secondary btn-sm" id="headerNewProject" style="display: none;" onclick="createNewProject()">New Project</button>
+                    <div class="sync-indicator" id="syncIndicator">
+                        <span class="spinner hidden"></span>
+                        <span id="syncStatus" style="font-size: 0.75rem;"></span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -63,6 +63,7 @@ export async function init() {
 function showApp() {
     document.getElementById('landingPage').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('headerNewProject').style.display = 'block';
     renderApp();
     startSync();
 }
@@ -70,6 +71,7 @@ function showApp() {
 function showLanding() {
     document.getElementById('landingPage').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('headerNewProject').style.display = 'none';
     stopSync();
 }
 
@@ -482,6 +484,15 @@ window.recordSettlement = (from, to, amount, currency) => {
     document.getElementById('settlementAmount').value = amount.toFixed(2);
     document.getElementById('settlementCurrency').value = currency || 'USD';
     showModal('settlementModal');
+};
+
+window.createNewProject = () => {
+    if (confirm('Leave this project and create a new one?')) {
+        // Clear the active project from localStorage
+        LocalStorage.clearProjectInfo();
+        // Reload the page
+        location.reload();
+    }
 };
 
 // Form population helpers
