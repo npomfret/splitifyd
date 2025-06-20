@@ -32,7 +32,7 @@
                 <p class="landing-subtitle">Share expenses with friends, no accounts needed!</p>
                 
                 <div style="background-color: #E0F2FE; border: 1px solid #0284C7; border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 1.5rem; font-size: 0.875rem;">
-                    <strong>Storage:</strong> This app uses JSONBin.io for cloud storage. 
+                    <strong>Storage:</strong> This app uses JSONBin.io for cloud storage.
                     Projects are accessible via shareable URLs and sync automatically across devices.
                 </div>
                 
@@ -142,14 +142,9 @@
     <!-- Share Project Modal -->
     <div class="modal" id="shareModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Share Project</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <p>Share this project with your friends:</p>
-            
+
             <div style="margin-top: 1.5rem;">
-                <label style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem; display: block;">Share Link</label>
+                <label style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem; display: block;">Share this</label>
                 <div class="share-url">
                     <input type="text" id="shareUrl" readonly style="font-size: 0.875rem;">
                     <button class="btn btn-secondary btn-sm" onclick="copyShareUrl()" title="Copy link">
@@ -162,7 +157,7 @@
             </div>
             
             <div style="margin-top: 1rem;">
-                <label style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem; display: block;">Storage ID</label>
+                <label style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem; display: block;">Or this</label>
                 <div class="share-url">
                     <input type="text" id="shareStorageId" readonly style="font-size: 0.875rem;">
                     <button class="btn btn-secondary btn-sm" onclick="copyStorageId()" title="Copy ID">
