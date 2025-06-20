@@ -30,6 +30,66 @@ export async function init() {
     
     if (projectIdParam) {
         try {
+            console.log('URL project param:', projectIdParam);
+            
+            // Try to load the project first to see what members exist
+            try {
+                const projectData = await storage.getProject(projectIdParam);
+                console.log('Project data:', projectData);
+                console.log('Project members:', projectData.members);
+                
+                // Check new storage format first
+                let userId = LocalStorage.getUserIdForProject(projectIdParam);
+                console.log('Found userId in new storage:', userId);
+                
+                // If not found or invalid, check old storage format
+                if (!userId || !projectData.members.find(m => m.id === userId)) {
+                    const { userId: oldUserId } = LocalStorage.getProjectInfo();
+                    console.log('Checking old storage userId:', oldUserId);
+                    if (oldUserId && projectData.members.find(m => m.id === oldUserId)) {
+                        userId = oldUserId;
+                        console.log('Using old storage userId:', userId);
+                        // Migrate to new format
+                        LocalStorage.addProject(projectIdParam, userId);
+                    }
+                }
+                
+                if (userId && projectData.members.find(m => m.id === userId)) {
+                    console.log('User is a member, loading project directly');
+                    currentProject = projectData;
+                    currentProject.storageId = projectIdParam;
+                    currentUserId = userId;
+                    LocalStorage.setActiveProject(projectIdParam);
+                    showApp();
+                    return;
+                } else {
+                    console.log('User not found as member, cleaning up invalid storage');
+                    console.log('Stored userId:', userId);
+                    console.log('Available member IDs:', projectData.members.map(m => m.id));
+                    
+                    // If there's only one member and we have this project in our storage,
+                    // we're probably that member (localStorage got corrupted)
+                    if (projectData.members.length === 1 && userId) {
+                        console.log('Assuming user is the single member, fixing localStorage');
+                        const actualUserId = projectData.members[0].id;
+                        currentProject = projectData;
+                        currentProject.storageId = projectIdParam;
+                        currentUserId = actualUserId;
+                        // Fix localStorage with correct user ID
+                        LocalStorage.addProject(projectIdParam, actualUserId);
+                        LocalStorage.setActiveProject(projectIdParam);
+                        showApp();
+                        return;
+                    }
+                    
+                    LocalStorage.removeProject(projectIdParam);
+                }
+            } catch (error) {
+                console.error('Failed to load project directly:', error);
+            }
+            
+            // Fall back to join flow
+            console.log('Falling back to join flow');
             await joinProject(projectIdParam, null);
         } catch (error) {
             console.error('Failed to join project from URL:', error);
@@ -147,8 +207,14 @@ async function joinProject(projectId, userName) {
             currentUserId = newMember.id;
             await saveProject(projectData);
         } else {
-            // Try to find existing user
-            const { userId } = LocalStorage.getProjectInfo();
+            // Try to find existing user - check new storage format first
+            let userId = LocalStorage.getUserIdForProject(storageId);
+            if (!userId) {
+                // Fall back to old storage format
+                const projectInfo = LocalStorage.getProjectInfo();
+                userId = projectInfo.userId;
+            }
+            
             if (userId && projectData.members.find(m => m.id === userId)) {
                 currentUserId = userId;
             } else {
