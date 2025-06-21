@@ -13,10 +13,49 @@ let currentUserId = null;
 let syncInterval = null;
 let isSyncing = false;
 
+// Project cache for faster loading
+const projectCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // Service instances
 const storage = new StorageService();
 const projectService = new ProjectService();
 const expenseService = new ExpenseService();
+
+// Helper function to fetch project with caching and timeout
+async function fetchProjectWithCache(storageId, timeoutMs = 8000) {
+    // Check cache first
+    const cached = projectCache.get(storageId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return cached.data;
+    }
+    
+    // Fetch with timeout
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+    );
+    
+    try {
+        const projectData = await Promise.race([
+            storage.getProject(storageId),
+            timeoutPromise
+        ]);
+        
+        // Cache the result
+        projectCache.set(storageId, {
+            data: projectData,
+            timestamp: Date.now()
+        });
+        
+        return projectData;
+    } catch (error) {
+        // Return cached data if available, even if expired
+        if (cached) {
+            return cached.data;
+        }
+        throw error;
+    }
+}
 
 // Initialize the app
 export async function init() {
@@ -67,21 +106,7 @@ export async function init() {
                     console.log('Stored userId:', userId);
                     console.log('Available member IDs:', projectData.members.map(m => m.id));
                     
-                    // If there's only one member and we have this project in our storage,
-                    // we're probably that member (localStorage got corrupted)
-                    if (projectData.members.length === 1 && userId) {
-                        console.log('Assuming user is the single member, fixing localStorage');
-                        const actualUserId = projectData.members[0].id;
-                        currentProject = projectData;
-                        currentProject.storageId = projectIdParam;
-                        currentUserId = actualUserId;
-                        // Fix localStorage with correct user ID
-                        LocalStorage.addProject(projectIdParam, actualUserId);
-                        LocalStorage.setActiveProject(projectIdParam);
-                        showApp();
-                        return;
-                    }
-                    
+                    // Remove the project from local storage since we're not a member
                     LocalStorage.removeProject(projectIdParam);
                 }
             } catch (error) {
@@ -203,11 +228,17 @@ async function joinProject(projectId, userName) {
         projectData = await storage.getProject(storageId);
         projectService.validateProject(projectData);
         
+        // Add storageId to projectData
+        projectData.storageId = storageId;
+        
         // If userName provided, add as new member
         if (userName) {
             const newMember = projectService.addMember(projectData, userName);
             currentUserId = newMember.id;
-            await saveProject(projectData);
+            console.log('Added new member:', newMember);
+            console.log('Project version before save:', projectData.version);
+            const saved = await saveProject(projectData);
+            console.log('Save successful:', saved);
         } else {
             // Try to find existing user - check new storage format first
             let userId = LocalStorage.getUserIdForProject(storageId);
@@ -238,6 +269,9 @@ async function joinProject(projectId, userName) {
         showApp();
         showToast('Joined project successfully!', 'success');
         
+        // Trigger immediate sync so others see the new member
+        setTimeout(() => syncProject(), 100);
+        
     } catch (error) {
         showToast('Failed to join project. Invalid project ID.', 'error');
         throw error;
@@ -245,13 +279,27 @@ async function joinProject(projectId, userName) {
 }
 
 async function saveProject(projectData = currentProject) {
-    if (!projectData || !projectData.storageId) return;
+    if (!projectData || !projectData.storageId) {
+        console.error('Cannot save: missing project data or storage ID');
+        return false;
+    }
     
     try {
         projectData.version++;
         projectData.lastUpdated = Date.now();
         
+        console.log('Saving project:', {
+            storageId: projectData.storageId,
+            version: projectData.version,
+            members: projectData.members.length
+        });
+        
         await storage.updateProject(projectData.storageId, projectData);
+        
+        // Invalidate cache for this project
+        projectCache.delete(projectData.storageId);
+        
+        console.log('Project saved successfully');
         return true;
     } catch (error) {
         showToast('Failed to save changes', 'error');
@@ -272,8 +320,11 @@ async function syncProject() {
         const mergedProject = projectService.mergeProjects(currentProject, remoteProject);
         
         if (mergedProject !== currentProject) {
+            console.log('Sync: Remote version:', remoteProject.version, 'Local version:', currentProject.version);
+            console.log('Sync: Using remote project, members:', remoteProject.members.length);
+            const storageId = currentProject.storageId; // Preserve storage ID
             currentProject = mergedProject;
-            currentProject.storageId = currentProject.storageId;
+            currentProject.storageId = storageId;
             renderApp();
         }
         
@@ -628,27 +679,47 @@ window.createNewProject = async () => {
     if (projects.length > 0) {
         existingList.innerHTML = '<div class="loading"><span class="spinner"></span> Loading your projects...</div>';
         
-        const projectsHtml = [];
-        for (const project of projects) {
+        // Fetch all projects concurrently
+        const projectPromises = projects.map(async (project) => {
             try {
-                const projectData = await storage.getProject(project.storageId);
+                const projectData = await fetchProjectWithCache(project.storageId);
                 const member = projectData.members.find(m => m.id === project.userId);
+                
                 if (projectData && member) {
                     const isCurrentProject = project.storageId === currentProject?.storageId;
-                    projectsHtml.push(`
-                        <div class="project-switcher-item ${isCurrentProject ? 'current-project' : ''}">
-                            <div>
-                                <div class="project-name">${projectData.name}${isCurrentProject ? ' (current)' : ''}</div>
-                                <div class="project-meta">You are: ${member.name}</div>
-                            </div>
-                            ${!isCurrentProject ? `<button class="btn btn-primary btn-sm" onclick="switchToProjectFromModal('${project.storageId}')">Switch</button>` : ''}
-                        </div>
-                    `);
+                    return {
+                        storageId: project.storageId,
+                        name: projectData.name,
+                        memberName: member.name,
+                        isCurrentProject
+                    };
                 }
+                return null;
             } catch (error) {
+                // Only log in development, silently clean up invalid projects
+                if (location.hostname === 'localhost') {
+                    console.warn(`Failed to load project ${project.storageId}:`, error.message);
+                }
                 LocalStorage.removeProject(project.storageId);
+                return null;
             }
-        }
+        });
+        
+        // Wait for all projects to load
+        const results = await Promise.all(projectPromises);
+        
+        // Build HTML from successful results
+        const projectsHtml = results
+            .filter(result => result !== null)
+            .map(project => `
+                <div class="project-switcher-item ${project.isCurrentProject ? 'current-project' : ''}">
+                    <div>
+                        <div class="project-name">${project.name}${project.isCurrentProject ? ' (current)' : ''}</div>
+                        <div class="project-meta">You are: ${project.memberName}</div>
+                    </div>
+                    ${!project.isCurrentProject ? `<button class="btn btn-primary btn-sm" onclick="switchToProjectFromModal('${project.storageId}')">Switch</button>` : ''}
+                </div>
+            `);
         
         existingList.innerHTML = projectsHtml.length > 0 ? 
             projectsHtml.join('') : 
@@ -708,31 +779,52 @@ window.showProjectSwitcher = async () => {
     projectList.innerHTML = '<div class="loading"><span class="spinner"></span> Loading projects...</div>';
     showModal('projectSwitcherModal');
     
-    const projectsHtml = [];
-    for (const project of projects) {
-        if (project.storageId === currentProject.storageId) continue;
-        
+    // Filter out current project
+    const otherProjects = projects.filter(p => p.storageId !== currentProject?.storageId);
+    
+    // Fetch all projects concurrently
+    const projectPromises = otherProjects.map(async (project) => {
         try {
-            const projectData = await storage.getProject(project.storageId);
+            const projectData = await fetchProjectWithCache(project.storageId);
             const member = projectData.members.find(m => m.id === project.userId);
+            
             if (projectData && member) {
-                projectsHtml.push(`
-                    <div class="project-switcher-item">
-                        <div>
-                            <div class="project-name">${projectData.name}</div>
-                            <div class="project-meta">You are: ${member.name}</div>
-                        </div>
-                        <div class="project-actions">
-                            <button class="btn btn-primary btn-sm" onclick="loadProject('${project.storageId}')">Switch</button>
-                            <button class="btn btn-danger btn-sm" onclick="removeProjectFromList('${project.storageId}')">Remove</button>
-                        </div>
-                    </div>
-                `);
+                return {
+                    storageId: project.storageId,
+                    name: projectData.name,
+                    memberName: member.name,
+                    success: true
+                };
             }
+            return null;
         } catch (error) {
+            // Only log in development, silently clean up invalid projects
+            if (location.hostname === 'localhost') {
+                console.warn(`Failed to load project ${project.storageId}:`, error.message);
+            }
             LocalStorage.removeProject(project.storageId);
+            return null;
         }
-    }
+    });
+    
+    // Wait for all projects to load (or timeout)
+    const results = await Promise.all(projectPromises);
+    
+    // Build HTML from successful results
+    const projectsHtml = results
+        .filter(result => result !== null)
+        .map(project => `
+            <div class="project-switcher-item">
+                <div>
+                    <div class="project-name">${project.name}</div>
+                    <div class="project-meta">You are: ${project.memberName}</div>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-primary btn-sm" onclick="loadProject('${project.storageId}')">Switch</button>
+                    <button class="btn btn-danger btn-sm" onclick="removeProjectFromList('${project.storageId}')">Remove</button>
+                </div>
+            </div>
+        `);
     
     projectList.innerHTML = projectsHtml.length > 0 ? 
         projectsHtml.join('') : 
