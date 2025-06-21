@@ -1,7 +1,7 @@
 import { StorageService, LocalStorage } from './services/storage.js';
 import { ProjectService } from './services/project.js';
 import { ExpenseService } from './services/expense.js';
-import { formatCurrency } from './utils/currency.js';
+import { formatCurrency, currencySymbols } from './utils/currency.js';
 import { formatDate } from './utils/helpers.js';
 import { showToast, initToastContainer } from './ui/toast.js';
 import { showModal, closeModal, initModals } from './ui/modal.js';
