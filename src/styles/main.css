@@ -101,7 +101,7 @@ body::before {
     transform: scale(1.05);
 }
 
-.sync-indicator, .bottom-sync-indicator {
+.sync-indicator {
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -111,32 +111,58 @@ body::before {
     transition: opacity 0.2s;
 }
 
-.sync-indicator:hover, .bottom-sync-indicator:hover {
+.sync-indicator:hover {
     opacity: 1;
 }
 
-.sync-indicator.syncing, .bottom-sync-indicator.syncing {
+.sync-indicator.syncing {
     color: var(--gray-500);
     opacity: 1;
 }
 
-.sync-indicator.error, .bottom-sync-indicator.error {
+.sync-indicator.error {
     color: var(--danger);
     opacity: 1;
 }
 
-.bottom-sync-indicator {
+#syncIndicator.bottom-sync-indicator {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    color: var(--gray-600) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    opacity: 0.9 !important;
+    transition: all 0.3s ease !important;
     position: fixed !important;
     bottom: 1rem !important;
-    right: 1rem !important;
-    left: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
     top: auto !important;
-    background: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--gray-200);
-    z-index: 50;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 2rem !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    z-index: 50 !important;
+}
+
+#syncIndicator.bottom-sync-indicator:hover {
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(-2px) !important;
+    box-shadow: var(--shadow-xl) !important;
+}
+
+#syncIndicator.bottom-sync-indicator.syncing {
+    color: var(--primary) !important;
+    opacity: 1 !important;
+}
+
+#syncIndicator.bottom-sync-indicator.error {
+    color: var(--danger) !important;
+    opacity: 1 !important;
 }
 
 /* Landing Page */

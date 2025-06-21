@@ -3,7 +3,7 @@ export function updateSyncIndicator(status) {
     const statusText = document.getElementById('syncStatus');
     const spinner = indicator.querySelector('.spinner');
     
-    indicator.className = 'sync-indicator';
+    indicator.className = 'bottom-sync-indicator';
     spinner.classList.add('hidden');
     
     switch (status) {
