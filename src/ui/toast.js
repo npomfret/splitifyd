@@ -1,3 +1,5 @@
+import { APP_CONFIG } from '../config/constants.js';
+
 export function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
@@ -7,7 +9,7 @@ export function showToast(message, type = 'info') {
     
     setTimeout(() => {
         toast.remove();
-    }, 3000);
+    }, APP_CONFIG.TOAST_DURATION);
 }
 
 export function initToastContainer() {

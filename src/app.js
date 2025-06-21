@@ -1,11 +1,15 @@
 import { StorageService, LocalStorage } from './services/storage.js';
 import { ProjectService } from './services/project.js';
 import { ExpenseService } from './services/expense.js';
-import { formatCurrency, currencySymbols, supportedCurrencies } from './utils/currency.js';
-import { generateId, formatDate } from './utils/helpers.js';
+import { formatCurrency } from './utils/currency.js';
+import { formatDate } from './utils/helpers.js';
 import { showToast, initToastContainer } from './ui/toast.js';
 import { showModal, closeModal, initModals } from './ui/modal.js';
 import { updateSyncIndicator } from './ui/sync.js';
+import { populateExpenseForm, populateSettlementForm } from './modules/forms.js';
+import { ProjectCache, fetchProjectWithCache } from './modules/project-cache.js';
+import { APP_CONFIG } from './config/constants.js';
+import { getElements, showElement, hideElement } from './modules/dom-helpers.js';
 
 // Global state
 let currentProject = null;
@@ -13,52 +17,21 @@ let currentUserId = null;
 let syncInterval = null;
 let isSyncing = false;
 
-// Project cache for faster loading
-const projectCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 // Service instances
 const storage = new StorageService();
 const projectService = new ProjectService();
 const expenseService = new ExpenseService();
+const projectCache = new ProjectCache();
 
-// Helper function to fetch project with caching and timeout
-async function fetchProjectWithCache(storageId, timeoutMs = 8000) {
-    // Check cache first
-    const cached = projectCache.get(storageId);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.data;
-    }
-    
-    // Fetch with timeout
-    const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), timeoutMs)
-    );
-    
-    try {
-        const projectData = await Promise.race([
-            storage.getProject(storageId),
-            timeoutPromise
-        ]);
-        
-        // Cache the result
-        projectCache.set(storageId, {
-            data: projectData,
-            timestamp: Date.now()
-        });
-        
-        return projectData;
-    } catch (error) {
-        // Return cached data if available, even if expired
-        if (cached) {
-            return cached.data;
-        }
-        throw error;
-    }
-}
+// Cached DOM elements
+let elements;
+
 
 // Initialize the app
 export async function init() {
+    // Cache DOM elements
+    elements = getElements();
+    
     initToastContainer();
     initModals();
     initEventListeners();
@@ -69,32 +42,24 @@ export async function init() {
     
     if (projectIdParam) {
         try {
-            console.log('URL project param:', projectIdParam);
-            
             // Try to load the project first to see what members exist
             try {
                 const projectData = await storage.getProject(projectIdParam);
-                console.log('Project data:', projectData);
-                console.log('Project members:', projectData.members);
                 
                 // Check new storage format first
                 let userId = LocalStorage.getUserIdForProject(projectIdParam);
-                console.log('Found userId in new storage:', userId);
                 
                 // If not found or invalid, check old storage format
                 if (!userId || !projectData.members.find(m => m.id === userId)) {
                     const { userId: oldUserId } = LocalStorage.getProjectInfo();
-                    console.log('Checking old storage userId:', oldUserId);
                     if (oldUserId && projectData.members.find(m => m.id === oldUserId)) {
                         userId = oldUserId;
-                        console.log('Using old storage userId:', userId);
                         // Migrate to new format
                         LocalStorage.addProject(projectIdParam, userId);
                     }
                 }
                 
                 if (userId && projectData.members.find(m => m.id === userId)) {
-                    console.log('User is a member, loading project directly');
                     currentProject = projectData;
                     currentProject.storageId = projectIdParam;
                     currentUserId = userId;
@@ -102,19 +67,14 @@ export async function init() {
                     showApp();
                     return;
                 } else {
-                    console.log('User not found as member, cleaning up invalid storage');
-                    console.log('Stored userId:', userId);
-                    console.log('Available member IDs:', projectData.members.map(m => m.id));
-                    
                     // Remove the project from local storage since we're not a member
                     LocalStorage.removeProject(projectIdParam);
                 }
             } catch (error) {
-                console.error('Failed to load project directly:', error);
+                console.error('Failed to load project from URL:', error);
             }
             
             // Fall back to join flow
-            console.log('Falling back to join flow');
             // Prefill the project ID in the join modal
             document.getElementById('joinProjectId').value = projectIdParam;
             await joinProject(projectIdParam, null);
@@ -172,19 +132,19 @@ export async function init() {
 
 // App navigation
 function showApp() {
-    document.getElementById('landingPage').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
-    document.getElementById('headerNewProject').style.display = 'block';
-    document.getElementById('headerSwitchProject').style.display = 'block';
+    hideElement(elements.landingPage);
+    showElement(elements.mainApp);
+    showElement(elements.headerNewProject);
+    showElement(elements.headerSwitchProject);
     renderApp();
     startSync();
 }
 
 function showLanding() {
-    document.getElementById('landingPage').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('headerNewProject').style.display = 'none';
-    document.getElementById('headerSwitchProject').style.display = 'none';
+    elements.landingPage.style.display = 'flex';
+    hideElement(elements.mainApp);
+    hideElement(elements.headerNewProject);
+    hideElement(elements.headerSwitchProject);
     stopSync();
 }
 
@@ -198,9 +158,7 @@ async function createProject(name, userName) {
         currentProject = projectData;
         currentUserId = projectData.userId;
         
-        // Save to both old and new storage format
-        LocalStorage.saveProjectInfo(projectData.id, projectData.userId);
-        LocalStorage.saveStorageId(projectData.id, storageId);
+        // Save to new storage format
         LocalStorage.addProject(storageId, projectData.userId);
         LocalStorage.setActiveProject(storageId);
         
@@ -235,10 +193,7 @@ async function joinProject(projectId, userName) {
         if (userName) {
             const newMember = projectService.addMember(projectData, userName);
             currentUserId = newMember.id;
-            console.log('Added new member:', newMember);
-            console.log('Project version before save:', projectData.version);
-            const saved = await saveProject(projectData);
-            console.log('Save successful:', saved);
+            await saveProject(projectData);
         } else {
             // Try to find existing user - check new storage format first
             let userId = LocalStorage.getUserIdForProject(storageId);
@@ -260,9 +215,7 @@ async function joinProject(projectId, userName) {
         currentProject = projectData;
         currentProject.storageId = storageId;
         
-        // Save to both old and new storage format
-        LocalStorage.saveProjectInfo(projectData.id, currentUserId);
-        LocalStorage.saveStorageId(projectData.id, storageId);
+        // Save to new storage format
         LocalStorage.addProject(storageId, currentUserId);
         LocalStorage.setActiveProject(storageId);
         
@@ -288,18 +241,10 @@ async function saveProject(projectData = currentProject) {
         projectData.version++;
         projectData.lastUpdated = Date.now();
         
-        console.log('Saving project:', {
-            storageId: projectData.storageId,
-            version: projectData.version,
-            members: projectData.members.length
-        });
-        
         await storage.updateProject(projectData.storageId, projectData);
         
         // Invalidate cache for this project
         projectCache.delete(projectData.storageId);
-        
-        console.log('Project saved successfully');
         return true;
     } catch (error) {
         showToast('Failed to save changes', 'error');
@@ -320,8 +265,6 @@ async function syncProject() {
         const mergedProject = projectService.mergeProjects(currentProject, remoteProject);
         
         if (mergedProject !== currentProject) {
-            console.log('Sync: Remote version:', remoteProject.version, 'Local version:', currentProject.version);
-            console.log('Sync: Using remote project, members:', remoteProject.members.length);
             const storageId = currentProject.storageId; // Preserve storage ID
             currentProject = mergedProject;
             currentProject.storageId = storageId;
@@ -339,7 +282,7 @@ async function syncProject() {
 
 function startSync() {
     if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(syncProject, 5000);
+    syncInterval = setInterval(syncProject, APP_CONFIG.SYNC_INTERVAL);
 }
 
 function stopSync() {
@@ -353,7 +296,7 @@ function stopSync() {
 function renderApp() {
     if (!currentProject) return;
     
-    document.getElementById('projectTitle').textContent = currentProject.name;
+    elements.projectTitle.textContent = currentProject.name;
     
     renderMembers();
     renderExpenses();
@@ -361,12 +304,10 @@ function renderApp() {
 }
 
 function renderMembers() {
-    const membersList = document.getElementById('membersList');
-    const memberCount = document.getElementById('memberCount');
     const balances = expenseService.calculateBalances(currentProject);
     
-    memberCount.textContent = currentProject.members.length;
-    membersList.innerHTML = '';
+    elements.memberCount.textContent = currentProject.members.length;
+    elements.membersList.innerHTML = '';
     
     currentProject.members.forEach(member => {
         const memberBalances = balances[member.id] || {};
@@ -403,23 +344,20 @@ function renderMembers() {
             <span class="member-balance ${balanceClass}">${balanceText}</span>
         `;
         
-        membersList.appendChild(item);
+        elements.membersList.appendChild(item);
     });
 }
 
 function renderExpenses() {
-    const expensesList = document.getElementById('expensesList');
-    const expensesEmpty = document.getElementById('expensesEmpty');
-    
     if (currentProject.expenses.length === 0) {
-        expensesList.style.display = 'none';
-        expensesEmpty.style.display = 'block';
+        hideElement(elements.expensesList);
+        showElement(elements.expensesEmpty);
         return;
     }
     
-    expensesList.style.display = 'flex';
-    expensesEmpty.style.display = 'none';
-    expensesList.innerHTML = '';
+    elements.expensesList.style.display = 'flex';
+    hideElement(elements.expensesEmpty);
+    elements.expensesList.innerHTML = '';
     
     currentProject.expenses.forEach(expense => {
         const item = document.createElement('div');
@@ -452,27 +390,25 @@ function renderExpenses() {
             </div>
         `;
         
-        expensesList.appendChild(item);
+        elements.expensesList.appendChild(item);
     });
 }
 
 function renderSettlements() {
-    const settlementsList = document.getElementById('settlementsList');
-    const settlementsEmpty = document.getElementById('settlementsEmpty');
     const settlementsByCurrency = expenseService.calculateSettlements(currentProject);
     
     // Check if there are any settlements
     const hasSettlements = Object.values(settlementsByCurrency).some(settlements => settlements.length > 0);
     
     if (!hasSettlements) {
-        settlementsList.style.display = 'none';
-        settlementsEmpty.style.display = 'block';
+        hideElement(elements.settlementsList);
+        showElement(elements.settlementsEmpty);
         return;
     }
     
-    settlementsList.style.display = 'flex';
-    settlementsEmpty.style.display = 'none';
-    settlementsList.innerHTML = '';
+    elements.settlementsList.style.display = 'flex';
+    hideElement(elements.settlementsEmpty);
+    elements.settlementsList.innerHTML = '';
     
     // Group settlements by currency
     Object.entries(settlementsByCurrency).forEach(([currency, settlements]) => {
@@ -482,7 +418,7 @@ function renderSettlements() {
             currencyHeader.className = 'settlements-currency-header';
             currencyHeader.style.cssText = 'font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: var(--gray-700);';
             currencyHeader.textContent = `${currencySymbols[currency]} ${currency}`;
-            settlementsList.appendChild(currencyHeader);
+            elements.settlementsList.appendChild(currencyHeader);
             
             // Add settlements for this currency
             settlements.forEach(settlement => {
@@ -504,7 +440,7 @@ function renderSettlements() {
                     </button>
                 `;
                 
-                settlementsList.appendChild(item);
+                elements.settlementsList.appendChild(item);
             });
         }
     });
@@ -641,11 +577,11 @@ window.showShareModal = () => {
     showModal('shareModal');
 };
 window.showAddExpenseModal = () => {
-    populateExpenseForm();
+    populateExpenseForm(currentProject, currentUserId);
     showModal('addExpenseModal');
 };
 window.showSettlementModal = () => {
-    populateSettlementForm();
+    populateSettlementForm(currentProject, currentUserId);
     showModal('settlementModal');
 };
 
@@ -682,7 +618,7 @@ window.createNewProject = async () => {
         // Fetch all projects concurrently
         const projectPromises = projects.map(async (project) => {
             try {
-                const projectData = await fetchProjectWithCache(project.storageId);
+                const projectData = await fetchProjectWithCache(storage, projectCache, project.storageId);
                 const member = projectData.members.find(m => m.id === project.userId);
                 
                 if (projectData && member) {
@@ -696,10 +632,7 @@ window.createNewProject = async () => {
                 }
                 return null;
             } catch (error) {
-                // Only log in development, silently clean up invalid projects
-                if (location.hostname === 'localhost') {
-                    console.warn(`Failed to load project ${project.storageId}:`, error.message);
-                }
+                // Silently clean up invalid projects
                 LocalStorage.removeProject(project.storageId);
                 return null;
             }
@@ -785,7 +718,7 @@ window.showProjectSwitcher = async () => {
     // Fetch all projects concurrently
     const projectPromises = otherProjects.map(async (project) => {
         try {
-            const projectData = await fetchProjectWithCache(project.storageId);
+            const projectData = await fetchProjectWithCache(storage, projectCache, project.storageId);
             const member = projectData.members.find(m => m.id === project.userId);
             
             if (projectData && member) {
@@ -798,10 +731,7 @@ window.showProjectSwitcher = async () => {
             }
             return null;
         } catch (error) {
-            // Only log in development, silently clean up invalid projects
-            if (location.hostname === 'localhost') {
-                console.warn(`Failed to load project ${project.storageId}:`, error.message);
-            }
+            // Silently clean up invalid projects
             LocalStorage.removeProject(project.storageId);
             return null;
         }
@@ -873,65 +803,6 @@ window.switchToProjectFromModal = async (storageId) => {
     await loadProject(storageId);
 };
 
-// Form population helpers
-function populateExpenseForm() {
-    const paidBySelect = document.getElementById('expensePaidBy');
-    const splitContainer = document.getElementById('splitBetweenContainer');
-    const currencySelect = document.getElementById('expenseCurrency');
-    
-    // Populate currency options
-    currencySelect.innerHTML = supportedCurrencies.map(currency => 
-        `<option value="${currency}">${currencySymbols[currency]} ${currency}</option>`
-    ).join('');
-    // Set to most recently used currency or USD
-    const lastCurrency = currentProject.expenses.length > 0 ? 
-        currentProject.expenses[0].currency : 'USD';
-    currencySelect.value = lastCurrency;
-    
-    // Populate paid by options
-    paidBySelect.innerHTML = currentProject.members.map(member => 
-        `<option value="${member.id}">${member.name}</option>`
-    ).join('');
-    paidBySelect.value = currentUserId;
-    
-    // Populate split between checkboxes
-    splitContainer.innerHTML = currentProject.members.map(member => `
-        <label class="checkbox-item">
-            <input type="checkbox" name="splitBetween" value="${member.id}" checked>
-            <span>${member.name}</span>
-        </label>
-    `).join('');
-}
-
-function populateSettlementForm() {
-    const fromSelect = document.getElementById('settlementFrom');
-    const toSelect = document.getElementById('settlementTo');
-    const currencySelect = document.getElementById('settlementCurrency');
-    
-    // Populate currency options
-    currencySelect.innerHTML = supportedCurrencies.map(currency => 
-        `<option value="${currency}">${currencySymbols[currency]} ${currency}</option>`
-    ).join('');
-    // Set to most recently used currency or USD
-    const lastCurrency = currentProject.expenses.length > 0 ? 
-        currentProject.expenses[0].currency : 'USD';
-    currencySelect.value = lastCurrency;
-    
-    // Populate member options
-    const memberOptions = currentProject.members.map(member => 
-        `<option value="${member.id}">${member.name}</option>`
-    ).join('');
-    
-    fromSelect.innerHTML = memberOptions;
-    toSelect.innerHTML = memberOptions;
-    
-    // Set default values
-    fromSelect.value = currentUserId;
-    const otherMember = currentProject.members.find(m => m.id !== currentUserId);
-    if (otherMember) {
-        toSelect.value = otherMember.id;
-    }
-}
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
