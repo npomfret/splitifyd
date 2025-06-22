@@ -46,6 +46,26 @@ export class ProjectService {
         // Otherwise keep local
         return localProject;
     }
+    
+    // Merge expenses from both projects to prevent data loss
+    mergeExpenses(localExpenses, remoteExpenses) {
+        // Create a map of expenses by ID for deduplication
+        const expenseMap = new Map();
+        
+        // Add all remote expenses first
+        remoteExpenses.forEach(expense => {
+            expenseMap.set(expense.id, expense);
+        });
+        
+        // Add local expenses (will overwrite if same ID exists)
+        localExpenses.forEach(expense => {
+            expenseMap.set(expense.id, expense);
+        });
+        
+        // Convert back to array and sort by timestamp (newest first)
+        return Array.from(expenseMap.values())
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }
 
     validateProject(project) {
         if (!project || typeof project !== 'object') {

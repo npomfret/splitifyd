@@ -238,6 +238,24 @@ async function saveProject(projectData = currentProject) {
     }
     
     try {
+        // First, fetch the latest remote version to check for conflicts
+        const remoteProject = await storage.getProject(projectData.storageId);
+        
+        // If remote has been updated since we last synced, merge expenses
+        if (remoteProject.version > projectData.version) {
+            // Merge expenses to prevent data loss
+            const mergedExpenses = projectService.mergeExpenses(
+                projectData.expenses,
+                remoteProject.expenses
+            );
+            
+            // Use remote version as base but keep our merged expenses
+            projectData = { ...remoteProject };
+            projectData.expenses = mergedExpenses;
+            currentProject = projectData;
+        }
+        
+        // Now increment version and save
         projectData.version++;
         projectData.lastUpdated = Date.now();
         
@@ -262,12 +280,25 @@ async function syncProject() {
     
     try {
         const remoteProject = await storage.getProject(currentProject.storageId);
-        const mergedProject = projectService.mergeProjects(currentProject, remoteProject);
         
-        if (mergedProject !== currentProject) {
-            const storageId = currentProject.storageId; // Preserve storage ID
-            currentProject = mergedProject;
-            currentProject.storageId = storageId;
+        // Check if we need to merge
+        if (remoteProject.version > currentProject.version || 
+            (remoteProject.version === currentProject.version && 
+             remoteProject.lastUpdated > currentProject.lastUpdated)) {
+            
+            // Remote is newer, but we need to preserve any local expenses
+            const localExpenses = currentProject.expenses;
+            const remoteExpenses = remoteProject.expenses;
+            
+            // Use remote as base
+            currentProject = { ...remoteProject };
+            
+            // Merge expenses to prevent data loss
+            currentProject.expenses = projectService.mergeExpenses(localExpenses, remoteExpenses);
+            
+            // Preserve storage ID
+            currentProject.storageId = remoteProject.storageId;
+            
             renderApp();
         }
         
