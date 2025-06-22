@@ -515,6 +515,15 @@ input::placeholder {
     margin-bottom: 0.75rem;
 }
 
+.expense-item .btn-danger {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.expense-item:hover .btn-danger {
+    opacity: 1;
+}
+
 .expense-description {
     font-weight: 700;
     font-size: 1.125rem;

@@ -243,15 +243,21 @@ async function saveProject(projectData = currentProject) {
         
         // If remote has been updated since we last synced, merge expenses
         if (remoteProject.version > projectData.version) {
+            const localDeleted = projectData.deletedExpenses || [];
+            const remoteDeleted = remoteProject.deletedExpenses || [];
+            
             // Merge expenses to prevent data loss
             const mergedExpenses = projectService.mergeExpenses(
                 projectData.expenses,
-                remoteProject.expenses
+                remoteProject.expenses,
+                localDeleted,
+                remoteDeleted
             );
             
             // Use remote version as base but keep our merged expenses
             projectData = { ...remoteProject };
             projectData.expenses = mergedExpenses;
+            projectData.deletedExpenses = [...new Set([...localDeleted, ...remoteDeleted])];
             currentProject = projectData;
         }
         
@@ -289,12 +295,22 @@ async function syncProject() {
             // Remote is newer, but we need to preserve any local expenses
             const localExpenses = currentProject.expenses;
             const remoteExpenses = remoteProject.expenses;
+            const localDeleted = currentProject.deletedExpenses || [];
+            const remoteDeleted = remoteProject.deletedExpenses || [];
             
             // Use remote as base
             currentProject = { ...remoteProject };
             
-            // Merge expenses to prevent data loss
-            currentProject.expenses = projectService.mergeExpenses(localExpenses, remoteExpenses);
+            // Merge expenses to prevent data loss and handle deletions
+            currentProject.expenses = projectService.mergeExpenses(
+                localExpenses, 
+                remoteExpenses,
+                localDeleted,
+                remoteDeleted
+            );
+            
+            // Merge deleted IDs
+            currentProject.deletedExpenses = [...new Set([...localDeleted, ...remoteDeleted])];
             
             // Preserve storage ID
             currentProject.storageId = remoteProject.storageId;
@@ -413,7 +429,14 @@ function renderExpenses() {
                         Split between: ${splitMembers.join(', ')}
                     </div>
                 </div>
-                <div class="expense-amount">${formatCurrency(expense.amount, expense.currency)}</div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="expense-amount">${formatCurrency(expense.amount, expense.currency)}</div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteExpense('${expense.id}')" title="Delete expense">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="expense-meta">
                 <span>${dateStr}</span>
@@ -726,6 +749,35 @@ window.removeMember = async (memberId, memberName) => {
         } catch (error) {
             showToast('Failed to remove member', 'error');
             console.error('Remove member error:', error);
+        }
+    }
+};
+
+window.deleteExpense = async (expenseId) => {
+    const expense = currentProject.expenses.find(e => e.id === expenseId);
+    if (!expense) return;
+    
+    const confirmMessage = `Delete expense "${expense.description}" for ${formatCurrency(expense.amount, expense.currency)}?`;
+    
+    if (confirm(confirmMessage)) {
+        try {
+            // Remove expense from the array
+            currentProject.expenses = currentProject.expenses.filter(e => e.id !== expenseId);
+            
+            // Track the deletion
+            if (!currentProject.deletedExpenses) {
+                currentProject.deletedExpenses = [];
+            }
+            if (!currentProject.deletedExpenses.includes(expenseId)) {
+                currentProject.deletedExpenses.push(expenseId);
+            }
+            
+            await saveProject();
+            renderApp();
+            showToast('Expense deleted successfully', 'success');
+        } catch (error) {
+            showToast('Failed to delete expense', 'error');
+            console.error('Delete expense error:', error);
         }
     }
 };

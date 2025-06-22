@@ -12,6 +12,7 @@ export class ProjectService {
                 { id: userId, name: userName }
             ],
             expenses: [],
+            deletedExpenses: [], // Track deleted expense IDs
             version: 1,
             lastUpdated: Date.now(),
             userId: userId
@@ -48,18 +49,25 @@ export class ProjectService {
     }
     
     // Merge expenses from both projects to prevent data loss
-    mergeExpenses(localExpenses, remoteExpenses) {
+    mergeExpenses(localExpenses, remoteExpenses, localDeletedIds = [], remoteDeletedIds = []) {
+        // Create a set of all deleted IDs
+        const allDeletedIds = new Set([...localDeletedIds, ...remoteDeletedIds]);
+        
         // Create a map of expenses by ID for deduplication
         const expenseMap = new Map();
         
         // Add all remote expenses first
         remoteExpenses.forEach(expense => {
-            expenseMap.set(expense.id, expense);
+            if (!allDeletedIds.has(expense.id)) {
+                expenseMap.set(expense.id, expense);
+            }
         });
         
         // Add local expenses (will overwrite if same ID exists)
         localExpenses.forEach(expense => {
-            expenseMap.set(expense.id, expense);
+            if (!allDeletedIds.has(expense.id)) {
+                expenseMap.set(expense.id, expense);
+            }
         });
         
         // Convert back to array and sort by timestamp (newest first)
