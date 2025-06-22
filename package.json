@@ -4,7 +4,7 @@
   "description": "A serverless expense-sharing app",
   "main": "src/index.js",
   "type": "module",
-  "homepage": "https://github.com/npomfret/splitifyd",
+  "homepage": "https://npomfret.github.io/splitifyd/",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
