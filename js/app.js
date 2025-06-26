@@ -5,7 +5,9 @@ const App = {
     
     // Initialize the application
     init() {
-        Utils.log('Initializing Fair Split app');
+        // Configure logging to only show changes
+        Utils.setLogLevel('CHANGE');
+        Utils.log('Initializing Fair Split app', null, 'INFO');
         
         // Make App globally accessible for sync
         window.App = this;
@@ -22,7 +24,7 @@ const App = {
         // Start auto sync
         Sync.startAutoSync();
         
-        Utils.log('App initialized');
+        Utils.log('App initialized', null, 'INFO');
     },
     
     // Create a new project

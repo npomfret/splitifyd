@@ -87,14 +87,59 @@ const Utils = {
         };
     },
 
-    // Log with timestamp
-    log(message, data = null) {
+    // Logging configuration
+    _logConfig: {
+        enabled: true,
+        level: 'CHANGE', // CHANGE, INFO, DEBUG
+        lastStates: new Map() // Track last states for change detection
+    },
+
+    // Set logging level (CHANGE = only changes, INFO = important events, DEBUG = everything)
+    setLogLevel(level) {
+        this._logConfig.level = level;
+    },
+
+    // Enable/disable logging
+    setLoggingEnabled(enabled) {
+        this._logConfig.enabled = enabled;
+    },
+
+    // Log with timestamp and level filtering
+    log(message, data = null, level = 'INFO') {
+        if (!this._logConfig.enabled) return;
+        
+        // Filter based on log level
+        if (this._logConfig.level === 'CHANGE' && level !== 'CHANGE') {
+            return;
+        }
+        if (this._logConfig.level === 'INFO' && level === 'DEBUG') {
+            return;
+        }
+        
         const timestamp = new Date().toISOString();
         if (data) {
             console.log(`[${timestamp}] ${message}`, data);
         } else {
             console.log(`[${timestamp}] ${message}`);
         }
+    },
+
+    // Log only when state changes
+    logChange(key, newValue, message) {
+        if (!this._logConfig.enabled) return;
+        
+        const lastValue = this._logConfig.lastStates.get(key);
+        const hasChanged = JSON.stringify(lastValue) !== JSON.stringify(newValue);
+        
+        if (hasChanged) {
+            this._logConfig.lastStates.set(key, structuredClone(newValue));
+            this.log(message, { from: lastValue, to: newValue }, 'CHANGE');
+        }
+    },
+
+    // Legacy log method for compatibility
+    logDebug(message, data = null) {
+        this.log(message, data, 'DEBUG');
     },
 
     // Validate JSONBin ID format (24 character hex string)

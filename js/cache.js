@@ -7,7 +7,7 @@ const Cache = {
     
     // Initialize cache
     init() {
-        Utils.log('Initializing cache');
+        Utils.log('Initializing cache', null, 'INFO');
         
         // Ensure user exists
         if (!this.getUser()) {
@@ -18,7 +18,7 @@ const Cache = {
                 lastCurrency: 'USD'
             };
             this.saveUser(user);
-            Utils.log('Created new user', user);
+            Utils.log('Created new user', user, 'INFO');
         }
         
         // Initialize projects cache
@@ -39,8 +39,9 @@ const Cache = {
     },
     
     saveUser(user) {
+        const existingUser = this.getUser();
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-        Utils.log('User saved to cache', user);
+        Utils.logChange('user-data', user, 'User data updated');
     },
     
     // Project management
@@ -56,6 +57,7 @@ const Cache = {
     
     saveProject(projectId, projectData) {
         const projects = this.getProjects();
+        const existingProject = projects[projectId];
         projects[projectId] = {
             data: projectData,
             lastSync: Utils.getTimestamp(),
@@ -63,17 +65,20 @@ const Cache = {
             dirty: false
         };
         this.saveProjects(projects);
-        Utils.log(`Project ${projectId} saved to cache`, projectData);
+        Utils.logChange(`project-${projectId}`, projectData, `Project ${projectId} saved to cache`);
     },
     
     markProjectDirty(projectId) {
         const projects = this.getProjects();
         if (projects[projectId]) {
+            const wasDirty = projects[projectId].dirty;
             projects[projectId].dirty = true;
             this.saveProjects(projects);
-            Utils.log(`Project ${projectId} marked as dirty`);
+            if (!wasDirty) {
+                Utils.log(`Project ${projectId} marked as dirty`, null, 'INFO');
+            }
         } else {
-            Utils.log(`Failed to mark project ${projectId} as dirty - not found in cache`);
+            Utils.log(`Failed to mark project ${projectId} as dirty - not found in cache`, null, 'INFO');
         }
     },
     
@@ -97,7 +102,7 @@ const Cache = {
                 timestamp: Utils.getTimestamp()
             });
             this.saveSyncQueue(queue);
-            Utils.log(`Added project ${projectId} to sync queue`);
+            Utils.logDebug(`Added project ${projectId} to sync queue`);
         }
     },
     
@@ -105,7 +110,7 @@ const Cache = {
         const queue = this.getSyncQueue();
         const filtered = queue.filter(item => item.projectId !== projectId);
         this.saveSyncQueue(filtered);
-        Utils.log(`Removed project ${projectId} from sync queue`);
+        Utils.logDebug(`Removed project ${projectId} from sync queue`);
     },
     
     saveSyncQueue(queue) {
@@ -123,7 +128,7 @@ const Cache = {
         user.projects = user.projects.filter(id => id !== projectId);
         this.saveUser(user);
         
-        Utils.log(`Cleared project ${projectId} from cache`);
+        Utils.log(`Cleared project ${projectId} from cache`, null, 'INFO');
     },
     
     // Clear all data
@@ -131,12 +136,12 @@ const Cache = {
         localStorage.removeItem(this.USER_KEY);
         localStorage.removeItem(this.PROJECTS_KEY);
         localStorage.removeItem(this.SYNC_QUEUE_KEY);
-        Utils.log('Cleared all cache data');
+        Utils.log('Cleared all cache data', null, 'INFO');
     },
     
     // Clean up invalid projects
     cleanupInvalidProjects() {
-        Utils.log('Cleaning up invalid projects');
+        Utils.logDebug('Cleaning up invalid projects');
         
         const user = this.getUser();
         const projects = this.getProjects();
@@ -146,7 +151,7 @@ const Cache = {
         const validProjects = user.projects.filter(projectId => {
             const isValid = Utils.isValidJsonBinId(projectId);
             if (!isValid) {
-                Utils.log(`Removing invalid project ID from user: ${projectId}`);
+                Utils.log(`Removing invalid project ID from user: ${projectId}`, null, 'INFO');
                 cleaned = true;
             }
             return isValid;
@@ -160,7 +165,7 @@ const Cache = {
         // Remove invalid projects from cache
         Object.keys(projects).forEach(projectId => {
             if (!Utils.isValidJsonBinId(projectId)) {
-                Utils.log(`Removing invalid project from cache: ${projectId}`);
+                Utils.log(`Removing invalid project from cache: ${projectId}`, null, 'INFO');
                 delete projects[projectId];
                 cleaned = true;
             }
@@ -168,7 +173,7 @@ const Cache = {
         
         if (cleaned) {
             this.saveProjects(projects);
-            Utils.log('Cleanup completed');
+            Utils.log('Cleanup completed', null, 'INFO');
         }
         
         return cleaned;

@@ -35,12 +35,11 @@ const Sync = {
             dirtyProjects.push(currentProjectId);
         }
         
+        Utils.logChange('dirtyProjectsCount', dirtyProjects.length, `Found ${dirtyProjects.length} projects to sync`);
+        
         if (dirtyProjects.length === 0) {
-            Utils.log('No projects to sync');
             return;
         }
-        
-        Utils.log(`Found ${dirtyProjects.length} projects to sync`, dirtyProjects);
         
         for (const projectId of dirtyProjects) {
             await this.syncProject(projectId);
@@ -50,7 +49,7 @@ const Sync = {
     // Sync a specific project
     async syncProject(projectId, showIndicator = false) {
         if (this.isSyncing) {
-            Utils.log('Already syncing, skipping');
+            Utils.logDebug('Already syncing, skipping');
             return;
         }
         
@@ -61,7 +60,7 @@ const Sync = {
         }
         
         try {
-            Utils.log(`Syncing project ${projectId}`);
+            Utils.log(`Syncing project ${projectId}`, null, 'INFO');
             
             // Get local data
             const localMeta = Cache.getProject(projectId);
@@ -97,7 +96,7 @@ const Sync = {
             // Only update remote if we have local changes
             if (isDirty) {
                 await API.withRetry(() => API.updateBin(projectId, mergedData));
-                Utils.log(`Pushed local changes for project ${projectId}`);
+                Utils.log(`Pushed local changes for project ${projectId}`, null, 'INFO');
             }
             
             // Always update local cache and clear dirty flag
@@ -107,29 +106,28 @@ const Sync = {
             const currentProjectId = Utils.getProjectIdFromUrl();
             if (projectId === currentProjectId && window.App && window.App.currentProject) {
                 const hasChanges = JSON.stringify(localData) !== JSON.stringify(mergedData);
-                Utils.log(`Checking for UI updates: projectId=${projectId}, currentProjectId=${currentProjectId}, hasChanges=${hasChanges}`);
                 
                 if (hasChanges) {
-                    Utils.log('Remote changes detected, updating UI');
+                    Utils.log('Remote changes detected, updating UI', null, 'INFO');
+                    Utils.logChange(`project-${projectId}-data`, mergedData, `Project ${projectId} data updated`);
                     window.App.currentProject = mergedData;
                     
                     // Trigger UI update if we're on the project page
-                    Utils.log(`Checking UI functions: updateMembersUI=${typeof window.updateMembersUI}, updateExpensesUI=${typeof window.updateExpensesUI}`);
                     if (typeof window.updateMembersUI === 'function') {
-                        Utils.log('Calling UI update functions');
+                        Utils.logDebug('Calling UI update functions');
                         window.updateMembersUI();
                         window.updateExpensesUI();
                         window.updateBalancesUI();
-                        Utils.log('UI update functions completed');
+                        Utils.logDebug('UI update functions completed');
                     } else {
-                        Utils.log('UI update functions not available');
+                        Utils.logDebug('UI update functions not available');
                     }
+                } else {
+                    Utils.logDebug('No remote changes detected');
                 }
-            } else {
-                Utils.log(`Skipping UI update: projectId=${projectId}, currentProjectId=${currentProjectId}, App=${!!window.App}, currentProject=${!!window.App?.currentProject}`);
             }
             
-            Utils.log(`Successfully synced project ${projectId}`);
+            Utils.log(`Successfully synced project ${projectId}`, null, 'INFO');
             
             if (showIndicator) {
                 this.updateSyncIndicator('success');
@@ -151,16 +149,16 @@ const Sync = {
     
     // Merge local and remote project data
     mergeProjectData(local, remote) {
-        Utils.log('Merging project data', { local, remote });
+        Utils.logDebug('Merging project data', { local, remote });
         
         // Validate both data sets
         if (!Utils.validateProjectData(local)) {
-            Utils.log('Invalid local data, using remote');
+            Utils.log('Invalid local data, using remote', null, 'INFO');
             return remote;
         }
         
         if (!Utils.validateProjectData(remote)) {
-            Utils.log('Invalid remote data, using local');
+            Utils.log('Invalid remote data, using local', null, 'INFO');
             return local;
         }
         
@@ -209,13 +207,13 @@ const Sync = {
         // Clean invalid data
         Utils.cleanProjectData(merged);
         
-        Utils.log('Merged project data', merged);
+        Utils.logDebug('Merged project data', merged);
         return merged;
     },
     
     // Apply an edit to project data
     applyEdit(data, edit) {
-        Utils.log('Applying edit', edit);
+        Utils.logDebug('Applying edit', edit);
         
         switch (edit.type) {
             case 'expense':
