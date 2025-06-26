@@ -25,7 +25,7 @@ Create a bill splitting web app along the lines of the popular app Splitwise.
 
  * it should be able to run locally and restart when changes are detected
  * use jsonbin https://api.jsonbin.io/v3 for the backend, research how to use it.  the api key is `$2a$10$hm7J97lLcGQCE9NGfef8ReIVgLddJrgsro7DJE14.vYdD.b01my1e`
- * make it quick, all backend data relevant to a user should be cached in browser storage
+ * make it quick, **all** backend data relevant to a user should be cached in browser storage
  * use a "best effort" approach to merging data on the client
  * js /css or any other resources should be refenced with relative urls (so the app can work deployed locally and in github-pages)
  * any data that looks "incorrect" (perhaps from a previous version of the app) should be logged and deleted
