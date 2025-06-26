@@ -10,6 +10,8 @@ Create a bill splitting web app along the lines of the popular app Splitwise.
    * join a project if they have the ID or url
    * select a project they already are a member of
  * a user can add, edit and remove expenses
+ * make sure that if 2 users add an expense (the most common operation) at the same time then both are kept
+ * if 2 users edit the same expense, use a UTC timestamp to resolve who wins
  * expenses have a currency, do not make any attempt to handle cross currency problems, track expenses by currency
  * when adding an expense, the default currency should be the one the user used last
  * implement the "simplified balances" and "suggested payments" features that splitwise has
