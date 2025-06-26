@@ -72,6 +72,8 @@ const Cache = {
             projects[projectId].dirty = true;
             this.saveProjects(projects);
             Utils.log(`Project ${projectId} marked as dirty`);
+        } else {
+            Utils.log(`Failed to mark project ${projectId} as dirty - not found in cache`);
         }
     },
     

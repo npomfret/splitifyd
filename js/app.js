@@ -7,6 +7,9 @@ const App = {
     init() {
         Utils.log('Initializing Fair Split app');
         
+        // Make App globally accessible for sync
+        window.App = this;
+        
         // Initialize cache
         Cache.init();
         

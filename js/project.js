@@ -50,15 +50,6 @@ function initializePage() {
 }
 
 function setupEventListeners() {
-    // Sync button
-    document.getElementById('sync-btn').addEventListener('click', async () => {
-        await Sync.syncProject(projectId, true);
-        await App.loadProject(projectId);
-        updateMembersUI();
-        updateExpensesUI();
-        updateBalancesUI();
-    });
-    
     // Join project
     document.getElementById('join-project-btn').addEventListener('click', () => {
         const nameInput = document.getElementById('member-name');
@@ -161,7 +152,8 @@ function showJoinUI() {
     document.getElementById('leave-section').classList.add('hidden');
 }
 
-function updateMembersUI() {
+// Make UI update functions globally accessible for sync
+window.updateMembersUI = function updateMembersUI() {
     const membersList = document.getElementById('members-list');
     const expensePayer = document.getElementById('expense-payer');
     const expenseSplit = document.getElementById('expense-split-members');
@@ -214,7 +206,7 @@ function updateMembersUI() {
     });
 }
 
-function updateExpensesUI() {
+window.updateExpensesUI = function updateExpensesUI() {
     const expensesList = document.getElementById('expenses-list');
     expensesList.innerHTML = '';
     
@@ -279,7 +271,7 @@ function createExpenseElement(expenseId, expense) {
     return div;
 }
 
-function updateBalancesUI() {
+window.updateBalancesUI = function updateBalancesUI() {
     const balances = Balance.calculateBalances(App.currentProject);
     const balancesList = document.getElementById('balances-list');
     const suggestedPayments = document.getElementById('suggested-payments');

@@ -22,18 +22,25 @@ const Sync = {
         }
     },
     
-    // Sync all dirty projects
+    // Sync all dirty projects and check for remote updates
     async syncDirtyProjects() {
         const projects = Cache.getProjects();
         const dirtyProjects = Object.entries(projects)
             .filter(([_, meta]) => meta.dirty)
             .map(([id, _]) => id);
         
+        // Always sync the current project to get remote updates
+        const currentProjectId = Utils.getProjectIdFromUrl();
+        if (currentProjectId && !dirtyProjects.includes(currentProjectId)) {
+            dirtyProjects.push(currentProjectId);
+        }
+        
         if (dirtyProjects.length === 0) {
+            Utils.log('No projects to sync');
             return;
         }
         
-        Utils.log(`Found ${dirtyProjects.length} dirty projects to sync`);
+        Utils.log(`Found ${dirtyProjects.length} projects to sync`, dirtyProjects);
         
         for (const projectId of dirtyProjects) {
             await this.syncProject(projectId);
@@ -63,6 +70,7 @@ const Sync = {
             }
             
             const localData = localMeta.data;
+            const isDirty = localMeta.dirty;
             
             // Get remote data
             let remoteData;
@@ -86,11 +94,40 @@ const Sync = {
             // Merge data
             const mergedData = this.mergeProjectData(localData, remoteData);
             
-            // Update remote
-            await API.withRetry(() => API.updateBin(projectId, mergedData));
+            // Only update remote if we have local changes
+            if (isDirty) {
+                await API.withRetry(() => API.updateBin(projectId, mergedData));
+                Utils.log(`Pushed local changes for project ${projectId}`);
+            }
             
-            // Update local cache
+            // Always update local cache and clear dirty flag
             Cache.saveProject(projectId, mergedData);
+            
+            // Update UI if this is the current project and data changed
+            const currentProjectId = Utils.getProjectIdFromUrl();
+            if (projectId === currentProjectId && window.App && window.App.currentProject) {
+                const hasChanges = JSON.stringify(localData) !== JSON.stringify(mergedData);
+                Utils.log(`Checking for UI updates: projectId=${projectId}, currentProjectId=${currentProjectId}, hasChanges=${hasChanges}`);
+                
+                if (hasChanges) {
+                    Utils.log('Remote changes detected, updating UI');
+                    window.App.currentProject = mergedData;
+                    
+                    // Trigger UI update if we're on the project page
+                    Utils.log(`Checking UI functions: updateMembersUI=${typeof window.updateMembersUI}, updateExpensesUI=${typeof window.updateExpensesUI}`);
+                    if (typeof window.updateMembersUI === 'function') {
+                        Utils.log('Calling UI update functions');
+                        window.updateMembersUI();
+                        window.updateExpensesUI();
+                        window.updateBalancesUI();
+                        Utils.log('UI update functions completed');
+                    } else {
+                        Utils.log('UI update functions not available');
+                    }
+                }
+            } else {
+                Utils.log(`Skipping UI update: projectId=${projectId}, currentProjectId=${currentProjectId}, App=${!!window.App}, currentProject=${!!window.App?.currentProject}`);
+            }
             
             Utils.log(`Successfully synced project ${projectId}`);
             
@@ -216,19 +253,23 @@ const Sync = {
     // Update sync indicator UI
     updateSyncIndicator(status) {
         const indicator = document.getElementById('sync-indicator');
-        if (!indicator) return;
+        const text = document.getElementById('sync-text');
+        if (!indicator || !text) return;
         
         indicator.classList.remove('syncing', 'error');
         
         switch (status) {
             case 'syncing':
                 indicator.classList.add('syncing');
+                text.textContent = 'Syncing...';
                 break;
             case 'error':
                 indicator.classList.add('error');
+                text.textContent = 'Sync error';
                 break;
             case 'success':
                 // Green by default
+                text.textContent = 'Synced';
                 setTimeout(() => {
                     indicator.classList.remove('syncing', 'error');
                 }, 1000);
