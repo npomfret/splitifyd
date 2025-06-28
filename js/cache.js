@@ -34,20 +34,41 @@ const Cache = {
     
     // User management
     getUser() {
-        const data = localStorage.getItem(this.USER_KEY);
-        return data ? JSON.parse(data) : null;
+        try {
+            const data = localStorage.getItem(this.USER_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            Utils.log('Error reading user data from localStorage', error, 'INFO');
+            return null;
+        }
     },
     
     saveUser(user) {
-        const existingUser = this.getUser();
-        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-        Utils.logChange('user-data', user, 'User data updated');
+        try {
+            const existingUser = this.getUser();
+            localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+            Utils.logChange('user-data', user, 'User data updated');
+            return true;
+        } catch (error) {
+            Utils.log('Error saving user data to localStorage', error, 'INFO');
+            if (error.name === 'QuotaExceededError') {
+                Utils.showError('Storage quota exceeded. Please clear some data.');
+            } else {
+                Utils.showError('Failed to save user data. Please try again.');
+            }
+            return false;
+        }
     },
     
     // Project management
     getProjects() {
-        const data = localStorage.getItem(this.PROJECTS_KEY);
-        return data ? JSON.parse(data) : {};
+        try {
+            const data = localStorage.getItem(this.PROJECTS_KEY);
+            return data ? JSON.parse(data) : {};
+        } catch (error) {
+            Utils.log('Error reading projects data from localStorage', error, 'INFO');
+            return {};
+        }
     },
     
     getProject(projectId) {
@@ -55,41 +76,111 @@ const Cache = {
         return projects[projectId];
     },
     
-    saveProject(projectId, projectData) {
-        const projects = this.getProjects();
-        const existingProject = projects[projectId];
-        projects[projectId] = {
-            data: projectData,
-            lastSync: Utils.getTimestamp(),
-            version: (projects[projectId]?.version || 0) + 1,
-            dirty: false
-        };
-        this.saveProjects(projects);
-        Utils.logChange(`project-${projectId}`, projectData, `Project ${projectId} saved to cache`);
+    saveProject(projectId, projectData, markDirty = false) {
+        try {
+            const projects = this.getProjects();
+            const existingProject = projects[projectId];
+            
+            // Create backup before saving if this is a significant change
+            if (markDirty && existingProject) {
+                Utils.createDataBackup(projectId, existingProject.data, 'before_save');
+            }
+            
+            // Clean and validate data before saving
+            const cleanedData = Utils.cleanProjectData(structuredClone(projectData));
+            
+            projects[projectId] = {
+                data: cleanedData,
+                lastSync: Utils.getTimestamp(),
+                version: (projects[projectId]?.version || 0) + 1,
+                dirty: markDirty
+            };
+            
+            const success = this.saveProjects(projects);
+            if (success) {
+                Utils.logChange(`project-${projectId}`, cleanedData, `Project ${projectId} saved to cache`);
+                
+                // Create backup after successful save for critical operations
+                if (markDirty) {
+                    Utils.createDataBackup(projectId, cleanedData, 'after_save');
+                }
+            } else {
+                // Attempt recovery if save failed
+                const recovered = Utils.recoverFromBackup(projectId);
+                if (recovered) {
+                    Utils.showError('Save failed, but data was recovered from backup.');
+                    // Try to save the recovered data
+                    projects[projectId] = {
+                        data: recovered,
+                        lastSync: Utils.getTimestamp(),
+                        version: (projects[projectId]?.version || 0) + 1,
+                        dirty: markDirty
+                    };
+                    return this.saveProjects(projects);
+                }
+            }
+            
+            return success;
+        } catch (error) {
+            Utils.log('Error saving project to cache', error, 'INFO');
+            
+            // Attempt recovery on error
+            const recovered = Utils.recoverFromBackup(projectId);
+            if (recovered) {
+                Utils.showError('Save failed, but data was recovered from backup. Please try again.');
+                return false;
+            }
+            
+            Utils.showError('Failed to save project data. Please try again.');
+            return false;
+        }
     },
     
     markProjectDirty(projectId) {
-        const projects = this.getProjects();
-        if (projects[projectId]) {
-            const wasDirty = projects[projectId].dirty;
-            projects[projectId].dirty = true;
-            this.saveProjects(projects);
-            if (!wasDirty) {
-                Utils.log(`Project ${projectId} marked as dirty`, null, 'INFO');
+        try {
+            const projects = this.getProjects();
+            if (projects[projectId]) {
+                const wasDirty = projects[projectId].dirty;
+                projects[projectId].dirty = true;
+                const success = this.saveProjects(projects);
+                if (success && !wasDirty) {
+                    Utils.log(`Project ${projectId} marked as dirty`, null, 'INFO');
+                }
+                return success;
+            } else {
+                Utils.log(`Failed to mark project ${projectId} as dirty - not found in cache`, null, 'INFO');
+                return false;
             }
-        } else {
-            Utils.log(`Failed to mark project ${projectId} as dirty - not found in cache`, null, 'INFO');
+        } catch (error) {
+            Utils.log('Error marking project as dirty', error, 'INFO');
+            return false;
         }
     },
     
     saveProjects(projects) {
-        localStorage.setItem(this.PROJECTS_KEY, JSON.stringify(projects));
+        try {
+            localStorage.setItem(this.PROJECTS_KEY, JSON.stringify(projects));
+            return true;
+        } catch (error) {
+            Utils.log('Error saving projects to localStorage', error, 'INFO');
+            if (error.name === 'QuotaExceededError') {
+                Utils.showError('Storage quota exceeded. Please clear some data.');
+            } else {
+                Utils.showError('Failed to save project data. Please try again.');
+            }
+            return false;
+        }
     },
     
     // Sync queue management
     getSyncQueue() {
-        const data = localStorage.getItem(this.SYNC_QUEUE_KEY);
-        return data ? JSON.parse(data) : [];
+        try {
+            const data = localStorage.getItem(this.SYNC_QUEUE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            Utils.log('Error reading sync queue from localStorage', error, 'INFO');
+            return [];
+        }
     },
     
     addToSyncQueue(projectId) {
@@ -114,7 +205,13 @@ const Cache = {
     },
     
     saveSyncQueue(queue) {
-        localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(queue));
+        try {
+            localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(queue));
+            return true;
+        } catch (error) {
+            Utils.log('Error saving sync queue to localStorage', error, 'INFO');
+            return false;
+        }
     },
     
     // Clear specific project data

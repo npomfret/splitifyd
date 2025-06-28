@@ -47,10 +47,18 @@ const Sync = {
     },
     
     // Sync a specific project
-    async syncProject(projectId, showIndicator = false) {
-        if (this.isSyncing) {
+    async syncProject(projectId, showIndicator = false, immediate = false) {
+        if (this.isSyncing && !immediate) {
             Utils.logDebug('Already syncing, skipping');
             return;
+        }
+        
+        // For immediate sync, we wait for current sync to complete
+        if (this.isSyncing && immediate) {
+            Utils.logDebug('Waiting for current sync to complete before immediate sync');
+            while (this.isSyncing) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
         }
         
         this.isSyncing = true;
@@ -248,6 +256,18 @@ const Sync = {
         }
     },
     
+    // Trigger immediate sync for critical operations
+    async syncProjectImmediately(projectId) {
+        Utils.logDebug(`Triggering immediate sync for project ${projectId}`);
+        try {
+            await this.syncProject(projectId, false, true);
+            return true;
+        } catch (error) {
+            Utils.log('Immediate sync failed', error, 'INFO');
+            return false;
+        }
+    },
+
     // Update sync indicator UI
     updateSyncIndicator(status) {
         const indicator = document.getElementById('sync-indicator');

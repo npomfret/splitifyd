@@ -84,15 +84,50 @@ function setupEventListeners() {
             return;
         }
         
-        App.addExpense(expense);
+        // Optimistic UI update - add expense to UI immediately
+        const tempExpenseId = Utils.generateId();
+        const tempExpense = {
+            id: tempExpenseId,
+            ...expense,
+            created: Utils.getTimestamp(),
+            createdBy: App.currentUser.id,
+            active: true,
+            _isOptimistic: true
+        };
+        
+        // Add to current project temporarily for UI display
+        App.currentProject.expenses[tempExpenseId] = tempExpense;
+        
+        // Update UI immediately
+        updateExpensesUI();
+        updateBalancesUI();
         
         // Clear form
         e.target.reset();
         document.getElementById('expense-currency').value = App.currentUser.lastCurrency;
         
-        // Update UI
-        updateExpensesUI();
-        updateBalancesUI();
+        // Now try to save the expense
+        try {
+            const realExpenseId = App.addExpense(expense);
+            
+            // Replace the optimistic expense with the real one
+            delete App.currentProject.expenses[tempExpenseId];
+            // The real expense is already added by App.addExpense
+            
+            // Update UI with real data
+            updateExpensesUI();
+            updateBalancesUI();
+            
+        } catch (error) {
+            // Rollback the optimistic update
+            delete App.currentProject.expenses[tempExpenseId];
+            
+            // Update UI to remove the failed expense
+            updateExpensesUI();
+            updateBalancesUI();
+            
+            // Error is already shown by App.addExpense
+        }
     });
     
     // Record settlement
@@ -229,6 +264,12 @@ function createExpenseElement(expenseId, expense) {
     const div = document.createElement('div');
     div.className = 'expense-item';
     
+    // Add visual indicator for optimistic updates
+    if (expense._isOptimistic) {
+        div.classList.add('expense-saving');
+        div.title = 'Saving...';
+    }
+    
     const payer = App.currentProject.members[expense.paidBy];
     const payerName = payer ? payer.name : 'Unknown';
     
@@ -236,10 +277,12 @@ function createExpenseElement(expenseId, expense) {
         .map(id => App.currentProject.members[id]?.name || 'Unknown')
         .join(', ');
     
+    const savingIndicator = expense._isOptimistic ? '<span class="saving-indicator">💾</span>' : '';
+    
     div.innerHTML = `
         <div class="expense-header">
             <div>
-                <div class="expense-description">${expense.description}</div>
+                <div class="expense-description">${expense.description} ${savingIndicator}</div>
                 <div class="expense-details">
                     Paid by ${payerName} • Split between ${splitNames}
                 </div>

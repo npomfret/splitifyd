@@ -187,32 +187,246 @@ const Utils = {
         return true;
     },
 
-    // Clean invalid data
+    // Clean invalid data with recovery
     cleanProjectData(data) {
-        // Remove invalid members
+        let cleanedCount = 0;
+        let recoveredCount = 0;
+        
+        // Clean and attempt to recover invalid members
         for (const [id, member] of Object.entries(data.members || {})) {
-            if (!member || !member.name || !member.joined) {
-                Utils.log(`Removing invalid member: ${id}`, member);
+            if (!member || typeof member !== 'object') {
+                Utils.log(`Removing completely invalid member: ${id}`, member);
                 delete data.members[id];
+                cleanedCount++;
+                continue;
+            }
+            
+            // Attempt to recover partially invalid members
+            let wasInvalid = false;
+            if (!member.name || typeof member.name !== 'string') {
+                member.name = `Member ${id.substring(0, 8)}`;
+                wasInvalid = true;
+            }
+            if (!member.joined) {
+                member.joined = new Date().toISOString();
+                wasInvalid = true;
+            }
+            if (member.active === undefined) {
+                member.active = true;
+                wasInvalid = true;
+            }
+            
+            if (wasInvalid) {
+                Utils.log(`Recovered invalid member: ${id}`, { before: member, after: data.members[id] });
+                recoveredCount++;
             }
         }
 
-        // Remove invalid expenses
+        // Clean and attempt to recover invalid expenses
         for (const [id, expense] of Object.entries(data.expenses || {})) {
-            if (!expense || !expense.amount || !expense.paidBy || !expense.created) {
-                Utils.log(`Removing invalid expense: ${id}`, expense);
+            if (!expense || typeof expense !== 'object') {
+                Utils.log(`Removing completely invalid expense: ${id}`, expense);
                 delete data.expenses[id];
+                cleanedCount++;
+                continue;
+            }
+            
+            // Attempt to recover partially invalid expenses
+            let wasInvalid = false;
+            if (!expense.amount || typeof expense.amount !== 'number' || expense.amount <= 0) {
+                // Can't recover expenses without valid amounts
+                Utils.log(`Removing expense with invalid amount: ${id}`, expense);
+                delete data.expenses[id];
+                cleanedCount++;
+                continue;
+            }
+            
+            if (!expense.description || typeof expense.description !== 'string') {
+                expense.description = `Expense ${id.substring(0, 8)}`;
+                wasInvalid = true;
+            }
+            if (!expense.currency || typeof expense.currency !== 'string') {
+                expense.currency = 'USD';
+                wasInvalid = true;
+            }
+            if (!expense.paidBy) {
+                // Try to find a valid member ID
+                const memberIds = Object.keys(data.members || {});
+                if (memberIds.length > 0) {
+                    expense.paidBy = memberIds[0];
+                    wasInvalid = true;
+                } else {
+                    // Can't recover without a valid payer
+                    Utils.log(`Removing expense without valid payer: ${id}`, expense);
+                    delete data.expenses[id];
+                    cleanedCount++;
+                    continue;
+                }
+            }
+            if (!expense.created) {
+                expense.created = new Date().toISOString();
+                wasInvalid = true;
+            }
+            if (expense.active === undefined) {
+                expense.active = true;
+                wasInvalid = true;
+            }
+            if (!Array.isArray(expense.splitBetween)) {
+                expense.splitBetween = [expense.paidBy];
+                wasInvalid = true;
+            }
+            
+            if (wasInvalid) {
+                Utils.log(`Recovered invalid expense: ${id}`, { before: expense, after: data.expenses[id] });
+                recoveredCount++;
             }
         }
 
-        // Remove invalid settlements
+        // Clean and attempt to recover invalid settlements
         for (const [id, settlement] of Object.entries(data.settlements || {})) {
-            if (!settlement || !settlement.amount || !settlement.from || !settlement.to) {
-                Utils.log(`Removing invalid settlement: ${id}`, settlement);
+            if (!settlement || typeof settlement !== 'object') {
+                Utils.log(`Removing completely invalid settlement: ${id}`, settlement);
                 delete data.settlements[id];
+                cleanedCount++;
+                continue;
             }
+            
+            // Attempt to recover partially invalid settlements
+            let wasInvalid = false;
+            if (!settlement.amount || typeof settlement.amount !== 'number' || settlement.amount <= 0) {
+                // Can't recover settlements without valid amounts
+                Utils.log(`Removing settlement with invalid amount: ${id}`, settlement);
+                delete data.settlements[id];
+                cleanedCount++;
+                continue;
+            }
+            
+            if (!settlement.from || !settlement.to) {
+                // Can't recover without valid participants
+                Utils.log(`Removing settlement without valid participants: ${id}`, settlement);
+                delete data.settlements[id];
+                cleanedCount++;
+                continue;
+            }
+            
+            if (!settlement.currency || typeof settlement.currency !== 'string') {
+                settlement.currency = 'USD';
+                wasInvalid = true;
+            }
+            if (!settlement.created) {
+                settlement.created = new Date().toISOString();
+                wasInvalid = true;
+            }
+            if (settlement.active === undefined) {
+                settlement.active = true;
+                wasInvalid = true;
+            }
+            
+            if (wasInvalid) {
+                Utils.log(`Recovered invalid settlement: ${id}`, { before: settlement, after: data.settlements[id] });
+                recoveredCount++;
+            }
+        }
+
+        if (cleanedCount > 0 || recoveredCount > 0) {
+            Utils.log(`Data integrity check complete: ${cleanedCount} items removed, ${recoveredCount} items recovered`, null, 'INFO');
         }
 
         return data;
+    },
+    
+    // Create backup of project data
+    createDataBackup(projectId, data, reason = 'manual') {
+        try {
+            const backupKey = `fairsplit_backup_${projectId}_${Date.now()}`;
+            const backup = {
+                projectId,
+                data: structuredClone(data),
+                timestamp: this.getTimestamp(),
+                reason,
+                version: data.version || 1
+            };
+            
+            localStorage.setItem(backupKey, JSON.stringify(backup));
+            Utils.log(`Data backup created: ${backupKey}`, { reason, version: backup.version }, 'INFO');
+            
+            // Clean old backups (keep only last 5 per project)
+            this.cleanOldBackups(projectId);
+            
+            return backupKey;
+        } catch (error) {
+            Utils.log('Failed to create data backup', error, 'INFO');
+            return null;
+        }
+    },
+    
+    // Clean old backups to prevent localStorage bloat
+    cleanOldBackups(projectId) {
+        try {
+            const backupKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(`fairsplit_backup_${projectId}_`)) {
+                    backupKeys.push(key);
+                }
+            }
+            
+            // Sort by timestamp (embedded in key) and keep only latest 5
+            backupKeys.sort().reverse();
+            const toDelete = backupKeys.slice(5);
+            
+            toDelete.forEach(key => {
+                localStorage.removeItem(key);
+                Utils.logDebug(`Removed old backup: ${key}`);
+            });
+            
+        } catch (error) {
+            Utils.log('Failed to clean old backups', error, 'INFO');
+        }
+    },
+    
+    // Attempt to recover data from backups
+    recoverFromBackup(projectId, maxAge = 24 * 60 * 60 * 1000) { // 24 hours default
+        try {
+            const backupKeys = [];
+            const cutoffTime = Date.now() - maxAge;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(`fairsplit_backup_${projectId}_`)) {
+                    const timestamp = parseInt(key.split('_').pop());
+                    if (timestamp > cutoffTime) {
+                        backupKeys.push({ key, timestamp });
+                    }
+                }
+            }
+            
+            if (backupKeys.length === 0) {
+                Utils.log('No recent backups found for recovery', { projectId, maxAge }, 'INFO');
+                return null;
+            }
+            
+            // Get the most recent backup
+            backupKeys.sort((a, b) => b.timestamp - a.timestamp);
+            const latestBackup = localStorage.getItem(backupKeys[0].key);
+            
+            if (!latestBackup) {
+                Utils.log('Failed to read backup data', { key: backupKeys[0].key }, 'INFO');
+                return null;
+            }
+            
+            const backup = JSON.parse(latestBackup);
+            Utils.log('Successfully recovered data from backup', { 
+                backupKey: backupKeys[0].key, 
+                version: backup.version,
+                timestamp: backup.timestamp 
+            }, 'INFO');
+            
+            return backup.data;
+            
+        } catch (error) {
+            Utils.log('Failed to recover from backup', error, 'INFO');
+            return null;
+        }
     }
 };

@@ -482,3 +482,24 @@ select:focus {
         font-size: 12px;
     }
 }
+
+/* Optimistic UI styles */
+.expense-saving {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.saving-indicator {
+    font-size: 0.8em;
+    opacity: 0.6;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
