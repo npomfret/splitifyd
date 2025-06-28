@@ -279,12 +279,23 @@ function createExpenseElement(expenseId, expense) {
     
     const savingIndicator = expense._isOptimistic ? '<span class="saving-indicator">💾</span>' : '';
     
+    // Format timestamp
+    const timestamp = expense.created ? new Date(expense.created) : new Date();
+    const timeString = timestamp.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+    });
+    
     div.innerHTML = `
         <div class="expense-header">
             <div>
                 <div class="expense-description">${expense.description} ${savingIndicator}</div>
                 <div class="expense-details">
                     Paid by ${payerName} • Split between ${splitNames}
+                    <span class="expense-timestamp">${timeString}</span>
                 </div>
             </div>
             <div class="expense-amount">${Utils.formatCurrency(expense.amount, expense.currency)}</div>

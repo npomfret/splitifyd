@@ -503,3 +503,11 @@ select:focus {
         opacity: 1;
     }
 }
+
+/* Expense timestamp */
+.expense-timestamp {
+    font-size: 0.75em;
+    color: #999;
+    margin-left: 8px;
+    font-weight: normal;
+}
