@@ -32,3 +32,5 @@ Create a bill splitting web app along the lines of the popular app Splitwise.
  * any data that looks "incorrect" (perhaps from a previous version of the app) should be logged and deleted
  * be verbose with logging
  * follow "clean code" principles
+
+Do not commit any files to git.  I want to review and test everything manually.
