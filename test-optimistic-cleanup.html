@@ -176,24 +176,27 @@
             addTestResult('State before sync', true, 
                 `Total expenses: ${expensesBeforeSync.length}, Optimistic: ${optimisticCount}`);
             
-            // Step 4: Trigger the sync update logic
-            // This simulates what happens in syncProject when remote changes are detected
+            // Step 4: Trigger the merge logic (this is the real fix)
+            // This simulates what happens in mergeProjectData during sync
             const localData = window.App.currentProject;
-            const mergedData = syncedProjectData;
+            const remoteData = syncedProjectData;
             
-            // Execute the sync update logic
-            Utils.log('Remote changes detected, updating UI', null, 'INFO');
+            // Execute the merge logic with optimistic filtering
+            Utils.log('Merging project data with optimistic filtering', null, 'INFO');
             
-            const currentExpenses = window.App.currentProject.expenses || {};
-            const optimisticExpenseIds = Object.keys(currentExpenses)
-                .filter(id => currentExpenses[id]._isOptimistic);
+            // Filter out optimistic expenses from local data (the real fix)
+            const localExpensesFiltered = {};
+            Object.entries(localData.expenses || {}).forEach(([id, expense]) => {
+                if (!expense._isOptimistic) {
+                    localExpensesFiltered[id] = expense;
+                }
+            });
             
-            if (optimisticExpenseIds.length > 0) {
-                Utils.logDebug(`Removing ${optimisticExpenseIds.length} optimistic expenses before sync update`);
-                optimisticExpenseIds.forEach(id => {
-                    delete mergedData.expenses[id];
-                });
-            }
+            // Merge like the real sync code does
+            const mergedData = {
+                ...localData,
+                expenses: { ...remoteData.expenses, ...localExpensesFiltered }
+            };
             
             window.App.currentProject = mergedData;
             

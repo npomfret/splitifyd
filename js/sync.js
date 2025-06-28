@@ -198,8 +198,16 @@ const Sync = {
         // Merge members (union, keep all)
         merged.members = { ...remote.members, ...local.members };
         
-        // Merge expenses (union, keep all)
-        merged.expenses = { ...remote.expenses, ...local.expenses };
+        // Merge expenses (union, but exclude optimistic expenses from local)
+        // Filter out optimistic expenses from local data to prevent duplicates
+        const localExpensesFiltered = {};
+        Object.entries(local.expenses || {}).forEach(([id, expense]) => {
+            if (!expense._isOptimistic) {
+                localExpensesFiltered[id] = expense;
+            }
+        });
+        
+        merged.expenses = { ...remote.expenses, ...localExpensesFiltered };
         
         // Merge settlements (union, keep all)
         merged.settlements = { ...remote.settlements, ...local.settlements };
