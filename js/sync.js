@@ -118,6 +118,20 @@ const Sync = {
                 if (hasChanges) {
                     Utils.log('Remote changes detected, updating UI', null, 'INFO');
                     Utils.logChange(`project-${projectId}-data`, mergedData, `Project ${projectId} data updated`);
+                    
+                    // Remove any optimistic expenses before applying sync updates
+                    // This prevents duplicate expenses from appearing when sync updates arrive
+                    const currentExpenses = window.App.currentProject.expenses || {};
+                    const optimisticExpenseIds = Object.keys(currentExpenses)
+                        .filter(id => currentExpenses[id]._isOptimistic);
+                    
+                    if (optimisticExpenseIds.length > 0) {
+                        Utils.logDebug(`Removing ${optimisticExpenseIds.length} optimistic expenses before sync update`);
+                        optimisticExpenseIds.forEach(id => {
+                            delete mergedData.expenses[id];
+                        });
+                    }
+                    
                     window.App.currentProject = mergedData;
                     
                     // Trigger UI update if we're on the project page

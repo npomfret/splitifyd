@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>IPFS Writer</h1>
+<textarea id="data" rows="4" cols="50">{"foo":"bar"}</textarea><br>
+<button id="write">Write</button>
+<p>URL: <a id="url" href="#" target="_blank"></a></p>
+
+<script src="https://unpkg.com/ipfs-core/dist/index.min.js"></script>
+<script>
+    (async () => {
+        const ipfs = await window.IpfsCore.create({ preload:{enabled:false} })
+        document.getElementById('write').onclick = async () => {
+            const txt = document.getElementById('data').value
+            const { cid } = await ipfs.add(txt)
+            // use ipfs.io gateway with trailing slash
+            const url = `https://ipfs.io/ipfs/${cid}/`
+            const a = document.getElementById('url')
+            a.href = url
+            a.textContent = url
+        }
+    })()
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timestamp Display Test</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .container { padding: 20px; }
+        .expense-item { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Expense Timestamp Display Test</h1>
+        <div id="test-expenses"></div>
+    </div>
+    
+    <script src="js/utils.js"></script>
+    <script>
+        // Mock project data
+        const App = {
+            currentProject: {
+                members: {
+                    'member-123': { name: 'Alice' },
+                    'member-456': { name: 'Bob' }
+                }
+            },
+            currentUser: { id: 'user-123' }
+        };
+        
+        // Create test expense element
+        function createExpenseElement(expenseId, expense) {
+            const div = document.createElement('div');
+            div.className = 'expense-item';
+            
+            const payer = App.currentProject.members[expense.paidBy];
+            const payerName = payer ? payer.name : 'Unknown';
+            
+            const splitNames = expense.splitBetween
+                .map(id => App.currentProject.members[id]?.name || 'Unknown')
+                .join(', ');
+            
+            const savingIndicator = expense._isOptimistic ? '<span class="saving-indicator">💾</span>' : '';
+            
+            // Format timestamp
+            const timestamp = expense.created ? new Date(expense.created) : new Date();
+            const timeString = timestamp.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            div.innerHTML = `
+                <div class="expense-header">
+                    <div>
+                        <div class="expense-description">${expense.description} ${savingIndicator}</div>
+                        <div class="expense-details">
+                            Paid by ${payerName} • Split between ${splitNames}
+                        </div>
+                        <div class="expense-timestamp">${timeString}</div>
+                    </div>
+                    <div class="expense-amount">${Utils.formatCurrency(expense.amount, expense.currency)}</div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        // Create test expenses with different timestamps
+        const testExpenses = [
+            {
+                id: 'exp1',
+                description: 'Lunch at Restaurant',
+                amount: 45.50,
+                currency: 'USD',
+                paidBy: 'member-123',
+                splitBetween: ['member-123', 'member-456'],
+                created: new Date().toISOString(),
+                createdBy: 'user-123'
+            },
+            {
+                id: 'exp2',
+                description: 'Coffee',
+                amount: 12.00,
+                currency: 'USD',
+                paidBy: 'member-456',
+                splitBetween: ['member-123', 'member-456'],
+                created: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+                createdBy: 'user-123'
+            },
+            {
+                id: 'exp3',
+                description: 'Groceries',
+                amount: 78.25,
+                currency: 'USD',
+                paidBy: 'member-123',
+                splitBetween: ['member-123', 'member-456'],
+                created: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                createdBy: 'user-456'
+            }
+        ];
+        
+        // Display test expenses
+        const container = document.getElementById('test-expenses');
+        testExpenses.forEach(expense => {
+            const el = createExpenseElement(expense.id, expense);
+            container.appendChild(el);
+        });
+        
+        console.log('Test expenses created with timestamps:');
+        testExpenses.forEach(exp => {
+            console.log(`${exp.description}: ${new Date(exp.created).toLocaleString()}`);
+        });
+    </script>
+</body>
+</html>
