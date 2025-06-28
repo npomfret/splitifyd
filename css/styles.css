@@ -508,6 +508,7 @@ select:focus {
 .expense-timestamp {
     font-size: 0.75em;
     color: #999;
-    margin-left: 8px;
+    margin-top: 2px;
     font-weight: normal;
+    display: block;
 }

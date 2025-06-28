@@ -295,8 +295,8 @@ function createExpenseElement(expenseId, expense) {
                 <div class="expense-description">${expense.description} ${savingIndicator}</div>
                 <div class="expense-details">
                     Paid by ${payerName} • Split between ${splitNames}
-                    <span class="expense-timestamp">${timeString}</span>
                 </div>
+                <div class="expense-timestamp">${timeString}</div>
             </div>
             <div class="expense-amount">${Utils.formatCurrency(expense.amount, expense.currency)}</div>
         </div>
