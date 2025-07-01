@@ -99,6 +99,9 @@ You will analyse the code using the following guidelines:
     - in general, it is ok to let exceptions bubble out.  if we have a bug we want to know about it and the app should crash
     - catch and log is fine in some places, but we always want to be in a **known state**
 
+16. **Find and fix questionable technology choices**
+    - explain the problem, suggest an improvement. Be brief.
+
 ## Focus Areas
 - Prioritize changes that improve code clarity and maintainability
 - Ensure all functionality remains exactly the same
