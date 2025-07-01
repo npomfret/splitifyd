@@ -95,12 +95,7 @@ export const authenticate = async (
 
     try {
       // Verify the token
-      logger.debug('Verifying token with Firebase Auth...');
-      logger.debug('Auth emulator host:', process.env.FIREBASE_AUTH_EMULATOR_HOST || 'production');
-      
       const decodedToken = await admin.auth().verifyIdToken(token);
-      
-      logger.success('Token verified successfully for user:', decodedToken.uid);
       
       // Attach user information to request
       req.user = {
@@ -116,8 +111,6 @@ export const authenticate = async (
       next();
     } catch (error) {
       logger.error('Token verification failed:', error);
-      logger.debug('Token length:', token.length);
-      logger.debug('Token preview:', token.substring(0, 50) + '...');
       return sendError(res, Errors.INVALID_TOKEN());
     }
   } catch (error) {
