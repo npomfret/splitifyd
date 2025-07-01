@@ -41,6 +41,7 @@ You will analyse the code using the following guidelines:
     - Use long lines when they're clearer than wrapped versions
     - Keep natural breaks at logical boundaries
     - Maintain readability as the primary concern
+    - certain code patterns, like function-chaining, can benefit greatly from line wrapping
 
 7. **Performance & Efficiency**
     - Replace inefficient algorithms or data structures
