@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
+import { CONFIG } from '../config/constants';
+import { logger } from '../utils/logger';
 
 /**
  * Extended Express Request with user information
@@ -20,12 +22,19 @@ class RateLimiter {
   private readonly windowMs: number;
   private readonly maxRequests: number;
 
-  constructor(windowMs: number = 60000, maxRequests: number = 10) {
+  private cleanupInterval?: NodeJS.Timeout;
+
+  constructor(windowMs: number = CONFIG.RATE_LIMIT.WINDOW_MS, maxRequests: number = CONFIG.RATE_LIMIT.MAX_REQUESTS) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
     
-    // Clean up old entries every minute
-    setInterval(() => this.cleanup(), 60000);
+    this.cleanupInterval = setInterval(() => this.cleanup(), CONFIG.RATE_LIMIT.CLEANUP_INTERVAL_MS);
+  }
+
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
   }
 
   isAllowed(userId: string): boolean {
@@ -59,8 +68,8 @@ class RateLimiter {
   }
 }
 
-// Initialize rate limiter (10 requests per minute)
-const rateLimiter = new RateLimiter(60000, 10);
+// Initialize rate limiter
+const rateLimiter = new RateLimiter();
 
 /**
  * Verify Firebase Auth token and attach user to request
@@ -86,12 +95,12 @@ export const authenticate = async (
 
     try {
       // Verify the token
-      console.log('🔐 Verifying token with Firebase Auth...');
-      console.log('🔐 Auth emulator host:', process.env.FIREBASE_AUTH_EMULATOR_HOST || 'production');
+      logger.debug('Verifying token with Firebase Auth...');
+      logger.debug('Auth emulator host:', process.env.FIREBASE_AUTH_EMULATOR_HOST || 'production');
       
       const decodedToken = await admin.auth().verifyIdToken(token);
       
-      console.log('✅ Token verified successfully for user:', decodedToken.uid);
+      logger.success('Token verified successfully for user:', decodedToken.uid);
       
       // Attach user information to request
       req.user = {
@@ -106,13 +115,13 @@ export const authenticate = async (
 
       next();
     } catch (error) {
-      console.error('❌ Token verification failed:', error);
-      console.error('❌ Token length:', token.length);
-      console.error('❌ Token preview:', token.substring(0, 50) + '...');
+      logger.error('Token verification failed:', error);
+      logger.debug('Token length:', token.length);
+      logger.debug('Token preview:', token.substring(0, 50) + '...');
       return sendError(res, Errors.INVALID_TOKEN());
     }
   } catch (error) {
-    console.error('Authentication middleware error:', error);
+    logger.error('Authentication middleware error:', error);
     return sendError(res, Errors.INTERNAL_ERROR());
   }
 };
@@ -138,13 +147,13 @@ export const optionalAuth = async (
         };
       } catch (error) {
         // Token is invalid, but we don't fail the request
-        console.warn('Invalid token in optional auth:', error);
+        logger.warn('Invalid token in optional auth:', error);
       }
     }
     
     next();
   } catch (error) {
-    console.error('Optional auth middleware error:', error);
+    logger.error('Optional auth middleware error:', error);
     next();
   }
 };

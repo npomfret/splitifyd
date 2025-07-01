@@ -3,6 +3,9 @@ import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
 import { authenticate } from './auth/middleware';
+import { CONFIG } from './config/constants';
+import { createAuthenticatedFunction } from './utils/function-factory';
+import { logger } from './utils/logger';
 import {
   createDocument,
   getDocument,
@@ -14,18 +17,18 @@ import {
 // Initialize Firebase Admin
 const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true' || process.env.NODE_ENV === 'development';
 
-console.log('🔍 Environment check:');
-console.log('  FUNCTIONS_EMULATOR:', process.env.FUNCTIONS_EMULATOR);
-console.log('  NODE_ENV:', process.env.NODE_ENV);
-console.log('  Is emulator:', isEmulator);
+logger.debug('Environment check:');
+logger.debug('  FUNCTIONS_EMULATOR:', process.env.FUNCTIONS_EMULATOR);
+logger.debug('  NODE_ENV:', process.env.NODE_ENV);
+logger.debug('  Is emulator:', isEmulator);
 
 if (isEmulator) {
   // Running in emulator - configure to use local Auth emulator
   process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
-  console.log('🔧 Configuring Firebase Admin for emulator environment');
-  console.log('🔧 FIREBASE_AUTH_EMULATOR_HOST set to:', process.env.FIREBASE_AUTH_EMULATOR_HOST);
+  logger.debug('Configuring Firebase Admin for emulator environment');
+  logger.debug('FIREBASE_AUTH_EMULATOR_HOST set to:', process.env.FIREBASE_AUTH_EMULATOR_HOST);
 } else {
-  console.log('🌐 Using production Firebase Auth');
+  logger.info('Using production Firebase Auth');
 }
 
 admin.initializeApp();
@@ -34,21 +37,16 @@ admin.initializeApp();
 const app = express();
 
 // Configure CORS
-const corsOptions = {
-  origin: true, // Allow all origins in development, configure specific origins in production
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+const corsOptions = CONFIG.CORS;
 
 app.use(cors(corsOptions));
 
 // Parse JSON bodies
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: CONFIG.REQUEST.BODY_LIMIT }));
 
 // Request logging middleware
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  logger.debug(`${req.method} ${req.path}`);
   next();
 });
 
@@ -76,7 +74,7 @@ app.use((req: express.Request, res: express.Response) => {
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
+  logger.error('Unhandled error:', err);
   res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
@@ -88,45 +86,9 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Export the Express app as a Cloud Function
 export const api = functions.https.onRequest(app);
 
-// Individual function exports for better cold start performance (optional)
-const corsMiddleware = cors(corsOptions);
-
-export const createDocumentFn = functions.https.onRequest((req, res) => {
-  corsMiddleware(req, res, () => {
-    authenticate(req as any, res, () => {
-      createDocument(req as any, res);
-    });
-  });
-});
-
-export const getDocumentFn = functions.https.onRequest((req, res) => {
-  corsMiddleware(req, res, () => {
-    authenticate(req as any, res, () => {
-      getDocument(req as any, res);
-    });
-  });
-});
-
-export const updateDocumentFn = functions.https.onRequest((req, res) => {
-  corsMiddleware(req, res, () => {
-    authenticate(req as any, res, () => {
-      updateDocument(req as any, res);
-    });
-  });
-});
-
-export const deleteDocumentFn = functions.https.onRequest((req, res) => {
-  corsMiddleware(req, res, () => {
-    authenticate(req as any, res, () => {
-      deleteDocument(req as any, res);
-    });
-  });
-});
-
-export const listDocumentsFn = functions.https.onRequest((req, res) => {
-  corsMiddleware(req, res, () => {
-    authenticate(req as any, res, () => {
-      listDocuments(req as any, res);
-    });
-  });
-});
+// Individual function exports for better cold start performance
+export const createDocumentFn = createAuthenticatedFunction(createDocument);
+export const getDocumentFn = createAuthenticatedFunction(getDocument);
+export const updateDocumentFn = createAuthenticatedFunction(updateDocument);
+export const deleteDocumentFn = createAuthenticatedFunction(deleteDocument);
+export const listDocumentsFn = createAuthenticatedFunction(listDocuments);

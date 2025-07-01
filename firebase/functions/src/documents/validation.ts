@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
+import { CONFIG } from '../config/constants';
 
 /**
  * Document structure
@@ -26,10 +27,6 @@ export interface UpdateDocumentRequest {
   data: any;
 }
 
-/**
- * Maximum document size in bytes (1MB)
- */
-const MAX_DOCUMENT_SIZE = 1024 * 1024;
 
 /**
  * Calculate size of JSON object in bytes
@@ -68,7 +65,7 @@ export const validateCreateDocument = (body: any): CreateDocumentRequest => {
   }
   
   // Check document size
-  if (getJsonSize(value.data) > MAX_DOCUMENT_SIZE) {
+  if (getJsonSize(value.data) > CONFIG.DOCUMENT.MAX_SIZE_BYTES) {
     throw Errors.DOCUMENT_TOO_LARGE();
   }
   
@@ -86,7 +83,7 @@ export const validateUpdateDocument = (body: any): UpdateDocumentRequest => {
   }
   
   // Check document size
-  if (getJsonSize(value.data) > MAX_DOCUMENT_SIZE) {
+  if (getJsonSize(value.data) > CONFIG.DOCUMENT.MAX_SIZE_BYTES) {
     throw Errors.DOCUMENT_TOO_LARGE();
   }
   
@@ -135,8 +132,8 @@ export const sanitizeDocumentData = (data: any): any => {
  */
 export const createDocumentPreview = (data: any): string => {
   const jsonString = JSON.stringify(data);
-  if (jsonString.length <= 100) {
+  if (jsonString.length <= CONFIG.DOCUMENT.PREVIEW_LENGTH) {
     return jsonString;
   }
-  return jsonString.substring(0, 97) + '...';
+  return jsonString.substring(0, CONFIG.DOCUMENT.PREVIEW_LENGTH - 3) + '...';
 };

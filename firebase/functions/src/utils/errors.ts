@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { logger } from './logger';
 
 /**
  * Standard error response interface
@@ -40,7 +41,7 @@ export const sendError = (res: Response, error: ApiError | Error): void => {
     } as ErrorResponse);
   } else {
     // Generic error handling
-    console.error('Unexpected error:', error);
+    logger.error('Unexpected error:', error);
     res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',

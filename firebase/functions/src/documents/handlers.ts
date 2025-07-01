@@ -2,6 +2,7 @@ import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors, sendError } from '../utils/errors';
+import { CONFIG } from '../config/constants';
 import {
   validateCreateDocument,
   validateUpdateDocument,
@@ -214,7 +215,7 @@ export const listDocuments = async (
     const snapshot = await getDocumentsCollection()
       .where('userId', '==', req.user.uid)
       .orderBy('updatedAt', 'desc')
-      .limit(100) // Limit to prevent excessive data transfer
+      .limit(CONFIG.DOCUMENT.LIST_LIMIT)
       .get();
 
     const documents = snapshot.docs.map(doc => {
