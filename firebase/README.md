@@ -1,4 +1,4 @@
-# Firebase JSON Backend
+# Firebase Backend
 
 A complete Firebase backend system with Cloud Functions for storing and retrieving JSON documents, including authentication and a test interface.
 
@@ -44,7 +44,7 @@ A complete Firebase backend system with Cloud Functions for storing and retrievi
 ### 1. Clone and Install Dependencies
 
 ```bash
-cd firebase-json-backend
+cd backend
 
 # Install root dependencies
 npm install

@@ -20,7 +20,7 @@ Create a complete Firebase backend system with Cloud Functions for storing and r
 ## Project Structure
 Create the following structure:
 ```
-firebase-json-backend/
+backend/
 ├── functions/
 │   ├── src/
 │   │   ├── index.ts

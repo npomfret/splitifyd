@@ -1,5 +1,5 @@
 {
-  "name": "firebase-json-backend",
+  "name": "backend",
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
