@@ -12,6 +12,17 @@ import {
   Document,
 } from './validation';
 
+type HandlerFunction = (req: AuthenticatedRequest, res: Response) => Promise<void>;
+
+const withErrorHandling = (handler: HandlerFunction): HandlerFunction => 
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      await handler(req, res);
+    } catch (error) {
+      sendError(res, error as Error);
+    }
+  };
+
 // Firestore references will be initialized inside functions
 let documentsCollection: admin.firestore.CollectionReference | null = null;
 
@@ -49,163 +60,143 @@ const fetchUserDocument = async (documentId: string, userId: string): Promise<{ 
 /**
  * Create a new document
  */
-export const createDocument = async (
+export const createDocument = withErrorHandling(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const userId = validateUserAuth(req);
+  const userId = validateUserAuth(req);
 
-    // Validate request body
-    const { data } = validateCreateDocument(req.body);
-    
-    // Sanitize document data
-    const sanitizedData = sanitizeDocumentData(data);
+  // Validate request body
+  const { data } = validateCreateDocument(req.body);
+  
+  // Sanitize document data
+  const sanitizedData = sanitizeDocumentData(data);
 
-    // Create document
-    const now = new Date();
-    const docRef = getDocumentsCollection().doc();
-    const document: Document = {
-      id: docRef.id,
-      userId,
-      data: sanitizedData,
-      createdAt: now,
-      updatedAt: now,
-    };
+  // Create document
+  const now = new Date();
+  const docRef = getDocumentsCollection().doc();
+  const document: Document = {
+    id: docRef.id,
+    userId,
+    data: sanitizedData,
+    createdAt: now,
+    updatedAt: now,
+  };
 
-    await docRef.set(document);
+  await docRef.set(document);
 
-    res.status(201).json({
-      id: docRef.id,
-      message: 'Document created successfully',
-    });
-  } catch (error) {
-    sendError(res, error as Error);
-  }
-};
+  res.status(201).json({
+    id: docRef.id,
+    message: 'Document created successfully',
+  });
+});
 
 /**
  * Get a single document by ID
  */
-export const getDocument = async (
+export const getDocument = withErrorHandling(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const userId = validateUserAuth(req);
+  const userId = validateUserAuth(req);
 
-    // Validate document ID
-    const documentId = validateDocumentId(req.query.id);
+  // Validate document ID
+  const documentId = validateDocumentId(req.query.id);
 
-    // Fetch and verify document ownership
-    const { docRef, document } = await fetchUserDocument(documentId, userId);
+  // Fetch and verify document ownership
+  const { docRef, document } = await fetchUserDocument(documentId, userId);
 
-    res.json({
-      id: docRef.id,
-      data: document.data,
-      createdAt: document.createdAt,
-      updatedAt: document.updatedAt,
-    });
-  } catch (error) {
-    sendError(res, error as Error);
-  }
-};
+  res.json({
+    id: docRef.id,
+    data: document.data,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+  });
+});
 
 /**
  * Update an existing document
  */
-export const updateDocument = async (
+export const updateDocument = withErrorHandling(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const userId = validateUserAuth(req);
+  const userId = validateUserAuth(req);
 
-    // Validate document ID
-    const documentId = validateDocumentId(req.query.id);
+  // Validate document ID
+  const documentId = validateDocumentId(req.query.id);
 
-    // Validate request body
-    const { data } = validateUpdateDocument(req.body);
-    
-    // Sanitize document data
-    const sanitizedData = sanitizeDocumentData(data);
+  // Validate request body
+  const { data } = validateUpdateDocument(req.body);
+  
+  // Sanitize document data
+  const sanitizedData = sanitizeDocumentData(data);
 
-    // Fetch and verify document ownership
-    const { docRef } = await fetchUserDocument(documentId, userId);
+  // Fetch and verify document ownership
+  const { docRef } = await fetchUserDocument(documentId, userId);
 
-    // Update document
-    await docRef.update({
-      data: sanitizedData,
-      updatedAt: new Date(),
-    });
+  // Update document
+  await docRef.update({
+    data: sanitizedData,
+    updatedAt: new Date(),
+  });
 
-    res.json({
-      message: 'Document updated successfully',
-    });
-  } catch (error) {
-    sendError(res, error as Error);
-  }
-};
+  res.json({
+    message: 'Document updated successfully',
+  });
+});
 
 /**
  * Delete a document
  */
-export const deleteDocument = async (
+export const deleteDocument = withErrorHandling(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const userId = validateUserAuth(req);
+  const userId = validateUserAuth(req);
 
-    // Validate document ID
-    const documentId = validateDocumentId(req.query.id);
+  // Validate document ID
+  const documentId = validateDocumentId(req.query.id);
 
-    // Fetch and verify document ownership
-    const { docRef } = await fetchUserDocument(documentId, userId);
+  // Fetch and verify document ownership
+  const { docRef } = await fetchUserDocument(documentId, userId);
 
-    // Delete document
-    await docRef.delete();
+  // Delete document
+  await docRef.delete();
 
-    res.json({
-      message: 'Document deleted successfully',
-    });
-  } catch (error) {
-    sendError(res, error as Error);
-  }
-};
+  res.json({
+    message: 'Document deleted successfully',
+  });
+});
 
 /**
  * List all documents for the authenticated user
  */
-export const listDocuments = async (
+export const listDocuments = withErrorHandling(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const userId = validateUserAuth(req);
+  const userId = validateUserAuth(req);
 
-    // Query user's documents
-    const snapshot = await getDocumentsCollection()
-      .where('userId', '==', userId)
-      .orderBy('updatedAt', 'desc')
-      .limit(CONFIG.DOCUMENT.LIST_LIMIT)
-      .get();
+  // Query user's documents
+  const snapshot = await getDocumentsCollection()
+    .where('userId', '==', userId)
+    .orderBy('updatedAt', 'desc')
+    .limit(CONFIG.DOCUMENT.LIST_LIMIT)
+    .get();
 
-    const documents = snapshot.docs.map(doc => {
-      const data = doc.data() as Document;
-      return {
-        id: doc.id,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        preview: createDocumentPreview(data.data),
-      };
-    });
+  const documents = snapshot.docs.map(doc => {
+    const data = doc.data() as Document;
+    return {
+      id: doc.id,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      preview: createDocumentPreview(data.data),
+    };
+  });
 
-    res.json({
-      documents,
-      count: documents.length,
-    });
-  } catch (error) {
-    sendError(res, error as Error);
-  }
-};
+  res.json({
+    documents,
+    count: documents.length,
+  });
+});
