@@ -7,7 +7,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  connectAuthEmulator
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -24,13 +25,20 @@ const firebaseConfig = {
   measurementId: "G-GFHKC94PRE"
 };
 
+// API Configuration  
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// API Configuration  
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+// Connect to auth emulator if running locally
+if (isLocal) {
+  console.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
+  connectAuthEmulator(auth, 'http://localhost:9099');
+}
+
 const API_BASE_URL = isLocal
   ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1`
   : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
