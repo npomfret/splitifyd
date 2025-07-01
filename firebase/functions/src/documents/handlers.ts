@@ -182,14 +182,14 @@ export const listDocuments = withErrorHandling(async (
   const cursor = req.query.cursor as string;
   const order = (req.query.order as string) === 'asc' ? 'asc' : 'desc';
 
-  // Build query
-  let query = getDocumentsCollection()
+  // Build base query
+  const baseQuery = getDocumentsCollection()
     .where('userId', '==', userId)
     .orderBy('updatedAt', order)
     .limit(limit + 1); // Get one extra to check if there are more pages
 
   // Apply cursor if provided
-  if (cursor) {
+  const query = cursor ? (() => {
     try {
       // Decode cursor (base64 encoded timestamp)
       const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
@@ -197,8 +197,9 @@ export const listDocuments = withErrorHandling(async (
       
       if (cursorData.updatedAt) {
         const cursorTimestamp = new Date(cursorData.updatedAt);
-        query = query.startAfter(cursorTimestamp);
+        return baseQuery.startAfter(cursorTimestamp);
       }
+      return baseQuery;
     } catch (error) {
       logger.warn('Invalid cursor provided', {
         correlationId: req.headers['x-correlation-id'] as string,
@@ -206,8 +207,9 @@ export const listDocuments = withErrorHandling(async (
         userId,
       });
       // Continue without cursor if it's invalid
+      return baseQuery;
     }
-  }
+  })() : baseQuery;
 
   const snapshot = await query.get();
   
