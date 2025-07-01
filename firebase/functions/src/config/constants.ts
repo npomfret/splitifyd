@@ -25,6 +25,7 @@ export const CONFIG = {
     MAX_OBJECT_DEPTH: ENV_CONFIG.security.validation.maxObjectDepth,
     MAX_STRING_LENGTH: ENV_CONFIG.security.validation.maxStringLength,
     MAX_PROPERTY_COUNT: ENV_CONFIG.security.validation.maxPropertyCount,
+    MAX_PROPERTY_NAME_LENGTH: ENV_CONFIG.security.validation.maxPropertyNameLength,
   },
   LOGGING: {
     LEVEL: ENV_CONFIG.logging.level,

@@ -42,6 +42,7 @@ export interface EnvironmentConfig {
       maxObjectDepth: number;
       maxStringLength: number;
       maxPropertyCount: number;
+      maxPropertyNameLength: number;
     };
   };
   monitoring: {
@@ -174,6 +175,7 @@ export function createEnvironmentConfig(): EnvironmentConfig {
       maxObjectDepth: parseInteger(process.env.MAX_OBJECT_DEPTH, 10),
       maxStringLength: parseInteger(process.env.MAX_STRING_LENGTH, isProduction ? 50000 : 100000),
       maxPropertyCount: parseInteger(process.env.MAX_PROPERTY_COUNT, isProduction ? 500 : 1000),
+      maxPropertyNameLength: parseInteger(process.env.MAX_PROPERTY_NAME_LENGTH, 200),
     },
   };
 

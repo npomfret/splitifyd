@@ -83,8 +83,8 @@ export const validateRequestStructure = (
           obj.forEach(item => validateStringLengths(item, maxLength));
         } else {
           for (const key in obj) {
-            if (typeof key === 'string' && key.length > 200) {
-              throw Errors.INVALID_INPUT('Property name too long (max 200 characters)');
+            if (typeof key === 'string' && key.length > CONFIG.VALIDATION.MAX_PROPERTY_NAME_LENGTH) {
+              throw Errors.INVALID_INPUT(`Property name too long (max ${CONFIG.VALIDATION.MAX_PROPERTY_NAME_LENGTH} characters)`);
             }
             validateStringLengths(obj[key], maxLength);
           }
