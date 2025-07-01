@@ -29,6 +29,23 @@ const validateUserAuth = (req: AuthenticatedRequest): string => {
   return req.user.uid;
 };
 
+const fetchUserDocument = async (documentId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference, document: Document }> => {
+  const docRef = getDocumentsCollection().doc(documentId);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    throw Errors.NOT_FOUND('Document');
+  }
+
+  const document = doc.data() as Document;
+
+  if (document.userId !== userId) {
+    throw Errors.NOT_FOUND('Document');
+  }
+
+  return { docRef, document };
+};
+
 /**
  * Create a new document
  */
@@ -80,23 +97,11 @@ export const getDocument = async (
     // Validate document ID
     const documentId = validateDocumentId(req.query.id);
 
-    // Fetch document
-    const docRef = getDocumentsCollection().doc(documentId);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return sendError(res, Errors.NOT_FOUND('Document'));
-    }
-
-    const document = doc.data() as Document;
-
-    // Verify ownership
-    if (document.userId !== userId) {
-      return sendError(res, Errors.NOT_FOUND('Document'));
-    }
+    // Fetch and verify document ownership
+    const { docRef, document } = await fetchUserDocument(documentId, userId);
 
     res.json({
-      id: doc.id,
+      id: docRef.id,
       data: document.data,
       createdAt: document.createdAt,
       updatedAt: document.updatedAt,
@@ -125,20 +130,8 @@ export const updateDocument = async (
     // Sanitize document data
     const sanitizedData = sanitizeDocumentData(data);
 
-    // Fetch existing document
-    const docRef = getDocumentsCollection().doc(documentId);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return sendError(res, Errors.NOT_FOUND('Document'));
-    }
-
-    const document = doc.data() as Document;
-
-    // Verify ownership
-    if (document.userId !== userId) {
-      return sendError(res, Errors.NOT_FOUND('Document'));
-    }
+    // Fetch and verify document ownership
+    const { docRef } = await fetchUserDocument(documentId, userId);
 
     // Update document
     await docRef.update({
@@ -167,20 +160,8 @@ export const deleteDocument = async (
     // Validate document ID
     const documentId = validateDocumentId(req.query.id);
 
-    // Fetch existing document
-    const docRef = getDocumentsCollection().doc(documentId);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return sendError(res, Errors.NOT_FOUND('Document'));
-    }
-
-    const document = doc.data() as Document;
-
-    // Verify ownership
-    if (document.userId !== userId) {
-      return sendError(res, Errors.NOT_FOUND('Document'));
-    }
+    // Fetch and verify document ownership
+    const { docRef } = await fetchUserDocument(documentId, userId);
 
     // Delete document
     await docRef.delete();
