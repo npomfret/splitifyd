@@ -17,7 +17,7 @@ import {
 const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true' || process.env.NODE_ENV === 'development';
 
 if (isEmulator) {
-  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = CONFIG.EMULATOR.AUTH_HOST;
 }
 
 admin.initializeApp();

@@ -18,4 +18,7 @@ export const CONFIG = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   },
+  EMULATOR: {
+    AUTH_HOST: 'localhost:9099',
+  },
 };
