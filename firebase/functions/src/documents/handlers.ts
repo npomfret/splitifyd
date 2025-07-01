@@ -22,6 +22,13 @@ const getDocumentsCollection = () => {
   return documentsCollection;
 };
 
+const validateUserAuth = (req: AuthenticatedRequest): string => {
+  if (!req.user) {
+    throw Errors.UNAUTHORIZED();
+  }
+  return req.user.uid;
+};
+
 /**
  * Create a new document
  */
@@ -30,10 +37,7 @@ export const createDocument = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Validate user authentication
-    if (!req.user) {
-      return sendError(res, Errors.UNAUTHORIZED());
-    }
+    const userId = validateUserAuth(req);
 
     // Validate request body
     const { data } = validateCreateDocument(req.body);
@@ -46,7 +50,7 @@ export const createDocument = async (
     const docRef = getDocumentsCollection().doc();
     const document: Document = {
       id: docRef.id,
-      userId: req.user.uid,
+      userId,
       data: sanitizedData,
       createdAt: now,
       updatedAt: now,
@@ -71,10 +75,7 @@ export const getDocument = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Validate user authentication
-    if (!req.user) {
-      return sendError(res, Errors.UNAUTHORIZED());
-    }
+    const userId = validateUserAuth(req);
 
     // Validate document ID
     const documentId = validateDocumentId(req.query.id);
@@ -90,7 +91,7 @@ export const getDocument = async (
     const document = doc.data() as Document;
 
     // Verify ownership
-    if (document.userId !== req.user.uid) {
+    if (document.userId !== userId) {
       return sendError(res, Errors.NOT_FOUND('Document'));
     }
 
@@ -113,10 +114,7 @@ export const updateDocument = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Validate user authentication
-    if (!req.user) {
-      return sendError(res, Errors.UNAUTHORIZED());
-    }
+    const userId = validateUserAuth(req);
 
     // Validate document ID
     const documentId = validateDocumentId(req.query.id);
@@ -138,7 +136,7 @@ export const updateDocument = async (
     const document = doc.data() as Document;
 
     // Verify ownership
-    if (document.userId !== req.user.uid) {
+    if (document.userId !== userId) {
       return sendError(res, Errors.NOT_FOUND('Document'));
     }
 
@@ -164,10 +162,7 @@ export const deleteDocument = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Validate user authentication
-    if (!req.user) {
-      return sendError(res, Errors.UNAUTHORIZED());
-    }
+    const userId = validateUserAuth(req);
 
     // Validate document ID
     const documentId = validateDocumentId(req.query.id);
@@ -183,7 +178,7 @@ export const deleteDocument = async (
     const document = doc.data() as Document;
 
     // Verify ownership
-    if (document.userId !== req.user.uid) {
+    if (document.userId !== userId) {
       return sendError(res, Errors.NOT_FOUND('Document'));
     }
 
@@ -206,14 +201,11 @@ export const listDocuments = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Validate user authentication
-    if (!req.user) {
-      return sendError(res, Errors.UNAUTHORIZED());
-    }
+    const userId = validateUserAuth(req);
 
     // Query user's documents
     const snapshot = await getDocumentsCollection()
-      .where('userId', '==', req.user.uid)
+      .where('userId', '==', userId)
       .orderBy('updatedAt', 'desc')
       .limit(CONFIG.DOCUMENT.LIST_LIMIT)
       .get();
