@@ -31,7 +31,7 @@ const googleProvider = new GoogleAuthProvider();
 
 // API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5001/YOUR_PROJECT_ID/us-central1'
+  ? 'http://localhost:5001/${firebaseConfig.projectId}/us-central1'
   : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
 
 // Global variables
