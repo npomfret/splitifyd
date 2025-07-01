@@ -12,6 +12,22 @@ import {
 } from './documents/handlers';
 
 // Initialize Firebase Admin
+const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true' || process.env.NODE_ENV === 'development';
+
+console.log('🔍 Environment check:');
+console.log('  FUNCTIONS_EMULATOR:', process.env.FUNCTIONS_EMULATOR);
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+console.log('  Is emulator:', isEmulator);
+
+if (isEmulator) {
+  // Running in emulator - configure to use local Auth emulator
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+  console.log('🔧 Configuring Firebase Admin for emulator environment');
+  console.log('🔧 FIREBASE_AUTH_EMULATOR_HOST set to:', process.env.FIREBASE_AUTH_EMULATOR_HOST);
+} else {
+  console.log('🌐 Using production Firebase Auth');
+}
+
 admin.initializeApp();
 
 // Create Express app

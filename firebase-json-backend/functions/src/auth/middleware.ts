@@ -86,7 +86,12 @@ export const authenticate = async (
 
     try {
       // Verify the token
+      console.log('🔐 Verifying token with Firebase Auth...');
+      console.log('🔐 Auth emulator host:', process.env.FIREBASE_AUTH_EMULATOR_HOST || 'production');
+      
       const decodedToken = await admin.auth().verifyIdToken(token);
+      
+      console.log('✅ Token verified successfully for user:', decodedToken.uid);
       
       // Attach user information to request
       req.user = {
@@ -101,7 +106,9 @@ export const authenticate = async (
 
       next();
     } catch (error) {
-      console.error('Token verification failed:', error);
+      console.error('❌ Token verification failed:', error);
+      console.error('❌ Token length:', token.length);
+      console.error('❌ Token preview:', token.substring(0, 50) + '...');
       return sendError(res, Errors.INVALID_TOKEN());
     }
   } catch (error) {

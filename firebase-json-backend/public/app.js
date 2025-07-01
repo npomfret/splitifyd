@@ -29,14 +29,32 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// API Configuration
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5001/${firebaseConfig.projectId}/us-central1'
+// API Configuration  
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal
+  ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1`
   : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
+
+console.log('Current hostname:', window.location.hostname);
+console.log('Is local environment:', isLocal);
+console.log('API Base URL:', API_BASE_URL);
 
 // Global variables
 let currentUser = null;
 let authToken = null;
+
+// Update debug panel
+function updateDebugPanel() {
+  document.getElementById('debug-hostname').textContent = window.location.hostname + ':' + window.location.port;
+  document.getElementById('debug-is-local').textContent = isLocal ? 'YES' : 'NO';
+  document.getElementById('debug-api-url').textContent = API_BASE_URL;
+  document.getElementById('debug-project-id').textContent = firebaseConfig.projectId;
+  document.getElementById('debug-auth-token').textContent = authToken ? `Present (${authToken.length} chars)` : 'Not available';
+  document.getElementById('debug-current-user').textContent = currentUser ? `${currentUser.email} (${currentUser.uid.substring(0, 8)}...)` : 'Not signed in';
+}
+
+// Initial debug panel update
+updateDebugPanel();
 
 // DOM Elements
 const elements = {
@@ -128,6 +146,16 @@ function loadDraft() {
 
 // API Functions
 async function makeAPICall(endpoint, method = 'GET', body = null) {
+  // Ensure we have a fresh token
+  if (currentUser && !authToken) {
+    console.log('Getting fresh auth token...');
+    authToken = await currentUser.getIdToken();
+  }
+  
+  console.log('Making API call:', method, `${API_BASE_URL}/${endpoint}`);
+  console.log('Auth token present:', !!authToken);
+  console.log('Token length:', authToken ? authToken.length : 0);
+  
   const options = {
     method,
     headers: {
@@ -144,6 +172,7 @@ async function makeAPICall(endpoint, method = 'GET', body = null) {
   const data = await response.json();
   
   if (!response.ok) {
+    console.error('API call failed:', response.status, data);
     throw new Error(data.error?.message || 'API call failed');
   }
   
@@ -328,10 +357,14 @@ document.getElementById('email-register-form').addEventListener('submit', async 
   
   try {
     showLoading();
+    console.log('Attempting to create user with email:', email);
     await createUserWithEmailAndPassword(auth, email, password);
     showMessage('Account created successfully');
   } catch (error) {
-    showMessage(error.message, 'error');
+    console.error('Registration error:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    showMessage(`Registration failed: ${error.message}`, 'error');
   } finally {
     hideLoading();
   }
@@ -388,6 +421,7 @@ onAuthStateChanged(auth, async (user) => {
     // Refresh token every 55 minutes
     setInterval(async () => {
       authToken = await user.getIdToken(true);
+      updateDebugPanel(); // Update debug panel when token refreshes
     }, 55 * 60 * 1000);
     
     showUserInfo();
@@ -396,4 +430,7 @@ onAuthStateChanged(auth, async (user) => {
     showAuthForm('login');
     elements.documentSection.style.display = 'none';
   }
+  
+  // Update debug panel whenever auth state changes
+  updateDebugPanel();
 });
