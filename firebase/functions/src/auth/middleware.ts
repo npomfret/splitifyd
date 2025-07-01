@@ -68,8 +68,12 @@ class RateLimiter {
   }
 }
 
-// Initialize rate limiter
+// Initialize rate limiter with cleanup on process exit
 const rateLimiter = new RateLimiter();
+
+// Cleanup interval on process termination
+process.on('SIGTERM', () => rateLimiter.destroy());
+process.on('SIGINT', () => rateLimiter.destroy());
 
 /**
  * Verify Firebase Auth token and attach user to request
