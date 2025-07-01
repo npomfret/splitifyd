@@ -1,15 +1,17 @@
-# Firebase Backend
+# Firebase JSON Backend
 
-A complete Firebase backend system with Cloud Functions for storing and retrieving JSON documents, including authentication and a test interface.
+A complete Firebase backend system with Cloud Functions for document storage, built with TypeScript, Express, and comprehensive testing. Features secure authentication, rate limiting, and a modern test interface.
 
 ## Features
 
-- **Authentication**: Firebase Auth with email/password and Google sign-in
-- **Document Storage**: Cloud Functions for CRUD operations on JSON documents in Firestore
-- **Security**: Authenticated endpoints with rate limiting and input validation
-- **Testing Interface**: Modern HTML/CSS/JS interface for testing the API
-- **TypeScript**: Fully typed backend code
-- **Testing**: Comprehensive unit tests with Jest
+- **🔐 Authentication**: Firebase Auth with email/password and Google sign-in support
+- **📄 Document Storage**: Full CRUD operations for JSON documents in Firestore
+- **🛡️ Security**: JWT token authentication, rate limiting, and input validation with Joi
+- **🧪 Testing Interface**: Modern responsive web interface for API testing
+- **⚡ TypeScript**: Fully typed backend with strict type checking
+- **🔍 Testing**: Comprehensive unit tests with Jest and 90%+ coverage
+- **🚀 Development**: Local emulator support with hot reloading
+- **📊 Monitoring**: Request logging and error tracking
 
 ## Architecture Overview
 
@@ -17,8 +19,8 @@ A complete Firebase backend system with Cloud Functions for storing and retrievi
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │                 │     │                  │     │                 │
 │  Web Interface  │────▶│  Cloud Functions │────▶│    Firestore    │
-│   (Firebase     │     │   (Express +     │     │   (Document     │
-│    Hosting)     │◀────│    Firebase)     │◀────│    Storage)     │
+│   (Port 5002)   │     │   (Express API)  │     │   (Port 8080)   │
+│                 │◀────│   (Port 5001)    │◀────│                 │
 │                 │     │                  │     │                 │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
          │                       │
@@ -27,11 +29,19 @@ A complete Firebase backend system with Cloud Functions for storing and retrievi
                      │
               ┌──────▼──────┐
               │             │
-              │  Firebase   │
-              │    Auth     │
+              │ Firebase    │
+              │ Auth        │
+              │ (Port 9099) │
               │             │
               └─────────────┘
 ```
+
+### Key Components
+
+- **Express API**: TypeScript-based REST API with middleware for auth and CORS
+- **Firebase Auth**: JWT token-based authentication with emulator support
+- **Firestore**: NoSQL document database with security rules
+- **Test Interface**: HTML/CSS/JS frontend for manual API testing
 
 ## Setup Instructions
 
@@ -44,7 +54,8 @@ A complete Firebase backend system with Cloud Functions for storing and retrievi
 ### 1. Clone and Install Dependencies
 
 ```bash
-cd backend
+# Navigate to the Firebase project directory
+cd firebase
 
 # Install root dependencies
 npm install
@@ -95,11 +106,11 @@ npm run build:watch
 ```
 
 The emulators will start:
-- Functions: http://localhost:5001
-- Firestore: http://localhost:8080
-- Auth: http://localhost:9099
-- Hosting: http://localhost:5000
-- Emulator UI: http://localhost:4000
+- **Hosting (Test Interface)**: http://localhost:5002
+- **Functions API**: http://localhost:5001
+- **Firestore Database**: http://localhost:8080
+- **Firebase Auth**: http://localhost:9099
+- **Emulator UI Dashboard**: http://localhost:4000
 
 ### 4. Running Tests
 
@@ -132,10 +143,23 @@ npm run deploy:rules
 
 ## API Documentation
 
+Base URL: `http://localhost:5001/{project-id}/us-central1/api` (local) or `https://us-central1-{project-id}.cloudfunctions.net/api` (production)
+
 All endpoints require authentication via Firebase Auth token in the Authorization header:
 ```
 Authorization: Bearer <firebase-id-token>
 ```
+
+### Available Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check (no auth required) |
+| POST | `/createDocument` | Create a new document |
+| GET | `/getDocument?id={id}` | Retrieve a document by ID |
+| PUT | `/updateDocument?id={id}` | Update an existing document |
+| DELETE | `/deleteDocument?id={id}` | Delete a document |
+| GET | `/listDocuments` | List all user's documents |
 
 ### Create Document
 ```
@@ -270,11 +294,13 @@ Tests are located in `functions/__tests__/` and cover:
 - Error handling
 
 ### Manual Testing
-1. Open http://localhost:5000 in your browser
-2. Create an account or sign in with Google
-3. Use the JSON editor to create documents
-4. Test all CRUD operations
-5. Verify rate limiting by making rapid requests
+1. Open http://localhost:5002 in your browser
+2. Check the debug panel to verify emulator connections
+3. Create an account or sign in with Google
+4. Use the JSON editor to create documents
+5. Test all CRUD operations with the provided buttons
+6. Verify rate limiting by making rapid requests
+7. Check the browser console for detailed logs
 
 ### Integration Testing with Emulators
 The Firebase emulators provide a complete local environment:
@@ -294,35 +320,86 @@ The Firebase emulators provide a complete local environment:
 
 ### Common Issues
 
-1. **"Permission denied" errors**
-   - Check Firestore security rules
-   - Verify authentication token is valid
-   - Ensure document has correct userId
+1. **401 Unauthorized errors**
+   - Frontend and backend must use same auth emulator
+   - Check if `connectAuthEmulator` is called in frontend
+   - Verify bearer token format: `Bearer <token>`
+   - Auth emulator starts with empty user database
 
-2. **"Function not found" errors**
-   - Verify functions are deployed
-   - Check function names in firebase.json
-   - Ensure project ID is correct
+2. **400 Bad Request on login**
+   - Create a new account first (auth emulator has no users initially)
+   - Check Firebase configuration in `public/app.js`
+   - Verify auth emulator is running on port 9099
 
 3. **CORS errors**
    - Verify allowed origins in CORS configuration
-   - Check authentication headers
-   - Use proper Content-Type headers
+   - Check authentication headers are properly set
+   - Use proper Content-Type headers for JSON requests
+
+4. **Function deployment issues**
+   - Run `npm run build` in functions directory first
+   - Check function names match exports in `index.ts`
+   - Verify project ID is correct in `.firebaserc`
+
+5. **Emulator connection issues**
+   - Check ports aren't in use by other services
+   - Restart emulators with `firebase emulators:start`
+   - Clear browser cache if auth persists between sessions
 
 ### Debugging
 
-- View function logs: `npm run logs`
-- Use Firebase Emulator UI at http://localhost:4000
-- Check browser console for client-side errors
-- Enable verbose logging in functions for debugging
+```bash
+# View function logs
+npm run logs
+
+# Check Firebase CLI version
+firebase --version
+
+# Validate firebase.json configuration
+firebase use --add
+
+# Test functions locally
+cd functions && npm test
+```
+
+- **Emulator UI**: http://localhost:4000 for visual debugging
+- **Browser Console**: Check for client-side JavaScript errors
+- **Function Logs**: Real-time logs visible in terminal during emulator run
+- **Network Tab**: Inspect HTTP requests/responses in browser dev tools
 
 ## Production Considerations
 
 1. **Environment Variables**: Use Firebase functions config for sensitive data
 2. **CORS Origins**: Restrict to specific domains in production
-3. **Rate Limiting**: Consider using Firebase Extensions for persistent rate limiting
+3. **Rate Limiting**: Consider Redis-based rate limiting for persistence across cold starts
 4. **Monitoring**: Set up Firebase Performance Monitoring and Error Reporting
 5. **Backup**: Regular Firestore backups for data recovery
+6. **Security Rules**: Review and test Firestore security rules thoroughly
+7. **Performance**: Consider caching strategies for frequently accessed documents
+8. **Cost Optimization**: Monitor function execution time and optimize for cold starts
+
+## Project Structure
+
+```
+firebase/
+├── functions/                 # Cloud Functions source code
+│   ├── src/
+│   │   ├── auth/             # Authentication middleware
+│   │   ├── documents/        # Document CRUD handlers
+│   │   ├── utils/            # Utility functions and error handling
+│   │   └── index.ts          # Main function exports
+│   ├── __tests__/            # Unit tests
+│   ├── package.json          # Function dependencies
+│   └── tsconfig.json         # TypeScript configuration
+├── public/                   # Static hosting files
+│   ├── index.html           # Test interface
+│   ├── app.js               # Frontend JavaScript
+│   └── style.css            # Styling
+├── firebase.json            # Firebase configuration
+├── firestore.rules          # Firestore security rules
+├── firestore.indexes.json   # Database indexes
+└── package.json            # Root dependencies
+```
 
 ## License
 
