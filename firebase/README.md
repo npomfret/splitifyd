@@ -1,4 +1,4 @@
-# Firebase JSON Backend
+# Firebase Backend
 
 A complete Firebase backend system with Cloud Functions for document storage, built with TypeScript, Express, and comprehensive testing. Features secure authentication, rate limiting, and a modern test interface.
 
