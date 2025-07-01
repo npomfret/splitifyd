@@ -3,6 +3,8 @@
  * Centralizes all environment variable handling and validation
  */
 
+import { logger } from '../utils/logger';
+
 // Environment types
 export type Environment = 'development' | 'test' | 'staging' | 'production';
 
@@ -247,9 +249,10 @@ export function configureEmulators(config: EnvironmentConfig): void {
     process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${config.firebase.emulatorPorts.auth}`;
     process.env.FIRESTORE_EMULATOR_HOST = `localhost:${config.firebase.emulatorPorts.firestore}`;
     
-    console.log(`🔧 Configured Firebase emulators:`);
-    console.log(`   Auth: localhost:${config.firebase.emulatorPorts.auth}`);
-    console.log(`   Firestore: localhost:${config.firebase.emulatorPorts.firestore}`);
+    logger.info('Configured Firebase emulators', {
+      authPort: config.firebase.emulatorPorts.auth,
+      firestorePort: config.firebase.emulatorPorts.firestore,
+    });
   }
 }
 
