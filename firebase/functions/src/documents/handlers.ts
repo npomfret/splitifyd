@@ -11,6 +11,7 @@ import {
   createDocumentPreview,
   Document,
 } from './validation';
+import { logger } from '../utils/logger';
 
 type HandlerFunction = (req: AuthenticatedRequest, res: Response) => Promise<void>;
 
@@ -23,14 +24,9 @@ const withErrorHandling = (handler: HandlerFunction): HandlerFunction =>
     }
   };
 
-// Firestore references will be initialized inside functions
-let documentsCollection: admin.firestore.CollectionReference | null = null;
-
+// Direct Firestore access - no global state
 const getDocumentsCollection = () => {
-  if (!documentsCollection) {
-    documentsCollection = admin.firestore().collection('documents');
-  }
-  return documentsCollection;
+  return admin.firestore().collection('documents');
 };
 
 const validateUserAuth = (req: AuthenticatedRequest): string => {
@@ -170,7 +166,7 @@ export const deleteDocument = withErrorHandling(async (
 });
 
 /**
- * List all documents for the authenticated user
+ * List all documents for the authenticated user with cursor-based pagination
  */
 export const listDocuments = withErrorHandling(async (
   req: AuthenticatedRequest,
@@ -178,25 +174,77 @@ export const listDocuments = withErrorHandling(async (
 ): Promise<void> => {
   const userId = validateUserAuth(req);
 
-  // Query user's documents
-  const snapshot = await getDocumentsCollection()
-    .where('userId', '==', userId)
-    .orderBy('updatedAt', 'desc')
-    .limit(CONFIG.DOCUMENT.LIST_LIMIT)
-    .get();
+  // Parse pagination parameters
+  const limit = Math.min(
+    parseInt(req.query.limit as string) || CONFIG.DOCUMENT.LIST_LIMIT,
+    CONFIG.DOCUMENT.LIST_LIMIT
+  );
+  const cursor = req.query.cursor as string;
+  const order = (req.query.order as string) === 'asc' ? 'asc' : 'desc';
 
-  const documents = snapshot.docs.map(doc => {
-    const data = doc.data() as Document;
-    return {
-      id: doc.id,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-      preview: createDocumentPreview(data.data),
+  // Build query
+  let query = getDocumentsCollection()
+    .where('userId', '==', userId)
+    .orderBy('updatedAt', order)
+    .limit(limit + 1); // Get one extra to check if there are more pages
+
+  // Apply cursor if provided
+  if (cursor) {
+    try {
+      // Decode cursor (base64 encoded timestamp)
+      const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+      const cursorData = JSON.parse(decodedCursor);
+      
+      if (cursorData.updatedAt) {
+        const cursorTimestamp = new Date(cursorData.updatedAt);
+        query = query.startAfter(cursorTimestamp);
+      }
+    } catch (error) {
+      logger.warn('Invalid cursor provided', {
+        correlationId: req.headers['x-correlation-id'] as string,
+        cursor,
+        userId,
+      });
+      // Continue without cursor if it's invalid
+    }
+  }
+
+  const snapshot = await query.get();
+  
+  // Check if there are more pages
+  const hasMore = snapshot.docs.length > limit;
+  const documents = snapshot.docs
+    .slice(0, limit) // Remove the extra document used for pagination check
+    .map(doc => {
+      const data = doc.data() as Document;
+      return {
+        id: doc.id,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        preview: createDocumentPreview(data.data),
+      };
+    });
+
+  // Generate next cursor if there are more pages
+  let nextCursor: string | undefined;
+  if (hasMore && documents.length > 0) {
+    const lastDoc = documents[documents.length - 1];
+    const cursorData = {
+      updatedAt: lastDoc.updatedAt,
+      id: lastDoc.id,
     };
-  });
+    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+  }
 
   res.json({
     documents,
     count: documents.length,
+    hasMore,
+    nextCursor,
+    pagination: {
+      limit,
+      order,
+      totalReturned: documents.length,
+    },
   });
 });

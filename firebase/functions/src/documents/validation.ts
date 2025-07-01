@@ -36,9 +36,39 @@ const getJsonSize = (obj: any): number => {
 };
 
 /**
- * Schema for document data validation
+ * Schema for document data validation - flexible but safe schema
+ * Allows arbitrary JSON structure with security limits
  */
-const documentDataSchema = Joi.any().required();
+const documentDataSchema = Joi.object().pattern(
+  // Allow any property name (with reasonable length limit)
+  Joi.string().max(200),
+  // Allow various data types with security limits
+  Joi.alternatives().try(
+    Joi.string().max(50000),           // Strings up to 50KB
+    Joi.number(),                      // Any number
+    Joi.boolean(),                     // Booleans
+    Joi.date(),                        // Dates
+    Joi.array().items(                 // Arrays
+      Joi.alternatives().try(
+        Joi.string().max(10000),
+        Joi.number(),
+        Joi.boolean(),
+        Joi.date(),
+        Joi.object().max(20)           // Nested objects (limited depth)
+      )
+    ).max(1000),                       // Max 1000 array items
+    Joi.object().pattern(              // Nested objects
+      Joi.string().max(100),
+      Joi.alternatives().try(
+        Joi.string().max(10000),
+        Joi.number(),
+        Joi.boolean(),
+        Joi.date(),
+        Joi.array().max(100)
+      )
+    ).max(100)                         // Max 100 properties in nested objects
+  )
+).min(1).max(500).required();         // At least 1 field, max 500 properties
 
 /**
  * Schema for create document request
@@ -89,26 +119,66 @@ export const validateDocumentId = (id: any): string => {
 
 /**
  * Sanitize document data for safe storage
- * Removes any potentially dangerous properties
+ * Removes dangerous properties and validates structure depth
  */
 export const sanitizeDocumentData = (data: any): any => {
-  // Create a deep copy to avoid modifying the original
-  const sanitized = JSON.parse(JSON.stringify(data));
-  
-  // Remove any properties that start with underscore (internal use)
-  const removeInternalProps = (obj: any): void => {
+  // Validate maximum depth to prevent stack overflow
+  const validateDepth = (obj: any, depth = 0, maxDepth = 10): void => {
+    if (depth > maxDepth) {
+      throw Errors.INVALID_INPUT('Document structure too deep (max 10 levels)');
+    }
+    
     if (obj && typeof obj === 'object') {
       for (const key in obj) {
-        if (key.startsWith('_')) {
-          delete obj[key];
-        } else if (typeof obj[key] === 'object') {
-          removeInternalProps(obj[key]);
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          validateDepth(obj[key], depth + 1, maxDepth);
         }
       }
     }
   };
   
-  removeInternalProps(sanitized);
+  validateDepth(data);
+  
+  // Create a deep copy to avoid modifying the original
+  const sanitized = JSON.parse(JSON.stringify(data));
+  
+  // Remove dangerous properties and patterns
+  const sanitizeObject = (obj: any): void => {
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+      for (const key in obj) {
+        // Remove properties that start with underscore (internal use)
+        // Remove properties that could be dangerous
+        if (key.startsWith('_') || 
+            key.startsWith('$') || 
+            key.includes('__proto__') ||
+            key.includes('constructor') ||
+            key.includes('prototype')) {
+          delete obj[key];
+        } else if (typeof obj[key] === 'string') {
+          // Basic XSS prevention - remove script tags and javascript: protocols
+          obj[key] = obj[key]
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/javascript:/gi, '')
+            .replace(/on\w+\s*=/gi, '');
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          sanitizeObject(obj[key]);
+        }
+      }
+    } else if (Array.isArray(obj)) {
+      obj.forEach((item, index) => {
+        if (typeof item === 'object' && item !== null) {
+          sanitizeObject(item);
+        } else if (typeof item === 'string') {
+          obj[index] = item
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/javascript:/gi, '')
+            .replace(/on\w+\s*=/gi, '');
+        }
+      });
+    }
+  };
+  
+  sanitizeObject(sanitized);
   
   return sanitized;
 };

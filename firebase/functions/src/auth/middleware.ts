@@ -15,65 +15,89 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Simple in-memory rate limiter
+ * Firestore-based distributed rate limiter
  */
-class RateLimiter {
-  private requests: Map<string, number[]> = new Map();
+class FirestoreRateLimiter {
   private readonly windowMs: number;
   private readonly maxRequests: number;
-
-  private cleanupInterval?: NodeJS.Timeout;
+  private readonly collectionName = 'rate_limits';
 
   constructor(windowMs: number = CONFIG.RATE_LIMIT.WINDOW_MS, maxRequests: number = CONFIG.RATE_LIMIT.MAX_REQUESTS) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
-    
-    this.cleanupInterval = setInterval(() => this.cleanup(), CONFIG.RATE_LIMIT.CLEANUP_INTERVAL_MS);
   }
 
-  destroy(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
+  async isAllowed(userId: string): Promise<boolean> {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    
+    const db = admin.firestore();
+    const userRateLimitRef = db.collection(this.collectionName).doc(userId);
+    
+    try {
+      const result = await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(userRateLimitRef);
+        
+        let requests: number[] = [];
+        if (doc.exists) {
+          const data = doc.data();
+          requests = data?.requests || [];
+        }
+        
+        // Filter out requests outside the window
+        const recentRequests = requests.filter(time => time > windowStart);
+        
+        if (recentRequests.length >= this.maxRequests) {
+          return false;
+        }
+        
+        // Add current request and update document
+        recentRequests.push(now);
+        
+        transaction.set(userRateLimitRef, {
+          requests: recentRequests,
+          lastUpdated: now,
+        }, { merge: true });
+        
+        return true;
+      });
+      
+      return result;
+    } catch (error) {
+      logger.errorWithContext('Rate limiter error', error as Error, { userId });
+      // Fail open - allow request if rate limiter fails
+      return true;
     }
   }
 
-  isAllowed(userId: string): boolean {
-    const now = Date.now();
-    const userRequests = this.requests.get(userId) || [];
+  // Cleanup old rate limit documents (should be called periodically)
+  async cleanup(): Promise<void> {
+    const cutoff = Date.now() - (this.windowMs * 2); // Keep documents for 2x window period
+    const db = admin.firestore();
     
-    // Filter out requests outside the window
-    const recentRequests = userRequests.filter(time => now - time < this.windowMs);
-    
-    if (recentRequests.length >= this.maxRequests) {
-      return false;
-    }
-    
-    // Add current request
-    recentRequests.push(now);
-    this.requests.set(userId, recentRequests);
-    
-    return true;
-  }
-
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [userId, requests] of this.requests.entries()) {
-      const recentRequests = requests.filter(time => now - time < this.windowMs);
-      if (recentRequests.length === 0) {
-        this.requests.delete(userId);
-      } else {
-        this.requests.set(userId, recentRequests);
+    try {
+      const query = db.collection(this.collectionName)
+        .where('lastUpdated', '<', cutoff)
+        .limit(100);
+      
+      const snapshot = await query.get();
+      
+      if (!snapshot.empty) {
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+        logger.debug(`Cleaned up ${snapshot.size} old rate limit documents`);
       }
+    } catch (error) {
+      logger.errorWithContext('Rate limiter cleanup error', error as Error);
     }
   }
 }
 
-// Initialize rate limiter with cleanup on process exit
-const rateLimiter = new RateLimiter();
-
-// Cleanup interval on process termination
-process.on('SIGTERM', () => rateLimiter.destroy());
-process.on('SIGINT', () => rateLimiter.destroy());
+// Initialize Firestore-based rate limiter
+const rateLimiter = new FirestoreRateLimiter();
 
 /**
  * Verify Firebase Auth token and attach user to request
@@ -108,17 +132,22 @@ export const authenticate = async (
       };
 
       // Check rate limit
-      if (!rateLimiter.isAllowed(decodedToken.uid)) {
+      const isAllowed = await rateLimiter.isAllowed(decodedToken.uid);
+      if (!isAllowed) {
         return sendError(res, Errors.RATE_LIMIT_EXCEEDED());
       }
 
       next();
     } catch (error) {
-      logger.error('Token verification failed:', error);
+      logger.errorWithContext('Token verification failed', error as Error, {
+        correlationId: req.headers['x-correlation-id'] as string,
+      });
       return sendError(res, Errors.INVALID_TOKEN());
     }
   } catch (error) {
-    logger.error('Authentication middleware error:', error);
+    logger.errorWithContext('Authentication middleware error', error as Error, {
+      correlationId: req.headers['x-correlation-id'] as string,
+    });
     return sendError(res, Errors.INTERNAL_ERROR());
   }
 };
@@ -144,13 +173,18 @@ export const optionalAuth = async (
         };
       } catch (error) {
         // Token is invalid, but we don't fail the request
-        logger.warn('Invalid token in optional auth:', error);
+        logger.warn('Invalid token in optional auth', {
+          correlationId: req.headers['x-correlation-id'] as string,
+          error: error as Error,
+        });
       }
     }
     
     next();
   } catch (error) {
-    logger.error('Optional auth middleware error:', error);
+    logger.errorWithContext('Optional auth middleware error', error as Error, {
+      correlationId: req.headers['x-correlation-id'] as string,
+    });
     next();
   }
 };
