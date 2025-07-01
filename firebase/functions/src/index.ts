@@ -26,10 +26,7 @@ admin.initializeApp();
 // Create Express app
 const app = express();
 
-// Configure CORS
-const corsOptions = CONFIG.CORS;
-
-app.use(cors(corsOptions));
+app.use(cors(CONFIG.CORS));
 
 // Parse JSON bodies
 app.use(express.json({ limit: CONFIG.REQUEST.BODY_LIMIT }));
