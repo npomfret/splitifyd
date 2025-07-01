@@ -7,6 +7,7 @@ import { CONFIG } from './config/constants';
 import { logger, addCorrelationId } from './utils/logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from './middleware/validation';
 import { createAuthenticatedFunction } from './utils/function-factory';
+import { APP_VERSION } from './utils/version';
 import {
   createDocument,
   getDocument,
@@ -68,7 +69,7 @@ app.get('/health', async (req: express.Request, res: express.Response) => {
   const health: any = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: APP_VERSION,
     environment: process.env.NODE_ENV || 'development',
     checks: {
       firestore: { status: 'unknown' },
@@ -129,7 +130,7 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
       heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
       external: `${Math.round(memUsage.external / 1024 / 1024)} MB`,
     },
-    version: '1.0.0',
+    version: APP_VERSION,
     nodeVersion: process.version,
     environment: process.env.NODE_ENV || 'development',
   });
