@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase JSON Backend - Test Interface</title>
+    
+    <!-- Firebase SDK -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    
+    <!-- Highlight.js for JSON syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Firebase JSON Backend</h1>
+            <p class="subtitle">Test Interface for JSON Document Storage</p>
+        </header>
+
+        <!-- Authentication Section -->
+        <section class="auth-section">
+            <h2>Authentication</h2>
+            <div id="auth-container">
+                <div id="login-form" class="auth-form">
+                    <h3>Sign In</h3>
+                    <form id="email-login-form">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <button type="submit">Sign In with Email</button>
+                    </form>
+                    <div class="divider">OR</div>
+                    <button id="google-signin" class="google-btn">Sign In with Google</button>
+                    <p class="auth-switch">
+                        Don't have an account? <a href="#" id="show-register">Register</a>
+                    </p>
+                </div>
+
+                <div id="register-form" class="auth-form" style="display: none;">
+                    <h3>Register</h3>
+                    <form id="email-register-form">
+                        <input type="email" id="register-email" placeholder="Email" required>
+                        <input type="password" id="register-password" placeholder="Password" required>
+                        <input type="password" id="register-confirm" placeholder="Confirm Password" required>
+                        <button type="submit">Register</button>
+                    </form>
+                    <p class="auth-switch">
+                        Already have an account? <a href="#" id="show-login">Sign In</a>
+                    </p>
+                </div>
+
+                <div id="user-info" style="display: none;">
+                    <p>Signed in as: <strong id="user-email"></strong></p>
+                    <button id="sign-out">Sign Out</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Document Management Section -->
+        <section id="document-section" style="display: none;">
+            <h2>Document Management</h2>
+            
+            <!-- Message Display -->
+            <div id="message-container"></div>
+
+            <!-- Document Editor -->
+            <div class="document-editor">
+                <h3>JSON Editor</h3>
+                <div class="editor-controls">
+                    <button id="format-json">Format JSON</button>
+                    <button id="clear-editor">Clear</button>
+                    <button id="load-draft">Load Draft</button>
+                    <button id="save-draft">Save Draft</button>
+                </div>
+                <textarea id="json-editor" placeholder='Enter JSON data, e.g.:
+{
+  "name": "Example Document",
+  "type": "test",
+  "data": {
+    "key": "value"
+  }
+}'></textarea>
+                <div id="json-preview" class="json-preview"></div>
+            </div>
+
+            <!-- Document Actions -->
+            <div class="document-actions">
+                <button id="create-document" class="primary">Create Document</button>
+                <div class="action-group">
+                    <input type="text" id="document-id" placeholder="Document ID">
+                    <button id="get-document">Get</button>
+                    <button id="update-document">Update</button>
+                    <button id="delete-document" class="danger">Delete</button>
+                </div>
+            </div>
+
+            <!-- Document List -->
+            <div class="document-list">
+                <h3>Your Documents</h3>
+                <button id="refresh-list">Refresh List</button>
+                <div id="documents-container"></div>
+            </div>
+        </section>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

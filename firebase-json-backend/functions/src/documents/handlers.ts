@@ -1,0 +1,237 @@
+import { Response } from 'express';
+import * as admin from 'firebase-admin';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { Errors, sendError } from '../utils/errors';
+import {
+  validateCreateDocument,
+  validateUpdateDocument,
+  validateDocumentId,
+  sanitizeDocumentData,
+  createDocumentPreview,
+  Document,
+} from './validation';
+
+// Firestore references will be initialized inside functions
+let documentsCollection: admin.firestore.CollectionReference | null = null;
+
+const getDocumentsCollection = () => {
+  if (!documentsCollection) {
+    documentsCollection = admin.firestore().collection('documents');
+  }
+  return documentsCollection;
+};
+
+/**
+ * Create a new document
+ */
+export const createDocument = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    // Validate user authentication
+    if (!req.user) {
+      return sendError(res, Errors.UNAUTHORIZED());
+    }
+
+    // Validate request body
+    const { data } = validateCreateDocument(req.body);
+    
+    // Sanitize document data
+    const sanitizedData = sanitizeDocumentData(data);
+
+    // Create document
+    const now = new Date();
+    const docRef = getDocumentsCollection().doc();
+    const document: Document = {
+      id: docRef.id,
+      userId: req.user.uid,
+      data: sanitizedData,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await docRef.set(document);
+
+    res.status(201).json({
+      id: docRef.id,
+      message: 'Document created successfully',
+    });
+  } catch (error) {
+    sendError(res, error as Error);
+  }
+};
+
+/**
+ * Get a single document by ID
+ */
+export const getDocument = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    // Validate user authentication
+    if (!req.user) {
+      return sendError(res, Errors.UNAUTHORIZED());
+    }
+
+    // Validate document ID
+    const documentId = validateDocumentId(req.query.id);
+
+    // Fetch document
+    const docRef = getDocumentsCollection().doc(documentId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return sendError(res, Errors.NOT_FOUND('Document'));
+    }
+
+    const document = doc.data() as Document;
+
+    // Verify ownership
+    if (document.userId !== req.user.uid) {
+      return sendError(res, Errors.NOT_FOUND('Document'));
+    }
+
+    res.json({
+      id: doc.id,
+      data: document.data,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+    });
+  } catch (error) {
+    sendError(res, error as Error);
+  }
+};
+
+/**
+ * Update an existing document
+ */
+export const updateDocument = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    // Validate user authentication
+    if (!req.user) {
+      return sendError(res, Errors.UNAUTHORIZED());
+    }
+
+    // Validate document ID
+    const documentId = validateDocumentId(req.query.id);
+
+    // Validate request body
+    const { data } = validateUpdateDocument(req.body);
+    
+    // Sanitize document data
+    const sanitizedData = sanitizeDocumentData(data);
+
+    // Fetch existing document
+    const docRef = getDocumentsCollection().doc(documentId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return sendError(res, Errors.NOT_FOUND('Document'));
+    }
+
+    const document = doc.data() as Document;
+
+    // Verify ownership
+    if (document.userId !== req.user.uid) {
+      return sendError(res, Errors.NOT_FOUND('Document'));
+    }
+
+    // Update document
+    await docRef.update({
+      data: sanitizedData,
+      updatedAt: new Date(),
+    });
+
+    res.json({
+      message: 'Document updated successfully',
+    });
+  } catch (error) {
+    sendError(res, error as Error);
+  }
+};
+
+/**
+ * Delete a document
+ */
+export const deleteDocument = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    // Validate user authentication
+    if (!req.user) {
+      return sendError(res, Errors.UNAUTHORIZED());
+    }
+
+    // Validate document ID
+    const documentId = validateDocumentId(req.query.id);
+
+    // Fetch existing document
+    const docRef = getDocumentsCollection().doc(documentId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return sendError(res, Errors.NOT_FOUND('Document'));
+    }
+
+    const document = doc.data() as Document;
+
+    // Verify ownership
+    if (document.userId !== req.user.uid) {
+      return sendError(res, Errors.NOT_FOUND('Document'));
+    }
+
+    // Delete document
+    await docRef.delete();
+
+    res.json({
+      message: 'Document deleted successfully',
+    });
+  } catch (error) {
+    sendError(res, error as Error);
+  }
+};
+
+/**
+ * List all documents for the authenticated user
+ */
+export const listDocuments = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    // Validate user authentication
+    if (!req.user) {
+      return sendError(res, Errors.UNAUTHORIZED());
+    }
+
+    // Query user's documents
+    const snapshot = await getDocumentsCollection()
+      .where('userId', '==', req.user.uid)
+      .orderBy('updatedAt', 'desc')
+      .limit(100) // Limit to prevent excessive data transfer
+      .get();
+
+    const documents = snapshot.docs.map(doc => {
+      const data = doc.data() as Document;
+      return {
+        id: doc.id,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        preview: createDocumentPreview(data.data),
+      };
+    });
+
+    res.json({
+      documents,
+      count: documents.length,
+    });
+  } catch (error) {
+    sendError(res, error as Error);
+  }
+};
