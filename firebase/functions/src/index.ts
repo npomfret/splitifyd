@@ -14,7 +14,6 @@ import {
   listDocuments,
 } from './documents/handlers';
 
-// Initialize Firebase Admin
 const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true' || process.env.NODE_ENV === 'development';
 
 if (isEmulator) {
@@ -23,15 +22,12 @@ if (isEmulator) {
 
 admin.initializeApp();
 
-// Create Express app
 const app = express();
 
 app.use(cors(CONFIG.CORS));
 
-// Parse JSON bodies
 app.use(express.json({ limit: CONFIG.REQUEST.BODY_LIMIT }));
 
-// Request logging middleware
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.debug(`${req.method} ${req.path}`);
   next();
@@ -42,14 +38,12 @@ app.get('/health', (req: express.Request, res: express.Response) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Document endpoints (all require authentication)
 app.post('/createDocument', authenticate, createDocument);
 app.get('/getDocument', authenticate, getDocument);
 app.put('/updateDocument', authenticate, updateDocument);
 app.delete('/deleteDocument', authenticate, deleteDocument);
 app.get('/listDocuments', authenticate, listDocuments);
 
-// 404 handler
 app.use((req: express.Request, res: express.Response) => {
   res.status(404).json({
     error: {
@@ -59,7 +53,6 @@ app.use((req: express.Request, res: express.Response) => {
   });
 });
 
-// Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error('Unhandled error:', err);
   res.status(500).json({
@@ -70,7 +63,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   });
 });
 
-// Export the Express app as a Cloud Function
 export const api = functions.https.onRequest(app);
 
 // Individual function exports for better cold start performance
