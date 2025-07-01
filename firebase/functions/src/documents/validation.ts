@@ -54,40 +54,26 @@ const updateDocumentSchema = Joi.object({
   data: documentDataSchema,
 }).required();
 
-/**
- * Validate create document request
- */
-export const validateCreateDocument = (body: any): CreateDocumentRequest => {
-  const { error, value } = createDocumentSchema.validate(body);
+const validateDocumentRequest = (body: any, schema: Joi.ObjectSchema): { data: any } => {
+  const { error, value } = schema.validate(body);
   
   if (error) {
     throw Errors.INVALID_INPUT(error.details);
   }
   
-  // Check document size
   if (getJsonSize(value.data) > CONFIG.DOCUMENT.MAX_SIZE_BYTES) {
     throw Errors.DOCUMENT_TOO_LARGE();
   }
   
-  return value as CreateDocumentRequest;
+  return value;
 };
 
-/**
- * Validate update document request
- */
+export const validateCreateDocument = (body: any): CreateDocumentRequest => {
+  return validateDocumentRequest(body, createDocumentSchema) as CreateDocumentRequest;
+};
+
 export const validateUpdateDocument = (body: any): UpdateDocumentRequest => {
-  const { error, value } = updateDocumentSchema.validate(body);
-  
-  if (error) {
-    throw Errors.INVALID_INPUT(error.details);
-  }
-  
-  // Check document size
-  if (getJsonSize(value.data) > CONFIG.DOCUMENT.MAX_SIZE_BYTES) {
-    throw Errors.DOCUMENT_TOO_LARGE();
-  }
-  
-  return value as UpdateDocumentRequest;
+  return validateDocumentRequest(body, updateDocumentSchema) as UpdateDocumentRequest;
 };
 
 /**
