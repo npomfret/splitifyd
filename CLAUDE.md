@@ -39,3 +39,4 @@
  * DO NOT BREAK THE COORS CONFIGUTION.  The app needs to run locally (in the firebase emulator AND in firebase production)
  * ALWAYS use Firebase emulators to run this app - never use Python http.server or other alternatives
  * Run from /firebase directory: `firebase emulators:start` (normall using `npm run dev`)
+ * Assume the emulator is already running when testing locally - instruct the user to start/restart it if needed
