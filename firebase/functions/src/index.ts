@@ -4,7 +4,6 @@ import express from 'express';
 import { authenticate } from './auth/middleware';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './utils/logger';
-import { createAuthenticatedFunction } from './utils/function-factory';
 import { getFirebaseConfigResponse } from './utils/config';
 import { sendHealthCheckResponse } from './utils/errors';
 import { APP_VERSION } from './utils/version';
@@ -106,29 +105,3 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 // Main API export - consolidated approach for consistent behavior
 export const api = functions.https.onRequest(app);
-
-// Individual function exports for backward compatibility with existing frontend
-// These provide the same security and validation as the main API
-export const createDocumentFn = createAuthenticatedFunction(createDocument);
-export const getDocumentFn = createAuthenticatedFunction(getDocument);
-export const updateDocumentFn = createAuthenticatedFunction(updateDocument);
-export const deleteDocumentFn = createAuthenticatedFunction(deleteDocument);
-export const listDocumentsFn = createAuthenticatedFunction(listDocuments);
-
-// Public endpoint for Firebase configuration (no auth required)
-export const configFn = functions.https.onRequest((req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
-    return;
-  }
-  
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
-  }
-  
-  getFirebaseConfigResponse(res);
-});

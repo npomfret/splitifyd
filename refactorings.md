@@ -7,18 +7,7 @@ After analyzing the codebase, I've identified several areas for improvement. The
 ## Top 3 Refactoring Recommendations
 
 
-### 1. **Remove Redundant Individual Function Exports** ⭐ Big Impact
-**Location**: `firebase/functions/src/index.ts:110-116`
-
-**Problem**: Individual function exports (`createDocumentFn`, `getDocumentFn`, etc.) are redundant since the main API already handles all routes. This creates deployment complexity and potential inconsistencies.
-
-**Solution**: Remove individual function exports and standardize on the single Express app approach.
-
-**Impact**: Simpler deployment, consistent behavior, reduced code duplication
-
----
-
-### 2. **Simplify Over-Engineered Validation Middleware** ⭐ High Impact
+### 1. **Simplify Over-Engineered Validation Middleware** ⭐ High Impact
 **Location**: `firebase/functions/src/middleware/validation.ts:9-118`
 
 **Problem**: Complex validation middleware with nested functions and temporary object mutations (`__visited` markers) that add unnecessary complexity.
@@ -29,7 +18,7 @@ After analyzing the codebase, I've identified several areas for improvement. The
 
 ---
 
-### 3. **Extract Magic Numbers to Constants** ⭐ Easy Win
+### 2. **Extract Magic Numbers to Constants** ⭐ Easy Win
 **Location**: Multiple files - validation schemas, timeouts, limits
 
 **Problem**: Magic numbers scattered throughout codebase (50000, 10000, 1000, etc.) making configuration changes difficult.
