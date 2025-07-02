@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { CONFIG } from '../config/config';
+import { CONFIG } from '../config';
 import { Errors, sendError } from './errors';
 
 export interface FirebaseConfigResponse {
@@ -13,7 +13,7 @@ export interface FirebaseConfigResponse {
 
 
 export const getFirebaseConfigResponse = (res: Response): void => {
-  const clientConfig = CONFIG.firebase.clientConfig;
+  const clientConfig = CONFIG.clientConfig;
   
   if (!clientConfig) {
     sendError(res, Errors.INTERNAL_ERROR());
@@ -22,6 +22,6 @@ export const getFirebaseConfigResponse = (res: Response): void => {
   
   res.json({
     ...clientConfig,
-    projectId: CONFIG.firebase.projectId
+    projectId: CONFIG.projectId
   } as FirebaseConfigResponse);
 };

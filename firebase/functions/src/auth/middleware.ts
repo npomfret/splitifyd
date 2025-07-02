@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config/config';
-import { logger } from '../utils/logger';
+import { CONFIG } from '../config';
+import { logger } from '../logger';
 import { AUTH } from '../constants';
 
 /**
@@ -23,12 +23,12 @@ class InMemoryRateLimiter {
   private readonly maxRequests: number;
   private readonly requests = new Map<string, number[]>();
 
-  constructor(windowMs: number = CONFIG.security.rateLimiting.windowMs, maxRequests: number = CONFIG.security.rateLimiting.maxRequests) {
+  constructor(windowMs: number = CONFIG.rateLimiting.windowMs, maxRequests: number = CONFIG.rateLimiting.maxRequests) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
     
     // Periodic cleanup
-    setInterval(() => this.cleanup(), CONFIG.security.rateLimiting.cleanupIntervalMs);
+    setInterval(() => this.cleanup(), CONFIG.rateLimiting.cleanupIntervalMs);
   }
 
   isAllowed(userId: string): boolean {

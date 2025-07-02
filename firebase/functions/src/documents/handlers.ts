@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
-import { CONFIG } from '../config/config';
+import { CONFIG } from '../config';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import {
   validateCreateDocument,

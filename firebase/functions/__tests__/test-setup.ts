@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
-import { CONFIG } from '../src/config/config';
+import { CONFIG } from '../src/config';
 import { authenticate } from '../src/auth/middleware';
 import { HTTP_STATUS, PORTS, SYSTEM, TEST_CONFIG } from '../src/constants';
 import {
@@ -47,7 +47,7 @@ export async function setupTestApp(): Promise<express.Application> {
 
   // Apply middleware in the same order as production
   app.use(cors(testConfig.cors));
-  app.use(express.json({ limit: CONFIG.request.bodyLimit }));
+  app.use(express.json({ limit: CONFIG.requestBodyLimit }));
 
   // Enhanced health check endpoint
   app.get('/health', async (req: express.Request, res: express.Response) => {

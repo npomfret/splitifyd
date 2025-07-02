@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import express from 'express';
 import { authenticate } from './auth/middleware';
 import { applyStandardMiddleware } from './utils/middleware';
-import { logger } from './utils/logger';
+import { logger } from './logger';
 import { getFirebaseConfigResponse } from './utils/config';
 import { sendHealthCheckResponse } from './utils/errors';
 import { APP_VERSION } from './utils/version';

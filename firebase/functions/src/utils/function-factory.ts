@@ -3,7 +3,7 @@ import express from 'express';
 import { authenticate } from '../auth/middleware';
 import { applyStandardMiddleware } from './middleware';
 import { sendError, Errors } from './errors';
-import { logger } from './logger';
+import { logger } from '../logger';
 
 export const createAuthenticatedFunction = (
   handler: express.RequestHandler

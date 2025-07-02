@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config/config';
+import { CONFIG } from '../config';
 import { checkForDangerousPatterns } from '../utils/security';
 
 /**
@@ -16,7 +16,7 @@ export const validateRequestStructure = (
       return next();
     }
 
-    const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.security.validation;
+    const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.validation;
 
     // Single recursive validation function
     const validateObject = (obj: any, depth = 0): void => {

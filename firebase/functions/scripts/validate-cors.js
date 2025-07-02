@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 
 const MIDDLEWARE_FILE = path.join(__dirname, '../src/utils/middleware.ts');
-const CONFIG_FILE = path.join(__dirname, '../src/config/config.ts');
+const CONFIG_FILE = path.join(__dirname, '../src/config.ts');
 
 function validateCorsConfiguration() {
   console.log('🔍 Validating CORS configuration...');

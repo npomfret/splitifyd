@@ -1,8 +1,8 @@
 import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
-import { CONFIG } from '../config/config';
+import { CONFIG } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
-import { VALIDATION_LIMITS } from '../constants';
+import { VALIDATION_LIMITS, DOCUMENT_CONFIG } from '../constants';
 
 /**
  * Document structure
@@ -93,7 +93,7 @@ const validateDocumentRequest = (body: any, schema: Joi.ObjectSchema): { data: a
     throw Errors.INVALID_INPUT(error.details);
   }
   
-  if (getJsonSize(value.data) > CONFIG.document.maxSizeBytes) {
+  if (getJsonSize(value.data) > CONFIG.validation.maxRequestSizeBytes) {
     throw Errors.DOCUMENT_TOO_LARGE();
   }
   
@@ -177,8 +177,8 @@ export const sanitizeDocumentData = (data: any): any => {
  */
 export const createDocumentPreview = (data: any): string => {
   const jsonString = JSON.stringify(data);
-  if (jsonString.length <= CONFIG.document.previewLength) {
+  if (jsonString.length <= DOCUMENT_CONFIG.PREVIEW_LENGTH) {
     return jsonString;
   }
-  return jsonString.substring(0, CONFIG.document.previewLength - 3) + '...';
+  return jsonString.substring(0, DOCUMENT_CONFIG.PREVIEW_LENGTH - 3) + '...';
 };
