@@ -36,12 +36,12 @@ You will analyse the code using any of the following guidelines:
  * Keep only comments that explain WHY, not WHAT
  * Preserve complex business logic explanations
 
-**Remove Unnecessary Line Wrapping**
+**Formatting and code style**
  * Consolidate artificially wrapped lines that don't improve readability
  * Use long lines when they're clearer than wrapped versions
  * Keep natural breaks at logical boundaries
  * Maintain readability as the primary concern
- * certain code patterns, like function*chaining, can benefit greatly from line wrapping
+ * certain code patterns, like function-chaining, can benefit greatly from line wrapping
 
 **Performance & Efficiency**
  * Replace inefficient algorithms or data structures
@@ -51,6 +51,7 @@ You will analyse the code using any of the following guidelines:
  * Fix memory leaks (event listeners, timers, references)
 
 **Error Handling & Robustness**
+ * Type safety is (almost always) a good thing
  * Add missing error handling or replace generic catch*all blocks
  * Establish consistent error handling patterns
  * Replace silent failures with proper logging or handling
@@ -118,4 +119,4 @@ Collect all issues and make a list of your top 5. I want:
  * easy / simple stuff
  * big impact stuff  
 
-Write them to a file in the root of the project called `refactorings.md` (overwrite the file if it is present).
+Write them to a file in the root of the project called `refactorings.md` (overwrite the file if it is present). Use the heading "Suggested refactorings for $ARGUMENTS"
