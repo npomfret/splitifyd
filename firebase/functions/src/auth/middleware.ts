@@ -132,20 +132,11 @@ export const optionalAuth = async (
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH);
-    
-    try {
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-      };
-    } catch (error) {
-      logger.warn('Optional auth token verification failed - proceeding without authentication', {
-        correlationId: req.headers['x-correlation-id'] as string,
-        tokenPrefix: token.substring(0, AUTH.TOKEN_LOG_PREFIX_LENGTH) + '...',
-        error: error instanceof Error ? error : new Error(String(error)),
-      });
-    }
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+    };
   }
   
   next();

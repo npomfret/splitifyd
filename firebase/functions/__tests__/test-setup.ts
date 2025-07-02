@@ -3,7 +3,6 @@ import express from 'express';
 import cors from 'cors';
 import { CONFIG } from '../src/config/config';
 import { authenticate } from '../src/auth/middleware';
-import { logger } from '../src/utils/logger';
 import { HTTP_STATUS, PORTS, SYSTEM, TEST_CONFIG } from '../src/constants';
 import {
   createDocument,

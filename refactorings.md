@@ -4,15 +4,6 @@
 
 
 
-### 2. 🧹 **Remove Try/Catch/Log Anti-patterns**
-**Files:** 
-- `firebase/functions/src/index.ts:32-38` (health check)
-- `firebase/functions/src/auth/middleware.ts:143-148` (optional auth)
-
-**Issue:** Catching and logging errors prevents fail-fast behavior  
-**Impact:** Medium - Hides bugs, violates CLAUDE.md principles  
-**Fix:** Remove try/catch or re-throw errors  
-**Effort:** Low - Simple removal  
 
 ### 3. ⚡ **Fix Memory Leak in Token Refresh**
 **File:** `firebase/public/app.js:469-472`  

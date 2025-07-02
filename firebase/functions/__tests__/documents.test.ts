@@ -1,5 +1,4 @@
-import { Request, Response } from 'express';
-import * as admin from 'firebase-admin';
+import { Response } from 'express';
 import { AuthenticatedRequest } from '../src/auth/middleware';
 import {
   createDocument,

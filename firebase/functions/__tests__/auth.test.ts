@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { authenticate, AuthenticatedRequest } from '../src/auth/middleware';
-import { Errors } from '../src/utils/errors';
 
 // Mock Firebase Admin
 jest.mock('firebase-admin', () => ({
@@ -13,7 +12,7 @@ jest.mock('firebase-admin', () => ({
 describe('Authentication Middleware', () => {
   let mockRequest: Partial<AuthenticatedRequest>;
   let mockResponse: Partial<Response>;
-  let mockNext: NextFunction;
+  let mockNext: jest.MockedFunction<NextFunction>;
 
   beforeEach(() => {
     mockRequest = {
