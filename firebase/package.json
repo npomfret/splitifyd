@@ -5,8 +5,8 @@
   "scripts": {
     "clean": "rm -rf public/*",
     "build:demo": "mkdir -p public/demo && cp -r demo/* public/demo/",
-    "build:root": "cp index.html public/",
-    "build": "npm run clean && npm run build:root && npm run build:demo",
+    "build:webapp": "cp -r ../webapp/* public/ && rm -f public/FEATURES.md",
+    "build": "npm run clean && npm run build:webapp && npm run build:demo",
     "serve": "npm run build && firebase emulators:start",
     "deploy": "echo 'Use deploy:prod for production deployment'",
     "deploy:prod": "firebase use splitifyd && firebase deploy",

@@ -1,5 +1,13 @@
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
-const API_BASE_URL = 'http://localhost:5001/splitifyd-66e07/us-central1';
+
+// Dynamic API configuration to avoid CORS issues
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const localHost = window.location.hostname;
+const LOCAL_FUNCTIONS_EMULATOR_PORT = 5001;
+
+const API_BASE_URL = isLocal
+    ? `http://${localHost}:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1`
+    : `https://api-po437q3l5q-uc.a.run.app`;
 
 class Auth {
     constructor() {
