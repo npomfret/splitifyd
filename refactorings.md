@@ -1,22 +1,8 @@
-# Top 4 Refactoring Recommendations for Splitifyd
+# Top 3 Refactoring Recommendations for Splitifyd
 
 Based on comprehensive analysis of the Firebase Cloud Functions codebase, here are the highest-impact refactoring opportunities identified:
 
-## 1. **Eliminate Duplicate Firebase Config Endpoint Logic** 🔄 **BIG IMPACT**
-
-**Problem:** The `/config` endpoint logic is duplicated in two places with slightly different implementations, violating DRY principle.
-
-**Locations:** 
-- `firebase/functions/src/index.ts:143-160` (Express route)
-- `firebase/functions/src/index.ts:207-237` (Cloud Function export)
-
-**Impact:** **MEDIUM** - Maintenance burden, potential inconsistencies
-**Effort:** **LOW** - Extract to shared utility function
-**Fix:** Create single `getFirebaseConfigResponse()` utility used by both endpoints
-
----
-
-## 2. **Simplify Overly Complex Configuration Architecture** 📋 **EASY WINS**
+## 1. **Simplify Overly Complex Configuration Architecture** 📋 **EASY WINS**
 
 **Problem:** The configuration system has unnecessary complexity with multiple files and lazy loading that may not provide real benefits for a Cloud Functions environment.
 
@@ -33,7 +19,7 @@ Based on comprehensive analysis of the Firebase Cloud Functions codebase, here a
 
 ---
 
-## 3. **Replace Silent Error Degradation with Proper Circuit Breaker** ⚡ **IMPORTANT**
+## 2. **Replace Silent Error Degradation with Proper Circuit Breaker** ⚡ **IMPORTANT**
 
 **Problem:** Multiple places catch errors and continue with degraded functionality without proper circuit breaking or recovery strategies.
 
@@ -48,7 +34,7 @@ Based on comprehensive analysis of the Firebase Cloud Functions codebase, here a
 
 ---
 
-## 4. **Standardize Error Response Format Across All Endpoints** 🎯 **SIMPLE**
+## 3. **Standardize Error Response Format Across All Endpoints** 🎯 **SIMPLE**
 
 **Problem:** Inconsistent error response formats between health checks, API endpoints, and individual Cloud Functions.
 
@@ -66,11 +52,10 @@ Based on comprehensive analysis of the Firebase Cloud Functions codebase, here a
 ## Summary
 
 **Immediate Actions (High Impact, Low Effort):**
-1. Eliminate config endpoint duplication  
-2. Standardize error response format
+1. Standardize error response format
 
 **Medium-term Actions:**
-3. Implement circuit breaker pattern
-4. Simplify configuration architecture
+2. Implement circuit breaker pattern
+3. Simplify configuration architecture
 
 **Overall Assessment:** The codebase is well-structured with excellent import hygiene and minimal unused code. The main issues are around error handling patterns and some unnecessary complexity in configuration management. No major architectural problems were found.

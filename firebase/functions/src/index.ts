@@ -7,6 +7,7 @@ import { CONFIG } from './config/constants';
 import { logger, addCorrelationId } from './utils/logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from './middleware/validation';
 import { createAuthenticatedFunction } from './utils/function-factory';
+import { getFirebaseConfigResponse } from './utils/config';
 import { APP_VERSION } from './utils/version';
 import {
   createDocument,
@@ -141,22 +142,7 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
 
 // Firebase configuration endpoint (public - for client initialization)
 app.get('/config', (req: express.Request, res: express.Response) => {
-  const clientConfig = CONFIG.FIREBASE.clientConfig;
-  
-  if (!clientConfig) {
-    res.status(500).json({
-      error: {
-        code: 'CONFIG_NOT_FOUND',
-        message: 'Firebase configuration not found. Please set environment variables.'
-      }
-    });
-    return;
-  }
-  
-  res.json({
-    ...clientConfig,
-    projectId: CONFIG.FIREBASE.PROJECT_ID
-  });
+  getFirebaseConfigResponse(res);
 });
 
 app.post('/createDocument', authenticate, createDocument);
@@ -218,20 +204,5 @@ export const configFn = functions.https.onRequest((req, res) => {
     return;
   }
   
-  const clientConfig = CONFIG.FIREBASE.clientConfig;
-  
-  if (!clientConfig) {
-    res.status(500).json({
-      error: {
-        code: 'CONFIG_NOT_FOUND',
-        message: 'Firebase configuration not found. Please set environment variables.'
-      }
-    });
-    return;
-  }
-  
-  res.json({
-    ...clientConfig,
-    projectId: CONFIG.FIREBASE.PROJECT_ID
-  });
+  getFirebaseConfigResponse(res);
 });
