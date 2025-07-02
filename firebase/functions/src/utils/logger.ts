@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { randomUUID } from 'crypto';
+import * as functions from 'firebase-functions';
 
 const isVerbose = process.env.VERBOSE_LOGGING === 'true';
 const isProduction = process.env.NODE_ENV === 'production';
@@ -78,31 +79,31 @@ const formatLog = (level: string, message: string, context?: LogContext) => {
 export const logger = {
   debug: (message: string, context?: LogContext) => {
     if (currentLogLevel <= LogLevel.DEBUG) {
-      console.log(formatLog('debug', message, context));
+      functions.logger.debug(formatLog('debug', message, context));
     }
   },
   
   info: (message: string, context?: LogContext) => {
     if (currentLogLevel <= LogLevel.INFO) {
-      console.log(formatLog('info', message, context));
+      functions.logger.info(formatLog('info', message, context));
     }
   },
   
   warn: (message: string, context?: LogContext) => {
     if (currentLogLevel <= LogLevel.WARN) {
-      console.warn(formatLog('warn', message, context));
+      functions.logger.warn(formatLog('warn', message, context));
     }
   },
   
   error: (message: string, context?: LogContext) => {
     if (currentLogLevel <= LogLevel.ERROR) {
-      console.error(formatLog('error', message, context));
+      functions.logger.error(formatLog('error', message, context));
     }
   },
   
   success: (message: string, context?: LogContext) => {
     if (currentLogLevel <= LogLevel.INFO) {
-      console.log(formatLog('success', message, context));
+      functions.logger.info(formatLog('success', message, context));
     }
   },
   
