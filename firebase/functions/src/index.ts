@@ -105,4 +105,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 // Main API export - consolidated approach for consistent behavior
-export const api = functions.https.onRequest(app);
+export const api = functions.https.onRequest({
+  invoker: 'public' // Allow unauthenticated access for CORS and public endpoints
+}, app);

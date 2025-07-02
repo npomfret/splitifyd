@@ -29,7 +29,7 @@ async function initializeFirebase() {
     const LOCAL_FUNCTIONS_EMULATOR_PORT = 5001;
     const configUrl = isLocal
       ? `http://localhost:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1/api/config`
-      : `https://us-central1-splitifyd.cloudfunctions.net/api/config`;
+      : `https://api-po437q3l5q-uc.a.run.app/config`;
     
     console.log('Fetching Firebase configuration from:', configUrl);
     
@@ -448,7 +448,7 @@ async function initializeApplication() {
   // Set API Base URL after Firebase is initialized
   API_BASE_URL = isLocal
     ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1/api`
-    : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/api`;
+    : `https://api-po437q3l5q-uc.a.run.app`;
   
   console.log('Current hostname:', window.location.hostname);
   console.log('Is local environment:', isLocal);

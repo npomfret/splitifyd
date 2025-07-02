@@ -1,8 +1,9 @@
 import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, HTTP_STATUS, SYSTEM, VALIDATION_LIMITS } from './constants';
 import * as functions from 'firebase-functions';
 
-const ENV_IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const ENV_IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
+// Firebase Functions don't automatically set NODE_ENV=production, so we need to detect deployment
+const ENV_IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.FUNCTIONS_EMULATOR !== 'true';
+const ENV_IS_DEVELOPMENT = process.env.NODE_ENV === 'development' && process.env.FUNCTIONS_EMULATOR === 'true';
 const ENV_IS_TEST = process.env.NODE_ENV === 'test';
 
 function parseInteger(value: string | undefined, fallback: number): number {
