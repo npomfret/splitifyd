@@ -37,3 +37,5 @@
  * when making changes to project structure, carefully consider what impact it will have on the app at build-time and runtime
  * before running any shell commands, ensure you are in the correct directory
  * DO NOT BREAK THE COORS CONFIGUTION.  The app needs to run locally (in the firebase emulator AND in firebase production)
+ * ALWAYS use Firebase emulators to run this app - never use Python http.server or other alternatives
+ * Run from /firebase directory: `firebase emulators:start` (normall using `npm run dev`)
