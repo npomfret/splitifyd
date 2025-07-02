@@ -6,7 +6,7 @@
 - [x] Login page with email/password
 - [x] Registration page with validation
 - [x] Session management (store auth token)
-- [ ] Logout functionality
+- [x] Logout functionality
 - [ ] Password reset flow
 
 ### 2. Dashboard/Home Page
