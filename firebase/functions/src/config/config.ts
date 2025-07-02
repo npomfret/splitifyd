@@ -1,7 +1,7 @@
 import { EnvironmentConfig } from './types';
 import { parseInteger, parseBoolean, parseStringArray, requireEnvVar, getCurrentEnvironment } from './utils';
 import { logger } from '../utils/logger';
-import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, HTTP_STATUS, SYSTEM } from '../constants';
+import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, HTTP_STATUS, SYSTEM, VALIDATION_LIMITS } from '../constants';
 
 function validateConfig(config: EnvironmentConfig): void {
   const errors: string[] = [];
@@ -129,10 +129,10 @@ function createConfig(): EnvironmentConfig {
       },
       validation: {
         maxRequestSizeBytes: parseInteger(process.env.MAX_REQUEST_SIZE_BYTES, SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB),
-        maxObjectDepth: parseInteger(process.env.MAX_OBJECT_DEPTH, 10),
+        maxObjectDepth: parseInteger(process.env.MAX_OBJECT_DEPTH, VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH),
         maxStringLength: parseInteger(process.env.MAX_STRING_LENGTH, isProduction ? DOCUMENT_CONFIG.PROD_MAX_STRING_LENGTH : DOCUMENT_CONFIG.DEV_MAX_STRING_LENGTH),
         maxPropertyCount: parseInteger(process.env.MAX_PROPERTY_COUNT, isProduction ? DOCUMENT_CONFIG.PROD_MAX_PROPERTY_COUNT : DOCUMENT_CONFIG.DEV_MAX_PROPERTY_COUNT),
-        maxPropertyNameLength: parseInteger(process.env.MAX_PROPERTY_NAME_LENGTH, DOCUMENT_CONFIG.MAX_PROPERTY_NAME_LENGTH),
+        maxPropertyNameLength: parseInteger(process.env.MAX_PROPERTY_NAME_LENGTH, VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH),
       },
     },
     monitoring: {

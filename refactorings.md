@@ -2,24 +2,7 @@
 
 ## Top 3 Refactoring Opportunities
 
-### 1. **Consolidate duplicate constants and eliminate redundancy**
-*Category: Medium Impact, Easy Fix*
-
-**Problem**: Multiple constants files with overlapping definitions create maintenance overhead.
-
-**Files affected**:
-- `firebase/functions/src/constants.ts` - Main constants
-- Constants duplicated in validation files
-
-**Examples**:
-- `VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH` (200) vs `DOCUMENT_CONFIG.MAX_PROPERTY_NAME_LENGTH` (200)
-- Multiple similar string length limits across different contexts
-
-**Solution**: Consolidate into single constants file, remove duplicates, use single source of truth.
-
-**Impact**: Reduces maintenance, eliminates inconsistencies, cleaner imports.
-
-### 2. **Simplify over-engineered rate limiting**
+### 1. **Simplify over-engineered rate limiting**
 *Category: High Impact, Medium Complexity*
 
 **Problem**: Firestore-based distributed rate limiting is overly complex for a simple document API, adds latency to every request.
@@ -35,7 +18,7 @@
 
 **Impact**: Reduces request latency, simplifies codebase, reduces Firestore read/write costs.
 
-### 3. **Remove unnecessary abstraction layers**
+### 2. **Remove unnecessary abstraction layers**
 *Category: Medium Impact, Easy Fix*
 
 **Problem**: Over-abstraction creates unnecessary indirection without adding value.
