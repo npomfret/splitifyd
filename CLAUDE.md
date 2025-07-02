@@ -23,6 +23,8 @@
  * don't ever use quick hacks, especially something that might cause a security problem in the future
  * assume all code is production-ready
  * avoid adding dependencies, especially if a little handwritten code can do the same job
- * after making a change, run whatever build is appropriate
+ * after making a change
+   * run whatever build is appropriate
+   * run whatever tests are appropriate
  * Over engineering is BAD. Often, the simple approach is best
  * It is always important to keep the app in a working state, both locally running and deployed in a "real" environment
