@@ -26,5 +26,7 @@
  * after making a change
    * run whatever build is appropriate
    * run whatever tests are appropriate
+   * obviously fix any errors that bubble out as a result of the above
+ * sometimes tests are pointless and can be deleted
  * Over engineering is BAD. Often, the simple approach is best
  * It is always important to keep the app in a working state, both locally running and deployed in a "real" environment
