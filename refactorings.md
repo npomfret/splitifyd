@@ -1,19 +1,8 @@
 # Suggested refactorings for firebase
 
-Based on comprehensive analysis of the Firebase codebase, here are the top 5 refactoring opportunities prioritized by impact, simplicity, and alignment with CLAUDE.md principles:
+Based on comprehensive analysis of the Firebase codebase, here are the top 4 refactoring opportunities prioritized by impact, simplicity, and alignment with CLAUDE.md principles:
 
-## 1. **Remove console.log violations** (High Impact, Very Easy)
-**Type:** Pure refactoring - no behavior change
-
-**Problem:** Extensive use of console.log statements in registration handler violates CLAUDE.md principle "don't log; audit changes to data instead (using a logger)".
-
-**Files affected:**
-- `firebase/functions/src/auth/handlers.ts:72-155` - Registration handler has 15+ console.log statements for debugging
-- Replace with structured logger calls or remove entirely since logger is already implemented
-
-**Impact:** Cleaner logs, better debugging experience, follows established logging patterns. Very quick fix with high value.
-
-## 2. **Eliminate try-catch-log patterns** (High Impact, Easy) 
+## 1. **Eliminate try-catch-log patterns** (High Impact, Easy) 
 **Type:** Behavioral improvement - better error handling
 
 **Problem:** Multiple locations use try-catch patterns that violate "fail fast" principle by masking errors instead of letting them bubble up naturally.
@@ -25,7 +14,7 @@ Based on comprehensive analysis of the Firebase codebase, here are the top 5 ref
 
 **Impact:** Cleaner error handling, better debugging, follows core principle of embracing fail-fast behavior.
 
-## 3. **Consolidate duplicate configuration logic** (Medium Impact, Easy)
+## 2. **Consolidate duplicate configuration logic** (Medium Impact, Easy)
 **Type:** Pure refactoring - no behavior change
 
 **Problem:** Firebase emulator configuration is duplicated between config.ts and index.ts, violating DRY principles.
@@ -37,7 +26,7 @@ Based on comprehensive analysis of the Firebase codebase, here are the top 5 ref
 
 **Impact:** Eliminates maintenance burden, prevents configuration drift, single source of truth.
 
-## 4. **Simplify overly complex validation schema** (Medium Impact, Medium)
+## 3. **Simplify overly complex validation schema** (Medium Impact, Medium)
 **Type:** Pure refactoring - no behavior change
 
 **Problem:** Document validation contains unnecessarily complex nested Joi schema that's hard to maintain and could cause performance issues.
@@ -49,7 +38,7 @@ Based on comprehensive analysis of the Firebase codebase, here are the top 5 ref
 
 **Impact:** Improved maintainability, better performance, reduced cognitive complexity.
 
-## 5. **Fix rate limiter for serverless environment** (Medium Impact, Medium)
+## 4. **Fix rate limiter for serverless environment** (Medium Impact, Medium)
 **Type:** Behavioral improvement - fixes production issue
 
 **Problem:** In-memory rate limiter won't work correctly in serverless environment where function instances are ephemeral.
