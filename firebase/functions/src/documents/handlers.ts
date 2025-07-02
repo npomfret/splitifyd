@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { CONFIG } from '../config/config';
+import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import {
   validateCreateDocument,
   validateUpdateDocument,
@@ -70,7 +71,7 @@ export const createDocument = async (
 
   await docRef.set(document);
 
-  res.status(201).json({
+  res.status(HTTP_STATUS.CREATED).json({
     id: docRef.id,
     message: 'Document created successfully',
   });
@@ -175,7 +176,7 @@ export const listDocuments = async (
   const baseQuery = getDocumentsCollection()
     .where('userId', '==', userId)
     .orderBy('updatedAt', order)
-    .limit(limit + 1); // Get one extra to check if there are more pages
+    .limit(limit + DOCUMENT_CONFIG.PAGINATION_EXTRA_ITEM); // Get one extra to check if there are more pages
 
   // Apply cursor if provided
   const query = cursor ? (() => {

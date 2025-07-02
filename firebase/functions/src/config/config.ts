@@ -1,6 +1,7 @@
 import { EnvironmentConfig } from './types';
 import { parseInteger, parseBoolean, parseStringArray, requireEnvVar, getCurrentEnvironment } from './utils';
 import { logger } from '../utils/logger';
+import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, HTTP_STATUS, SYSTEM } from '../constants';
 
 function validateConfig(config: EnvironmentConfig): void {
   const errors: string[] = [];
@@ -56,17 +57,17 @@ function getCorsOrigins(isProduction: boolean, isTest: boolean, projectId: strin
   }
   
   if (isTest) {
-    return ['http://localhost:3000', 'http://localhost:5000'];
+    return [`http://localhost:${PORTS.LOCAL_3000}`, `http://localhost:${PORTS.LOCAL_5000}`];
   }
   
   return parseStringArray(
     process.env.CORS_ALLOWED_ORIGINS,
     [
-      'http://localhost:3000', 
-      'http://localhost:5000', 
-      'http://localhost:5002',
-      'http://127.0.0.1:5000',
-      'http://127.0.0.1:5002'
+      `http://localhost:${PORTS.LOCAL_3000}`, 
+      `http://localhost:${PORTS.LOCAL_5000}`, 
+      `http://localhost:${PORTS.LOCAL_5002}`,
+      `http://127.0.0.1:${PORTS.LOCAL_5000}`,
+      `http://127.0.0.1:${PORTS.LOCAL_5002}`
     ]
   );
 }
@@ -106,9 +107,9 @@ function createConfig(): EnvironmentConfig {
         measurementId: process.env.CLIENT_MEASUREMENT_ID,
       } : undefined,
       emulatorPorts: {
-        auth: parseInteger(process.env.FIREBASE_AUTH_EMULATOR_PORT, 9099),
-        firestore: parseInteger(process.env.FIRESTORE_EMULATOR_PORT, 8080),
-        functions: parseInteger(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT, 5001),
+        auth: parseInteger(process.env.FIREBASE_AUTH_EMULATOR_PORT, PORTS.AUTH_EMULATOR),
+        firestore: parseInteger(process.env.FIRESTORE_EMULATOR_PORT, PORTS.FIRESTORE_EMULATOR),
+        functions: parseInteger(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT, PORTS.LOCAL_5001),
       },
     },
     cors: {
@@ -122,24 +123,24 @@ function createConfig(): EnvironmentConfig {
     },
     security: {
       rateLimiting: {
-        windowMs: parseInteger(process.env.RATE_LIMIT_WINDOW_MS, 60000),
-        maxRequests: parseInteger(process.env.RATE_LIMIT_MAX_REQUESTS, isProduction ? 10 : 100),
-        cleanupIntervalMs: parseInteger(process.env.RATE_LIMIT_CLEANUP_MS, 60000),
+        windowMs: parseInteger(process.env.RATE_LIMIT_WINDOW_MS, RATE_LIMITS.WINDOW_MS),
+        maxRequests: parseInteger(process.env.RATE_LIMIT_MAX_REQUESTS, isProduction ? RATE_LIMITS.PROD_MAX_REQUESTS : RATE_LIMITS.DEV_MAX_REQUESTS),
+        cleanupIntervalMs: parseInteger(process.env.RATE_LIMIT_CLEANUP_MS, RATE_LIMITS.CLEANUP_INTERVAL_MS),
       },
       validation: {
-        maxRequestSizeBytes: parseInteger(process.env.MAX_REQUEST_SIZE_BYTES, 1024 * 1024),
+        maxRequestSizeBytes: parseInteger(process.env.MAX_REQUEST_SIZE_BYTES, SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB),
         maxObjectDepth: parseInteger(process.env.MAX_OBJECT_DEPTH, 10),
-        maxStringLength: parseInteger(process.env.MAX_STRING_LENGTH, isProduction ? 50000 : 100000),
-        maxPropertyCount: parseInteger(process.env.MAX_PROPERTY_COUNT, isProduction ? 500 : 1000),
-        maxPropertyNameLength: parseInteger(process.env.MAX_PROPERTY_NAME_LENGTH, 200),
+        maxStringLength: parseInteger(process.env.MAX_STRING_LENGTH, isProduction ? DOCUMENT_CONFIG.PROD_MAX_STRING_LENGTH : DOCUMENT_CONFIG.DEV_MAX_STRING_LENGTH),
+        maxPropertyCount: parseInteger(process.env.MAX_PROPERTY_COUNT, isProduction ? DOCUMENT_CONFIG.PROD_MAX_PROPERTY_COUNT : DOCUMENT_CONFIG.DEV_MAX_PROPERTY_COUNT),
+        maxPropertyNameLength: parseInteger(process.env.MAX_PROPERTY_NAME_LENGTH, DOCUMENT_CONFIG.MAX_PROPERTY_NAME_LENGTH),
       },
     },
     monitoring: {
       enableHealthChecks: parseBoolean(process.env.ENABLE_HEALTH_CHECKS, true),
       enableMetrics: parseBoolean(process.env.ENABLE_METRICS, isProduction),
       performanceThresholds: {
-        slowRequestMs: parseInteger(process.env.SLOW_REQUEST_THRESHOLD_MS, isProduction ? 1000 : 5000),
-        healthCheckTimeoutMs: parseInteger(process.env.HEALTH_CHECK_TIMEOUT_MS, 5000),
+        slowRequestMs: parseInteger(process.env.SLOW_REQUEST_THRESHOLD_MS, isProduction ? RATE_LIMITS.PROD_SLOW_REQUEST_MS : RATE_LIMITS.DEV_SLOW_REQUEST_MS),
+        healthCheckTimeoutMs: parseInteger(process.env.HEALTH_CHECK_TIMEOUT_MS, RATE_LIMITS.HEALTH_CHECK_TIMEOUT_MS),
       },
     },
   };
@@ -152,19 +153,19 @@ configureEmulators(config);
 export const CONFIG = {
   ...config,
   request: {
-    bodyLimit: `${Math.round(config.security.validation.maxRequestSizeBytes / (1024 * 1024))}mb`,
+    bodyLimit: `${Math.round(config.security.validation.maxRequestSizeBytes / (SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB))}mb`,
   },
   document: {
     maxSizeBytes: config.security.validation.maxRequestSizeBytes,
-    listLimit: 100,
-    previewLength: 100,
+    listLimit: DOCUMENT_CONFIG.LIST_LIMIT,
+    previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
   },
   corsOptions: {
     origin: config.cors.allowedOrigins,
     credentials: config.cors.credentials,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
+    optionsSuccessStatus: HTTP_STATUS.OK,
   },
 };
 

@@ -1,10 +1,10 @@
 import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
-import { CONFIG } from '../src/config/constants';
+import { CONFIG } from '../src/config/config';
 import { authenticate } from '../src/auth/middleware';
-import { addCorrelationId } from '../src/utils/logger';
-import { validateRequestStructure, validateContentType, rateLimitByIP } from '../src/middleware/validation';
+import { logger } from '../src/utils/logger';
+import { HTTP_STATUS, PORTS, SYSTEM, TEST_CONFIG } from '../src/constants';
 import {
   createDocument,
   getDocument,
@@ -14,14 +14,13 @@ import {
 } from '../src/documents/handlers';
 
 // Test configuration
-const TEST_CONFIG = {
-  ...CONFIG,
-  CORS: {
-    origin: ['http://localhost:3000', 'http://localhost:5000'],
+const testConfig = {
+  cors: {
+    origin: [`http://localhost:${PORTS.LOCAL_3000}`, `http://localhost:${PORTS.LOCAL_5000}`],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
+    optionsSuccessStatus: HTTP_STATUS.OK,
   },
 };
 
@@ -38,8 +37,8 @@ export async function setupTestApp(): Promise<express.Application> {
     }
 
     // Set emulator environment variables
-    process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+    process.env.FIRESTORE_EMULATOR_HOST = `localhost:${PORTS.FIRESTORE_EMULATOR}`;
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${PORTS.AUTH_EMULATOR}`;
     process.env.NODE_ENV = 'test';
     
     isInitialized = true;
@@ -48,12 +47,8 @@ export async function setupTestApp(): Promise<express.Application> {
   const app = express();
 
   // Apply middleware in the same order as production
-  app.use(cors(TEST_CONFIG.CORS));
-  app.use(addCorrelationId);
-  app.use(rateLimitByIP);
-  app.use(validateContentType);
-  app.use(express.json({ limit: TEST_CONFIG.REQUEST.BODY_LIMIT }));
-  app.use(validateRequestStructure);
+  app.use(cors(testConfig.cors));
+  app.use(express.json({ limit: CONFIG.request.bodyLimit }));
 
   // Enhanced health check endpoint
   app.get('/health', async (req: express.Request, res: express.Response) => {
@@ -90,7 +85,7 @@ export async function setupTestApp(): Promise<express.Application> {
     try {
       // Test Firebase Auth
       const authStart = Date.now();
-      await admin.auth().listUsers(1);
+      await admin.auth().listUsers(SYSTEM.AUTH_LIST_LIMIT);
       health.checks.auth = {
         status: 'healthy',
         responseTime: Date.now() - authStart,
@@ -104,7 +99,7 @@ export async function setupTestApp(): Promise<express.Application> {
     }
 
     health.totalResponseTime = Date.now() - startTime;
-    const statusCode = health.status === 'healthy' ? 200 : 503;
+    const statusCode = health.status === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE;
     res.status(statusCode).json(health);
   });
 
@@ -115,10 +110,10 @@ export async function setupTestApp(): Promise<express.Application> {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       memory: {
-        rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
-        heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
-        heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
-        external: `${Math.round(memUsage.external / 1024 / 1024)} MB`,
+        rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
+        heapUsed: `${Math.round(memUsage.heapUsed / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
+        heapTotal: `${Math.round(memUsage.heapTotal / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
+        external: `${Math.round(memUsage.external / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
       },
       version: '1.0.0',
       nodeVersion: process.version,
@@ -135,7 +130,7 @@ export async function setupTestApp(): Promise<express.Application> {
 
   // 404 handler
   app.use((req: express.Request, res: express.Response) => {
-    res.status(404).json({
+    res.status(HTTP_STATUS.NOT_FOUND).json({
       error: {
         code: 'NOT_FOUND',
         message: 'Endpoint not found',
@@ -147,7 +142,7 @@ export async function setupTestApp(): Promise<express.Application> {
   // Error handler
   app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Test app error:', err);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An unexpected error occurred',
@@ -199,11 +194,11 @@ beforeAll(async () => {
     console.warn('Warning: Firebase emulators may not be running. Tests might fail.');
     console.warn('Run: firebase emulators:start --only auth,firestore');
   }
-}, 10000);
+}, TEST_CONFIG.SETUP_TIMEOUT_MS);
 
 afterAll(async () => {
   await cleanupTestData();
 });
 
 // Global test timeout
-jest.setTimeout(30000);
+jest.setTimeout(TEST_CONFIG.JEST_TIMEOUT_MS);

@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
 import { CONFIG } from '../config/config';
 import { logger } from '../utils/logger';
+import { RATE_LIMITS, AUTH } from '../constants';
 
 /**
  * Extended Express Request with user information
@@ -70,13 +71,13 @@ class FirestoreRateLimiter {
 
   // Cleanup old rate limit documents (should be called periodically)
   async cleanup(): Promise<void> {
-    const cutoff = Date.now() - (this.windowMs * 2); // Keep documents for 2x window period
+    const cutoff = Date.now() - (this.windowMs * RATE_LIMITS.CLEANUP_MULTIPLIER); // Keep documents for 2x window period
     const db = admin.firestore();
     
     try {
       const query = db.collection(this.collectionName)
         .where('lastUpdated', '<', cutoff)
-        .limit(100);
+        .limit(RATE_LIMITS.CLEANUP_BATCH_SIZE);
       
       const snapshot = await query.get();
       
@@ -118,7 +119,7 @@ export const authenticate = async (
     return sendError(res, Errors.UNAUTHORIZED(), correlationId);
   }
 
-  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH); // Remove 'Bearer ' prefix
 
   try {
     // Verify the token
@@ -155,7 +156,7 @@ export const optionalAuth = async (
 ): Promise<void> => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7);
+    const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH);
     
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
@@ -166,7 +167,7 @@ export const optionalAuth = async (
     } catch (error) {
       logger.warn('Optional auth token verification failed - proceeding without authentication', {
         correlationId: req.headers['x-correlation-id'] as string,
-        tokenPrefix: token.substring(0, 10) + '...',
+        tokenPrefix: token.substring(0, AUTH.TOKEN_LOG_PREFIX_LENGTH) + '...',
         error: error instanceof Error ? error : new Error(String(error)),
       });
     }

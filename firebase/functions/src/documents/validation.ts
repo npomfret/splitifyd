@@ -2,6 +2,7 @@ import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
 import { CONFIG } from '../config/config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
+import { VALIDATION_LIMITS } from '../constants';
 
 /**
  * Document structure
@@ -42,34 +43,34 @@ const getJsonSize = (obj: any): number => {
  */
 const documentDataSchema = Joi.object().pattern(
   // Allow any property name (with reasonable length limit)
-  Joi.string().max(200),
+  Joi.string().max(VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH),
   // Allow various data types with security limits
   Joi.alternatives().try(
-    Joi.string().max(50000),           // Strings up to 50KB
+    Joi.string().max(VALIDATION_LIMITS.MAX_STRING_LENGTH),           // Strings up to 50KB
     Joi.number(),                      // Any number
     Joi.boolean(),                     // Booleans
     Joi.date(),                        // Dates
     Joi.array().items(                 // Arrays
       Joi.alternatives().try(
-        Joi.string().max(10000),
+        Joi.string().max(VALIDATION_LIMITS.MAX_ARRAY_STRING_LENGTH),
         Joi.number(),
         Joi.boolean(),
         Joi.date(),
-        Joi.object().max(20)           // Nested objects (limited depth)
+        Joi.object().max(VALIDATION_LIMITS.MAX_NESTED_OBJECT_DEPTH)           // Nested objects (limited depth)
       )
-    ).max(1000),                       // Max 1000 array items
+    ).max(VALIDATION_LIMITS.MAX_ARRAY_ITEMS),                       // Max 1000 array items
     Joi.object().pattern(              // Nested objects
-      Joi.string().max(100),
+      Joi.string().max(VALIDATION_LIMITS.MAX_NESTED_PROPERTY_NAME_LENGTH),
       Joi.alternatives().try(
-        Joi.string().max(10000),
+        Joi.string().max(VALIDATION_LIMITS.MAX_NESTED_STRING_LENGTH),
         Joi.number(),
         Joi.boolean(),
         Joi.date(),
-        Joi.array().max(100)
+        Joi.array().max(VALIDATION_LIMITS.MAX_NESTED_ARRAY_ITEMS)
       )
-    ).max(100)                         // Max 100 properties in nested objects
+    ).max(VALIDATION_LIMITS.MAX_NESTED_OBJECT_PROPERTIES)                         // Max 100 properties in nested objects
   )
-).min(1).max(500).required();         // At least 1 field, max 500 properties
+).min(1).max(VALIDATION_LIMITS.MAX_ROOT_OBJECT_PROPERTIES).required();         // At least 1 field, max 500 properties
 
 /**
  * Schema for create document request
@@ -124,9 +125,9 @@ export const validateDocumentId = (id: any): string => {
  */
 export const sanitizeDocumentData = (data: any): any => {
   // Validate maximum depth to prevent stack overflow
-  const validateDepth = (obj: any, depth = 0, maxDepth = 10): void => {
+  const validateDepth = (obj: any, depth = 0, maxDepth = VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH): void => {
     if (depth > maxDepth) {
-      throw Errors.INVALID_INPUT('Document structure too deep (max 10 levels)');
+      throw Errors.INVALID_INPUT(`Document structure too deep (max ${VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH} levels)`);
     }
     
     if (obj && typeof obj === 'object') {

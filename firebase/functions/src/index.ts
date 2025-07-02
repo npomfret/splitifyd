@@ -7,6 +7,7 @@ import { logger } from './utils/logger';
 import { getFirebaseConfigResponse } from './utils/config';
 import { sendHealthCheckResponse } from './utils/errors';
 import { APP_VERSION } from './utils/version';
+import { HTTP_STATUS, SYSTEM } from './constants';
 import {
   createDocument,
   getDocument,
@@ -37,7 +38,7 @@ app.get('/health', async (req: express.Request, res: express.Response) => {
   };
 
   const authStart = Date.now();
-  await admin.auth().listUsers(1);
+  await admin.auth().listUsers(SYSTEM.AUTH_LIST_LIMIT);
   checks.auth = {
     status: 'healthy',
     responseTime: Date.now() - authStart,
@@ -54,10 +55,10 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: {
-      rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
-      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
-      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`,
-      external: `${Math.round(memUsage.external / 1024 / 1024)} MB`,
+      rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
+      heapUsed: `${Math.round(memUsage.heapUsed / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
+      heapTotal: `${Math.round(memUsage.heapTotal / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
+      external: `${Math.round(memUsage.external / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
     },
     version: APP_VERSION,
     nodeVersion: process.version,
@@ -77,7 +78,7 @@ app.delete('/deleteDocument', authenticate, deleteDocument);
 app.get('/listDocuments', authenticate, listDocuments);
 
 app.use((req: express.Request, res: express.Response) => {
-  res.status(404).json({
+  res.status(HTTP_STATUS.NOT_FOUND).json({
     error: {
       code: 'NOT_FOUND',
       message: 'Endpoint not found',
@@ -94,7 +95,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     ip: req.ip || req.connection.remoteAddress,
   });
   
-  res.status(500).json({
+  res.status(HTTP_STATUS.INTERNAL_ERROR).json({
     error: {
       code: 'INTERNAL_ERROR',
       message: 'An unexpected error occurred',

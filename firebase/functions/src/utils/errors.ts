@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { logger } from './logger';
+import { HTTP_STATUS } from '../constants';
 
 /**
  * Standard error response interface
@@ -56,7 +57,7 @@ export const sendError = (res: Response, error: ApiError | Error, correlationId?
     } as ErrorResponse);
   } else {
     logger.error('Unexpected error:', error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An unexpected error occurred',
@@ -77,7 +78,7 @@ export const sendHealthCheckResponse = (res: Response, checks: Record<string, { 
     checks,
   };
   
-  const statusCode = overallStatus === 'healthy' ? 200 : 503;
+  const statusCode = overallStatus === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE;
   res.status(statusCode).json(response);
 };
 
@@ -86,22 +87,22 @@ export const sendHealthCheckResponse = (res: Response, checks: Record<string, { 
  */
 export const Errors = {
   // Authentication errors
-  UNAUTHORIZED: () => new ApiError(401, 'UNAUTHORIZED', 'Authentication required'),
-  INVALID_TOKEN: () => new ApiError(401, 'INVALID_TOKEN', 'Invalid authentication token'),
+  UNAUTHORIZED: () => new ApiError(HTTP_STATUS.UNAUTHORIZED, 'UNAUTHORIZED', 'Authentication required'),
+  INVALID_TOKEN: () => new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_TOKEN', 'Invalid authentication token'),
   
   // Validation errors
-  INVALID_INPUT: (details?: any) => new ApiError(400, 'INVALID_INPUT', 'Invalid input data', details),
-  MISSING_FIELD: (field: string) => new ApiError(400, 'MISSING_FIELD', `Missing required field: ${field}`),
-  DOCUMENT_TOO_LARGE: () => new ApiError(400, 'DOCUMENT_TOO_LARGE', 'Document exceeds maximum size of 1MB'),
+  INVALID_INPUT: (details?: any) => new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'Invalid input data', details),
+  MISSING_FIELD: (field: string) => new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELD', `Missing required field: ${field}`),
+  DOCUMENT_TOO_LARGE: () => new ApiError(HTTP_STATUS.BAD_REQUEST, 'DOCUMENT_TOO_LARGE', 'Document exceeds maximum size of 1MB'),
   
   // Resource errors
-  NOT_FOUND: (resource: string) => new ApiError(404, 'NOT_FOUND', `${resource} not found`),
-  ALREADY_EXISTS: (resource: string) => new ApiError(409, 'ALREADY_EXISTS', `${resource} already exists`),
+  NOT_FOUND: (resource: string) => new ApiError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', `${resource} not found`),
+  ALREADY_EXISTS: (resource: string) => new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_EXISTS', `${resource} already exists`),
   
   // Rate limiting
-  RATE_LIMIT_EXCEEDED: () => new ApiError(429, 'RATE_LIMIT_EXCEEDED', 'Too many requests, please try again later'),
+  RATE_LIMIT_EXCEEDED: () => new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED', 'Too many requests, please try again later'),
   
   // Server errors
-  INTERNAL_ERROR: () => new ApiError(500, 'INTERNAL_ERROR', 'An internal error occurred'),
-  DATABASE_ERROR: () => new ApiError(500, 'DATABASE_ERROR', 'Database operation failed'),
+  INTERNAL_ERROR: () => new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INTERNAL_ERROR', 'An internal error occurred'),
+  DATABASE_ERROR: () => new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'DATABASE_ERROR', 'Database operation failed'),
 };
