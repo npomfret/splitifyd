@@ -6,19 +6,19 @@
  * in general, less is more - keep code neat and tidy
  * tidy up after make a change; don't leave unused stuff lying around
  * do not worry about backward compatibility unless you have been instructed otherwise
- * always consider security, performance and scalability - sometimes none are important, sometimes they all are
- * be modern and always use the latest APIs / patterns / libraries
  * don't comment; write clear code instead
  * don't log; audit changes to data instead (using a logger)
  * in general, less in more when it comes to lines of code
  * log line are fine, but certain code patterns benefit from line wrapping (such as function-chaining)
  * avoid creating "private" functions/methods if they are only called in once place
  * minimise mutable state in classes - it always creates complexity
+ * type safety is a very good thing, even if it's a little verbose
 
 ##  General behaviour
 
+ * be modern: always use the latest APIs / patterns / libraries
+ * always consider security, performance and scalability - sometimes none are important, sometimes they all are
  * add new files to git, but never commit or push anything
  * don't ever use quick hacks, especially something that might cause a security problem in the future
  * assume all code is production-ready
  * avoid adding dependencies, especially if a little handwritten code can do the same job
- * type safety is a very good thing, even if it's a little verbose
