@@ -47,6 +47,41 @@ function configureEmulators(config: EnvironmentConfig): void {
   }
 }
 
+function getCorsOrigins(isProduction: boolean, isTest: boolean, projectId: string): string[] {
+  if (isProduction) {
+    return parseStringArray(
+      process.env.CORS_ALLOWED_ORIGINS,
+      [`https://${projectId}.web.app`, `https://${projectId}.firebaseapp.com`]
+    );
+  }
+  
+  if (isTest) {
+    return ['http://localhost:3000', 'http://localhost:5000'];
+  }
+  
+  return parseStringArray(
+    process.env.CORS_ALLOWED_ORIGINS,
+    [
+      'http://localhost:3000', 
+      'http://localhost:5000', 
+      'http://localhost:5002',
+      'http://127.0.0.1:5000',
+      'http://127.0.0.1:5002'
+    ]
+  );
+}
+
+function getLogLevel(isProduction: boolean): 'debug' | 'info' | 'warn' | 'error' {
+  const level = process.env.LOG_LEVEL?.toLowerCase();
+  const validLevels = ['debug', 'info', 'warn', 'error'];
+  
+  if (level && validLevels.includes(level)) {
+    return level as 'debug' | 'info' | 'warn' | 'error';
+  }
+  
+  return isProduction ? 'info' : 'debug';
+}
+
 function createConfig(): EnvironmentConfig {
   const environment = getCurrentEnvironment();
   const isProduction = environment === 'production';
@@ -77,40 +112,11 @@ function createConfig(): EnvironmentConfig {
       },
     },
     cors: {
-      allowedOrigins: (() => {
-        if (isProduction) {
-          return parseStringArray(
-            process.env.CORS_ALLOWED_ORIGINS,
-            [`https://${projectId}.web.app`, `https://${projectId}.firebaseapp.com`]
-          );
-        } else if (isTest) {
-          return ['http://localhost:3000', 'http://localhost:5000'];
-        } else {
-          return parseStringArray(
-            process.env.CORS_ALLOWED_ORIGINS,
-            [
-              'http://localhost:3000', 
-              'http://localhost:5000', 
-              'http://localhost:5002',
-              'http://127.0.0.1:5000',
-              'http://127.0.0.1:5002'
-            ]
-          );
-        }
-      })(),
+      allowedOrigins: getCorsOrigins(isProduction, isTest, projectId),
       credentials: true,
     },
     logging: {
-      level: (() => {
-        const level = process.env.LOG_LEVEL?.toLowerCase();
-        const validLevels = ['debug', 'info', 'warn', 'error'];
-        
-        if (level && validLevels.includes(level)) {
-          return level as 'debug' | 'info' | 'warn' | 'error';
-        }
-        
-        return isProduction ? 'info' : 'debug';
-      })(),
+      level: getLogLevel(isProduction),
       structuredLogging: parseBoolean(process.env.STRUCTURED_LOGGING, isProduction),
       includeStackTrace: parseBoolean(process.env.INCLUDE_STACK_TRACE, !isProduction),
     },
