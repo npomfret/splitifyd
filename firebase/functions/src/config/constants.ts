@@ -1,4 +1,6 @@
-import { ENV_CONFIG } from './environment';
+import { getEnvironmentConfig } from './environment';
+
+const ENV_CONFIG = getEnvironmentConfig();
 
 export const CONFIG = {
   RATE_LIMIT: {

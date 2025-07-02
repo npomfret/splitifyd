@@ -32,7 +32,7 @@ export interface UpdateDocumentRequest {
  * Calculate size of JSON object in bytes
  */
 const getJsonSize = (obj: any): number => {
-  return new Blob([JSON.stringify(obj)]).size;
+  return Buffer.byteLength(JSON.stringify(obj), 'utf8');
 };
 
 /**
