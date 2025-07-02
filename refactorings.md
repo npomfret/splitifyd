@@ -1,22 +1,8 @@
 # Suggested refactorings for backend
 
-## Top 5 Refactoring Opportunities
+## Top 4 Refactoring Opportunities
 
-### 1. **Eliminate try/catch/log anti-pattern** 
-*Category: High Impact, Easy Fix*
-
-**Problem**: The codebase uses try/catch blocks that catch and log errors instead of letting them bubble up, creating unknown states.
-
-**Files affected**: 
-- `firebase/functions/src/auth/middleware.ts:65-69` - Rate limiter error handling
-- `firebase/functions/src/auth/middleware.ts:92-94` - Cleanup error handling  
-- `firebase/functions/src/documents/handlers.ts:193-195` - Cursor parsing error handling
-
-**Solution**: Remove try/catch blocks and let exceptions bubble up. The global error handler in `index.ts:89-105` already handles unhandled errors properly.
-
-**Impact**: Eliminates unknown error states, simplifies debugging, follows "fail fast" principle.
-
-### 2. **Remove console.log statements from logger implementation**
+### 1. **Remove console.log statements from logger implementation**
 *Category: High Impact, Easy Fix*
 
 **Problem**: The logger utility uses `console.log`, `console.warn`, and `console.error` directly instead of using a proper logging framework.
@@ -27,7 +13,7 @@
 
 **Impact**: Better log aggregation, structured logging, proper log levels in production.
 
-### 3. **Consolidate duplicate constants and eliminate redundancy**
+### 2. **Consolidate duplicate constants and eliminate redundancy**
 *Category: Medium Impact, Easy Fix*
 
 **Problem**: Multiple constants files with overlapping definitions create maintenance overhead.
@@ -44,7 +30,7 @@
 
 **Impact**: Reduces maintenance, eliminates inconsistencies, cleaner imports.
 
-### 4. **Simplify over-engineered rate limiting**
+### 3. **Simplify over-engineered rate limiting**
 *Category: High Impact, Medium Complexity*
 
 **Problem**: Firestore-based distributed rate limiting is overly complex for a simple document API, adds latency to every request.
@@ -60,7 +46,7 @@
 
 **Impact**: Reduces request latency, simplifies codebase, reduces Firestore read/write costs.
 
-### 5. **Remove unnecessary abstraction layers**
+### 4. **Remove unnecessary abstraction layers**
 *Category: Medium Impact, Easy Fix*
 
 **Problem**: Over-abstraction creates unnecessary indirection without adding value.

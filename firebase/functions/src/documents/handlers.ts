@@ -180,19 +180,15 @@ export const listDocuments = async (
 
   // Apply cursor if provided
   const query = cursor ? (() => {
-    try {
-      // Decode cursor (base64 encoded timestamp)
-      const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-      const cursorData = JSON.parse(decodedCursor);
-      
-      if (cursorData.updatedAt) {
-        const cursorTimestamp = new Date(cursorData.updatedAt);
-        return baseQuery.startAfter(cursorTimestamp);
-      }
-      return baseQuery;
-    } catch (error) {
-      throw new Error(`Invalid cursor format: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Decode cursor (base64 encoded timestamp)
+    const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+    const cursorData = JSON.parse(decodedCursor);
+    
+    if (cursorData.updatedAt) {
+      const cursorTimestamp = new Date(cursorData.updatedAt);
+      return baseQuery.startAfter(cursorTimestamp);
     }
+    return baseQuery;
   })() : baseQuery;
 
   const snapshot = await query.get();

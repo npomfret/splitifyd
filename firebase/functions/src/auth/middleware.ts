@@ -35,38 +35,32 @@ class FirestoreRateLimiter {
     const db = admin.firestore();
     const userRateLimitRef = db.collection(this.collectionName).doc(userId);
     
-    try {
-      return await db.runTransaction(async (transaction) => {
-        const doc = await transaction.get(userRateLimitRef);
-        
-        let requests: number[] = [];
-        if (doc.exists) {
-          const data = doc.data();
-          requests = data?.requests || [];
-        }
-        
-        // Filter out requests outside the window
-        const recentRequests = requests.filter(time => time > windowStart);
-        
-        if (recentRequests.length >= this.maxRequests) {
-          return false;
-        }
-        
-        // Add current request and update document
-        recentRequests.push(now);
-        
-        transaction.set(userRateLimitRef, {
-          requests: recentRequests,
-          lastUpdated: now,
-        }, { merge: true });
-        
-        return true;
-      });
-    } catch (error) {
-      logger.errorWithContext('Rate limiter error', error as Error, { userId });
-      // Fail closed - deny request if rate limiter fails to ensure security
-      return false;
-    }
+    return await db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(userRateLimitRef);
+      
+      let requests: number[] = [];
+      if (doc.exists) {
+        const data = doc.data();
+        requests = data?.requests || [];
+      }
+      
+      // Filter out requests outside the window
+      const recentRequests = requests.filter(time => time > windowStart);
+      
+      if (recentRequests.length >= this.maxRequests) {
+        return false;
+      }
+      
+      // Add current request and update document
+      recentRequests.push(now);
+      
+      transaction.set(userRateLimitRef, {
+        requests: recentRequests,
+        lastUpdated: now,
+      }, { merge: true });
+      
+      return true;
+    });
   }
 
   // Cleanup old rate limit documents (should be called periodically)
@@ -74,23 +68,19 @@ class FirestoreRateLimiter {
     const cutoff = Date.now() - (this.windowMs * RATE_LIMITS.CLEANUP_MULTIPLIER); // Keep documents for 2x window period
     const db = admin.firestore();
     
-    try {
-      const query = db.collection(this.collectionName)
-        .where('lastUpdated', '<', cutoff)
-        .limit(RATE_LIMITS.CLEANUP_BATCH_SIZE);
-      
-      const snapshot = await query.get();
-      
-      if (!snapshot.empty) {
-        const batch = db.batch();
-        snapshot.docs.forEach(doc => {
-          batch.delete(doc.ref);
-        });
-        await batch.commit();
-        logger.debug(`Cleaned up ${snapshot.size} old rate limit documents`);
-      }
-    } catch (error) {
-      logger.errorWithContext('Rate limiter cleanup error', error as Error);
+    const query = db.collection(this.collectionName)
+      .where('lastUpdated', '<', cutoff)
+      .limit(RATE_LIMITS.CLEANUP_BATCH_SIZE);
+    
+    const snapshot = await query.get();
+    
+    if (!snapshot.empty) {
+      const batch = db.batch();
+      snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      logger.debug(`Cleaned up ${snapshot.size} old rate limit documents`);
     }
   }
 }
