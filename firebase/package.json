@@ -4,11 +4,12 @@
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
     "serve": "firebase emulators:start",
-    "deploy": "firebase deploy",
-    "deploy:functions": "firebase deploy --only functions",
-    "deploy:hosting": "firebase deploy --only hosting",
-    "deploy:rules": "firebase deploy --only firestore:rules",
-    "logs": "firebase functions:log"
+    "deploy": "echo 'Use deploy:prod for production deployment'",
+    "deploy:prod": "firebase use splitifyd && firebase deploy",
+    "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
+    "deploy:hosting": "firebase use splitifyd && firebase deploy --only hosting", 
+    "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
+    "logs": "firebase use splitifyd && firebase functions:log"
   },
   "author": "",
   "license": "MIT",
