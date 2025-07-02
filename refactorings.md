@@ -4,20 +4,9 @@
 
 After analyzing the codebase, I've identified several areas for improvement. The code is generally well-structured with good security practices, but there are opportunities to simplify, eliminate redundancy, and improve maintainability.
 
-## Top 5 Refactoring Recommendations
+## Top 4 Refactoring Recommendations
 
-### 1. **Eliminate Excessive Try/Catch/Log Pattern - Replace with Fail Fast** ⭐ High Impact
-**Location**: `firebase/functions/src/auth/middleware.ts:66-70, 143-148, 149-154`
-
-**Problem**: Multiple try/catch blocks that catch and log errors instead of letting them bubble up. This violates the "fail fast" principle outlined in CLAUDE.md.
-
-**Solution**: Remove unnecessary try/catch blocks and let exceptions bubble to Express error middleware. Only catch errors where recovery is possible.
-
-**Impact**: Simpler error handling, clearer failure modes, follows project principles
-
----
-
-### 2. **Consolidate Duplicate Config Environment Logic** ⭐ Easy Win
+### 1. **Consolidate Duplicate Config Environment Logic** ⭐ Easy Win
 **Location**: `firebase/functions/src/config/config.ts:50-170`
 
 **Problem**: Complex config creation function with repetitive environment checking and parsing logic that could be simplified.
@@ -28,7 +17,7 @@ After analyzing the codebase, I've identified several areas for improvement. The
 
 ---
 
-### 3. **Remove Redundant Individual Function Exports** ⭐ Big Impact
+### 2. **Remove Redundant Individual Function Exports** ⭐ Big Impact
 **Location**: `firebase/functions/src/index.ts:110-116`
 
 **Problem**: Individual function exports (`createDocumentFn`, `getDocumentFn`, etc.) are redundant since the main API already handles all routes. This creates deployment complexity and potential inconsistencies.
@@ -39,7 +28,7 @@ After analyzing the codebase, I've identified several areas for improvement. The
 
 ---
 
-### 4. **Simplify Over-Engineered Validation Middleware** ⭐ High Impact
+### 3. **Simplify Over-Engineered Validation Middleware** ⭐ High Impact
 **Location**: `firebase/functions/src/middleware/validation.ts:9-118`
 
 **Problem**: Complex validation middleware with nested functions and temporary object mutations (`__visited` markers) that add unnecessary complexity.
@@ -50,7 +39,7 @@ After analyzing the codebase, I've identified several areas for improvement. The
 
 ---
 
-### 5. **Extract Magic Numbers to Constants** ⭐ Easy Win
+### 4. **Extract Magic Numbers to Constants** ⭐ Easy Win
 **Location**: Multiple files - validation schemas, timeouts, limits
 
 **Problem**: Magic numbers scattered throughout codebase (50000, 10000, 1000, etc.) making configuration changes difficult.

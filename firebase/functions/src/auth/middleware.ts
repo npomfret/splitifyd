@@ -35,7 +35,7 @@ class FirestoreRateLimiter {
     const userRateLimitRef = db.collection(this.collectionName).doc(userId);
     
     try {
-      const result = await db.runTransaction(async (transaction) => {
+      return await db.runTransaction(async (transaction) => {
         const doc = await transaction.get(userRateLimitRef);
         
         let requests: number[] = [];
@@ -61,8 +61,6 @@ class FirestoreRateLimiter {
         
         return true;
       });
-      
-      return result;
     } catch (error) {
       logger.errorWithContext('Rate limiter error', error as Error, { userId });
       // Fail closed - deny request if rate limiter fails to ensure security
@@ -107,50 +105,43 @@ export const authenticate = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  // Skip authentication for OPTIONS requests (CORS preflight)
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
+  const correlationId = req.headers['x-correlation-id'] as string;
+  
+  // Extract token from Authorization header
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return sendError(res, Errors.UNAUTHORIZED(), correlationId);
+  }
+
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
   try {
-    // Skip authentication for OPTIONS requests (CORS preflight)
-    if (req.method === 'OPTIONS') {
-      return next();
-    }
-
-    const correlationId = req.headers['x-correlation-id'] as string;
+    // Verify the token
+    const decodedToken = await admin.auth().verifyIdToken(token);
     
-    // Extract token from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return sendError(res, Errors.UNAUTHORIZED(), correlationId);
+    // Attach user information to request
+    req.user = {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+    };
+
+    // Check rate limit
+    const isAllowed = await rateLimiter.isAllowed(decodedToken.uid);
+    if (!isAllowed) {
+      return sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-
-    try {
-      // Verify the token
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      
-      // Attach user information to request
-      req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-      };
-
-      // Check rate limit
-      const isAllowed = await rateLimiter.isAllowed(decodedToken.uid);
-      if (!isAllowed) {
-        return sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
-      }
-
-      next();
-    } catch (error) {
-      logger.errorWithContext('Token verification failed', error as Error, {
-        correlationId,
-      });
-      return sendError(res, Errors.INVALID_TOKEN(), correlationId);
-    }
+    next();
   } catch (error) {
-    logger.errorWithContext('Authentication middleware error', error as Error, {
-      correlationId: req.headers['x-correlation-id'] as string,
+    logger.errorWithContext('Token verification failed', error as Error, {
+      correlationId,
     });
-    return sendError(res, Errors.INTERNAL_ERROR(), req.headers['x-correlation-id'] as string);
+    return sendError(res, Errors.INVALID_TOKEN(), correlationId);
   }
 };
 
@@ -162,31 +153,24 @@ export const optionalAuth = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      
-      try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        req.user = {
-          uid: decodedToken.uid,
-          email: decodedToken.email,
-        };
-      } catch (error) {
-        logger.warn('Optional auth token verification failed - proceeding without authentication', {
-          correlationId: req.headers['x-correlation-id'] as string,
-          tokenPrefix: token.substring(0, 10) + '...',
-          error: error instanceof Error ? error : new Error(String(error)),
-        });
-      }
-    }
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
     
-    next();
-  } catch (error) {
-    logger.errorWithContext('Optional auth middleware error', error as Error, {
-      correlationId: req.headers['x-correlation-id'] as string,
-    });
-    next();
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.user = {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+      };
+    } catch (error) {
+      logger.warn('Optional auth token verification failed - proceeding without authentication', {
+        correlationId: req.headers['x-correlation-id'] as string,
+        tokenPrefix: token.substring(0, 10) + '...',
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
+    }
   }
+  
+  next();
 };
