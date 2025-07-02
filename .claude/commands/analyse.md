@@ -120,4 +120,4 @@ Collect all issues and make a list of your top 5. I want:
  * easy / simple stuff
  * big impact stuff  
 
-Write them to a file in the root of the project called `refactorings.md` (overwrite the file if it is present). Use the heading "Suggested refactorings for $ARGUMENTS"
+Delete `refactorings.md` if it exists and then write your findings to that file. Use the heading "Suggested refactorings for $ARGUMENTS".
