@@ -26,9 +26,10 @@ let googleProvider = null;
 async function initializeFirebase() {
   try {
     // Determine the config endpoint URL
+    const LOCAL_FUNCTIONS_EMULATOR_PORT = 5001;
     const configUrl = isLocal
-      ? `http://localhost:5001/splitifyd/us-central1/configFn`
-      : `https://us-central1-splitifyd.cloudfunctions.net/configFn`;
+      ? `http://localhost:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1/api/config`
+      : `https://us-central1-splitifyd.cloudfunctions.net/api/config`;
     
     console.log('Fetching Firebase configuration from:', configUrl);
     
@@ -206,7 +207,7 @@ async function createDocument() {
   try {
     showLoading();
     const data = JSON.parse(elements.jsonEditor.value);
-    const result = await makeAPICall('createDocumentFn', 'POST', { data });
+    const result = await makeAPICall('createDocument', 'POST', { data });
     showMessage(`Document created with ID: ${result.id}`);
     elements.documentId.value = result.id;
     refreshDocumentList();
@@ -226,7 +227,7 @@ async function getDocument() {
   
   try {
     showLoading();
-    const result = await makeAPICall(`getDocumentFn?id=${id}`);
+    const result = await makeAPICall(`getDocument?id=${id}`);
     elements.jsonEditor.value = JSON.stringify(result.data, null, 2);
     updateJSONPreview();
     showMessage('Document loaded successfully');
@@ -247,7 +248,7 @@ async function updateDocument() {
   try {
     showLoading();
     const data = JSON.parse(elements.jsonEditor.value);
-    await makeAPICall(`updateDocumentFn?id=${id}`, 'PUT', { data });
+    await makeAPICall(`updateDocument?id=${id}`, 'PUT', { data });
     showMessage('Document updated successfully');
     refreshDocumentList();
   } catch (error) {
@@ -270,7 +271,7 @@ async function deleteDocument() {
   
   try {
     showLoading();
-    await makeAPICall(`deleteDocumentFn?id=${id}`, 'DELETE');
+    await makeAPICall(`deleteDocument?id=${id}`, 'DELETE');
     showMessage('Document deleted successfully');
     elements.documentId.value = '';
     elements.jsonEditor.value = '';
@@ -286,7 +287,7 @@ async function deleteDocument() {
 async function refreshDocumentList() {
   try {
     showLoading();
-    const result = await makeAPICall('listDocumentsFn');
+    const result = await makeAPICall('listDocuments');
     displayDocuments(result.documents);
   } catch (error) {
     showMessage(error.message, 'error');
@@ -446,8 +447,8 @@ async function initializeApplication() {
   
   // Set API Base URL after Firebase is initialized
   API_BASE_URL = isLocal
-    ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1`
-    : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
+    ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1/api`
+    : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/api`;
   
   console.log('Current hostname:', window.location.hostname);
   console.log('Is local environment:', isLocal);
