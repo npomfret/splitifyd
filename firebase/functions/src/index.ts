@@ -9,6 +9,7 @@ import { getFirebaseConfigResponse } from './utils/config';
 import { sendHealthCheckResponse } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
+import { CONFIG } from './config';
 import {
   createDocument,
   getDocument,
@@ -17,8 +18,32 @@ import {
   listDocuments,
 } from './documents/handlers';
 
-// Environment configuration is automatically loaded via CONFIG import
+// Initialize Firebase Admin with emulator configuration for local development
+if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
+  // Configure Auth emulator
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.auth}`;
+  
+  console.log('🔧 Configuring Firebase Admin for local emulators:');
+  console.log(`   Auth emulator: localhost:${CONFIG.emulatorPorts.auth}`);
+  console.log(`   Firestore emulator: localhost:${CONFIG.emulatorPorts.firestore}`);
+}
+
 admin.initializeApp();
+
+// Test emulator connections when running locally
+if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
+  // Test Auth emulator connection after initialization
+  setTimeout(async () => {
+    try {
+      console.log('🔄 Testing Auth emulator connection...');
+      await admin.auth().listUsers(1);
+      console.log('✅ Auth emulator connection successful');
+    } catch (error: any) {
+      console.error('❌ Auth emulator connection failed:', error.message);
+      console.error('   Make sure Firebase Auth emulator is running on port', CONFIG.emulatorPorts.auth);
+    }
+  }, 1000);
+}
 
 const app = express();
 
