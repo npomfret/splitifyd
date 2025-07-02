@@ -17,11 +17,17 @@ class Auth {
 
     initializeEventListeners() {
         const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
         const forgotPasswordLink = document.getElementById('forgotPassword');
         const signUpLink = document.getElementById('signUpLink');
+        const signInLink = document.getElementById('signInLink');
 
         if (loginForm) {
             loginForm.addEventListener('submit', this.handleLogin.bind(this));
+        }
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', this.handleRegister.bind(this));
         }
 
         if (forgotPasswordLink) {
@@ -30,6 +36,10 @@ class Auth {
 
         if (signUpLink) {
             signUpLink.addEventListener('click', this.handleSignUp.bind(this));
+        }
+
+        if (signInLink) {
+            signInLink.addEventListener('click', this.handleSignIn.bind(this));
         }
     }
 
@@ -81,8 +91,64 @@ class Auth {
 
     handleSignUp(event) {
         event.preventDefault();
-        // TODO: Navigate to registration page
-        alert('Registration page coming soon');
+        window.location.href = 'register.html';
+    }
+
+    handleSignIn(event) {
+        event.preventDefault();
+        window.location.href = 'index.html';
+    }
+
+    async handleRegister(event) {
+        event.preventDefault();
+        
+        const displayName = document.getElementById('displayName').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+        
+        if (password.length < 6) {
+            alert('Password must be at least 6 characters long');
+            return;
+        }
+        
+        const button = event.target.querySelector('button[type="submit"]');
+        const originalText = button.textContent;
+        
+        try {
+            button.textContent = 'Creating Account...';
+            button.disabled = true;
+
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ displayName, email, password }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Registration failed');
+            }
+
+            const data = await response.json();
+            this.setToken(data.token);
+            
+            window.location.href = 'dashboard.html';
+            
+        } catch (error) {
+            console.error('Registration error:', error);
+            alert(`Registration failed: ${error.message}`);
+        } finally {
+            button.textContent = originalText;
+            button.disabled = false;
+        }
     }
 
     setToken(token) {
