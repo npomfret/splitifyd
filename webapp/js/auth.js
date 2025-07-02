@@ -20,16 +20,18 @@ const validateInput = {
     password: (value) => {
         if (!value) throw new Error('Password is required');
         if (value.length < 8) throw new Error('Password must be at least 8 characters');
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-            throw new Error('Password must contain uppercase, lowercase, and number');
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/.test(value)) {
+            throw new Error('Password must contain uppercase, lowercase, number, and special character');
         }
         return value;
     },
     
     displayName: (value) => {
         if (!value) throw new Error('Display name is required');
-        if (value.trim().length < 1) throw new Error('Display name cannot be empty');
-        return value.trim();
+        const trimmed = value.trim();
+        if (trimmed.length < 2) throw new Error('Display name must be at least 2 characters');
+        if (trimmed.length > 50) throw new Error('Display name must be less than 50 characters');
+        return trimmed;
     }
 };
 

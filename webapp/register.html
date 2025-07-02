@@ -13,7 +13,7 @@
         <article class="auth-card auth-card--register">
             <header class="auth-card__header">
                 <h1 class="auth-card__title">Splitifyd</h1>
-                <p class="auth-card__subtitle">Create your account</p>
+                <p class="auth-card__subtitle">Split bills with friends</p>
             </header>
             
             <form class="auth-form" id="registerForm" novalidate>
@@ -30,6 +30,8 @@
                         required
                         autocomplete="name"
                         aria-describedby="displayName-error"
+                        minlength="2"
+                        maxlength="50"
                     >
                     <div id="displayName-error" class="form-error" role="alert"></div>
                 </div>
@@ -65,9 +67,10 @@
                         minlength="8"
                         autocomplete="new-password"
                         aria-describedby="password-error password-help"
+                        maxlength="100"
                     >
                     <div id="password-help" class="form-help">
-                        Must be at least 8 characters with uppercase, lowercase, and number
+                        At least 8 characters with uppercase, lowercase, number, and special character
                     </div>
                     <div id="password-error" class="form-error" role="alert"></div>
                 </div>
