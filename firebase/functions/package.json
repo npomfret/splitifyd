@@ -12,7 +12,8 @@
     "logs": "firebase functions:log",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "validate-cors": "node scripts/validate-cors.js"
   },
   "engines": {
     "node": "20"

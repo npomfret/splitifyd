@@ -48,6 +48,19 @@ function configureEmulators(config: EnvironmentConfig): void {
   }
 }
 
+/**
+ * CRITICAL: CORS Configuration
+ * 
+ * This function provides environment-specific CORS origins.
+ * NEVER override these with "origin: true" or "*" in middleware!
+ * 
+ * - Production: Only allows Firebase hosting domains
+ * - Development: Allows specific localhost/127.0.0.1 ports
+ * - Test: Allows minimal localhost ports for testing
+ * 
+ * If you need to debug CORS locally, use the emulator fallback
+ * mechanism in middleware.ts instead of changing this configuration.
+ */
 function getCorsOrigins(isProduction: boolean, isTest: boolean, projectId: string): string[] {
   if (isProduction) {
     return parseStringArray(
@@ -60,6 +73,7 @@ function getCorsOrigins(isProduction: boolean, isTest: boolean, projectId: strin
     return [`http://localhost:${PORTS.LOCAL_3000}`, `http://localhost:${PORTS.LOCAL_5000}`];
   }
   
+  // Development: Include both localhost and 127.0.0.1 for maximum compatibility
   return parseStringArray(
     process.env.CORS_ALLOWED_ORIGINS,
     [
