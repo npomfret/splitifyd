@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
 import { CONFIG } from '../config/config';
 import { logger } from '../utils/logger';
-import { RATE_LIMITS, AUTH } from '../constants';
+import { AUTH } from '../constants';
 
 /**
  * Extended Express Request with user information
@@ -16,77 +16,62 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Firestore-based distributed rate limiter
+ * Simple in-memory rate limiter
  */
-class FirestoreRateLimiter {
+class InMemoryRateLimiter {
   private readonly windowMs: number;
   private readonly maxRequests: number;
-  private readonly collectionName = 'rate_limits';
+  private readonly requests = new Map<string, number[]>();
 
   constructor(windowMs: number = CONFIG.security.rateLimiting.windowMs, maxRequests: number = CONFIG.security.rateLimiting.maxRequests) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
+    
+    // Periodic cleanup
+    setInterval(() => this.cleanup(), CONFIG.security.rateLimiting.cleanupIntervalMs);
   }
 
-  async isAllowed(userId: string): Promise<boolean> {
+  isAllowed(userId: string): boolean {
     const now = Date.now();
     const windowStart = now - this.windowMs;
     
-    const db = admin.firestore();
-    const userRateLimitRef = db.collection(this.collectionName).doc(userId);
+    const userRequests = this.requests.get(userId) || [];
+    const recentRequests = userRequests.filter(time => time > windowStart);
     
-    return await db.runTransaction(async (transaction) => {
-      const doc = await transaction.get(userRateLimitRef);
-      
-      let requests: number[] = [];
-      if (doc.exists) {
-        const data = doc.data();
-        requests = data?.requests || [];
-      }
-      
-      // Filter out requests outside the window
-      const recentRequests = requests.filter(time => time > windowStart);
-      
-      if (recentRequests.length >= this.maxRequests) {
-        return false;
-      }
-      
-      // Add current request and update document
-      recentRequests.push(now);
-      
-      transaction.set(userRateLimitRef, {
-        requests: recentRequests,
-        lastUpdated: now,
-      }, { merge: true });
-      
-      return true;
-    });
+    if (recentRequests.length >= this.maxRequests) {
+      return false;
+    }
+    
+    recentRequests.push(now);
+    this.requests.set(userId, recentRequests);
+    
+    return true;
   }
 
-  // Cleanup old rate limit documents (should be called periodically)
-  async cleanup(): Promise<void> {
-    const cutoff = Date.now() - (this.windowMs * RATE_LIMITS.CLEANUP_MULTIPLIER); // Keep documents for 2x window period
-    const db = admin.firestore();
+  private cleanup(): void {
+    const now = Date.now();
+    const windowStart = now - this.windowMs;
+    let cleaned = 0;
     
-    const query = db.collection(this.collectionName)
-      .where('lastUpdated', '<', cutoff)
-      .limit(RATE_LIMITS.CLEANUP_BATCH_SIZE);
+    for (const [userId, timestamps] of this.requests.entries()) {
+      const recentRequests = timestamps.filter(time => time > windowStart);
+      
+      if (recentRequests.length === 0) {
+        this.requests.delete(userId);
+        cleaned++;
+      } else if (recentRequests.length < timestamps.length) {
+        this.requests.set(userId, recentRequests);
+      }
+    }
     
-    const snapshot = await query.get();
-    
-    if (!snapshot.empty) {
-      const batch = db.batch();
-      snapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-      logger.debug(`Cleaned up ${snapshot.size} old rate limit documents`);
+    if (cleaned > 0) {
+      logger.debug(`Cleaned up ${cleaned} rate limit entries`);
     }
   }
 }
 
-// Initialize Firestore-based rate limiter
-const rateLimiter = new FirestoreRateLimiter();
+// Initialize in-memory rate limiter
+const rateLimiter = new InMemoryRateLimiter();
 
 /**
  * Verify Firebase Auth token and attach user to request
@@ -122,7 +107,7 @@ export const authenticate = async (
     };
 
     // Check rate limit
-    const isAllowed = await rateLimiter.isAllowed(decodedToken.uid);
+    const isAllowed = rateLimiter.isAllowed(decodedToken.uid);
     if (!isAllowed) {
       return sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
     }

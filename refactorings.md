@@ -2,23 +2,7 @@
 
 ## Top 3 Refactoring Opportunities
 
-### 1. **Simplify over-engineered rate limiting**
-*Category: High Impact, Medium Complexity*
-
-**Problem**: Firestore-based distributed rate limiting is overly complex for a simple document API, adds latency to every request.
-
-**File affected**: `firebase/functions/src/auth/middleware.ts:21-96`
-
-**Current issues**:
-- Uses Firestore transactions for simple rate limiting (adds 50-100ms per request)
-- Complex cleanup logic that runs periodically
-- Stores arrays of timestamps instead of simple counters
-
-**Solution**: Use Firebase Functions built-in rate limiting or simple in-memory rate limiting with periodic cleanup.
-
-**Impact**: Reduces request latency, simplifies codebase, reduces Firestore read/write costs.
-
-### 2. **Remove unnecessary abstraction layers**
+### 1. **Remove unnecessary abstraction layers**
 *Category: Medium Impact, Easy Fix*
 
 **Problem**: Over-abstraction creates unnecessary indirection without adding value.
