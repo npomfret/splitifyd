@@ -2,26 +2,6 @@
 
 ## Top 5 Refactoring Opportunities
 
-### 1. **Remove Duplicate CORS Configuration** (Medium Impact, Medium Effort)
-**Location**: `firebase/functions/src/config.ts:26-65` and `firebase/functions/src/utils/middleware.ts:19-43`
-
-**Problem**: CORS origins are defined twice with identical logic - once in CONFIG.corsOrigins and again in CONFIG.corsOptions.origin. However, the middleware has a critical safety fallback for local development that must be preserved.
-
-**Solution**: 
-- Remove `corsOrigins` from CONFIG (lines 26-36) as it's unused
-- **CRITICAL**: Preserve the emulator safety fallback in middleware.ts (lines 23-43) as it ensures the app continues to work in local development when standard CORS origins fail
-- The safety fallback allows any localhost/127.0.0.1 origin when `FUNCTIONS_EMULATOR=true`, preventing developer lockouts
-- Replace `console.warn` with `logger.warn` for consistent logging
-
-**Requirements**: 
-- ✅ **MUST** work in local development environment (emulator)
-- ✅ **MUST** work in production environment  
-- ✅ **MUST** maintain security in production (no fallback bypass)
-- ✅ **MUST** prevent developer lockouts during local development
-
-**Impact**: Reduces code duplication while preserving essential development safety mechanisms
-
----
 
 ### 2. **Consolidate Authentication Error Handling** (High Impact, Medium Effort)
 **Location**: `firebase/functions/src/auth/middleware.ts:99-122`

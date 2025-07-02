@@ -33,7 +33,7 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
         
         // Safety fallback for local development
         if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-          console.warn(`CORS: Allowing ${origin} via development fallback`);
+          logger.warn(`CORS: Allowing ${origin} via development fallback`);
           return callback(null, true);
         }
         

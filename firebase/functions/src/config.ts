@@ -23,18 +23,6 @@ export const CONFIG = {
   
   projectId,
   
-  corsOrigins: ENV_IS_PRODUCTION 
-    ? [`https://${projectId}.web.app`, `https://${projectId}.firebaseapp.com`]
-    : ENV_IS_TEST
-    ? [`http://localhost:${PORTS.LOCAL_3000}`, `http://localhost:${PORTS.LOCAL_5000}`]
-    : [
-        `http://localhost:${PORTS.LOCAL_3000}`, 
-        `http://localhost:${PORTS.LOCAL_5000}`, 
-        `http://localhost:${PORTS.LOCAL_5002}`,
-        `http://127.0.0.1:${PORTS.LOCAL_5000}`,
-        `http://127.0.0.1:${PORTS.LOCAL_5002}`
-      ],
-  
   requestBodyLimit: '1mb',
   
   rateLimiting: {
