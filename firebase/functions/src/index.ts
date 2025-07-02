@@ -72,35 +72,21 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 app.get('/health', async (req: express.Request, res: express.Response) => {
   const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }> = {};
 
-  try {
-    const firestoreStart = Date.now();
-    const testRef = admin.firestore().collection('_health_check').doc('test');
-    await testRef.set({ timestamp: new Date() }, { merge: true });
-    await testRef.get();
-    checks.firestore = {
-      status: 'healthy',
-      responseTime: Date.now() - firestoreStart,
-    };
-  } catch (error) {
-    checks.firestore = {
-      status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
+  const firestoreStart = Date.now();
+  const testRef = admin.firestore().collection('_health_check').doc('test');
+  await testRef.set({ timestamp: new Date() }, { merge: true });
+  await testRef.get();
+  checks.firestore = {
+    status: 'healthy',
+    responseTime: Date.now() - firestoreStart,
+  };
 
-  try {
-    const authStart = Date.now();
-    await admin.auth().listUsers(1);
-    checks.auth = {
-      status: 'healthy',
-      responseTime: Date.now() - authStart,
-    };
-  } catch (error) {
-    checks.auth = {
-      status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
+  const authStart = Date.now();
+  await admin.auth().listUsers(1);
+  checks.auth = {
+    status: 'healthy',
+    responseTime: Date.now() - authStart,
+  };
 
   sendHealthCheckResponse(res, checks);
 });

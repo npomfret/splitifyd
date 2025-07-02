@@ -11,7 +11,6 @@ import {
   createDocumentPreview,
   Document,
 } from './validation';
-import { logger } from '../utils/logger';
 
 type HandlerFunction = (req: AuthenticatedRequest, res: Response) => Promise<void>;
 
@@ -201,13 +200,7 @@ export const listDocuments = withErrorHandling(async (
       }
       return baseQuery;
     } catch (error) {
-      logger.warn('Invalid cursor provided', {
-        correlationId: req.headers['x-correlation-id'] as string,
-        cursor,
-        userId,
-      });
-      // Continue without cursor if it's invalid
-      return baseQuery;
+      throw new Error(`Invalid cursor format: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   })() : baseQuery;
 

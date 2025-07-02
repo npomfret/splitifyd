@@ -174,10 +174,10 @@ export const optionalAuth = async (
           email: decodedToken.email,
         };
       } catch (error) {
-        // Token is invalid, but we don't fail the request
-        logger.warn('Invalid token in optional auth', {
+        logger.warn('Optional auth token verification failed - proceeding without authentication', {
           correlationId: req.headers['x-correlation-id'] as string,
-          error: error as Error,
+          tokenPrefix: token.substring(0, 10) + '...',
+          error: error instanceof Error ? error : new Error(String(error)),
         });
       }
     }
