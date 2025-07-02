@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { CONFIG } from '../config/config';
 import { checkForDangerousPatterns } from '../utils/security';
 
 /**
@@ -18,7 +18,7 @@ export const validateRequestStructure = (
     }
 
     // Validate JSON depth to prevent stack overflow attacks
-    const validateDepth = (obj: any, depth = 0, maxDepth = CONFIG.VALIDATION.MAX_OBJECT_DEPTH): void => {
+    const validateDepth = (obj: any, depth = 0, maxDepth = CONFIG.security.validation.maxObjectDepth): void => {
       if (depth > maxDepth) {
         throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxDepth} levels)`);
       }
@@ -46,7 +46,7 @@ export const validateRequestStructure = (
     };
 
     // Validate object property count to prevent memory exhaustion
-    const validatePropertyCount = (obj: any, maxProps = CONFIG.VALIDATION.MAX_PROPERTY_COUNT): void => {
+    const validatePropertyCount = (obj: any, maxProps = CONFIG.security.validation.maxPropertyCount): void => {
       if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
         const keys = Object.keys(obj);
         if (keys.length > maxProps) {
@@ -74,7 +74,7 @@ export const validateRequestStructure = (
     };
 
     // Validate string length to prevent memory exhaustion
-    const validateStringLengths = (obj: any, maxLength = CONFIG.VALIDATION.MAX_STRING_LENGTH): void => {
+    const validateStringLengths = (obj: any, maxLength = CONFIG.security.validation.maxStringLength): void => {
       if (typeof obj === 'string') {
         if (obj.length > maxLength) {
           throw Errors.INVALID_INPUT(`String too long (max ${maxLength} characters)`);
@@ -84,8 +84,8 @@ export const validateRequestStructure = (
           obj.forEach(item => validateStringLengths(item, maxLength));
         } else {
           for (const key in obj) {
-            if (typeof key === 'string' && key.length > CONFIG.VALIDATION.MAX_PROPERTY_NAME_LENGTH) {
-              throw Errors.INVALID_INPUT(`Property name too long (max ${CONFIG.VALIDATION.MAX_PROPERTY_NAME_LENGTH} characters)`);
+            if (typeof key === 'string' && key.length > CONFIG.security.validation.maxPropertyNameLength) {
+              throw Errors.INVALID_INPUT(`Property name too long (max ${CONFIG.security.validation.maxPropertyNameLength} characters)`);
             }
             validateStringLengths(obj[key], maxLength);
           }

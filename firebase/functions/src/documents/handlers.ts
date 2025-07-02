@@ -2,7 +2,7 @@ import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
-import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { CONFIG } from '../config/config';
 import {
   validateCreateDocument,
   validateUpdateDocument,
@@ -165,8 +165,8 @@ export const listDocuments = async (
 
   // Parse pagination parameters
   const limit = Math.min(
-    parseInt(req.query.limit as string) || CONFIG.DOCUMENT.LIST_LIMIT,
-    CONFIG.DOCUMENT.LIST_LIMIT
+    parseInt(req.query.limit as string) || CONFIG.document.listLimit,
+    CONFIG.document.listLimit
   );
   const cursor = req.query.cursor as string;
   const order = (req.query.order as string) === 'asc' ? 'asc' : 'desc';

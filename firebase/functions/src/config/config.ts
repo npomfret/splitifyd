@@ -143,50 +143,22 @@ const config = createConfig();
 validateConfig(config);
 configureEmulators(config);
 
-export const CONFIG = config;
-
-export const FLAT_CONFIG = {
-  RATE_LIMIT: {
-    WINDOW_MS: CONFIG.security.rateLimiting.windowMs,
-    MAX_REQUESTS: CONFIG.security.rateLimiting.maxRequests,
-    CLEANUP_INTERVAL_MS: CONFIG.security.rateLimiting.cleanupIntervalMs,
+export const CONFIG = {
+  ...config,
+  request: {
+    bodyLimit: `${Math.round(config.security.validation.maxRequestSizeBytes / (1024 * 1024))}mb`,
   },
-  DOCUMENT: {
-    MAX_SIZE_BYTES: CONFIG.security.validation.maxRequestSizeBytes,
-    LIST_LIMIT: 100,
-    PREVIEW_LENGTH: 100,
+  document: {
+    maxSizeBytes: config.security.validation.maxRequestSizeBytes,
+    listLimit: 100,
+    previewLength: 100,
   },
-  REQUEST: {
-    BODY_LIMIT: `${Math.round(CONFIG.security.validation.maxRequestSizeBytes / (1024 * 1024))}mb`,
-  },
-  CORS: {
-    origin: CONFIG.cors.allowedOrigins,
-    credentials: CONFIG.cors.credentials,
+  corsOptions: {
+    origin: config.cors.allowedOrigins,
+    credentials: config.cors.credentials,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200,
-  },
-  VALIDATION: {
-    MAX_OBJECT_DEPTH: CONFIG.security.validation.maxObjectDepth,
-    MAX_STRING_LENGTH: CONFIG.security.validation.maxStringLength,
-    MAX_PROPERTY_COUNT: CONFIG.security.validation.maxPropertyCount,
-    MAX_PROPERTY_NAME_LENGTH: CONFIG.security.validation.maxPropertyNameLength,
-  },
-  LOGGING: {
-    LEVEL: CONFIG.logging.level,
-    STRUCTURED: CONFIG.logging.structuredLogging,
-    INCLUDE_STACK_TRACE: CONFIG.logging.includeStackTrace,
-  },
-  MONITORING: {
-    ENABLE_HEALTH_CHECKS: CONFIG.monitoring.enableHealthChecks,
-    ENABLE_METRICS: CONFIG.monitoring.enableMetrics,
-    SLOW_REQUEST_THRESHOLD_MS: CONFIG.monitoring.performanceThresholds.slowRequestMs,
-    HEALTH_CHECK_TIMEOUT_MS: CONFIG.monitoring.performanceThresholds.healthCheckTimeoutMs,
-  },
-  FIREBASE: {
-    PROJECT_ID: CONFIG.firebase.projectId,
-    clientConfig: CONFIG.firebase.clientConfig,
-    EMULATOR_PORTS: CONFIG.firebase.emulatorPorts,
   },
 };
 

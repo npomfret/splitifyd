@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
-import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { CONFIG } from '../config/config';
 import { logger } from '../utils/logger';
 
 /**
@@ -22,7 +22,7 @@ class FirestoreRateLimiter {
   private readonly maxRequests: number;
   private readonly collectionName = 'rate_limits';
 
-  constructor(windowMs: number = CONFIG.RATE_LIMIT.WINDOW_MS, maxRequests: number = CONFIG.RATE_LIMIT.MAX_REQUESTS) {
+  constructor(windowMs: number = CONFIG.security.rateLimiting.windowMs, maxRequests: number = CONFIG.security.rateLimiting.maxRequests) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
   }

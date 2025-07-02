@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { CONFIG } from '../config/config';
 import { addCorrelationId, logger } from './logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 
@@ -17,7 +17,7 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
 
   // CORS configuration
   app.use(cors({
-    ...CONFIG.CORS,
+    ...CONFIG.corsOptions,
     origin: true // Allow all origins in development for debugging
   }));
 
@@ -31,7 +31,7 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
   app.use(validateContentType);
 
   // Parse JSON with size limit
-  app.use(express.json({ limit: CONFIG.REQUEST.BODY_LIMIT }));
+  app.use(express.json({ limit: CONFIG.request.bodyLimit }));
 
   // Validate request structure and prevent malicious payloads
   app.use(validateRequestStructure);
