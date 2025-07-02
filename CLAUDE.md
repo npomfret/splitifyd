@@ -28,5 +28,8 @@
    * run whatever tests are appropriate
    * obviously fix any errors that bubble out as a result of the above
  * sometimes tests are pointless and can be deleted
+ * sometimes tests are badly written, outdated or just test the wrong thing (or nothing at all) - fix them as needed
+ * stuff can br broken or "wrong" in theory, but in practice they will never happen - treat these as VERY unimportant
  * Over engineering is BAD. Often, the simple approach is best
  * It is always important to keep the app in a working state, both locally running and deployed in a "real" environment
+ * when making changes to project structure, carefullly consider what impact it will have on the app at build-time and runtime
