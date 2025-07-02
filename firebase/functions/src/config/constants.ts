@@ -40,6 +40,7 @@ export const CONFIG = {
   },
   FIREBASE: {
     PROJECT_ID: ENV_CONFIG.firebase.projectId,
+    clientConfig: ENV_CONFIG.firebase.clientConfig,
     EMULATOR_PORTS: ENV_CONFIG.firebase.emulatorPorts,
   },
 };

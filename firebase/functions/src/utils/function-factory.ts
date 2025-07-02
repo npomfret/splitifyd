@@ -13,7 +13,10 @@ export const createAuthenticatedFunction = (
   const app = express();
   
   // Apply middleware in the same order as main app
-  app.use(cors(CONFIG.CORS));
+  app.use(cors({
+    ...CONFIG.CORS,
+    origin: true // Allow all origins in development for debugging
+  }));
   app.use(addCorrelationId);
   app.use(rateLimitByIP);
   app.use(validateContentType);

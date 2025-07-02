@@ -16,6 +16,14 @@ export interface EnvironmentConfig {
   isTest: boolean;
   firebase: {
     projectId: string;
+    clientConfig?: {
+      apiKey: string;
+      authDomain: string;
+      storageBucket: string;
+      messagingSenderId: string;
+      appId: string;
+      measurementId?: string;
+    };
     emulatorPorts: {
       auth: number;
       firestore: number;
@@ -112,7 +120,15 @@ export function createEnvironmentConfig(): EnvironmentConfig {
 
   // Firebase configuration
   const firebaseConfig = {
-    projectId: requireEnvVar('GCLOUD_PROJECT', isTest ? 'test-project' : undefined),
+    projectId: requireEnvVar('PROJECT_ID', isTest ? 'test-project' : (isDevelopment ? 'splitifyd' : undefined)),
+    clientConfig: process.env.CLIENT_API_KEY ? {
+      apiKey: requireEnvVar('CLIENT_API_KEY'),
+      authDomain: requireEnvVar('CLIENT_AUTH_DOMAIN'),
+      storageBucket: requireEnvVar('CLIENT_STORAGE_BUCKET'),
+      messagingSenderId: requireEnvVar('CLIENT_MESSAGING_SENDER_ID'),
+      appId: requireEnvVar('CLIENT_APP_ID'),
+      measurementId: process.env.CLIENT_MEASUREMENT_ID,
+    } : undefined,
     emulatorPorts: {
       auth: parseInteger(process.env.FIREBASE_AUTH_EMULATOR_PORT, 9099),
       firestore: parseInteger(process.env.FIRESTORE_EMULATOR_PORT, 8080),
@@ -230,7 +246,7 @@ export function validateEnvironmentConfig(config: EnvironmentConfig): void {
     }
 
     // Validate required production environment variables
-    const requiredProdVars = ['GCLOUD_PROJECT'];
+    const requiredProdVars = ['PROJECT_ID'];
     for (const varName of requiredProdVars) {
       if (!process.env[varName]) {
         errors.push(`Production environment variable ${varName} is required`);

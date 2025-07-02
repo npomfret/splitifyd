@@ -13,39 +13,57 @@ import {
 
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBCMpT78Zg3HfYvkbadFreYU_FShA0t_EA",
-  authDomain: "splitifyd.firebaseapp.com",
-  projectId: "splitifyd",
-  storageBucket: "splitifyd.firebasestorage.app",
-  messagingSenderId: "501123495201",
-  appId: "1:501123495201:web:10e655bbbe9842226dfa60",
-  measurementId: "G-GFHKC94PRE"
-};
-
 // API Configuration  
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+// Firebase configuration will be loaded dynamically
+let firebaseConfig = null;
+let app = null;
+let auth = null;
+let googleProvider = null;
 
-// Connect to auth emulator if running locally
-if (isLocal) {
-  console.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
-  connectAuthEmulator(auth, 'http://localhost:9099');
+// Initialize Firebase asynchronously
+async function initializeFirebase() {
+  try {
+    // Determine the config endpoint URL
+    const configUrl = isLocal
+      ? `http://localhost:5001/splitifyd/us-central1/configFn`
+      : `https://us-central1-splitifyd.cloudfunctions.net/configFn`;
+    
+    console.log('Fetching Firebase configuration from:', configUrl);
+    
+    // Fetch Firebase configuration from backend
+    const response = await fetch(configUrl);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || `Failed to fetch Firebase config: ${response.status}`);
+    }
+    
+    firebaseConfig = await response.json();
+    console.log('Firebase configuration loaded:', { projectId: firebaseConfig.projectId });
+    
+    // Initialize Firebase with fetched configuration
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+    
+    // Connect to auth emulator if running locally
+    if (isLocal) {
+      console.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
+      connectAuthEmulator(auth, 'http://localhost:9099');
+    }
+    
+    // Return true to indicate successful initialization
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+    showMessage('Failed to load application configuration. Please refresh the page.', 'error');
+    return false;
+  }
 }
 
-const API_BASE_URL = isLocal
-  ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1`
-  : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
-
-console.log('Current hostname:', window.location.hostname);
-console.log('Is local environment:', isLocal);
-console.log('API Base URL:', API_BASE_URL);
+// API Base URL will be set after Firebase is initialized
+let API_BASE_URL = null;
 
 // Global variables
 let currentUser = null;
@@ -55,14 +73,11 @@ let authToken = null;
 function updateDebugPanel() {
   document.getElementById('debug-hostname').textContent = window.location.hostname + ':' + window.location.port;
   document.getElementById('debug-is-local').textContent = isLocal ? 'YES' : 'NO';
-  document.getElementById('debug-api-url').textContent = API_BASE_URL;
-  document.getElementById('debug-project-id').textContent = firebaseConfig.projectId;
+  document.getElementById('debug-api-url').textContent = API_BASE_URL || 'Not initialized';
+  document.getElementById('debug-project-id').textContent = firebaseConfig?.projectId || 'Not loaded';
   document.getElementById('debug-auth-token').textContent = authToken ? `Present (${authToken.length} chars)` : 'Not available';
   document.getElementById('debug-current-user').textContent = currentUser ? `${currentUser.email} (${currentUser.uid.substring(0, 8)}...)` : 'Not signed in';
 }
-
-// Initial debug panel update
-updateDebugPanel();
 
 // DOM Elements
 const elements = {
@@ -418,27 +433,60 @@ document.getElementById('refresh-list').addEventListener('click', refreshDocumen
 // JSON editor change
 elements.jsonEditor.addEventListener('input', updateJSONPreview);
 
-// Auth state observer
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
+// Initialize the application
+async function initializeApplication() {
+  showLoading();
   
-  if (user) {
-    // Get the ID token
-    authToken = await user.getIdToken();
-    
-    // Refresh token every 55 minutes
-    setInterval(async () => {
-      authToken = await user.getIdToken(true);
-      updateDebugPanel(); // Update debug panel when token refreshes
-    }, 55 * 60 * 1000);
-    
-    showUserInfo();
-  } else {
-    authToken = null;
-    showAuthForm('login');
-    elements.documentSection.style.display = 'none';
+  // Initialize Firebase
+  const initialized = await initializeFirebase();
+  if (!initialized) {
+    hideLoading();
+    return;
   }
   
-  // Update debug panel whenever auth state changes
+  // Set API Base URL after Firebase is initialized
+  API_BASE_URL = isLocal
+    ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1`
+    : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
+  
+  console.log('Current hostname:', window.location.hostname);
+  console.log('Is local environment:', isLocal);
+  console.log('API Base URL:', API_BASE_URL);
+  
+  // Update debug panel with loaded configuration
   updateDebugPanel();
-});
+  
+  // Auth state observer
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    
+    if (user) {
+      // Get the ID token
+      authToken = await user.getIdToken();
+      
+      // Refresh token every 55 minutes
+      setInterval(async () => {
+        authToken = await user.getIdToken(true);
+        updateDebugPanel(); // Update debug panel when token refreshes
+      }, 55 * 60 * 1000);
+      
+      showUserInfo();
+    } else {
+      authToken = null;
+      showAuthForm('login');
+      elements.documentSection.style.display = 'none';
+    }
+    
+    // Update debug panel whenever auth state changes
+    updateDebugPanel();
+  });
+  
+  hideLoading();
+}
+
+// Start the application when the DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApplication);
+} else {
+  initializeApplication();
+}

@@ -21,7 +21,10 @@ admin.initializeApp();
 
 const app = express();
 
-app.use(cors(CONFIG.CORS));
+app.use(cors({
+  ...CONFIG.CORS,
+  origin: true // Allow all origins in development for debugging
+}));
 
 // Add correlation ID to all requests for tracing
 app.use(addCorrelationId);
@@ -136,6 +139,26 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
   });
 });
 
+// Firebase configuration endpoint (public - for client initialization)
+app.get('/config', (req: express.Request, res: express.Response) => {
+  const clientConfig = CONFIG.FIREBASE.clientConfig;
+  
+  if (!clientConfig) {
+    res.status(500).json({
+      error: {
+        code: 'CONFIG_NOT_FOUND',
+        message: 'Firebase configuration not found. Please set environment variables.'
+      }
+    });
+    return;
+  }
+  
+  res.json({
+    ...clientConfig,
+    projectId: CONFIG.FIREBASE.PROJECT_ID
+  });
+});
+
 app.post('/createDocument', authenticate, createDocument);
 app.get('/getDocument', authenticate, getDocument);
 app.put('/updateDocument', authenticate, updateDocument);
@@ -179,3 +202,36 @@ export const getDocumentFn = createAuthenticatedFunction(getDocument);
 export const updateDocumentFn = createAuthenticatedFunction(updateDocument);
 export const deleteDocumentFn = createAuthenticatedFunction(deleteDocument);
 export const listDocumentsFn = createAuthenticatedFunction(listDocuments);
+
+// Public endpoint for Firebase configuration (no auth required)
+export const configFn = functions.https.onRequest((req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+  
+  const clientConfig = CONFIG.FIREBASE.clientConfig;
+  
+  if (!clientConfig) {
+    res.status(500).json({
+      error: {
+        code: 'CONFIG_NOT_FOUND',
+        message: 'Firebase configuration not found. Please set environment variables.'
+      }
+    });
+    return;
+  }
+  
+  res.json({
+    ...clientConfig,
+    projectId: CONFIG.FIREBASE.PROJECT_ID
+  });
+});
