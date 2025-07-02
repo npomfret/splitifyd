@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import express from 'express';
 import { authenticate } from './auth/middleware';
+import { login, register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
 import { getFirebaseConfigResponse } from './utils/config';
@@ -23,6 +24,15 @@ const app = express();
 
 // Apply standard middleware stack
 applyStandardMiddleware(app, { logMessage: 'Incoming request' });
+
+// Explicit CORS preflight handler
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
 
 // Enhanced health check endpoint (no auth required)
 app.get('/health', async (req: express.Request, res: express.Response) => {
@@ -70,6 +80,10 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
 app.get('/config', (req: express.Request, res: express.Response) => {
   getFirebaseConfigResponse(res);
 });
+
+// Auth endpoints (no auth required)
+app.post('/login', login);
+app.post('/register', register);
 
 app.post('/createDocument', authenticate, createDocument);
 app.get('/getDocument', authenticate, getDocument);

@@ -15,32 +15,8 @@ export interface MiddlewareOptions {
 export const applyStandardMiddleware = (app: express.Application, options: MiddlewareOptions = {}) => {
   const { functionName, logMessage = 'Request' } = options;
 
-  // CORS configuration with safety fallback for local development
-  const corsOptions = {
-    ...CONFIG.corsOptions,
-    // Safety fallback: if in local emulator and localhost/127.0.0.1 origins aren't working,
-    // allow all origins temporarily to prevent lockouts during development
-    ...(process.env.FUNCTIONS_EMULATOR === 'true' && {
-      origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-        // Allow requests with no origin (mobile apps, curl, etc.)
-        if (!origin) return callback(null, true);
-        
-        // Check if origin is in allowed list
-        const allowedOrigins = CONFIG.corsOptions.origin as string[];
-        if (allowedOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-        
-        // Safety fallback for local development
-        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-          logger.warn(`CORS: Allowing ${origin} via development fallback`);
-          return callback(null, true);
-        }
-        
-        callback(new Error(`CORS: Origin ${origin} not allowed`));
-      }
-    })
-  };
+  // CORS configuration using CONFIG
+  const corsOptions = CONFIG.corsOptions;
   
   app.use(cors(corsOptions));
 
