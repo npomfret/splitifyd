@@ -18,12 +18,6 @@
 - **Fix**: Use single flat config object, eliminate transformation layer
 - **Effort**: Medium - 45 minutes
 
-## 4. **Remove Questionable Firestore Rate Limiter** ⭐ IMPORTANT
-- **Problem**: Using Firestore for rate limiting in `auth/middleware.ts:20-97` is inefficient and expensive
-- **Issue**: Creates unnecessary Firestore reads/writes, potential bottleneck
-- **Fix**: Use in-memory rate limiter with Redis for production or remove if not needed
-- **Effort**: High - 2 hours
-
 ---
 
 ## Additional Issues Found:
