@@ -80,15 +80,24 @@ export const CONFIG = {
 };
 
 // Configure emulators for development
-if (!ENV_IS_PRODUCTION) {
-  process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.auth}`;
-  process.env.FIRESTORE_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.firestore}`;
-  
-  functions.logger.info('Configured Firebase emulators', {
-    authPort: CONFIG.emulatorPorts.auth,
-    firestorePort: CONFIG.emulatorPorts.firestore,
-  });
+export function configureEmulators() {
+  if (!ENV_IS_PRODUCTION && process.env.FUNCTIONS_EMULATOR === 'true') {
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.auth}`;
+    process.env.FIRESTORE_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.firestore}`;
+    
+    functions.logger.info('Configured Firebase emulators', {
+      authPort: CONFIG.emulatorPorts.auth,
+      firestorePort: CONFIG.emulatorPorts.firestore,
+    });
+    
+    console.log('🔧 Configuring Firebase Admin for local emulators:');
+    console.log(`   Auth emulator: localhost:${CONFIG.emulatorPorts.auth}`);
+    console.log(`   Firestore emulator: localhost:${CONFIG.emulatorPorts.firestore}`);
+  }
 }
+
+// Auto-configure emulators
+configureEmulators();
 
 // Simple exports for backward compatibility
 export const { isProduction, isDevelopment, isTest } = CONFIG;

@@ -18,15 +18,7 @@ import {
   listDocuments,
 } from './documents/handlers';
 
-// Initialize Firebase Admin with emulator configuration for local development
-if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
-  // Configure Auth emulator
-  process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.auth}`;
-  
-  console.log('🔧 Configuring Firebase Admin for local emulators:');
-  console.log(`   Auth emulator: localhost:${CONFIG.emulatorPorts.auth}`);
-  console.log(`   Firestore emulator: localhost:${CONFIG.emulatorPorts.firestore}`);
-}
+// Firebase Admin initialization (emulators auto-configured in config.ts)
 
 admin.initializeApp();
 

@@ -2,19 +2,7 @@
 
 Based on comprehensive analysis of the Firebase codebase, here are the top 4 refactoring opportunities prioritized by impact, simplicity, and alignment with CLAUDE.md principles:
 
-## 1. **Consolidate duplicate configuration logic** (Medium Impact, Easy)
-**Type:** Pure refactoring - no behavior change
-
-**Problem:** Firebase emulator configuration is duplicated between config.ts and index.ts, violating DRY principles.
-
-**Files affected:**
-- `firebase/functions/src/config.ts:82-91` - Emulator detection logic
-- `firebase/functions/src/index.ts:21-46` - Duplicate emulator configuration
-- Extract to single source of truth in config module
-
-**Impact:** Eliminates maintenance burden, prevents configuration drift, single source of truth.
-
-## 3. **Simplify overly complex validation schema** (Medium Impact, Medium)
+## 1. **Simplify overly complex validation schema** (Medium Impact, Medium)
 **Type:** Pure refactoring - no behavior change
 
 **Problem:** Document validation contains unnecessarily complex nested Joi schema that's hard to maintain and could cause performance issues.
