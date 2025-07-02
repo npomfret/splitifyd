@@ -12,94 +12,58 @@ export const validateRequestStructure = (
   next: NextFunction
 ): void => {
   try {
-    // Check if request has a body
     if (!req.body) {
       return next();
     }
 
-    // Validate JSON depth to prevent stack overflow attacks
-    const validateDepth = (obj: any, depth = 0, maxDepth = CONFIG.security.validation.maxObjectDepth): void => {
-      if (depth > maxDepth) {
-        throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxDepth} levels)`);
-      }
-      
-      if (obj && typeof obj === 'object') {
-        // Check for circular references
-        if (obj.__visited) {
-          throw Errors.INVALID_INPUT('Circular reference detected in request');
-        }
-        
-        // Temporarily mark as visited
-        obj.__visited = true;
-        
-        try {
-          for (const key in obj) {
-            if (key !== '__visited' && typeof obj[key] === 'object' && obj[key] !== null) {
-              validateDepth(obj[key], depth + 1, maxDepth);
-            }
-          }
-        } finally {
-          // Clean up the visited marker
-          delete obj.__visited;
-        }
-      }
-    };
+    const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.security.validation;
 
-    // Validate object property count to prevent memory exhaustion
-    const validatePropertyCount = (obj: any, maxProps = CONFIG.security.validation.maxPropertyCount): void => {
-      if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-        const keys = Object.keys(obj);
-        if (keys.length > maxProps) {
-          throw Errors.INVALID_INPUT(`Too many properties in object (max ${maxProps})`);
-        }
-        
-        // Recursively check nested objects
-        for (const key of keys) {
-          if (typeof obj[key] === 'object' && obj[key] !== null) {
-            validatePropertyCount(obj[key], maxProps);
-          }
-        }
-      } else if (Array.isArray(obj)) {
-        if (obj.length > maxProps) {
-          throw Errors.INVALID_INPUT(`Array too large (max ${maxProps} items)`);
-        }
-        
-        // Check each array item
-        for (const item of obj) {
-          if (typeof item === 'object' && item !== null) {
-            validatePropertyCount(item, maxProps);
-          }
-        }
+    // Single recursive validation function
+    const validateObject = (obj: any, depth = 0): void => {
+      if (depth > maxObjectDepth) {
+        throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxObjectDepth} levels)`);
       }
-    };
 
-    // Validate string length to prevent memory exhaustion
-    const validateStringLengths = (obj: any, maxLength = CONFIG.security.validation.maxStringLength): void => {
       if (typeof obj === 'string') {
-        if (obj.length > maxLength) {
-          throw Errors.INVALID_INPUT(`String too long (max ${maxLength} characters)`);
+        if (obj.length > maxStringLength) {
+          throw Errors.INVALID_INPUT(`String too long (max ${maxStringLength} characters)`);
         }
-      } else if (obj && typeof obj === 'object') {
-        if (Array.isArray(obj)) {
-          obj.forEach(item => validateStringLengths(item, maxLength));
-        } else {
-          for (const key in obj) {
-            if (typeof key === 'string' && key.length > CONFIG.security.validation.maxPropertyNameLength) {
-              throw Errors.INVALID_INPUT(`Property name too long (max ${CONFIG.security.validation.maxPropertyNameLength} characters)`);
-            }
-            validateStringLengths(obj[key], maxLength);
+        return;
+      }
+
+      if (Array.isArray(obj)) {
+        if (obj.length > maxPropertyCount) {
+          throw Errors.INVALID_INPUT(`Array too large (max ${maxPropertyCount} items)`);
+        }
+        obj.forEach(item => validateObject(item, depth + 1));
+        return;
+      }
+
+      if (obj && typeof obj === 'object') {
+        const keys = Object.keys(obj);
+        if (keys.length > maxPropertyCount) {
+          throw Errors.INVALID_INPUT(`Too many properties in object (max ${maxPropertyCount})`);
+        }
+
+        for (const key of keys) {
+          if (key.length > maxPropertyNameLength) {
+            throw Errors.INVALID_INPUT(`Property name too long (max ${maxPropertyNameLength} characters)`);
           }
+          validateObject(obj[key], depth + 1);
         }
       }
     };
 
-    // Run all validations
-    validateDepth(req.body);
-    validatePropertyCount(req.body);
-    validateStringLengths(req.body);
+    validateObject(req.body);
 
-    // Check for potentially dangerous patterns
-    const requestString = JSON.stringify(req.body);
+    // JSON.stringify handles circular references naturally by throwing an error
+    let requestString: string;
+    try {
+      requestString = JSON.stringify(req.body);
+    } catch {
+      throw Errors.INVALID_INPUT('Circular reference detected in request');
+    }
+
     if (checkForDangerousPatterns(requestString)) {
       throw Errors.INVALID_INPUT('Request contains potentially dangerous content');
     }
