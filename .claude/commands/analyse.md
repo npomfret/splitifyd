@@ -120,4 +120,6 @@ Collect all issues and make a list of your top 5. I want:
  * easy / simple stuff
  * big impact stuff  
 
+Ensure that _pure_ refactorings are labelled as such (and will not change any behaviour). If behaviour is changed, carefully consider what is affected.
+
 Delete `refactorings.md` if it exists and then write your findings to that file. Use the heading "Suggested refactorings for $ARGUMENTS".
