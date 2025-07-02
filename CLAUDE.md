@@ -12,6 +12,8 @@
  * don't log; audit changes instead (using a logger)
  * in general, less in more when it comes to lines of code
  * log line are fine, but certain code patterns benefit from line wrapping (such as function-chaining)
+ * avoid creating "private" functions/methods if they are only called in once place
+ * minimise mutable state in classes - it always creates complexity
 
 ##  General behaviour
 
