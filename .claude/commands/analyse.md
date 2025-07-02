@@ -102,6 +102,14 @@ You will analyse the code using any of the following guidelines:
 **Find and fix questionable technology choices**
  * explain the problem, suggest an improvement. Be brief.
 
+**Build**
+ * Check for missing builds
+ * Check for complex builds
+ * Check for builds using out of date technology
+ * Check for builds using confusing or (very) non-standard patterns
+ * Check deployment is accurately documented
+ * Check running the app locally is accurately documented
+
 # Report back
 
 Collect all issues and make a list of your top 5. I want:

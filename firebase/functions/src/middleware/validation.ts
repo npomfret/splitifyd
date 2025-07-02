@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
 import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { checkForDangerousPatterns } from '../utils/security';
 
 /**
  * Validate request size and structure depth
@@ -99,21 +100,8 @@ export const validateRequestStructure = (
 
     // Check for potentially dangerous patterns
     const requestString = JSON.stringify(req.body);
-    const dangerousPatterns = [
-      /__proto__/,
-      /constructor/,
-      /prototype/,
-      /<script/i,
-      /javascript:/i,
-      /data:text\/html/i,
-      /vbscript:/i,
-      /on\w+\s*=/i
-    ];
-
-    for (const pattern of dangerousPatterns) {
-      if (pattern.test(requestString)) {
-        throw Errors.INVALID_INPUT('Request contains potentially dangerous content');
-      }
+    if (checkForDangerousPatterns(requestString)) {
+      throw Errors.INVALID_INPUT('Request contains potentially dangerous content');
     }
 
     next();

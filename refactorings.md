@@ -1,12 +1,6 @@
 # Code Analysis - Top 3 Refactoring Opportunities
 
-## 1. **Consolidate Duplicate Validation Logic** ⭐ BIG IMPACT
-- **Problem**: XSS/sanitization logic duplicated between `middleware/validation.ts:102-117` and `documents/validation.ts:158-176`
-- **Impact**: Inconsistent security, maintenance burden
-- **Fix**: Extract to shared security utility function
-- **Effort**: Medium - 30 minutes
-
-## 2. **Simplify Over-Engineered Config Architecture** ⭐ HIGH IMPACT
+## 1. **Simplify Over-Engineered Config Architecture** ⭐ HIGH IMPACT
 - **Problem**: Complex dual config system (`CONFIG` + `FLAT_CONFIG`) in `config/config.ts:142-191`
 - **Issue**: Unnecessary complexity, 50 lines of mapping for simple access
 - **Fix**: Use single flat config object, eliminate transformation layer

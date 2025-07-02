@@ -1,6 +1,7 @@
 import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
 import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { sanitizeString, isDangerousProperty } from '../utils/security';
 
 /**
  * Document structure
@@ -146,20 +147,10 @@ export const sanitizeDocumentData = (data: any): any => {
   const sanitizeObject = (obj: any): void => {
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
       for (const key in obj) {
-        // Remove properties that start with underscore (internal use)
-        // Remove properties that could be dangerous
-        if (key.startsWith('_') || 
-            key.startsWith('$') || 
-            key.includes('__proto__') ||
-            key.includes('constructor') ||
-            key.includes('prototype')) {
+        if (isDangerousProperty(key)) {
           delete obj[key];
         } else if (typeof obj[key] === 'string') {
-          // Basic XSS prevention - remove script tags and javascript: protocols
-          obj[key] = obj[key]
-            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-            .replace(/javascript:/gi, '')
-            .replace(/on\w+\s*=/gi, '');
+          obj[key] = sanitizeString(obj[key]);
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
           sanitizeObject(obj[key]);
         }
@@ -169,10 +160,7 @@ export const sanitizeDocumentData = (data: any): any => {
         if (typeof item === 'object' && item !== null) {
           sanitizeObject(item);
         } else if (typeof item === 'string') {
-          obj[index] = item
-            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-            .replace(/javascript:/gi, '')
-            .replace(/on\w+\s*=/gi, '');
+          obj[index] = sanitizeString(item);
         }
       });
     }
