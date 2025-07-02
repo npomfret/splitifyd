@@ -11,74 +11,63 @@ export const validateRequestStructure = (
   res: Response,
   next: NextFunction
 ): void => {
-  try {
-    if (!req.body) {
-      return next();
-    }
-
-    const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.validation;
-
-    // Single recursive validation function
-    const validateObject = (obj: any, depth = 0): void => {
-      if (depth > maxObjectDepth) {
-        throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxObjectDepth} levels)`);
-      }
-
-      if (typeof obj === 'string') {
-        if (obj.length > maxStringLength) {
-          throw Errors.INVALID_INPUT(`String too long (max ${maxStringLength} characters)`);
-        }
-        return;
-      }
-
-      if (Array.isArray(obj)) {
-        if (obj.length > maxPropertyCount) {
-          throw Errors.INVALID_INPUT(`Array too large (max ${maxPropertyCount} items)`);
-        }
-        obj.forEach(item => validateObject(item, depth + 1));
-        return;
-      }
-
-      if (obj && typeof obj === 'object') {
-        const keys = Object.keys(obj);
-        if (keys.length > maxPropertyCount) {
-          throw Errors.INVALID_INPUT(`Too many properties in object (max ${maxPropertyCount})`);
-        }
-
-        for (const key of keys) {
-          if (key.length > maxPropertyNameLength) {
-            throw Errors.INVALID_INPUT(`Property name too long (max ${maxPropertyNameLength} characters)`);
-          }
-          validateObject(obj[key], depth + 1);
-        }
-      }
-    };
-
-    validateObject(req.body);
-
-    // JSON.stringify handles circular references naturally by throwing an error
-    let requestString: string;
-    try {
-      requestString = JSON.stringify(req.body);
-    } catch {
-      throw Errors.INVALID_INPUT('Circular reference detected in request');
-    }
-
-    if (checkForDangerousPatterns(requestString)) {
-      throw Errors.INVALID_INPUT('Request contains potentially dangerous content');
-    }
-
-    next();
-  } catch (error) {
-    const correlationId = req.headers['x-correlation-id'] as string;
-    if (error && typeof error === 'object' && 'code' in error && 
-        typeof (error as any).code === 'string' && 
-        (error as any).code.startsWith('SPLITIFY_')) {
-      return sendError(res, error as unknown as Error, correlationId);
-    }
-    
-    return sendError(res, Errors.INVALID_INPUT('Invalid request structure'), correlationId);
+  if (!req.body) {
+    return next();
   }
+
+  const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.validation;
+
+  // Single recursive validation function
+  const validateObject = (obj: any, depth = 0): void => {
+    if (depth > maxObjectDepth) {
+      throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxObjectDepth} levels)`);
+    }
+
+    if (typeof obj === 'string') {
+      if (obj.length > maxStringLength) {
+        throw Errors.INVALID_INPUT(`String too long (max ${maxStringLength} characters)`);
+      }
+      return;
+    }
+
+    if (Array.isArray(obj)) {
+      if (obj.length > maxPropertyCount) {
+        throw Errors.INVALID_INPUT(`Array too large (max ${maxPropertyCount} items)`);
+      }
+      obj.forEach(item => validateObject(item, depth + 1));
+      return;
+    }
+
+    if (obj && typeof obj === 'object') {
+      const keys = Object.keys(obj);
+      if (keys.length > maxPropertyCount) {
+        throw Errors.INVALID_INPUT(`Too many properties in object (max ${maxPropertyCount})`);
+      }
+
+      for (const key of keys) {
+        if (key.length > maxPropertyNameLength) {
+          throw Errors.INVALID_INPUT(`Property name too long (max ${maxPropertyNameLength} characters)`);
+        }
+        validateObject(obj[key], depth + 1);
+      }
+    }
+  };
+
+  validateObject(req.body);
+
+  // JSON.stringify handles circular references naturally by throwing an error
+  let requestString: string;
+  try {
+    requestString = JSON.stringify(req.body);
+  } catch {
+    throw Errors.INVALID_INPUT('Circular reference detected in request');
+  }
+
+  if (checkForDangerousPatterns(requestString)) {
+    throw Errors.INVALID_INPUT('Request contains potentially dangerous content');
+  }
+
+  next();
 };
 
 /**

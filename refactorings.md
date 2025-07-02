@@ -2,19 +2,7 @@
 
 Based on comprehensive analysis of the Firebase codebase, here are the top 4 refactoring opportunities prioritized by impact, simplicity, and alignment with CLAUDE.md principles:
 
-## 1. **Eliminate try-catch-log patterns** (High Impact, Easy) 
-**Type:** Behavioral improvement - better error handling
-
-**Problem:** Multiple locations use try-catch patterns that violate "fail fast" principle by masking errors instead of letting them bubble up naturally.
-
-**Files affected:**
-- `firebase/functions/src/auth/handlers.ts:56-65, 123-155` - Complex error handling in registration
-- `firebase/functions/src/middleware/validation.ts:72-81` - Unnecessary try-catch that re-throws
-- `firebase/functions/src/auth/middleware.ts:99-118` - Authentication middleware try-catch
-
-**Impact:** Cleaner error handling, better debugging, follows core principle of embracing fail-fast behavior.
-
-## 2. **Consolidate duplicate configuration logic** (Medium Impact, Easy)
+## 1. **Consolidate duplicate configuration logic** (Medium Impact, Easy)
 **Type:** Pure refactoring - no behavior change
 
 **Problem:** Firebase emulator configuration is duplicated between config.ts and index.ts, violating DRY principles.
@@ -38,7 +26,7 @@ Based on comprehensive analysis of the Firebase codebase, here are the top 4 ref
 
 **Impact:** Improved maintainability, better performance, reduced cognitive complexity.
 
-## 4. **Fix rate limiter for serverless environment** (Medium Impact, Medium)
+## 3. **Fix rate limiter for serverless environment** (Medium Impact, Medium)
 **Type:** Behavioral improvement - fixes production issue
 
 **Problem:** In-memory rate limiter won't work correctly in serverless environment where function instances are ephemeral.

@@ -113,7 +113,7 @@ export const authenticate = async (
     }
 
     next();
-  } catch (error) {
+  } catch {
     return sendError(res, Errors.INVALID_TOKEN(), correlationId);
   }
 };
