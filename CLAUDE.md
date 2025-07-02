@@ -34,3 +34,4 @@
  * Over engineering is BAD. Often, the simple approach is best
  * It is always important to keep the app in a working state, both locally running and deployed in a "real" environment
  * when making changes to project structure, carefullly consider what impact it will have on the app at build-time and runtime
+ * before running any shell commands, ensure you are in the correct directory
