@@ -100,11 +100,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Create user document in Firestore
     console.log('🔄 Creating user document in Firestore...');
-    await admin.firestore().collection('users').doc(userRecord.uid).set({
+    const firestore = admin.firestore();
+    await firestore.collection('users').doc(userRecord.uid).set({
       email,
       displayName,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
     console.log('✅ User document created in Firestore');
 
