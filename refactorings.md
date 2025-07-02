@@ -4,19 +4,6 @@
 
 
 
-### 3. **Eliminate Unnecessary Function Factory Pattern** (Medium Impact, Easy Fix)
-**Location**: `firebase/functions/src/utils/function-factory.ts` (entire file)
-
-**Problem**: The createAuthenticatedFunction factory is unused and adds unnecessary abstraction. The main API uses a single Express app approach in index.ts, making this factory redundant.
-
-**Solution**:
-- Delete the entire function-factory.ts file
-- Remove the import in any files that reference it
-- The existing single Express app pattern in index.ts is simpler and more maintainable
-
-**Impact**: Removes 39 lines of unused code, simplifies architecture, reduces complexity
-
----
 
 ### 4. **Simplify Document Preview Generation** (Medium Impact, Easy Fix)
 **Location**: `firebase/functions/src/documents/validation.ts:175-184`
