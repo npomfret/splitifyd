@@ -5,6 +5,7 @@ import { authenticate } from '../auth/middleware';
 import { FLAT_CONFIG as CONFIG } from '../config/config';
 import { addCorrelationId, logger } from './logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
+import { sendError, Errors } from './errors';
 
 export const createAuthenticatedFunction = (
   handler: express.RequestHandler
@@ -60,13 +61,7 @@ export const createAuthenticatedFunction = (
       path: req.path,
     });
     
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred',
-        correlationId: req.headers['x-correlation-id'],
-      },
-    });
+    sendError(res, Errors.INTERNAL_ERROR(), req.headers['x-correlation-id'] as string);
   });
 
   return functions.https.onRequest(app);

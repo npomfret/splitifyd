@@ -9,7 +9,21 @@ export interface ErrorResponse {
     code: string;
     message: string;
     details?: any;
+    correlationId?: string;
   };
+}
+
+/**
+ * Health check response interface
+ */
+export interface HealthCheckResponse {
+  status: 'healthy' | 'unhealthy';
+  timestamp: string;
+  checks: Record<string, {
+    status: 'healthy' | 'unhealthy';
+    responseTime?: number;
+    error?: string;
+  }>;
 }
 
 /**
@@ -30,25 +44,41 @@ export class ApiError extends Error {
 /**
  * Send standardized error response
  */
-export const sendError = (res: Response, error: ApiError | Error): void => {
+export const sendError = (res: Response, error: ApiError | Error, correlationId?: string): void => {
   if (error instanceof ApiError) {
     res.status(error.statusCode).json({
       error: {
         code: error.code,
         message: error.message,
         details: error.details,
+        ...(correlationId && { correlationId }),
       },
     } as ErrorResponse);
   } else {
-    // Generic error handling
     logger.error('Unexpected error:', error);
     res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An unexpected error occurred',
+        ...(correlationId && { correlationId }),
       },
     } as ErrorResponse);
   }
+};
+
+/**
+ * Send standardized health check response
+ */
+export const sendHealthCheckResponse = (res: Response, checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }>): void => {
+  const overallStatus = Object.values(checks).every(check => check.status === 'healthy') ? 'healthy' : 'unhealthy';
+  const response: HealthCheckResponse = {
+    status: overallStatus,
+    timestamp: new Date().toISOString(),
+    checks,
+  };
+  
+  const statusCode = overallStatus === 'healthy' ? 200 : 503;
+  res.status(statusCode).json(response);
 };
 
 /**

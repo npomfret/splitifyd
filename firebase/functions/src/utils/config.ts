@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { FLAT_CONFIG as CONFIG } from '../config/config';
+import { Errors, sendError } from './errors';
 
 export interface FirebaseConfigResponse {
   apiKey: string;
@@ -10,23 +11,12 @@ export interface FirebaseConfigResponse {
   appId: string;
 }
 
-export interface ConfigErrorResponse {
-  error: {
-    code: string;
-    message: string;
-  };
-}
 
 export const getFirebaseConfigResponse = (res: Response): void => {
   const clientConfig = CONFIG.FIREBASE.clientConfig;
   
   if (!clientConfig) {
-    res.status(500).json({
-      error: {
-        code: 'CONFIG_NOT_FOUND',
-        message: 'Firebase configuration not found. Please set environment variables.'
-      }
-    } as ConfigErrorResponse);
+    sendError(res, Errors.INTERNAL_ERROR());
     return;
   }
   

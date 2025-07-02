@@ -113,10 +113,12 @@ export const authenticate = async (
       return next();
     }
 
+    const correlationId = req.headers['x-correlation-id'] as string;
+    
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return sendError(res, Errors.UNAUTHORIZED());
+      return sendError(res, Errors.UNAUTHORIZED(), correlationId);
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -134,21 +136,21 @@ export const authenticate = async (
       // Check rate limit
       const isAllowed = await rateLimiter.isAllowed(decodedToken.uid);
       if (!isAllowed) {
-        return sendError(res, Errors.RATE_LIMIT_EXCEEDED());
+        return sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
       }
 
       next();
     } catch (error) {
       logger.errorWithContext('Token verification failed', error as Error, {
-        correlationId: req.headers['x-correlation-id'] as string,
+        correlationId,
       });
-      return sendError(res, Errors.INVALID_TOKEN());
+      return sendError(res, Errors.INVALID_TOKEN(), correlationId);
     }
   } catch (error) {
     logger.errorWithContext('Authentication middleware error', error as Error, {
       correlationId: req.headers['x-correlation-id'] as string,
     });
-    return sendError(res, Errors.INTERNAL_ERROR());
+    return sendError(res, Errors.INTERNAL_ERROR(), req.headers['x-correlation-id'] as string);
   }
 };
 

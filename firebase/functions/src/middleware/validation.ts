@@ -118,14 +118,14 @@ export const validateRequestStructure = (
 
     next();
   } catch (error) {
+    const correlationId = req.headers['x-correlation-id'] as string;
     if (error && typeof error === 'object' && 'code' in error && 
         typeof (error as any).code === 'string' && 
         (error as any).code.startsWith('SPLITIFY_')) {
-      return sendError(res, error as unknown as Error);
+      return sendError(res, error as unknown as Error, correlationId);
     }
     
-    // Handle unexpected errors
-    return sendError(res, Errors.INVALID_INPUT('Invalid request structure'));
+    return sendError(res, Errors.INVALID_INPUT('Invalid request structure'), correlationId);
   }
 };
 
@@ -151,7 +151,7 @@ export const validateContentType = (
   }
   
   if (!contentType || !contentType.includes('application/json')) {
-    return sendError(res, Errors.INVALID_INPUT('Content-Type must be application/json'));
+    return sendError(res, Errors.INVALID_INPUT('Content-Type must be application/json'), req.headers['x-correlation-id'] as string);
   }
 
   next();

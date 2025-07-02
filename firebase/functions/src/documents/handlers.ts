@@ -20,7 +20,7 @@ const withErrorHandling = (handler: HandlerFunction): HandlerFunction =>
     try {
       await handler(req, res);
     } catch (error) {
-      sendError(res, error as Error);
+      sendError(res, error as Error, req.headers['x-correlation-id'] as string);
     }
   };
 

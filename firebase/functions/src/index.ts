@@ -8,6 +8,7 @@ import { logger, addCorrelationId } from './utils/logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from './middleware/validation';
 import { createAuthenticatedFunction } from './utils/function-factory';
 import { getFirebaseConfigResponse } from './utils/config';
+import { sendHealthCheckResponse } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import {
   createDocument,
@@ -69,56 +70,39 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 
 // Enhanced health check endpoint (no auth required)
 app.get('/health', async (req: express.Request, res: express.Response) => {
-  const startTime = Date.now();
-  const health: any = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: APP_VERSION,
-    environment: process.env.NODE_ENV || 'development',
-    checks: {
-      firestore: { status: 'unknown' },
-      auth: { status: 'unknown' },
-    },
-  };
+  const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }> = {};
 
   try {
-    // Test Firestore connection
     const firestoreStart = Date.now();
     const testRef = admin.firestore().collection('_health_check').doc('test');
     await testRef.set({ timestamp: new Date() }, { merge: true });
     await testRef.get();
-    health.checks.firestore = {
+    checks.firestore = {
       status: 'healthy',
       responseTime: Date.now() - firestoreStart,
     };
   } catch (error) {
-    health.status = 'unhealthy';
-    health.checks.firestore = {
+    checks.firestore = {
       status: 'unhealthy',
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 
   try {
-    // Test Firebase Auth (just verify we can access it)
     const authStart = Date.now();
     await admin.auth().listUsers(1);
-    health.checks.auth = {
+    checks.auth = {
       status: 'healthy',
       responseTime: Date.now() - authStart,
     };
   } catch (error) {
-    health.status = 'unhealthy';
-    health.checks.auth = {
+    checks.auth = {
       status: 'unhealthy',
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 
-  health.totalResponseTime = Date.now() - startTime;
-
-  const statusCode = health.status === 'healthy' ? 200 : 503;
-  res.status(statusCode).json(health);
+  sendHealthCheckResponse(res, checks);
 });
 
 // Detailed status endpoint for monitoring systems
