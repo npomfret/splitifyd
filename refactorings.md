@@ -3,20 +3,6 @@
 ## Top 5 Refactoring Opportunities
 
 
-### 2. **Consolidate Authentication Error Handling** (High Impact, Medium Effort)
-**Location**: `firebase/functions/src/auth/middleware.ts:99-122`
-
-**Problem**: The authenticate function has a try/catch block that logs and then converts errors to API errors, violating the "let exceptions bubble" principle from CLAUDE.md. The optionalAuth function (lines 127-143) lacks any error handling entirely.
-
-**Solution**:
-- Remove try/catch in authenticate function
-- Let Firebase auth errors bubble up naturally  
-- Add consistent error handling pattern across both auth functions
-- The error handler in index.ts:89-105 will catch and handle authentication failures appropriately
-
-**Impact**: Simplifies error flow, follows fail-fast principle, ensures consistent error handling
-
----
 
 ### 3. **Eliminate Unnecessary Function Factory Pattern** (Medium Impact, Easy Fix)
 **Location**: `firebase/functions/src/utils/function-factory.ts` (entire file)
