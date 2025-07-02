@@ -26,14 +26,26 @@
             </section>
             
             <section class="dashboard-content">
-                <div class="empty-state">
-                    <h3>Getting Started</h3>
-                    <p>Dashboard features coming soon...</p>
+                <div id="groupsContainer" class="groups-container">
+                    <div class="loading-state" id="loadingState">
+                        <p>Loading your groups...</p>
+                    </div>
                 </div>
             </section>
         </div>
     </main>
     
+    <script src="js/api.js"></script>
+    <script src="js/components/modal.js"></script>
+    <script src="js/groups.js"></script>
     <script src="js/auth.js"></script>
+    <script>
+        let groupsList;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            groupsList = new GroupsList('groupsContainer');
+            groupsList.loadGroups();
+        });
+    </script>
 </body>
 </html>
