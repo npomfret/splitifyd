@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { CONFIG } from '../config/config';
@@ -180,15 +181,19 @@ export const listDocuments = async (
 
   // Apply cursor if provided
   const query = cursor ? (() => {
-    // Decode cursor (base64 encoded timestamp)
-    const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-    const cursorData = JSON.parse(decodedCursor);
-    
-    if (cursorData.updatedAt) {
-      const cursorTimestamp = new Date(cursorData.updatedAt);
-      return baseQuery.startAfter(cursorTimestamp);
+    try {
+      // Decode cursor (base64 encoded timestamp)
+      const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+      const cursorData = JSON.parse(decodedCursor);
+      
+      if (cursorData.updatedAt) {
+        const cursorTimestamp = new Date(cursorData.updatedAt);
+        return baseQuery.startAfter(cursorTimestamp);
+      }
+      return baseQuery;
+    } catch (error) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid cursor format');
     }
-    return baseQuery;
   })() : baseQuery;
 
   const snapshot = await query.get();

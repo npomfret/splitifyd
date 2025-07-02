@@ -3,12 +3,6 @@
 ## Top 5 Refactoring Priorities
 
 
-### 1. 🐛 **Fix Cursor Parsing Crash Risk**  
-**File:** `firebase/functions/src/documents/handlers.ts:178-192`  
-**Issue:** `JSON.parse(cursor)` without error handling will crash on invalid input  
-**Impact:** High - App stability  
-**Fix:** Add try/catch with proper error response  
-**Effort:** Low - Wrap in try/catch  
 
 ### 2. 🧹 **Remove Try/Catch/Log Anti-patterns**
 **Files:** 

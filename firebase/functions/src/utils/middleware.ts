@@ -21,7 +21,7 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     // Safety fallback: if in local emulator and localhost/127.0.0.1 origins aren't working,
     // allow all origins temporarily to prevent lockouts during development
     ...(process.env.FUNCTIONS_EMULATOR === 'true' && {
-      origin: (origin, callback) => {
+      origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         // Allow requests with no origin (mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
         
