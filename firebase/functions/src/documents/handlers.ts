@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { Errors, sendError } from '../utils/errors';
+import { Errors } from '../utils/errors';
 import { FLAT_CONFIG as CONFIG } from '../config/config';
 import {
   validateCreateDocument,
@@ -12,16 +12,6 @@ import {
   Document,
 } from './validation';
 
-type HandlerFunction = (req: AuthenticatedRequest, res: Response) => Promise<void>;
-
-const withErrorHandling = (handler: HandlerFunction): HandlerFunction => 
-  async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      await handler(req, res);
-    } catch (error) {
-      sendError(res, error as Error, req.headers['x-correlation-id'] as string);
-    }
-  };
 
 // Direct Firestore access - no global state
 const getDocumentsCollection = () => {
@@ -55,7 +45,7 @@ const fetchUserDocument = async (documentId: string, userId: string): Promise<{ 
 /**
  * Create a new document
  */
-export const createDocument = withErrorHandling(async (
+export const createDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
@@ -84,12 +74,12 @@ export const createDocument = withErrorHandling(async (
     id: docRef.id,
     message: 'Document created successfully',
   });
-});
+};
 
 /**
  * Get a single document by ID
  */
-export const getDocument = withErrorHandling(async (
+export const getDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
@@ -107,12 +97,12 @@ export const getDocument = withErrorHandling(async (
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
   });
-});
+};
 
 /**
  * Update an existing document
  */
-export const updateDocument = withErrorHandling(async (
+export const updateDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
@@ -139,12 +129,12 @@ export const updateDocument = withErrorHandling(async (
   res.json({
     message: 'Document updated successfully',
   });
-});
+};
 
 /**
  * Delete a document
  */
-export const deleteDocument = withErrorHandling(async (
+export const deleteDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
@@ -162,12 +152,12 @@ export const deleteDocument = withErrorHandling(async (
   res.json({
     message: 'Document deleted successfully',
   });
-});
+};
 
 /**
  * List all documents for the authenticated user with cursor-based pagination
  */
-export const listDocuments = withErrorHandling(async (
+export const listDocuments = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
@@ -242,4 +232,4 @@ export const listDocuments = withErrorHandling(async (
       totalReturned: documents.length,
     },
   });
-});
+};
