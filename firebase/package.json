@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
-    "serve": "firebase emulators:start",
+    "clean": "rm -rf public/*",
+    "build:demo": "mkdir -p public/demo && cp -r demo/* public/demo/",
+    "build:root": "cp index.html public/",
+    "build": "npm run clean && npm run build:root && npm run build:demo",
+    "serve": "npm run build && firebase emulators:start",
     "deploy": "echo 'Use deploy:prod for production deployment'",
     "deploy:prod": "firebase use splitifyd && firebase deploy",
     "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
-    "deploy:hosting": "firebase use splitifyd && firebase deploy --only hosting", 
+    "deploy:hosting": "npm run build && firebase use splitifyd && firebase deploy --only hosting", 
     "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
     "logs": "firebase use splitifyd && firebase functions:log"
   },

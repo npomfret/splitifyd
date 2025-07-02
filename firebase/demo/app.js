@@ -27,8 +27,10 @@ async function initializeFirebase() {
   try {
     // Determine the config endpoint URL
     const LOCAL_FUNCTIONS_EMULATOR_PORT = 5001;
+    // Use the same hostname as the page to avoid CORS issues
+    const localHost = window.location.hostname;
     const configUrl = isLocal
-      ? `http://localhost:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1/api/config`
+      ? `http://${localHost}:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1/api/config`
       : `https://api-po437q3l5q-uc.a.run.app/config`;
     
     console.log('Fetching Firebase configuration from:', configUrl);
@@ -446,8 +448,10 @@ async function initializeApplication() {
   }
   
   // Set API Base URL after Firebase is initialized
+  // Use the same hostname as the page to avoid CORS issues
+  const localHost = window.location.hostname;
   API_BASE_URL = isLocal
-    ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1/api`
+    ? `http://${localHost}:5001/${firebaseConfig.projectId}/us-central1/api`
     : `https://api-po437q3l5q-uc.a.run.app`;
   
   console.log('Current hostname:', window.location.hostname);
