@@ -1,11 +1,9 @@
 import * as functions from 'firebase-functions';
 import express from 'express';
-import cors from 'cors';
 import { authenticate } from '../auth/middleware';
-import { FLAT_CONFIG as CONFIG } from '../config/config';
-import { addCorrelationId, logger } from './logger';
-import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
+import { applyStandardMiddleware } from './middleware';
 import { sendError, Errors } from './errors';
+import { logger } from './logger';
 
 export const createAuthenticatedFunction = (
   handler: express.RequestHandler
@@ -13,37 +11,10 @@ export const createAuthenticatedFunction = (
   // Create a mini Express app for each function with all middleware
   const app = express();
   
-  // Apply middleware in the same order as main app
-  app.use(cors({
-    ...CONFIG.CORS,
-    origin: true // Allow all origins in development for debugging
-  }));
-  app.use(addCorrelationId);
-  app.use(rateLimitByIP);
-  app.use(validateContentType);
-  app.use(express.json({ limit: CONFIG.REQUEST.BODY_LIMIT }));
-  app.use(validateRequestStructure);
-  
-  // Request logging middleware
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const startTime = Date.now();
-    
-    logger.request(req, 'Individual function request', {
-      functionName: handler.name || 'unknown',
-    });
-    
-    res.on('finish', () => {
-      const duration = Date.now() - startTime;
-      logger.info('Individual function completed', {
-        correlationId: req.headers['x-correlation-id'] as string,
-        functionName: handler.name || 'unknown',
-        method: req.method,
-        statusCode: res.statusCode,
-        duration,
-      });
-    });
-    
-    next();
+  // Apply standard middleware stack
+  applyStandardMiddleware(app, {
+    functionName: handler.name || 'unknown',
+    logMessage: 'Individual function request'
   });
 
   // Authentication middleware
