@@ -17,6 +17,7 @@
 
 ##  General behaviour
 
+ * fix problems properly, DO NOT HACK
  * be modern: always use the latest APIs / patterns / libraries
  * always consider security, performance and scalability - sometimes none are important, sometimes they all are
  * add new files to git, but never commit or push anything
