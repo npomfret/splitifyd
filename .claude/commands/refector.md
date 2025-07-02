@@ -102,13 +102,12 @@ You will analyse the code using the following guidelines:
 16. **Find and fix questionable technology choices**
     - explain the problem, suggest an improvement. Be brief.
 
-## Focus Areas
-- Prioritize changes that improve code clarity and maintainability
-- Ensure all functionality remains exactly the same
-- Preserve any complex business logic or edge case handling
-- Maintain consistent style with the existing codebase
-- Address security issues immediately
-- Improve performance without sacrificing readability
+# Report back
 
-# IMPORTANT
-Pick just 1 single issue and "fix" it.
+Collect all issues, make a list of three. I want:
+
+ * important stuff
+ * easy / simple stuff
+ * big impact stuff  
+
+I will then choose one to work on.
