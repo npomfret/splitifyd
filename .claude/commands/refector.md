@@ -104,10 +104,10 @@ You will analyse the code using the following guidelines:
 
 # Report back
 
-Collect all issues, make a list of three. I want:
+Collect all issues, make a list of your top 5. I want:
 
  * important stuff
  * easy / simple stuff
  * big impact stuff  
 
-I will then choose one to work on.
+Write them to a file in the root of the project called refactorings.md (overwrite the file if it is present).
