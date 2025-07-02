@@ -65,8 +65,8 @@ class FirestoreRateLimiter {
       return result;
     } catch (error) {
       logger.errorWithContext('Rate limiter error', error as Error, { userId });
-      // Fail open - allow request if rate limiter fails
-      return true;
+      // Fail closed - deny request if rate limiter fails to ensure security
+      return false;
     }
   }
 
