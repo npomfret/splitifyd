@@ -95,8 +95,8 @@ export const getDocument = async (
   res.json({
     id: docRef.id,
     data: document.data,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
+    createdAt: (document.createdAt as any).toDate().toISOString(),
+    updatedAt: (document.updatedAt as any).toDate().toISOString(),
   });
 };
 
@@ -201,8 +201,8 @@ export const listDocuments = async (
       const data = doc.data() as Document;
       return {
         id: doc.id,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        createdAt: (data.createdAt as any).toDate().toISOString(),
+        updatedAt: (data.updatedAt as any).toDate().toISOString(),
         preview: createDocumentPreview(data.data),
       };
     });
@@ -210,9 +210,10 @@ export const listDocuments = async (
   // Generate next cursor if there are more pages
   let nextCursor: string | undefined;
   if (hasMore && documents.length > 0) {
-    const lastDoc = documents[documents.length - 1];
+    const lastDoc = snapshot.docs[limit - 1];
+    const lastDocData = lastDoc.data() as Document;
     const cursorData = {
-      updatedAt: lastDoc.updatedAt,
+      updatedAt: (lastDocData.updatedAt as any).toDate().toISOString(),
       id: lastDoc.id,
     };
     nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
