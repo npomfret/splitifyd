@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { CONFIG } from '../config/constants';
+import { FLAT_CONFIG as CONFIG } from '../config/config';
 
 export interface FirebaseConfigResponse {
   apiKey: string;

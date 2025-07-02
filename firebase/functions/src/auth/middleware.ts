@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config/constants';
+import { FLAT_CONFIG as CONFIG } from '../config/config';
 import { logger } from '../utils/logger';
 
 /**

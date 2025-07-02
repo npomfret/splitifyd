@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import express from 'express';
 import cors from 'cors';
 import { authenticate } from '../auth/middleware';
-import { CONFIG } from '../config/constants';
+import { FLAT_CONFIG as CONFIG } from '../config/config';
 import { addCorrelationId, logger } from './logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 

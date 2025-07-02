@@ -2,7 +2,7 @@ import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config/constants';
+import { FLAT_CONFIG as CONFIG } from '../config/config';
 import {
   validateCreateDocument,
   validateUpdateDocument,

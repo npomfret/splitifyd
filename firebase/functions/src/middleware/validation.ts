@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config/constants';
+import { FLAT_CONFIG as CONFIG } from '../config/config';
 
 /**
  * Validate request size and structure depth

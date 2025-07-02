@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import express from 'express';
 import cors from 'cors';
 import { authenticate } from './auth/middleware';
-import { CONFIG } from './config/constants';
+import { FLAT_CONFIG as CONFIG } from './config/config';
 import { logger, addCorrelationId } from './utils/logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from './middleware/validation';
 import { createAuthenticatedFunction } from './utils/function-factory';

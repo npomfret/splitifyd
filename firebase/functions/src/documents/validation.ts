@@ -1,6 +1,6 @@
 import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
-import { CONFIG } from '../config/constants';
+import { FLAT_CONFIG as CONFIG } from '../config/config';
 
 /**
  * Document structure
