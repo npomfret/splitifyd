@@ -358,6 +358,119 @@ body {
     }
 }
 
+/* ===== DASHBOARD STYLES ===== */
+.dashboard-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-md) 0;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-title {
+    color: var(--color-primary);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+}
+
+.dashboard-main {
+    padding: var(--space-xl) 0;
+}
+
+.dashboard-main .dashboard-container {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.dashboard-welcome {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+}
+
+.welcome-title {
+    color: var(--color-text);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-sm);
+}
+
+.welcome-text {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+}
+
+.dashboard-content {
+    flex: 1;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--space-2xl);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.empty-state h3 {
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-sm);
+}
+
+.empty-state p {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+}
+
+.button--logout {
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    padding: var(--space-sm) var(--space-md);
+}
+
+.button--logout:hover:not(:disabled) {
+    background: var(--color-background);
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+    transform: none;
+}
+
+/* Dashboard responsive */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0 var(--space-sm);
+    }
+    
+    .dashboard-title {
+        font-size: var(--font-size-lg);
+    }
+    
+    .welcome-title {
+        font-size: var(--font-size-xl);
+    }
+}
+
+/* Dashboard body override for non-auth pages */
+body:has(.dashboard-header) {
+    background: var(--color-background);
+    align-items: stretch;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
     * {

@@ -4,7 +4,7 @@
 
 ### 1. User Authentication
 - [x] Login page with email/password
-- [ ] Registration page with validation
+- [x] Registration page with validation
 - [x] Session management (store auth token)
 - [ ] Logout functionality
 - [ ] Password reset flow

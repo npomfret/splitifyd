@@ -22,17 +22,8 @@ admin.initializeApp();
 
 const app = express();
 
-// Apply standard middleware stack
+// Apply standard middleware stack (includes CORS)
 applyStandardMiddleware(app, { logMessage: 'Incoming request' });
-
-// Explicit CORS preflight handler
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
 
 // Enhanced health check endpoint (no auth required)
 app.get('/health', async (req: express.Request, res: express.Response) => {

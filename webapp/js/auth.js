@@ -5,7 +5,7 @@ const localHost = window.location.hostname;
 const LOCAL_FUNCTIONS_EMULATOR_PORT = 5001;
 
 const API_BASE_URL = isLocal
-    ? `http://${localHost}:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1`
+    ? `http://${localHost}:${LOCAL_FUNCTIONS_EMULATOR_PORT}/splitifyd/us-central1/api`
     : `https://api-po437q3l5q-uc.a.run.app`;
 
 const validateInput = {
@@ -58,7 +58,8 @@ class AuthManager {
             registerForm: document.getElementById('registerForm'),
             forgotPassword: document.getElementById('forgotPassword'),
             signUpLink: document.getElementById('signUpLink'),
-            signInLink: document.getElementById('signInLink')
+            signInLink: document.getElementById('signInLink'),
+            logoutButton: document.getElementById('logoutButton')
         };
 
         if (elements.loginForm) {
@@ -81,6 +82,10 @@ class AuthManager {
 
         if (elements.signInLink) {
             this.#addEventListenerWithCleanup(elements.signInLink, 'click', this.#handleSignIn.bind(this));
+        }
+        
+        if (elements.logoutButton) {
+            this.#addEventListenerWithCleanup(elements.logoutButton, 'click', this.#handleLogout.bind(this));
         }
     }
 
@@ -297,6 +302,11 @@ class AuthManager {
     #handleSignIn(event) {
         event.preventDefault();
         window.location.href = 'index.html';
+    }
+    
+    #handleLogout(event) {
+        event.preventDefault();
+        this.logout();
     }
 
     #setToken(token) {

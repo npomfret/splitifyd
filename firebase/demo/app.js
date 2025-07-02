@@ -82,6 +82,69 @@ function updateDebugPanel() {
   document.getElementById('debug-current-user').textContent = currentUser ? `${currentUser.email} (${currentUser.uid.substring(0, 8)}...)` : 'Not signed in';
 }
 
+// Test CORS configuration by testing the same endpoints that webapp uses
+async function testCORSConfiguration() {
+  const statusElement = document.getElementById('debug-cors-status');
+  statusElement.textContent = 'Testing...';
+  statusElement.style.color = 'orange';
+  
+  try {
+    // Test the health endpoint (GET request)
+    const healthUrl = `${API_BASE_URL}/health`;
+    console.log('Testing CORS with health endpoint:', healthUrl);
+    
+    const healthResponse = await fetch(healthUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!healthResponse.ok) {
+      throw new Error(`Health check failed: ${healthResponse.status}`);
+    }
+    
+    // Test a POST endpoint that would trigger preflight (this will fail if not logged in, but CORS should work)
+    const loginUrl = `${API_BASE_URL}/login`;
+    console.log('Testing CORS with login endpoint (preflight test):', loginUrl);
+    
+    const loginResponse = await fetch(loginUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: 'test@example.com',
+        password: 'testpassword'
+      })
+    });
+    
+    // We don't care if login fails (401/400), we just care that CORS worked (no CORS error)
+    console.log('Login response status:', loginResponse.status);
+    
+    statusElement.textContent = '✅ CORS Working';
+    statusElement.style.color = 'green';
+    showMessage('CORS configuration is working correctly', 'success');
+    
+  } catch (error) {
+    console.error('CORS test failed:', error);
+    
+    if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
+      statusElement.textContent = '❌ CORS Failed';
+      statusElement.style.color = 'red';
+      showMessage(`CORS Error: ${error.message}`, 'error');
+    } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      statusElement.textContent = '❌ CORS Failed (Network)';
+      statusElement.style.color = 'red';
+      showMessage('CORS Error: Network request blocked (likely CORS)', 'error');
+    } else {
+      statusElement.textContent = '✅ CORS Working (App Error)';
+      statusElement.style.color = 'green';
+      showMessage('CORS is working, but got application error (this is expected)', 'success');
+    }
+  }
+}
+
 // DOM Elements
 const elements = {
   // Auth elements
@@ -433,6 +496,9 @@ document.getElementById('update-document').addEventListener('click', updateDocum
 document.getElementById('delete-document').addEventListener('click', deleteDocument);
 document.getElementById('refresh-list').addEventListener('click', refreshDocumentList);
 
+// CORS test button
+document.getElementById('test-cors').addEventListener('click', testCORSConfiguration);
+
 // JSON editor change
 elements.jsonEditor.addEventListener('input', updateJSONPreview);
 
@@ -460,6 +526,9 @@ async function initializeApplication() {
   
   // Update debug panel with loaded configuration
   updateDebugPanel();
+  
+  // Test CORS configuration automatically
+  await testCORSConfiguration();
   
   // Auth state observer
   onAuthStateChanged(auth, async (user) => {
