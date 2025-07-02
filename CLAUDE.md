@@ -27,6 +27,7 @@
    * run whatever build is appropriate
    * run whatever tests are appropriate
    * obviously fix any errors that bubble out as a result of the above
+   * check if all new files have been added to git (if they need adding)
  * sometimes tests are pointless and can be deleted
  * sometimes tests are badly written, outdated or just test the wrong thing (or nothing at all) - fix them as needed
  * stuff can br broken or "wrong" in theory, but in practice they will never happen - treat these as VERY unimportant
