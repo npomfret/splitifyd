@@ -13,6 +13,7 @@
  * avoid creating "private" functions/methods if they are only called in once place
  * minimise mutable state in classes - it always creates complexity
  * type safety is a very good thing, even if it's a little verbose
+ * Don't overcomplicate: Inline magic numbers and strings for example, can be fine, especially if they are not used
 
 ##  General behaviour
 
@@ -23,3 +24,4 @@
  * assume all code is production-ready
  * avoid adding dependencies, especially if a little handwritten code can do the same job
  * after making a change, run whatever build is appropriate
+ * Over engineering is BAD. Often, the simple approach is best.

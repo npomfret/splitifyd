@@ -3,13 +3,14 @@ Clean up and optimize code in: $ARGUMENTS
 
 ## Instructions
 
-You will analyse the code using any of the following guidelines:
+You will run a thorough analysis the code in $ARGUMENTS using the following guidelines:
 
-**Simplify !!**
- * find and remove unnecessary complexity
+**!! Simplify !!**
+ * Find and remove unnecessary complexity
  * Eliminate unnecessary intermediate variables
  * Replace verbose constructs with concise equivalents
  * Use modern language features (destructuring, optional chaining, etc.)
+ * Over engineering is BAD. Sometimes the simple approach is best
 
 **Remove Unused Elements**
  * Delete unused imports, variables, functions, and methods
