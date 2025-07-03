@@ -1,50 +1,53 @@
-## Code principles
+# Tech Stack
+- Runtime: Node.js (latest)
+- Language: TypeScript (latest)
+- Framework: Firebase Functions
+- Dev Environment: Firebase Emulator Suite
 
- * embrace fail fast - if something isn't right, we want to know. Check stuff early, and blow up if it's not 100% correct
- * in general, it's ok for exceptions to bubble out - we want to crash if the app is broken
- * try/catch/log is only ok in certain scenarios, but we never want to be in an _unknown_ state
- * in general, less is more - keep code neat and tidy
- * tidy up after make a change; don't leave unused stuff lying around
- * do not worry about backward compatibility unless you have been instructed otherwise
- * don't comment; write clear code instead
- * don't log; audit changes to data instead (using a logger)
- * in general, less in more when it comes to lines of code
- * log line are fine, but certain code patterns benefit from line wrapping (such as function-chaining)
- * avoid creating "private" functions/methods if they are only called in once place
- * minimise mutable state in classes - it always creates complexity
- * type safety is a very good thing, even if it's a little verbose
- * Don't overcomplicate: Inline magic numbers and strings for example, can be fine, especially if they are not used
+# Commands
+- Start: `cd firebase && npm run dev`
+- Build: `npm run build`
+- Test: `npm test`
+- Check git status: `git status --porcelain`
 
-##  General behaviour
+# Firebase Local Development
+- Typically, the emulator is already running, via `npm run dev`, so do not try to start it again.
+- If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
+- Function logs: http://127.0.0.1:4000/logs?q=metadata.emulator.name%3D%22functions%22
+- Console: http://127.0.0.1:4000
+- If auth error: `firebase login --reauth`
 
- * fix problems properly, DO NOT HACK, iterate on solutions until it is elegant and working
- * be modern: always use the latest APIs / patterns / libraries
- * always consider security, performance and scalability - sometimes none are important, sometimes they all are
- * add new files to git OR make sure they are ignored 
- * never commit to git
- * don't ever use quick hacks, especially something that might cause a security problem in the future
- * assume all code is production-ready
- * avoid adding dependencies, especially if a little handwritten code can do the same job
- * after making a change
-   * run whatever build is appropriate
-   * run whatever tests are appropriate
-   * obviously fix any errors that bubble out as a result of the above
-   * check if all new files have been added to git (if they need adding)
- * sometimes tests are pointless and can be deleted
- * sometimes tests are badly written, outdated or just test the wrong thing (or nothing at all) - fix them as needed
- * stuff can br broken or "wrong" in theory, but in practice they will never happen - treat these as VERY unimportant
- * Over engineering is BAD. Often, the simple approach is best
- * It is always important to keep the app in a working state, both locally running and deployed in a "real" environment
- * when making changes to project structure, carefully consider what impact it will have on the app at build-time and runtime
- * before running any shell commands, ensure you are in the correct directory
- * DO NOT BREAK THE COORS CONFIG.  The app needs to run locally (in the firebase emulator AND in firebase production)
+# Code Style
+- async/await over promises
+- ES modules: `import { foo } from 'bar'`
+- No try/catch/log as default error handling
+- No comments - write self-documenting code
+- No console.log - use structured logging/auditing
+- Inline single-use private functions
+- Minimize class state
+- TypeScript strict mode
 
-## Running Firebase stuff locally
+# Development Workflow
+1. Verify correct directory before commands
+2. After changes:
+   - Run build
+   - Run tests
+   - Fix any errors
+   - Check `git status` for untracked files
+3. Add new files to git or .gitignore
+4. Never run `git commit`
 
- * ALWAYS use Firebase emulators to run this app - never use Python http.server or other alternatives
- * Run from /firebase directory: `firebase emulators:start` (normally using `npm run dev`)
- * Check the emulator start up logs for problems
-   * sometimes we see: `firebase login --reauth` which stops everything from working 
- * Assume the emulator is already running when testing locally - instruct the user to start/restart it if needed
- * The logs for the functions are here: http://127.0.0.1:4000/logs?q=metadata.emulator.name%3D%22functions%22
- * The local firebase console is here: http://127.0.0.1:4000
+# Architecture Rules
+- Fail fast: validate early, throw on invalid state
+- Let exceptions bubble up - crash on broken state
+- Prefer simple solutions over clever abstractions
+- Every line of code is production-ready
+- Avoid dependencies when simple code suffices
+- Delete pointless/outdated tests
+- Ignore theoretical edge cases that won't occur
+
+# Critical Constraints
+- Read the local `.md` files, they contain important information
+- DO NOT BREAK CORS CONFIG
+- App must run in both emulator and production Firebase
+- Consider build-time and runtime impacts of structural changes
