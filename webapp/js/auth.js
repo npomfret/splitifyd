@@ -12,7 +12,7 @@ const validateInput = {
     password: (value) => {
         if (!value) throw new Error('Password is required');
         if (value.length < 8) throw new Error('Password must be at least 8 characters');
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/.test(value)) {
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])/.test(value)) {
             throw new Error('Password must contain uppercase, lowercase, number, and special character');
         }
         return value;
