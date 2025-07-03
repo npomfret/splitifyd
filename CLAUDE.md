@@ -3,11 +3,12 @@
 - Language: TypeScript (latest)
 - Framework: Firebase Functions
 - Dev Environment: Firebase Emulator Suite
+- It's a mono-repo - both the client (webapp) and the server (firebase) are sub-projects
 
 # Commands
 - Start local services: `cd firebase && npm run dev`
-- Build: `npm run build`
-- Test: `npm test`
+- Build: `cd <sub-project> && npm run build`
+- Test: `cd <sub-project> && npm test`
 - Check git status: `git status --porcelain`
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 
