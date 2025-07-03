@@ -247,8 +247,8 @@ class AuthManager {
             }
             const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password);
             
-            // Update display name
-            await userCredential.user.updateProfile({
+            // Update display name using Firebase Auth updateProfile
+            await window.firebaseAuth.updateProfile(userCredential.user, {
                 displayName: userData.displayName
             });
             
@@ -256,18 +256,13 @@ class AuthManager {
             const idToken = await userCredential.user.getIdToken();
             this.#setToken(idToken);
             
-            // Create user document in backend
-            try {
-                await this.#makeRequest('/createUserDocument', {
-                    displayName: userData.displayName
-                });
-            } catch (docError) {
-                console.warn('Failed to create user document:', docError);
-            }
+            // Skip user document creation for now - can be done on first dashboard load
+            console.log('Registration successful, redirecting to dashboard');
             
             window.location.href = 'dashboard.html';
             
         } catch (error) {
+            console.error('Registration error:', error);
             let errorMessage = 'Registration failed';
             if (error.code === 'auth/email-already-in-use') {
                 errorMessage = 'An account with this email already exists';
@@ -277,6 +272,8 @@ class AuthManager {
                 errorMessage = 'Password is too weak';
             } else if (error.code === 'auth/operation-not-allowed') {
                 errorMessage = 'Registration is currently disabled';
+            } else {
+                errorMessage = `Registration failed: ${error.message}`;
             }
             throw new Error(errorMessage);
         } finally {
@@ -294,6 +291,11 @@ class AuthManager {
             },
             body: JSON.stringify(data),
         });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
 
         return response;
     }
