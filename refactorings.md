@@ -2,35 +2,29 @@
 
 ## Top 5 Priority Issues
 
-### 1. **Security: Remove Hardcoded Production URLs and Add CSP** (Critical)
-- **File**: `webapp/js/api.js:11`
-- **Issue**: Production API URL hardcoded: `'https://api-po437q3l5q-uc.a.run.app'`
-- **Impact**: Security risk, deployment coupling, potential data exposure
-- **Fix**: Extract to environment configuration, add Content Security Policy headers
-- **Type**: Security fix (behavior change)
 
-### 2. **Security: Fix XSS Vulnerabilities** (Critical) 
+### 1. **Security: Fix XSS Vulnerabilities** (Critical) 
 - **Files**: `webapp/js/auth.js:294,339`, `webapp/js/components/modal.js:65`
 - **Issue**: Using `alert()` with user input and unsafe `innerHTML` assignments
 - **Impact**: Cross-site scripting vulnerabilities
 - **Fix**: Replace alerts with safe UI feedback, sanitize all user input before DOM insertion
 - **Type**: Security fix (behavior change)
 
-### 3. **Remove Try/Catch/Log Anti-Pattern** (High Impact)
+### 2. **Remove Try/Catch/Log Anti-Pattern** (High Impact)
 - **Files**: `webapp/js/api.js:50-56`, `webapp/js/groups.js:181-183`
 - **Issue**: Catching exceptions just to log or show mock data violates "fail fast" principle
 - **Impact**: Masks real errors, creates unknown application states
 - **Fix**: Let exceptions bubble up, remove mock data fallbacks
 - **Type**: Error handling improvement (behavior change - will expose real errors)
 
-### 4. **Pure Refactoring: Extract Duplicate Auth Logic** (Easy + Big Impact)
+### 3. **Pure Refactoring: Extract Duplicate Auth Logic** (Easy + Big Impact)
 - **Files**: `webapp/js/api.js:37-40,168-171`
 - **Issue**: Identical authentication failure handling duplicated
 - **Impact**: Maintenance burden, inconsistent behavior risk
 - **Fix**: Extract to shared method `_handleAuthFailure()`
 - **Type**: Pure refactoring (no behavior change)
 
-### 5. **Performance: Fix Memory Leaks in Event Listeners** (High Impact)
+### 4. **Performance: Fix Memory Leaks in Event Listeners** (High Impact)
 - **Files**: `webapp/js/components/modal.js:238-241,83`
 - **Issue**: Improper event listener cleanup using `replaceWith(cloneNode())` hack
 - **Impact**: Memory leaks, potential browser performance degradation

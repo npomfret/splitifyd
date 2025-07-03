@@ -14,6 +14,7 @@ interface RegisterRequest {
   displayName: string;
 }
 
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password }: LoginRequest = req.body;
 
@@ -41,6 +42,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
+  // For emulator, return custom token directly since we can't exchange tokens
+  // In production, you'd exchange for ID token
   const token = await admin.auth().createCustomToken(user.uid);
 
   res.json({
@@ -75,6 +78,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
     // Create custom token for immediate login
+    // For emulator, return custom token directly since we can't exchange tokens
+    // In production, you'd exchange for ID token
     const token = await admin.auth().createCustomToken(userRecord.uid);
 
     // Create user document in Firestore

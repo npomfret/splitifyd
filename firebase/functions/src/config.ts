@@ -64,6 +64,11 @@ export const CONFIG = {
     functions: parseInteger(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT, PORTS.LOCAL_5001),
   },
   
+  firebase: {
+    apiKey: process.env.FIREBASE_API_KEY || process.env.CLIENT_API_KEY,
+    projectId,
+  },
+  
   clientConfig: process.env.CLIENT_API_KEY ? {
     apiKey: process.env.CLIENT_API_KEY,
     authDomain: process.env.CLIENT_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,

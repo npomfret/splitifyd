@@ -1,14 +1,6 @@
 class ApiService {
     constructor() {
-        this._baseUrl = this._getBaseUrl();
-    }
-
-    _getBaseUrl() {
-        const hostname = window.location.hostname;
-        if (hostname === 'localhost' || hostname === '127.0.0.1') {
-            return `http://${hostname}:5001/splitifyd/us-central1/api`;
-        }
-        return 'https://api-po437q3l5q-uc.a.run.app';
+        this._baseUrl = config.getApiUrl();
     }
 
     _getAuthToken() {
