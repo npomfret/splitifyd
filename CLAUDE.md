@@ -5,10 +5,11 @@
 - Dev Environment: Firebase Emulator Suite
 
 # Commands
-- Start: `cd firebase && npm run dev`
+- Start local services: `cd firebase && npm run dev`
 - Build: `npm run build`
 - Test: `npm test`
 - Check git status: `git status --porcelain`
+- Deploy to prod: `cd firebase && npm run deploy:prod`
 
 # Firebase Local Development
 - Typically, the emulator is already running, via `npm run dev`, so do not try to start it again.
