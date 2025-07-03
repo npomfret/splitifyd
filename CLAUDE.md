@@ -17,10 +17,11 @@
 
 ##  General behaviour
 
- * fix problems properly, DO NOT HACK
+ * fix problems properly, DO NOT HACK, iterate on solutions until it is elegant and working
  * be modern: always use the latest APIs / patterns / libraries
  * always consider security, performance and scalability - sometimes none are important, sometimes they all are
- * add new files to git, but never commit or push anything
+ * add new files to git OR make sure they are ignored 
+ * never commit to git
  * don't ever use quick hacks, especially something that might cause a security problem in the future
  * assume all code is production-ready
  * avoid adding dependencies, especially if a little handwritten code can do the same job
@@ -36,7 +37,14 @@
  * It is always important to keep the app in a working state, both locally running and deployed in a "real" environment
  * when making changes to project structure, carefully consider what impact it will have on the app at build-time and runtime
  * before running any shell commands, ensure you are in the correct directory
- * DO NOT BREAK THE COORS CONFIGUTION.  The app needs to run locally (in the firebase emulator AND in firebase production)
+ * DO NOT BREAK THE COORS CONFIG.  The app needs to run locally (in the firebase emulator AND in firebase production)
+
+## Running Firebase stuff locally
+
  * ALWAYS use Firebase emulators to run this app - never use Python http.server or other alternatives
- * Run from /firebase directory: `firebase emulators:start` (normall using `npm run dev`)
+ * Run from /firebase directory: `firebase emulators:start` (normally using `npm run dev`)
+ * Check the emulator start up logs for problems
+   * sometimes we see: `firebase login --reauth` which stops everything from working 
  * Assume the emulator is already running when testing locally - instruct the user to start/restart it if needed
+ * The logs for the functions are here: http://127.0.0.1:4000/logs?q=metadata.emulator.name%3D%22functions%22
+ * The local firebase console is here: http://127.0.0.1:4000
