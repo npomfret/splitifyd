@@ -41,7 +41,17 @@ class AuthManager {
 
     constructor() {
         this.#token = localStorage.getItem(AUTH_TOKEN_KEY);
-        this.#initializeEventListeners();
+        this.#initializeAsync();
+    }
+
+    async #initializeAsync() {
+        try {
+            // Ensure Firebase is initialized before setting up event listeners
+            await config.getConfig();
+            this.#initializeEventListeners();
+        } catch (error) {
+            console.error('Failed to initialize AuthManager:', error);
+        }
     }
 
     #initializeEventListeners() {
@@ -165,20 +175,30 @@ class AuthManager {
         try {
             this.#setButtonLoading(button, 'Signing in...');
             
-            const response = await this.#makeRequest('/login', credentials);
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Login failed');
+            // Use Firebase Auth directly for login
+            if (!window.firebaseAuth) {
+                throw new Error('Firebase not initialized');
             }
-
-            const data = await response.json();
-            this.#setToken(data.token);
+            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(credentials.email, credentials.password);
+            
+            // Get ID token for API authentication
+            const idToken = await userCredential.user.getIdToken();
+            this.#setToken(idToken);
             
             window.location.href = 'dashboard.html';
             
         } catch (error) {
-            throw new Error(`Login failed: ${error.message}`);
+            let errorMessage = 'Login failed';
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                errorMessage = 'Invalid email or password';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email format';
+            } else if (error.code === 'auth/user-disabled') {
+                errorMessage = 'Account has been disabled';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many failed attempts. Try again later';
+            }
+            throw new Error(errorMessage);
         } finally {
             this.#resetButton(button, originalText);
         }
@@ -221,21 +241,44 @@ class AuthManager {
         try {
             this.#setButtonLoading(button, 'Creating Account...');
 
-            const { confirmPassword, ...registrationData } = userData;
-            const response = await this.#makeRequest('/register', registrationData);
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Registration failed');
+            // Use Firebase Auth directly for registration
+            if (!window.firebaseAuth) {
+                throw new Error('Firebase not initialized');
             }
-
-            const data = await response.json();
-            this.#setToken(data.token);
+            const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password);
+            
+            // Update display name
+            await userCredential.user.updateProfile({
+                displayName: userData.displayName
+            });
+            
+            // Get ID token for API authentication
+            const idToken = await userCredential.user.getIdToken();
+            this.#setToken(idToken);
+            
+            // Create user document in backend
+            try {
+                await this.#makeRequest('/createUserDocument', {
+                    displayName: userData.displayName
+                });
+            } catch (docError) {
+                console.warn('Failed to create user document:', docError);
+            }
             
             window.location.href = 'dashboard.html';
             
         } catch (error) {
-            throw new Error(`Registration failed: ${error.message}`);
+            let errorMessage = 'Registration failed';
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'An account with this email already exists';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email format';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'Password is too weak';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                errorMessage = 'Registration is currently disabled';
+            }
+            throw new Error(errorMessage);
         } finally {
             this.#resetButton(button, originalText);
         }

@@ -28,8 +28,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  // For demo purposes, we'll create a custom token
-  // In production, you'd verify credentials against your auth system
+  // Note: This is a simplified approach for demonstration
+  // In production, you'd verify the password properly
   const user = await admin.auth().getUserByEmail(email).catch(() => null);
   
   if (!user) {
@@ -42,12 +42,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  // For emulator, return custom token directly since we can't exchange tokens
-  // In production, you'd exchange for ID token
-  const token = await admin.auth().createCustomToken(user.uid);
-
   res.json({
-    token,
+    success: true,
+    message: 'Login successful',
     user: {
       uid: user.uid,
       email: user.email,
@@ -77,11 +74,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       displayName,
     });
 
-    // Create custom token for immediate login
-    // For emulator, return custom token directly since we can't exchange tokens
-    // In production, you'd exchange for ID token
-    const token = await admin.auth().createCustomToken(userRecord.uid);
-
     // Create user document in Firestore
     const firestore = admin.firestore();
     await firestore.collection('users').doc(userRecord.uid).set({
@@ -97,7 +89,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(HTTP_STATUS.CREATED).json({
-      token,
+      success: true,
+      message: 'Account created successfully',
       user: {
         uid: userRecord.uid,
         email: userRecord.email,

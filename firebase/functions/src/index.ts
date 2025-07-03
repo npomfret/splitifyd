@@ -39,6 +39,14 @@ if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
 
 const app = express();
 
+// Strip /api prefix for hosting rewrites
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/')) {
+    req.url = req.url.substring(4);
+  }
+  next();
+});
+
 // Apply standard middleware stack (includes CORS)
 applyStandardMiddleware(app, { logMessage: 'Incoming request' });
 
@@ -92,6 +100,39 @@ app.get('/config', (req: express.Request, res: express.Response) => {
 // Auth endpoints (no auth required)
 app.post('/login', login);
 app.post('/register', register);
+
+// User document creation (requires auth)
+app.post('/createUserDocument', authenticate, async (req: express.Request, res: express.Response) => {
+  try {
+    const { displayName } = req.body;
+    const userId = (req as any).user.uid;
+    
+    if (!displayName) {
+      res.status(400).json({
+        error: {
+          code: 'MISSING_DISPLAY_NAME',
+          message: 'Display name is required'
+        }
+      });
+      return;
+    }
+    
+    const firestore = admin.firestore();
+    await firestore.collection('users').doc(userId).set({
+      email: (req as any).user.email,
+      displayName,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    
+    res.json({ success: true, message: 'User document created' });
+  } catch (error) {
+    logger.errorWithContext('Failed to create user document', error as Error, {
+      userId: (req as any).user?.uid,
+    });
+    throw error;
+  }
+});
 
 app.post('/createDocument', authenticate, createDocument);
 app.get('/getDocument', authenticate, getDocument);
