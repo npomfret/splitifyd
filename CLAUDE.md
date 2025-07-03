@@ -18,6 +18,7 @@
 - Function logs: http://127.0.0.1:4000/logs?q=metadata.emulator.name%3D%22functions%22
 - Console: http://127.0.0.1:4000
 - If auth error: `firebase login --reauth`
+- Read the appropriate firebase docs before doing firebase code or configuration changes
 
 # Code Style
 - async/await over promises
