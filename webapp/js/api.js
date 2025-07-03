@@ -1,6 +1,13 @@
 class ApiService {
     constructor() {
-        this._baseUrl = config.getApiUrl();
+        this._baseUrlPromise = null;
+    }
+
+    async _getBaseUrl() {
+        if (!this._baseUrlPromise) {
+            this._baseUrlPromise = config.getApiUrl();
+        }
+        return this._baseUrlPromise;
     }
 
     _getAuthToken() {
@@ -20,7 +27,8 @@ class ApiService {
 
     async getGroups() {
         try {
-            const response = await fetch(`${this._baseUrl}/listDocuments?collection=groups`, {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/listDocuments?collection=groups`, {
                 method: 'GET',
                 headers: this._getAuthHeaders()
             });
@@ -150,7 +158,8 @@ class ApiService {
                 }
             };
 
-            const response = await fetch(`${this._baseUrl}/createDocument`, {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/createDocument`, {
                 method: 'POST',
                 headers: this._getAuthHeaders(),
                 body: JSON.stringify(groupDoc)

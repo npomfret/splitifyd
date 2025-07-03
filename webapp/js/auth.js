@@ -1,7 +1,5 @@
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
 
-const API_BASE_URL = config.getApiUrl();
-
 const validateInput = {
     email: (value) => {
         if (!value) throw new Error('Email is required');
@@ -244,7 +242,8 @@ class AuthManager {
     }
 
     async #makeRequest(endpoint, data) {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const apiUrl = await config.getApiUrl();
+        const response = await fetch(`${apiUrl}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
