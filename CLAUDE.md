@@ -15,7 +15,7 @@
 # Firebase Local Development
 - Typically, the emulator is already running, via `npm run dev`, so do not try to start it again.
 - If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
-- Function logs: http://127.0.0.1:4000/logs?q=metadata.emulator.name%3D%22functions%22
+- Emulator logs: http://localhost:4000/logs
 - Console: http://127.0.0.1:4000
 - If auth error: `firebase login --reauth`
 - Read the appropriate firebase docs before doing firebase code or configuration changes
@@ -54,3 +54,6 @@
 - DO NOT BREAK CORS CONFIG
 - App must run in both emulator and production Firebase
 - Consider build-time and runtime impacts of structural changes
+
+# Other guidance
+- before doing any filesystem operations, **make sure** you are in the correct directory
