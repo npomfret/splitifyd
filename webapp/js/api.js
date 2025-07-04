@@ -158,7 +158,6 @@ class ApiService {
 
         try {
             const groupDoc = {
-                collection: 'groups',
                 data: {
                     name: groupData.name.trim(),
                     description: groupData.description?.trim() || '',
@@ -171,8 +170,6 @@ class ApiService {
             };
 
             const baseUrl = await this._getBaseUrl();
-            console.log('Creating group with baseUrl:', baseUrl);
-            console.log('Auth token available:', !!this._getAuthToken());
             
             const response = await fetch(`${baseUrl}/createDocument`, {
                 method: 'POST',
@@ -181,9 +178,7 @@ class ApiService {
             });
 
             if (!response.ok) {
-                console.error('Create group failed:', response.status, response.statusText);
                 const errorData = await response.text();
-                console.error('Error response:', errorData);
                 
                 if (response.status === 401) {
                     localStorage.removeItem('splitifyd_auth_token');
@@ -202,7 +197,18 @@ class ApiService {
             }
 
             const data = await response.json();
-            return this._transformGroupData(data.document);
+            
+            // Server only returns id, construct the full group object
+            return {
+                id: data.id,
+                name: groupData.name.trim(),
+                memberCount: 1 + (groupData.memberEmails?.length || 0),
+                yourBalance: 0,
+                lastActivity: 'Just now',
+                lastActivityRaw: new Date().toISOString(),
+                lastExpense: null,
+                members: [{ id: 'current_user', name: 'You', initials: 'YO' }]
+            };
             
         } catch (error) {
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
