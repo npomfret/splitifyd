@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
-    "clean": "rm -rf public/*",
+    "clean": "rm -rf public && mkdir -p public",
     "build:demo": "mkdir -p public/demo && cp -r demo/* public/demo/",
     "build:webapp": "cp -r ../webapp/* public/ && rm -f public/FEATURES.md",
     "build": "npm run clean && npm run build:webapp && npm run build:demo",
