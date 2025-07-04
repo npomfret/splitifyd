@@ -6,7 +6,7 @@ import { login, register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
 import { getFirebaseConfigResponse } from './utils/config';
-import { sendHealthCheckResponse } from './utils/errors';
+import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { CONFIG } from './config';
@@ -129,11 +129,16 @@ app.post('/createUserDocument', authenticate, async (req: express.Request, res: 
   res.json({ success: true, message: 'User document created' });
 });
 
-app.post('/createDocument', authenticate, createDocument);
-app.get('/getDocument', authenticate, getDocument);
-app.put('/updateDocument', authenticate, updateDocument);
-app.delete('/deleteDocument', authenticate, deleteDocument);
-app.get('/listDocuments', authenticate, listDocuments);
+// Async error wrapper to ensure proper error handling
+const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+app.post('/createDocument', authenticate, asyncHandler(createDocument));
+app.get('/getDocument', authenticate, asyncHandler(getDocument));
+app.put('/updateDocument', authenticate, asyncHandler(updateDocument));
+app.delete('/deleteDocument', authenticate, asyncHandler(deleteDocument));
+app.get('/listDocuments', authenticate, asyncHandler(listDocuments));
 
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -145,8 +150,37 @@ app.use((req: express.Request, res: express.Response) => {
 });
 
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // Check if response was already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  const correlationId = req.headers['x-correlation-id'] as string;
+  
+  // Handle ApiError objects properly
+  if (err instanceof ApiError) {
+    logger.errorWithContext('API error occurred', err, {
+      correlationId,
+      method: req.method,
+      path: req.path,
+      statusCode: err.statusCode,
+      errorCode: err.code,
+    });
+    
+    res.status(err.statusCode).json({
+      error: {
+        code: err.code,
+        message: err.message,
+        details: err.details,
+        correlationId,
+      },
+    });
+    return;
+  }
+  
+  // Handle unexpected errors
   logger.errorWithContext('Unhandled error occurred', err, {
-    correlationId: req.headers['x-correlation-id'] as string,
+    correlationId,
     method: req.method,
     path: req.path,
     userAgent: req.headers['user-agent'],
@@ -157,7 +191,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     error: {
       code: 'INTERNAL_ERROR',
       message: 'An unexpected error occurred',
-      correlationId: req.headers['x-correlation-id'],
+      correlationId,
     },
   });
 });

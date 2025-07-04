@@ -46,13 +46,13 @@ const documentDataSchema = Joi.object().pattern(
   Joi.string().max(VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH),
   // Allow various data types with security limits
   Joi.alternatives().try(
-    Joi.string().max(VALIDATION_LIMITS.MAX_STRING_LENGTH),           // Strings up to 50KB
+    Joi.string().max(VALIDATION_LIMITS.MAX_STRING_LENGTH).allow(''),           // Strings up to 50KB, empty allowed
     Joi.number(),                      // Any number
     Joi.boolean(),                     // Booleans
     Joi.date(),                        // Dates
     Joi.array().items(                 // Arrays
       Joi.alternatives().try(
-        Joi.string().max(VALIDATION_LIMITS.MAX_ARRAY_STRING_LENGTH),
+        Joi.string().max(VALIDATION_LIMITS.MAX_ARRAY_STRING_LENGTH).allow(''),
         Joi.number(),
         Joi.boolean(),
         Joi.date(),
@@ -62,7 +62,7 @@ const documentDataSchema = Joi.object().pattern(
     Joi.object().pattern(              // Nested objects
       Joi.string().max(VALIDATION_LIMITS.MAX_NESTED_PROPERTY_NAME_LENGTH),
       Joi.alternatives().try(
-        Joi.string().max(VALIDATION_LIMITS.MAX_NESTED_STRING_LENGTH),
+        Joi.string().max(VALIDATION_LIMITS.MAX_NESTED_STRING_LENGTH).allow(''),
         Joi.number(),
         Joi.boolean(),
         Joi.date(),

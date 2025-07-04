@@ -10,7 +10,6 @@ import {
   validateUpdateDocument,
   validateDocumentId,
   sanitizeDocumentData,
-  createDocumentPreview,
   Document,
 } from './validation';
 
