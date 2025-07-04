@@ -105,35 +105,28 @@ app.post('/register', register);
 
 // User document creation (requires auth)
 app.post('/createUserDocument', authenticate, async (req: express.Request, res: express.Response) => {
-  try {
-    const { displayName } = req.body;
-    const userId = (req as any).user.uid;
-    
-    if (!displayName) {
-      res.status(400).json({
-        error: {
-          code: 'MISSING_DISPLAY_NAME',
-          message: 'Display name is required'
-        }
-      });
-      return;
-    }
-    
-    const firestore = admin.firestore();
-    await firestore.collection('users').doc(userId).set({
-      email: (req as any).user.email,
-      displayName,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  const { displayName } = req.body;
+  const userId = (req as any).user.uid;
+  
+  if (!displayName) {
+    res.status(400).json({
+      error: {
+        code: 'MISSING_DISPLAY_NAME',
+        message: 'Display name is required'
+      }
     });
-    
-    res.json({ success: true, message: 'User document created' });
-  } catch (error) {
-    logger.errorWithContext('Failed to create user document', error as Error, {
-      userId: (req as any).user?.uid,
-    });
-    throw error;
+    return;
   }
+  
+  const firestore = admin.firestore();
+  await firestore.collection('users').doc(userId).set({
+    email: (req as any).user.email,
+    displayName,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  
+  res.json({ success: true, message: 'User document created' });
 });
 
 app.post('/createDocument', authenticate, createDocument);

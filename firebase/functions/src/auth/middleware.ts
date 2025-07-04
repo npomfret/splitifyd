@@ -113,7 +113,8 @@ export const authenticate = async (
     }
 
     next();
-  } catch {
+  } catch (error) {
+    logger.errorWithContext('Token verification failed', error as Error, { correlationId });
     return sendError(res, Errors.INVALID_TOKEN(), correlationId);
   }
 };

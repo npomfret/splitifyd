@@ -1,58 +1,51 @@
 # Suggested refactorings for firebase
 
-## Top 8 Priority Refactorings
+## Top 7 Priority Refactorings
 
 
-### 1. **HIGH: Simplify Complex Try/Catch/Log Patterns**
-**Files**: `auth/middleware.ts:100-117`, `index.ts:28-37,130-135`
-**Issue**: Overly complex error handling that catches, logs, and re-throws without adding value
-**Impact**: Cleaner error handling and faster debugging
-**Type**: Refactoring (slight behavior change in error messages)
-**Effort**: Medium
-
-### 2. **HIGH: Remove Unused Imports and Dead Code**
+### 1. **HIGH: Remove Unused Imports and Dead Code**
 **Files**: `config.ts:2`, `tests/api-endpoints.test.ts:2`
 **Issue**: Unused imports like `* as functions` and `AxiosError` increase bundle size
 **Impact**: Smaller bundle size and cleaner code
 **Type**: Pure refactoring (no behavior change)
 **Effort**: Low
 
-### 3. **MEDIUM: Fix Performance Issues in Data Processing**
+### 2. **MEDIUM: Fix Performance Issues in Data Processing**
 **File**: `documents/validation.ts:145,179`
 **Issue**: Inefficient `JSON.parse(JSON.stringify())` deep cloning and duplicate JSON.stringify calls
 **Impact**: Faster request processing and reduced memory usage
 **Type**: Performance optimization (no behavior change)
 **Effort**: Low
 
-### 4. **MEDIUM: Consolidate Duplicate Code Patterns**
+### 3. **MEDIUM: Consolidate Duplicate Code Patterns**
 **Files**: Multiple files with similar error response structures
 **Issue**: Error response formatting, cursor parsing, and validation patterns are duplicated
 **Impact**: Reduced code maintenance and consistency
 **Type**: Pure refactoring (no behavior change)
 **Effort**: Medium
 
-### 5. **MEDIUM: Simplify Overly Complex Validation Logic**
+### 4. **MEDIUM: Simplify Overly Complex Validation Logic**
 **File**: `documents/validation.ts:44-73,148-168`
 **Issue**: Deeply nested Joi schema and complex recursive sanitization
 **Impact**: Easier to maintain and understand validation rules
 **Type**: Refactoring (potential slight behavior change)
 **Effort**: Medium
 
-### 6. **MEDIUM: Fix Inconsistent Naming Conventions**
+### 5. **MEDIUM: Fix Inconsistent Naming Conventions**
 **Files**: `config.ts:5-7`, `documents/handlers.ts:94`
 **Issue**: Inconsistent `ENV_IS_PRODUCTION` naming and variable shadowing
 **Impact**: Better code readability and consistency
 **Type**: Pure refactoring (no behavior change)
 **Effort**: Low
 
-### 7. **LOW: Improve TypeScript Type Safety**
+### 6. **LOW: Improve TypeScript Type Safety**
 **Files**: `index.ts:109,123`, `documents/handlers.ts:99`
 **Issue**: Type assertions `(req as any).user.uid` and `(data.createdAt as any).toDate()` indicate typing issues
 **Impact**: Better type safety and IDE support
 **Type**: Pure refactoring (no behavior change)
 **Effort**: Medium
 
-### 8. **LOW: Optimize Rate Limiter Implementation**
+### 7. **LOW: Optimize Rate Limiter Implementation**
 **File**: `auth/middleware.ts:56-65`
 **Issue**: Rate limiter cleanup runs on every request instead of being scheduled
 **Impact**: Better performance under high load
