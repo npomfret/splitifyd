@@ -67,11 +67,13 @@ class AuthManager {
         if (elements.loginForm) {
             this.#addEventListenerWithCleanup(elements.loginForm, 'submit', this.#handleLogin.bind(this));
             this.#setupFormValidation(elements.loginForm);
+            this.#setDevelopmentDefaults(elements.loginForm);
         }
 
         if (elements.registerForm) {
             this.#addEventListenerWithCleanup(elements.registerForm, 'submit', this.#handleRegister.bind(this));
             this.#setupFormValidation(elements.registerForm);
+            this.#setDevelopmentDefaults(elements.registerForm);
         }
 
         if (elements.forgotPassword) {
@@ -109,6 +111,40 @@ class AuthManager {
             this.#addEventListenerWithCleanup(input, 'blur', () => this.#validateField(input));
             this.#addEventListenerWithCleanup(input, 'input', debouncedValidation);
         });
+    }
+
+    async #setDevelopmentDefaults(form) {
+        try {
+            await config.getConfig();
+            const formDefaults = window.firebaseConfigManager.getFormDefaults();
+            
+            if (!formDefaults || Object.keys(formDefaults).length === 0) {
+                return;
+            }
+
+            const registerDefaults = {
+                displayName: formDefaults.displayName,
+                email: formDefaults.email,
+                password: formDefaults.password,
+                confirmPassword: formDefaults.password
+            };
+
+            const loginDefaults = {
+                email: formDefaults.email,
+                password: formDefaults.password
+            };
+
+            const defaults = form.id === 'registerForm' ? registerDefaults : loginDefaults;
+
+            Object.entries(defaults).forEach(([fieldName, defaultValue]) => {
+                const input = form.querySelector(`[name="${fieldName}"]`);
+                if (input && !input.value && defaultValue) {
+                    input.value = defaultValue;
+                }
+            });
+        } catch (error) {
+            console.warn('Failed to load form defaults:', error);
+        }
     }
 
     #validateField(input) {

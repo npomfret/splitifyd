@@ -9,6 +9,11 @@ export interface FirebaseConfigResponse {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
+  formDefaults?: {
+    displayName?: string;
+    email?: string;
+    password?: string;
+  };
 }
 
 
@@ -27,6 +32,7 @@ export const getFirebaseConfigResponse = (res: Response): void => {
   
   res.json({
     ...clientConfig,
-    projectId: CONFIG.projectId
+    projectId: CONFIG.projectId,
+    formDefaults: CONFIG.formDefaults
   } as FirebaseConfigResponse);
 };

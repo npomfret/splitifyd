@@ -84,6 +84,12 @@ export const CONFIG = {
     listLimit: DOCUMENT_CONFIG.LIST_LIMIT,
     previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
   },
+  
+  formDefaults: ENV_IS_DEVELOPMENT ? {
+    displayName: 'test',
+    email: 'test@test.com',
+    password: 'rrRR44$$',
+  } : undefined,
 };
 
 // Configure emulators for development

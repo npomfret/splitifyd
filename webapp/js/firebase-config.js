@@ -73,7 +73,8 @@ class FirebaseConfigManager {
             this.config = {
                 firebaseConfig,
                 apiUrl: this.getApiUrlForProject(firebaseConfig.projectId),
-                isLocal: this.isLocalEnvironment()
+                isLocal: this.isLocalEnvironment(),
+                formDefaults: firebaseConfig.formDefaults
             };
             
             return firebaseConfig;
@@ -95,7 +96,12 @@ class FirebaseConfigManager {
                 this.config = {
                     firebaseConfig: defaultConfig,
                     apiUrl: this.getApiUrlForProject(defaultConfig.projectId),
-                    isLocal: true
+                    isLocal: true,
+                    formDefaults: {
+                        displayName: 'test',
+                        email: 'test@test.com',
+                        password: 'rrRR44$$'
+                    }
                 };
                 
                 return defaultConfig;
@@ -149,6 +155,10 @@ class FirebaseConfigManager {
 
     isInitialized() {
         return this.initialized;
+    }
+
+    getFormDefaults() {
+        return this.config?.formDefaults || {};
     }
 }
 
