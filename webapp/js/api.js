@@ -171,6 +171,9 @@ class ApiService {
             };
 
             const baseUrl = await this._getBaseUrl();
+            console.log('Creating group with baseUrl:', baseUrl);
+            console.log('Auth token available:', !!this._getAuthToken());
+            
             const response = await fetch(`${baseUrl}/createDocument`, {
                 method: 'POST',
                 headers: this._getAuthHeaders(),
@@ -178,14 +181,24 @@ class ApiService {
             });
 
             if (!response.ok) {
+                console.error('Create group failed:', response.status, response.statusText);
+                const errorData = await response.text();
+                console.error('Error response:', errorData);
+                
                 if (response.status === 401) {
                     localStorage.removeItem('splitifyd_auth_token');
                     window.location.href = 'index.html';
                     throw new Error('Authentication required');
                 }
                 
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to create group');
+                let errorMessage = 'Failed to create group';
+                try {
+                    const errorJson = JSON.parse(errorData);
+                    errorMessage = errorJson.message || errorMessage;
+                } catch (e) {
+                    // Use default message if JSON parsing fails
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
