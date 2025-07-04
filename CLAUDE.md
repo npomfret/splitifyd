@@ -3,7 +3,7 @@
 - Language: TypeScript (latest)
 - Framework: Firebase Functions
 - Dev Environment: Firebase Emulator Suite
-- It's a mono-repo - both the client (webapp) and the server (firebase) are sub-projects
+- It's a mono-repo - both the client (webapp) and the server (firebase) are sub projects
 
 # Commands
 - Start local services: `cd firebase && npm run dev`
@@ -13,7 +13,7 @@
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 
 # Firebase Local Development
-- Typically, the emulator is already running, via `npm run dev`, so do not try to start it again.
+- Typically, the emulator is already running, via `npm run dev`, so do not try to start it again. If it is not running, ask the user to start it.
 - If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
 - Emulator logs: http://localhost:4000/logs
 - Console: http://127.0.0.1:4000
@@ -39,6 +39,7 @@
    - Check `git status` for untracked files
 3. Add new files to git or .gitignore
 4. Never run `git commit`
+5. Avoid environment variables, prefer configuration files
 
 # Architecture Rules
 - Fail fast: validate early, throw on invalid state
@@ -57,3 +58,4 @@
 
 # Other guidance
 - before doing any filesystem operations, **make sure** you are in the correct directory
+- learn by your mistakes, if you break something, make a note of what you did wrong in a file called "common-mistakes.md"
