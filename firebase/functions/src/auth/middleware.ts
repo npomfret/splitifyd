@@ -97,24 +97,8 @@ export const authenticate = async (
   const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH); // Remove 'Bearer ' prefix
 
   try {
-    // Try to verify as ID token first, if that fails try as custom token
-    let decodedToken;
-    try {
-      decodedToken = await admin.auth().verifyIdToken(token);
-    } catch (idTokenError) {
-      // For emulator, also try verifying as custom token
-      if (!CONFIG.isProduction) {
-        try {
-          // Custom tokens can't be verified directly, so we'll decode the JWT payload
-          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-          decodedToken = { uid: payload.uid, email: payload.email };
-        } catch (customTokenError) {
-          throw idTokenError; // Throw original ID token error
-        }
-      } else {
-        throw idTokenError;
-      }
-    }
+    // Verify ID token - no fallbacks or hacks
+    const decodedToken = await admin.auth().verifyIdToken(token);
     
     // Attach user information to request
     req.user = {
@@ -145,11 +129,16 @@ export const optionalAuth = async (
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH);
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-    };
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.user = {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+      };
+    } catch (error) {
+      // If token verification fails, let error bubble up
+      throw error;
+    }
   }
   
   next();

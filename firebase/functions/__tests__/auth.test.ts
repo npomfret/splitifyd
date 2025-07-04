@@ -3,9 +3,10 @@ import * as admin from 'firebase-admin';
 import { authenticate, AuthenticatedRequest } from '../src/auth/middleware';
 
 // Mock Firebase Admin
+const mockVerifyIdToken = jest.fn();
 jest.mock('firebase-admin', () => ({
   auth: () => ({
-    verifyIdToken: jest.fn()
+    verifyIdToken: mockVerifyIdToken
   })
 }));
 
@@ -87,8 +88,7 @@ describe('Authentication Middleware', () => {
         authorization: 'Bearer valid-token'
       };
 
-      const verifyIdToken = admin.auth().verifyIdToken as jest.Mock;
-      verifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
 
       await authenticate(
         mockRequest as AuthenticatedRequest,
@@ -96,7 +96,7 @@ describe('Authentication Middleware', () => {
         mockNext
       );
 
-      expect(verifyIdToken).toHaveBeenCalledWith('valid-token');
+      expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-token');
       expect(mockRequest.user).toEqual({
         uid: 'user123',
         email: 'test@example.com'
@@ -109,8 +109,7 @@ describe('Authentication Middleware', () => {
         authorization: 'Bearer invalid-token'
       };
 
-      const verifyIdToken = admin.auth().verifyIdToken as jest.Mock;
-      verifyIdToken.mockRejectedValue(new Error('Invalid token'));
+      mockVerifyIdToken.mockRejectedValue(new Error('Invalid token'));
 
       await authenticate(
         mockRequest as AuthenticatedRequest,
@@ -141,8 +140,7 @@ describe('Authentication Middleware', () => {
         authorization: 'Bearer valid-token'
       };
 
-      const verifyIdToken = admin.auth().verifyIdToken as jest.Mock;
-      verifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
 
       // Make 10 requests (the limit)
       for (let i = 0; i < 10; i++) {

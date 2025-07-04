@@ -56,14 +56,9 @@ export const sendError = (res: Response, error: ApiError | Error, correlationId?
       },
     } as ErrorResponse);
   } else {
+    // Log the full error and propagate it
     logger.error('Unexpected error:', error);
-    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred',
-        ...(correlationId && { correlationId }),
-      },
-    } as ErrorResponse);
+    throw error;
   }
 };
 

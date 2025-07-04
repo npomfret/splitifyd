@@ -3,7 +3,7 @@ import * as functions from 'firebase-functions';
 
 // Firebase Functions don't automatically set NODE_ENV=production, so we need to detect deployment
 const ENV_IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.FUNCTIONS_EMULATOR !== 'true';
-const ENV_IS_DEVELOPMENT = process.env.NODE_ENV === 'development' && process.env.FUNCTIONS_EMULATOR === 'true';
+const ENV_IS_DEVELOPMENT = process.env.NODE_ENV === 'development' || process.env.FUNCTIONS_EMULATOR === 'true';
 const ENV_IS_TEST = process.env.NODE_ENV === 'test';
 
 function parseInteger(value: string | undefined, name: string): number {
@@ -24,7 +24,7 @@ const projectId = process.env.PROJECT_ID || process.env.GCLOUD_PROJECT || (ENV_I
 
 // Direct configuration values
 export const CONFIG = {
-  environment: process.env.NODE_ENV || (ENV_IS_TEST ? 'test' : (() => {
+  environment: process.env.NODE_ENV || (ENV_IS_TEST ? 'test' : ENV_IS_DEVELOPMENT ? 'development' : (() => {
     throw new Error('NODE_ENV environment variable is required');
   })()),
   isProduction: ENV_IS_PRODUCTION,
@@ -57,7 +57,7 @@ export const CONFIG = {
   },
   
   firebase: {
-    apiKey: ENV_IS_TEST ? 'test-api-key' : (process.env.API_KEY || (() => {
+    apiKey: ENV_IS_TEST ? 'test-api-key' : process.env.API_KEY || (ENV_IS_DEVELOPMENT ? 'development-api-key' : (() => {
       throw new Error('API_KEY environment variable is required');
     })()),
     projectId,

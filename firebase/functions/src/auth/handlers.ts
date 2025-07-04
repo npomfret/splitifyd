@@ -30,27 +30,32 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   // Note: This is a simplified approach for demonstration
   // In production, you'd verify the password properly
-  const user = await admin.auth().getUserByEmail(email).catch(() => null);
-  
-  if (!user) {
-    res.status(HTTP_STATUS.UNAUTHORIZED).json({
-      error: {
-        code: 'INVALID_CREDENTIALS',
-        message: 'Invalid email or password'
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName
       }
     });
-    return;
-  }
-
-  res.json({
-    success: true,
-    message: 'Login successful',
-    user: {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName
+  } catch (error: any) {
+    if (error.code === 'auth/user-not-found') {
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        error: {
+          code: 'INVALID_CREDENTIALS',
+          message: 'Invalid email or password'
+        }
+      });
+      return;
     }
-  });
+    
+    // Let other errors bubble up to global error handler
+    throw error;
+  }
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {

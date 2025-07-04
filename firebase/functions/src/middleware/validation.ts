@@ -109,7 +109,7 @@ export const rateLimitByIP = (
   // Simple IP-based rate limiting for health checks and other public endpoints
   const ip = req.ip || req.connection.remoteAddress || 'unknown';
   
-  // For now, just log the IP - in production, implement proper IP rate limiting
+  // Store the IP for logging purposes
   req.headers['x-client-ip'] = ip;
   
   next();

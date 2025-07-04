@@ -8,7 +8,7 @@
     "build:webapp": "cp -r ../webapp/* public/ && rm -f public/FEATURES.md",
     "build": "npm run clean && npm run build:webapp && npm run build:demo",
     "serve": "npm run build && cd functions && npm run build && cd .. && firebase emulators:start",
-    "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon --watch ../webapp --ext html,css,js --exec 'npm run build:webapp' & firebase emulators:start --debug)",
+    "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon --watch ../webapp --ext html,css,js --exec 'npm run build:webapp' & NODE_ENV=development firebase emulators:start --debug)",
     "deploy": "echo 'Use deploy:prod for production deployment'",
     "deploy:prod": "firebase use splitifyd && firebase deploy",
     "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
