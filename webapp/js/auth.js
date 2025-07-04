@@ -58,6 +58,7 @@ class AuthManager {
         const elements = {
             loginForm: document.getElementById('loginForm'),
             registerForm: document.getElementById('registerForm'),
+            resetForm: document.getElementById('resetForm'),
             forgotPassword: document.getElementById('forgotPassword'),
             signUpLink: document.getElementById('signUpLink'),
             signInLink: document.getElementById('signInLink'),
@@ -74,6 +75,11 @@ class AuthManager {
             this.#addEventListenerWithCleanup(elements.registerForm, 'submit', this.#handleRegister.bind(this));
             this.#setupFormValidation(elements.registerForm);
             this.#setDevelopmentDefaults(elements.registerForm);
+        }
+
+        if (elements.resetForm) {
+            this.#addEventListenerWithCleanup(elements.resetForm, 'submit', this.#handlePasswordReset.bind(this));
+            this.#setupFormValidation(elements.resetForm);
         }
 
         if (elements.forgotPassword) {
@@ -362,10 +368,68 @@ class AuthManager {
         errorContainer.setAttribute('aria-live', 'assertive');
     }
 
+    #showSuccessMessage(form, message) {
+        let successContainer = form.querySelector('.form-success--general');
+        
+        if (!successContainer) {
+            successContainer = document.createElement('div');
+            successContainer.className = 'form-success form-success--general';
+            successContainer.setAttribute('role', 'alert');
+            form.insertBefore(successContainer, form.querySelector('button'));
+        }
+        
+        successContainer.textContent = message;
+        successContainer.setAttribute('aria-live', 'polite');
+    }
+
     #handleForgotPassword(event) {
         event.preventDefault();
-        // TODO: Implement forgot password flow
-        alert('Forgot password functionality coming soon');
+        window.location.href = 'reset-password.html';
+    }
+
+    async #handlePasswordReset(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const email = formData.get('email');
+        
+        const button = event.target.querySelector('button[type="submit"]');
+        
+        try {
+            validateInput.email(email);
+            await this.#submitPasswordReset(email, button);
+        } catch (error) {
+            this.#showFormError(event.target, error.message);
+        }
+    }
+
+    async #submitPasswordReset(email, button) {
+        const originalText = button.textContent;
+        
+        try {
+            this.#setButtonLoading(button, 'Sending...');
+            
+            if (!window.firebaseAuth) {
+                throw new Error('Firebase not initialized');
+            }
+            
+            await window.firebaseAuth.sendPasswordResetEmail(email);
+            
+            this.#showSuccessMessage(button.closest('form'), 'Password reset email sent! Check your inbox.');
+            
+        } catch (error) {
+            let errorMessage = 'Failed to send reset email';
+            if (error.code === 'auth/user-not-found') {
+                errorMessage = 'No account found with this email address';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email format';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many requests. Please try again later';
+            }
+            throw new Error(errorMessage);
+        } finally {
+            this.#resetButton(button, originalText);
+        }
     }
 
     #handleSignUp(event) {
