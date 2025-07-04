@@ -163,30 +163,7 @@ GET /listDocuments
 
 ## Deployment Instructions
 
-Include detailed deployment steps:
-
-1. **Setup**:
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   firebase init
-   ```
-
-2. **Local Development**:
-   ```bash
-   cd functions && npm install
-   firebase emulators:start
-   ```
-
-3. **Testing**:
-   ```bash
-   cd functions && npm test
-   ```
-
-4. **Deployment**:
-   ```bash
-   firebase deploy
-   ```
+*Detailed deployment and development workflow is covered in [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
 
 ## Additional Features
 

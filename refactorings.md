@@ -9,6 +9,7 @@
 - **Impact**: Cross-site scripting vulnerabilities
 - **Fix**: Replace alerts with safe UI feedback, sanitize all user input before DOM insertion
 - **Type**: Security fix (behavior change)
+- **Reference**: See [TECHNICAL_CONFIG.md](TECHNICAL_CONFIG.md) for XSS prevention guidelines
 
 ### 2. **Remove Try/Catch/Log Anti-Pattern** (High Impact)
 - **Files**: `webapp/js/api.js:50-56`, `webapp/js/groups.js:181-183`
@@ -30,6 +31,7 @@
 - **Impact**: Memory leaks, potential browser performance degradation
 - **Fix**: Proper event listener tracking and cleanup in component lifecycle
 - **Type**: Performance fix (behavior change - better memory management)
+- **Reference**: See [TECHNICAL_CONFIG.md](TECHNICAL_CONFIG.md) for memory management guidelines
 
 ## Additional High-Value Issues
 
@@ -64,6 +66,7 @@
 - **Files**: All HTML files
 - **Fix**: Add CSP headers to prevent XSS attacks
 - **Type**: Security enhancement (no behavior change for legitimate code)
+- **Reference**: See [TECHNICAL_CONFIG.md](TECHNICAL_CONFIG.md) for CSP implementation
 
 ### **Missing Resource Integrity** (Medium)
 - **Files**: All HTML files

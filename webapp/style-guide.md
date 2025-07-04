@@ -89,6 +89,8 @@ class AuthManager {
 
 ### Error Handling
 
+*For comprehensive error handling strategy and implementation details, see [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
+
 ```javascript
 // ✅ Fail fast with meaningful errors
 validateUser(user) {
@@ -106,15 +108,6 @@ async fetchUserData(id) {
     }
     
     return response.json();
-}
-
-// ❌ Don't catch and log unless you handle it
-try {
-    const data = await fetchData();
-    console.log('Got data:', data); // This is fine
-} catch (error) {
-    console.error(error); // ❌ Don't do this
-    // Either handle it or let it bubble up
 }
 ```
 
@@ -335,57 +328,7 @@ const hasPermission = (permission) => this.permissions.includes(permission);
 
 ## 🔒 Security Guidelines
 
-### Input Validation
-
-```javascript
-// ✅ Validate all inputs
-const validateInput = {
-    email: (value) => {
-        if (!value) throw new Error('Email is required');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            throw new Error('Invalid email format');
-        }
-        return value.toLowerCase().trim();
-    },
-    
-    password: (value) => {
-        if (!value) throw new Error('Password is required');
-        if (value.length < 8) throw new Error('Password must be at least 8 characters');
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-            throw new Error('Password must contain uppercase, lowercase, and number');
-        }
-        return value;
-    }
-};
-```
-
-### XSS Prevention
-
-```javascript
-// ✅ Sanitize output
-const sanitizeHTML = (str) => {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-};
-
-// ✅ Use textContent for user data
-element.textContent = userInput; // Safe
-element.innerHTML = sanitizeHTML(userInput); // Only if HTML is needed
-```
-
-### Secure Headers
-
-```javascript
-// ✅ Include security headers
-const securityHeaders = {
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'",
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
-};
-```
+*For comprehensive security implementation including input validation, XSS prevention, and secure headers, see [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
 
 ---
 
@@ -415,7 +358,7 @@ const handleSearch = debounce(async (query) => {
 }, 300);
 ```
 
-### Memory Management
+*For detailed memory management and performance optimization guidelines, see [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
 
 ```javascript
 // ✅ Clean up event listeners
@@ -430,19 +373,6 @@ class Component {
     
     unmount() {
         document.removeEventListener('click', this.handleClick);
-    }
-}
-
-// ✅ Use WeakMap for private data
-const privateData = new WeakMap();
-
-class User {
-    constructor(data) {
-        privateData.set(this, { ...data });
-    }
-    
-    getName() {
-        return privateData.get(this).name;
     }
 }
 ```
@@ -493,6 +423,8 @@ class ApiClient {}
 
 ## 🧪 Testing Philosophy
 
+*For comprehensive testing configuration and procedures, see [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
+
 ### Unit Tests
 
 ```javascript
@@ -504,17 +436,6 @@ describe('AuthManager', () => {
         expect(() => {
             auth.validateCredentials({ email: '', password: '' });
         }).toThrow('Email is required');
-    });
-    
-    test('should set token after successful login', async () => {
-        const auth = new AuthManager();
-        const mockResponse = { token: 'abc123', user: { id: 1 } };
-        
-        jest.spyOn(auth, 'makeRequest').mockResolvedValue(mockResponse);
-        
-        await auth.login({ email: 'test@example.com', password: 'password123' });
-        
-        expect(auth.getToken()).toBe('abc123');
     });
 });
 ```

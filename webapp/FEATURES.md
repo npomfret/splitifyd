@@ -231,6 +231,8 @@ webapp/
 - **Settlements**: `/settlements`, `/settlements/simplify`
 - **Friends**: `/friends`, `/friends/invite`, `/friends/requests`
 
+*For API configuration and testing setup, see [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
+
 ### API Integration Status
 - [x] Auth login endpoint connection
 - [ ] Auth register endpoint
@@ -254,6 +256,8 @@ webapp/
 3. [ ] Implement API calls one feature at a time
 4. [ ] Test each feature thoroughly before moving on
 5. [ ] Keep components modular and reusable
+
+*For detailed development workflow and testing procedures, see [TECHNICAL_CONFIG.md](../TECHNICAL_CONFIG.md)*
 
 ---
 
