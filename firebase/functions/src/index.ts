@@ -97,6 +97,7 @@ app.get('/config', (req: express.Request, res: express.Response) => {
   getFirebaseConfigResponse(res);
 });
 
+
 // Auth endpoints (no auth required)
 app.post('/login', login);
 app.post('/register', register);

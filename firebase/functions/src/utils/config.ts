@@ -16,6 +16,11 @@ export const getFirebaseConfigResponse = (res: Response): void => {
   const clientConfig = CONFIG.clientConfig;
   
   if (!clientConfig) {
+    console.error('Client config is undefined. Environment variables:', {
+      CLIENT_API_KEY: process.env.CLIENT_API_KEY,
+      NODE_ENV: process.env.NODE_ENV,
+      FUNCTIONS_EMULATOR: process.env.FUNCTIONS_EMULATOR
+    });
     sendError(res, Errors.INTERNAL_ERROR());
     return;
   }
