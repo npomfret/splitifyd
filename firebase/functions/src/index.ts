@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import express from 'express';
 import { authenticate } from './auth/middleware';
@@ -162,7 +162,14 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   });
 });
 
-// Main API export - consolidated approach for consistent behavior
-export const api = functions.https.onRequest({
-  invoker: 'public' // Allow unauthenticated access for CORS and public endpoints
+// Main API export - using Firebase Functions v2 for better performance
+export const api = onRequest({
+  invoker: 'public', // Allow unauthenticated access for CORS and public endpoints
+  cors: CONFIG.isProduction ? [
+    `https://${CONFIG.projectId}.web.app`,
+    `https://${CONFIG.projectId}.firebaseapp.com`
+  ] : true,
+  maxInstances: 100,
+  timeoutSeconds: 540, // 9 minutes
+  region: 'us-central1'
 }, app);
