@@ -74,7 +74,7 @@ When clicking on a group:
 - [ ] Friend activity summary
 
 ### 9. Group Management
-- [ ] Create groups
+- [x] Create groups
 - [ ] Add/remove members
 - [ ] Group settings (name, icon, color)
 - [ ] Group expense tracking
@@ -214,8 +214,8 @@ webapp/
 - [ ] css/themes.css
 - [ ] js/app.js
 - [x] js/auth.js
-- [ ] js/api.js
-- [ ] js/groups.js
+- [x] js/api.js
+- [x] js/groups.js
 - [ ] js/expenses.js
 - [ ] js/utils.js
 - [ ] js/components/modal.js
@@ -240,7 +240,7 @@ webapp/
 - [x] Auth logout endpoint  
 - [x] Auth reset-password endpoint
 - [ ] Users endpoints
-- [ ] Groups endpoints
+- [x] Groups endpoints (create, list)
 - [ ] Expenses endpoints
 - [ ] Settlements endpoints
 - [ ] Friends endpoints
@@ -265,14 +265,15 @@ webapp/
 ## Priority Order (Next Steps)
 1. ✅ **Authentication system** - Login page complete
 2. ✅ **Registration page** - Complete
-3. **Dashboard/Home Page** - Currently implementing
-4. **Groups list on home page** 
-5. **Add expense form**
-6. **Group detail view**
-7. **Expense list and filtering**
-8. **Settlement recording**
-9. **Friends management**
-10. Everything else based on user feedback
+3. ✅ **Dashboard/Home Page** - Complete with balance summary
+4. ✅ **Groups list on home page** - Complete with search/filter
+5. ✅ **Group creation** - Complete with validation
+6. **Add expense form** - Next priority
+7. **Group detail view**
+8. **Expense list and filtering**
+9. **Settlement recording**
+10. **Friends management**
+11. Everything else based on user feedback
 
 ---
 
@@ -281,7 +282,7 @@ webapp/
 - [x] Touch-friendly tap targets
 - [x] Clear visual hierarchy
 - [x] Consistent color coding (red for debt, green for credit)
-- [ ] Loading states for all async operations
-- [ ] Error handling with user-friendly messages
+- [x] Loading states for all async operations
+- [x] Error handling with user-friendly messages
 - [ ] Smooth transitions and micro-animations
 - [ ] Clear CTAs throughout
