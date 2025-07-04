@@ -1,4 +1,4 @@
-import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, HTTP_STATUS, SYSTEM, VALIDATION_LIMITS } from './constants';
+import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import * as functions from 'firebase-functions';
 
 // Firebase Functions don't automatically set NODE_ENV=production, so we need to detect deployment
@@ -40,23 +40,6 @@ export const CONFIG = {
     maxPropertyNameLength: VALIDATION_LIMITS.MAX_PROPERTY_NAME_LENGTH,
   },
   
-  corsOptions: {
-    origin: ENV_IS_PRODUCTION 
-      ? [`https://${projectId}.web.app`, `https://${projectId}.firebaseapp.com`]
-      : ENV_IS_TEST
-      ? [`http://localhost:${PORTS.LOCAL_3000}`, `http://localhost:${PORTS.LOCAL_5000}`]
-      : [
-          `http://localhost:${PORTS.LOCAL_3000}`, 
-          `http://localhost:${PORTS.LOCAL_5000}`, 
-          `http://localhost:${PORTS.LOCAL_5002}`,
-          `http://127.0.0.1:${PORTS.LOCAL_5000}`,
-          `http://127.0.0.1:${PORTS.LOCAL_5002}`
-        ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: HTTP_STATUS.OK,
-  },
   
   emulatorPorts: {
     auth: parseInteger(process.env.FIREBASE_AUTH_EMULATOR_PORT, PORTS.AUTH_EMULATOR),

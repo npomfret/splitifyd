@@ -3,6 +3,8 @@ import cors from 'cors';
 import { CONFIG } from '../config';
 import { addCorrelationId, logger } from '../logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
+import { getCorsOptions } from '../middleware/cors';
+import { applySecurityHeaders } from '../middleware/security-headers';
 
 export interface MiddlewareOptions {
   functionName?: string;
@@ -15,10 +17,11 @@ export interface MiddlewareOptions {
 export const applyStandardMiddleware = (app: express.Application, options: MiddlewareOptions = {}) => {
   const { functionName, logMessage = 'Request' } = options;
 
-  // CORS configuration using CONFIG
-  const corsOptions = CONFIG.corsOptions;
-  
-  app.use(cors(corsOptions));
+  // Apply security headers first
+  app.use(applySecurityHeaders);
+
+  // CORS configuration with simplified options
+  app.use(cors(getCorsOptions()));
 
   // Add correlation ID to all requests for tracing
   app.use(addCorrelationId);

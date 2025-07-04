@@ -13,6 +13,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:endpoints": "ts-node src/tests/api-endpoints.test.ts",
+    "test:endpoints:local": "ts-node src/tests/api-endpoints.test.ts local",
+    "test:endpoints:prod": "ts-node src/tests/api-endpoints.test.ts production",
     "validate-cors": "node scripts/validate-cors.js"
   },
   "engines": {
@@ -32,13 +35,17 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^20.19.2",
     "@types/supertest": "^6.0.3",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "axios": "^1.10.0",
     "eslint": "^8.57.1",
     "jest": "^29.7.0",
     "supertest": "^6.3.4",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.6.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3",
+    "uuid": "^11.1.0"
   },
   "jest": {
     "preset": "ts-jest",
