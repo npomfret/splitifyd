@@ -97,9 +97,10 @@ export function configureEmulators() {
       firestorePort: CONFIG.emulatorPorts.firestore,
     });
     
-    console.log('🔧 Configuring Firebase Admin for local emulators:');
-    console.log(`   Auth emulator: localhost:${CONFIG.emulatorPorts.auth}`);
-    console.log(`   Firestore emulator: localhost:${CONFIG.emulatorPorts.firestore}`);
+    functions.logger.info('Configuring Firebase Admin for local emulators', {
+      authEmulator: `localhost:${CONFIG.emulatorPorts.auth}`,
+      firestoreEmulator: `localhost:${CONFIG.emulatorPorts.firestore}`
+    });
   }
 }
 

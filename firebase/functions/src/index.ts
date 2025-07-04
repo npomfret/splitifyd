@@ -27,12 +27,13 @@ if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
   // Test Auth emulator connection after initialization
   setTimeout(async () => {
     try {
-      console.log('🔄 Testing Auth emulator connection...');
+      logger.info('Testing Auth emulator connection');
       await admin.auth().listUsers(1);
-      console.log('✅ Auth emulator connection successful');
+      logger.info('Auth emulator connection successful');
     } catch (error: any) {
-      console.error('❌ Auth emulator connection failed:', error.message);
-      console.error('   Make sure Firebase Auth emulator is running on port', CONFIG.emulatorPorts.auth);
+      logger.errorWithContext('Auth emulator connection failed', error as Error, {
+        port: CONFIG.emulatorPorts.auth
+      });
     }
   }, 1000);
 }
