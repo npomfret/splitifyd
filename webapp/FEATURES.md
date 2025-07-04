@@ -7,27 +7,28 @@
 - [x] Registration page with validation
 - [x] Session management (store auth token)
 - [x] Logout functionality
-- [ ] Password reset flow
+- [x] Password reset flow
 
 ### 2. Dashboard/Home Page
-- [ ] Groups list (most recently used first)
-  - [ ] Group name and member avatars/initials
-  - [ ] Your balance within each group
-  - [ ] Last activity timestamp
-  - [ ] Quick "Add expense" button per group
-- [ ] Overall balance summary at top (total owed/owing across all groups)
-- [ ] Create new group button
-- [ ] Search/filter groups functionality
+- [x] Basic dashboard structure and authentication
+- [x] Groups list (most recently used first)
+  - [x] Group name and member avatars/initials
+  - [x] Your balance within each group
+  - [x] Last activity timestamp
+  - [x] Quick "Add expense" button per group
+- [x] Overall balance summary at top (total owed/owing across all groups)
+- [x] Create new group button
+- [x] Search/filter groups functionality
 - [ ] Recent activity feed (collapsed by default, expandable)
 
 ### 3. Group List Item Display
 Each group card should show:
-- [ ] Group name and icon/color
-- [ ] Member count and preview (first 3-4 avatars)
-- [ ] Your net balance in that group
-- [ ] Visual indicator if you owe money (red) or are owed (green)
-- [ ] Last expense preview (amount and description)
-- [ ] Click to enter group detail view
+- [x] Group name and icon/color
+- [x] Member count and preview (first 3-4 avatars)
+- [x] Your net balance in that group
+- [x] Visual indicator if you owe money (red) or are owed (green)
+- [x] Last expense preview (amount and description)
+- [x] Click to enter group detail view
 
 ### 4. Group Detail View
 When clicking on a group:
@@ -235,9 +236,9 @@ webapp/
 
 ### API Integration Status
 - [x] Auth login endpoint connection
-- [ ] Auth register endpoint
-- [ ] Auth logout endpoint  
-- [ ] Auth reset-password endpoint
+- [x] Auth register endpoint
+- [x] Auth logout endpoint  
+- [x] Auth reset-password endpoint
 - [ ] Users endpoints
 - [ ] Groups endpoints
 - [ ] Expenses endpoints
@@ -263,14 +264,15 @@ webapp/
 
 ## Priority Order (Next Steps)
 1. ✅ **Authentication system** - Login page complete
-2. **Registration page** - Next immediate step
-3. **Groups list on home page** 
-4. **Add expense form**
-5. **Group detail view**
-6. **Expense list and filtering**
-7. **Settlement recording**
-8. **Friends management**
-9. Everything else based on user feedback
+2. ✅ **Registration page** - Complete
+3. **Dashboard/Home Page** - Currently implementing
+4. **Groups list on home page** 
+5. **Add expense form**
+6. **Group detail view**
+7. **Expense list and filtering**
+8. **Settlement recording**
+9. **Friends management**
+10. Everything else based on user feedback
 
 ---
 

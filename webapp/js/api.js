@@ -62,6 +62,7 @@ class ApiService {
             memberCount: doc.data.members?.length || 1,
             yourBalance: doc.data.yourBalance || 0,
             lastActivity: this._formatLastActivity(doc.data.updatedAt || doc.data.createdAt),
+            lastActivityRaw: doc.data.updatedAt || doc.data.createdAt,
             lastExpense: doc.data.lastExpense || null,
             members: doc.data.members || [{ id: 'user1', name: 'You', initials: 'YO' }]
         }));
@@ -74,7 +75,12 @@ class ApiService {
         const now = new Date();
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
         
+        if (diffMinutes < 1) return 'Just now';
+        if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+        if (diffHours < 24) return `${diffHours} hours ago`;
         if (diffDays === 0) return 'Today';
         if (diffDays === 1) return 'Yesterday';
         if (diffDays < 7) return `${diffDays} days ago`;
@@ -83,13 +89,17 @@ class ApiService {
     }
 
     _getMockGroups() {
+        const now = new Date();
+        const hoursAgo = (hours) => new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString();
+        
         return [
             {
                 id: 'group1',
                 name: 'House Expenses',
                 memberCount: 4,
                 yourBalance: -25.50,
-                lastActivity: '2 days ago',
+                lastActivity: this._formatLastActivity(hoursAgo(2)),
+                lastActivityRaw: hoursAgo(2),
                 lastExpense: {
                     amount: 67.20,
                     description: 'Groceries'
@@ -106,7 +116,8 @@ class ApiService {
                 name: 'Weekend Trip',
                 memberCount: 3,
                 yourBalance: 15.75,
-                lastActivity: '1 week ago',
+                lastActivity: this._formatLastActivity(hoursAgo(168)),
+                lastActivityRaw: hoursAgo(168),
                 lastExpense: {
                     amount: 120.00,
                     description: 'Hotel'
@@ -122,7 +133,8 @@ class ApiService {
                 name: 'Office Lunch',
                 memberCount: 6,
                 yourBalance: 0,
-                lastActivity: '3 days ago',
+                lastActivity: this._formatLastActivity(hoursAgo(0.5)),
+                lastActivityRaw: hoursAgo(0.5),
                 lastExpense: {
                     amount: 45.30,
                     description: 'Pizza delivery'

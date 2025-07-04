@@ -5,6 +5,8 @@ class GroupsList {
             throw new Error(`Container element with ID '${containerId}' not found`);
         }
         this.groups = [];
+        this.filteredGroups = [];
+        this.searchTerm = '';
         this.isLoading = false;
     }
 
@@ -13,11 +15,24 @@ class GroupsList {
         
         try {
             this.groups = await apiService.getGroups();
+            this.filterGroups();
             this.render();
         } catch (error) {
             this.renderError(error.message);
         } finally {
             this.setLoading(false);
+        }
+    }
+
+    filterGroups() {
+        if (!this.searchTerm.trim()) {
+            this.filteredGroups = [...this.groups];
+        } else {
+            const term = this.searchTerm.toLowerCase();
+            this.filteredGroups = this.groups.filter(group => 
+                group.name.toLowerCase().includes(term) ||
+                group.members.some(member => member.name.toLowerCase().includes(term))
+            );
         }
     }
 
@@ -114,6 +129,12 @@ class GroupsList {
             return;
         }
 
+        const sortedGroups = this.filteredGroups.sort((a, b) => {
+            const aTime = a.lastActivityRaw ? new Date(a.lastActivityRaw).getTime() : 0;
+            const bTime = b.lastActivityRaw ? new Date(b.lastActivityRaw).getTime() : 0;
+            return bTime - aTime;
+        });
+        
         const totalOwed = this.groups.reduce((sum, group) => sum + Math.max(0, group.yourBalance), 0);
         const totalOwe = this.groups.reduce((sum, group) => sum + Math.max(0, -group.yourBalance), 0);
 
@@ -134,9 +155,22 @@ class GroupsList {
                     + Create Group
                 </button>
             </div>
+            <div class="groups-controls">
+                <div class="search-container">
+                    <input type="text" 
+                           id="groupSearch" 
+                           class="form-input search-input" 
+                           placeholder="Search groups..."
+                           aria-label="Search groups">
+                </div>
+            </div>
         `;
 
-        const groupsHtml = this.groups.map(group => this.renderGroupCard(group)).join('');
+        const groupsHtml = sortedGroups.length > 0 ? 
+            sortedGroups.map(group => this.renderGroupCard(group)).join('') :
+            `<div class="empty-search-state">
+                <p>No groups found matching "${this.searchTerm}"</p>
+            </div>`;
 
         this.container.innerHTML = `
             ${headerHtml}
@@ -152,6 +186,16 @@ class GroupsList {
         document.getElementById('createGroupBtn')?.addEventListener('click', () => {
             this.openCreateGroupModal();
         });
+
+        const searchInput = document.getElementById('groupSearch');
+        if (searchInput) {
+            searchInput.value = this.searchTerm;
+            searchInput.addEventListener('input', (e) => {
+                this.searchTerm = e.target.value;
+                this.filterGroups();
+                this.render();
+            });
+        }
 
         document.querySelectorAll('.group-card').forEach(card => {
             card.addEventListener('click', (e) => {
