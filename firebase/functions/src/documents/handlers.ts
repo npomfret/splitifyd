@@ -206,9 +206,9 @@ export const listDocuments = async (
       const data = doc.data() as Document;
       return {
         id: doc.id,
+        data: data.data,
         createdAt: (data.createdAt as any).toDate().toISOString(),
         updatedAt: (data.updatedAt as any).toDate().toISOString(),
-        preview: createDocumentPreview(data.data),
       };
     });
 

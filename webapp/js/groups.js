@@ -221,6 +221,7 @@ class GroupsList {
             try {
                 const newGroup = await apiService.createGroup(groupData);
                 this.groups.unshift(newGroup);
+                this.filterGroups();
                 this.render();
             } catch (error) {
                 throw error;
