@@ -94,11 +94,20 @@ class GroupsList {
             <div class="error-state">
                 <h3>Unable to load groups</h3>
                 <p>${message}</p>
-                <button type="button" class="button button--secondary" onclick="groupsList.loadGroups()">
-                    Try Again
-                </button>
+                <div class="error-state__actions">
+                    <button type="button" class="button button--secondary" onclick="groupsList.loadGroups()">
+                        Try Again
+                    </button>
+                    <button type="button" class="button button--primary" id="createGroupBtn">
+                        Create Group
+                    </button>
+                </div>
             </div>
         `;
+        
+        document.getElementById('createGroupBtn')?.addEventListener('click', () => {
+            this.openCreateGroupModal();
+        });
     }
 
     renderEmpty() {
