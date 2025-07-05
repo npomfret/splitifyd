@@ -525,6 +525,12 @@ class AddExpenseModal extends Modal {
             if (lastDescription) {
                 document.getElementById('expenseDescription').value = lastDescription;
             }
+            
+            // Get last expense category from this group
+            const lastCategory = await this.getLastExpenseCategory();
+            if (lastCategory) {
+                document.getElementById('expenseCategory').value = lastCategory;
+            }
         }
     }
 
@@ -562,6 +568,40 @@ class AddExpenseModal extends Modal {
         }
     }
     
+    async getLastExpenseCategory() {
+        if (!this.groupId) {
+            console.log('No groupId provided for getLastExpenseCategory');
+            return null;
+        }
+        
+        try {
+            console.log('Fetching expenses for group:', this.groupId);
+            const response = await ExpenseService.listGroupExpenses(this.groupId, 50);
+            console.log('listGroupExpenses response:', response);
+            
+            if (response && response.expenses && response.expenses.length > 0) {
+                // Get current user ID from auth token or context
+                const currentUserId = this.getCurrentUserId();
+                console.log('Current user ID:', currentUserId);
+                
+                // Filter expenses by current user and get the most recent one
+                const userExpenses = response.expenses.filter(expense => expense.createdBy === currentUserId);
+                console.log('User expenses:', userExpenses);
+                
+                if (userExpenses.length > 0) {
+                    const lastCategory = userExpenses[0].category;
+                    console.log('Last expense category from current user in this group:', lastCategory);
+                    return lastCategory;
+                }
+            }
+            console.log('No expenses found for current user in this group');
+            return null;
+        } catch (error) {
+            console.error('Error fetching last expense category:', error);
+            return null;
+        }
+    }
+
     getCurrentUserId() {
         // This method should return the current user's ID
         // You may need to implement this based on how auth is handled

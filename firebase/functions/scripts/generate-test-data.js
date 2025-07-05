@@ -22,16 +22,16 @@ const TEST_USERS = [
 ];
 
 const EXAMPLE_EXPENSES = [
-  { description: 'expense-1', amount: 75.50, category: 'Food' },
-  { description: 'expense-2', amount: 25.00, category: 'Transport' },
-  { description: 'expense-3', amount: 45.80, category: 'Food' },
-  { description: 'expense-4', amount: 32.00, category: 'Entertainment' },
-  { description: 'expense-5', amount: 15.75, category: 'Food' },
-  { description: 'expense-6', amount: 40.00, category: 'Transport' },
-  { description: 'expense-7', amount: 28.50, category: 'Food' },
-  { description: 'expense-8', amount: 120.00, category: 'Entertainment' },
-  { description: 'expense-9', amount: 18.25, category: 'Transport' },
-  { description: 'expense-10', amount: 35.60, category: 'Food' }
+  { description: 'expense-1', amount: 75.50, category: 'food' },
+  { description: 'expense-2', amount: 25.00, category: 'transport' },
+  { description: 'expense-3', amount: 45.80, category: 'food' },
+  { description: 'expense-4', amount: 32.00, category: 'entertainment' },
+  { description: 'expense-5', amount: 15.75, category: 'food' },
+  { description: 'expense-6', amount: 40.00, category: 'transport' },
+  { description: 'expense-7', amount: 28.50, category: 'food' },
+  { description: 'expense-8', amount: 120.00, category: 'entertainment' },
+  { description: 'expense-9', amount: 18.25, category: 'transport' },
+  { description: 'expense-10', amount: 35.60, category: 'food' }
 ];
 
 async function createTestUser(userInfo) {
