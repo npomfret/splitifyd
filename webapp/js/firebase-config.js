@@ -22,7 +22,8 @@ class FirebaseConfigManager {
                 createUserWithEmailAndPassword,
                 signOut,
                 onAuthStateChanged,
-                updateProfile
+                updateProfile,
+                sendPasswordResetEmail
             } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
             
             this.app = initializeApp(firebaseConfig);
@@ -41,7 +42,8 @@ class FirebaseConfigManager {
                 updateProfile: (user, profile) => updateProfile(user, profile),
                 signOut: () => signOut(this.auth),
                 onAuthStateChanged: (callback) => onAuthStateChanged(this.auth, callback),
-                getCurrentUser: () => this.auth.currentUser
+                getCurrentUser: () => this.auth.currentUser,
+                sendPasswordResetEmail: (email) => sendPasswordResetEmail(this.auth, email)
             };
             
             this.initialized = true;
