@@ -399,19 +399,35 @@ class ApiService {
         const categories = ['food', 'transport', 'utilities', 'entertainment', 'shopping'];
         const descriptions = ['Groceries', 'Uber ride', 'Electricity bill', 'Movie tickets', 'Restaurant'];
         
+        // Get the correct group members for this group
+        const mockGroups = this._getMockGroups();
+        const currentGroup = mockGroups.find(g => g.id === groupId);
+        const members = currentGroup ? currentGroup.members : [
+            { uid: 'user1', name: 'You' },
+            { uid: 'user2', name: 'Alice' },
+            { uid: 'user3', name: 'Bob' },
+            { uid: 'user4', name: 'Carol' }
+        ];
+        
         for (let i = 0; i < 30; i++) {
+            const memberIndex = i % members.length;
+            const paidBy = members[memberIndex].uid;
+            const amount = Math.floor(Math.random() * 200) + 10;
+            const splitAmount = Math.round((amount / members.length) * 100) / 100;
+            
+            // Create splits object with actual member IDs
+            const splits = {};
+            members.forEach(member => {
+                splits[member.uid] = splitAmount;
+            });
+            
             allExpenses.push({
                 id: `exp${i + 1}`,
-                amount: Math.floor(Math.random() * 200) + 10,
+                amount: amount,
                 description: descriptions[i % descriptions.length] + ` ${i + 1}`,
                 category: categories[i % categories.length],
-                paidBy: `user${(i % 4) + 1}`,
-                splits: {
-                    'user1': Math.floor(Math.random() * 50) + 5,
-                    'user2': Math.floor(Math.random() * 50) + 5,
-                    'user3': Math.floor(Math.random() * 50) + 5,
-                    'user4': Math.floor(Math.random() * 50) + 5
-                },
+                paidBy: paidBy,
+                splits: splits,
                 date: new Date(Date.now() - i * 86400000).toISOString()
             });
         }

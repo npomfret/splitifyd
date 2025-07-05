@@ -16,17 +16,42 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const urlParams = new URLSearchParams(window.location.search);
         currentGroupId = urlParams.get('groupId');
+        const editExpenseId = urlParams.get('id');
+        const isEdit = urlParams.get('edit') === 'true';
         
-        if (!currentGroupId) {
+        if (!currentGroupId && !editExpenseId) {
             window.location.href = 'dashboard.html';
             return;
         }
         
-        await loadGroupData();
-        await loadUserPreferences();
+        if (isEdit && editExpenseId) {
+            await loadExpenseForEditing(editExpenseId);
+        } else {
+            await loadGroupData();
+            await loadUserPreferences();
+        }
         initializeEventListeners();
     }, 100);
 });
+
+async function loadExpenseForEditing(expenseId) {
+    try {
+        const response = await api.getExpense(expenseId);
+        const expense = response.data;
+        
+        currentGroupId = expense.groupId;
+        await loadGroupData();
+        
+        populateFormWithExpense(expense);
+        
+        document.querySelector('.page-title').textContent = 'Edit Expense';
+        document.getElementById('submitButton').textContent = 'Update Expense';
+        
+    } catch (error) {
+        console.error('Error loading expense for editing:', error);
+        showMessage('Failed to load expense for editing', 'error');
+    }
+}
 
 async function loadGroupData() {
     try {
@@ -197,6 +222,54 @@ function updateCustomSplitInputs() {
     updateSplitTotal();
 }
 
+function populateFormWithExpense(expense) {
+    document.getElementById('description').value = expense.description;
+    document.getElementById('amount').value = expense.amount;
+    document.getElementById('category').value = expense.category || '';
+    document.getElementById('paidBy').value = expense.paidBy;
+    
+    const splitMethod = determineSplitMethod(expense.splits);
+    document.getElementById('splitMethod').value = splitMethod;
+    
+    expense.splits.forEach(split => {
+        selectedMembers.add(split.userId);
+    });
+    
+    updateMemberSelection();
+    updateSplitOptions();
+    
+    if (splitMethod === 'custom') {
+        populateCustomSplits(expense.splits);
+    }
+}
+
+function determineSplitMethod(splits) {
+    const totalAmount = splits.reduce((sum, split) => sum + split.amount, 0);
+    const equalAmount = totalAmount / splits.length;
+    
+    const isEqual = splits.every(split => 
+        Math.abs(split.amount - equalAmount) < 0.01
+    );
+    
+    return isEqual ? 'equal' : 'custom';
+}
+
+function populateCustomSplits(splits) {
+    const customInputs = document.getElementById('customSplitInputs');
+    const inputs = customInputs.querySelectorAll('input');
+    
+    splits.forEach(split => {
+        const input = Array.from(inputs).find(input => 
+            input.dataset.userId === split.userId
+        );
+        if (input) {
+            input.value = split.amount;
+        }
+    });
+    
+    updateSplitTotal();
+}
+
 function updateSplitTotal() {
     const customInputs = document.querySelectorAll('#customSplitInputs input');
     const splitTotal = document.getElementById('splitTotal');
@@ -235,12 +308,20 @@ async function handleSubmit(event) {
         date: new Date().toISOString()
     };
     
+    const urlParams = new URLSearchParams(window.location.search);
+    const editExpenseId = urlParams.get('id');
+    const isEdit = urlParams.get('edit') === 'true';
+    
     try {
         const submitButton = document.getElementById('submitButton');
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         
-        await api.createExpense(expenseData);
+        if (isEdit && editExpenseId) {
+            await api.updateExpense(editExpenseId, expenseData);
+        } else {
+            await api.createExpense(expenseData);
+        }
         
         showMessage('Expense added successfully!', 'success');
         

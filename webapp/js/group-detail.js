@@ -238,8 +238,8 @@ function simplifyDebts(balances) {
     
     Object.values(balances).forEach(user => {
         Object.entries(user.owes).forEach(([creditorId, amount]) => {
-            const debtKey = `${user.uid}-${creditorId}`;
-            const reverseKey = `${creditorId}-${user.uid}`;
+            const debtKey = `${user.userId}-${creditorId}`;
+            const reverseKey = `${creditorId}-${user.userId}`;
             
             if (debts[reverseKey]) {
                 const netAmount = debts[reverseKey] - amount;
@@ -286,8 +286,8 @@ function displaySimplifiedDebts(simplified, container) {
         const debtItem = document.createElement('div');
         debtItem.className = 'debt-item';
         
-        const fromName = debt.from.uid === currentUserId ? 'You' : debt.from.name;
-        const toName = debt.to.uid === currentUserId ? 'you' : debt.to.name;
+        const fromName = debt.from.userId === currentUserId ? 'You' : debt.from.name;
+        const toName = debt.to.userId === currentUserId ? 'you' : debt.to.name;
         
         // Create elements safely without innerHTML
         const debtDescription = document.createElement('div');
@@ -592,7 +592,7 @@ async function removeMember(userId) {
 
 function showExpenseDetails(expense) {
     console.log('Show expense details:', expense);
-    showMessage('Expense details view coming soon!', 'info');
+    window.location.href = `expense-detail.html?id=${expense.id}&return=${encodeURIComponent(window.location.pathname + window.location.search)}`;
 }
 
 function showMessage(message, type = 'info') {
