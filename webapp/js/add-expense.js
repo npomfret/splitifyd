@@ -312,7 +312,12 @@ async function handleSubmit(event) {
         category,
         paidBy,
         groupId: currentGroupId,
-        splits,
+        splitType: splitMethod === 'equal' ? 'equal' : 'exact',
+        participants: Array.from(selectedMembers),
+        splits: Object.entries(splits).map(([userId, amount]) => ({
+            userId,
+            amount: parseFloat(amount)
+        })),
         date: new Date().toISOString()
     };
     

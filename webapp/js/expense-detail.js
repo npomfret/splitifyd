@@ -86,13 +86,13 @@ function displaySplitBreakdown(splits, totalAmount) {
     const splitBreakdown = document.getElementById('split-breakdown');
     splitBreakdown.innerHTML = '';
 
-    // Handle splits as an object {userId: amount}
-    Object.entries(splits).forEach(([userId, amount]) => {
+    // Handle splits as an array of objects [{userId, amount}]
+    splits.forEach(split => {
         const participantRow = document.createElement('div');
         participantRow.className = 'participant-row';
         
-        const userName = getUserDisplayName(userId);
-        const splitAmount = amount;
+        const userName = getUserDisplayName(split.userId);
+        const splitAmount = parseFloat(split.amount);
 
         participantRow.innerHTML = `
             <div class="participant-info">

@@ -485,10 +485,10 @@ class ApiService {
     async createExpense(expenseData) {
         try {
             const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/createDocument`, {
+            const response = await fetch(`${baseUrl}/expenses`, {
                 method: 'POST',
                 headers: this._getAuthHeaders(),
-                body: JSON.stringify({ data: expenseData })
+                body: JSON.stringify(expenseData)
             });
 
             if (!response.ok) {
