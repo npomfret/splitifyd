@@ -65,8 +65,8 @@ class FirebaseConfigManager {
             const response = await fetch(configUrl);
             
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error?.message || `Failed to fetch config: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error.message);
             }
             
             const firebaseConfig = await response.json();

@@ -40,17 +40,14 @@ class ApiService {
                     return [];
                 }
                 
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to fetch groups');
+                const errorData = await response.json();
+                throw new Error(errorData.message);
             }
 
             const data = await response.json();
             return this._transformGroupsData(data.documents || []);
             
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return this._getMockGroups();
-            }
             throw error;
         }
     }
@@ -58,15 +55,15 @@ class ApiService {
     _transformGroupsData(documents) {
         return documents.map(doc => ({
             id: doc.id,
-            name: doc.data.name || 'Unnamed Group',
-            memberCount: doc.data.members?.length || 1,
-            yourBalance: doc.data.yourBalance || 0,
-            lastActivity: this._formatLastActivity(doc.data.updatedAt || doc.data.createdAt),
-            lastActivityRaw: doc.data.updatedAt || doc.data.createdAt,
-            lastExpense: doc.data.lastExpense || null,
-            members: doc.data.members || [{ uid: 'user1', name: 'You', initials: 'YO' }],
-            expenseCount: doc.data.expenseCount || 0,
-            lastExpenseTime: doc.data.lastExpenseTime || null
+            name: doc.data.name,
+            memberCount: doc.data.members.length,
+            yourBalance: doc.data.yourBalance,
+            lastActivity: this._formatLastActivity(doc.data.updatedAt),
+            lastActivityRaw: doc.data.updatedAt,
+            lastExpense: doc.data.lastExpense,
+            members: doc.data.members,
+            expenseCount: doc.data.expenseCount,
+            lastExpenseTime: doc.data.lastExpenseTime
         }));
     }
 
@@ -227,9 +224,6 @@ class ApiService {
             };
             
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return this._createMockGroup(groupData);
-            }
             throw error;
         }
     }
@@ -237,12 +231,12 @@ class ApiService {
     _transformGroupData(document) {
         return {
             id: document.id,
-            name: document.data.name || 'Unnamed Group',
-            memberCount: document.data.members?.length || 1,
-            yourBalance: document.data.yourBalance || 0,
-            lastActivity: this._formatLastActivity(document.data.updatedAt || document.data.createdAt),
-            lastExpense: document.data.lastExpense || null,
-            members: document.data.members || [{ uid: 'user1', name: 'You', initials: 'YO' }]
+            name: document.data.name,
+            memberCount: document.data.members.length,
+            yourBalance: document.data.yourBalance,
+            lastActivity: this._formatLastActivity(document.data.updatedAt),
+            lastExpense: document.data.lastExpense,
+            members: document.data.members
         };
     }
 
@@ -283,21 +277,18 @@ class ApiService {
             const data = await response.json();
             return { data: this._transformGroupDetail(data) };
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return { data: this._getMockGroupDetail(groupId) };
-            }
             throw error;
         }
     }
 
     _transformGroupDetail(document) {
-        const data = document.data || document;
+        const data = document.data;
         return {
             id: document.id,
-            name: data.name || 'Unnamed Group',
-            description: data.description || '',
-            members: data.members || [],
-            createdBy: data.createdBy || data.memberEmails?.[0] || 'unknown',
+            name: data.name,
+            description: data.description,
+            members: data.members,
+            createdBy: data.createdBy,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt
         };
@@ -340,7 +331,7 @@ class ApiService {
             // The expenses are already in the correct format from the server
             return { data: data.expenses || [] };
         } catch (error) {
-            return { data: this._getMockGroupBalances(groupId) };
+            throw error;
         }
     }
 
@@ -390,7 +381,7 @@ class ApiService {
             const data = await response.json();
             return { data: data.expenses || [] };
         } catch (error) {
-            return { data: this._getMockGroupExpenses(groupId, limit, offset) };
+            throw error;
         }
     }
 
@@ -450,7 +441,7 @@ class ApiService {
 
             return await response.json();
         } catch (error) {
-            return { success: true };
+            throw error;
         }
     }
 
@@ -468,7 +459,7 @@ class ApiService {
 
             return { success: true };
         } catch (error) {
-            return { success: true };
+            throw error;
         }
     }
 
@@ -498,16 +489,13 @@ class ApiService {
                     throw new Error('Authentication required');
                 }
                 
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to create expense');
+                const errorData = await response.json();
+                throw new Error(errorData.message);
             }
 
             const data = await response.json();
             return { success: true, data: data };
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return { success: true, data: { id: `exp_${Date.now()}`, ...expenseData } };
-            }
             throw error;
         }
     }
@@ -535,9 +523,6 @@ class ApiService {
             const data = await response.json();
             return { data: data };
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return { data: this._getMockExpense(expenseId) };
-            }
             throw error;
         }
     }
@@ -566,9 +551,6 @@ class ApiService {
             const data = await response.json();
             return { success: true, data: data };
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                return { success: true, data: { id: expenseId, ...updateData } };
-            }
             throw error;
         }
     }
@@ -626,8 +608,8 @@ async function apiCall(endpoint, options = {}) {
             throw new Error('Authentication required');
         }
         
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || errorData.message || `HTTP ${response.status} error`);
+        const errorData = await response.json();
+        throw new Error(errorData.error.message);
     }
     
     return response.json();

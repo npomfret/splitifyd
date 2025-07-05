@@ -4,7 +4,6 @@ export class TemplateEngine {
       const module = await import(templatePath);
       return module;
     } catch (error) {
-      console.error(`Failed to load template: ${templatePath}`, error);
       throw error;
     }
   }
@@ -14,7 +13,7 @@ export class TemplateEngine {
     if (element) {
       element.innerHTML = html;
     } else {
-      console.error(`Element with id '${elementId}' not found`);
+      throw new Error(`Element with id '${elementId}' not found`);
     }
   }
 
@@ -61,7 +60,6 @@ export class TemplateEngine {
         }, 0);
       }
     } catch (error) {
-      console.error('Failed to render page:', error);
       throw error;
     }
   }

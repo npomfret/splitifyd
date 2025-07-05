@@ -87,8 +87,7 @@ function displaySplitBreakdown(splits, totalAmount) {
     splitBreakdown.innerHTML = '';
 
     if (!splits || typeof splits !== 'object') {
-        console.warn('Invalid splits format:', splits);
-        return;
+        throw new Error('Invalid splits format');
     }
 
     Object.entries(splits).forEach(([userId, amount]) => {
@@ -192,12 +191,12 @@ async function deleteExpense() {
 
 function getUserDisplayName(userId) {
     if (!currentGroup || !currentGroup.members) {
-        return userId;
+        throw new Error('Group or members not loaded');
     }
     
     const member = currentGroup.members.find(m => m.uid === userId);
     if (!member) {
-        return userId;
+        throw new Error('Member not found');
     }
     
     // Show "You" for current user, otherwise show the member's name

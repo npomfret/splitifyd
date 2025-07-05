@@ -168,8 +168,7 @@ function calculateUserBalances(expenses) {
         
         // Skip if no valid splits data
         if (!splits || typeof splits !== 'object') {
-            console.warn('Invalid splits data for expense:', expense);
-            return;
+            throw new Error('Invalid splits data for expense');
         }
         
         Object.entries(splits).forEach(([uid, amount]) => {
@@ -448,9 +447,7 @@ async function loadGroupActivity() {
     const activityTimeline = document.getElementById('activityTimeline');
     activityTimeline.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
     
-    setTimeout(() => {
-        activityTimeline.innerHTML = '<p class="no-data">Activity timeline coming soon!</p>';
-    }, 500);
+    throw new Error('Activity timeline not implemented');
 }
 
 function openGroupSettingsModal() {

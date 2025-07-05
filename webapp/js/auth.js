@@ -149,7 +149,7 @@ class AuthManager {
                 }
             });
         } catch (error) {
-            console.warn('Failed to load form defaults:', error);
+            throw error;
         }
     }
 
@@ -341,8 +341,8 @@ class AuthManager {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+            const errorData = await response.json();
+            throw new Error(errorData.message);
         }
 
         return response;

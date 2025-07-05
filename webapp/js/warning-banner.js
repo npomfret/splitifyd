@@ -5,7 +5,7 @@ const warningBannerManager = {
                 this.displayWarningBanner();
             })
             .catch(error => {
-                console.error('Failed to initialize warning banner:', error);
+                throw error;
             });
     },
 
