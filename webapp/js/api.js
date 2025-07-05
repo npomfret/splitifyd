@@ -64,7 +64,7 @@ class ApiService {
             lastActivity: this._formatLastActivity(doc.data.updatedAt || doc.data.createdAt),
             lastActivityRaw: doc.data.updatedAt || doc.data.createdAt,
             lastExpense: doc.data.lastExpense || null,
-            members: doc.data.members || [{ id: 'user1', name: 'You', initials: 'YO' }],
+            members: doc.data.members || [{ uid: 'user1', name: 'You', initials: 'YO' }],
             expenseCount: doc.data.expenseCount || 0,
             lastExpenseTime: doc.data.lastExpenseTime || null
         }));
@@ -115,10 +115,10 @@ class ApiService {
                     description: 'expense-3'
                 },
                 members: [
-                    { id: 'user1', name: 'You', initials: 'YO' },
-                    { id: 'user2', name: 'Alice', initials: 'AL' },
-                    { id: 'user3', name: 'Bob', initials: 'BO' },
-                    { id: 'user4', name: 'Carol', initials: 'CA' }
+                    { uid: 'user1', name: 'You', initials: 'YO' },
+                    { uid: 'user2', name: 'Alice', initials: 'AL' },
+                    { uid: 'user3', name: 'Bob', initials: 'BO' },
+                    { uid: 'user4', name: 'Carol', initials: 'CA' }
                 ],
                 expenseCount: 12,
                 lastExpenseTime: hoursAgo(2)
@@ -135,9 +135,9 @@ class ApiService {
                     description: 'Hotel'
                 },
                 members: [
-                    { id: 'user1', name: 'You', initials: 'YO' },
-                    { id: 'user5', name: 'Dave', initials: 'DA' },
-                    { id: 'user6', name: 'Eve', initials: 'EV' }
+                    { uid: 'user1', name: 'You', initials: 'YO' },
+                    { uid: 'user5', name: 'Dave', initials: 'DA' },
+                    { uid: 'user6', name: 'Eve', initials: 'EV' }
                 ],
                 expenseCount: 5,
                 lastExpenseTime: hoursAgo(168)
@@ -154,12 +154,12 @@ class ApiService {
                     description: 'expense-10'
                 },
                 members: [
-                    { id: 'user1', name: 'You', initials: 'YO' },
-                    { id: 'user7', name: 'Frank', initials: 'FR' },
-                    { id: 'user8', name: 'Grace', initials: 'GR' },
-                    { id: 'user9', name: 'Henry', initials: 'HE' },
-                    { id: 'user10', name: 'Ivy', initials: 'IV' },
-                    { id: 'user11', name: 'Jack', initials: 'JA' }
+                    { uid: 'user1', name: 'You', initials: 'YO' },
+                    { uid: 'user7', name: 'Frank', initials: 'FR' },
+                    { uid: 'user8', name: 'Grace', initials: 'GR' },
+                    { uid: 'user9', name: 'Henry', initials: 'HE' },
+                    { uid: 'user10', name: 'Ivy', initials: 'IV' },
+                    { uid: 'user11', name: 'Jack', initials: 'JA' }
                 ],
                 expenseCount: 23,
                 lastExpenseTime: hoursAgo(0.5)
@@ -178,7 +178,7 @@ class ApiService {
                     name: groupData.name.trim(),
                     description: groupData.description?.trim() || '',
                     memberEmails: groupData.memberEmails || [],
-                    members: [{ id: 'current_user', name: 'You', initials: 'YO' }],
+                    members: [{ uid: 'current_user', name: 'You', initials: 'YO' }],
                     yourBalance: 0,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
@@ -223,7 +223,7 @@ class ApiService {
                 lastActivity: 'Just now',
                 lastActivityRaw: new Date().toISOString(),
                 lastExpense: null,
-                members: [{ id: 'current_user', name: 'You', initials: 'YO' }]
+                members: [{ uid: 'current_user', name: 'You', initials: 'YO' }]
             };
             
         } catch (error) {
@@ -242,7 +242,7 @@ class ApiService {
             yourBalance: document.data.yourBalance || 0,
             lastActivity: this._formatLastActivity(document.data.updatedAt || document.data.createdAt),
             lastExpense: document.data.lastExpense || null,
-            members: document.data.members || [{ id: 'user1', name: 'You', initials: 'YO' }]
+            members: document.data.members || [{ uid: 'user1', name: 'You', initials: 'YO' }]
         };
     }
 
@@ -255,7 +255,7 @@ class ApiService {
             lastActivity: 'Just created',
             lastExpense: null,
             members: [
-                { id: 'user1', name: 'You', initials: 'YO' }
+                { uid: 'user1', name: 'You', initials: 'YO' }
             ]
         };
     }
@@ -310,10 +310,10 @@ class ApiService {
                 name: 'House Expenses',
                 description: 'Shared house expenses and utilities',
                 members: [
-                    { userId: 'user1', name: 'You', email: 'you@example.com' },
-                    { userId: 'user2', name: 'Alice', email: 'alice@example.com' },
-                    { userId: 'user3', name: 'Bob', email: 'bob@example.com' },
-                    { userId: 'user4', name: 'Carol', email: 'carol@example.com' }
+                    { uid: 'user1', name: 'You', email: 'you@example.com' },
+                    { uid: 'user2', name: 'Alice', email: 'alice@example.com' },
+                    { uid: 'user3', name: 'Bob', email: 'bob@example.com' },
+                    { uid: 'user4', name: 'Carol', email: 'carol@example.com' }
                 ],
                 createdBy: 'user1',
                 createdAt: new Date().toISOString(),

@@ -153,8 +153,8 @@ function calculateUserBalances(expenses) {
     const currentUserId = localStorage.getItem('userId');
     
     currentGroup.members.forEach(member => {
-        balances[member.userId] = {
-            userId: member.userId,
+        balances[member.uid] = {
+            userId: member.uid,
             name: member.name,
             balance: 0,
             owes: {},
@@ -172,20 +172,20 @@ function calculateUserBalances(expenses) {
             return;
         }
         
-        Object.entries(splits).forEach(([userId, amount]) => {
-            if (userId !== payerId && balances[userId] && balances[payerId]) {
-                balances[userId].balance -= amount;
+        Object.entries(splits).forEach(([uid, amount]) => {
+            if (uid !== payerId && balances[uid] && balances[payerId]) {
+                balances[uid].balance -= amount;
                 balances[payerId].balance += amount;
                 
-                if (!balances[userId].owes[payerId]) {
-                    balances[userId].owes[payerId] = 0;
+                if (!balances[uid].owes[payerId]) {
+                    balances[uid].owes[payerId] = 0;
                 }
-                balances[userId].owes[payerId] += amount;
+                balances[uid].owes[payerId] += amount;
                 
-                if (!balances[payerId].owedBy[userId]) {
-                    balances[payerId].owedBy[userId] = 0;
+                if (!balances[payerId].owedBy[uid]) {
+                    balances[payerId].owedBy[uid] = 0;
                 }
-                balances[payerId].owedBy[userId] += amount;
+                balances[payerId].owedBy[uid] += amount;
             }
         });
     });
@@ -200,7 +200,7 @@ function displayUserBalances(balances, container) {
         const balanceCard = document.createElement('div');
         balanceCard.className = 'balance-card';
         
-        const isCurrentUser = userBalance.userId === currentUserId;
+        const isCurrentUser = userBalance.uid === currentUserId;
         const balanceClass = userBalance.balance > 0 ? 'positive' : userBalance.balance < 0 ? 'negative' : 'neutral';
         
         // Sanitize user name to prevent XSS
@@ -238,8 +238,8 @@ function simplifyDebts(balances) {
     
     Object.values(balances).forEach(user => {
         Object.entries(user.owes).forEach(([creditorId, amount]) => {
-            const debtKey = `${user.userId}-${creditorId}`;
-            const reverseKey = `${creditorId}-${user.userId}`;
+            const debtKey = `${user.uid}-${creditorId}`;
+            const reverseKey = `${creditorId}-${user.uid}`;
             
             if (debts[reverseKey]) {
                 const netAmount = debts[reverseKey] - amount;
@@ -286,8 +286,8 @@ function displaySimplifiedDebts(simplified, container) {
         const debtItem = document.createElement('div');
         debtItem.className = 'debt-item';
         
-        const fromName = debt.from.userId === currentUserId ? 'You' : debt.from.name;
-        const toName = debt.to.userId === currentUserId ? 'you' : debt.to.name;
+        const fromName = debt.from.uid === currentUserId ? 'You' : debt.from.name;
+        const toName = debt.to.uid === currentUserId ? 'you' : debt.to.name;
         
         // Create elements safely without innerHTML
         const debtDescription = document.createElement('div');
@@ -364,7 +364,7 @@ function createExpenseItem(expense) {
     const currentUserId = localStorage.getItem('userId');
     const paidByYou = expense.paidBy === currentUserId;
     const yourShare = expense.splits[currentUserId] || 0;
-    const payer = currentGroup.members.find(m => m.userId === expense.paidBy);
+    const payer = currentGroup.members.find(m => m.uid === expense.paidBy);
     
     const date = new Date(expense.date);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -466,7 +466,7 @@ function openGroupSettingsModal() {
         
         // Sanitize member data to prevent XSS
         const safeName = (member.name || '').toString().trim();
-        const safeUserId = (member.userId || '').toString().trim();
+        const safeUserId = (member.uid || '').toString().trim();
         
         // Create elements safely without innerHTML
         const memberInfo = document.createElement('div');

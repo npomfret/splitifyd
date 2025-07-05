@@ -67,8 +67,8 @@ function populatePaidByOptions() {
     
     currentGroup.members.forEach(member => {
         const option = document.createElement('option');
-        option.value = member.userId;
-        option.textContent = member.userId === currentUserId ? 'You' : member.name;
+        option.value = member.uid;
+        option.textContent = member.uid === currentUserId ? 'You' : member.name;
         paidBySelect.appendChild(option);
     });
     
@@ -87,13 +87,13 @@ function populateMembers() {
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = `member-${member.userId}`;
-        checkbox.value = member.userId;
+        checkbox.id = `member-${member.uid}`;
+        checkbox.value = member.uid;
         checkbox.checked = true;
         checkbox.addEventListener('change', handleMemberToggle);
         
         const label = document.createElement('label');
-        label.htmlFor = `member-${member.userId}`;
+        label.htmlFor = `member-${member.uid}`;
         label.className = 'member-label';
         
         const memberAvatar = document.createElement('div');
@@ -102,7 +102,7 @@ function populateMembers() {
         
         const memberName = document.createElement('span');
         memberName.className = 'member-name';
-        memberName.textContent = member.userId === currentUserId ? 'You' : member.name;
+        memberName.textContent = member.uid === currentUserId ? 'You' : member.name;
         
         label.appendChild(memberAvatar);
         label.appendChild(memberName);
@@ -112,7 +112,7 @@ function populateMembers() {
         
         membersList.appendChild(memberItem);
         
-        selectedMembers.add(member.userId);
+        selectedMembers.add(member.uid);
     });
 }
 
@@ -172,14 +172,14 @@ function updateCustomSplitInputs() {
     const currentUserId = localStorage.getItem('userId');
     
     selectedMembers.forEach(memberId => {
-        const member = currentGroup.members.find(m => m.userId === memberId);
+        const member = currentGroup.members.find(m => m.uid === memberId);
         if (!member) return;
         
         const inputGroup = document.createElement('div');
         inputGroup.className = 'custom-split-input';
         
         const label = document.createElement('label');
-        label.textContent = member.userId === currentUserId ? 'You' : member.name;
+        label.textContent = member.uid === currentUserId ? 'You' : member.name;
         
         const input = document.createElement('input');
         input.type = 'number';
