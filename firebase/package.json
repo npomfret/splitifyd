@@ -10,7 +10,7 @@
     "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon --watch ../webapp --ext html,css,js --exec 'npm run build:webapp' & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
     "dev:with-data": "npm run build && cd functions && npm run build && cd .. && node scripts/start-with-data.js",
     "generate-test-data": "cd functions && node scripts/generate-test-data.js",
-    "delete-test-data": "cd functions && node scripts/delete-test-data.js",
+    "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
     "deploy:prod": "firebase use splitifyd && firebase deploy",
     "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
