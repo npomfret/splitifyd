@@ -14,6 +14,7 @@ export interface FirebaseConfigResponse {
     email?: string;
     password?: string;
   };
+  warningBanner?: string;
 }
 
 
@@ -33,6 +34,7 @@ export const getFirebaseConfigResponse = (res: Response): void => {
   res.json({
     ...clientConfig,
     projectId: CONFIG.projectId,
-    formDefaults: CONFIG.formDefaults
+    formDefaults: CONFIG.formDefaults,
+    warningBanner: CONFIG.warningBanner
   } as FirebaseConfigResponse);
 };

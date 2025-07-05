@@ -73,9 +73,23 @@
             padding: 15px;
             margin: 20px 0;
         }
+        .warning-banner {
+            background-color: #dc2626;
+            color: #fef3c7;
+            padding: 2px 16px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
+    <div id="warningBanner" class="warning-banner" style="display: none;"></div>
     <div class="test-container">
         <h1>Splitifyd Configuration Test Suite</h1>
         
@@ -93,6 +107,7 @@
 
     <script src="js/firebase-config.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/warning-banner.js"></script>
     <script>
         const testResults = document.getElementById('test-results');
         const runButton = document.getElementById('run-tests');

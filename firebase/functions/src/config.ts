@@ -94,6 +94,8 @@ export const CONFIG = {
     email: 'test@test.com',
     password: 'rrRR44$$',
   } : undefined,
+  
+  warningBanner: ENV_IS_PRODUCTION ? '⚠️ this is a demo - your data will be deleted without notice' : (ENV_IS_DEVELOPMENT ? '⚠️ emulator data will not be retained' : ''),
 };
 
 // Configure emulators for development

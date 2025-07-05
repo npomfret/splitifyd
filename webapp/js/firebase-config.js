@@ -76,7 +76,8 @@ class FirebaseConfigManager {
                 firebaseConfig,
                 apiUrl: this.getApiUrlForProject(firebaseConfig.projectId),
                 isLocal: this.isLocalEnvironment(),
-                formDefaults: firebaseConfig.formDefaults
+                formDefaults: firebaseConfig.formDefaults,
+                warningBanner: firebaseConfig.warningBanner
             };
             
             return firebaseConfig;
@@ -134,6 +135,10 @@ class FirebaseConfigManager {
 
     getFormDefaults() {
         return this.config?.formDefaults || {};
+    }
+
+    getWarningBanner() {
+        return this.config?.warningBanner || '';
     }
 }
 

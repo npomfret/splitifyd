@@ -77,10 +77,31 @@ body {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
+    color: var(--color-text);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-md);
-    color: var(--color-text);
+}
+
+/* ===== WARNING BANNER ===== */
+.warning-banner {
+    background-color: #dc2626;
+    color: #fef3c7;
+    padding: 2px var(--space-md);
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Screen reader only content */
