@@ -1,6 +1,7 @@
 
 let currentExpense = null;
 let currentUser = null;
+let currentGroup = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Wait for authManager to be initialized
@@ -32,12 +33,17 @@ async function loadExpenseDetails(expenseId) {
     try {
         showLoading();
         
-        // Use mock data for now since API endpoints don't exist yet
-        const expense = getMockExpense(expenseId);
+        // Use real API to get expense details
+        const expense = await ExpenseService.getExpense(expenseId);
         const user = { uid: localStorage.getItem('userId') || 'user1' };
+
+        // Fetch group data to get member information for ID-to-name mapping
+        const groupResponse = await window.api.getGroup(expense.groupId);
+        const group = groupResponse.data;
 
         currentExpense = expense;
         currentUser = user;
+        currentGroup = group;
 
         displayExpenseDetails(expense);
         setupPermissions(expense, user);
@@ -48,57 +54,6 @@ async function loadExpenseDetails(expenseId) {
     }
 }
 
-function getMockExpense(expenseId) {
-    // Generate mock expense data that matches the API structure
-    const userNames = {
-        'user1': 'You',
-        'user2': 'Alice', 
-        'user3': 'Bob',
-        'user4': 'Carol'
-    };
-    
-    const categories = ['food', 'transport', 'utilities', 'entertainment'];
-    const descriptions = ['Groceries', 'Uber ride', 'Electricity bill', 'Movie tickets', 'Restaurant'];
-    
-    // Parse expense ID to get a number for consistent data generation
-    const expenseNum = parseInt(expenseId.replace('exp', '')) || 1;
-    const amount = Math.floor(Math.random() * 200) + 10;
-    const splitAmount = Math.round((amount / 4) * 100) / 100;
-    const paidBy = `user${(expenseNum % 4) + 1}`;
-    
-    // Create participants array with split breakdown
-    const participants = [];
-    const splits = {};
-    
-    Object.keys(userNames).forEach(userId => {
-        const owesAmount = userId === paidBy ? -(amount - splitAmount) : splitAmount;
-        participants.push({
-            userId: userId,
-            name: userNames[userId],
-            owes: owesAmount
-        });
-        splits[userId] = splitAmount;
-    });
-    
-    return {
-        id: expenseId,
-        description: descriptions[expenseNum % descriptions.length] + ` ${expenseNum}`,
-        amount: amount,
-        date: new Date(Date.now() - expenseNum * 86400000).toISOString(),
-        category: categories[expenseNum % categories.length],
-        paidBy: paidBy,
-        groupId: 'group1',
-        splits: splits,
-        participants: participants,
-        payer: { 
-            uid: paidBy, 
-            name: userNames[paidBy], 
-            email: `${userNames[paidBy].toLowerCase()}@example.com` 
-        },
-        group: { name: 'House Expenses', memberCount: 4 },
-        createdBy: paidBy
-    };
-}
 
 function displayExpenseDetails(expense) {
     document.getElementById('expense-amount').textContent = expense.amount.toFixed(2);
@@ -106,9 +61,9 @@ function displayExpenseDetails(expense) {
     document.getElementById('expense-date').textContent = formatDate(expense.date);
     document.getElementById('expense-category').textContent = expense.category || 'Uncategorized';
 
-    displayPayerInfo(expense.payer);
-    displaySplitBreakdown(expense.participants, expense.amount);
-    displayGroupInfo(expense.group);
+    displayPayerInfo(expense.paidBy, expense.splits);
+    displaySplitBreakdown(expense.splits, expense.amount);
+    displayGroupInfo(expense.groupId);
     
     if (expense.receiptUrl) {
         displayReceipt(expense.receiptUrl);
@@ -118,34 +73,36 @@ function displayExpenseDetails(expense) {
     document.getElementById('expense-detail-container').style.display = 'block';
 }
 
-function displayPayerInfo(payer) {
-    const initials = getInitials(payer.name);
+function displayPayerInfo(paidBy, splits) {
+    const payerName = getUserDisplayName(paidBy);
+    const initials = getInitials(payerName);
     document.getElementById('payer-initials').textContent = initials;
-    document.getElementById('payer-name').textContent = payer.name;
-    document.getElementById('payer-email').textContent = payer.email || '';
+    document.getElementById('payer-name').textContent = payerName;
+    document.getElementById('payer-email').textContent = '';
+    document.getElementById('payer-email').style.display = 'none';
 }
 
-function displaySplitBreakdown(participants, totalAmount) {
+function displaySplitBreakdown(splits, totalAmount) {
     const splitBreakdown = document.getElementById('split-breakdown');
     splitBreakdown.innerHTML = '';
 
-    participants.forEach(participant => {
+    // Handle splits as an object {userId: amount}
+    Object.entries(splits).forEach(([userId, amount]) => {
         const participantRow = document.createElement('div');
         participantRow.className = 'participant-row';
         
-        const owesAmount = participant.owes || 0;
-        const isOwed = owesAmount < 0;
-        const displayAmount = Math.abs(owesAmount);
+        const userName = getUserDisplayName(userId);
+        const splitAmount = amount;
 
         participantRow.innerHTML = `
             <div class="participant-info">
                 <div class="user-avatar">
-                    <span>${getInitials(participant.name)}</span>
+                    <span>${getInitials(userName)}</span>
                 </div>
-                <span class="participant-name">${participant.name}</span>
+                <span class="participant-name">${userName}</span>
             </div>
-            <div class="participant-amount ${isOwed ? 'amount-owed' : 'amount-owes'}">
-                ${isOwed ? 'is owed' : 'owes'} $${displayAmount.toFixed(2)}
+            <div class="participant-amount">
+                $${splitAmount.toFixed(2)}
             </div>
         `;
         
@@ -153,11 +110,14 @@ function displaySplitBreakdown(participants, totalAmount) {
     });
 }
 
-function displayGroupInfo(group) {
+function displayGroupInfo(groupId) {
     const groupInfo = document.getElementById('group-info');
+    const groupName = currentGroup ? currentGroup.name : `Group ${groupId}`;
+    const memberCount = currentGroup ? currentGroup.members.length : 0;
+    
     groupInfo.innerHTML = `
-        <span class="group-name">${group.name}</span>
-        <span class="group-members">${group.memberCount} members</span>
+        <span class="group-name">${groupName}</span>
+        <span class="group-members">${memberCount} members</span>
     `;
 }
 
@@ -208,7 +168,7 @@ async function deleteExpense() {
         deleteBtn.disabled = true;
         deleteBtn.textContent = 'Deleting...';
 
-        await apiCall(`/expenses/${currentExpense.id}`, 'DELETE');
+        await ExpenseService.deleteExpense(currentExpense.id);
         
         closeDeleteModal();
         
@@ -224,6 +184,20 @@ async function deleteExpense() {
         deleteBtn.disabled = false;
         deleteBtn.textContent = 'Delete Expense';
     }
+}
+
+function getUserDisplayName(userId) {
+    if (!currentGroup || !currentGroup.members) {
+        return userId;
+    }
+    
+    const member = currentGroup.members.find(m => m.uid === userId);
+    if (!member) {
+        return userId;
+    }
+    
+    // Show "You" for current user, otherwise show the member's name
+    return member.uid === currentUser.uid ? 'You' : member.name;
 }
 
 function formatDate(dateString) {
