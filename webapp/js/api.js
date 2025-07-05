@@ -337,17 +337,8 @@ class ApiService {
             }
 
             const data = await response.json();
-            // Transform the expense documents to ensure they have the expected structure
-            const expenses = (data.documents || []).map(doc => ({
-                id: doc.id,
-                amount: doc.data?.amount || 0,
-                description: doc.data?.description || '',
-                paidBy: doc.data?.paidBy || doc.data?.payer || '',
-                splits: doc.data?.splits || {},
-                date: doc.data?.date || doc.data?.createdAt || new Date().toISOString(),
-                category: doc.data?.category || 'other'
-            }));
-            return { data: expenses };
+            // The expenses are already in the correct format from the server
+            return { data: data.expenses || [] };
         } catch (error) {
             return { data: this._getMockGroupBalances(groupId) };
         }
@@ -397,7 +388,7 @@ class ApiService {
             }
 
             const data = await response.json();
-            return { data: data.documents || [] };
+            return { data: data.expenses || [] };
         } catch (error) {
             return { data: this._getMockGroupExpenses(groupId, limit, offset) };
         }
