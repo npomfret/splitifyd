@@ -86,18 +86,17 @@ function displaySplitBreakdown(splits, totalAmount) {
     const splitBreakdown = document.getElementById('split-breakdown');
     splitBreakdown.innerHTML = '';
 
-    // Handle splits as an array of objects [{userId, amount}]
-    if (!Array.isArray(splits)) {
-        console.warn('Splits is not an array:', splits);
+    if (!splits || typeof splits !== 'object') {
+        console.warn('Invalid splits format:', splits);
         return;
     }
 
-    splits.forEach(split => {
+    Object.entries(splits).forEach(([userId, amount]) => {
         const participantRow = document.createElement('div');
         participantRow.className = 'participant-row';
         
-        const userName = getUserDisplayName(split.userId);
-        const splitAmount = parseFloat(split.amount);
+        const userName = getUserDisplayName(userId);
+        const splitAmount = parseFloat(amount);
 
         participantRow.innerHTML = `
             <div class="participant-info">
