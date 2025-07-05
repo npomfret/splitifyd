@@ -126,6 +126,8 @@ class GroupsList {
         ).join('');
         const extraMembers = group.memberCount > 4 ? `<div class="member-avatar member-avatar--extra">+${group.memberCount - 4}</div>` : '';
 
+        const lastExpenseTime = group.lastExpenseTime ? this._formatLastActivity(group.lastExpenseTime) : null;
+
         return `
             <div class="group-card" data-group-id="${group.id}">
                 <div class="group-card__header">
@@ -140,6 +142,21 @@ class GroupsList {
                         ${membersPreview}${extraMembers}
                     </div>
                     <span class="member-count">${group.memberCount} member${group.memberCount !== 1 ? 's' : ''}</span>
+                </div>
+                
+                <div class="group-card__stats">
+                    <div class="group-stats">
+                        <span class="stat">
+                            <span class="stat__value">${group.expenseCount || 0}</span>
+                            <span class="stat__label">expense${(group.expenseCount || 0) !== 1 ? 's' : ''}</span>
+                        </span>
+                        ${lastExpenseTime ? `
+                            <span class="stat">
+                                <span class="stat__label">last expense</span>
+                                <span class="stat__value">${lastExpenseTime}</span>
+                            </span>
+                        ` : ''}
+                    </div>
                 </div>
                 
                 ${group.lastExpense ? `
@@ -161,6 +178,26 @@ class GroupsList {
                 </button>
             </div>
         `;
+    }
+
+    _formatLastActivity(timestamp) {
+        if (!timestamp) return 'Recently';
+        
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        
+        if (diffMinutes < 1) return 'just now';
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays === 0) return 'today';
+        if (diffDays === 1) return 'yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+        return `${Math.floor(diffDays / 30)}mo ago`;
     }
 
     render() {

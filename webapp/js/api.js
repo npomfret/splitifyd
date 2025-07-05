@@ -64,7 +64,9 @@ class ApiService {
             lastActivity: this._formatLastActivity(doc.data.updatedAt || doc.data.createdAt),
             lastActivityRaw: doc.data.updatedAt || doc.data.createdAt,
             lastExpense: doc.data.lastExpense || null,
-            members: doc.data.members || [{ id: 'user1', name: 'You', initials: 'YO' }]
+            members: doc.data.members || [{ id: 'user1', name: 'You', initials: 'YO' }],
+            expenseCount: doc.data.expenseCount || 0,
+            lastExpenseTime: doc.data.lastExpenseTime || null
         }));
     }
 
@@ -109,7 +111,9 @@ class ApiService {
                     { id: 'user2', name: 'Alice', initials: 'AL' },
                     { id: 'user3', name: 'Bob', initials: 'BO' },
                     { id: 'user4', name: 'Carol', initials: 'CA' }
-                ]
+                ],
+                expenseCount: 12,
+                lastExpenseTime: hoursAgo(2)
             },
             {
                 id: 'group2',
@@ -126,7 +130,9 @@ class ApiService {
                     { id: 'user1', name: 'You', initials: 'YO' },
                     { id: 'user5', name: 'Dave', initials: 'DA' },
                     { id: 'user6', name: 'Eve', initials: 'EV' }
-                ]
+                ],
+                expenseCount: 5,
+                lastExpenseTime: hoursAgo(168)
             },
             {
                 id: 'group3',
@@ -146,7 +152,9 @@ class ApiService {
                     { id: 'user9', name: 'Henry', initials: 'HE' },
                     { id: 'user10', name: 'Ivy', initials: 'IV' },
                     { id: 'user11', name: 'Jack', initials: 'JA' }
-                ]
+                ],
+                expenseCount: 23,
+                lastExpenseTime: hoursAgo(0.5)
             }
         ];
     }
