@@ -119,5 +119,3 @@ export function configureEmulators() {
 // Auto-configure emulators
 configureEmulators();
 
-// Simple exports for backward compatibility
-export const { isProduction, isDevelopment, isTest } = CONFIG;

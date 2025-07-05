@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
 import { CONFIG } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
-import { VALIDATION_LIMITS, DOCUMENT_CONFIG } from '../constants';
+import { VALIDATION_LIMITS } from '../constants';
 
 /**
  * Document structure
@@ -172,13 +172,3 @@ export const sanitizeDocumentData = (data: any): any => {
   return sanitized;
 };
 
-/**
- * Create a document preview (first 100 characters of JSON)
- */
-export const createDocumentPreview = (data: any): string => {
-  const jsonString = JSON.stringify(data);
-  if (jsonString.length <= DOCUMENT_CONFIG.PREVIEW_LENGTH) {
-    return jsonString;
-  }
-  return jsonString.substring(0, DOCUMENT_CONFIG.PREVIEW_LENGTH - 3) + '...';
-};

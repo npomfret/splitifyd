@@ -119,28 +119,3 @@ export const authenticate = async (
   }
 };
 
-/**
- * Optional authentication - doesn't fail if no token provided
- */
-export const optionalAuth = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH);
-    try {
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-      };
-    } catch (error) {
-      // If token verification fails, let error bubble up
-      throw error;
-    }
-  }
-  
-  next();
-};
