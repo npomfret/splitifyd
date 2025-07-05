@@ -73,7 +73,15 @@ class ApiService {
     _formatLastActivity(timestamp) {
         if (!timestamp) return 'Recently';
         
-        const date = new Date(timestamp);
+        let date;
+        if (timestamp._seconds) {
+            // Handle Firestore Timestamp format
+            date = new Date(timestamp._seconds * 1000);
+        } else {
+            // Handle ISO string or regular timestamp
+            date = new Date(timestamp);
+        }
+        
         const now = new Date();
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

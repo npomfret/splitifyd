@@ -5,11 +5,10 @@ const { generateTestData } = require('../functions/scripts/generate-test-data');
 
 console.log('🚀 Starting Firebase emulator with test data generation...\n');
 
-// Start Firebase emulators
+// Start Firebase emulators (fresh start - no import)
 const emulatorProcess = spawn('firebase', [
   'emulators:start',
-  '--import=./emulator-data',
-  '--export-on-exit'
+  '--export-on-exit=./emulator-data'
 ], {
   stdio: 'inherit',
   env: { ...process.env, NODE_ENV: 'development' }

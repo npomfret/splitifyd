@@ -68,6 +68,7 @@ async function createTestGroup(name, members, createdBy) {
   try {
     console.log(`Creating group: ${name}`);
     
+    const now = new Date();
     const groupData = {
       name,
       members: members.map(member => ({
@@ -77,8 +78,12 @@ async function createTestGroup(name, members, createdBy) {
         initials: member.displayName.split(' ').map(n => n[0]).join('').toUpperCase()
       })),
       createdBy: createdBy.uid,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: admin.firestore.Timestamp.fromDate(now),
+      updatedAt: admin.firestore.Timestamp.fromDate(now),
+      yourBalance: 0,
+      expenseCount: 0,
+      lastExpenseTime: admin.firestore.Timestamp.fromDate(now),
+      lastExpense: null
     };
 
     // Create group document in the documents collection
