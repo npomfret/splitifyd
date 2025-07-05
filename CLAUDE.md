@@ -28,12 +28,14 @@
 # Code Style
 - async/await over promises
 - ES modules: `import { foo } from 'bar'`
-- No try/catch/log as default error handling
+- No try/catch/log/continue as default error handling
+- try/catch/log is ok in some circumstances, but it usually benefits from an explanation comment
 - No comments - write self-documenting code
 - No console.log - use structured logging/auditing
 - Inline single-use private functions
 - Minimize class state
 - TypeScript strict mode
+- NO HACKS
 
 # Development Workflow
 1. Verify correct directory before commands
