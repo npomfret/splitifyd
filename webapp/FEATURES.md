@@ -50,14 +50,6 @@ When clicking on a group:
 - [x] Receipt image upload (optional)
 - [x] Group association (pre-selected if coming from group view)
 
-### 6. Expense List View
-- [ ] Filterable list of all expenses
-- [ ] Search by description
-- [ ] Filter by date range
-- [ ] Filter by participants
-- [ ] Filter by group
-- [ ] Sort options (date, amount, description)
-- [ ] Pagination or infinite scroll
 
 ### 7. Individual Expense Detail View
 - [ ] Full expense information
@@ -99,20 +91,29 @@ When clicking on a group:
 - [ ] Recurring expenses
 - [ ] Split by income ratio
 
-### 12. Data Visualization
+### 12. Expense List View
+- [ ] Filterable list of all expenses
+- [ ] Search by description
+- [ ] Filter by date range
+- [ ] Filter by participants
+- [ ] Filter by group
+- [ ] Sort options (date, amount, description)
+- [ ] Pagination or infinite scroll
+
+### 13. Data Visualization
 - [ ] Balance charts over time
 - [ ] Spending by category pie charts
 - [ ] Monthly spending trends
 - [ ] Group spending analytics
 - [ ] Personal spending insights
 
-### 13. Export/Reports
+### 14. Export/Reports
 - [ ] CSV export of transactions
 - [ ] PDF summary reports
 - [ ] Email monthly summaries
 - [ ] Tax-ready expense reports
 
-### 14. User Profile & Settings
+### 15. User Profile & Settings
 - [ ] Profile photo upload
 - [ ] Display name management
 - [ ] Currency preferences
@@ -121,20 +122,20 @@ When clicking on a group:
 - [ ] Language preferences
 - [ ] Default split preferences
 
-### 15. Real-time Updates
+### 16. Real-time Updates
 - [ ] WebSocket connection for live updates
 - [ ] Notification badges
 - [ ] Push notifications setup
 - [ ] Live expense feed
 - [ ] Real-time balance updates
 
-### 16. Advanced Search & Filters
+### 17. Advanced Search & Filters
 - [ ] Full-text search across all data
 - [ ] Complex filter combinations
 - [ ] Saved filter presets
 - [ ] Search history
 
-### 17. Expense Templates
+### 18. Expense Templates
 - [ ] Save common expenses as templates
 - [ ] Quick-add from templates
 - [ ] Scheduled/recurring expenses
@@ -144,34 +145,34 @@ When clicking on a group:
 
 ## Nice-to-Have Features (Phase 3)
 
-### 18. Social Features
+### 19. Social Features
 - [ ] Expense comments and reactions
 - [ ] Activity feed with likes
 - [ ] Expense approval workflow
 - [ ] @mentions in comments
 - [ ] Group announcements
 
-### 19. Integration Features
+### 20. Integration Features
 - [ ] Bank connection (Plaid)
 - [ ] Venmo/PayPal payment links
 - [ ] Calendar integration
 - [ ] Email expense parsing
 - [ ] SMS expense addition
 
-### 20. Advanced Analytics
+### 21. Advanced Analytics
 - [ ] Budget tracking
 - [ ] Spending predictions
 - [ ] Debt optimization suggestions
 - [ ] Category-based budgets
 - [ ] Spending alerts
 
-### 21. Offline Support
+### 22. Offline Support
 - [ ] Service worker implementation
 - [ ] Offline expense creation
 - [ ] Sync when back online
 - [ ] Conflict resolution
 
-### 22. Accessibility
+### 23. Accessibility
 - [ ] Keyboard navigation
 - [ ] Screen reader support
 - [ ] High contrast mode
