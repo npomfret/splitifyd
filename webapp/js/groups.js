@@ -46,7 +46,6 @@ class GroupsList {
         }
         this.groups = [];
         this.filteredGroups = [];
-        this.searchTerm = '';
         this.isLoading = false;
     }
 
@@ -55,7 +54,7 @@ class GroupsList {
         
         try {
             this.groups = await apiService.getGroups();
-            this.filterGroups();
+            this.filteredGroups = [...this.groups];
             this.render();
         } catch (error) {
             this.renderError(error.message);
@@ -64,17 +63,6 @@ class GroupsList {
         }
     }
 
-    filterGroups() {
-        if (!this.searchTerm.trim()) {
-            this.filteredGroups = [...this.groups];
-        } else {
-            const term = this.searchTerm.toLowerCase();
-            this.filteredGroups = this.groups.filter(group => 
-                group.name.toLowerCase().includes(term) ||
-                group.members.some(member => member.name.toLowerCase().includes(term))
-            );
-        }
-    }
 
     setLoading(loading) {
         this.isLoading = loading;
@@ -227,22 +215,9 @@ class GroupsList {
                     + Create Group
                 </button>
             </div>
-            <div class="groups-controls">
-                <div class="search-container">
-                    <input type="text" 
-                           id="groupSearch" 
-                           class="form-input search-input" 
-                           placeholder="Search groups..."
-                           aria-label="Search groups">
-                </div>
-            </div>
         `;
 
-        const groupsHtml = sortedGroups.length > 0 ? 
-            sortedGroups.map(group => this.renderGroupCard(group)).join('') :
-            `<div class="empty-search-state">
-                <p>No groups found matching "${this.searchTerm}"</p>
-            </div>`;
+        const groupsHtml = sortedGroups.map(group => this.renderGroupCard(group)).join('');
 
         this.container.innerHTML = `
             ${headerHtml}
@@ -259,15 +234,6 @@ class GroupsList {
             this.openCreateGroupModal();
         });
 
-        const searchInput = document.getElementById('groupSearch');
-        if (searchInput) {
-            searchInput.value = this.searchTerm;
-            searchInput.addEventListener('input', (e) => {
-                this.searchTerm = e.target.value;
-                this.filterGroups();
-                this.render();
-            });
-        }
 
         document.querySelectorAll('.group-card').forEach(card => {
             card.addEventListener('click', (e) => {
@@ -293,7 +259,7 @@ class GroupsList {
             try {
                 const newGroup = await apiService.createGroup(groupData);
                 this.groups.unshift(newGroup);
-                this.filterGroups();
+                this.filteredGroups = [...this.groups];
                 this.render();
             } catch (error) {
                 throw error;
