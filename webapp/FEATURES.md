@@ -52,11 +52,17 @@ When clicking on a group:
 
 
 ### 7. Individual Expense Detail View
-- [ ] Full expense information
-- [ ] Edit/delete buttons (if user created it)
+- [x] Full expense information (amount, description, date, category)
+- [x] Edit/delete buttons (if user created it)
+- [x] Split breakdown (who owes what with amounts)
+- [x] Payer information with user avatars
+- [x] Group context display
+- [x] Receipt image display (when available)
+- [x] Permission-based action visibility
+- [x] Confirmation modal for deletion
+- [x] Navigation and error handling
 - [ ] Activity history for this expense
 - [ ] Comments section
-- [ ] Split breakdown (who owes what)
 
 ### 8. Friends/Contacts Management
 - [ ] Add friends by email
