@@ -137,3 +137,6 @@ firebase/public/
 
 # Firebase emulator data
 firebase/emulator-data/
+
+# Firebase service account keys
+firebase/functions/*service-account-key.json
