@@ -15,7 +15,7 @@
 # Firebase Local Development
 - Typically, the emulator is already running, via `npm run dev`, so do not try to start it again. If it is not running, ask the user to start it.
 - If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
-- Emulator logs: http://localhost:4000/logs
+- Local firebase logs are in `/firebase/*.log`, the main application log is `firebase-debug.log` and can be viewed here: http://localhost:4000/logs
 - Console: http://127.0.0.1:4000
 - If auth error: `firebase login --reauth`
 - Read the appropriate firebase docs before doing firebase code or configuration changes
