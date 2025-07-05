@@ -519,7 +519,63 @@ class AddExpenseModal extends Modal {
             groupSelect.value = this.groupId;
             // Manually trigger the change to load members
             await this.handleGroupChange();
+            
+            // Get last expense description from this group
+            const lastDescription = await this.getLastExpenseDescription();
+            if (lastDescription) {
+                document.getElementById('expenseDescription').value = lastDescription;
+            }
         }
+    }
+
+    async getLastExpenseDescription() {
+        if (!this.groupId) {
+            console.log('No groupId provided for getLastExpenseDescription');
+            return null;
+        }
+        
+        try {
+            console.log('Fetching expenses for group:', this.groupId);
+            const response = await ExpenseService.listGroupExpenses(this.groupId, 50);
+            console.log('listGroupExpenses response:', response);
+            
+            if (response && response.expenses && response.expenses.length > 0) {
+                // Get current user ID from auth token or context
+                const currentUserId = this.getCurrentUserId();
+                console.log('Current user ID:', currentUserId);
+                
+                // Filter expenses by current user and get the most recent one
+                const userExpenses = response.expenses.filter(expense => expense.createdBy === currentUserId);
+                console.log('User expenses:', userExpenses);
+                
+                if (userExpenses.length > 0) {
+                    const lastDescription = userExpenses[0].description;
+                    console.log('Last expense description from current user in this group:', lastDescription);
+                    return lastDescription;
+                }
+            }
+            console.log('No expenses found for current user in this group');
+            return null;
+        } catch (error) {
+            console.error('Error fetching last expense description:', error);
+            return null;
+        }
+    }
+    
+    getCurrentUserId() {
+        // This method should return the current user's ID
+        // You may need to implement this based on how auth is handled
+        // For now, let's try to get it from the auth context or token
+        try {
+            const authToken = localStorage.getItem('splitifyd_auth_token');
+            if (authToken) {
+                const decoded = JSON.parse(atob(authToken.split('.')[1]));
+                return decoded.uid || decoded.userId || decoded.user_id;
+            }
+        } catch (error) {
+            console.error('Error getting current user ID:', error);
+        }
+        return null;
     }
 
     populateCategories() {
