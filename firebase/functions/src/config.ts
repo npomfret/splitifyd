@@ -89,7 +89,7 @@ export const CONFIG = {
     previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
   },
   
-  formDefaults: ENV_IS_DEVELOPMENT ? {
+  formDefaults: (ENV_IS_DEVELOPMENT && process.env.FUNCTIONS_EMULATOR === 'true') ? {
     displayName: 'test',
     email: 'test@test.com',
     password: 'rrRR44$$',
