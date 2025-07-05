@@ -1,4 +1,4 @@
-# Review
+# Review changes
 
 Analyse the current change list from a fresh perspective, and critique it. 
 
@@ -12,3 +12,5 @@ Don't be pedantic, if it's mostly ok just say so.  Focus on important stuff like
  * security blunders
  * performance or scalability bottlenecks
  * dirty hacks
+
+Run any relevant builds and tests
