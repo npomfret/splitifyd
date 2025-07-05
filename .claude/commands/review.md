@@ -11,3 +11,4 @@ Don't be pedantic, if it's mostly ok just say so.  Focus on important stuff like
  * obvious bugs
  * security blunders
  * performance or scalability bottlenecks
+ * dirty hacks
