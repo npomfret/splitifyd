@@ -1,3 +1,8 @@
+# Your behaviour
+- Don't be psychopathic
+- Sometimes I am wrong, just tell me so
+- It's ok to question me
+
 # Tech Stack
 - Runtime: Node.js (latest)
 - Language: TypeScript (latest)
