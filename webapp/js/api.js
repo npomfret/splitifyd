@@ -104,7 +104,7 @@ class ApiService {
                 lastActivityRaw: hoursAgo(2),
                 lastExpense: {
                     amount: 67.20,
-                    description: 'Groceries'
+                    description: 'expense-3'
                 },
                 members: [
                     { id: 'user1', name: 'You', initials: 'YO' },
@@ -117,7 +117,7 @@ class ApiService {
             },
             {
                 id: 'group2',
-                name: 'Weekend Trip',
+                name: 'group-2',
                 memberCount: 3,
                 yourBalance: 15.75,
                 lastActivity: this._formatLastActivity(hoursAgo(168)),
@@ -136,14 +136,14 @@ class ApiService {
             },
             {
                 id: 'group3',
-                name: 'Office Lunch',
+                name: 'group-3',
                 memberCount: 6,
                 yourBalance: 0,
                 lastActivity: this._formatLastActivity(hoursAgo(0.5)),
                 lastActivityRaw: hoursAgo(0.5),
                 lastExpense: {
                     amount: 45.30,
-                    description: 'Pizza delivery'
+                    description: 'expense-10'
                 },
                 members: [
                     { id: 'user1', name: 'You', initials: 'YO' },

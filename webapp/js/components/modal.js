@@ -139,7 +139,7 @@ class CreateGroupModal extends Modal {
                         id="groupName" 
                         name="groupName"
                         class="form-input" 
-                        placeholder="e.g., Weekend Trip, House Expenses"
+                        placeholder="e.g., group-1, group-2"
                         required
                         maxlength="50"
                         autocomplete="off"

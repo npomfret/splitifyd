@@ -22,16 +22,16 @@ const TEST_USERS = [
 ];
 
 const EXAMPLE_EXPENSES = [
-  { description: 'Dinner at restaurant', amount: 75.50, category: 'Food' },
-  { description: 'Uber ride', amount: 25.00, category: 'Transport' },
-  { description: 'Groceries', amount: 45.80, category: 'Food' },
-  { description: 'Movie tickets', amount: 32.00, category: 'Entertainment' },
-  { description: 'Coffee shop', amount: 15.75, category: 'Food' },
-  { description: 'Gas station', amount: 40.00, category: 'Transport' },
-  { description: 'Lunch', amount: 28.50, category: 'Food' },
-  { description: 'Concert tickets', amount: 120.00, category: 'Entertainment' },
-  { description: 'Taxi', amount: 18.25, category: 'Transport' },
-  { description: 'Pizza delivery', amount: 35.60, category: 'Food' }
+  { description: 'expense-1', amount: 75.50, category: 'Food' },
+  { description: 'expense-2', amount: 25.00, category: 'Transport' },
+  { description: 'expense-3', amount: 45.80, category: 'Food' },
+  { description: 'expense-4', amount: 32.00, category: 'Entertainment' },
+  { description: 'expense-5', amount: 15.75, category: 'Food' },
+  { description: 'expense-6', amount: 40.00, category: 'Transport' },
+  { description: 'expense-7', amount: 28.50, category: 'Food' },
+  { description: 'expense-8', amount: 120.00, category: 'Entertainment' },
+  { description: 'expense-9', amount: 18.25, category: 'Transport' },
+  { description: 'expense-10', amount: 35.60, category: 'Food' }
 ];
 
 async function createTestUser(userInfo) {
@@ -148,13 +148,13 @@ async function generateTestData() {
     console.log('👥 Creating test groups...');
     
     // Group 1: All three users
-    const group1 = await createTestGroup('Weekend Trip', users, users[0]);
+    const group1 = await createTestGroup('group-1', users, users[0]);
     
     // Group 2: Test1 and Test2
-    const group2 = await createTestGroup('Lunch Buddies', [users[0], users[1]], users[0]);
+    const group2 = await createTestGroup('group-2', [users[0], users[1]], users[0]);
     
     // Group 3: Test2 and Test3
-    const group3 = await createTestGroup('Study Group', [users[1], users[2]], users[1]);
+    const group3 = await createTestGroup('group-3', [users[1], users[2]], users[1]);
     
     console.log(`✓ Created 3 groups\n`);
 
