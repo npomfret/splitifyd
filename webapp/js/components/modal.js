@@ -621,14 +621,17 @@ class AddExpenseModal extends Modal {
         
         members.forEach(member => {
             const option = document.createElement('option');
-            option.value = member.id;
+            option.value = member.uid;
             option.textContent = member.displayName || member.name || member.email || 'Unknown';
             select.appendChild(option);
         });
         
-        const currentUserId = localStorage.getItem('userId');
-        if (currentUserId && members.some(m => m.id === currentUserId)) {
-            select.value = currentUserId;
+        const currentUser = window.firebaseAuth?.getCurrentUser();
+        if (currentUser) {
+            const matchingMember = members.find(m => m.uid === currentUser.uid);
+            if (matchingMember) {
+                select.value = matchingMember.uid;
+            }
         }
     }
 
