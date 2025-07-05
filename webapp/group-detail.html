@@ -3,22 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com;">
     <title>Group Details - Splitifyd</title>
+    <link rel="preload" href="css/main.css" as="style">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="dns-prefetch" href="//api.splitifyd.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <nav class="nav-header">
-            <button class="back-button" onclick="window.location.href='dashboard.html'">
-                <i class="fas fa-arrow-left"></i>
-                <span>Back</span>
+    <div id="warningBanner" class="warning-banner" style="display: none;"></div>
+    <header class="dashboard-header">
+        <div class="dashboard-container">
+            <h1 class="dashboard-title"><a href="dashboard.html" class="dashboard-title-link">Splitifyd</a></h1>
+            <button type="button" class="button button--logout" id="logoutButton">
+                Logout
             </button>
-            <h1 class="page-title">Group Details</h1>
-            <button class="settings-button" id="groupSettingsBtn">
-                <i class="fas fa-cog"></i>
-            </button>
-        </nav>
+        </div>
+    </header>
+    
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <div class="group-detail-container">
+                <nav class="nav-header">
+                    <button class="back-button" onclick="window.location.href='dashboard.html'">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back</span>
+                    </button>
+                    <h1 class="page-title">Group Details</h1>
+                    <button class="settings-button" id="groupSettingsBtn">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </nav>
 
         <div id="groupHeader" class="group-header">
             <div class="group-info">
@@ -111,8 +126,9 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
-    </div>
+    </main>
 
     <div id="groupSettingsModal" class="modal">
         <div class="modal-content">
@@ -173,9 +189,26 @@
 
     <script src="js/firebase-config.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/warning-banner.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/components/modal.js"></script>
     <script src="js/group-detail.js"></script>
+    <script>
+        // Initialize logout functionality
+        window.addEventListener('DOMContentLoaded', () => {
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    try {
+                        await window.authManager.logout();
+                        window.location.href = 'index.html';
+                    } catch (error) {
+                        console.error('Logout failed:', error);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
