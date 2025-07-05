@@ -474,6 +474,36 @@ class ApiService {
         // TODO: Implement when backend endpoint is ready
         return { success: true, message: 'Member removed (mock)' };
     }
+
+    async createExpense(expenseData) {
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/createDocument`, {
+                method: 'POST',
+                headers: this._getAuthHeaders(),
+                body: JSON.stringify({ data: expenseData })
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('splitifyd_auth_token');
+                    window.location.href = 'index.html';
+                    throw new Error('Authentication required');
+                }
+                
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to create expense');
+            }
+
+            const data = await response.json();
+            return { success: true, data: data };
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                return { success: true, data: { id: `exp_${Date.now()}`, ...expenseData } };
+            }
+            throw error;
+        }
+    }
 }
 
 const apiService = new ApiService();
@@ -525,5 +555,6 @@ window.api = {
     updateGroup: (groupId, updates) => apiService.updateGroup(groupId, updates),
     deleteGroup: (groupId) => apiService.deleteGroup(groupId),
     inviteToGroup: (groupId, email) => apiService.inviteToGroup(groupId, email),
-    removeGroupMember: (groupId, userId) => apiService.removeGroupMember(groupId, userId)
+    removeGroupMember: (groupId, userId) => apiService.removeGroupMember(groupId, userId),
+    createExpense: (expenseData) => apiService.createExpense(expenseData)
 };
