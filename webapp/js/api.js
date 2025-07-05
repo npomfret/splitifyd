@@ -511,6 +511,87 @@ class ApiService {
             throw error;
         }
     }
+
+    async getExpense(expenseId) {
+        if (!expenseId) {
+            throw new Error('Expense ID is required');
+        }
+
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/expenses?id=${expenseId}`, {
+                method: 'GET',
+                headers: this._getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('splitifyd_auth_token');
+                    window.location.href = 'index.html';
+                }
+                throw new Error('Failed to fetch expense');
+            }
+
+            const data = await response.json();
+            return { data: data };
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                return { data: this._getMockExpense(expenseId) };
+            }
+            throw error;
+        }
+    }
+
+    async updateExpense(expenseId, updateData) {
+        if (!expenseId) {
+            throw new Error('Expense ID is required');
+        }
+
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/expenses?id=${expenseId}`, {
+                method: 'PUT',
+                headers: this._getAuthHeaders(),
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('splitifyd_auth_token');
+                    window.location.href = 'index.html';
+                }
+                throw new Error('Failed to update expense');
+            }
+
+            const data = await response.json();
+            return { success: true, data: data };
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                return { success: true, data: { id: expenseId, ...updateData } };
+            }
+            throw error;
+        }
+    }
+
+    _getMockExpense(expenseId) {
+        return {
+            id: expenseId,
+            groupId: 'group1',
+            description: 'Sample Expense',
+            amount: 50.00,
+            category: 'food',
+            paidBy: 'user1',
+            splits: {
+                'user1': 12.50,
+                'user2': 12.50,
+                'user3': 12.50,
+                'user4': 12.50
+            },
+            date: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    }
 }
 
 const apiService = new ApiService();
@@ -563,5 +644,7 @@ window.api = {
     deleteGroup: (groupId) => apiService.deleteGroup(groupId),
     inviteToGroup: (groupId, email) => apiService.inviteToGroup(groupId, email),
     removeGroupMember: (groupId, userId) => apiService.removeGroupMember(groupId, userId),
-    createExpense: (expenseData) => apiService.createExpense(expenseData)
+    createExpense: (expenseData) => apiService.createExpense(expenseData),
+    getExpense: (expenseId) => apiService.getExpense(expenseId),
+    updateExpense: (expenseId, updateData) => apiService.updateExpense(expenseId, updateData)
 };
