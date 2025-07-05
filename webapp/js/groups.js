@@ -144,16 +144,6 @@ class GroupsList {
                     <span class="member-count">${group.memberCount} member${group.memberCount !== 1 ? 's' : ''}</span>
                 </div>
                 
-                <div class="group-card__stats">
-                    <div class="group-stats">
-                        ${lastExpenseTime ? `
-                            <span class="stat">
-                                <span class="stat__label">last expense</span>
-                                <span class="stat__value">${lastExpenseTime}</span>
-                            </span>
-                        ` : ''}
-                    </div>
-                </div>
                 
                 ${group.lastExpense ? `
                     <div class="group-card__last-expense">
