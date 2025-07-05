@@ -230,10 +230,12 @@ class GroupsList {
     }
 
     attachEventListeners() {
-        document.getElementById('createGroupBtn')?.addEventListener('click', () => {
-            this.openCreateGroupModal();
-        });
-
+        const createGroupBtn = document.getElementById('createGroupBtn');
+        if (createGroupBtn) {
+            createGroupBtn.addEventListener('click', () => {
+                this.openCreateGroupModal();
+            });
+        }
 
         document.querySelectorAll('.group-card').forEach(card => {
             card.addEventListener('click', (e) => {
@@ -254,18 +256,91 @@ class GroupsList {
     }
 
     openCreateGroupModal() {
-        const modal = new CreateGroupModal();
-        modal.onSubmit = async (groupData) => {
+        if (!window.ModalComponent) {
+            console.error('ModalComponent not available');
+            return;
+        }
+
+        const modalHtml = window.ModalComponent.render({
+            id: 'createGroupModal',
+            title: 'Create New Group',
+            body: `
+                <form id="createGroupForm">
+                    <div class="form-group">
+                        <label for="groupName">Group Name</label>
+                        <input type="text" id="groupName" name="groupName" required 
+                               placeholder="Enter group name" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="groupDescription">Description (optional)</label>
+                        <textarea id="groupDescription" name="groupDescription" 
+                                  placeholder="What's this group for?" class="form-input form-textarea"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Members (Optional)</label>
+                        <div class="members-input-container" id="membersContainer">
+                            <div class="member-input-row">
+                                <input type="email" placeholder="Enter email address" class="form-input member-email" name="memberEmail[]">
+                                <button type="button" class="button--icon" onclick="this.parentElement.remove()" disabled>×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="button button--small" id="addMemberBtn">+ Add Another Member</button>
+                    </div>
+                </form>
+            `,
+            footer: `
+                <button class="btn btn-secondary" onclick="window.ModalComponent.hide('createGroupModal')">Cancel</button>
+                <button class="btn btn-primary" id="createGroupSubmit">Create Group</button>
+            `
+        });
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        window.ModalComponent.show('createGroupModal');
+
+        // Add member functionality
+        document.getElementById('addMemberBtn').addEventListener('click', () => {
+            const container = document.getElementById('membersContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'member-input-row';
+            newRow.innerHTML = `
+                <input type="email" placeholder="Enter email address" class="form-input member-email" name="memberEmail[]">
+                <button type="button" class="button--icon" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(newRow);
+            
+            // Enable remove buttons when there are multiple rows
+            const removeButtons = container.querySelectorAll('.button--icon');
+            removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
+        });
+
+        document.getElementById('createGroupSubmit').addEventListener('click', async () => {
+            const form = document.getElementById('createGroupForm');
+            const formData = new FormData(form);
+            
+            // Collect member emails
+            const memberEmails = Array.from(form.querySelectorAll('.member-email'))
+                .map(input => input.value.trim())
+                .filter(email => email.length > 0);
+            
             try {
+                const groupData = {
+                    name: formData.get('groupName'),
+                    description: formData.get('groupDescription'),
+                    memberEmails: memberEmails
+                };
+                
                 const newGroup = await apiService.createGroup(groupData);
                 this.groups.unshift(newGroup);
                 this.filteredGroups = [...this.groups];
                 this.render();
+                
+                window.ModalComponent.hide('createGroupModal');
+                document.getElementById('createGroupModal').remove();
             } catch (error) {
-                throw error;
+                console.error('Failed to create group:', error);
+                alert('Failed to create group. Please try again.');
             }
-        };
-        modal.open();
+        });
     }
 
     openGroupDetail(groupId) {
@@ -273,29 +348,7 @@ class GroupsList {
     }
 
     async openAddExpenseModal(groupId) {
-        const modal = new AddExpenseModal(groupId);
-        modal.onSubmit = async (expenseData) => {
-            try {
-                const newExpense = await ExpenseService.createExpense(expenseData);
-                
-                // Reload groups to reflect new expense and balance changes
-                await this.loadGroups();
-                
-                // Show success message (optional)
-                const successMessage = document.createElement('div');
-                successMessage.className = 'toast toast--success';
-                successMessage.textContent = 'Expense added successfully!';
-                document.body.appendChild(successMessage);
-                
-                setTimeout(() => {
-                    successMessage.remove();
-                }, 3000);
-                
-                return newExpense;
-            } catch (error) {
-                throw error;
-            }
-        };
-        modal.open();
+        // Navigate to add expense page instead of opening modal
+        window.location.href = `add-expense.html?groupId=${groupId}`;
     }
 }

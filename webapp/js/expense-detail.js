@@ -87,6 +87,11 @@ function displaySplitBreakdown(splits, totalAmount) {
     splitBreakdown.innerHTML = '';
 
     // Handle splits as an array of objects [{userId, amount}]
+    if (!Array.isArray(splits)) {
+        console.warn('Splits is not an array:', splits);
+        return;
+    }
+
     splits.forEach(split => {
         const participantRow = document.createElement('div');
         participantRow.className = 'participant-row';

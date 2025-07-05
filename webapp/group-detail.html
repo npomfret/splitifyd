@@ -189,7 +189,10 @@
     <script src="js/warning-banner.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/components/modal.js"></script>
+    <script type="module">
+        import { ModalComponent } from './js/components/modal.js';
+        window.ModalComponent = ModalComponent;
+    </script>
     <script src="js/group-detail.js"></script>
     <script>
         // Initialize logout functionality
