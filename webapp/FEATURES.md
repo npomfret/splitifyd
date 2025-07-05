@@ -40,15 +40,15 @@ When clicking on a group:
 - [ ] Group activity history
 
 ### 5. Add Expense Form
-- [ ] Amount input with decimal support
-- [ ] Description field
-- [ ] Date picker (default to today)
-- [ ] Payer selection (who paid)
-- [ ] Split type selector (equal, exact amounts, percentages)
-- [ ] Participant selector (checkboxes or multi-select)
-- [ ] Category selection (food, transport, utilities, etc.)
-- [ ] Receipt image upload (optional)
-- [ ] Group association (pre-selected if coming from group view)
+- [x] Amount input with decimal support
+- [x] Description field
+- [x] Date picker (default to today)
+- [x] Payer selection (who paid)
+- [x] Split type selector (equal, exact amounts, percentages)
+- [x] Participant selector (checkboxes or multi-select)
+- [x] Category selection (food, transport, utilities, etc.)
+- [x] Receipt image upload (optional)
+- [x] Group association (pre-selected if coming from group view)
 
 ### 6. Expense List View
 - [ ] Filterable list of all expenses
@@ -216,9 +216,9 @@ webapp/
 - [x] js/auth.js
 - [x] js/api.js
 - [x] js/groups.js
-- [ ] js/expenses.js
+- [x] js/expenses.js
 - [ ] js/utils.js
-- [ ] js/components/modal.js
+- [x] js/components/modal.js
 - [ ] js/components/dropdown.js
 - [ ] js/components/datepicker.js
 - [x] assets/images/
@@ -241,7 +241,7 @@ webapp/
 - [x] Auth reset-password endpoint
 - [ ] Users endpoints
 - [x] Groups endpoints (create, list)
-- [ ] Expenses endpoints
+- [x] Expenses endpoints (create, read, update, delete, list)
 - [ ] Settlements endpoints
 - [ ] Friends endpoints
 
@@ -268,8 +268,8 @@ webapp/
 3. ✅ **Dashboard/Home Page** - Complete with balance summary
 4. ✅ **Groups list on home page** - Complete with search/filter
 5. ✅ **Group creation** - Complete with validation
-6. **Add expense form** - Next priority
-7. **Group detail view**
+6. ✅ **Add expense form** - Complete with all split types
+7. **Group detail view** - Next priority
 8. **Expense list and filtering**
 9. **Settlement recording**
 10. **Friends management**

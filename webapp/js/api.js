@@ -258,3 +258,40 @@ class ApiService {
 }
 
 const apiService = new ApiService();
+
+// Generic API call function for expense and group services
+async function apiCall(endpoint, options = {}) {
+    const baseUrl = await apiService._getBaseUrl();
+    const url = `${baseUrl}${endpoint}`;
+    
+    const defaultHeaders = {
+        'Content-Type': 'application/json'
+    };
+    
+    // Add auth headers if we have a token
+    const token = apiService._getAuthToken();
+    if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...options.headers
+        }
+    });
+    
+    if (!response.ok) {
+        if (response.status === 401) {
+            localStorage.removeItem('splitifyd_auth_token');
+            window.location.href = 'index.html';
+            throw new Error('Authentication required');
+        }
+        
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || errorData.message || `HTTP ${response.status} error`);
+    }
+    
+    return response.json();
+}

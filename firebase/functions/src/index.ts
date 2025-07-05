@@ -17,6 +17,14 @@ import {
   deleteDocument,
   listDocuments,
 } from './documents/handlers';
+import {
+  createExpense,
+  getExpense,
+  updateExpense,
+  deleteExpense,
+  listGroupExpenses,
+  listUserExpenses,
+} from './expenses/handlers';
 
 // Firebase Admin initialization (emulators auto-configured in config.ts)
 
@@ -139,6 +147,14 @@ app.get('/getDocument', authenticate, asyncHandler(getDocument));
 app.put('/updateDocument', authenticate, asyncHandler(updateDocument));
 app.delete('/deleteDocument', authenticate, asyncHandler(deleteDocument));
 app.get('/listDocuments', authenticate, asyncHandler(listDocuments));
+
+// Expense endpoints (requires auth)
+app.post('/expenses', authenticate, asyncHandler(createExpense));
+app.get('/expenses', authenticate, asyncHandler(getExpense));
+app.put('/expenses', authenticate, asyncHandler(updateExpense));
+app.delete('/expenses', authenticate, asyncHandler(deleteExpense));
+app.get('/expenses/group', authenticate, asyncHandler(listGroupExpenses));
+app.get('/expenses/user', authenticate, asyncHandler(listUserExpenses));
 
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({

@@ -1076,6 +1076,249 @@ body:has(.dashboard-header) {
     }
 }
 
+/* ===== EXPENSE FORM STYLES ===== */
+.form-row {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.form-group--half {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group-addon {
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+    display: flex;
+    align-items: center;
+}
+
+.input-group .form-input {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    flex: 1;
+}
+
+.input-group-addon + .form-input {
+    border-left: none;
+}
+
+.form-input + .input-group-addon {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-left: none;
+    border-right: 1px solid var(--color-border);
+}
+
+.participants-container {
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm);
+    margin: calc(var(--space-xs) * -1);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.checkbox-label:hover {
+    background: var(--color-surface);
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: var(--space-sm);
+    cursor: pointer;
+}
+
+.split-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-md);
+}
+
+.split-type-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.split-type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.split-type-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-md);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    text-align: center;
+    background: var(--color-surface);
+}
+
+.split-type-option input[type="radio"]:checked + .split-type-label {
+    border-color: var(--color-primary);
+    background: rgba(102, 126, 234, 0.05);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.split-type-option:hover .split-type-label {
+    border-color: var(--color-primary-light);
+}
+
+.split-type-icon {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.split-details-container {
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-top: var(--space-md);
+}
+
+.split-details-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+    margin-bottom: var(--space-md);
+}
+
+.split-amounts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.split-amount-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.split-amount-row label {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+}
+
+.split-amount-row .input-group {
+    flex: 0 0 120px;
+}
+
+.split-total {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--font-size-base);
+}
+
+.split-difference {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.split-difference--error {
+    color: var(--color-error);
+}
+
+.split-difference--success {
+    color: var(--color-success);
+}
+
+/* Responsive adjustments for expense form */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-group--half {
+        width: 100%;
+    }
+    
+    .split-type-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .split-amount-row {
+        flex-wrap: wrap;
+    }
+    
+    .split-amount-row label {
+        flex: 1 0 100%;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .split-amount-row .input-group {
+        flex: 1;
+    }
+}
+
+/* ===== TOAST NOTIFICATIONS ===== */
+.toast {
+    position: fixed;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 1100;
+    animation: slideIn 0.3s ease-out;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+}
+
+.toast--success {
+    background: var(--color-success);
+    color: white;
+}
+
+.toast--error {
+    background: var(--color-error);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
     * {

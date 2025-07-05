@@ -1,3 +1,43 @@
+class GroupService {
+    static async getUserGroups() {
+        // Using existing getGroups from apiService for now
+        return apiService.getGroups();
+    }
+
+    static async getGroup(groupId) {
+        // For now, get from the cached groups list
+        const groups = await this.getUserGroups();
+        const group = groups.find(g => g.id === groupId);
+        if (!group) {
+            throw new Error('Group not found');
+        }
+        return group;
+    }
+
+    static async getGroupMembers(groupId) {
+        // For now, get members from the group data
+        const group = await this.getGroup(groupId);
+        return group.members || [];
+    }
+
+    static async createGroup(groupData) {
+        return apiService.createGroup(groupData);
+    }
+
+    static async updateGroup(groupId, updateData) {
+        return apiCall(`/updateDocument?id=${groupId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ data: updateData })
+        });
+    }
+
+    static async deleteGroup(groupId) {
+        return apiCall(`/deleteDocument?id=${groupId}`, {
+            method: 'DELETE'
+        });
+    }
+}
+
 class GroupsList {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
@@ -234,7 +274,30 @@ class GroupsList {
         console.log(`Open group detail for ${groupId} - not implemented yet`);
     }
 
-    openAddExpenseModal(groupId) {
-        console.log(`Add expense modal for group ${groupId} - not implemented yet`);
+    async openAddExpenseModal(groupId) {
+        const modal = new AddExpenseModal(groupId);
+        modal.onSubmit = async (expenseData) => {
+            try {
+                const newExpense = await ExpenseService.createExpense(expenseData);
+                
+                // Reload groups to reflect new expense and balance changes
+                await this.loadGroups();
+                
+                // Show success message (optional)
+                const successMessage = document.createElement('div');
+                successMessage.className = 'toast toast--success';
+                successMessage.textContent = 'Expense added successfully!';
+                document.body.appendChild(successMessage);
+                
+                setTimeout(() => {
+                    successMessage.remove();
+                }, 3000);
+                
+                return newExpense;
+            } catch (error) {
+                throw error;
+            }
+        };
+        modal.open();
     }
 }
