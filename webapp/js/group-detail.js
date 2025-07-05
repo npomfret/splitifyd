@@ -167,9 +167,6 @@ function calculateUserBalances(expenses) {
         const splits = expense.splits || {};
         
         // Skip if no valid splits data
-        if (!splits || typeof splits !== 'object') {
-            throw new Error('Invalid splits data for expense');
-        }
         
         Object.entries(splits).forEach(([uid, amount]) => {
             if (uid !== payerId && balances[uid] && balances[payerId]) {
@@ -370,7 +367,7 @@ function createExpenseItem(expense) {
     
     // Sanitize expense data to prevent XSS
     const safeDescription = (expense.description || '').toString().trim();
-    const safePayerName = payer?.name ? payer.name.toString().trim() : 'Unknown';
+    const safePayerName = payer.name.toString().trim();
     
     // Create elements safely without innerHTML
     const expenseIcon = document.createElement('div');

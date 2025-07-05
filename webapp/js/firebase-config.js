@@ -134,11 +134,11 @@ class FirebaseConfigManager {
     }
 
     getFormDefaults() {
-        return this.config?.formDefaults || {};
+        return this.config.formDefaults;
     }
 
     getWarningBanner() {
-        return this.config?.warningBanner || '';
+        return this.config.warningBanner;
     }
 }
 

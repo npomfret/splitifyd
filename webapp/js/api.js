@@ -45,7 +45,7 @@ class ApiService {
             }
 
             const data = await response.json();
-            return this._transformGroupsData(data.documents || []);
+            return this._transformGroupsData(data.documents);
             
         } catch (error) {
             throw error;
@@ -68,7 +68,6 @@ class ApiService {
     }
 
     _formatLastActivity(timestamp) {
-        if (!timestamp) return 'Recently';
         
         let date;
         if (timestamp._seconds) {
@@ -329,7 +328,7 @@ class ApiService {
 
             const data = await response.json();
             // The expenses are already in the correct format from the server
-            return { data: data.expenses || [] };
+            return { data: data.expenses };
         } catch (error) {
             throw error;
         }
@@ -379,7 +378,7 @@ class ApiService {
             }
 
             const data = await response.json();
-            return { data: data.expenses || [] };
+            return { data: data.expenses };
         } catch (error) {
             throw error;
         }

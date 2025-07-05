@@ -59,7 +59,7 @@ function displayExpenseDetails(expense) {
     document.getElementById('expense-amount').textContent = expense.amount.toFixed(2);
     document.getElementById('expense-description').textContent = expense.description;
     document.getElementById('expense-date').textContent = formatDate(expense.date);
-    document.getElementById('expense-category').textContent = expense.category || 'Uncategorized';
+    document.getElementById('expense-category').textContent = expense.category;
 
     displayPayerInfo(expense.paidBy, expense.splits);
     displaySplitBreakdown(expense.splits, expense.amount);
@@ -86,9 +86,6 @@ function displaySplitBreakdown(splits, totalAmount) {
     const splitBreakdown = document.getElementById('split-breakdown');
     splitBreakdown.innerHTML = '';
 
-    if (!splits || typeof splits !== 'object') {
-        throw new Error('Invalid splits format');
-    }
 
     Object.entries(splits).forEach(([userId, amount]) => {
         const participantRow = document.createElement('div');
@@ -190,14 +187,7 @@ async function deleteExpense() {
 }
 
 function getUserDisplayName(userId) {
-    if (!currentGroup || !currentGroup.members) {
-        throw new Error('Group or members not loaded');
-    }
-    
     const member = currentGroup.members.find(m => m.uid === userId);
-    if (!member) {
-        throw new Error('Member not found');
-    }
     
     // Show "You" for current user, otherwise show the member's name
     return member.uid === currentUser.uid ? 'You' : member.name;
