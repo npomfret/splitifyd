@@ -15,7 +15,7 @@
         <main class="auth-container">
         <article class="auth-card auth-card--login">
             <header class="auth-card__header">
-                <h1 class="auth-card__title">Splitifyd</h1>
+                <h1 class="auth-card__title"><a href="/" class="auth-card__title-link">Splitifyd</a></h1>
                 <p class="auth-card__subtitle">Split bills with friends</p>
             </header>
             
@@ -76,5 +76,14 @@
     <script src="js/config.js"></script>
     <script src="js/warning-banner.js"></script>
     <script src="js/auth.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already authenticated and redirect to dashboard
+            if (window.authManager && window.authManager.isAuthenticated()) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+        });
+    </script>
 </body>
 </html>
