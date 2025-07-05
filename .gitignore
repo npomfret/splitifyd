@@ -134,3 +134,6 @@ dist
 
 # Firebase build output
 firebase/public/
+
+# Firebase emulator data
+firebase/emulator-data/
