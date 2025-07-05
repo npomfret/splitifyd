@@ -131,7 +131,7 @@ class GroupsList {
         return `
             <div class="group-card" data-group-id="${group.id}">
                 <div class="group-card__header">
-                    <h4 class="group-card__name">${group.name}</h4>
+                    <h4 class="group-card__name">${group.name}${group.expenseCount ? ` <span class="expense-count">(${group.expenseCount})</span>` : ''}</h4>
                     <div class="group-card__balance ${balanceClass}">
                         $${Math.abs(group.yourBalance).toFixed(2)}
                     </div>
@@ -146,10 +146,6 @@ class GroupsList {
                 
                 <div class="group-card__stats">
                     <div class="group-stats">
-                        <span class="stat">
-                            <span class="stat__value">${group.expenseCount || 0}</span>
-                            <span class="stat__label">expense${(group.expenseCount || 0) !== 1 ? 's' : ''}</span>
-                        </span>
                         ${lastExpenseTime ? `
                             <span class="stat">
                                 <span class="stat__label">last expense</span>

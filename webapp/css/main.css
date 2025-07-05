@@ -629,6 +629,12 @@ body:has(.dashboard-header) {
     margin-right: var(--space-sm);
 }
 
+.expense-count {
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
 .group-card__balance {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
