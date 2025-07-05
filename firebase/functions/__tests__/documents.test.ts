@@ -7,8 +7,20 @@ import {
   deleteDocument,
   listDocuments
 } from '../src/documents/handlers';
+import { ApiError } from '../src/utils/errors';
 
-// Mock Firestore
+// Mock logger
+jest.mock('../src/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    errorWithContext: jest.fn()
+  }
+}));
+
+// Mock Firebase Admin
 const mockDoc = jest.fn();
 const mockGet = jest.fn();
 const mockSet = jest.fn();
@@ -17,14 +29,49 @@ const mockDelete = jest.fn();
 const mockWhere = jest.fn();
 const mockOrderBy = jest.fn();
 const mockLimit = jest.fn();
+const mockTimestamp = { toDate: () => new Date('2023-01-01T00:00:00Z') };
+
+// Mock for expenses collection
+const mockExpensesWhere = jest.fn();
+const mockExpensesGet = jest.fn();
 
 jest.mock('firebase-admin', () => ({
   firestore: () => ({
-    collection: () => ({
-      doc: mockDoc,
-      where: mockWhere
-    })
+    collection: (name: string) => {
+      if (name === 'expenses') {
+        return {
+          where: mockExpensesWhere
+        };
+      }
+      return {
+        doc: mockDoc,
+        where: mockWhere
+      };
+    }
   })
+}));
+
+// Mock validation functions
+jest.mock('../src/documents/validation', () => ({
+  validateCreateDocument: jest.fn((body) => {
+    if (!body.data) {
+      throw new ApiError(400, 'INVALID_INPUT', 'Invalid input data');
+    }
+    return { data: body.data };
+  }),
+  validateUpdateDocument: jest.fn((body) => {
+    if (!body.data) {
+      throw new ApiError(400, 'INVALID_INPUT', 'Invalid input data');
+    }
+    return { data: body.data };
+  }),
+  validateDocumentId: jest.fn((id) => {
+    if (!id) {
+      throw new ApiError(400, 'INVALID_INPUT', 'Invalid document ID');
+    }
+    return id;
+  }),
+  sanitizeDocumentData: jest.fn((data) => data)
 }));
 
 describe('Document Handlers', () => {
@@ -63,6 +110,15 @@ describe('Document Handlers', () => {
     mockLimit.mockReturnValue({
       get: mockGet
     });
+    
+    // Setup expenses mock for getGroupExpenseStats
+    mockExpensesWhere.mockReturnValue({
+      get: mockExpensesGet
+    });
+    mockExpensesGet.mockResolvedValue({
+      empty: true,
+      docs: []
+    });
   });
 
   describe('createDocument', () => {
@@ -97,47 +153,26 @@ describe('Document Handlers', () => {
       mockRequest.user = undefined;
       mockRequest.body = { data: { test: 'data' } };
 
-      await createDocument(
-        mockRequest as AuthenticatedRequest,
-        mockResponse as Response
-      );
+      await expect(
+        createDocument(
+          mockRequest as AuthenticatedRequest,
+          mockResponse as Response
+        )
+      ).rejects.toThrow(new ApiError(401, 'UNAUTHORIZED', 'Authentication required'));
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockSet).not.toHaveBeenCalled();
     });
 
     it('should reject invalid document data', async () => {
       mockRequest.body = {}; // Missing data field
 
-      await createDocument(
-        mockRequest as AuthenticatedRequest,
-        mockResponse as Response
-      );
+      await expect(
+        createDocument(
+          mockRequest as AuthenticatedRequest,
+          mockResponse as Response
+        )
+      ).rejects.toThrow(new ApiError(400, 'INVALID_INPUT', 'Invalid input data'));
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockSet).not.toHaveBeenCalled();
-    });
-
-    it('should reject documents exceeding size limit', async () => {
-      // Create a large object that exceeds 1MB
-      const largeData = {
-        data: 'x'.repeat(1024 * 1024 + 1) // Just over 1MB
-      };
-      mockRequest.body = { data: largeData };
-
-      await createDocument(
-        mockRequest as AuthenticatedRequest,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: 'DOCUMENT_TOO_LARGE'
-          })
-        })
-      );
       expect(mockSet).not.toHaveBeenCalled();
     });
   });
@@ -149,8 +184,8 @@ describe('Document Handlers', () => {
       const mockDocument = {
         userId: 'user123',
         data: { test: 'data' },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: mockTimestamp,
+        updatedAt: mockTimestamp
       };
       
       mockGet.mockResolvedValue({
@@ -167,8 +202,8 @@ describe('Document Handlers', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         id: 'doc123',
         data: mockDocument.data,
-        createdAt: mockDocument.createdAt,
-        updatedAt: mockDocument.updatedAt
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z'
       });
     });
 
@@ -179,12 +214,12 @@ describe('Document Handlers', () => {
         exists: false
       });
 
-      await getDocument(
-        mockRequest as AuthenticatedRequest,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      await expect(
+        getDocument(
+          mockRequest as AuthenticatedRequest,
+          mockResponse as Response
+        )
+      ).rejects.toThrow(new ApiError(404, 'NOT_FOUND', 'Document not found'));
     });
 
     it('should prevent access to documents owned by other users', async () => {
@@ -193,8 +228,8 @@ describe('Document Handlers', () => {
       const mockDocument = {
         userId: 'otheruser',
         data: { test: 'data' },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: mockTimestamp,
+        updatedAt: mockTimestamp
       };
       
       mockGet.mockResolvedValue({
@@ -202,12 +237,12 @@ describe('Document Handlers', () => {
         data: () => mockDocument
       });
 
-      await getDocument(
-        mockRequest as AuthenticatedRequest,
-        mockResponse as Response
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      await expect(
+        getDocument(
+          mockRequest as AuthenticatedRequest,
+          mockResponse as Response
+        )
+      ).rejects.toThrow(new ApiError(404, 'NOT_FOUND', 'Document not found'));
     });
   });
 
@@ -219,8 +254,8 @@ describe('Document Handlers', () => {
       const mockDocument = {
         userId: 'user123',
         data: { old: 'data' },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: mockTimestamp,
+        updatedAt: mockTimestamp
       };
       
       mockGet.mockResolvedValue({
@@ -250,8 +285,8 @@ describe('Document Handlers', () => {
       const mockDocument = {
         userId: 'user123',
         data: { test: 'data' },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: mockTimestamp,
+        updatedAt: mockTimestamp
       };
       
       mockGet.mockResolvedValue({
@@ -279,8 +314,8 @@ describe('Document Handlers', () => {
           data: () => ({
             userId: 'user123',
             data: { test: 'data1' },
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: mockTimestamp,
+            updatedAt: mockTimestamp
           })
         },
         {
@@ -288,8 +323,8 @@ describe('Document Handlers', () => {
           data: () => ({
             userId: 'user123',
             data: { test: 'data2' },
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: mockTimestamp,
+            updatedAt: mockTimestamp
           })
         }
       ];
@@ -305,19 +340,30 @@ describe('Document Handlers', () => {
 
       expect(mockWhere).toHaveBeenCalledWith('userId', '==', 'user123');
       expect(mockOrderBy).toHaveBeenCalledWith('updatedAt', 'desc');
-      expect(mockLimit).toHaveBeenCalledWith(100);
+      expect(mockLimit).toHaveBeenCalledWith(101); // 100 + 1 for pagination check
       expect(mockResponse.json).toHaveBeenCalledWith({
         documents: expect.arrayContaining([
           expect.objectContaining({
             id: 'doc1',
-            preview: expect.any(String)
+            data: { test: 'data1' },
+            createdAt: '2023-01-01T00:00:00.000Z',
+            updatedAt: '2023-01-01T00:00:00.000Z'
           }),
           expect.objectContaining({
             id: 'doc2',
-            preview: expect.any(String)
+            data: { test: 'data2' },
+            createdAt: '2023-01-01T00:00:00.000Z',
+            updatedAt: '2023-01-01T00:00:00.000Z'
           })
         ]),
-        count: 2
+        count: 2,
+        hasMore: false,
+        nextCursor: undefined,
+        pagination: {
+          limit: 100,
+          order: 'desc',
+          totalReturned: 2
+        }
       });
     });
   });

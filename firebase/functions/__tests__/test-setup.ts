@@ -18,7 +18,7 @@ const testConfig = {
     origin: [`http://localhost:${PORTS.LOCAL_3000}`, `http://localhost:${PORTS.LOCAL_5000}`],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
     optionsSuccessStatus: HTTP_STATUS.OK,
   },
 };
@@ -27,17 +27,7 @@ let isInitialized = false;
 
 export async function setupTestApp(): Promise<express.Application> {
   if (!isInitialized) {
-    // Initialize Firebase Admin for testing
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        projectId: 'test-project',
-        credential: admin.credential.applicationDefault(),
-      });
-    }
-
-    // Set emulator environment variables
-    process.env.FIRESTORE_EMULATOR_HOST = `localhost:${PORTS.FIRESTORE_EMULATOR}`;
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${PORTS.AUTH_EMULATOR}`;
+    // Set test environment
     process.env.NODE_ENV = 'test';
     
     isInitialized = true;
@@ -47,6 +37,15 @@ export async function setupTestApp(): Promise<express.Application> {
 
   // Apply middleware in the same order as production
   app.use(cors(testConfig.cors));
+  
+  // Add correlation ID middleware
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const correlationId = req.headers['x-correlation-id'] as string || `test-${Date.now()}`;
+    req.headers['x-correlation-id'] = correlationId;
+    res.setHeader('x-correlation-id', correlationId);
+    next();
+  });
+  
   app.use(express.json({ limit: CONFIG.requestBodyLimit }));
 
   // Enhanced health check endpoint
@@ -155,44 +154,13 @@ export async function setupTestApp(): Promise<express.Application> {
 
 // Cleanup function for tests
 export async function cleanupTestData(): Promise<void> {
-  try {
-    // Clean up test documents
-    const firestore = admin.firestore();
-    const documentsRef = firestore.collection('documents');
-    const snapshot = await documentsRef.get();
-    
-    const batch = firestore.batch();
-    snapshot.docs.forEach(doc => {
-      batch.delete(doc.ref);
-    });
-    
-    await batch.commit();
-
-    // Clean up rate limit documents
-    const rateLimitsRef = firestore.collection('rate_limits');
-    const rateLimitSnapshot = await rateLimitsRef.get();
-    
-    const rateLimitBatch = firestore.batch();
-    rateLimitSnapshot.docs.forEach(doc => {
-      rateLimitBatch.delete(doc.ref);
-    });
-    
-    await rateLimitBatch.commit();
-
-  } catch (error) {
-    console.warn('Cleanup warning:', error);
-  }
+  // No cleanup needed for mocked tests
+  jest.clearAllMocks();
 }
 
 // Setup for Jest
 beforeAll(async () => {
-  // Ensure emulators are running
-  const isEmulatorRunning = process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREBASE_AUTH_EMULATOR_HOST;
-  
-  if (!isEmulatorRunning) {
-    console.warn('Warning: Firebase emulators may not be running. Tests might fail.');
-    console.warn('Run: firebase emulators:start --only auth,firestore');
-  }
+  // Tests use mocks, no emulators needed
 }, TEST_CONFIG.SETUP_TIMEOUT_MS);
 
 afterAll(async () => {

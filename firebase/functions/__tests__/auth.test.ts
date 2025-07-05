@@ -1,6 +1,16 @@
 import { Response, NextFunction } from 'express';
-import * as admin from 'firebase-admin';
 import { authenticate, AuthenticatedRequest } from '../src/auth/middleware';
+
+// Mock logger
+jest.mock('../src/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    errorWithContext: jest.fn()
+  }
+}));
 
 // Mock Firebase Admin
 const mockVerifyIdToken = jest.fn();
@@ -8,6 +18,30 @@ jest.mock('firebase-admin', () => ({
   auth: () => ({
     verifyIdToken: mockVerifyIdToken
   })
+}));
+
+// Mock sendError function
+jest.mock('../src/utils/errors', () => ({
+  sendError: jest.fn(),
+  Errors: {
+    UNAUTHORIZED: () => ({ statusCode: 401, code: 'UNAUTHORIZED', message: 'Authentication required' }),
+    INVALID_TOKEN: () => ({ statusCode: 401, code: 'INVALID_TOKEN', message: 'Invalid authentication token' }),
+    RATE_LIMIT_EXCEEDED: () => ({ statusCode: 429, code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests, please try again later' })
+  }
+}));
+
+// Get the mocked sendError function
+const { sendError: mockSendError } = require('../src/utils/errors');
+
+// Mock config
+jest.mock('../src/config', () => ({
+  CONFIG: {
+    rateLimiting: {
+      windowMs: 60000,
+      maxRequests: 10,
+      cleanupIntervalMs: 300000 // 5 minutes - longer interval to avoid cleanup during tests
+    }
+  }
 }));
 
 describe('Authentication Middleware', () => {
@@ -18,13 +52,17 @@ describe('Authentication Middleware', () => {
   beforeEach(() => {
     mockRequest = {
       method: 'GET',
-      headers: {}
+      headers: {},
+      ip: '127.0.0.1'
     };
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
     };
     mockNext = jest.fn();
+    
+    // Reset mocks
+    mockSendError.mockClear();
   });
 
   afterEach(() => {
@@ -42,7 +80,7 @@ describe('Authentication Middleware', () => {
       );
 
       expect(mockNext).toHaveBeenCalled();
-      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockSendError).not.toHaveBeenCalled();
     });
 
     it('should reject requests without Authorization header', async () => {
@@ -52,14 +90,15 @@ describe('Authentication Middleware', () => {
         mockNext
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: {
+      expect(mockSendError).toHaveBeenCalledWith(
+        mockResponse,
+        expect.objectContaining({
+          statusCode: 401,
           code: 'UNAUTHORIZED',
-          message: 'Authentication required',
-          details: undefined
-        }
-      });
+          message: 'Authentication required'
+        }),
+        undefined
+      );
       expect(mockNext).not.toHaveBeenCalled();
     });
 
@@ -74,7 +113,15 @@ describe('Authentication Middleware', () => {
         mockNext
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockSendError).toHaveBeenCalledWith(
+        mockResponse,
+        expect.objectContaining({
+          statusCode: 401,
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }),
+        undefined
+      );
       expect(mockNext).not.toHaveBeenCalled();
     });
 
@@ -117,22 +164,25 @@ describe('Authentication Middleware', () => {
         mockNext
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: {
+      expect(mockSendError).toHaveBeenCalledWith(
+        mockResponse,
+        expect.objectContaining({
+          statusCode: 401,
           code: 'INVALID_TOKEN',
-          message: 'Invalid authentication token',
-          details: undefined
-        }
-      });
+          message: 'Invalid authentication token'
+        }),
+        undefined
+      );
       expect(mockNext).not.toHaveBeenCalled();
     });
   });
 
   describe('Rate Limiting', () => {
     it('should enforce rate limits per user', async () => {
+      // Use a unique user ID to avoid interference from other tests
+      const uniqueUserId = `ratelimit-test-${Date.now()}`;
       const mockDecodedToken = {
-        uid: 'user123',
+        uid: uniqueUserId,
         email: 'test@example.com'
       };
 
@@ -141,8 +191,8 @@ describe('Authentication Middleware', () => {
       };
 
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
-
-      // Make 10 requests (the limit)
+      
+      // Make requests up to the limit
       for (let i = 0; i < 10; i++) {
         await authenticate(
           mockRequest as AuthenticatedRequest,
@@ -152,12 +202,12 @@ describe('Authentication Middleware', () => {
       }
 
       expect(mockNext).toHaveBeenCalledTimes(10);
+      expect(mockSendError).not.toHaveBeenCalled();
 
       // Reset mocks for the 11th request
       mockNext.mockClear();
-      mockResponse.status = jest.fn().mockReturnThis();
-      mockResponse.json = jest.fn();
-
+      mockSendError.mockClear();
+      
       // 11th request should be rate limited
       await authenticate(
         mockRequest as AuthenticatedRequest,
@@ -165,14 +215,15 @@ describe('Authentication Middleware', () => {
         mockNext
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(429);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: {
+      expect(mockSendError).toHaveBeenCalledWith(
+        mockResponse,
+        expect.objectContaining({
+          statusCode: 429,
           code: 'RATE_LIMIT_EXCEEDED',
-          message: 'Too many requests, please try again later',
-          details: undefined
-        }
-      });
+          message: 'Too many requests, please try again later'
+        }),
+        undefined
+      );
       expect(mockNext).not.toHaveBeenCalled();
     });
   });
