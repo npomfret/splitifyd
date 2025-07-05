@@ -69,11 +69,10 @@ function populatePaidByOptions() {
         const option = document.createElement('option');
         option.value = member.userId;
         option.textContent = member.userId === currentUserId ? 'You' : member.name;
-        if (member.userId === currentUserId) {
-            option.selected = true;
-        }
         paidBySelect.appendChild(option);
     });
+    
+    paidBySelect.value = currentUserId;
 }
 
 function populateMembers() {
@@ -239,7 +238,7 @@ async function handleSubmit(event) {
     try {
         const submitButton = document.getElementById('submitButton');
         submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         
         await api.createExpense(expenseData);
         
@@ -255,7 +254,7 @@ async function handleSubmit(event) {
         
         const submitButton = document.getElementById('submitButton');
         submitButton.disabled = false;
-        submitButton.innerHTML = '<i class="fas fa-plus"></i> Add Expense';
+        submitButton.innerHTML = '<i class="fas fa-save"></i> Save';
     }
 }
 
