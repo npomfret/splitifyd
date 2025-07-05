@@ -693,7 +693,7 @@ class AddExpenseModal extends Modal {
                 <input 
                     type="checkbox" 
                     name="participants" 
-                    value="${member.id}"
+                    value="${member.uid}"
                     checked
                 >
                 <span>${member.displayName || member.name || member.email || 'Unknown'}</span>
