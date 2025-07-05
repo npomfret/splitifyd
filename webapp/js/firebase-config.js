@@ -80,34 +80,7 @@ class FirebaseConfigManager {
             return firebaseConfig;
             
         } catch (error) {
-            console.error('Config fetch failed:', error);
-            
-            if (this.isLocalEnvironment()) {
-                console.warn('Falling back to default local configuration');
-                const defaultConfig = {
-                    projectId: 'splitifyd',
-                    apiKey: 'demo-api-key',
-                    authDomain: 'splitifyd.firebaseapp.com',
-                    storageBucket: 'splitifyd.appspot.com',
-                    messagingSenderId: '123456789',
-                    appId: 'demo-app-id'
-                };
-                
-                this.config = {
-                    firebaseConfig: defaultConfig,
-                    apiUrl: this.getApiUrlForProject(defaultConfig.projectId),
-                    isLocal: true,
-                    formDefaults: {
-                        displayName: 'test',
-                        email: 'test@test.com',
-                        password: 'rrRR44$$'
-                    }
-                };
-                
-                return defaultConfig;
-            }
-            
-            throw error;
+            throw new Error(`Firebase configuration fetch failed: ${error.message}. Ensure Firebase emulator is running at ${configUrl}`);
         }
     }
 
