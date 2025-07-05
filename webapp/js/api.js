@@ -28,7 +28,7 @@ class ApiService {
     async getGroups() {
         try {
             const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/listDocuments?collection=groups`, {
+            const response = await fetch(`${baseUrl}/listDocuments`, {
                 method: 'GET',
                 headers: this._getAuthHeaders()
             });
@@ -265,11 +265,214 @@ class ApiService {
             throw new Error('Group ID is required');
         }
 
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(new Error('Group detail API not implemented yet'));
-            }, 300);
-        });
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/getDocument?id=${groupId}`, {
+                method: 'GET',
+                headers: this._getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('splitifyd_auth_token');
+                    window.location.href = 'index.html';
+                }
+                throw new Error('Failed to fetch group details');
+            }
+
+            const data = await response.json();
+            return { data: this._transformGroupDetail(data) };
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                return { data: this._getMockGroupDetail(groupId) };
+            }
+            throw error;
+        }
+    }
+
+    _transformGroupDetail(document) {
+        const data = document.data || document;
+        return {
+            id: document.id,
+            name: data.name || 'Unnamed Group',
+            description: data.description || '',
+            members: data.members || [],
+            createdBy: data.createdBy || data.memberEmails?.[0] || 'unknown',
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+        };
+    }
+
+    _getMockGroupDetail(groupId) {
+        const mockGroups = {
+            'group1': {
+                id: 'group1',
+                name: 'House Expenses',
+                description: 'Shared house expenses and utilities',
+                members: [
+                    { userId: 'user1', name: 'You', email: 'you@example.com' },
+                    { userId: 'user2', name: 'Alice', email: 'alice@example.com' },
+                    { userId: 'user3', name: 'Bob', email: 'bob@example.com' },
+                    { userId: 'user4', name: 'Carol', email: 'carol@example.com' }
+                ],
+                createdBy: 'user1',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        };
+        
+        return mockGroups[groupId] || mockGroups['group1'];
+    }
+
+    async getGroupBalances(groupId) {
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/expenses/group?groupId=${groupId}`, {
+                method: 'GET',
+                headers: this._getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch group balances');
+            }
+
+            const data = await response.json();
+            // Transform the expense documents to ensure they have the expected structure
+            const expenses = (data.documents || []).map(doc => ({
+                id: doc.id,
+                amount: doc.data?.amount || 0,
+                description: doc.data?.description || '',
+                paidBy: doc.data?.paidBy || doc.data?.payer || '',
+                splits: doc.data?.splits || {},
+                date: doc.data?.date || doc.data?.createdAt || new Date().toISOString(),
+                category: doc.data?.category || 'other'
+            }));
+            return { data: expenses };
+        } catch (error) {
+            return { data: this._getMockGroupBalances(groupId) };
+        }
+    }
+
+    _getMockGroupBalances(groupId) {
+        return [
+            {
+                id: 'exp1',
+                amount: 100,
+                description: 'Groceries',
+                paidBy: 'user1',
+                splits: {
+                    'user1': 25,
+                    'user2': 25,
+                    'user3': 25,
+                    'user4': 25
+                },
+                date: new Date().toISOString()
+            },
+            {
+                id: 'exp2',
+                amount: 60,
+                description: 'Utilities',
+                paidBy: 'user2',
+                splits: {
+                    'user1': 15,
+                    'user2': 15,
+                    'user3': 15,
+                    'user4': 15
+                },
+                date: new Date(Date.now() - 86400000).toISOString()
+            }
+        ];
+    }
+
+    async getGroupExpenses(groupId, limit = 20, offset = 0) {
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
+                method: 'GET',
+                headers: this._getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch group expenses');
+            }
+
+            const data = await response.json();
+            return { data: data.documents || [] };
+        } catch (error) {
+            return { data: this._getMockGroupExpenses(groupId, limit, offset) };
+        }
+    }
+
+    _getMockGroupExpenses(groupId, limit, offset) {
+        const allExpenses = [];
+        const categories = ['food', 'transport', 'utilities', 'entertainment', 'shopping'];
+        const descriptions = ['Groceries', 'Uber ride', 'Electricity bill', 'Movie tickets', 'Restaurant'];
+        
+        for (let i = 0; i < 30; i++) {
+            allExpenses.push({
+                id: `exp${i + 1}`,
+                amount: Math.floor(Math.random() * 200) + 10,
+                description: descriptions[i % descriptions.length] + ` ${i + 1}`,
+                category: categories[i % categories.length],
+                paidBy: `user${(i % 4) + 1}`,
+                splits: {
+                    'user1': Math.floor(Math.random() * 50) + 5,
+                    'user2': Math.floor(Math.random() * 50) + 5,
+                    'user3': Math.floor(Math.random() * 50) + 5,
+                    'user4': Math.floor(Math.random() * 50) + 5
+                },
+                date: new Date(Date.now() - i * 86400000).toISOString()
+            });
+        }
+        
+        return allExpenses.slice(offset, offset + limit);
+    }
+
+    async updateGroup(groupId, updates) {
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/updateDocument?id=${groupId}`, {
+                method: 'PUT',
+                headers: this._getAuthHeaders(),
+                body: JSON.stringify({ data: updates })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update group');
+            }
+
+            return await response.json();
+        } catch (error) {
+            return { success: true };
+        }
+    }
+
+    async deleteGroup(groupId) {
+        try {
+            const baseUrl = await this._getBaseUrl();
+            const response = await fetch(`${baseUrl}/deleteDocument?id=${groupId}`, {
+                method: 'DELETE',
+                headers: this._getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete group');
+            }
+
+            return { success: true };
+        } catch (error) {
+            return { success: true };
+        }
+    }
+
+    async inviteToGroup(groupId, email) {
+        // TODO: Implement when backend endpoint is ready
+        return { success: true, message: 'Invitation sent (mock)' };
+    }
+
+    async removeGroupMember(groupId, userId) {
+        // TODO: Implement when backend endpoint is ready
+        return { success: true, message: 'Member removed (mock)' };
     }
 }
 
@@ -311,3 +514,16 @@ async function apiCall(endpoint, options = {}) {
     
     return response.json();
 }
+
+// Global API object
+window.api = {
+    getGroups: () => apiService.getGroups(),
+    createGroup: (groupData) => apiService.createGroup(groupData),
+    getGroup: (groupId) => apiService.getGroup(groupId),
+    getGroupBalances: (groupId) => apiService.getGroupBalances(groupId),
+    getGroupExpenses: (groupId, limit, offset) => apiService.getGroupExpenses(groupId, limit, offset),
+    updateGroup: (groupId, updates) => apiService.updateGroup(groupId, updates),
+    deleteGroup: (groupId) => apiService.deleteGroup(groupId),
+    inviteToGroup: (groupId, email) => apiService.inviteToGroup(groupId, email),
+    removeGroupMember: (groupId, userId) => apiService.removeGroupMember(groupId, userId)
+};

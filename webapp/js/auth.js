@@ -227,6 +227,9 @@ class AuthManager {
             const idToken = await userCredential.user.getIdToken();
             this.#setToken(idToken);
             
+            // Store user ID for client-side operations
+            localStorage.setItem('userId', userCredential.user.uid);
+            
             window.location.href = 'dashboard.html';
             
         } catch (error) {
@@ -297,6 +300,9 @@ class AuthManager {
             // Get ID token for API authentication
             const idToken = await userCredential.user.getIdToken();
             this.#setToken(idToken);
+            
+            // Store user ID for client-side operations
+            localStorage.setItem('userId', userCredential.user.uid);
             
             // Skip user document creation for now - can be done on first dashboard load
             console.log('Registration successful, redirecting to dashboard');
@@ -461,6 +467,7 @@ class AuthManager {
     clearToken() {
         this.#token = null;
         localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem('userId');
     }
 
     isAuthenticated() {

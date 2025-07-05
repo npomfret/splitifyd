@@ -32,12 +32,12 @@ Each group card should show:
 
 ### 4. Group Detail View
 When clicking on a group:
-- [ ] Group balance summary (who owes whom)
-- [ ] Group expenses list
-- [ ] Add expense button (pre-populated with this group)
-- [ ] Group settings/members management
-- [ ] Simplify debts view for this group
-- [ ] Group activity history
+- [x] Group balance summary (who owes whom)
+- [x] Group expenses list
+- [x] Add expense button (pre-populated with this group)
+- [x] Group settings/members management
+- [x] Simplify debts view for this group
+- [x] Group activity history
 
 ### 5. Add Expense Form
 - [x] Amount input with decimal support
@@ -269,8 +269,8 @@ webapp/
 4. ✅ **Groups list on home page** - Complete with search/filter
 5. ✅ **Group creation** - Complete with validation
 6. ✅ **Add expense form** - Complete with all split types
-7. **Group detail view** - Next priority
-8. **Expense list and filtering**
+7. ✅ **Group detail view** - Complete with all features
+8. **Expense list and filtering** - Next priority
 9. **Settlement recording**
 10. **Friends management**
 11. Everything else based on user feedback

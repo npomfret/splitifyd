@@ -294,7 +294,7 @@ class GroupsList {
     }
 
     openGroupDetail(groupId) {
-        console.log(`Open group detail for ${groupId} - not implemented yet`);
+        window.location.href = `group-detail.html?id=${groupId}`;
     }
 
     async openAddExpenseModal(groupId) {
