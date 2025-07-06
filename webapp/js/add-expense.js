@@ -3,12 +3,23 @@ let currentGroupId = null;
 let selectedMembers = new Set();
 let lastExpenseData = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(async () => {
-        if (!window.authManager || !window.authManager.isAuthenticated()) {
-            window.location.href = 'index.html';
-            return;
-        }
+async function waitForAuthManager() {
+    const maxAttempts = 50;
+    let attempts = 0;
+    
+    while ((!window.authManager || !window.authManager.isAuthenticated()) && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+        throw new Error('Authentication manager failed to initialize or user not authenticated');
+    }
+}
+
+async function initializeAddExpensePage() {
+    try {
+        await waitForAuthManager();
         
         if (!localStorage.getItem('userId')) {
             localStorage.setItem('userId', 'user1');
@@ -31,8 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadUserPreferences();
         }
         initializeEventListeners();
-    }, 100);
-});
+    } catch (error) {
+        window.location.href = 'index.html';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initializeAddExpensePage);
 
 async function loadExpenseForEditing(expenseId) {
     try {

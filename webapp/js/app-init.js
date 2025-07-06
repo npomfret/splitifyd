@@ -23,15 +23,16 @@ export class AppInit {
 
   static async waitForFirebase() {
     const maxAttempts = 50;
+    const intervalMs = 100;
     let attempts = 0;
     
     while (!window.firebase && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, intervalMs));
       attempts++;
     }
     
     if (!window.firebase) {
-      throw new Error('Firebase failed to load');
+      throw new Error(`Firebase failed to load after ${maxAttempts * intervalMs}ms`);
     }
   }
 
@@ -93,8 +94,6 @@ export class AppInit {
   }
 
   static handleError(error, userMessage = null) {
-    console.error('Application error:', error);
-    
     let message = userMessage || 'An error occurred. Please try again.';
     
     if (error.code) {

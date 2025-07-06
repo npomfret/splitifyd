@@ -232,8 +232,8 @@ async function runAllTests() {
             if (result) passed++;
             else failed++;
             
-            // Add a small delay between tests
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Brief pause for visual feedback in test UI
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         addTestResult('Test Summary', passed === tests.length ? 'success' : 'error', 
@@ -247,11 +247,31 @@ async function runAllTests() {
     }
 }
 
-// Auto-run tests on page load and attach event listeners
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(runAllTests, 1000);
+async function waitForDOMReady() {
+    const maxAttempts = 50;
+    let attempts = 0;
     
-    // Attach event listeners
-    document.getElementById('run-tests')?.addEventListener('click', runAllTests);
-    document.getElementById('clear-results')?.addEventListener('click', clearResults);
-});
+    while ((!document.getElementById('run-tests') || !document.getElementById('clear-results')) && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    if (!document.getElementById('run-tests') || !document.getElementById('clear-results')) {
+        throw new Error('Test page elements failed to load');
+    }
+}
+
+async function initializeTestPage() {
+    try {
+        await waitForDOMReady();
+        
+        document.getElementById('run-tests').addEventListener('click', runAllTests);
+        document.getElementById('clear-results').addEventListener('click', clearResults);
+        
+        await runAllTests();
+    } catch (error) {
+        addTestResult('Test Initialization Error', 'error', error.message);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', initializeTestPage);

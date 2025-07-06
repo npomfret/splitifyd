@@ -5,15 +5,24 @@ let currentExpense = null;
 let currentUser = null;
 let currentGroup = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait for authManager to be initialized
-    setTimeout(async () => {
-        if (!window.authManager || !window.authManager.isAuthenticated()) {
-            window.location.href = 'index.html';
-            return;
-        }
+async function waitForAuthManager() {
+    const maxAttempts = 50;
+    let attempts = 0;
+    
+    while ((!window.authManager || !window.authManager.isAuthenticated()) && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+        throw new Error('Authentication manager failed to initialize or user not authenticated');
+    }
+}
+
+async function initializeExpenseDetailPage() {
+    try {
+        await waitForAuthManager();
         
-        // Ensure we have a userId for development
         if (!localStorage.getItem('userId')) {
             localStorage.setItem('userId', 'user1');
         }
@@ -28,8 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await loadExpenseDetails(expenseId);
         setupEventListeners();
-    }, 100);
-});
+    } catch (error) {
+        window.location.href = 'index.html';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initializeExpenseDetailPage);
 
 async function loadExpenseDetails(expenseId) {
     try {

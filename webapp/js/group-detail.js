@@ -7,16 +7,24 @@ const expensesLimit = 20;
 let isLoadingExpenses = false;
 let hasMoreExpenses = true;
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait for authManager to be initialized
-    setTimeout(async () => {
-        // Check authentication before loading page
-        if (!window.authManager || !window.authManager.isAuthenticated()) {
-            window.location.href = 'index.html';
-            return;
-        }
+async function waitForAuthManager() {
+    const maxAttempts = 50;
+    let attempts = 0;
+    
+    while ((!window.authManager || !window.authManager.isAuthenticated()) && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+        throw new Error('Authentication manager failed to initialize or user not authenticated');
+    }
+}
+
+async function initializeGroupDetailPage() {
+    try {
+        await waitForAuthManager();
         
-        // Ensure we have a userId for development
         if (!localStorage.getItem('userId')) {
             localStorage.setItem('userId', 'user1');
         }
@@ -31,8 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         await loadGroupDetails();
         initializeEventListeners();
-    }, 100);
-});
+    } catch (error) {
+        window.location.href = 'index.html';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initializeGroupDetailPage);
 
 function initializeEventListeners() {
     document.querySelectorAll('.tab-button').forEach(button => {
