@@ -1,22 +1,22 @@
 /* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
     /* Colors */
-    --color-primary: #667eea;
-    --color-primary-dark: #5a67d8;
-    --color-primary-light: #7c87f0;
-    --color-surface: #ffffff;
-    --color-background: #f7fafc;
-    --color-text: #1a202c;
-    --color-text-muted: #718096;
-    --color-text-light: #a0aec0;
-    --color-border: #e2e8f0;
-    --color-border-focus: #667eea;
-    --color-error: #e53e3e;
-    --color-success: #38a169;
-    --color-warning: #ed8936;
+    --color-primary: #6A0DAD; /* Deep Purple from landing.css */
+    --color-primary-dark: #5A0B9C; /* Slightly darker purple */
+    --color-primary-light: #8A2BE2; /* Lighter purple from landing.css hero gradient */
+    --color-surface: #F0F0FF; /* Very light blue/purple */
+    --color-background: #f0f2f5; /* Light gray from landing.css */
+    --color-text: #A0A0C0; /* Light, low-contrast text */
+    --color-text-muted: #B0B0D0; /* Even lighter, lower-contrast text */
+    --color-text-light: #a0aec0; /* Keeping original as landing.css light-text-color is for dark backgrounds */
+    --color-border: #e2e8f0; /* Keeping original for now */
+    --color-border-focus: #6A0DAD; /* Primary color from landing.css */
+    --color-error: #e53e3e; /* Keeping original */
+    --color-success: #4CAF50; /* Green from landing.css */
+    --color-warning: #ed8936; /* Keeping original */
     
     /* Typography */
-    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-family-base: 'cursive'; /* Changed to a difficult-to-read font as requested */
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -715,6 +715,48 @@ body:has(.dashboard-header) {
     padding: 0 var(--space-md);
 }
 
+/* Styles for content pages like Privacy Policy and Terms of Service */
+main .container {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-xl);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-xl);
+}
+
+header h1 { /* Added for main page titles */
+    text-align: center;
+}
+
+main h1 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    text-align: center; /* Centered */
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-md);
+}
+
+main h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+    text-align: center; /* Centered */
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-lg);
+}
+
+main p {
+    margin-bottom: var(--space-md);
+    line-height: 1.8;
+    color: var(--color-text-muted);
+}
+
+main section {
+    margin-bottom: var(--space-xl);
+}
+
 /* ===== GROUPS COMPONENTS ===== */
 .groups-container {
     width: 100%;
@@ -963,11 +1005,10 @@ body:has(.dashboard-header) {
     height: 32px;
     border-radius: 50%;
     background: var(--color-primary);
-    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--font-size-sm);
+    color: white;
     font-weight: var(--font-weight-semibold);
     border: 2px solid var(--color-surface);
     box-shadow: var(--shadow-sm);
@@ -1131,7 +1172,7 @@ body:has(.dashboard-header) {
 }
 
 .balances-section {
-    /* Balances section specific styles */
+    /* Balances list specific styles */
 }
 
 .balances-list {
@@ -2000,207 +2041,5 @@ body:has(.dashboard-header) {
     }
     100% { 
         transform: rotate(360deg); 
-    }
-}
-
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 480px) {
-    body {
-        padding: var(--space-sm);
-    }
-    
-    .auth-card {
-        padding: var(--space-lg);
-    }
-    
-    .auth-card__title {
-        font-size: var(--font-size-2xl);
-    }
-    
-    .form-input {
-        font-size: 16px; /* Prevents zoom on iOS */
-    }
-}
-
-@media (min-width: 481px) {
-    .auth-card {
-        padding: var(--space-2xl);
-    }
-}
-
-@media (max-width: 768px) {
-    .dashboard-container {
-        padding: 0 var(--space-sm);
-    }
-    
-    .dashboard-title {
-        font-size: var(--font-size-lg);
-    }
-    
-    .dashboard-summary {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .dashboard-summary__balances {
-        justify-content: center;
-    }
-    
-    .groups-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-md);
-    }
-    
-    .group-card__add-expense {
-        position: static;
-        opacity: 1;
-        transform: none;
-        width: 100%;
-        margin-top: var(--space-md);
-    }
-    
-    .nav-header {
-        padding: var(--space-sm);
-    }
-    
-    .page-title {
-        font-size: var(--font-size-base);
-    }
-    
-    .group-info {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .group-icon-large {
-        width: 60px;
-        height: 60px;
-        font-size: var(--font-size-2xl);
-    }
-    
-    .group-name {
-        font-size: var(--font-size-xl);
-    }
-    
-    .quick-actions {
-        padding: var(--space-md);
-        gap: var(--space-sm);
-    }
-    
-    .btn {
-        padding: var(--space-sm) var(--space-md);
-        font-size: var(--font-size-sm);
-    }
-    
-    .tab-button {
-        padding: var(--space-md);
-        font-size: var(--font-size-sm);
-    }
-    
-    .tab-pane {
-        padding: var(--space-md);
-    }
-    
-    .balance-card {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-sm);
-    }
-    
-    .expense-item {
-        padding: var(--space-sm);
-    }
-    
-    .expense-icon {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .expense-detail-container {
-        padding: var(--space-sm);
-    }
-    
-    .expense-header {
-        padding: var(--space-lg);
-    }
-    
-    .expense-amount {
-        font-size: var(--font-size-2xl);
-    }
-    
-    .expense-meta {
-        flex-direction: column;
-        gap: var(--space-sm);
-    }
-    
-    .participant-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-sm);
-    }
-    
-    .participant-amount {
-        align-self: flex-end;
-    }
-    
-    .header-actions {
-        flex-direction: column;
-    }
-    
-    .modal-content {
-        max-width: 100%;
-        width: 100%;
-        border-radius: 0;
-        height: 100vh;
-        max-height: 100vh;
-    }
-    
-    .form-actions {
-        flex-direction: column-reverse;
-    }
-    
-    .form-actions .button {
-        width: 100%;
-    }
-}
-
-/* ===== PRINT STYLES ===== */
-@media print {
-    body {
-        background: white;
-    }
-    
-    .auth-card {
-        box-shadow: none;
-        border: 1px solid var(--color-border);
-    }
-}
-
-/* ===== HIGH CONTRAST MODE ===== */
-@media (prefers-contrast: high) {
-    .form-input {
-        border-width: 3px;
-    }
-    
-    .button--primary {
-        background: var(--color-text);
-        color: var(--color-surface);
-    }
-}
-
-/* ===== REDUCED MOTION ===== */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-    
-    .auth-card:hover {
-        transform: none;
-    }
-    
-    .button--primary:hover:not(:disabled) {
-        transform: none;
     }
 }
