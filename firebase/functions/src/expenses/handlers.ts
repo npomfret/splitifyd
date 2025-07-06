@@ -2,6 +2,7 @@ import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -32,12 +33,6 @@ const toISOString = (value: Timestamp | Date | any): string => {
   return value;
 };
 
-const validateUserAuth = (req: AuthenticatedRequest): string => {
-  if (!req.user) {
-    throw Errors.UNAUTHORIZED();
-  }
-  return req.user.uid;
-};
 
 const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
   const groupDoc = await getGroupsCollection().doc(groupId).get();

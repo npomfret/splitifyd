@@ -2,6 +2,7 @@ import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { validateUserAuth } from '../auth/utils';
 import { Errors } from '../utils/errors';
 import { CONFIG } from '../config';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
@@ -19,12 +20,6 @@ const getDocumentsCollection = () => {
   return admin.firestore().collection('documents');
 };
 
-const validateUserAuth = (req: AuthenticatedRequest): string => {
-  if (!req.user) {
-    throw Errors.UNAUTHORIZED();
-  }
-  return req.user.uid;
-};
 
 const fetchUserDocument = async (documentId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference, document: Document }> => {
   const docRef = getDocumentsCollection().doc(documentId);
