@@ -27,7 +27,8 @@
     "express": "^4.21.2",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^6.3.2",
-    "joi": "^17.13.3"
+    "joi": "^17.13.3",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

@@ -1,4 +1,4 @@
-import { onDocumentCreated, onDocumentUpdated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 
 const recalculateGroupStats = async (groupId: string): Promise<void> => {
@@ -31,67 +31,63 @@ const recalculateGroupStats = async (groupId: string): Promise<void> => {
   });
 };
 
-export const onExpenseCreate = onDocumentCreated('expenses/{expenseId}', async (event) => {
-  const snapshot = event.data;
-  if (!snapshot) {
-    return;
-  }
-  
-  const expense = snapshot.data();
-  const groupId = expense.groupId;
-  
-  if (!groupId) {
-    return;
-  }
-  
-  try {
-    await admin.firestore().collection('documents').doc(groupId).update({
-      'data.expenseCount': admin.firestore.FieldValue.increment(1),
-      'data.lastExpenseTime': (expense.createdAt as any).toDate().toISOString()
-    });
-  } catch (error) {
-    console.error('Failed to update group stats on expense create:', error);
-    throw error;
-  }
-});
-
-export const onExpenseUpdate = onDocumentUpdated('expenses/{expenseId}', async (event) => {
-  const beforeData = event.data?.before.data();
-  const afterData = event.data?.after.data();
-  
-  if (!beforeData || !afterData) {
-    return;
-  }
-  
-  if (beforeData.groupId !== afterData.groupId) {
-    if (beforeData.groupId) {
-      await recalculateGroupStats(beforeData.groupId);
+export const onExpenseCreateV5 = functions.firestore
+  .document('expenses/{expenseId}')
+  .onCreate(async (snapshot, context) => {
+    const expense = snapshot.data();
+    const groupId = expense.groupId;
+    
+    if (!groupId) {
+      return;
     }
-    if (afterData.groupId) {
+    
+    try {
+      await admin.firestore().collection('documents').doc(groupId).update({
+        'data.expenseCount': admin.firestore.FieldValue.increment(1),
+        'data.lastExpenseTime': (expense.createdAt as any).toDate().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to update group stats on expense create:', error);
+      throw error;
+    }
+  });
+
+export const onExpenseUpdateV5 = functions.firestore
+  .document('expenses/{expenseId}')
+  .onUpdate(async (change, context) => {
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
+    
+    if (!beforeData || !afterData) {
+      return;
+    }
+    
+    if (beforeData.groupId !== afterData.groupId) {
+      if (beforeData.groupId) {
+        await recalculateGroupStats(beforeData.groupId);
+      }
+      if (afterData.groupId) {
+        await recalculateGroupStats(afterData.groupId);
+      }
+    } else if (afterData.groupId) {
       await recalculateGroupStats(afterData.groupId);
     }
-  } else if (afterData.groupId) {
-    await recalculateGroupStats(afterData.groupId);
-  }
-});
+  });
 
-export const onExpenseDelete = onDocumentDeleted('expenses/{expenseId}', async (event) => {
-  const snapshot = event.data;
-  if (!snapshot) {
-    return;
-  }
-  
-  const expense = snapshot.data();
-  const groupId = expense.groupId;
-  
-  if (!groupId) {
-    return;
-  }
-  
-  try {
-    await recalculateGroupStats(groupId);
-  } catch (error) {
-    console.error('Failed to update group stats on expense delete:', error);
-    throw error;
-  }
-});
+export const onExpenseDeleteV5 = functions.firestore
+  .document('expenses/{expenseId}')
+  .onDelete(async (snapshot, context) => {
+    const expense = snapshot.data();
+    const groupId = expense.groupId;
+    
+    if (!groupId) {
+      return;
+    }
+    
+    try {
+      await recalculateGroupStats(groupId);
+    } catch (error) {
+      console.error('Failed to update group stats on expense delete:', error);
+      throw error;
+    }
+  });

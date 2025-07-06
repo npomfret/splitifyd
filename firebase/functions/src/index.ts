@@ -26,7 +26,7 @@ import {
   listUserExpenses,
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
-import { onExpenseCreate, onExpenseUpdate, onExpenseDelete } from './triggers/expenseAggregation';
+import { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5 } from './triggers/expenseAggregation';
 
 // Firebase Admin initialization (emulators auto-configured in config.ts)
 
@@ -217,4 +217,4 @@ export const api = onRequest({
 }, app);
 
 // Export Firestore triggers
-export { onExpenseCreate, onExpenseUpdate, onExpenseDelete };
+export { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5 };
