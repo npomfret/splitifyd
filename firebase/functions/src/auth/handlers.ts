@@ -3,31 +3,11 @@ import { Request, Response } from 'express';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { CONFIG } from '../config';
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface RegisterRequest {
-  email: string;
-  password: string;
-  displayName: string;
-}
+import { validateLoginRequest, validateRegisterRequest } from './validation';
 
 
 export const login = async (req: Request, res: Response): Promise<void> => {
-  const { email, password }: LoginRequest = req.body;
-
-  if (!email || !password) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json({
-      error: {
-        code: 'MISSING_FIELDS',
-        message: 'Email and password are required'
-      }
-    });
-    return;
-  }
+  const { email } = validateLoginRequest(req.body);
 
   try {
     // First, check if the user exists
@@ -87,17 +67,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, displayName }: RegisterRequest = req.body;
-
-  if (!email || !password || !displayName) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json({
-      error: {
-        code: 'MISSING_FIELDS',
-        message: 'Email, password, and display name are required'
-      }
-    });
-    return;
-  }
+  const { email, password, displayName } = validateRegisterRequest(req.body);
 
   try {
     // Create the user
