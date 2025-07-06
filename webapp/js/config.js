@@ -1,17 +1,11 @@
 class Config {
     constructor() {
-        this._configPromise = null;
-    }
-
-    async _ensureInitialized() {
-        if (!this._configPromise) {
-            this._configPromise = window.firebaseConfigManager.initialize();
-        }
-        return this._configPromise;
     }
 
     async getApiUrl() {
-        await this._ensureInitialized();
+        if (!window.firebaseConfigManager.isInitialized()) {
+            await window.firebaseConfigManager.initialize();
+        }
         return window.firebaseConfigManager.getApiUrl();
     }
 
@@ -36,7 +30,9 @@ class Config {
     }
 
     async getConfig() {
-        await this._ensureInitialized();
+        if (!window.firebaseConfigManager.isInitialized()) {
+            await window.firebaseConfigManager.initialize();
+        }
         return window.firebaseConfigManager.getConfig();
     }
 }

@@ -143,3 +143,7 @@ class FirebaseConfigManager {
 }
 
 window.firebaseConfigManager = new FirebaseConfigManager();
+
+window.firebaseConfigManager.initialize().catch(error => {
+    console.error('Failed to initialize Firebase on startup:', error);
+});
