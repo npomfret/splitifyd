@@ -102,13 +102,13 @@ main .container {
 
 header {
     position: relative;
-    padding: var(--space-2xl) var(--space-md) var(--space-xl); /* Increased top padding */
+    padding: var(--space-xl) var(--space-md); /* Adjusted padding for header */
 }
 
 header h1 {
     text-align: center;
     padding: 0;
-    margin: 0; /* Removed margin-top */
+    margin: 0;
 }
 
 .home-link {
@@ -117,8 +117,8 @@ header h1 {
     left: var(--space-md);
     color: var(--color-text);
     text-decoration: none;
-    font-weight: var(--font-weight-bold); /* Made bold */
-    font-size: var(--font-size-lg); /* Increased font size */
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
     transition: color 0.3s ease;
 }
 
