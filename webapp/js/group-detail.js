@@ -166,15 +166,18 @@ function calculateUserBalances(expenses) {
     
     expenses.forEach(expense => {
         const payerId = expense.paidBy;
-        const splits = expense.splits || {};
+        const splits = expense.splits || [];
         
         // Skip if no valid splits data
-        if (!splits || typeof splits !== 'object') {
-            console.warn('Splits is not an object:', splits);
+        if (!Array.isArray(splits) || splits.length === 0) {
+            console.warn('Splits is not a valid array:', splits);
             return;
         }
         
-        Object.entries(splits).forEach(([uid, amount]) => {
+        splits.forEach(split => {
+            const uid = split.userId;
+            const amount = split.amount;
+            
             if (uid !== payerId && balances[uid] && balances[payerId]) {
                 balances[uid].balance -= amount;
                 balances[payerId].balance += amount;
@@ -326,7 +329,7 @@ function createExpenseItem(expense) {
     
     const currentUserId = localStorage.getItem('userId');
     const paidByYou = expense.paidBy === currentUserId;
-    const yourShare = expense.splits[currentUserId] || 0;
+    const yourShare = expense.splits.find(s => s.userId === currentUserId)?.amount || 0;
     const payer = currentGroup.members.find(m => m.uid === expense.paidBy);
     
     const date = new Date(expense.date);

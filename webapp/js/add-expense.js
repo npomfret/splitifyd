@@ -228,13 +228,13 @@ function populateFormWithExpense(expense) {
     document.getElementById('category').value = expense.category || '';
     document.getElementById('paidBy').value = expense.paidBy;
     
-    const splits = expense.splits || {};
+    const splits = expense.splits || [];
     
     const splitMethod = determineSplitMethod(splits);
     document.querySelector(`input[name="splitMethod"][value="${splitMethod}"]`).checked = true;
     
-    Object.keys(splits).forEach(userId => {
-        selectedMembers.add(userId);
+    splits.forEach(split => {
+        selectedMembers.add(split.userId);
     });
     
     updateMemberCheckboxes();
@@ -246,7 +246,11 @@ function populateFormWithExpense(expense) {
 }
 
 function determineSplitMethod(splits) {
-    const amounts = Object.values(splits);
+    if (!Array.isArray(splits) || splits.length === 0) {
+        return 'equal';
+    }
+    
+    const amounts = splits.map(split => split.amount);
     const totalAmount = amounts.reduce((sum, amount) => sum + amount, 0);
     const equalAmount = totalAmount / amounts.length;
     
@@ -261,12 +265,12 @@ function populateCustomSplits(splits) {
     const customInputs = document.getElementById('customSplitInputs');
     const inputs = customInputs.querySelectorAll('input');
     
-    Object.entries(splits).forEach(([userId, amount]) => {
+    splits.forEach(split => {
         const input = Array.from(inputs).find(input => 
-            input.dataset.memberId === userId
+            input.dataset.memberId === split.userId
         );
         if (input) {
-            input.value = amount;
+            input.value = split.amount;
         }
     });
     
