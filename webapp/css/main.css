@@ -841,7 +841,7 @@ main section {
 
 .group-card__activity {
     font-size: var(--font-size-sm);
-    color: var(--color-text-light);
+    color: var(--color-text-muted);
 }
 
 .group-card__balance-text {
