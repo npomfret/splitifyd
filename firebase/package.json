@@ -12,7 +12,7 @@
     "generate-test-data": "cd functions && node scripts/generate-test-data.js",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
-    "deploy:prod": "firebase use splitifyd && firebase deploy",
+    "deploy:prod": "npm run build && firebase use splitifyd && firebase deploy",
     "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
     "deploy:hosting": "npm run build && firebase use splitifyd && firebase deploy --only hosting",
     "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
