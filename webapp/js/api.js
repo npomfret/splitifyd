@@ -27,24 +27,9 @@ class ApiService {
 
     async getGroups() {
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/listDocuments`, {
-                method: 'GET',
-                headers: this._getAuthHeaders()
+            const data = await apiCall('/listDocuments', {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('splitifyd_auth_token');
-                    window.location.href = 'index.html';
-                    return [];
-                }
-                
-                const errorData = await response.json();
-                throw new Error(errorData.message);
-            }
-
-            const data = await response.json();
             return this._transformGroupsData(data.documents);
             
         } catch (error) {
@@ -113,34 +98,10 @@ class ApiService {
                 }
             };
 
-            const baseUrl = await this._getBaseUrl();
-            
-            const response = await fetch(`${baseUrl}/createDocument`, {
+            const data = await apiCall('/createDocument', {
                 method: 'POST',
-                headers: this._getAuthHeaders(),
                 body: JSON.stringify(groupDoc)
             });
-
-            if (!response.ok) {
-                const errorData = await response.text();
-                
-                if (response.status === 401) {
-                    localStorage.removeItem('splitifyd_auth_token');
-                    window.location.href = 'index.html';
-                    throw new Error('Authentication required');
-                }
-                
-                let errorMessage = 'Failed to create group';
-                try {
-                    const errorJson = JSON.parse(errorData);
-                    errorMessage = errorJson.message || errorMessage;
-                } catch (e) {
-                    // Use default message if JSON parsing fails
-                }
-                throw new Error(errorMessage);
-            }
-
-            const data = await response.json();
             
             // Server only returns id, construct the full group object
             return {
@@ -178,21 +139,9 @@ class ApiService {
         }
 
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/getDocument?id=${groupId}`, {
-                method: 'GET',
-                headers: this._getAuthHeaders()
+            const data = await apiCall(`/getDocument?id=${groupId}`, {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('splitifyd_auth_token');
-                    window.location.href = 'index.html';
-                }
-                throw new Error('Failed to fetch group details');
-            }
-
-            const data = await response.json();
             return { data: this._transformGroupDetail(data) };
         } catch (error) {
             throw error;
@@ -215,17 +164,9 @@ class ApiService {
 
     async getGroupBalances(groupId) {
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/expenses/group?groupId=${groupId}`, {
-                method: 'GET',
-                headers: this._getAuthHeaders()
+            const data = await apiCall(`/expenses/group?groupId=${groupId}`, {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch group balances');
-            }
-
-            const data = await response.json();
             // The expenses are already in the correct format from the server
             return { data: data.expenses };
         } catch (error) {
@@ -236,17 +177,9 @@ class ApiService {
 
     async getGroupExpenses(groupId, limit = 20, offset = 0) {
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
-                method: 'GET',
-                headers: this._getAuthHeaders()
+            const data = await apiCall(`/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch group expenses');
-            }
-
-            const data = await response.json();
             return { data: data.expenses };
         } catch (error) {
             throw error;
@@ -256,18 +189,11 @@ class ApiService {
 
     async updateGroup(groupId, updates) {
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/updateDocument?id=${groupId}`, {
+            const data = await apiCall(`/updateDocument?id=${groupId}`, {
                 method: 'PUT',
-                headers: this._getAuthHeaders(),
                 body: JSON.stringify({ data: updates })
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to update group');
-            }
-
-            return await response.json();
+            return data;
         } catch (error) {
             throw error;
         }
@@ -275,16 +201,9 @@ class ApiService {
 
     async deleteGroup(groupId) {
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/deleteDocument?id=${groupId}`, {
-                method: 'DELETE',
-                headers: this._getAuthHeaders()
+            await apiCall(`/deleteDocument?id=${groupId}`, {
+                method: 'DELETE'
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete group');
-            }
-
             return { success: true };
         } catch (error) {
             throw error;
@@ -295,25 +214,10 @@ class ApiService {
 
     async createExpense(expenseData) {
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/expenses`, {
+            const data = await apiCall('/expenses', {
                 method: 'POST',
-                headers: this._getAuthHeaders(),
                 body: JSON.stringify(expenseData)
             });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('splitifyd_auth_token');
-                    window.location.href = 'index.html';
-                    throw new Error('Authentication required');
-                }
-                
-                const errorData = await response.json();
-                throw new Error(errorData.message);
-            }
-
-            const data = await response.json();
             return { success: true, data: data };
         } catch (error) {
             throw error;
@@ -326,21 +230,9 @@ class ApiService {
         }
 
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/expenses?id=${expenseId}`, {
-                method: 'GET',
-                headers: this._getAuthHeaders()
+            const data = await apiCall(`/expenses?id=${expenseId}`, {
+                method: 'GET'
             });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('splitifyd_auth_token');
-                    window.location.href = 'index.html';
-                }
-                throw new Error('Failed to fetch expense');
-            }
-
-            const data = await response.json();
             return { data: data };
         } catch (error) {
             throw error;
@@ -353,22 +245,10 @@ class ApiService {
         }
 
         try {
-            const baseUrl = await this._getBaseUrl();
-            const response = await fetch(`${baseUrl}/expenses?id=${expenseId}`, {
+            const data = await apiCall(`/expenses?id=${expenseId}`, {
                 method: 'PUT',
-                headers: this._getAuthHeaders(),
                 body: JSON.stringify(updateData)
             });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    localStorage.removeItem('splitifyd_auth_token');
-                    window.location.href = 'index.html';
-                }
-                throw new Error('Failed to update expense');
-            }
-
-            const data = await response.json();
             return { success: true, data: data };
         } catch (error) {
             throw error;
@@ -410,7 +290,7 @@ async function apiCall(endpoint, options = {}) {
         }
         
         const errorData = await response.json();
-        throw new Error(errorData.error.message);
+        throw new Error(errorData.message || errorData.error?.message || 'Request failed');
     }
     
     return response.json();
