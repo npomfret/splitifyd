@@ -12,7 +12,7 @@ export class ModalComponent {
     } = config;
 
     return `
-      <div id="${id}" class="modal-overlay" style="display: none;">
+      <div id="${id}" class="modal-overlay hidden">
         <div class="modal-content modal-${size}">
           <div class="modal-header">
             <h3 class="modal-title">${title}</h3>
@@ -34,8 +34,9 @@ export class ModalComponent {
   static show(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-      modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
+      modal.classList.remove('hidden');
+      modal.classList.add('visible-flex');
+      document.body.classList.add('modal-open');
       this.activeModals.set(modalId, modal);
       this.attachCloseHandlers(modalId);
     }
@@ -44,9 +45,10 @@ export class ModalComponent {
   static hide(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-      modal.style.display = 'none';
+      modal.classList.add('hidden');
+      modal.classList.remove('visible-flex');
       if (this.activeModals.size === 1) {
-        document.body.style.overflow = '';
+        document.body.classList.remove('modal-open');
       }
       this.activeModals.delete(modalId);
     }

@@ -1,0 +1,25 @@
+/* Utility classes for visibility control */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.visible-flex {
+    display: flex !important;
+}
+
+.visible-inline {
+    display: inline !important;
+}
+
+.visible-inline-block {
+    display: inline-block !important;
+}
+
+/* Modal body lock */
+.modal-open {
+    overflow: hidden !important;
+}

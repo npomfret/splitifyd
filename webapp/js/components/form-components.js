@@ -70,7 +70,7 @@ export class FormComponents {
     const element = document.getElementById(elementId);
     if (element) {
       element.textContent = message;
-      element.style.display = 'block';
+      element.classList.remove('hidden');
     }
   }
 
@@ -78,7 +78,7 @@ export class FormComponents {
     const element = document.getElementById(elementId);
     if (element) {
       element.textContent = '';
-      element.style.display = 'none';
+      element.classList.add('hidden');
     }
   }
 
@@ -88,7 +88,7 @@ export class FormComponents {
       const errorElements = form.querySelectorAll('.error-message');
       errorElements.forEach(el => {
         el.textContent = '';
-        el.style.display = 'none';
+        el.classList.add('hidden');
       });
     }
   }

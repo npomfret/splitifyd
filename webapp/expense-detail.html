@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Detail - Splitifyd</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
     <link rel="preload" href="css/main.css" as="style">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/utility.css">
     <link rel="dns-prefetch" href="//api.splitifyd.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div id="warningBanner" class="warning-banner" style="display: none;"></div>
+    <div id="warningBanner" class="warning-banner hidden"></div>
     <header class="dashboard-header">
         <div class="dashboard-container">
             <h1 class="dashboard-title"><a href="dashboard.html" class="dashboard-title-link">Splitifyd</a></h1>
@@ -25,16 +26,16 @@
         <div class="dashboard-container">
             <div class="expense-detail-container">
                 <nav class="nav-header">
-                    <button class="back-button" onclick="history.back()">
+                    <button class="back-button">
                         <i class="fas fa-arrow-left"></i>
                         <span>Back</span>
                     </button>
                     <h1 class="page-title">Expense Details</h1>
                     <div class="header-actions">
-                        <button id="edit-expense-btn" class="btn btn-secondary" style="display: none;">
+                        <button id="edit-expense-btn" class="btn btn-secondary hidden">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button id="delete-expense-btn" class="btn btn-danger" style="display: none;">
+                        <button id="delete-expense-btn" class="btn btn-danger hidden">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -46,7 +47,7 @@
                     <p>Loading expense details...</p>
                 </div>
 
-                <div class="expense-detail-content" id="expense-detail-container" style="display: none;">
+                <div class="expense-detail-content" id="expense-detail-container" hidden>
                 <div class="expense-header">
                     <div class="expense-amount">
                         <span class="currency-symbol">$</span>
@@ -89,7 +90,7 @@
                         </div>
                     </div>
 
-                    <div class="detail-card" id="receipt-section" style="display: none;">
+                    <div class="detail-card" id="receipt-section" hidden>
                         <h3>Receipt</h3>
                         <div class="receipt-container">
                             <img id="receipt-image" alt="Receipt" class="receipt-image">
@@ -97,9 +98,9 @@
                     </div>
                 </div>
 
-                <div class="error-message" id="error-message" style="display: none;">
+                <div class="error-message" id="error-message" hidden>
                     <p>Failed to load expense details. Please try again.</p>
-                    <button class="btn btn-secondary" onclick="location.reload()">Retry</button>
+                    <button class="btn btn-secondary">Retry</button>
                 </div>
             </div>
         </div>
@@ -116,7 +117,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Delete Expense</h2>
-                <button class="modal-close" onclick="closeDeleteModal()">×</button>
+                <button class="modal-close">×</button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete this expense? This action cannot be undone.</p>
@@ -126,28 +127,14 @@
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-secondary">Cancel</button>
                 <button class="btn btn-danger" id="confirm-delete-btn">Delete Expense</button>
             </div>
         </div>
     </div>
 
     <script src="js/expense-detail.js"></script>
-    <script>
-        // Initialize logout functionality
-        window.addEventListener('DOMContentLoaded', () => {
-            const logoutButton = document.getElementById('logoutButton');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', async () => {
-                    try {
-                        await window.authManager.logout();
-                        window.location.href = 'index.html';
-                    } catch (error) {
-                        console.error('Logout failed:', error);
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="js/logout-handler.js"></script>
+    <script src="js/expense-detail-handlers.js"></script>
 </body>
 </html>

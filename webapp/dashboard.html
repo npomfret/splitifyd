@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; font-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
     <title>Splitifyd - Dashboard</title>
     <link rel="preload" href="css/main.css" as="style">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/utility.css">
     <link rel="dns-prefetch" href="//api.splitifyd.com">
 </head>
 <body>
-    <div id="warningBanner" class="warning-banner" style="display: none;"></div>
+    <div id="warningBanner" class="warning-banner hidden"></div>
     <header class="dashboard-header">
         <div class="dashboard-container">
             <h1 class="dashboard-title"><a href="/" class="dashboard-title-link">Splitifyd</a></h1>
@@ -38,25 +39,8 @@
     <script src="js/warning-banner.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script type="module">
-        import { ModalComponent } from './js/components/modal.js';
-        window.ModalComponent = ModalComponent;
-    </script>
     <script src="js/expenses.js"></script>
     <script src="js/groups.js"></script>
-    <script>
-        let groupsList;
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            // Check authentication before loading dashboard
-            if (!window.authManager.isAuthenticated()) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            groupsList = new GroupsList('groupsContainer');
-            groupsList.loadGroups();
-        });
-    </script>
+    <script src="js/dashboard-init.js"></script>
 </body>
 </html>

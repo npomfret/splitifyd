@@ -1,0 +1,44 @@
+// Event handlers for group-detail.html
+window.addEventListener('DOMContentLoaded', () => {
+    // Back button handler
+    const backButton = document.querySelector('.back-button');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+    }
+    
+    // Group settings modal handlers
+    const groupSettingsCloseButtons = document.querySelectorAll('[onclick*="closeGroupSettingsModal"]');
+    groupSettingsCloseButtons.forEach(button => {
+        button.addEventListener('click', closeGroupSettingsModal);
+    });
+    
+    // Invite members modal handlers
+    const inviteMembersCloseButtons = document.querySelectorAll('[onclick*="closeInviteMembersModal"]');
+    inviteMembersCloseButtons.forEach(button => {
+        button.addEventListener('click', closeInviteMembersModal);
+    });
+});
+
+function closeGroupSettingsModal() {
+    const modal = document.getElementById('groupSettingsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('visible-flex');
+        document.body.classList.remove('modal-open');
+    }
+}
+
+function closeInviteMembersModal() {
+    const modal = document.getElementById('inviteMembersModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('visible-flex');
+        document.body.classList.remove('modal-open');
+    }
+}
+
+// Make functions globally available for any remaining inline handlers
+window.closeGroupSettingsModal = closeGroupSettingsModal;
+window.closeInviteMembersModal = closeInviteMembersModal;

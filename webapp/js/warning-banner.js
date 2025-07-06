@@ -15,7 +15,7 @@ const warningBannerManager = {
         
         if (bannerText && bannerElement) {
             bannerElement.textContent = bannerText;
-            bannerElement.style.display = 'block';
+            bannerElement.classList.remove('hidden');
         }
     }
 };

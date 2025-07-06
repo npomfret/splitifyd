@@ -13,12 +13,13 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "script-src 'self' https://apis.google.com https://www.gstatic.com; " +
+      "style-src 'self' https://fonts.googleapis.com; " +
       "font-src 'self' https://fonts.gstatic.com; " +
       "img-src 'self' data: https:; " +
       "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; " +
-      "frame-ancestors 'none';"
+      "frame-ancestors 'none'; " +
+      "report-uri /csp-violation-report;"
     );
   }
   

@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data:; font-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
     <title>Splitifyd - Login</title>
     <link rel="preload" href="css/main.css" as="style">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/utility.css">
     <link rel="dns-prefetch" href="//api.splitifyd.com">
 </head>
 <body>
-    <div id="warningBanner" class="warning-banner" style="display: none;"></div>
+    <div id="warningBanner" class="warning-banner hidden"></div>
     <div class="main-content">
         <main class="auth-container">
         <article class="auth-card auth-card--login">
@@ -76,14 +77,6 @@
     <script src="js/config.js"></script>
     <script src="js/warning-banner.js"></script>
     <script src="js/auth.js"></script>
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // Check if user is already authenticated and redirect to dashboard
-            if (window.authManager && window.authManager.isAuthenticated()) {
-                window.location.href = 'dashboard.html';
-                return;
-            }
-        });
-    </script>
+    <script src="js/auth-redirect.js"></script>
 </body>
 </html>

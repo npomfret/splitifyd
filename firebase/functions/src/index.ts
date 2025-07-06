@@ -107,6 +107,23 @@ app.get('/config', (req: express.Request, res: express.Response) => {
   getFirebaseConfigResponse(res);
 });
 
+// CSP violation reporting endpoint
+app.post('/csp-violation-report', (req: express.Request, res: express.Response) => {
+  try {
+    const violation = req.body;
+    logger.warn('CSP violation detected', {
+      violation,
+      userAgent: req.get('User-Agent'),
+      ip: req.ip,
+      timestamp: new Date().toISOString()
+    });
+    res.status(204).send();
+  } catch (error) {
+    logger.error('Error processing CSP violation report', { errorMessage: error instanceof Error ? error.message : String(error) });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Async error wrapper to ensure proper error handling
 const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {

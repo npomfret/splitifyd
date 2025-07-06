@@ -1,3 +1,15 @@
+// Dynamic import of ModalComponent when needed
+let ModalComponent = null;
+
+async function ensureModalComponent() {
+    if (!ModalComponent && !window.ModalComponent) {
+        const module = await import('./components/modal.js');
+        ModalComponent = module.ModalComponent;
+        window.ModalComponent = ModalComponent;
+    }
+    return window.ModalComponent || ModalComponent;
+}
+
 class GroupService {
     static async getUserGroups() {
         // Using existing getGroups from apiService for now
@@ -255,7 +267,9 @@ class GroupsList {
         });
     }
 
-    openCreateGroupModal() {
+    async openCreateGroupModal() {
+        await ensureModalComponent();
+        
         if (!window.ModalComponent) {
             console.error('ModalComponent not available');
             return;
