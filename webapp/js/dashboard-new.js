@@ -41,7 +41,7 @@ const renderDashboard = async () => {
             <div class="container">
                 <div class="welcome-section">
                     <h2>Welcome, ${userName}!</h2>
-                    <button class="btn btn-primary" id="createGroupBtn">
+                    <button class="button button--primary" id="createGroupBtn">
                         <i class="fas fa-plus"></i> Create New Group
                     </button>
                 </div>

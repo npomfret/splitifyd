@@ -303,8 +303,8 @@ class GroupsList {
                 </form>
             `,
             footer: `
-                <button class="btn btn-secondary" onclick="window.ModalComponent.hide('createGroupModal')">Cancel</button>
-                <button class="btn btn-primary" id="createGroupSubmit">Create Group</button>
+                <button class="button button--secondary" onclick="window.ModalComponent.hide('createGroupModal')">Cancel</button>
+                <button class="button button--primary" id="createGroupSubmit">Create Group</button>
             `
         });
 

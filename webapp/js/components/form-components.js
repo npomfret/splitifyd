@@ -52,7 +52,7 @@ export class FormComponents {
 
   static submitButton({ text = 'Submit', id = 'submitBtn', disabled = false }) {
     return `
-      <button type="submit" class="btn btn-primary" id="${id}" ${disabled ? 'disabled' : ''}>
+      <button type="submit" class="button button--primary" id="${id}" ${disabled ? 'disabled' : ''}>
         ${text}
       </button>
     `;

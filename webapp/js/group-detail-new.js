@@ -77,14 +77,14 @@ window.showGroupSettingsModal = async (groupId) => {
                     `).join('')}
                 </div>
                 
-                <button class="btn btn-primary" onclick="showInviteMemberModal('${groupId}')">
+                <button class="button button--primary" onclick="showInviteMemberModal('${groupId}')">
                     <i class="fas fa-user-plus"></i> Invite Member
                 </button>
             </div>
         `,
         footer: `
-            <button class="btn btn-secondary" onclick="ModalComponent.hide('groupSettingsModal')">Close</button>
-            <button class="btn btn-danger" onclick="confirmDeleteGroup('${groupId}')">Delete Group</button>
+            <button class="button button--secondary" onclick="ModalComponent.hide('groupSettingsModal')">Close</button>
+            <button class="button button--danger" onclick="confirmDeleteGroup('${groupId}')">Delete Group</button>
         `
     });
 
@@ -97,7 +97,7 @@ window.confirmDeleteGroup = async (groupId) => {
         title: 'Delete Group',
         message: 'Are you sure you want to delete this group? This action cannot be undone.',
         confirmText: 'Delete',
-        confirmClass: 'btn-danger'
+        confirmClass: 'button--danger'
     });
 
     if (confirmed) {
@@ -125,14 +125,14 @@ PageBuilder.buildAuthenticatedPage({
                 id: 'settingsBtn',
                 icon: 'fas fa-cog',
                 text: 'Settings',
-                class: 'btn-secondary'
+                class: 'button--secondary'
             },
             {
                 type: 'link',
                 href: `/add-expense.html?groupId=${groupId}`,
                 icon: 'fas fa-plus',
                 text: 'Add Expense',
-                class: 'btn-primary'
+                class: 'button--primary'
             }
         ];
 
@@ -194,7 +194,7 @@ PageBuilder.buildAuthenticatedPage({
                     ${expensesList}
                     ${expenses.length > 10 ? `
                         <div class="view-all">
-                            <a href="/expenses.html?groupId=${groupId}" class="btn btn-secondary">
+                            <a href="/expenses.html?groupId=${groupId}" class="button button--secondary">
                                 View All Expenses
                             </a>
                         </div>

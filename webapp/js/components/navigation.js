@@ -20,14 +20,14 @@ export class NavigationComponent {
             ${actions.map(action => {
               if (action.type === 'button') {
                 return `
-                  <button class="btn ${action.class || 'btn-secondary'}" id="${action.id}" ${action.disabled ? 'disabled' : ''}>
+                  <button class="button ${action.class || 'button--secondary'}" id="${action.id}" ${action.disabled ? 'disabled' : ''}>
                     ${action.icon ? `<i class="${action.icon}"></i>` : ''}
                     ${action.text || ''}
                   </button>
                 `;
               } else if (action.type === 'link') {
                 return `
-                  <a href="${action.href}" class="btn ${action.class || 'btn-secondary'}" id="${action.id || ''}">
+                  <a href="${action.href}" class="button ${action.class || 'button--secondary'}" id="${action.id || ''}">
                     ${action.icon ? `<i class="${action.icon}"></i>` : ''}
                     ${action.text || ''}
                   </a>

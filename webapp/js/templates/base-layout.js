@@ -28,8 +28,6 @@ export const baseLayout = {
   `,
 
   scripts: () => `
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script type="module" src="/js/firebase-config.js"></script>
     <script type="module" src="/js/warning-banner.js"></script>
   `,

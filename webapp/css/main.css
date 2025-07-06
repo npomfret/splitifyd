@@ -442,6 +442,20 @@ body {
     border-color: var(--color-primary);
 }
 
+.button--danger {
+    background: var(--color-error);
+    color: white;
+}
+
+.button--danger:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.button--danger:active:not(:disabled) {
+    transform: translateY(0);
+}
+
 .button--large {
     padding: var(--space-md) var(--space-lg);
     font-size: var(--font-size-lg);
@@ -479,6 +493,12 @@ body {
 }
 
 .button--icon:hover:not(:disabled) {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+}
+
+.button--icon.button--danger:hover:not(:disabled) {
     background: var(--color-error);
     color: white;
     border-color: var(--color-error);
@@ -494,80 +514,6 @@ body {
     font-size: var(--font-size-sm);
 }
 
-/* ===== BTN COMPONENT (legacy support) ===== */
-.btn {
-    padding: var(--space-sm) var(--space-lg);
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-semibold);
-    cursor: pointer;
-    transition: var(--transition-fast);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-sm);
-}
-
-.btn-primary {
-    background: var(--color-primary);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: var(--color-primary-dark);
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: var(--color-background);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-}
-
-.btn-secondary:hover {
-    background: var(--color-surface);
-    border-color: var(--color-primary);
-}
-
-.btn-danger {
-    background: var(--color-error);
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-}
-
-.btn-icon {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
-}
-
-.btn-icon:hover {
-    background: var(--color-background);
-    color: var(--color-text);
-}
-
-.btn-icon.btn-danger:hover {
-    background: var(--color-error);
-    color: white;
-}
-
-.btn-small {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: var(--font-size-sm);
-}
 
 /* ===== AUTH CARD FOOTER ===== */
 .auth-card__footer {

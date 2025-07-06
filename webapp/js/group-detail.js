@@ -422,7 +422,7 @@ function openGroupSettingsModal() {
         memberName.textContent = member.name;
         
         const removeButton = document.createElement('button');
-        removeButton.className = 'btn-icon btn-danger';
+        removeButton.className = 'button--icon button--danger';
         removeButton.disabled = member.uid === currentGroup.createdBy;
         removeButton.onclick = () => removeMember(member.uid);
         

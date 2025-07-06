@@ -13,7 +13,7 @@ export class HeaderComponent {
             <a href="${titleLink}" class="header-link">${title}</a>
           </h1>
           ${showLogout ? `
-            <button class="btn btn-secondary" id="logoutBtn">
+            <button class="button button--secondary" id="logoutBtn">
               <i class="fas fa-sign-out-alt"></i>
               <span>Logout</span>
             </button>

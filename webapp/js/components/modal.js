@@ -76,7 +76,7 @@ export class ModalComponent {
       message = 'Are you sure?',
       confirmText = 'Confirm',
       cancelText = 'Cancel',
-      confirmClass = 'btn-danger',
+      confirmClass = 'button--danger',
       onConfirm,
       onCancel
     } = config;
@@ -88,8 +88,8 @@ export class ModalComponent {
       title,
       body: `<p>${message}</p>`,
       footer: `
-        <button class="btn btn-secondary" id="${modalId}_cancel">${cancelText}</button>
-        <button class="btn ${confirmClass}" id="${modalId}_confirm">${confirmText}</button>
+        <button class="button button--secondary" id="${modalId}_cancel">${cancelText}</button>
+        <button class="button ${confirmClass}" id="${modalId}_confirm">${confirmText}</button>
       `
     });
 

@@ -125,12 +125,12 @@ export class ListComponents {
     
     return `
       <div class="pagination">
-        <button class="btn btn-secondary" ${currentPage === 1 ? 'disabled' : ''} 
+        <button class="button button--secondary" ${currentPage === 1 ? 'disabled' : ''} 
                 data-page="${currentPage - 1}">
           <i class="fas fa-chevron-left"></i> Previous
         </button>
         <span class="pagination-info">Page ${currentPage} of ${totalPages}</span>
-        <button class="btn btn-secondary" ${currentPage === totalPages ? 'disabled' : ''} 
+        <button class="button button--secondary" ${currentPage === totalPages ? 'disabled' : ''} 
                 data-page="${currentPage + 1}">
           Next <i class="fas fa-chevron-right"></i>
         </button>
