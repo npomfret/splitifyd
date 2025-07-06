@@ -29,3 +29,6 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
 ## Trust 
  - Trust data coming from the server
  - Do not trust data coming from any external system (or our users)
+
+## Shell
+ - run `pwd` BEFORE executing shell commands to ensure you are in the desired directory
