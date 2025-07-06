@@ -3,83 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
-    <title>Splitifyd - Login</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="preload" href="css/main.css" as="style">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/utility.css">
-    <link rel="dns-prefetch" href="//api.splitifyd.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: https://placehold.co; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; ">
+    <title>Splitifyd - Effortless Bill Splitting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
-    <div id="warningBanner" class="warning-banner hidden"></div>
-    <div class="main-content">
-        <main class="auth-container">
-        <article class="auth-card auth-card--login">
-            <header class="auth-card__header">
-                <h1 class="auth-card__title"><a href="/" class="auth-card__title-link">Splitifyd</a></h1>
-                <p class="auth-card__subtitle">Split bills with friends</p>
-            </header>
-            
-            <form class="auth-form" id="loginForm" novalidate>
-                <div class="form-group">
-                    <label for="email" class="form-label">
-                        Email Address
-                        <span class="form-label__required" aria-label="required">*</span>
-                    </label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        class="form-input"
-                        required
-                        autocomplete="email"
-                        aria-describedby="email-error"
-                    >
-                    <div id="email-error" class="form-error" role="alert"></div>
+    <header>
+        <div class="container navbar">
+            <a href="#" class="logo">Splitifyd</a>
+            <nav class="nav-links">
+                <a href="/login.html">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content container">
+                <h1>Effortless Bill Splitting, <br>Simplified & Smart.</h1>
+                <p>Say goodbye to awkward IOUs and complex calculations. Splitifyd makes sharing expenses with friends, family, and roommates easy, fair, and transparent, so you can focus on what matters.</p>
+                <a href="/register.html" class="cta-button">Get Started Free</a>
+                <img src="https://placehold.co/800x450/6A0DAD/FFFFFF/png?text=Your+App+Screenshot+Here" alt="Splitifyd App Screenshot" class="hero-image">
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2>Features Designed for Your Peace of Mind</h2>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <img src="https://placehold.co/80x80/6A0DAD/FFFFFF/png?text=👥" alt="Group Icon">
+                        <h3>Smart Group Management</h3>
+                        <p>Create groups for any occasion – roommates, trips, events. Easily add members and track shared expenses in one place, keeping everyone on the same page.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://placehold.co/80x80/6A0DAD/FFFFFF/png?text=✂️" alt="Split Icon">
+                        <h3>Flexible Splitting Options</h3>
+                        <p>Split bills equally, by exact amounts, or by percentages. Splitifyd handles the math and complex scenarios, so you don't have to.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://placehold.co/80x80/6A0DAD/FFFFFF/png?text=✨" alt="Simplify Icon">
+                        <h3>Intelligent Debt Simplification</h3>
+                        <p>Our intelligent algorithm minimizes transactions, showing you the simplest and fewest payments needed to settle up with your group, saving time and hassle.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://placehold.co/80x80/6A0DAD/FFFFFF/png?text=📊" alt="Balance Icon">
+                        <h3>Intuitive Balance Tracking</h3>
+                        <p>Instantly see who owes whom with clear, color-coded balances and visual summaries. Red for debt, green for credit – no more confusion, just clarity.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://placehold.co/80x80/6A0DAD/FFFFFF/png?text=📱" alt="Mobile Icon">
+                        <h3>Seamless Mobile Experience</h3>
+                        <p>Manage expenses on the go, from anywhere. Splitifyd is designed to look and work beautifully on any device, ensuring a smooth experience whether on phone, tablet, or desktop.</p>
+                    </div>
+                    <div class="feature-item">
+                        <img src="https://placehold.co/80x80/6A0DAD/FFFFFF/png?text=🔒" alt="Security Icon">
+                        <h3>Secure & Reliable</h3>
+                        <p>Your financial data and privacy are our top priority. We employ robust security measures and best practices, ensuring your peace of mind with every transaction.</p>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        Password
-                        <span class="form-label__required" aria-label="required">*</span>
-                    </label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-input"
-                        required
-                        autocomplete="current-password"
-                        aria-describedby="password-error"
-                    >
-                    <div id="password-error" class="form-error" role="alert"></div>
-                </div>
-                
-                <button type="submit" class="button button--primary button--large" aria-describedby="submit-help">
-                    Sign In
-                </button>
-                <div id="submit-help" class="sr-only">
-                    This will sign you into your Splitifyd account
-                </div>
-            </form>
-            
-            <footer class="auth-card__footer">
-                <nav class="auth-nav" aria-label="Authentication navigation">
-                    <p><a href="reset-password.html" id="forgotPassword" class="auth-link">Forgot password?</a></p>
-                    <p>Don't have an account? <a href="register.html" id="signUpLink" class="auth-link auth-link--primary">Sign up</a></p>
-                </nav>
-            </footer>
-        </article>
-        </main>
-    </div>
-    
-    <script src="js/firebase-config.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/warning-banner.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/auth-redirect.js"></script>
+            </div>
+        </section>
+
+        <section class="cta-bottom">
+            <div class="container">
+                <h2>Ready to Simplify Your Shared Expenses?</h2>
+                <p>Join thousands who are already making group payments stress-free and transparent. Get started today!</p>
+                <a href="/register.html" class="cta-button">Sign Up Now</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Splitifyd. All rights reserved.</p>
+            <p><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+        </div>
+    </footer>
 </body>
 </html>
