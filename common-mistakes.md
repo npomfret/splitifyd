@@ -1,7 +1,8 @@
 # Common Mistakes
 
 ## Backward Compatible Code
-DO NOT write any code for _backward compatibility_ reasons. This project is a demo, there is no legacy data or legancy systems to integrate with.
+ - DO NOT write any code for _backward compatibility_ reasons. This project is a demo, there is no legacy data or legancy systems to integrate with.
+ - Similarly, there is no existing data that can't be deleted. NEVER write migration scripts, or code to handle multiple formats
 
 ## Keep it working
 The project needs to work locally, via the firebase emulator AND in a deployed firbase environment.
