@@ -26,6 +26,7 @@ import {
   listUserExpenses,
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
+import { onExpenseCreate, onExpenseUpdate, onExpenseDelete } from './triggers/expenseAggregation';
 
 // Firebase Admin initialization (emulators auto-configured in config.ts)
 
@@ -214,3 +215,6 @@ export const api = onRequest({
   timeoutSeconds: 540, // 9 minutes
   region: 'us-central1'
 }, app);
+
+// Export Firestore triggers
+export { onExpenseCreate, onExpenseUpdate, onExpenseDelete };

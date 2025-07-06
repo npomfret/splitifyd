@@ -58,6 +58,12 @@ export const createDocument = async (
   // Sanitize document data
   const sanitizedData = sanitizeDocumentData(data);
 
+  // Initialize expense stats for group documents
+  if (sanitizedData.name) {
+    sanitizedData.expenseCount = 0;
+    sanitizedData.lastExpenseTime = null;
+  }
+
   // Create document
   const now = new Date();
   const docRef = getDocumentsCollection().doc();
@@ -211,12 +217,7 @@ export const listDocuments = async (
           updatedAt: (data.updatedAt as any).toDate().toISOString(),
         };
 
-        // If this is a group document (has name property), get expense statistics
-        if (data.data && data.data.name) {
-          const expenseStats = await getGroupExpenseStats(doc.id);
-          documentData.data.expenseCount = expenseStats.expenseCount;
-          documentData.data.lastExpenseTime = expenseStats.lastExpenseTime;
-        }
+        // Expense stats are now pre-aggregated in the document data by triggers
 
         return documentData;
       })
@@ -247,31 +248,3 @@ export const listDocuments = async (
   });
 };
 
-const getGroupExpenseStats = async (groupId: string): Promise<{ expenseCount: number; lastExpenseTime: string | null }> => {
-  const expensesCollection = admin.firestore().collection('expenses');
-  
-  // Get expense count
-  const countSnapshot = await expensesCollection
-    .where('groupId', '==', groupId)
-    .count()
-    .get();
-  
-  const expenseCount = countSnapshot.data().count;
-  
-  // Get last expense time
-  let lastExpenseTime: string | null = null;
-  if (expenseCount > 0) {
-    const lastExpenseSnapshot = await expensesCollection
-      .where('groupId', '==', groupId)
-      .orderBy('createdAt', 'desc')
-      .limit(1)
-      .get();
-    
-    if (!lastExpenseSnapshot.empty) {
-      const lastExpenseData = lastExpenseSnapshot.docs[0].data();
-      lastExpenseTime = (lastExpenseData.createdAt as any).toDate().toISOString();
-    }
-  }
-  
-  return { expenseCount, lastExpenseTime };
-};
