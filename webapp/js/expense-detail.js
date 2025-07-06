@@ -191,7 +191,15 @@ async function deleteExpense() {
 }
 
 function getUserDisplayName(userId) {
+    if (!currentGroup || !currentGroup.members || !currentUser) {
+        return userId;
+    }
+    
     const member = currentGroup.members.find(m => m.uid === userId);
+    
+    if (!member) {
+        return userId;
+    }
     
     // Show "You" for current user, otherwise show the member's name
     return member.uid === currentUser.uid ? 'You' : member.name;
