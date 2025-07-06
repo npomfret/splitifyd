@@ -25,6 +25,7 @@ import {
   listGroupExpenses,
   listUserExpenses,
 } from './expenses/handlers';
+import { createUserDocument } from './users/handlers';
 
 // Firebase Admin initialization (emulators auto-configured in config.ts)
 
@@ -107,40 +108,17 @@ app.get('/config', (req: express.Request, res: express.Response) => {
 });
 
 
+// Async error wrapper to ensure proper error handling
+const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 // Auth endpoints (no auth required)
 app.post('/login', login);
 app.post('/register', register);
 
 // User document creation (requires auth)
-app.post('/createUserDocument', authenticate, async (req: express.Request, res: express.Response) => {
-  const { displayName } = req.body;
-  const userId = (req as any).user.uid;
-  
-  if (!displayName) {
-    res.status(400).json({
-      error: {
-        code: 'MISSING_DISPLAY_NAME',
-        message: 'Display name is required'
-      }
-    });
-    return;
-  }
-  
-  const firestore = admin.firestore();
-  await firestore.collection('users').doc(userId).set({
-    email: (req as any).user.email,
-    displayName,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-  
-  res.json({ success: true, message: 'User document created' });
-});
-
-// Async error wrapper to ensure proper error handling
-const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+app.post('/createUserDocument', authenticate, asyncHandler(createUserDocument));
 
 app.post('/createDocument', authenticate, asyncHandler(createDocument));
 app.get('/getDocument', authenticate, asyncHandler(getDocument));
