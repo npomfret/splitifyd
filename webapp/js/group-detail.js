@@ -107,10 +107,8 @@ function updateGroupHeader() {
         const avatar = document.createElement('div');
         avatar.className = 'member-avatar';
         avatar.style.zIndex = maxVisibleMembers - index;
-        // Sanitize member name to prevent XSS
-        const safeName = (member.name || '').toString().trim();
-        avatar.textContent = safeName.charAt(0).toUpperCase();
-        avatar.title = safeName;
+        avatar.textContent = member.name.charAt(0).toUpperCase();
+        avatar.title = member.name;
         membersList.appendChild(avatar);
     });
     
@@ -166,13 +164,8 @@ function calculateUserBalances(expenses) {
     
     expenses.forEach(expense => {
         const payerId = expense.paidBy;
-        const splits = expense.splits || [];
+        const splits = expense.splits;
         
-        // Skip if no valid splits data
-        if (!Array.isArray(splits) || splits.length === 0) {
-            console.warn('Splits is not a valid array:', splits);
-            return;
-        }
         
         splits.forEach(split => {
             const uid = split.userId;
@@ -182,14 +175,7 @@ function calculateUserBalances(expenses) {
                 balances[uid].balance -= amount;
                 balances[payerId].balance += amount;
                 
-                if (!balances[uid].owes[payerId]) {
-                    balances[uid].owes[payerId] = 0;
-                }
                 balances[uid].owes[payerId] += amount;
-                
-                if (!balances[payerId].owedBy[uid]) {
-                    balances[payerId].owedBy[uid] = 0;
-                }
                 balances[payerId].owedBy[uid] += amount;
             }
         });
@@ -208,9 +194,7 @@ function displayUserBalances(balances, container) {
         const isCurrentUser = userBalance.uid === currentUserId;
         const balanceClass = userBalance.balance > 0 ? 'positive' : userBalance.balance < 0 ? 'negative' : 'neutral';
         
-        // Sanitize user name to prevent XSS
-        const safeName = (userBalance.name || '').toString().trim();
-        const displayName = isCurrentUser ? 'You' : safeName;
+        const displayName = isCurrentUser ? 'You' : userBalance.name;
         
         // Create elements safely without innerHTML
         const balanceUser = document.createElement('div');
@@ -218,7 +202,7 @@ function displayUserBalances(balances, container) {
         
         const memberAvatar = document.createElement('div');
         memberAvatar.className = 'member-avatar';
-        memberAvatar.textContent = safeName.charAt(0).toUpperCase();
+        memberAvatar.textContent = userBalance.name.charAt(0).toUpperCase();
         
         const userName = document.createElement('span');
         userName.className = 'user-name';
@@ -329,15 +313,12 @@ function createExpenseItem(expense) {
     
     const currentUserId = localStorage.getItem('userId');
     const paidByYou = expense.paidBy === currentUserId;
-    const yourShare = expense.splits.find(s => s.userId === currentUserId)?.amount || 0;
+    const yourShare = expense.splits.find(s => s.userId === currentUserId).amount;
     const payer = currentGroup.members.find(m => m.uid === expense.paidBy);
     
     const date = new Date(expense.date);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     
-    // Sanitize expense data to prevent XSS
-    const safeDescription = (expense.description || '').toString().trim();
-    const safePayerName = payer.name.toString().trim();
     
     // Create elements safely without innerHTML
     const expenseIcon = document.createElement('div');
@@ -351,14 +332,14 @@ function createExpenseItem(expense) {
     
     const expenseDescription = document.createElement('div');
     expenseDescription.className = 'expense-description';
-    expenseDescription.textContent = safeDescription;
+    expenseDescription.textContent = expense.description;
     
     const expenseMeta = document.createElement('div');
     expenseMeta.className = 'expense-meta';
     
     const expensePayer = document.createElement('span');
     expensePayer.className = 'expense-payer';
-    expensePayer.textContent = `${paidByYou ? 'You' : safePayerName} paid`;
+    expensePayer.textContent = `${paidByYou ? 'You' : payer.name} paid`;
     
     const expenseDate = document.createElement('span');
     expenseDate.className = 'expense-date';
@@ -428,26 +409,22 @@ function openGroupSettingsModal() {
         const memberItem = document.createElement('div');
         memberItem.className = 'member-item';
         
-        // Sanitize member data to prevent XSS
-        const safeName = (member.name || '').toString().trim();
-        const safeUserId = (member.uid || '').toString().trim();
-        
         // Create elements safely without innerHTML
         const memberInfo = document.createElement('div');
         memberInfo.className = 'member-info';
         
         const memberAvatar = document.createElement('div');
         memberAvatar.className = 'member-avatar';
-        memberAvatar.textContent = safeName.charAt(0).toUpperCase();
+        memberAvatar.textContent = member.name.charAt(0).toUpperCase();
         
         const memberName = document.createElement('span');
         memberName.className = 'member-name';
-        memberName.textContent = safeName;
+        memberName.textContent = member.name;
         
         const removeButton = document.createElement('button');
         removeButton.className = 'btn-icon btn-danger';
-        removeButton.disabled = safeUserId === currentGroup.createdBy;
-        removeButton.onclick = () => removeMember(safeUserId);
+        removeButton.disabled = member.uid === currentGroup.createdBy;
+        removeButton.onclick = () => removeMember(member.uid);
         
         const removeIcon = document.createElement('i');
         removeIcon.className = 'fas fa-times';

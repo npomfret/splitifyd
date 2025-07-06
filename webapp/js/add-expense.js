@@ -75,8 +75,8 @@ async function loadUserPreferences() {
             const lastExpense = response.data.find(expense => expense.paidBy === currentUserId);
             if (lastExpense) {
                 lastExpenseData = lastExpense;
-                document.getElementById('category').value = lastExpense.category || 'other';
-                document.getElementById('description').value = lastExpense.description || '';
+                document.getElementById('category').value = lastExpense.category;
+                document.getElementById('description').value = lastExpense.description;
             }
         }
     } catch (error) {
@@ -198,7 +198,6 @@ function updateCustomSplitInputs() {
     
     selectedMembers.forEach(memberId => {
         const member = currentGroup.members.find(m => m.uid === memberId);
-        if (!member) return;
         
         const inputGroup = document.createElement('div');
         inputGroup.className = 'custom-split-input';
@@ -246,9 +245,6 @@ function populateFormWithExpense(expense) {
 }
 
 function determineSplitMethod(splits) {
-    if (!Array.isArray(splits) || splits.length === 0) {
-        return 'equal';
-    }
     
     const amounts = splits.map(split => split.amount);
     const totalAmount = amounts.reduce((sum, amount) => sum + amount, 0);

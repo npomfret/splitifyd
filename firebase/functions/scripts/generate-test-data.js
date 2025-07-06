@@ -115,10 +115,10 @@ async function createTestExpense(groupId, expense, participants, createdBy) {
       date: admin.firestore.Timestamp.fromDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
       splitType: 'equal',
       participants: participants.map(p => p.uid),
-      splits: participants.reduce((acc, participant) => {
-        acc[participant.uid] = expense.amount / participants.length;
-        return acc;
-      }, {}),
+      splits: participants.map(participant => ({
+        userId: participant.uid,
+        amount: expense.amount / participants.length
+      })),
       createdAt: admin.firestore.Timestamp.now(),
       updatedAt: admin.firestore.Timestamp.now()
     };

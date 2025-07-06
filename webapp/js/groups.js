@@ -17,7 +17,7 @@ class GroupService {
     static async getGroupMembers(groupId) {
         // For now, get members from the group data
         const group = await this.getGroup(groupId);
-        return group.members || [];
+        return group.members;
     }
 
     static async createGroup(groupData) {

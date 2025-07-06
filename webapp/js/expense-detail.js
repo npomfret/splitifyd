@@ -35,7 +35,7 @@ async function loadExpenseDetails(expenseId) {
         
         // Use real API to get expense details
         const expense = await ExpenseService.getExpense(expenseId);
-        const user = { uid: localStorage.getItem('userId') || 'user1' };
+        const user = { uid: localStorage.getItem('userId') };
 
         // Fetch group data to get member information for ID-to-name mapping
         const groupResponse = await window.api.getGroup(expense.groupId);
@@ -86,10 +86,6 @@ function displaySplitBreakdown(splits, totalAmount) {
     const splitBreakdown = document.getElementById('split-breakdown');
     splitBreakdown.innerHTML = '';
 
-    if (!Array.isArray(splits) || splits.length === 0) {
-        console.warn('Splits is not a valid array:', splits);
-        return;
-    }
 
     splits.forEach(split => {
         const userId = split.userId;
@@ -193,15 +189,7 @@ async function deleteExpense() {
 }
 
 function getUserDisplayName(userId) {
-    if (!currentGroup || !currentGroup.members || !currentUser) {
-        return userId;
-    }
-    
     const member = currentGroup.members.find(m => m.uid === userId);
-    
-    if (!member) {
-        return userId;
-    }
     
     // Show "You" for current user, otherwise show the member's name
     return member.uid === currentUser.uid ? 'You' : member.name;
