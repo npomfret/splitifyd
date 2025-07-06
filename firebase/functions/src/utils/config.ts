@@ -1,6 +1,6 @@
-import { Response } from 'express';
 import { CONFIG } from '../config';
-import { Errors, sendError } from './errors';
+import { Errors } from './errors';
+import { logger } from '../logger';
 
 export interface FirebaseConfigResponse {
   apiKey: string;
@@ -18,23 +18,22 @@ export interface FirebaseConfigResponse {
 }
 
 
-export const getFirebaseConfigResponse = (res: Response): void => {
+export const getFirebaseConfigResponse = (): FirebaseConfigResponse => {
   const clientConfig = CONFIG.clientConfig;
   
   if (!clientConfig) {
-    console.error('Client config is undefined. Environment variables:', {
+    logger.error('Client config is undefined. Environment variables:', {
       CLIENT_API_KEY: process.env.CLIENT_API_KEY,
       NODE_ENV: process.env.NODE_ENV,
       FUNCTIONS_EMULATOR: process.env.FUNCTIONS_EMULATOR
     });
-    sendError(res, Errors.INTERNAL_ERROR());
-    return;
+    throw Errors.INTERNAL_ERROR();
   }
   
-  res.json({
+  return {
     ...clientConfig,
     projectId: CONFIG.projectId,
     formDefaults: CONFIG.formDefaults,
     warningBanner: CONFIG.warningBanner
-  } as FirebaseConfigResponse);
+  } as FirebaseConfigResponse;
 };

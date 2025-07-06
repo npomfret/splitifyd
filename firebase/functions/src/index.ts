@@ -102,10 +102,16 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
   });
 });
 
+// Async error wrapper to ensure proper error handling
+const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 // Firebase configuration endpoint (public - for client initialization)
-app.get('/config', (req: express.Request, res: express.Response) => {
-  getFirebaseConfigResponse(res);
-});
+app.get('/config', asyncHandler((req: express.Request, res: express.Response) => {
+  const config = getFirebaseConfigResponse();
+  res.json(config);
+}));
 
 // CSP violation reporting endpoint
 app.post('/csp-violation-report', (req: express.Request, res: express.Response) => {
@@ -123,12 +129,6 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
-// Async error wrapper to ensure proper error handling
-const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
 
 // Auth endpoints (no auth required)
 app.post('/login', asyncHandler(login));
