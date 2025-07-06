@@ -1,3 +1,5 @@
+import { GroupsList } from './groups.js';
+
 // Dashboard initialization logic
 let groupsList;
 

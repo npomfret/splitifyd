@@ -1,3 +1,5 @@
+import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
+
 // Dynamic import of ModalComponent when needed
 let ModalComponent = null;
 
@@ -10,7 +12,7 @@ async function ensureModalComponent() {
     return window.ModalComponent || ModalComponent;
 }
 
-class GroupService {
+export class GroupService {
     static async getUserGroups() {
         // Using existing getGroups from apiService for now
         return apiService.getGroups();
@@ -50,7 +52,7 @@ class GroupService {
     }
 }
 
-class GroupsList {
+export class GroupsList {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         if (!this.container) {
@@ -80,51 +82,62 @@ class GroupsList {
         this.isLoading = loading;
         
         if (loading) {
-            this.container.innerHTML = `
-                <div class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Loading your groups...</p>
-                </div>
-            `;
+            clearElement(this.container);
+            const loadingState = createElementSafe('div', { className: 'loading-state' });
+            const spinner = createElementSafe('div', { className: 'loading-spinner' });
+            const loadingText = createElementSafe('p', { textContent: 'Loading your groups...' });
+            
+            appendChildren(loadingState, [spinner, loadingText]);
+            this.container.appendChild(loadingState);
         }
     }
 
     renderError(message) {
-        this.container.innerHTML = `
-            <div class="error-state">
-                <h3>Unable to load groups</h3>
-                <p>${message}</p>
-                <div class="error-state__actions">
-                    <button type="button" class="button button--secondary" onclick="groupsList.loadGroups()">
-                        Try Again
-                    </button>
-                    <button type="button" class="button button--primary" id="createGroupBtn">
-                        Create Group
-                    </button>
-                </div>
-            </div>
-        `;
+        clearElement(this.container);
         
-        document.getElementById('createGroupBtn')?.addEventListener('click', () => {
-            this.openCreateGroupModal();
+        const errorState = createElementSafe('div', { className: 'error-state' });
+        const title = createElementSafe('h3', { textContent: 'Unable to load groups' });
+        const errorMsg = createElementSafe('p', { textContent: message });
+        const actions = createElementSafe('div', { className: 'error-state__actions' });
+        
+        const tryAgainBtn = createElementSafe('button', {
+            className: 'button button--secondary',
+            textContent: 'Try Again'
         });
+        tryAgainBtn.type = 'button';
+        tryAgainBtn.addEventListener('click', () => this.loadGroups());
+        
+        const createGroupBtn = createElementSafe('button', {
+            id: 'createGroupBtn',
+            className: 'button button--primary',
+            textContent: 'Create Group'
+        });
+        createGroupBtn.type = 'button';
+        createGroupBtn.addEventListener('click', () => this.openCreateGroupModal());
+        
+        appendChildren(actions, [tryAgainBtn, createGroupBtn]);
+        appendChildren(errorState, [title, errorMsg, actions]);
+        this.container.appendChild(errorState);
     }
 
     renderEmpty() {
-        this.container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state__icon">📝</div>
-                <h3>No groups yet</h3>
-                <p>Create your first group to start splitting expenses with friends</p>
-                <button type="button" class="button button--primary" id="createGroupBtn">
-                    Create Your First Group
-                </button>
-            </div>
-        `;
+        clearElement(this.container);
         
-        document.getElementById('createGroupBtn')?.addEventListener('click', () => {
-            this.openCreateGroupModal();
+        const emptyState = createElementSafe('div', { className: 'empty-state' });
+        const icon = createElementSafe('div', { className: 'empty-state__icon', textContent: '📝' });
+        const title = createElementSafe('h3', { textContent: 'No groups yet' });
+        const description = createElementSafe('p', { textContent: 'Create your first group to start splitting expenses with friends' });
+        
+        const createGroupBtn = createElementSafe('button', {
+            id: 'createGroupBtn',
+            className: 'button button--primary',
+            textContent: 'Create Your First Group'
         });
+        createGroupBtn.type = 'button';
+        createGroupBtn.addEventListener('click', () => this.openCreateGroupModal());
+        
+        appendChildren(emptyState, [icon, title, description, createGroupBtn]);
+        this.container.appendChild(emptyState);
     }
 
     renderGroupCard(group) {

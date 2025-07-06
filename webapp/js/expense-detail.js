@@ -1,4 +1,6 @@
 
+import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
+
 let currentExpense = null;
 let currentUser = null;
 let currentGroup = null;
@@ -96,17 +98,23 @@ function displaySplitBreakdown(splits, totalAmount) {
         const userName = getUserDisplayName(userId);
         const splitAmount = parseFloat(amount);
 
-        participantRow.innerHTML = `
-            <div class="participant-info">
-                <div class="user-avatar">
-                    <span>${getInitials(userName)}</span>
-                </div>
-                <span class="participant-name">${userName}</span>
-            </div>
-            <div class="participant-amount">
-                $${splitAmount.toFixed(2)}
-            </div>
-        `;
+        clearElement(participantRow);
+        
+        const participantInfo = createElementSafe('div', { className: 'participant-info' });
+        const userAvatar = createElementSafe('div', { className: 'user-avatar' });
+        const avatarSpan = createElementSafe('span', { textContent: getInitials(userName) });
+        const participantName = createElementSafe('span', { className: 'participant-name', textContent: userName });
+        
+        userAvatar.appendChild(avatarSpan);
+        participantInfo.appendChild(userAvatar);
+        participantInfo.appendChild(participantName);
+        
+        const participantAmount = createElementSafe('div', { 
+            className: 'participant-amount', 
+            textContent: `$${splitAmount.toFixed(2)}`
+        });
+        
+        appendChildren(participantRow, [participantInfo, participantAmount]);
         
         splitBreakdown.appendChild(participantRow);
     });
@@ -117,10 +125,12 @@ function displayGroupInfo(groupId) {
     const groupName = currentGroup ? currentGroup.name : `Group ${groupId}`;
     const memberCount = currentGroup ? currentGroup.members.length : 0;
     
-    groupInfo.innerHTML = `
-        <span class="group-name">${groupName}</span>
-        <span class="group-members">${memberCount} members</span>
-    `;
+    clearElement(groupInfo);
+    
+    const groupNameSpan = createElementSafe('span', { className: 'group-name', textContent: groupName });
+    const groupMembersSpan = createElementSafe('span', { className: 'group-members', textContent: `${memberCount} members` });
+    
+    appendChildren(groupInfo, [groupNameSpan, groupMembersSpan]);
 }
 
 function displayReceipt(receiptUrl) {
