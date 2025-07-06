@@ -26,13 +26,8 @@ export class HeaderComponent {
   static attachEventListeners() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
-        try {
-          await firebase.auth().signOut();
-          window.location.href = '/';
-        } catch (error) {
-          console.error('Logout error:', error);
-        }
+      logoutBtn.addEventListener('click', () => {
+        window.authManager.logout();
       });
     }
   }
