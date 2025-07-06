@@ -114,8 +114,8 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
 };
 
 // Auth endpoints (no auth required)
-app.post('/login', login);
-app.post('/register', register);
+app.post('/login', asyncHandler(login));
+app.post('/register', asyncHandler(register));
 
 // User document creation (requires auth)
 app.post('/createUserDocument', authenticate, asyncHandler(createUserDocument));
