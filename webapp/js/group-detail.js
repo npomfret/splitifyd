@@ -175,8 +175,8 @@ function calculateUserBalances(expenses) {
                 balances[uid].balance -= amount;
                 balances[payerId].balance += amount;
                 
-                balances[uid].owes[payerId] += amount;
-                balances[payerId].owedBy[uid] += amount;
+                balances[uid].owes[payerId] = (balances[uid].owes[payerId] || 0) + amount;
+                balances[payerId].owedBy[uid] = (balances[payerId].owedBy[uid] || 0) + amount;
             }
         });
     });
