@@ -1,22 +1,22 @@
 /* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
     /* Colors */
-    --color-primary: #6A0DAD; /* Deep Purple from landing.css */
+    --color-primary: #6A0DAD;
     --color-primary-dark: #5A0B9C; /* Slightly darker purple */
     --color-primary-light: #8A2BE2; /* Lighter purple from landing.css hero gradient */
-    --color-surface: #F0F0FF; /* Very light blue/purple */
+    --color-surface: #ffffff;
     --color-background: #f0f2f5; /* Light gray from landing.css */
-    --color-text: #A0A0C0; /* Light, low-contrast text */
-    --color-text-muted: #B0B0D0; /* Even lighter, lower-contrast text */
-    --color-text-light: #a0aec0; /* Keeping original as landing.css light-text-color is for dark backgrounds */
-    --color-border: #e2e8f0; /* Keeping original for now */
+    --color-text: #333;
+    --color-text-muted: #555;
+    --color-text-light: #f4f4f4;
+    --color-border: #eee;
     --color-border-focus: #6A0DAD; /* Primary color from landing.css */
     --color-error: #e53e3e; /* Keeping original */
     --color-success: #4CAF50; /* Green from landing.css */
     --color-warning: #ed8936; /* Keeping original */
     
     /* Typography */
-    --font-family-base: 'cursive'; /* Changed to a difficult-to-read font as requested */
+    --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
