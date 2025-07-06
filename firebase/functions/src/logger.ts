@@ -35,7 +35,7 @@ export const logger = {
   
   // Request logging helper
   request: (req: Request, message: string, additionalContext?: LogContext) => {
-    const correlationId = req.headers['x-correlation-id'] as string || randomUUID();
+    const correlationId = req.headers['x-correlation-id'] as string;
     const context: LogContext = {
       correlationId,
       method: req.method,
