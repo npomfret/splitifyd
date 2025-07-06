@@ -228,10 +228,12 @@ function populateFormWithExpense(expense) {
     document.getElementById('category').value = expense.category || '';
     document.getElementById('paidBy').value = expense.paidBy;
     
-    const splitMethod = determineSplitMethod(expense.splits);
+    const splits = expense.splits || {};
+    
+    const splitMethod = determineSplitMethod(splits);
     document.querySelector(`input[name="splitMethod"][value="${splitMethod}"]`).checked = true;
     
-    Object.keys(expense.splits).forEach(userId => {
+    Object.keys(splits).forEach(userId => {
         selectedMembers.add(userId);
     });
     
@@ -239,7 +241,7 @@ function populateFormWithExpense(expense) {
     handleSplitMethodChange({ target: { value: splitMethod } });
     
     if (splitMethod === 'custom') {
-        populateCustomSplits(expense.splits);
+        populateCustomSplits(splits);
     }
 }
 

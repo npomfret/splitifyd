@@ -167,6 +167,10 @@ function calculateUserBalances(expenses) {
         const splits = expense.splits || {};
         
         // Skip if no valid splits data
+        if (!splits || typeof splits !== 'object') {
+            console.warn('Splits is not an object:', splits);
+            return;
+        }
         
         Object.entries(splits).forEach(([uid, amount]) => {
             if (uid !== payerId && balances[uid] && balances[payerId]) {
