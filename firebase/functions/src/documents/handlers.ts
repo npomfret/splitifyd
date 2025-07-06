@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { Errors } from '../utils/errors';
@@ -192,7 +191,7 @@ export const listDocuments = async (
       }
       return baseQuery;
     } catch (error) {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid cursor format');
+      throw Errors.INVALID_INPUT('Invalid cursor format');
     }
   })() : baseQuery;
 
