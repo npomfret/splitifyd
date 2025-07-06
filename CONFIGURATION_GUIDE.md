@@ -1,276 +1,245 @@
-# Splitifyd Configuration Guide
+# Configuration Guide
 
-This comprehensive guide covers technical configuration, security, and CORS setup for the Splitifyd application.
+This guide details the various configuration aspects of the Splitifyd project, covering both development and production environments, with a strong emphasis on security.
 
-## Overview
+## 1. Environment Variables
 
-Splitifyd uses a dynamic, environment-aware configuration system that:
-- Works seamlessly in local development and production
-- Fetches Firebase configuration from backend endpoints
-- Handles CORS automatically based on environment
-- Requires no code changes between environments
+Environment variables are crucial for managing sensitive information and environment-specific settings. They are loaded from `.env` files in the `firebase/functions` directory.
 
-**Tech Stack**: Node.js (latest), TypeScript (latest), Firebase Functions, Firebase Emulator Suite
-**Structure**: Mono-repo with client (webapp) and server (firebase) sub-projects
+**Important:** Never commit `.env` files to version control. Use `.env.example` as a template.
 
-## Security & Configuration Management
+### `firebase/functions/.env.example`
 
-### Environment Variables (Required)
-All Firebase configuration MUST be stored in environment variables on the server with NO hardcoded values in the codebase.
+This file serves as a template for all environment variables used by Firebase Functions. Copy it to `.env` and customize it for your specific environment.
 
-```bash
-# Firebase Client Configuration (firebase/functions/.env)
-CLIENT_API_KEY=your-api-key
-CLIENT_AUTH_DOMAIN=your-project-id.firebaseapp.com
-CLIENT_STORAGE_BUCKET=your-project-id.firebasestorage.app
-CLIENT_MESSAGING_SENDER_ID=your-sender-id
-CLIENT_APP_ID=your-app-id
-CLIENT_MEASUREMENT_ID=your-measurement-id  # Optional
-PROJECT_ID=splitifyd  # Optional, defaults to 'splitifyd'
-```
+#### General Configuration
+- `NODE_ENV`: Defines the environment (e.g., `development`, `test`, `production`). This impacts logging, CORS, and security headers.
+- `GCLOUD_PROJECT`: Your Firebase project ID. Required for production deployments.
 
-### Configuration Flow
-1. **Frontend loads** → Detects environment (local vs production)
-2. **Frontend calls** `/api/config` endpoint (no auth required)
-3. **Backend returns** Firebase configuration from environment variables
-4. **Frontend initializes** Firebase SDK with received config
-5. **Frontend makes** authenticated API calls with proper CORS headers
+#### CORS Configuration
+- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed origins for CORS.
+  - **Development:** Typically `http://localhost:3000,http://localhost:5000` (or other local development servers).
+  - **Production:** Should be restricted to your official Firebase Hosting domains (e.g., `https://your-project-id.web.app,https://your-project-id.firebaseapp.com`).
 
-### Firebase Web API Key Background
-Firebase Web API keys are public identifiers protected by Firebase Security Rules, domain restrictions, and app restrictions - NOT secret keys.
+#### Logging Configuration
+- `LOG_LEVEL`: Logging verbosity (`debug`, `info`, `warn`, `error`).
+- `STRUCTURED_LOGGING`: Enable structured JSON logging (recommended for production).
+- `INCLUDE_STACK_TRACE`: Include stack traces in error logs (disable in production for security).
+- `VERBOSE_LOGGING`: Enable verbose logging.
 
-### Firebase Console Security Setup
-1. **API Key Restrictions** (Google Cloud Console):
-   - Production: `https://your-domain.com/*`
-   - Firebase hosting: `https://your-project.web.app/*`
-   - Development: `http://localhost:*`
-2. **Firebase Security Rules**: Configure Firestore, Authentication, and Storage rules
-3. **App Check**: Enable for production to verify requests come from your app
+#### Firebase Client Configuration
+These variables are used to configure the Firebase SDK on the client-side. They are fetched dynamically by the web application.
+- `FIREBASE_API_KEY` (or `API_KEY` in `firebase/functions/src/config.ts`): Your Firebase Web API Key.
+- `FIREBASE_AUTH_DOMAIN`: Your Firebase Auth Domain.
+- `FIREBASE_STORAGE_BUCKET`: Your Firebase Storage Bucket.
+- `FIREBASE_MESSAGING_SENDER_ID`: Your Firebase Messaging Sender ID.
+- `FIREBASE_APP_ID`: Your Firebase App ID.
+- `FIREBASE_MEASUREMENT_ID`: Your Firebase Measurement ID (optional).
 
-## CORS Configuration
+#### Security Configuration
+- `RATE_LIMIT_WINDOW_MS`: Time window for rate limiting in milliseconds.
+- `RATE_LIMIT_MAX_REQUESTS`: Maximum requests allowed within the window.
+- `RATE_LIMIT_CLEANUP_MS`: Cleanup interval for rate limiting.
+- `MAX_REQUEST_SIZE_BYTES`: Maximum allowed request body size.
+- `MAX_OBJECT_DEPTH`: Maximum depth for nested JSON objects in requests.
+- `MAX_STRING_LENGTH`: Maximum length for string values in requests.
+- `MAX_PROPERTY_COUNT`: Maximum number of properties in an object in requests.
 
-### Environment Detection & Dynamic Configuration
-- **Local**: `localhost` or `127.0.0.1` hostname → Development mode (allows ALL origins)
-- **Production**: Any other hostname → Production mode (strict whitelist)
-- **Detection Method**: `process.env.FUNCTIONS_EMULATOR === 'true'`
+#### Monitoring Configuration
+- `ENABLE_HEALTH_CHECKS`: Enable health check endpoints.
+- `ENABLE_METRICS`: Enable performance metrics collection.
+- `SLOW_REQUEST_THRESHOLD_MS`: Threshold for slow requests.
+- `HEALTH_CHECK_TIMEOUT_MS`: Timeout for health checks.
 
-### CORS Implementation (`firebase/functions/src/middleware/cors.ts`)
-**Production Mode**: Only `https://{projectId}.web.app` and `https://{projectId}.firebaseapp.com`
-**Development Mode**: All origins allowed (`origin: true`)
+#### Firebase Emulator Ports
+- `FIREBASE_AUTH_EMULATOR_PORT`: Port for Firebase Auth Emulator (default: 9099).
+- `FIRESTORE_EMULATOR_PORT`: Port for Firestore Emulator (default: 8080).
+- `FIREBASE_FUNCTIONS_EMULATOR_PORT`: Port for Functions Emulator (default: 5001).
 
-### CORS Headers Applied
-```
-Access-Control-Allow-Origin: [dynamic based on request origin]
-Access-Control-Allow-Credentials: true
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization, X-Correlation-Id
-Access-Control-Expose-Headers: X-Correlation-Id
-Access-Control-Max-Age: 86400 (24 hours for preflight caching)
-```
+## 2. Firebase Project Configuration (`firebase.json`)
 
-### Critical CORS Rules (DO NOT BREAK)
-1. **Never remove** the `cors` middleware from the middleware stack
-2. **Never change** the `invoker: 'public'` setting on the main function export
-3. **Never add** authentication to OPTIONS requests
-4. **Always test** both local and production after CORS changes
-5. **Middleware order matters**: CORS before body parsing and authentication
+The `firebase/firebase.json` file defines the core structure and behavior of your Firebase project.
 
-## URL Construction
+- **`functions`**: Configures Firebase Cloud Functions.
+  - `source`: Directory containing function source code (`functions`).
+  - `codebase`: Identifies the codebase (`default`).
+  - `ignore`: Files/directories to ignore during deployment (e.g., `node_modules`).
+  - `predeploy`: Scripts to run before deployment (e.g., `npm run build`).
+- **`hosting`**: Configures Firebase Hosting.
+  - `public`: Directory to deploy (`public`).
+  - `ignore`: Files/directories to ignore.
+  - `headers`: Custom HTTP headers for hosted content (e.g., `Cache-Control`).
+  - `rewrites`: URL rewrites (e.g., `/api/**` to `api` function).
+- **`firestore`**: Configures Firestore.
+  - `rules`: Path to Firestore security rules (`firestore.rules`).
+  - `indexes`: Path to Firestore indexes (`firestore.indexes.json`).
+- **`emulators`**: Configures Firebase Emulators for local development.
 
-### Local Development
-```javascript
-// Config: http://localhost:5001/splitifyd/us-central1/api/config
-// API: http://localhost:5001/splitifyd/us-central1/api/[endpoint]
-```
+## 3. Firestore Security Rules (`firestore.rules`)
 
-### Production
-```javascript
-// Config: https://[your-domain]/api/config
-// API: https://[your-domain]/api/[endpoint]
-```
+Located at `firebase/firestore.rules`, these rules define who can access your Firestore data and under what conditions.
 
-### Dynamic URL Usage (Always Required)
-```javascript
-// Wrong - hardcoded
-const url = 'https://api-po437q3l5q-uc.a.run.app/endpoint';
+**Current Rules Summary:**
+- Users can only access (read/write/create) their own documents in the `/documents` collection.
+- For document creation, the `userId` in the request data must match the authenticated user's UID, and specific fields (`userId`, `data`, `createdAt`, `updatedAt`) must be present.
+- Listing documents is also restricted to the authenticated user's own documents.
 
-// Correct - dynamic
-const apiUrl = await config.getApiUrl();
-const url = `${apiUrl}/endpoint`;
-```
+**Security Best Practice:** Regularly review and test your Firestore security rules to ensure they align with your application's access control requirements and prevent unauthorized data access.
 
-## Commands & Development Workflow
+## 4. Firestore Indexes (`firestore.indexes.json`)
 
-### Essential Commands
-- Start local services: `cd firebase && npm run dev`
-- Build: `cd <sub-project> && npm run build`
-- Test: `cd <sub-project> && npm test`
-- Check git status: `git status --porcelain`
-- Deploy to prod: `cd firebase && npm run deploy:prod`
+Located at `firebase/firestore.indexes.json`, this file defines composite indexes for your Firestore database. These are essential for efficient querying, especially for queries involving multiple fields or ordering.
 
-### Development Process
-1. **Environment Setup**: Copy `.env.example` to `.env` in `firebase/functions`
-2. **Start Services**: `cd firebase && npm run dev`
-3. **Make Changes**: Edit code with proper validation
-4. **Build & Test**: Run both in each affected sub-project
-5. **Fix Errors**: Address any build or test failures
-6. **Git Management**: Check status, add new files to git or .gitignore
+**Current Indexes Summary:**
+- Indexes for `documents` collection group, ordered by `userId` and `createdAt` (descending).
+- Indexes for `documents` collection group, ordered by `userId` and `updatedAt` (descending).
 
-### Firebase Local Development
-- **Console**: http://127.0.0.1:4000
-- **Logs**: http://localhost:4000/logs
-- **Auth Issues**: `firebase login --reauth`
-- **Emulator**: Typically already running via `npm run dev`
+## 5. Firebase Functions Configuration (`firebase/functions/src/config.ts`)
 
-## Built-in Security Features
-- **CORS Configuration**: Environment-aware origin limiting
-- **Rate Limiting**: Memory-based limiting (10 requests/minute per user)
-- **Request Validation**: Input validation and sanitization
-- **Structured Logging**: Security monitoring and auditing
-- **Authentication**: Firebase Auth token verification middleware
-- **User Isolation**: Firestore rules enforce user-specific access
+This TypeScript file centralizes the configuration for Firebase Functions, reading values from environment variables and defining default/derived settings.
 
-## Testing
+- **Environment Detection**: Automatically detects `production`, `development`, and `test` environments based on `NODE_ENV` and Firebase-specific environment variables.
+- **Rate Limiting**: Configures rate limiting parameters, with different `maxRequests` for production and development.
+- **Validation Limits**: Defines limits for request body size, object depth, string length, and property count to prevent abuse and ensure data integrity. These limits are stricter in production.
+- **Emulator Ports**: Configures ports for Firebase emulators, allowing dynamic connection in development.
+- **Firebase Client Config**: Gathers Firebase client configuration values, which are then exposed to the web application.
 
-### Test Suite
-**Location**: `webapp/test-config.html`
+## 6. CORS Configuration (`firebase/functions/src/middleware/cors.ts`)
 
-**Local Testing**:
-```bash
-cd firebase && npm run dev
-open http://localhost:5002/test-config.html
-```
+The CORS (Cross-Origin Resource Sharing) middleware ensures that your Firebase Functions API can only be accessed from authorized web origins.
 
-**Production Testing**: Deploy and navigate to `https://[your-domain]/test-config.html`
+- **Production Mode**:
+  - `origin`: Strictly validates against `https://{projectId}.web.app` and `https://{projectId}.firebaseapp.com`.
+  - `credentials`: `true` (allows cookies/auth headers).
+  - `methods`: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`.
+  - `allowedHeaders`: `Content-Type`, `Authorization`, `X-Correlation-Id`.
+  - `exposedHeaders`: `X-Correlation-Id`.
+  - `maxAge`: 24 hours for preflight requests.
+- **Development Mode**:
+  - `origin`: `true` (allows all origins for local development ease).
+  - Other settings are similar to production.
 
-**Coverage**: Firebase config fetching, initialization, API URL construction, CORS headers, preflight requests, environment detection
+**Security Best Practice:** Always ensure that `CORS_ALLOWED_ORIGINS` in production is set to the absolute minimum required origins to prevent unauthorized access to your API.
 
-### CORS Testing Commands
-```bash
-# Test CORS headers
-curl -I -X OPTIONS http://localhost:5001/splitifyd/us-central1/api/config \
-  -H "Origin: http://localhost:5002" \
-  -H "Access-Control-Request-Method: GET"
+## 7. Security Headers (`firebase/functions/src/middleware/security-headers.ts`)
 
-# Test actual request
-curl http://localhost:5001/splitifyd/us-central1/api/config \
-  -H "Origin: http://localhost:5002"
-```
+This middleware applies various HTTP security headers to enhance the application's security posture against common web vulnerabilities.
 
-## Common Issues & Solutions
+**Always Applied Headers:**
+- `X-Content-Type-Options: nosniff`: Prevents browsers from MIME-sniffing a response away from the declared content-type.
+- `X-Frame-Options: DENY`: Prevents clickjacking by disallowing the page from being rendered in an iframe.
+- `X-XSS-Protection: 1; mode=block`: Enables the browser's XSS filter.
+- `Referrer-Policy: strict-origin-when-cross-origin`: Controls how much referrer information is sent with requests.
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`: Disables access to sensitive browser features.
 
-### CORS Errors
-**"Access to fetch blocked by CORS policy"**:
-1. Ensure domain matches Firebase hosting patterns (production)
-2. Include credentials in fetch requests:
-   ```javascript
-   fetch(url, {
-     credentials: 'include',
-     headers: {
-       'Content-Type': 'application/json',
-       'Authorization': `Bearer ${token}`
-     }
-   })
-   ```
+**Production Only Headers:**
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains`: Enforces HTTPS for a specified duration, preventing downgrade attacks.
+- `Content-Security-Policy`: Restricts resource loading to trusted sources, mitigating XSS and data injection attacks.
+  - **Current CSP (Server-side):**
+    - `default-src 'self'`
+    - `script-src 'self' https://apis.google.com https://www.gstatic.com`
+    - `style-src 'self' https://fonts.googleapis.com`
+    - `font-src 'self' https://fonts.gstatic.com`
+    - `img-src 'self' data: https:`
+    - `connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com`
+    - `frame-ancestors 'none'`
+    - `report-uri /csp-violation-report`
 
-**"No 'Access-Control-Allow-Origin' header"**:
-- **Local**: Ensure emulators running (`cd firebase && npm run dev`)
-- **Production**: Check domain served from Firebase hosting
-- **Custom Domain**: Add to allowed origins in `cors.ts`
+**Security Best Practice:** The server-side CSP is robust. However, there's a known issue with client-side CSP.
 
-**"Request client is not a secure context"**: Use HTTPS for production
+### Client-Side Content Security Policy (CSP) Issue
 
-### Config Fetch Failures
-- Check Firebase emulators running (local)
-- Verify `/config` endpoint accessible
-- Check browser console for specific errors
-- Ensure no firewall/proxy blocking requests
+**Problem:** The client-side CSP, as noted in `todo/insecure-client-side-csp.md`, uses `'unsafe-inline'` for `script-src` and `style-src`, and `'unsafe-eval'` for `script-src`. These directives significantly weaken XSS protection.
 
-### Emergency CORS Fixes
-1. **DO NOT** modify `invoker: 'public'` setting
-2. **DO NOT** remove CORS middleware
-3. **DO** check middleware order in `utils/middleware.ts`
-4. **DO** verify environment detection working
+**Solution (Recommended):** Implement a nonce-based CSP.
+1.  Generate a unique, cryptographically strong nonce for each page load on the server-side.
+2.  Include this nonce in the `Content-Security-Policy` header (e.g., `script-src 'nonce-YOUR_NONCE_HERE'`).
+3.  Add the same nonce as an attribute to all inline `<script>` and `<style>` tags (e.g., `<script nonce="YOUR_NONCE_HERE">`).
+This allows only scripts/styles with the correct nonce to execute, effectively mitigating inline script/style injection.
 
-## Error Handling Strategy
+## 8. Client-Side Configuration (`webapp/js/firebase-config.js`, `webapp/js/config.js`)
 
-### Philosophy
-- **Fail Fast**: Validate early, throw on invalid state
-- **Bubble Up**: Let exceptions bubble up - crash on broken state
-- **No Try/Catch/Log**: Avoid catching exceptions just to log them
-- **Meaningful Errors**: Clear, actionable error messages
+The web application dynamically fetches its Firebase configuration from the backend.
 
-### Implementation
-- Input validation at entry points
-- Centralized error handling middleware
-- Proper HTTP status codes
-- Standardized error response format
+- `webapp/js/firebase-config.js`:
+  - Manages Firebase initialization on the client.
+  - Fetches Firebase configuration from the `/api/config` endpoint exposed by Firebase Functions.
+  - Connects to Firebase Auth emulator if in a local environment.
+  - Exposes Firebase Auth functions globally (`window.firebaseAuth`).
+- `webapp/js/config.js`:
+  - Provides methods to get the API URL and other configuration details, relying on `firebaseConfigManager`.
 
-## Security Best Practices
+**Security Note:** While Firebase client configuration values are generally safe to be public (as they are protected by Firebase Security Rules), it's good practice to fetch them dynamically from a trusted source (like your own Firebase Function) rather than hardcoding them directly into the client-side code.
 
-### Input & Output
-- Early validation and sanitization
-- Size limits (max 1MB per document)
-- TypeScript strict mode for type safety
-- Sanitize user output, use textContent over innerHTML
+## 9. Input Validation and Sanitization (`firebase/functions/src/utils/security.ts`)
 
-### Authentication & Monitoring
-- Firebase Auth token verification
-- Session management and cleanup
-- Audit logging for security events
-- Track authentication failures
-- Monitor API usage for anomalies
+The `security.ts` utility file provides functions to check for and sanitize dangerous patterns in user input.
 
-### XSS Prevention
-- Content Security Policy headers
-- Input validation and escaping
-- Safe DOM manipulation practices
+- `checkForDangerousPatterns`: Identifies common XSS and prototype pollution patterns.
+- `sanitizeString`: Removes script tags and JavaScript URI schemes.
+- `isDangerousProperty`: Checks for properties that could lead to prototype pollution.
 
-## Debugging
+**Security Best Practice:** While these utilities are helpful, comprehensive input validation and sanitization should be applied at all API entry points to prevent various injection attacks. The `todo/incomplete-input-sanitization.md` suggests this is an area for further improvement.
 
-### Enable Verbose Logging
-```javascript
-console.log('Config URL:', window.firebaseConfigManager.getConfigUrl());
-console.log('API URL:', window.firebaseConfigManager.getApiUrl());
-console.log('Is Local:', window.firebaseConfigManager.isLocalEnvironment());
-```
+## 10. Deployment Configuration
 
-### Browser DevTools Debugging
-1. Open Developer Tools → Network tab
-2. Look for `/config` request
-3. Check response headers for CORS
-4. Verify response contains Firebase config
+The `firebase/package.json` and `firebase/functions/package.json` files contain scripts for building and deploying the application.
 
-### Common Error Messages
-- **"Failed to fetch Firebase config"**: Backend not running/accessible, CORS blocking, network issues
-- **"Firebase initialization failed"**: Invalid config, missing fields, SDK loading issues
-- **"CORS Error: Network request blocked"**: Origin not whitelisted, preflight failing, missing headers
+- **`firebase/package.json`**:
+  - `clean`: Cleans build artifacts.
+  - `build:webapp`: Copies webapp files to the `public` directory for hosting.
+  - `build`: Runs `clean` and `build:webapp`.
+  - `serve`: Starts Firebase emulators for local development.
+  - `dev`: Starts emulators with `nodemon` for hot-reloading webapp changes.
+  - `deploy:prod`: Deploys the entire project to production (requires `firebase use splitifyd`).
+  - `deploy:functions`: Deploys only Firebase Functions.
+  - `deploy:hosting`: Deploys only Firebase Hosting.
+  - `deploy:rules`: Deploys only Firestore security rules.
+- **`firebase/functions/package.json`**:
+  - `build`: Compiles TypeScript to JavaScript.
+  - `serve`: Starts functions emulator.
+  - `deploy`: Deploys functions.
+  - `test`: Runs Jest tests.
+  - `test:endpoints`: Runs API endpoint tests (local and production).
 
-## Deployment
+**Security Best Practice:**
+- Always use `deploy:prod` for production deployments to ensure all necessary components are updated.
+- Ensure your CI/CD pipeline (if any) uses secure credentials for deployment.
+- Regularly review `package.json` scripts to understand what is being built and deployed.
 
-### Local
-- **Emulator**: `firebase emulators:start` from `/firebase` directory
-- **Console**: http://127.0.0.1:4000
-- **Logs**: http://localhost:4000/logs
+## 11. Local Development Setup
 
-### Production
-- **Command**: `cd firebase && npm run deploy:prod`
-- **Prerequisites**: Environment variables configured, API key restrictions set
-- **Monitoring**: Set up monitoring and alerting
+To run the project locally using Firebase Emulators:
 
-## Best Practices Summary
+1.  **Install Firebase CLI:**
+    ```bash
+    npm install -g firebase-tools
+    ```
+2.  **Login to Firebase:**
+    ```bash
+    firebase login
+    ```
+3.  **Navigate to `firebase/functions` and install dependencies:**
+    ```bash
+    cd firebase/functions
+    npm install
+    ```
+4.  **Copy `.env.example` to `.env` and configure:**
+    ```bash
+    cp .env.example .env
+    # Edit .env to set desired values, especially for CORS_ALLOWED_ORIGINS
+    ```
+5.  **Navigate back to the `firebase` directory and install dependencies:**
+    ```bash
+    cd ..
+    npm install
+    ```
+6.  **Start the emulators:**
+    ```bash
+    npm run serve
+    # Or for hot-reloading webapp changes:
+    npm run dev
+    ```
+    This will start the Firebase emulators for Auth, Firestore, Functions, and Hosting. The web application will be served from `http://localhost:5002` (or the port specified in `firebase.json`).
 
-✅ **Configuration**: Never hardcode URLs, always use dynamic system
-✅ **Testing**: Test both local and production environments
-✅ **CORS**: Check headers in browser dev tools, handle async properly
-✅ **Security**: No secrets in frontend, HTTPS in production, proper validation
-✅ **Development**: Cache configuration, fail fast, bubble up exceptions
-✅ **Deployment**: Same code works all environments, no code changes needed
-
-## Security Questions
-
-For security concerns:
-1. Review Firebase security documentation
-2. Check Google Cloud security best practices  
-3. Consider hiring security consultant for production
-4. Refer to this guide for technical implementation details
+This comprehensive guide should help in understanding and managing the configuration and security of the Splitifyd project.
