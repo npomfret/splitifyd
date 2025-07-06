@@ -308,7 +308,7 @@ export class GroupsList {
                         <div class="members-input-container" id="membersContainer">
                             <div class="member-input-row">
                                 <input type="email" placeholder="Enter email address" class="form-input member-email" name="memberEmail[]">
-                                <button type="button" class="button--icon" onclick="this.parentElement.remove()" disabled>×</button>
+                                <button type="button" class="button--icon" disabled>×</button>
                             </div>
                         </div>
                         <button type="button" class="button button--small" id="addMemberBtn">+ Add Another Member</button>
@@ -316,13 +316,34 @@ export class GroupsList {
                 </form>
             `,
             footer: `
-                <button class="button button--secondary" onclick="window.ModalComponent.hide('createGroupModal')">Cancel</button>
+                <button class="button button--secondary" id="cancelCreateGroupButton">Cancel</button>
                 <button class="button button--primary" id="createGroupSubmit">Create Group</button>
             `
         });
 
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         window.ModalComponent.show('createGroupModal');
+
+        // Attach event listener to the cancel button
+        const cancelCreateGroupButton = document.getElementById('cancelCreateGroupButton');
+        if (cancelCreateGroupButton) {
+            cancelCreateGroupButton.addEventListener('click', () => {
+                window.ModalComponent.hide('createGroupModal');
+            });
+        }
+
+        // Add event listeners to initial member row remove button
+        const initialRemoveButton = document.querySelector('#membersContainer .button--icon');
+        if (initialRemoveButton) {
+            initialRemoveButton.addEventListener('click', () => {
+                const memberRow = initialRemoveButton.parentElement;
+                memberRow.remove();
+                // Update remove button states after removal
+                const container = document.getElementById('membersContainer');
+                const remainingButtons = container.querySelectorAll('.button--icon');
+                remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
+            });
+        }
 
         // Add member functionality
         document.getElementById('addMemberBtn').addEventListener('click', () => {
@@ -331,9 +352,18 @@ export class GroupsList {
             newRow.className = 'member-input-row';
             newRow.innerHTML = `
                 <input type="email" placeholder="Enter email address" class="form-input member-email" name="memberEmail[]">
-                <button type="button" class="button--icon" onclick="this.parentElement.remove()">×</button>
+                <button type="button" class="button--icon">×</button>
             `;
             container.appendChild(newRow);
+            
+            // Add event listener to the remove button
+            const removeButton = newRow.querySelector('.button--icon');
+            removeButton.addEventListener('click', () => {
+                newRow.remove();
+                // Update remove button states after removal
+                const remainingButtons = container.querySelectorAll('.button--icon');
+                remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
+            });
             
             // Enable remove buttons when there are multiple rows
             const removeButtons = container.querySelectorAll('.button--icon');

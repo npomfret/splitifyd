@@ -77,19 +77,32 @@ window.showGroupSettingsModal = async (groupId) => {
                     `).join('')}
                 </div>
                 
-                <button class="button button--primary" onclick="showInviteMemberModal('${groupId}')">
+                <button class="button button--primary" id="inviteMemberBtn">
                     <i class="fas fa-user-plus"></i> Invite Member
                 </button>
             </div>
         `,
         footer: `
-            <button class="button button--secondary" onclick="ModalComponent.hide('groupSettingsModal')">Close</button>
-            <button class="button button--danger" onclick="confirmDeleteGroup('${groupId}')">Delete Group</button>
+            <button class="button button--secondary" id="closeSettingsBtn">Close</button>
+            <button class="button button--danger" id="deleteGroupBtn">Delete Group</button>
         `
     });
 
     document.getElementById('modalsContainer').innerHTML = modalHtml;
     ModalComponent.show('groupSettingsModal');
+    
+    // Attach event listeners to the modal buttons
+    document.getElementById('inviteMemberBtn').addEventListener('click', () => {
+        showInviteMemberModal(groupId);
+    });
+    
+    document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+        ModalComponent.hide('groupSettingsModal');
+    });
+    
+    document.getElementById('deleteGroupBtn').addEventListener('click', () => {
+        confirmDeleteGroup(groupId);
+    });
 };
 
 window.confirmDeleteGroup = async (groupId) => {
