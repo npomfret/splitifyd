@@ -355,32 +355,56 @@ export const listUserExpenses = async (
   const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
   const cursor = req.query.cursor as string;
 
-  let query = getExpensesCollection()
-    .where('groupId', 'in', groupIds)
-    .orderBy('date', 'desc')
-    .orderBy('createdAt', 'desc')
-    .limit(limit + 1);
-
-  if (cursor) {
-    try {
-      const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-      const cursorData = JSON.parse(decodedCursor);
-      
-      if (cursorData.date && cursorData.createdAt) {
-        query = query.startAfter(
-          new Date(cursorData.date),
-          new Date(cursorData.createdAt)
-        );
-      }
-    } catch (error) {
-      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
-    }
+  // Split groupIds into chunks of 10 to work around Firestore's 'in' query limit
+  const FIRESTORE_IN_LIMIT = 10;
+  const groupIdChunks: string[][] = [];
+  for (let i = 0; i < groupIds.length; i += FIRESTORE_IN_LIMIT) {
+    groupIdChunks.push(groupIds.slice(i, i + FIRESTORE_IN_LIMIT));
   }
 
-  const snapshot = await query.get();
+  // Execute queries for each chunk in parallel
+  const queryPromises = groupIdChunks.map(async (chunk) => {
+    let query = getExpensesCollection()
+      .where('groupId', 'in', chunk)
+      .orderBy('date', 'desc')
+      .orderBy('createdAt', 'desc')
+      .limit(limit + 1);
+
+    if (cursor) {
+      try {
+        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+        const cursorData = JSON.parse(decodedCursor);
+        
+        if (cursorData.date && cursorData.createdAt) {
+          query = query.startAfter(
+            new Date(cursorData.date),
+            new Date(cursorData.createdAt)
+          );
+        }
+      } catch (error) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
+      }
+    }
+
+    return query.get();
+  });
+
+  const snapshots = await Promise.all(queryPromises);
   
-  const hasMore = snapshot.docs.length > limit;
-  const expenses = snapshot.docs
+  // Merge and sort all documents
+  const allDocs = snapshots.flatMap(snapshot => snapshot.docs);
+  allDocs.sort((a, b) => {
+    const aData = a.data() as Expense;
+    const bData = b.data() as Expense;
+    
+    const dateCompare = (bData.date as any).toMillis() - (aData.date as any).toMillis();
+    if (dateCompare !== 0) return dateCompare;
+    
+    return (bData.createdAt as any).toMillis() - (aData.createdAt as any).toMillis();
+  });
+  
+  const hasMore = allDocs.length > limit;
+  const expenses = allDocs
     .slice(0, limit)
     .map(doc => {
       const data = doc.data() as Expense;
@@ -404,7 +428,7 @@ export const listUserExpenses = async (
 
   let nextCursor: string | undefined;
   if (hasMore && expenses.length > 0) {
-    const lastDoc = snapshot.docs[limit - 1];
+    const lastDoc = allDocs[limit - 1];
     const lastDocData = lastDoc.data() as Expense;
     const cursorData = {
       date: toISOString(lastDocData.date),
