@@ -4,6 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
+import { toISOString } from '../utils/date';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import {
@@ -22,16 +23,6 @@ const getGroupsCollection = () => {
   return admin.firestore().collection('documents');
 };
 
-const toISOString = (value: Timestamp | Date | any): string => {
-  if (value instanceof Timestamp) {
-    return value.toDate().toISOString();
-  } else if (value instanceof Date) {
-    return value.toISOString();
-  } else if (value && typeof value.toDate === 'function') {
-    return value.toDate().toISOString();
-  }
-  return value;
-};
 
 
 const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
