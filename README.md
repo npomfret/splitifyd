@@ -1,25 +1,26 @@
-# Splitifyd
+# Splitifyd App Features
 
-Splitifyd is a bill splitting app.
+This document provides an overview of the high-level features of the Splitifyd application, with links to more detailed descriptions for each.
 
-IT IS A WORK IN PROGRESS.
-
-## Quick Start
-
-### IMPORTANT: Environment Setup Required
-
-This application requires environment variables to be configured before it will run. See [TECHNICAL_CONFIG.md](TECHNICAL_CONFIG.md) for detailed setup instructions.
-
-## Features
-
-All features and implementation details have been moved to [`webapp/FEATURES.md`](webapp/FEATURES.md) for better organization and tracking.
-
-## Dev ethos
-
-- assume all data coming into the system from external sources (like a user) is dangerous and needs careful _vetting_
-- assume all data coming from internal sources (eg server to client) is perfect and does not need validating
-- fail fast - we want to know if the app is broken
-- do not code for _backward compatibility_
-- in general, allow exceptions to bubble out
-- check configuration and the environemnt on start up and fail quickly if it's not ok
-- use the latest APIs available to us
+- [User Authentication](features/user-authentication.md)
+- [Dashboard and Home Page](features/dashboard-home-page.md)
+- [Group List Item Display](features/group-list-item-display.md)
+- [Group Detail View](features/group-detail-view.md)
+- [Add Expense Form](features/add-expense-form.md)
+- [Individual Expense Detail View](features/individual-expense-detail-view.md)
+- [Friends and Contacts Management](features/friends-contacts-management.md)
+- [Group Management](features/group-management.md)
+- [Settlement and Payment Recording](features/settlement-payment-recording.md)
+- [Advanced Splitting Options](features/advanced-splitting-options.md)
+- [Expense List View](features/expense-list-view.md)
+- [Data Visualization](features/data-visualization.md)
+- [Export and Reports](features/export-reports.md)
+- [User Profile and Settings](features/user-profile-settings.md)
+- [Real-time Updates](features/real-time-updates.md)
+- [Advanced Search and Filters](features/advanced-search-filters.md)
+- [Expense Templates](features/expense-templates.md)
+- [Social Features](features/social-features.md)
+- [Integration Features](features/integration-features.md)
+- [Advanced Analytics](features/advanced-analytics.md)
+- [Offline Support](features/offline-support.md)
+- [Accessibility](features/accessibility.md)

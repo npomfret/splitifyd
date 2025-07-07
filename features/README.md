@@ -1,0 +1,26 @@
+# Splitifyd Web App Features
+
+This directory contains detailed documentation for each high-level feature of the Splitifyd web application.
+
+- [User Authentication](user-authentication.md)
+- [Dashboard and Home Page](dashboard-home-page.md)
+- [Group List Item Display](group-list-item-display.md)
+- [Group Detail View](group-detail-view.md)
+- [Add Expense Form](add-expense-form.md)
+- [Individual Expense Detail View](individual-expense-detail-view.md)
+- [Friends and Contacts Management](friends-contacts-management.md)
+- [Group Management](group-management.md)
+- [Settlement and Payment Recording](settlement-payment-recording.md)
+- [Advanced Splitting Options](advanced-splitting-options.md)
+- [Expense List View](expense-list-view.md)
+- [Data Visualization](data-visualization.md)
+- [Export and Reports](export-reports.md)
+- [User Profile and Settings](user-profile-settings.md)
+- [Real-time Updates](real-time-updates.md)
+- [Advanced Search and Filters](advanced-search-filters.md)
+- [Expense Templates](expense-templates.md)
+- [Social Features](social-features.md)
+- [Integration Features](integration-features.md)
+- [Advanced Analytics](advanced-analytics.md)
+- [Offline Support](offline-support.md)
+- [Accessibility](accessibility.md)
