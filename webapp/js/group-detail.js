@@ -61,8 +61,8 @@ function initializeEventListeners() {
         showMessage('Settlement feature coming soon!', 'info');
     });
     
-    document.getElementById('inviteMembersBtn').addEventListener('click', () => {
-        document.getElementById('inviteMembersModal').classList.add('show');
+    document.getElementById('inviteMembersBtn').addEventListener('click', async () => {
+        await showShareGroupModal();
     });
     
     document.getElementById('groupSettingsBtn').addEventListener('click', () => {
@@ -566,3 +566,72 @@ function showMessage(message, type = 'info') {
         }, 300);
     }, 3000);
 }
+
+async function showShareGroupModal() {
+    try {
+        const response = await api.generateShareableLink(currentGroupId);
+        console.log('Share link response:', response);
+        const shareUrl = response.data.shareableUrl;
+        
+        const modalHtml = `
+            <div id="shareGroupModal" class="modal show">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Share Group</h2>
+                        <button class="close-button" id="shareModalCloseBtn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Share this link with others to invite them to join the group:</p>
+                        <div class="share-link-container">
+                            <input type="text" id="shareLink" class="form-control" value="${shareUrl}" readonly>
+                            <button class="button button--primary" id="copyShareLinkBtn">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p class="share-info">Anyone with this link can join the group after logging in.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="button button--secondary" id="shareModalCancelBtn">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.classList.add('modal-open');
+        
+        // Add event listeners after modal is created
+        document.getElementById('shareModalCloseBtn').addEventListener('click', closeShareGroupModal);
+        document.getElementById('shareModalCancelBtn').addEventListener('click', closeShareGroupModal);
+        document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareLink);
+        
+        document.getElementById('shareLink').select();
+    } catch (error) {
+        console.error('Error generating share link:', error);
+        showMessage('Failed to generate share link', 'error');
+    }
+}
+
+function closeShareGroupModal() {
+    const modal = document.getElementById('shareGroupModal');
+    if (modal) {
+        modal.remove();
+        document.body.classList.remove('modal-open');
+    }
+}
+
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    shareLink.select();
+    shareLink.setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        showMessage('Link copied to clipboard!', 'success');
+    } catch (err) {
+        showMessage('Failed to copy link', 'error');
+    }
+}
+

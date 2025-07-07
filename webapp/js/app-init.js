@@ -1,4 +1,4 @@
-import { showWarning, hideWarning } from './warning-banner.js';
+// Functions are available globally from warning-banner.js
 
 export class AppInit {
   static async initialize(config = {}) {
@@ -26,18 +26,19 @@ export class AppInit {
     const intervalMs = 100;
     let attempts = 0;
     
-    while (!window.firebase && attempts < maxAttempts) {
+    // Wait for firebaseAuth to be available
+    while (!window.firebaseAuth && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, intervalMs));
       attempts++;
     }
     
-    if (!window.firebase) {
+    if (!window.firebaseAuth) {
       throw new Error(`Firebase failed to load after ${maxAttempts * intervalMs}ms`);
     }
   }
 
   static setupAuthListener(customHandler) {
-    firebase.auth().onAuthStateChanged((user) => {
+    window.firebaseAuth.onAuthStateChanged((user) => {
       if (customHandler) {
         customHandler(user);
       } else if (!user) {
@@ -72,16 +73,16 @@ export class AppInit {
   }
 
   static async getCurrentUser() {
-    const user = firebase.auth().currentUser;
+    const user = window.firebaseAuth.getCurrentUser();
     if (!user) {
       await new Promise((resolve) => {
-        const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+        const unsubscribe = window.firebaseAuth.onAuthStateChanged((user) => {
           unsubscribe();
           resolve(user);
         });
       });
     }
-    return firebase.auth().currentUser;
+    return window.firebaseAuth.getCurrentUser();
   }
 
   static async requireUser() {

@@ -1,3 +1,23 @@
+function showWarning(message) {
+    const bannerElement = document.getElementById('warningBanner');
+    if (bannerElement) {
+        bannerElement.textContent = message;
+        bannerElement.classList.remove('hidden');
+    }
+}
+
+function hideWarning() {
+    const bannerElement = document.getElementById('warningBanner');
+    if (bannerElement) {
+        bannerElement.classList.add('hidden');
+    }
+}
+
+// Export for module usage if available
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { showWarning, hideWarning };
+}
+
 const warningBannerManager = {
     init() {
         window.firebaseConfigManager.initialize()

@@ -255,6 +255,38 @@ class ApiService {
         }
     }
 
+    async generateShareableLink(groupId) {
+        if (!groupId) {
+            throw new Error('Group ID is required');
+        }
+
+        try {
+            const data = await apiCall('/groups/share', {
+                method: 'POST',
+                body: JSON.stringify({ groupId })
+            });
+            return { success: true, data: data };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async joinGroupByLink(linkId) {
+        if (!linkId) {
+            throw new Error('Link ID is required');
+        }
+
+        try {
+            const data = await apiCall('/groups/join', {
+                method: 'POST',
+                body: JSON.stringify({ linkId })
+            });
+            return { success: true, data: data };
+        } catch (error) {
+            throw error;
+        }
+    }
+
 }
 
 const apiService = new ApiService();
@@ -307,5 +339,7 @@ window.api = {
     deleteGroup: (groupId) => apiService.deleteGroup(groupId),
     createExpense: (expenseData) => apiService.createExpense(expenseData),
     getExpense: (expenseId) => apiService.getExpense(expenseId),
-    updateExpense: (expenseId, updateData) => apiService.updateExpense(expenseId, updateData)
+    updateExpense: (expenseId, updateData) => apiService.updateExpense(expenseId, updateData),
+    generateShareableLink: (groupId) => apiService.generateShareableLink(groupId),
+    joinGroupByLink: (linkId) => apiService.joinGroupByLink(linkId)
 };

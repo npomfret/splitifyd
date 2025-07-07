@@ -30,11 +30,23 @@ const fetchUserDocument = async (documentId: string, userId: string): Promise<{ 
 
   const document = doc.data() as Document;
 
-  if (document.userId !== userId) {
-    throw Errors.NOT_FOUND('Document');
+  // Check if user owns the document
+  if (document.userId === userId) {
+    return { docRef, document };
   }
 
-  return { docRef, document };
+  // For group documents, check if user is a member
+  if (document.data?.members && Array.isArray(document.data.members)) {
+    const isMember = document.data.members.some((member: any) => 
+      member.userId === userId || member.id === userId || member.uid === userId
+    );
+    if (isMember) {
+      return { docRef, document };
+    }
+  }
+
+  // User doesn't have access to this document
+  throw Errors.NOT_FOUND('Document');
 };
 
 /**
@@ -92,11 +104,20 @@ export const getDocument = async (
   // Fetch and verify document ownership
   const { docRef, document } = await fetchUserDocument(documentId, userId);
 
+  // Handle both Firestore Timestamp and string dates
+  const createdAt = typeof document.createdAt === 'string' 
+    ? document.createdAt 
+    : (document.createdAt as any).toDate().toISOString();
+  
+  const updatedAt = typeof document.updatedAt === 'string'
+    ? document.updatedAt
+    : (document.updatedAt as any).toDate().toISOString();
+
   res.json({
     id: docRef.id,
     data: document.data,
-    createdAt: (document.createdAt as any).toDate().toISOString(),
-    updatedAt: (document.updatedAt as any).toDate().toISOString(),
+    createdAt,
+    updatedAt,
   });
 };
 

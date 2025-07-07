@@ -27,6 +27,7 @@ import {
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
 import { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5 } from './triggers/expenseAggregation';
+import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
 
 // Firebase Admin initialization (emulators auto-configured in config.ts)
 
@@ -151,6 +152,10 @@ app.put('/expenses', authenticate, asyncHandler(updateExpense));
 app.delete('/expenses', authenticate, asyncHandler(deleteExpense));
 app.get('/expenses/group', authenticate, asyncHandler(listGroupExpenses));
 app.get('/expenses/user', authenticate, asyncHandler(listUserExpenses));
+
+// Group sharing endpoints (requires auth)
+app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));
+app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
 
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
