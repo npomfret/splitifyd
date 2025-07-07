@@ -2,6 +2,8 @@
 
 This guide details the various configuration aspects of the Splitifyd project, covering both development and production environments, with a strong emphasis on security.
 
+It's helpful to have the firebase cli installed. Use: `npm install -g firebase-tools`
+
 ## 1. Environment Variables
 
 Environment variables are crucial for managing sensitive information and environment-specific settings. They are loaded from `.env` files in the `firebase/functions` directory.
