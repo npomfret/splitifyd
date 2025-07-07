@@ -4,13 +4,15 @@ This report outlines the key considerations and steps for migrating Firebase Clo
 
 ## Key Changes and Benefits of v2 Functions
 
-Firebase Cloud Functions v2 are built on Cloud Run, offering significant improvements over v1:
+Firebase Cloud Functions v2 are built on Google Cloud Run, offering significant improvements over v1:
 
-*   **Improved Performance and Scalability:** Faster cold starts and better concurrency due to Cloud Run's architecture.
-*   **Modular Imports:** V2 functions utilize modular imports (e.g., `firebase-functions/v2/firestore`), allowing for more granular imports of specific triggers.
+*   **Improved Performance and Scalability**: V2 functions leverage Cloud Run, resulting in significantly faster cold starts and the ability to handle multiple concurrent requests per function instance. This improves scalability and can reduce costs.
+*   **Longer Request Timeouts**: V2 functions support much longer-running tasks. While v1 functions have a maximum timeout of 9 minutes, v2 functions can run for up to 60 minutes for HTTP-triggered functions.
+*   **Modern Node.js Support**: V2 is required to use modern Node.js runtimes like Node.js 22, allowing you to use the latest language features and performance improvements.
+*   **Enhanced Configuration and Control**: V2 provides more granular, per-function control over settings like memory, CPU, and timeout directly within the function's definition.
+*   **Better Code Organization**: The move to modular imports (e.g., `require('firebase-functions/v2/firestore')`) allows you to only import the specific function triggers you need, leading to cleaner and more efficient code.
+*   **Traffic Splitting**: Built on Cloud Run, v2 functions support gradual rollouts and A/B testing by splitting traffic between different revisions of a function.
 *   **Enhanced Event Object Structure:** The event object structure for Firestore triggers is updated, providing `event.data.after` and `event.data.before` for document snapshots.
-*   **Direct Runtime Options:** Configuration options like memory and timeout are now set directly within the function definition using a configuration object.
-*   **Node.js 22 Support:** V2 functions fully support Node.js 22, which is not available for v1 functions.
 
 ## Migration Steps for Firestore Triggers
 
