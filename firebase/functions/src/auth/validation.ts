@@ -1,6 +1,6 @@
 import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
+import { HTTP_STATUS, VALIDATION_LIMITS } from '../constants';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -44,7 +44,7 @@ const registerSchema = Joi.object({
     }),
   displayName: Joi.string()
     .min(2)
-    .max(50)
+    .max(VALIDATION_LIMITS.MAX_DISPLAY_NAME_LENGTH)
     .pattern(/^[a-zA-Z0-9\s\-_.]+$/)
     .required()
     .messages({
