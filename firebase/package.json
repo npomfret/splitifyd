@@ -8,7 +8,7 @@
     "build": "npm run clean && npm run build:webapp",
     "serve": "npm run build && cd functions && npm run build && cd .. && firebase emulators:start",
     "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon --watch ../webapp --ext html,css,js --exec 'npm run build:webapp' & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
-    "dev:with-data": "npm run build && cd functions && npm run build && cd .. && node scripts/start-with-data.js",
+    "dev:with-data": "rm -f *.log && npm run build && cd functions && npm run build && cd .. && node scripts/start-with-data.js",
     "generate-test-data": "cd functions && node scripts/generate-test-data.js",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
@@ -16,7 +16,8 @@
     "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
     "deploy:hosting": "npm run build && firebase use splitifyd && firebase deploy --only hosting",
     "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
-    "logs": "firebase use splitifyd && firebase functions:log"
+    "logs": "firebase use splitifyd && firebase functions:log",
+    "kill-emulators": "node scripts/kill-emulators.js"
   },
   "author": "",
   "license": "MIT",
