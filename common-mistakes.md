@@ -37,3 +37,8 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
 
 ## Keep it clean
  - Don't leave temporary files lying around. Delete them (don't got ignore them!)
+
+## Content Security Policy (CSP)
+ - NEVER use inline event handlers like `onclick="function()"` in HTML - they violate CSP
+ - Always add event listeners via JavaScript using `addEventListener()` instead
+ - This applies to all inline handlers: onclick, onchange, onsubmit, etc.
