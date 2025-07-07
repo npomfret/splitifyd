@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
+import { logger } from '../logger';
 
 const recalculateGroupStats = async (groupId: string): Promise<void> => {
   const expensesCollection = admin.firestore().collection('expenses');
@@ -47,7 +48,7 @@ export const onExpenseCreateV5 = functions.firestore
         'data.lastExpenseTime': (expense.createdAt as any).toDate().toISOString()
       });
     } catch (error) {
-      console.error('Failed to update group stats on expense create:', error);
+      logger.error('Failed to update group stats on expense create', { error: error as Error, groupId });
       throw error;
     }
   });
@@ -87,7 +88,7 @@ export const onExpenseDeleteV5 = functions.firestore
     try {
       await recalculateGroupStats(groupId);
     } catch (error) {
-      console.error('Failed to update group stats on expense delete:', error);
+      logger.error('Failed to update group stats on expense delete', { error: error as Error, groupId });
       throw error;
     }
   });
