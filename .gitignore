@@ -1,5 +1,9 @@
 .idea/workspace.xml
 
+.claude/commands/analyse.md
+.claude/commands/changes.md
+.claude/commands/refactor.md
+
 ### Node template
 # Logs
 logs
