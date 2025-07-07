@@ -14,6 +14,7 @@ import {
   calculateSplits,
   Expense
 } from './validation';
+import { GroupData, GroupMember } from '../documents/validation';
 
 const getExpensesCollection = () => {
   return admin.firestore().collection('expenses');
@@ -39,12 +40,21 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
   }
   
-  // Check if user owns the document (groups are owned by their creator for now)
-  if (groupData.userId !== userId) {
-    // In the future, we'd check groupData.data.members array
-    // For now, only the creator can add expenses
-    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
+  // Check if user is the group owner (creator)
+  if (groupData.userId === userId) {
+    return;
   }
+  
+  // Check if user is a member of the group
+  const groupDataTyped = groupData.data as GroupData;
+  if (groupDataTyped.members && Array.isArray(groupDataTyped.members)) {
+    const isMember = groupDataTyped.members.some((member: GroupMember) => member.uid === userId);
+    if (isMember) {
+      return;
+    }
+  }
+  
+  throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
 };
 
 const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference, expense: Expense }> => {

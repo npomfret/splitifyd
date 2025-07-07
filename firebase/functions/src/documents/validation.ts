@@ -16,6 +16,30 @@ export interface Document {
 }
 
 /**
+ * Group member structure
+ */
+export interface GroupMember {
+  uid: string;
+  name: string;
+  initials: string;
+}
+
+/**
+ * Group data structure (stored in document.data)
+ */
+export interface GroupData {
+  name: string;
+  description?: string;
+  memberEmails: string[];
+  members: GroupMember[];
+  yourBalance: number;
+  expenseCount: number;
+  lastExpenseTime: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * Create document request body
  */
 export interface CreateDocumentRequest {
