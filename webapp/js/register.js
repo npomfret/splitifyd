@@ -1,127 +1,108 @@
-import { TemplateEngine } from './templates/template-engine.js';
-import { baseLayout } from './templates/base-layout.js';
-import { AuthCardComponent } from './components/auth-card.js';
+import { auth, createUserWithEmailAndPassword, updateProfile } from './firebase-config.js';
+import { config } from './config.js';
 
-const renderRegister = () => {
-    const formContent = `
-        <form class="auth-form" id="registerForm" novalidate>
-            <div class="form-group">
-                <label for="displayName" class="form-label">
-                    Display Name
-                    <span class="form-label__required" aria-label="required">*</span>
-                </label>
-                <input 
-                    type="text" 
-                    id="displayName" 
-                    name="displayName" 
-                    class="form-input"
-                    required
-                    autocomplete="name"
-                    aria-describedby="displayName-error"
-                    minlength="2"
-                    maxlength="50"
-                >
-                <div id="displayName-error" class="form-error" role="alert"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="email" class="form-label">
-                    Email Address
-                    <span class="form-label__required" aria-label="required">*</span>
-                </label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    class="form-input"
-                    required
-                    autocomplete="email"
-                    aria-describedby="email-error"
-                >
-                <div id="email-error" class="form-error" role="alert"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="password" class="form-label">
-                    Password
-                    <span class="form-label__required" aria-label="required">*</span>
-                </label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    class="form-input"
-                    required
-                    minlength="8"
-                    autocomplete="new-password"
-                    aria-describedby="password-error password-help"
-                    maxlength="100"
-                >
-                <div id="password-help" class="form-help">
-                    At least 8 characters with uppercase, lowercase, number, and special character
-                </div>
-                <div id="password-error" class="form-error" role="alert"></div>
-            </div>
-            
-            <div class="form-group">
-                <label for="confirmPassword" class="form-label">
-                    Confirm Password
-                    <span class="form-label__required" aria-label="required">*</span>
-                </label>
-                <input 
-                    type="password" 
-                    id="confirmPassword" 
-                    name="confirmPassword" 
-                    class="form-input"
-                    required
-                    autocomplete="new-password"
-                    aria-describedby="confirmPassword-error"
-                >
-                <div id="confirmPassword-error" class="form-error" role="alert"></div>
-            </div>
-            
-            <button type="submit" class="button button--primary button--large" aria-describedby="submit-help">
-                Create Account
-            </button>
-            <div id="submit-help" class="sr-only">
-                This will create your new Splitifyd account
-            </div>
-        </form>
-    `;
+const registerForm = document.getElementById('registerForm');
+const displayNameInput = document.getElementById('displayName');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirmPassword');
 
-    const footerContent = `
-        <nav class="auth-nav" aria-label="Authentication navigation">
-            <p>Already have an account? <a href="index.html" id="signInLink" class="auth-link auth-link--primary">Sign in</a></p>
-        </nav>
-    `;
-
-    const bodyContent = AuthCardComponent.render({
-        formContent,
-        footerContent,
-        cardClass: 'auth-card--register'
-    });
-
-    const additionalStyles = `
-        <link rel="preload" href="css/main.css" as="style">
-        <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/utility.css">
-        <link rel="dns-prefetch" href="//api.splitifyd.com">
-    `;
-
-    const additionalScripts = `
-        <script src="js/config.js"></script>
-        <script src="js/auth.js"></script>
-    `;
-
-    TemplateEngine.loadAndRenderPage({
-        layout: baseLayout,
-        data: {
-            title: 'Splitifyd - Register',
-            bodyContent,
-            additionalStyles,
-            additionalScripts
-        }
+const clearErrors = () => {
+    document.querySelectorAll('.form-error').forEach(error => {
+        error.textContent = '';
     });
 };
 
-renderRegister();
+const showError = (fieldName, message) => {
+    const errorElement = document.getElementById(`${fieldName}-error`);
+    if (errorElement) {
+        errorElement.textContent = message;
+    }
+};
+
+const validateForm = () => {
+    clearErrors();
+    let isValid = true;
+
+    const displayName = displayNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    if (!displayName) {
+        showError('displayName', 'Display name is required');
+        isValid = false;
+    } else if (displayName.length < 2) {
+        showError('displayName', 'Display name must be at least 2 characters');
+        isValid = false;
+    } else if (displayName.length > 50) {
+        showError('displayName', 'Display name must be 50 characters or less');
+        isValid = false;
+    }
+
+    if (!email) {
+        showError('email', 'Email is required');
+        isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('email', 'Please enter a valid email address');
+        isValid = false;
+    }
+
+    if (!password) {
+        showError('password', 'Password is required');
+        isValid = false;
+    } else if (password.length < 8) {
+        showError('password', 'Password must be at least 8 characters');
+        isValid = false;
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)) {
+        showError('password', 'Password must contain uppercase, lowercase, number, and special character');
+        isValid = false;
+    }
+
+    if (!confirmPassword) {
+        showError('confirmPassword', 'Please confirm your password');
+        isValid = false;
+    } else if (password !== confirmPassword) {
+        showError('confirmPassword', 'Passwords do not match');
+        isValid = false;
+    }
+
+    return isValid;
+};
+
+const handleRegister = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+        return;
+    }
+
+    const displayName = displayNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName });
+        
+        window.location.href = config.dashboardUrl;
+    } catch (error) {
+        console.error('Registration error:', error);
+        
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                showError('email', 'This email is already registered');
+                break;
+            case 'auth/weak-password':
+                showError('password', 'Password is too weak');
+                break;
+            case 'auth/invalid-email':
+                showError('email', 'Invalid email address');
+                break;
+            default:
+                showError('email', 'Registration failed. Please try again.');
+        }
+    }
+};
+
+registerForm.addEventListener('submit', handleRegister);

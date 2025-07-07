@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
-    <title>Group Details - Splitifyd</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" href="css/main.css" as="style">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/utility.css">
     <link rel="dns-prefetch" href="//api.splitifyd.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Group Details - Splitifyd</title>
 </head>
 <body>
     <div id="warningBanner" class="warning-banner hidden"></div>
+    
     <header class="dashboard-header">
         <div class="dashboard-container">
             <h1 class="dashboard-title"><a href="dashboard.html" class="dashboard-title-link">Splitifyd</a></h1>
@@ -26,108 +30,111 @@
         <div class="dashboard-container">
             <div class="group-detail-container">
                 <nav class="nav-header">
-                    <button class="back-button">
+                    <button class="back-button" id="backButton">
                         <i class="fas fa-arrow-left"></i>
                         <span>Back</span>
                     </button>
                     <h1 class="page-title">Group Details</h1>
-                    <button class="settings-button" id="groupSettingsBtn">
-                        <i class="fas fa-cog"></i>
-                    </button>
+                    <div class="header-actions">
+                        <button class="settings-button" id="groupSettingsBtn">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
                 </nav>
 
-        <div id="groupHeader" class="group-header">
-            <div class="group-info">
-                <div class="group-icon-large">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="group-details">
-                    <h2 id="groupName" class="group-name">Loading...</h2>
-                    <div class="group-members-preview">
-                        <div id="membersList" class="members-avatars"></div>
-                        <span id="membersCount" class="members-count"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="quick-actions">
-            <button class="button button--primary" id="addExpenseBtn">
-                <i class="fas fa-plus"></i>
-                Add Expense
-            </button>
-            <button class="button button--secondary" id="settleUpBtn">
-                <i class="fas fa-handshake"></i>
-                Settle Up
-            </button>
-            <button class="button button--secondary" id="inviteMembersBtn">
-                <i class="fas fa-user-plus"></i>
-                Invite
-            </button>
-        </div>
-
-        <div class="tab-navigation">
-            <button class="tab-button active" data-tab="balances">
-                <i class="fas fa-balance-scale"></i>
-                Balances
-            </button>
-            <button class="tab-button" data-tab="expenses">
-                <i class="fas fa-receipt"></i>
-                Expenses
-            </button>
-            <button class="tab-button" data-tab="activity">
-                <i class="fas fa-history"></i>
-                Activity
-            </button>
-        </div>
-
-        <div class="tab-content">
-            <div id="balancesTab" class="tab-pane active">
-                <div class="balance-summary-section">
-                    <h3>Group Balances</h3>
-                    <div id="balanceSummary" class="balance-summary">
-                        <div class="loading-spinner">
-                            <i class="fas fa-spinner fa-spin"></i>
+                <div id="groupHeader" class="group-header">
+                    <div class="group-info">
+                        <div class="group-icon-large">
+                            <i class="fas fa-users"></i>
                         </div>
-                    </div>
-                    
-                    <div class="simplified-debts-section">
-                        <h4>Simplified Debts</h4>
-                        <div id="simplifiedDebts" class="simplified-debts"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="expensesTab" class="tab-pane">
-                <div class="expenses-header">
-                    <h3>Group Expenses</h3>
-                </div>
-                
-                <div id="expensesList" class="expenses-list">
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
-                </div>
-                
-                <div id="loadMoreContainer" class="load-more-container hidden">
-                    <button class="button button--secondary" id="loadMoreBtn">Load More</button>
-                </div>
-            </div>
-
-            <div id="activityTab" class="tab-pane">
-                <div class="activity-section">
-                    <h3>Recent Activity</h3>
-                    <div id="activityTimeline" class="activity-timeline">
-                        <div class="loading-spinner">
-                            <i class="fas fa-spinner fa-spin"></i>
+                        <div class="group-details">
+                            <h2 id="groupName" class="group-name">Loading...</h2>
+                            <div class="group-members-preview">
+                                <div id="membersList" class="members-avatars"></div>
+                                <span id="membersCount" class="members-count"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="quick-actions">
+                    <button class="button button--primary" id="addExpenseBtn">
+                        <i class="fas fa-plus"></i>
+                        Add Expense
+                    </button>
+                    <button class="button button--secondary" id="settleUpBtn">
+                        <i class="fas fa-handshake"></i>
+                        Settle Up
+                    </button>
+                    <button class="button button--secondary" id="inviteMembersBtn">
+                        <i class="fas fa-user-plus"></i>
+                        Invite
+                    </button>
+                </div>
+
+                <div class="tab-navigation">
+                    <button class="tab-button active" data-tab="balances">
+                        <i class="fas fa-balance-scale"></i>
+                        Balances
+                    </button>
+                    <button class="tab-button" data-tab="expenses">
+                        <i class="fas fa-receipt"></i>
+                        Expenses
+                    </button>
+                    <button class="tab-button" data-tab="activity">
+                        <i class="fas fa-history"></i>
+                        Activity
+                    </button>
+                </div>
+
+                <div class="tab-content">
+                    <div id="balancesTab" class="tab-pane active">
+                        <div class="balance-summary-section">
+                            <h3>Group Balances</h3>
+                            <div id="balanceSummary" class="balance-summary">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="simplified-debts-section">
+                                <h4>Simplified Debts</h4>
+                                <div id="simplifiedDebts" class="simplified-debts"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="expensesTab" class="tab-pane">
+                        <div class="expenses-header">
+                            <h3>Group Expenses</h3>
+                        </div>
+                        
+                        <div id="expensesList" class="expenses-list">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                        
+                        <div id="loadMoreContainer" class="load-more-container hidden">
+                            <button class="button button--secondary" id="loadMoreBtn">Load More</button>
+                        </div>
+                    </div>
+
+                    <div id="activityTab" class="tab-pane">
+                        <div class="activity-section">
+                            <h3>Recent Activity</h3>
+                            <div id="activityTimeline" class="activity-timeline">
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
-
+    
     <div id="groupSettingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -161,7 +168,7 @@
             </div>
         </div>
     </div>
-
+    
     <div id="inviteMembersModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -184,14 +191,14 @@
             </div>
         </div>
     </div>
-
+    
     <script src="js/firebase-config.js"></script>
     <script src="js/config.js"></script>
     <script src="js/warning-banner.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script type="module" src="js/group-detail.js"></script>
     <script src="js/logout-handler.js"></script>
+    <script type="module" src="js/group-detail.js"></script>
     <script src="js/group-detail-handlers.js"></script>
 </body>
 </html>

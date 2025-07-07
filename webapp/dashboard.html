@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
-    <title>Splitifyd - Dashboard</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*;">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" href="css/main.css" as="style">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/utility.css">
     <link rel="dns-prefetch" href="//api.splitifyd.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Splitifyd - Dashboard</title>
 </head>
 <body>
     <div id="warningBanner" class="warning-banner hidden"></div>
+    
     <header class="dashboard-header">
         <div class="dashboard-container">
             <h1 class="dashboard-title"><a href="dashboard.html" class="dashboard-title-link">Splitifyd</a></h1>
@@ -23,7 +28,6 @@
     
     <main class="dashboard-main">
         <div class="dashboard-container">
-            
             <section class="dashboard-content">
                 <div id="groupsContainer" class="groups-container">
                     <div class="loading-state" id="loadingState">
@@ -39,6 +43,7 @@
     <script src="js/warning-banner.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/logout-handler.js"></script>
     <script src="js/expenses.js"></script>
     <script type="module" src="js/groups.js"></script>
     <script type="module" src="js/dashboard-init.js"></script>
