@@ -1,8 +1,9 @@
 # Common Mistakes
 
 ## Backward Compatible Code
- - DO NOT write any code for _backward compatibility_ reasons. This project is a demo, there is no legacy data or legancy systems to integrate with.
+ - DO NOT write any code for _backward compatibility_ reasons (unless instructed to do so). This project is a demo, there is no legacy data or legacy systems to integrate with.
  - Similarly, there is no existing data that can't be deleted. NEVER write migration scripts, or code to handle multiple formats
+ - if data formats need to change, we will write a migration script.
 
 ## Keep it working
 The project needs to work locally, via the firebase emulator AND in a deployed firbase environment.
@@ -33,3 +34,6 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
 
 ## Shell
  - run `pwd` BEFORE executing shell commands to ensure you are in the desired directory
+
+## Keep it clean
+ - Don't leave temporary files lying around. Delete them (don't got ignore them!)
