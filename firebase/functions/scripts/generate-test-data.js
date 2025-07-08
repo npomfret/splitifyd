@@ -264,10 +264,48 @@ async function generateTestData() {
       console.log(`• ${user.email} (${user.displayName}) - Password: ${user.password}`);
     });
 
+    console.log('\n🔬 Creating circular debt scenario for debugging...');
+    await createCircularDebtScenario(users);
+
+
   } catch (error) {
     console.error('❌ Test data generation failed:', error);
     process.exit(1);
   }
+}
+
+async function createCircularDebtScenario(users) {
+  const groupName = 'simplify-test-group';
+  const groupMembers = [users[0], users[1], users[2]];
+  const group = await createTestGroup(groupName, groupMembers, users[0]);
+
+  const expenseAmount = 100;
+
+  // User 1 pays for User 2
+  await createTestExpense(
+    group.id,
+    { description: 'U1 pays for U2', amount: expenseAmount, category: 'other' },
+    [users[0], users[1]],
+    users[0]
+  );
+
+  // User 2 pays for User 3
+  await createTestExpense(
+    group.id,
+    { description: 'U2 pays for U3', amount: expenseAmount, category: 'other' },
+    [users[1], users[2]],
+    users[1]
+  );
+
+  // User 3 pays for User 1
+  await createTestExpense(
+    group.id,
+    { description: 'U3 pays for U1', amount: expenseAmount, category: 'other' },
+    [users[2], users[0]],
+    users[2]
+  );
+
+  console.log(`✓ Created circular debt scenario in group: ${groupName}`);
 }
 
 // Run the script
