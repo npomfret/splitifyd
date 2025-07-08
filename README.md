@@ -1,26 +1,32 @@
-# Splitifyd App Features
+# Splitifyd
 
-This document provides an overview of the high-level features of the Splitifyd application, with links to more detailed descriptions for each.
+A bill splitting app.
 
-- [User Authentication](features/user-authentication.md)
-- [Dashboard and Home Page](features/dashboard-home-page.md)
-- [Group List Item Display](features/group-list-item-display.md)
-- [Group Detail View](features/group-detail-view.md)
-- [Add Expense Form](features/add-expense-form.md)
-- [Individual Expense Detail View](features/individual-expense-detail-view.md)
-- [Friends and Contacts Management](features/friends-contacts-management.md)
-- [Group Management](features/group-management.md)
-- [Settlement and Payment Recording](features/settlement-payment-recording.md)
-- [Advanced Splitting Options](features/advanced-splitting-options.md)
-- [Expense List View](features/expense-list-view.md)
-- [Data Visualization](features/data-visualization.md)
-- [Export and Reports](features/export-reports.md)
-- [User Profile and Settings](features/user-profile-settings.md)
-- [Real-time Updates](features/real-time-updates.md)
-- [Advanced Search and Filters](features/advanced-search-filters.md)
-- [Expense Templates](features/expense-templates.md)
-- [Social Features](features/social-features.md)
-- [Integration Features](features/integration-features.md)
-- [Advanced Analytics](features/advanced-analytics.md)
-- [Offline Support](features/offline-support.md)
-- [Accessibility](features/accessibility.md)
+View the [docs](docs) for details on features, todo, dev stuff etc.
+
+## Getting started
+
+Create a firebase project and from it create `firbase/functions/.env` and add:
+```
+PROJECT_ID=<your-project-id>
+CLIENT_API_KEY=
+CLIENT_AUTH_DOMAIN=<your-project-id>.firebaseapp.com
+CLIENT_STORAGE_BUCKET=<your-project-id>.firebasestorage.app
+CLIENT_MESSAGING_SENDER_ID=
+CLIENT_APP_ID=
+CLIENT_MEASUREMENT_ID=
+```
+
+To run the server locally via the firebase emulator
+
+```
+cd firebase && npm run dev:with-data
+```
+
+In your browser go to http://localhost:5002/
+
+To stop the emulator, just hit `ctrl-c`, but if it doesn't stop cleanly run `./scripts/kill-emulators.js`
+
+## Deployment
+
+Run `cd firebase && npm deploy:prod`
