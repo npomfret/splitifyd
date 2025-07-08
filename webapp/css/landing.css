@@ -219,7 +219,7 @@
             box-shadow: var(--shadow-medium);
         }
 
-        .feature-item img {
+        .feature-item img, .feature-item svg {
             width: 80px;
             height: 80px;
             margin-bottom: 20px;
@@ -227,6 +227,8 @@
             background-color: var(--primary-color);
             padding: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            stroke: var(--light-text-color);
+            fill: none;
         }
 
         .feature-item h3 {
@@ -243,7 +245,7 @@
             line-height: 1.7;
         }
 
-        .feature-item[data-icon-color="green"] img {
+        .feature-item[data-icon-color="green"] img, .feature-item[data-icon-color="green"] svg {
             background-color: #16a34a; /* Green */
         }
 
