@@ -3,14 +3,13 @@ import * as admin from 'firebase-admin';
 import { validateCreateUserRequest } from './validation';
 
 export const createUserDocument = async (req: Request, res: Response) => {
-  const { displayName, defaultCurrency } = validateCreateUserRequest(req.body);
+  const { displayName } = validateCreateUserRequest(req.body);
   const userId = (req as any).user.uid;
   
   const firestore = admin.firestore();
   await firestore.collection('users').doc(userId).set({
     email: (req as any).user.email,
     displayName,
-    defaultCurrency,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
