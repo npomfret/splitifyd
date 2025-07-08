@@ -42,3 +42,7 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
  - NEVER use inline event handlers like `onclick="function()"` in HTML - they violate CSP
  - Always add event listeners via JavaScript using `addEventListener()` instead
  - This applies to all inline handlers: onclick, onchange, onsubmit, etc.
+
+# Dependencies 
+ - DO NOT USE AXIOS. NEVER USE AXIOS. Node has a perfectly good request library. 
+ - Avoid using external libraries in general if possible
