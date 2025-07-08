@@ -71,6 +71,7 @@ export class GroupsList {
             this.filteredGroups = [...this.groups];
             this.render();
         } catch (error) {
+            console.error('Error loading groups:', error);
             this.renderError(error.message);
         } finally {
             this.setLoading(false);
@@ -93,11 +94,13 @@ export class GroupsList {
     }
 
     renderError(message) {
+        // Log error details to console
+        console.error('Failed to load groups:', message);
+        
         clearElement(this.container);
         
         const errorState = createElementSafe('div', { className: 'error-state' });
         const title = createElementSafe('h3', { textContent: 'Unable to load groups' });
-        const errorMsg = createElementSafe('p', { textContent: message });
         const actions = createElementSafe('div', { className: 'error-state__actions' });
         
         const tryAgainBtn = createElementSafe('button', {
@@ -116,7 +119,7 @@ export class GroupsList {
         createGroupBtn.addEventListener('click', () => this.openCreateGroupModal());
         
         appendChildren(actions, [tryAgainBtn, createGroupBtn]);
-        appendChildren(errorState, [title, errorMsg, actions]);
+        appendChildren(errorState, [title, actions]);
         this.container.appendChild(errorState);
     }
 

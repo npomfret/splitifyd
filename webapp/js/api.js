@@ -40,22 +40,25 @@ class ApiService {
     _transformGroupsData(documents) {
         return documents.map(doc => ({
             id: doc.id,
-            name: doc.data.name,
-            memberCount: doc.data.members.length,
-            yourBalance: doc.data.yourBalance,
+            name: doc.data.name || 'Unnamed Group',
+            memberCount: doc.data.members?.length || 0,
+            yourBalance: doc.data.yourBalance || 0,
             lastActivity: this._formatLastActivity(doc.data.updatedAt),
             lastActivityRaw: doc.data.updatedAt,
-            lastExpense: doc.data.lastExpense,
-            members: doc.data.members,
-            expenseCount: doc.data.expenseCount,
-            lastExpenseTime: doc.data.lastExpenseTime
+            lastExpense: doc.data.lastExpense || null,
+            members: doc.data.members || [],
+            expenseCount: doc.data.expenseCount || 0,
+            lastExpenseTime: doc.data.lastExpenseTime || null
         }));
     }
 
     _formatLastActivity(timestamp) {
+        if (!timestamp) {
+            return 'Never';
+        }
         
         let date;
-        if (timestamp._seconds) {
+        if (timestamp && typeof timestamp === 'object' && timestamp._seconds) {
             // Handle Firestore Timestamp format
             date = new Date(timestamp._seconds * 1000);
         } else {
