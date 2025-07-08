@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 interface TestConfig {
@@ -13,17 +13,13 @@ interface TestUser {
 }
 
 class EndpointTester {
-  private client: AxiosInstance;
+  private client: request.SuperTest<request.Test>;
   private config: TestConfig;
   private testUser: TestUser;
   
   constructor(config: TestConfig) {
     this.config = config;
-    this.client = axios.create({
-      baseURL: config.baseUrl,
-      timeout: 10000,
-      validateStatus: () => true, // Don't throw on any status
-    });
+    this.client = request(config.baseUrl);
     
     const uniqueId = uuidv4().substring(0, 8);
     this.testUser = {
@@ -35,14 +31,12 @@ class EndpointTester {
   private async createTestUser(): Promise<void> {
     console.log(`\n📝 Creating test user: ${this.testUser.email}`);
     
-    const response = await this.client.post('/api/register', {
-      email: this.testUser.email,
-      password: this.testUser.password,
-    });
-    
-    if (response.status !== 200) {
-      throw new Error(`Failed to create test user: ${JSON.stringify(response.data)}`);
-    }
+    const response = await this.client.post('/api/register')
+      .send({
+        email: this.testUser.email,
+        password: this.testUser.password,
+      })
+      .expect(200);
     
     console.log('✅ Test user created successfully');
   }
@@ -50,16 +44,18 @@ class EndpointTester {
   private async authenticateUser(): Promise<void> {
     console.log(`\n🔐 Authenticating user: ${this.testUser.email}`);
     
-    const response = await this.client.post('/api/login', {
-      email: this.testUser.email,
-      password: this.testUser.password,
-    });
+    const response = await this.client.post('/api/login')
+      .send({
+        email: this.testUser.email,
+        password: this.testUser.password,
+      })
+      .expect(200);
     
-    if (response.status !== 200 || !response.data.idToken) {
-      throw new Error(`Failed to authenticate user: ${JSON.stringify(response.data)}`);
+    if (!response.body.idToken) {
+      throw new Error(`Failed to authenticate user: ${JSON.stringify(response.body)}`);
     }
     
-    this.testUser.idToken = response.data.idToken;
+    this.testUser.idToken = response.body.idToken;
     console.log('✅ User authenticated successfully');
   }
   
@@ -72,15 +68,11 @@ class EndpointTester {
     
     for (const origin of testOrigins) {
       try {
-        const response = await this.client.request({
-          method: 'OPTIONS',
-          url: endpoint,
-          headers: {
-            'Origin': origin,
-            'Access-Control-Request-Method': method,
-            'Access-Control-Request-Headers': 'Content-Type,Authorization',
-          },
-        });
+        const response = await this.client.options(endpoint)
+          .set('Origin', origin)
+          .set('Access-Control-Request-Method', method)
+          .set('Access-Control-Request-Headers', 'Content-Type,Authorization')
+          .expect(200);
         
         const corsHeaders = {
           'access-control-allow-origin': response.headers['access-control-allow-origin'],
@@ -140,13 +132,10 @@ class EndpointTester {
     await this.testCorsHeaders(endpoint, method);
     await this.testSecurityHeaders(endpoint);
     
-    const response = await this.client.request({
-      method,
-      url: endpoint,
-    });
+    const response = await this.client.get(endpoint).expect(200);
     
     console.log(`  Response Status: ${response.status}`);
-    console.log(`  Response Data:`, JSON.stringify(response.data).substring(0, 200));
+    console.log(`  Response Data:`, JSON.stringify(response.body).substring(0, 200));
     
     if (response.status >= 200 && response.status < 300) {
       console.log('  ✅ Public endpoint accessible');
@@ -167,31 +156,18 @@ class EndpointTester {
     
     // Test without auth
     console.log('  Testing without authentication...');
-    const unauthResponse = await this.client.request({
-      method,
-      url: endpoint,
-      data,
-    });
-    
-    if (unauthResponse.status === 401) {
-      console.log('  ✅ Correctly rejected unauthenticated request');
-    } else {
-      console.warn(`  ⚠️  Expected 401, got ${unauthResponse.status}`);
-    }
+    await this.client.post(endpoint).send(data).expect(401);
+    console.log('  ✅ Correctly rejected unauthenticated request');
     
     // Test with auth
     console.log('  Testing with authentication...');
-    const authResponse = await this.client.request({
-      method,
-      url: endpoint,
-      headers: {
-        'Authorization': `Bearer ${this.testUser.idToken}`,
-      },
-      data,
-    });
+    const authResponse = await this.client.post(endpoint)
+      .set('Authorization', `Bearer ${this.testUser.idToken}`)
+      .send(data)
+      .expect(200);
     
     console.log(`  Response Status: ${authResponse.status}`);
-    console.log(`  Response Data:`, JSON.stringify(authResponse.data).substring(0, 200));
+    console.log(`  Response Data:`, JSON.stringify(authResponse.body).substring(0, 200));
     
     if (authResponse.status >= 200 && authResponse.status < 300) {
       console.log('  ✅ Secure endpoint accessible with auth');
