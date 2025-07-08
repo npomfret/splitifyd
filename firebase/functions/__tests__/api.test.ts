@@ -193,4 +193,89 @@ describe('Comprehensive API Test Suite', () => {
       apiRequest(`/expenses?id=${createdExpense.id}`, 'GET', null, users[1].token)
     ).rejects.toThrow();
   });
+
+  test('should calculate group balances correctly', async () => {
+    // Get balances for the group
+    const balances = await apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, users[0].token);
+    
+    // Verify the response structure
+    expect(balances).toHaveProperty('groupId');
+    expect(balances).toHaveProperty('userBalances');
+    expect(balances).toHaveProperty('simplifiedDebts');
+    expect(balances).toHaveProperty('lastUpdated');
+    
+    // Verify user balances are present for both users
+    expect(balances.userBalances).toHaveProperty(users[0].uid);
+    expect(balances.userBalances).toHaveProperty(users[1].uid);
+    
+    // User 0 paid 100, split equally between 2 users
+    // So user 0 should be owed 50 by user 1
+    const user0Balance = balances.userBalances[users[0].uid];
+    const user1Balance = balances.userBalances[users[1].uid];
+    
+    expect(user0Balance.userId).toBe(users[0].uid);
+    expect(user0Balance.name).toBe(users[0].displayName);
+    expect(user0Balance.owedBy[users[1].uid]).toBe(50);
+    
+    expect(user1Balance.userId).toBe(users[1].uid);
+    expect(user1Balance.name).toBe(users[1].displayName);
+    expect(user1Balance.owes[users[0].uid]).toBe(50);
+  });
+
+  test('should handle groups with different member data structures', async () => {
+    // Create a group with members in a different structure (testing the fix in balanceHandlers.ts)
+    const altGroupData = {
+      name: `Alt Structure Group ${uuidv4()}`,
+      // Testing flat member structure instead of nested under data
+      members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
+    };
+
+    const altGroup = await apiRequest('/createDocument', 'POST', { data: altGroupData }, users[0].token);
+    
+    // Add an expense to this group
+    const altExpenseData = {
+      groupId: altGroup.id,
+      description: 'Alternative Group Expense',
+      amount: 200,
+      category: 'other',
+      date: new Date().toISOString(),
+      paidBy: users[1].uid,
+      splitType: 'equal',
+      participants: users.map(u => u.uid)
+    };
+
+    await apiRequest('/expenses', 'POST', altExpenseData, users[1].token);
+    
+    // Try to get balances - this should work with both member structures
+    const altBalances = await apiRequest(`/groups/balances?groupId=${altGroup.id}`, 'GET', null, users[0].token);
+    
+    expect(altBalances).toHaveProperty('userBalances');
+    expect(Object.keys(altBalances.userBalances).length).toBe(2);
+    
+    // Verify the names are resolved correctly using the member map
+    const altUser0Balance = altBalances.userBalances[users[0].uid];
+    const altUser1Balance = altBalances.userBalances[users[1].uid];
+    
+    expect(altUser0Balance.name).toBe(users[0].displayName);
+    expect(altUser1Balance.name).toBe(users[1].displayName);
+    
+    // User 1 paid 200, split equally between 2 users
+    // So user 1 should be owed 100 by user 0
+    expect(altUser1Balance.owedBy[users[0].uid]).toBe(100);
+    expect(altUser0Balance.owes[users[1].uid]).toBe(100);
+  });
+
+  test('should only allow group members to access balances', async () => {
+    // Create a third user who is not part of the group
+    const outsiderUser = await createTestUser({
+      email: `outsider-${uuidv4()}@test.com`,
+      password: 'Password123!',
+      displayName: 'Outsider User'
+    });
+    
+    // Try to access balances as non-member
+    await expect(
+      apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, outsiderUser.token)
+    ).rejects.toThrow(/403|FORBIDDEN/);
+  });
 });
