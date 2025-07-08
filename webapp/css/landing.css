@@ -70,12 +70,24 @@
             border: 2px solid var(--primary-color);
             border-radius: var(--border-radius);
             transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            margin-left: 10px;
         }
 
         .nav-links a:hover {
             background-color: var(--primary-color);
             color: var(--light-text-color);
             transform: translateY(-2px);
+        }
+
+        .nav-links .nav-cta {
+            color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .nav-links .nav-cta:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: var(--light-text-color);
         }
 
         /* Hero Section */
@@ -229,6 +241,14 @@
             color: var(--dark-gray);
             font-size: 1.1em;
             line-height: 1.7;
+        }
+
+        .feature-item[data-icon-color="green"] img {
+            background-color: #16a34a; /* Green */
+        }
+
+        .feature-item[data-icon-color="green"] h3 {
+            color: #166534; /* Darker Green */
         }
 
         /* Call to Action Bottom */
