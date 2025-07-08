@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 
 const recalculateGroupStats = async (groupId: string): Promise<void> => {
@@ -44,7 +45,7 @@ export const onExpenseCreateV5 = functions.firestore
     
     try {
       await admin.firestore().collection('documents').doc(groupId).update({
-        'data.expenseCount': admin.firestore.FieldValue.increment(1),
+        'data.expenseCount': FieldValue.increment(1),
         'data.lastExpenseTime': (expense.createdAt as any).toDate().toISOString()
       });
     } catch (error) {
