@@ -27,7 +27,9 @@ import {
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
 import { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5 } from './triggers/expenseAggregation';
+import { onExpenseWrite } from './triggers/balanceAggregation';
 import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
+import { getGroupBalances } from './groups/balanceHandlers';
 
 // Firebase Admin initialization (emulators auto-configured in config.ts)
 
@@ -157,6 +159,9 @@ app.get('/expenses/user', authenticate, asyncHandler(listUserExpenses));
 app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));
 app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
 
+// Group balance endpoint (requires auth)
+app.get('/groups/balances', authenticate, asyncHandler(getGroupBalances));
+
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
     error: {
@@ -222,4 +227,4 @@ export const api = onRequest({
 }, app);
 
 // Export Firestore triggers
-export { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5 };
+export { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5, onExpenseWrite };

@@ -164,11 +164,10 @@ class ApiService {
 
     async getGroupBalances(groupId) {
         try {
-            const data = await apiCall(`/expenses/group?groupId=${groupId}`, {
+            const data = await apiCall(`/groups/balances?groupId=${groupId}`, {
                 method: 'GET'
             });
-            // The expenses are already in the correct format from the server
-            return { data: data.expenses };
+            return { data: data };
         } catch (error) {
             throw error;
         }

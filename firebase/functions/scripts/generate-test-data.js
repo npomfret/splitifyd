@@ -108,7 +108,10 @@ async function createTestExpense(groupId, expense, participants, createdBy) {
       id: '', // Will be set by Firestore
       groupId,
       createdBy: createdBy.uid,
-      paidBy: createdBy.uid,
+      paidBy: {
+        userId: createdBy.uid,
+        name: createdBy.displayName || createdBy.email
+      },
       amount: expense.amount,
       description: expense.description,
       category: expense.category,
@@ -117,10 +120,12 @@ async function createTestExpense(groupId, expense, participants, createdBy) {
       participants: participants.map(p => p.uid),
       splits: participants.map(participant => ({
         userId: participant.uid,
+        name: participant.displayName || participant.email,
         amount: expense.amount / participants.length
       })),
       createdAt: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now()
+      updatedAt: admin.firestore.Timestamp.now(),
+      deletedAt: null
     };
 
     const expenseRef = await db.collection('expenses').add(expenseData);

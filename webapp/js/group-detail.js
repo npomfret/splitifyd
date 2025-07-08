@@ -1,4 +1,4 @@
-import { simplifyDebts } from './utils/debt-simplifier.js';
+
 
 let currentGroup = null;
 let currentGroupId = null;
@@ -138,21 +138,18 @@ async function loadBalances() {
     
     try {
         const response = await api.getGroupBalances(currentGroupId);
-        const balances = response.data;
+        const { userBalances, simplifiedDebts: serverSimplifiedDebts } = response.data;
         
         balanceSummary.innerHTML = '';
         
-        if (balances.length === 0) {
+        if (!userBalances || Object.keys(userBalances).length === 0) {
             balanceSummary.innerHTML = '<p class="no-data">All settled up!</p>';
             simplifiedDebts.innerHTML = '<p class="no-data">No outstanding debts</p>';
             return;
         }
         
-        const userBalances = calculateUserBalances(balances);
         displayUserBalances(userBalances, balanceSummary);
-        
-        const simplified = simplifyDebts(userBalances);
-        displaySimplifiedDebts(simplified, simplifiedDebts);
+        displaySimplifiedDebts(serverSimplifiedDebts, simplifiedDebts);
         
     } catch (error) {
         console.error('Error loading balances:', error);
@@ -160,41 +157,7 @@ async function loadBalances() {
     }
 }
 
-function calculateUserBalances(expenses) {
-    const balances = {};
-    const currentUserId = localStorage.getItem('userId');
-    
-    currentGroup.members.forEach(member => {
-        balances[member.uid] = {
-            userId: member.uid,
-            name: member.name,
-            balance: 0,
-            owes: {},
-            owedBy: {}
-        };
-    });
-    
-    expenses.forEach(expense => {
-        const payerId = expense.paidBy;
-        const splits = expense.splits;
-        
-        
-        splits.forEach(split => {
-            const uid = split.userId;
-            const amount = split.amount;
-            
-            if (uid !== payerId && balances[uid] && balances[payerId]) {
-                balances[uid].balance -= amount;
-                balances[payerId].balance += amount;
-                
-                balances[uid].owes[payerId] = (balances[uid].owes[payerId] || 0) + amount;
-                balances[payerId].owedBy[uid] = (balances[payerId].owedBy[uid] || 0) + amount;
-            }
-        });
-    });
-    
-    return balances;
-}
+
 
 function displayUserBalances(balances, container) {
     const currentUserId = localStorage.getItem('userId');
@@ -203,8 +166,8 @@ function displayUserBalances(balances, container) {
         const balanceCard = document.createElement('div');
         balanceCard.className = 'balance-card';
         
-        const isCurrentUser = userBalance.uid === currentUserId;
-        const balanceClass = userBalance.balance > 0 ? 'positive' : userBalance.balance < 0 ? 'negative' : 'neutral';
+        const isCurrentUser = userBalance.userId === currentUserId;
+        const balanceClass = userBalance.netBalance > 0 ? 'positive' : userBalance.netBalance < 0 ? 'negative' : 'neutral';
         
         const displayName = isCurrentUser ? 'You' : userBalance.name;
         
@@ -222,7 +185,7 @@ function displayUserBalances(balances, container) {
         
         const balanceAmount = document.createElement('div');
         balanceAmount.className = `balance-amount ${balanceClass}`;
-        balanceAmount.textContent = `${userBalance.balance >= 0 ? '+' : ''}$${Math.abs(userBalance.balance).toFixed(2)}`;
+        balanceAmount.textContent = `${userBalance.netBalance >= 0 ? '+' : ''}$${Math.abs(userBalance.netBalance).toFixed(2)}`;
         
         balanceUser.appendChild(memberAvatar);
         balanceUser.appendChild(userName);

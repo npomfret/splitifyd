@@ -56,7 +56,8 @@
       "!src/**/*.d.ts"
     ],
     "testMatch": [
-      "**/__tests__/**/*.test.ts"
+      "**/__tests__/**/*.test.ts",
+      "src/**/*.test.ts"
     ],
     "transform": {
       "^.+\\.ts$": [
