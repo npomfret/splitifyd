@@ -11,8 +11,26 @@ const emulatorProcess = spawn('firebase', [
   'emulators:start',
   '--export-on-exit=./emulator-data'
 ], {
-  stdio: 'inherit',
+  stdio: 'pipe', // Changed to pipe so we can read stdout
   env: { ...process.env, NODE_ENV: 'development' }
+});
+
+// Track if emulators are ready
+let emulatorsReady = false;
+
+// Monitor emulator output
+emulatorProcess.stdout.on('data', (data) => {
+  const output = data.toString();
+  process.stdout.write(output); // Forward to console
+  
+  // Check for the "All emulators ready" message
+  if (output.includes('All emulators ready!')) {
+    emulatorsReady = true;
+  }
+});
+
+emulatorProcess.stderr.on('data', (data) => {
+  process.stderr.write(data); // Forward errors to console
 });
 
 // Start nodemon for webapp watching
@@ -43,32 +61,62 @@ function checkEmulatorReady() {
   });
 }
 
+// Function to check if API functions are ready
+function checkApiReady() {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: 'localhost',
+      port: 5001,
+      path: '/splitifyd/us-central1/api',
+      method: 'GET',
+      timeout: 1000
+    }, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        // If we get "Function does not exist", the functions aren't ready yet
+        if (data.includes('Function us-central1-api does not exist')) {
+          resolve(false);
+        } else {
+          // Any other response (including 404, 405, etc.) means the function is loaded
+          resolve(true);
+        }
+      });
+    });
+
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => resolve(false));
+    req.end();
+  });
+}
+
 // Wait for emulator to be ready, then generate test data
 setTimeout(async () => {
   console.log('\n⏳ Waiting for Firebase emulator to be ready...');
   
-  // Poll for emulator readiness
+  // First wait for the "All emulators ready" message
   let attempts = 0;
-  const maxAttempts = 30;
+  const maxAttempts = 60; // Increased to give more time
   
-  while (attempts < maxAttempts) {
-    const isReady = await checkEmulatorReady();
-    if (isReady) {
-      console.log('\n🎯 Firebase emulator is ready!');
-      break;
-    }
-    
+  while (attempts < maxAttempts && !emulatorsReady) {
     attempts++;
-    console.log(`⏳ Waiting for emulator... (${attempts}/${maxAttempts})`);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log(`⏳ Waiting for all emulators to start... (${attempts}/${maxAttempts})`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
-  if (attempts >= maxAttempts) {
-    console.error('❌ Firebase emulator failed to start within timeout');
+  if (!emulatorsReady) {
+    console.error('❌ Firebase emulators failed to start within timeout');
     return;
   }
   
-  // Wait a bit more for all services to be ready
+  console.log('\n🎯 All emulators are ready!');
+  
+  // Wait a bit more to ensure everything is fully initialized
+  console.log('\n⏳ Waiting for functions to fully initialize...');
   await new Promise(resolve => setTimeout(resolve, 3000));
   
   try {

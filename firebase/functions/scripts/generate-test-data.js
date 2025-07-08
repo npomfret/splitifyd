@@ -2,18 +2,19 @@
 
 const admin = require('firebase-admin');
 
+// API base URL
+const API_BASE_URL = 'http://localhost:5001/splitifyd/us-central1/api';
+
 // Set emulator environment variables before initializing
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
 process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
 
-// Initialize Firebase Admin for emulator
-const app = admin.initializeApp({
+// Initialize Firebase Admin for emulator (only for getting user info after creation)
+admin.initializeApp({
   projectId: 'splitifyd'
 });
 
-// Connect to Firebase emulator
 const auth = admin.auth();
-const db = admin.firestore();
 
 const TEST_USERS = [
   { email: 'test1@test.com', password: 'rrRR44$$', displayName: 'Test User 1' },
@@ -34,31 +35,115 @@ const EXAMPLE_EXPENSES = [
   { description: 'expense-10', amount: 35.60, category: 'food' }
 ];
 
+async function apiRequest(endpoint, method = 'POST', body = null, token = null) {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    },
+    ...(body && { body: JSON.stringify(body) })
+  };
+
+  try {
+    const response = await fetch(url, options);
+    
+    // Try to parse response as JSON, but handle non-JSON responses
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      console.error(`Non-JSON response from ${endpoint}:`, text);
+      
+      // If it's the "Function does not exist" error, it means Firebase isn't ready yet
+      if (text.includes('Function us-central1-api does not exist')) {
+        throw new Error('Firebase Functions not ready yet. Please wait for emulator to fully initialize.');
+      }
+      
+      throw new Error(`API returned non-JSON response: ${text.substring(0, 100)}...`);
+    }
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || `API request failed: ${response.status}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error(`✗ API request to ${endpoint} failed:`, error.message);
+    throw error;
+  }
+}
+
+async function exchangeCustomTokenForIdToken(customToken) {
+  const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
+  const url = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`;
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: customToken,
+        returnSecureToken: true
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Failed to exchange custom token');
+    }
+    
+    return data.idToken;
+  } catch (error) {
+    console.error('Failed to exchange custom token:', error);
+    throw error;
+  }
+}
+
 async function createTestUser(userInfo) {
   try {
     console.log(`Creating user: ${userInfo.email}`);
     
-    // Create user in Firebase Auth
-    const userRecord = await auth.createUser({
+    // Register user via API
+    const registerResponse = await apiRequest('/register', 'POST', {
       email: userInfo.email,
       password: userInfo.password,
       displayName: userInfo.displayName
     });
 
-    // Create user document in Firestore
-    await db.collection('users').doc(userRecord.uid).set({
+    // Login to get auth token
+    const loginResponse = await apiRequest('/login', 'POST', {
       email: userInfo.email,
-      displayName: userInfo.displayName,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      password: userInfo.password
     });
 
+    // Exchange custom token for ID token
+    const idToken = await exchangeCustomTokenForIdToken(loginResponse.customToken);
+    
+    // Get user record from Firebase Auth to get the UID
+    const userRecord = await auth.getUserByEmail(userInfo.email);
+
     console.log(`✓ Created user: ${userInfo.email} (${userRecord.uid})`);
-    return userRecord;
+    return { ...userRecord, token: idToken };
   } catch (error) {
-    if (error.code === 'auth/email-already-exists') {
-      console.log(`→ User already exists: ${userInfo.email}`);
-      return await auth.getUserByEmail(userInfo.email);
+    if (error.message?.includes('already exists')) {
+      console.log(`→ User already exists: ${userInfo.email}, logging in...`);
+      
+      // Login to get auth token
+      const loginResponse = await apiRequest('/login', 'POST', {
+        email: userInfo.email,
+        password: userInfo.password
+      });
+      
+      // Exchange custom token for ID token
+      const idToken = await exchangeCustomTokenForIdToken(loginResponse.customToken);
+      
+      const userRecord = await auth.getUserByEmail(userInfo.email);
+      return { ...userRecord, token: idToken };
     }
     throw error;
   }
@@ -68,7 +153,6 @@ async function createTestGroup(name, members, createdBy) {
   try {
     console.log(`Creating group: ${name}`);
     
-    const now = new Date();
     const groupData = {
       name,
       members: members.map(member => ({
@@ -76,26 +160,16 @@ async function createTestGroup(name, members, createdBy) {
         name: member.displayName,
         email: member.email,
         initials: member.displayName.split(' ').map(n => n[0]).join('').toUpperCase()
-      })),
-      createdBy: createdBy.uid,
-      createdAt: admin.firestore.Timestamp.fromDate(now),
-      updatedAt: admin.firestore.Timestamp.fromDate(now),
-      yourBalance: 0,
-      expenseCount: 0,
-      lastExpenseTime: admin.firestore.Timestamp.fromDate(now),
-      lastExpense: null
+      }))
     };
 
-    // Create group document in the documents collection
-    const groupRef = await db.collection('documents').add({
-      userId: createdBy.uid,
-      data: groupData,
-      createdAt: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now()
-    });
+    // Create group via API
+    const response = await apiRequest('/createDocument', 'POST', { 
+      data: groupData 
+    }, createdBy.token);
 
-    console.log(`✓ Created group: ${name} (${groupRef.id})`);
-    return { id: groupRef.id, ...groupData };
+    console.log(`✓ Created group: ${name} (${response.id})`);
+    return { id: response.id, ...groupData };
   } catch (error) {
     console.error(`✗ Failed to create group ${name}:`, error);
     throw error;
@@ -105,36 +179,21 @@ async function createTestGroup(name, members, createdBy) {
 async function createTestExpense(groupId, expense, participants, createdBy) {
   try {
     const expenseData = {
-      id: '', // Will be set by Firestore
       groupId,
-      createdBy: createdBy.uid,
-      paidBy: {
-        userId: createdBy.uid,
-        name: createdBy.displayName || createdBy.email
-      },
       amount: expense.amount,
       description: expense.description,
       category: expense.category,
-      date: admin.firestore.Timestamp.fromDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
+      date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       splitType: 'equal',
       participants: participants.map(p => p.uid),
-      splits: participants.map(participant => ({
-        userId: participant.uid,
-        name: participant.displayName || participant.email,
-        amount: expense.amount / participants.length
-      })),
-      createdAt: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now(),
-      deletedAt: null
+      paidBy: createdBy.uid // Just the user ID, not an object
     };
 
-    const expenseRef = await db.collection('expenses').add(expenseData);
-    
-    // Update the expense with its ID
-    await expenseRef.update({ id: expenseRef.id });
+    // Create expense via API
+    const response = await apiRequest('/expenses', 'POST', expenseData, createdBy.token);
 
-    console.log(`✓ Created expense: ${expense.description} - $${expense.amount} (${expenseRef.id})`);
-    return { id: expenseRef.id, ...expenseData };
+    console.log(`✓ Created expense: ${expense.description} - $${expense.amount} (${response.id})`);
+    return response;
   } catch (error) {
     console.error(`✗ Failed to create expense ${expense.description}:`, error);
     throw error;
