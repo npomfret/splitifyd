@@ -13,6 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:api": "jest __tests__/api.test.ts",
     "validate-cors": "node scripts/validate-cors.js"
   },
   "engines": {
