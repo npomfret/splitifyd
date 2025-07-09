@@ -1,6 +1,7 @@
 import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
-import { HTTP_STATUS, VALIDATION_LIMITS } from '../constants';
+import { HTTP_STATUS } from '../constants';
+import { displayNameSchema } from '../shared/validationSchemas';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -23,18 +24,7 @@ const registerSchema = Joi.object({
       'string.empty': 'Password is required',
       'any.required': 'Password is required'
     }),
-  displayName: Joi.string()
-    .min(2)
-    .max(VALIDATION_LIMITS.MAX_DISPLAY_NAME_LENGTH)
-    .pattern(/^[a-zA-Z0-9\s\-_.]+$/)
-    .required()
-    .messages({
-      'string.min': 'Display name must be at least 2 characters',
-      'string.max': 'Display name cannot exceed 50 characters',
-      'string.pattern.base': 'Display name can only contain letters, numbers, spaces, hyphens, underscores, and periods',
-      'string.empty': 'Display name is required',
-      'any.required': 'Display name is required'
-    })
+  displayName: displayNameSchema
 });
 
 export interface RegisterRequest {
