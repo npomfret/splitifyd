@@ -69,7 +69,7 @@ async function createTestUser(userInfo: { email: string; password: string; displ
 
   // Use Firebase Auth REST API to sign in
   const signInResponse = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+    `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -275,6 +275,170 @@ describe('Comprehensive API Test Suite', () => {
     await expect(
       apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, outsiderUser.token)
     ).rejects.toThrow(/403|FORBIDDEN/);
+  });
+
+  test('should generate shareable link for group (admin only)', async () => {
+    // Create a test group if not already created
+    if (!group.id) {
+      const groupData = {
+        name: `Test Group ${uuidv4()}`,
+        members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
+      };
+      const response = await apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
+      group = { id: response.id, ...groupData };
+    }
+    
+    // Admin (creator) should be able to generate a share link
+    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: group.id }, users[0].token);
+    
+    expect(shareResponse).toHaveProperty('shareableUrl');
+    expect(shareResponse).toHaveProperty('linkId');
+    expect(shareResponse.shareableUrl).toContain('http');
+    expect(shareResponse.shareableUrl).toContain('/join-group.html?linkId=');
+    expect(shareResponse.linkId).toMatch(/^[a-f0-9]{32}$/);
+  });
+
+  test('should not allow non-admin to generate shareable link', async () => {
+    // Create a new group where user[1] is not the admin
+    const nonAdminGroupData = {
+      name: `Non-Admin Test Group ${uuidv4()}`,
+      members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') })),
+      createdBy: users[0].uid
+    };
+    
+    const nonAdminGroup = await apiRequest('/createDocument', 'POST', { data: nonAdminGroupData }, users[0].token);
+    
+    // User[1] should not be able to generate a share link
+    await expect(
+      apiRequest('/groups/share', 'POST', { groupId: nonAdminGroup.id }, users[1].token)
+    ).rejects.toThrow(/403|FORBIDDEN|admin/);
+  });
+
+  test('should allow new users to join group via share link', async () => {
+    // First, create a new group and generate a share link
+    const shareableGroupData = {
+      name: `Shareable Group ${uuidv4()}`,
+      members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
+    };
+    
+    const shareableGroup = await apiRequest('/createDocument', 'POST', { data: shareableGroupData }, users[0].token);
+    
+    // Generate share link
+    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: shareableGroup.id }, users[0].token);
+    
+    // Create a new user who will join via the link
+    const newUser = await createTestUser({
+      email: `newuser-${uuidv4()}@test.com`,
+      password: 'Password123!',
+      displayName: 'New User'
+    });
+    
+    // Join the group using the share token
+    const joinResponse = await apiRequest('/groups/join', 'POST', { 
+      linkId: shareResponse.linkId
+    }, newUser.token);
+    
+    expect(joinResponse).toHaveProperty('groupId');
+    expect(joinResponse.groupId).toBe(shareableGroup.id);
+    expect(joinResponse).toHaveProperty('message');
+    expect(joinResponse).toHaveProperty('groupName');
+    
+    // Verify the user was added to the group
+    const updatedGroup = await apiRequest(`/getDocument?id=${shareableGroup.id}`, 'GET', null, newUser.token);
+    const memberUids = updatedGroup.data.members.map((m: any) => m.uid);
+    expect(memberUids).toContain(newUser.uid);
+  });
+
+  test('should not allow duplicate joining via share link', async () => {
+    // Create a group with a share link
+    const dupTestGroupData = {
+      name: `Duplicate Test Group ${uuidv4()}`,
+      members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
+    };
+    
+    const dupTestGroup = await apiRequest('/createDocument', 'POST', { data: dupTestGroupData }, users[0].token);
+    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: dupTestGroup.id }, users[0].token);
+    
+    // Add user[1] to the group via share link
+    await apiRequest('/groups/join', 'POST', { 
+      linkId: shareResponse.linkId
+    }, users[1].token);
+    
+    // Try to join again with the same user
+    await expect(
+      apiRequest('/groups/join', 'POST', { 
+        linkId: shareResponse.linkId
+      }, users[1].token)
+    ).rejects.toThrow(/already a member/);
+  });
+
+  test('should reject invalid share tokens', async () => {
+    const invalidUser = await createTestUser({
+      email: `invalid-${uuidv4()}@test.com`,
+      password: 'Password123!',
+      displayName: 'Invalid User'
+    });
+    
+    // Try to join with an invalid token
+    await expect(
+      apiRequest('/groups/join', 'POST', { 
+        linkId: 'INVALID_TOKEN_12345'
+      }, invalidUser.token)
+    ).rejects.toThrow(/Invalid.*link|not found/);
+  });
+
+  test('should allow multiple users to join group using the same share link', async () => {
+    // Create a new group with only one member
+    const multiJoinGroupData = {
+      name: `Multi-Join Group ${uuidv4()}`,
+      members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
+    };
+    
+    const multiJoinGroup = await apiRequest('/createDocument', 'POST', { data: multiJoinGroupData }, users[0].token);
+    
+    // Generate a share link
+    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: multiJoinGroup.id }, users[0].token);
+    
+    // Create multiple new users who will join via the same link
+    const newUsers = await Promise.all([
+      createTestUser({
+        email: `multiuser1-${uuidv4()}@test.com`,
+        password: 'Password123!',
+        displayName: 'Multi User 1'
+      }),
+      createTestUser({
+        email: `multiuser2-${uuidv4()}@test.com`,
+        password: 'Password123!',
+        displayName: 'Multi User 2'
+      }),
+      createTestUser({
+        email: `multiuser3-${uuidv4()}@test.com`,
+        password: 'Password123!',
+        displayName: 'Multi User 3'
+      })
+    ]);
+    
+    // All users should be able to join using the same link
+    for (const user of newUsers) {
+      const joinResponse = await apiRequest('/groups/join', 'POST', { 
+        linkId: shareResponse.linkId
+      }, user.token);
+      
+      expect(joinResponse).toHaveProperty('groupId');
+      expect(joinResponse.groupId).toBe(multiJoinGroup.id);
+      expect(joinResponse).toHaveProperty('message');
+    }
+    
+    // Verify all users were added to the group
+    const updatedGroup = await apiRequest(`/getDocument?id=${multiJoinGroup.id}`, 'GET', null, users[0].token);
+    const memberUids = updatedGroup.data.members.map((m: any) => m.uid);
+    
+    // Should have original member + 3 new members = 4 total
+    expect(memberUids.length).toBe(4);
+    expect(memberUids).toContain(users[0].uid);
+    newUsers.forEach(user => {
+      expect(memberUids).toContain(user.uid);
+    });
   });
 
   test('should return proper CORS headers', async () => {
