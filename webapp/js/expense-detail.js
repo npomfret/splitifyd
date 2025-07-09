@@ -1,4 +1,4 @@
-
+import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 
 let currentExpense = null;
@@ -64,7 +64,7 @@ async function loadExpenseDetails(expenseId) {
         setupPermissions(expense, user);
         
     } catch (error) {
-        console.error('Error loading expense details:', error);
+        logger.error('Error loading expense details:', error);
         showError('Failed to load expense details');
     }
 }
@@ -202,7 +202,7 @@ async function deleteExpense() {
         window.location.href = returnUrl;
         
     } catch (error) {
-        console.error('Error deleting expense:', error);
+        logger.error('Error deleting expense:', error);
         alert('Failed to delete expense. Please try again.');
         
         const deleteBtn = document.getElementById('confirm-delete-btn');

@@ -1,4 +1,4 @@
-
+import { logger } from './utils/logger.js';
 
 let currentGroup = null;
 let currentGroupId = null;
@@ -101,7 +101,7 @@ async function loadGroupDetails() {
         updateGroupHeader();
         loadBalances();
     } catch (error) {
-        console.error('Error loading group details:', error);
+        logger.error('Error loading group details:', error);
         showMessage('Failed to load group details', 'error');
     }
 }
@@ -152,7 +152,7 @@ async function loadBalances() {
         displaySimplifiedDebts(serverSimplifiedDebts, simplifiedDebts);
         
     } catch (error) {
-        console.error('Error loading balances:', error);
+        logger.error('Error loading balances:', error);
         balanceSummary.innerHTML = '<p class="error">Failed to load balances</p>';
     }
 }
@@ -275,7 +275,7 @@ async function loadGroupExpenses() {
         
         expensesOffset += expenses.length;
     } catch (error) {
-        console.error('Error loading expenses:', error);
+        logger.error('Error loading expenses:', error);
         expensesList.innerHTML = '<p class="error">Failed to load expenses</p>';
     } finally {
         isLoadingExpenses = false;
@@ -442,7 +442,7 @@ async function saveGroupSettings() {
         closeGroupSettingsModal();
         showMessage('Group settings updated successfully', 'success');
     } catch (error) {
-        console.error('Error updating group:', error);
+        logger.error('Error updating group:', error);
         showMessage('Failed to update group settings', 'error');
     }
 }
@@ -456,7 +456,7 @@ async function deleteGroup() {
         await api.deleteGroup(currentGroupId);
         window.location.href = 'dashboard.html';
     } catch (error) {
-        console.error('Error deleting group:', error);
+        logger.error('Error deleting group:', error);
         showMessage('Failed to delete group', 'error');
     }
 }
@@ -484,7 +484,7 @@ async function sendInvite() {
             closeInviteMembersModal();
         }, 2000);
     } catch (error) {
-        console.error('Error sending invite:', error);
+        logger.error('Error sending invite:', error);
         errorDiv.textContent = error.response?.data?.error || 'Failed to send invitation';
         errorDiv.style.display = 'block';
     }
@@ -501,13 +501,13 @@ async function removeMember(userId) {
         openGroupSettingsModal();
         showMessage('Member removed successfully', 'success');
     } catch (error) {
-        console.error('Error removing member:', error);
+        logger.error('Error removing member:', error);
         showMessage('Failed to remove member', 'error');
     }
 }
 
 function showExpenseDetails(expense) {
-    console.log('Show expense details:', expense);
+    logger.log('Show expense details:', expense);
     window.location.href = `expense-detail.html?id=${expense.id}&return=${encodeURIComponent(window.location.pathname + window.location.search)}`;
 }
 
@@ -533,7 +533,7 @@ function showMessage(message, type = 'info') {
 async function showShareGroupModal() {
     try {
         const response = await api.generateShareableLink(currentGroupId);
-        console.log('Share link response:', response);
+        logger.log('Share link response:', response);
         const shareUrl = response.data.shareableUrl;
         
         const modalHtml = `
@@ -572,7 +572,7 @@ async function showShareGroupModal() {
         
         document.getElementById('shareLink').select();
     } catch (error) {
-        console.error('Error generating share link:', error);
+        logger.error('Error generating share link:', error);
         showMessage('Failed to generate share link', 'error');
     }
 }
@@ -597,4 +597,3 @@ function copyShareLink() {
         showMessage('Failed to copy link', 'error');
     }
 }
-

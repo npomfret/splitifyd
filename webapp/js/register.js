@@ -1,3 +1,4 @@
+import { logger } from './utils/logger.js';
 import { auth, createUserWithEmailAndPassword, updateProfile } from './firebase-config.js';
 import { config } from './config.js';
 
@@ -87,7 +88,7 @@ const handleRegister = async (e) => {
         
         window.location.href = config.dashboardUrl;
     } catch (error) {
-        console.error('Registration error:', error);
+        logger.error('Registration error:', error);
         
         switch (error.code) {
             case 'auth/email-already-in-use':

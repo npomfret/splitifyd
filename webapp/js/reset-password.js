@@ -1,3 +1,4 @@
+import { logger } from './utils/logger.js';
 import { auth, sendPasswordResetEmail } from './firebase-config.js';
 
 const resetForm = document.getElementById('resetForm');
@@ -60,7 +61,7 @@ const handleResetPassword = async (e) => {
         showSuccess('Reset link sent!');
         emailInput.value = '';
     } catch (error) {
-        console.error('Password reset error:', error);
+        logger.error('Password reset error:', error);
         
         switch (error.code) {
             case 'auth/user-not-found':

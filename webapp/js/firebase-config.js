@@ -1,3 +1,5 @@
+import { logger } from './utils/logger.js';
+
 class FirebaseConfigManager {
     constructor() {
         this.config = null;
@@ -30,7 +32,7 @@ class FirebaseConfigManager {
             this.auth = getAuth(this.app);
             
             if (this.isLocalEnvironment()) {
-                console.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
+                logger.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
                 connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
             }
             
@@ -47,19 +49,19 @@ class FirebaseConfigManager {
             };
             
             this.initialized = true;
-            console.log('Firebase initialized successfully');
+            logger.log('Firebase initialized successfully');
             
             return this.config;
             
         } catch (error) {
-            console.error('Failed to initialize Firebase:', error);
+            logger.error('Failed to initialize Firebase:', error);
             throw new Error(`Firebase initialization failed: ${error.message}`);
         }
     }
 
     async fetchFirebaseConfig() {
         const configUrl = this.getConfigUrl();
-        console.log('Fetching Firebase configuration from:', configUrl);
+        logger.log('Fetching Firebase configuration from:', configUrl);
         
         try {
             const response = await fetch(configUrl);
@@ -70,7 +72,7 @@ class FirebaseConfigManager {
             }
             
             const firebaseConfig = await response.json();
-            console.log('Firebase configuration loaded:', { projectId: firebaseConfig.projectId });
+            logger.log('Firebase configuration loaded:', { projectId: firebaseConfig.projectId });
             
             this.config = {
                 firebaseConfig,
@@ -145,5 +147,5 @@ class FirebaseConfigManager {
 window.firebaseConfigManager = new FirebaseConfigManager();
 
 window.firebaseConfigManager.initialize().catch(error => {
-    console.error('Failed to initialize Firebase on startup:', error);
+    logger.error('Failed to initialize Firebase on startup:', error);
 });

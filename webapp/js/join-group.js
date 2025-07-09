@@ -1,3 +1,4 @@
+import { logger } from './utils/logger.js';
 import { AppInit } from './app-init.js';
 
 async function handleJoinGroup() {
@@ -25,7 +26,7 @@ async function handleJoinGroup() {
             }
         });
     } catch (error) {
-        console.error('Error initializing app:', error);
+        logger.error('Error initializing app:', error);
         AppInit.showError('Failed to initialize. Please try again.');
     }
 }
@@ -48,7 +49,7 @@ async function processJoinGroup(linkId) {
             }, 1500);
         }
     } catch (error) {
-        console.error('Error joining group:', error);
+        logger.error('Error joining group:', error);
         
         if (error.message.includes('already a member')) {
             AppInit.showError('You are already a member of this group');

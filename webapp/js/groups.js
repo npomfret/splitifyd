@@ -1,3 +1,4 @@
+import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 
 // Dynamic import of ModalComponent when needed
@@ -71,7 +72,7 @@ export class GroupsList {
             this.filteredGroups = [...this.groups];
             this.render();
         } catch (error) {
-            console.error('Error loading groups:', error);
+            logger.error('Error loading groups:', error);
             this.renderError(error.message);
         } finally {
             this.setLoading(false);
@@ -95,7 +96,7 @@ export class GroupsList {
 
     renderError(message) {
         // Log error details to console
-        console.error('Failed to load groups:', message);
+        logger.error('Failed to load groups:', message);
         
         clearElement(this.container);
         
@@ -287,7 +288,7 @@ export class GroupsList {
         await ensureModalComponent();
         
         if (!window.ModalComponent) {
-            console.error('ModalComponent not available');
+            logger.error('ModalComponent not available');
             return;
         }
 
@@ -397,7 +398,7 @@ export class GroupsList {
                 window.ModalComponent.hide('createGroupModal');
                 document.getElementById('createGroupModal').remove();
             } catch (error) {
-                console.error('Failed to create group:', error);
+                logger.error('Failed to create group:', error);
                 alert('Failed to create group. Please try again.');
             }
         });

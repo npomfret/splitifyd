@@ -1,3 +1,5 @@
+import { logger } from './utils/logger.js';
+
 let currentGroup = null;
 let currentGroupId = null;
 let selectedMembers = new Set();
@@ -63,7 +65,7 @@ async function loadExpenseForEditing(expenseId) {
         document.getElementById('submitButton').textContent = 'Update Expense';
         
     } catch (error) {
-        console.error('Error loading expense for editing:', error);
+        logger.error('Error loading expense for editing:', error);
         showMessage('Failed to load expense for editing', 'error');
     }
 }
@@ -76,7 +78,7 @@ async function loadGroupData() {
         populatePaidByOptions();
         populateMembers();
     } catch (error) {
-        console.error('Error loading group data:', error);
+        logger.error('Error loading group data:', error);
         showMessage('Failed to load group data', 'error');
     }
 }
@@ -95,7 +97,7 @@ async function loadUserPreferences() {
             }
         }
     } catch (error) {
-        console.error('Error loading user preferences:', error);
+        logger.error('Error loading user preferences:', error);
     }
 }
 
@@ -360,7 +362,7 @@ async function handleSubmit(event) {
         }, 1000);
         
     } catch (error) {
-        console.error('Error creating expense:', error);
+        logger.error('Error creating expense:', error);
         showMessage('Failed to add expense', 'error');
         
         const submitButton = document.getElementById('submitButton');

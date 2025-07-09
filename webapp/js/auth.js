@@ -1,3 +1,5 @@
+import { logger } from './utils/logger.js';
+
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
 
 const validateInput = {
@@ -50,7 +52,7 @@ class AuthManager {
             await config.getConfig();
             this.#initializeEventListeners();
         } catch (error) {
-            console.error('Failed to initialize AuthManager:', error);
+            logger.error('Failed to initialize AuthManager:', error);
         }
     }
 
@@ -305,12 +307,12 @@ class AuthManager {
             localStorage.setItem('userId', userCredential.user.uid);
             
             // Skip user document creation for now - can be done on first dashboard load
-            console.log('Registration successful, redirecting to dashboard');
+            logger.log('Registration successful, redirecting to dashboard');
             
             window.location.href = 'dashboard.html';
             
         } catch (error) {
-            console.error('Registration error:', error);
+            logger.error('Registration error:', error);
             let errorMessage = 'Registration failed';
             if (error.code === 'auth/email-already-in-use') {
                 errorMessage = 'An account with this email already exists';
