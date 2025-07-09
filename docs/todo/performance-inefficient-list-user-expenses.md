@@ -1,5 +1,9 @@
 # Inefficient `listUserExpenses` Implementation
 
+## Status: COMPLETED
+
+The implementation has been refactored to use the efficient `memberIds` array-contains query as specified in the solution below.
+
 ## Problem
 - **Location**: `firebase/functions/src/expenses/handlers.ts`
 - **Description**: The `listUserExpenses` function fetches all groups for a user first, then fetches expenses for each group in chunks of 10. This approach has several problems:

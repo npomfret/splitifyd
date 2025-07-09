@@ -20,6 +20,7 @@ export interface Expense {
   splitType: 'equal' | 'exact' | 'percentage';
   participants: string[];
   splits: ExpenseSplit[];
+  memberIds?: string[];
   receiptUrl?: string;
   createdAt: admin.firestore.Timestamp | Date;
   updatedAt: admin.firestore.Timestamp | Date;

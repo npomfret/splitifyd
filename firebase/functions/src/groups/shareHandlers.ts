@@ -181,9 +181,17 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     const currentMembers = groupData.data?.members || [];
     const currentEmails = groupData.data?.memberEmails || [];
     
+    const allMemberIds = [groupData.userId];
+    [...currentMembers, newMember].forEach((member: any) => {
+      if (!allMemberIds.includes(member.uid)) {
+        allMemberIds.push(member.uid);
+      }
+    });
+    
     await groupDoc.ref.update({
       'data.members': [...currentMembers, newMember],
       'data.memberEmails': [...currentEmails, userEmail],
+      'data.memberIds': allMemberIds,
       updatedAt: new Date().toISOString(),
     });
 

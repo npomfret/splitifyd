@@ -64,10 +64,18 @@ export const createDocument = async (
   // Sanitize document data
   const sanitizedData = sanitizeDocumentData(data);
 
-  // Initialize expense stats for group documents
+  // Initialize expense stats and memberIds for group documents
   if (sanitizedData.name) {
     sanitizedData.expenseCount = 0;
     sanitizedData.lastExpenseTime = null;
+    sanitizedData.memberIds = [userId];
+    if (sanitizedData.members && Array.isArray(sanitizedData.members)) {
+      sanitizedData.members.forEach((member: any) => {
+        if (member.uid && !sanitizedData.memberIds.includes(member.uid)) {
+          sanitizedData.memberIds.push(member.uid);
+        }
+      });
+    }
   }
 
   // Create document
