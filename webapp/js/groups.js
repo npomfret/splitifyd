@@ -223,13 +223,13 @@ export class GroupsList {
             className: 'group-card__activity',
             textContent: group.lastActivity
         });
-        const balanceText = createElementSafe('div', {
+        const balanceTextElement = createElementSafe('div', {
             className: `group-card__balance-text ${balanceClass}`,
             textContent: balanceText
         });
 
         footer.appendChild(activity);
-        footer.appendChild(balanceText);
+        footer.appendChild(balanceTextElement);
 
         const addExpenseButton = createElementSafe('button', {
             className: 'group-card__add-expense',
