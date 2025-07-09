@@ -1,5 +1,0 @@
-[[hooks]]
-event = "PreToolUse"
-[hooks.matcher]
-tool_name = "Bash"
-command = "pwd"
