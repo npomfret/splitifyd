@@ -1,70 +1,7 @@
-import { validateLoginRequest, validateRegisterRequest } from '../src/auth/validation';
+import { validateRegisterRequest } from '../src/auth/validation';
 import { ApiError } from '../src/utils/errors';
 
 describe('Auth Validation', () => {
-  describe('validateLoginRequest', () => {
-    it('should validate valid login request', () => {
-      const validRequest = {
-        email: 'test@example.com',
-        password: 'TestPass123!'
-      };
-      
-      const result = validateLoginRequest(validRequest);
-      
-      expect(result.email).toBe('test@example.com');
-      expect(result.password).toBe('TestPass123!');
-    });
-
-    it('should normalize email to lowercase', () => {
-      const request = {
-        email: 'TEST@EXAMPLE.COM',
-        password: 'TestPass123!'
-      };
-      
-      const result = validateLoginRequest(request);
-      
-      expect(result.email).toBe('test@example.com');
-    });
-
-    it('should throw error for missing email', () => {
-      const request = {
-        password: 'TestPass123!'
-      };
-      
-      expect(() => validateLoginRequest(request)).toThrow(ApiError);
-      expect(() => validateLoginRequest(request)).toThrow('Email is required');
-    });
-
-    it('should throw error for invalid email format', () => {
-      const request = {
-        email: 'invalid-email',
-        password: 'TestPass123!'
-      };
-      
-      expect(() => validateLoginRequest(request)).toThrow(ApiError);
-      expect(() => validateLoginRequest(request)).toThrow('Invalid email format');
-    });
-
-    it('should throw error for missing password', () => {
-      const request = {
-        email: 'test@example.com'
-      };
-      
-      expect(() => validateLoginRequest(request)).toThrow(ApiError);
-      expect(() => validateLoginRequest(request)).toThrow('Password is required');
-    });
-
-    it('should throw error for password too short', () => {
-      const request = {
-        email: 'test@example.com',
-        password: 'short'
-      };
-      
-      expect(() => validateLoginRequest(request)).toThrow(ApiError);
-      expect(() => validateLoginRequest(request)).toThrow('Password must be at least 8 characters');
-    });
-  });
-
   describe('validateRegisterRequest', () => {
     it('should validate valid register request', () => {
       const validRequest = {

@@ -115,14 +115,28 @@ async function createTestUser(userInfo) {
       displayName: userInfo.displayName
     });
 
-    // Login to get auth token
-    const loginResponse = await apiRequest('/login', 'POST', {
-      email: userInfo.email,
-      password: userInfo.password
-    });
+    // Use Firebase Auth REST API to sign in
+    const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
+    const signInResponse = await fetch(
+      `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userInfo.email,
+          password: userInfo.password,
+          returnSecureToken: true
+        })
+      }
+    );
 
-    // Exchange custom token for ID token
-    const idToken = await exchangeCustomTokenForIdToken(loginResponse.customToken);
+    if (!signInResponse.ok) {
+      const error = await signInResponse.json();
+      throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
+    }
+
+    const authData = await signInResponse.json();
+    const idToken = authData.idToken;
     
     // Get user record from Firebase Auth to get the UID
     const userRecord = await auth.getUserByEmail(userInfo.email);
@@ -133,14 +147,28 @@ async function createTestUser(userInfo) {
     if (error.message?.includes('already exists')) {
       console.log(`→ User already exists: ${userInfo.email}, logging in...`);
       
-      // Login to get auth token
-      const loginResponse = await apiRequest('/login', 'POST', {
-        email: userInfo.email,
-        password: userInfo.password
-      });
-      
-      // Exchange custom token for ID token
-      const idToken = await exchangeCustomTokenForIdToken(loginResponse.customToken);
+      // Use Firebase Auth REST API to sign in
+      const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
+      const signInResponse = await fetch(
+        `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userInfo.email,
+            password: userInfo.password,
+            returnSecureToken: true
+          })
+        }
+      );
+
+      if (!signInResponse.ok) {
+        const error = await signInResponse.json();
+        throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
+      }
+
+      const authData = await signInResponse.json();
+      const idToken = authData.idToken;
       
       const userRecord = await auth.getUserByEmail(userInfo.email);
       return { ...userRecord, token: idToken };

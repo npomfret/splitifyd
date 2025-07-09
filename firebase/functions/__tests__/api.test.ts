@@ -50,20 +50,6 @@ async function apiRequest(endpoint: string, method = 'POST', body: unknown = nul
 }
 
 
-// Helper to exchange a custom token for an ID token
-async function exchangeCustomTokenForIdToken(customToken: string): Promise<string> {
-  const url = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: customToken, returnSecureToken: true })
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error?.message || 'Failed to exchange custom token');
-  }
-  return data.idToken;
-}
 
 // Helper to create a new user and get an auth token
 async function createTestUser(userInfo: { email: string; password: string; displayName: string }): Promise<User> {
@@ -81,24 +67,36 @@ async function createTestUser(userInfo: { email: string; password: string; displ
     }
   }
 
-  // Login to get custom token
-  const loginResponse = await apiRequest('/login', 'POST', {
-    email: userInfo.email,
-    password: userInfo.password
-  });
+  // Use Firebase Auth REST API to sign in
+  const signInResponse = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: userInfo.email,
+        password: userInfo.password,
+        returnSecureToken: true
+      })
+    }
+  );
 
-  // Exchange custom token for ID token
-  const idToken = await exchangeCustomTokenForIdToken(loginResponse.customToken);
+  if (!signInResponse.ok) {
+    const error = await signInResponse.json();
+    throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
+  }
 
+  const authData = await signInResponse.json();
+  
   // We need the UID. In a real test setup, you might need to use the Admin SDK
   // to get this, but for this test, we'll just decode the token (INSECURE, FOR TESTING ONLY).
-  const decodedToken = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
+  const decodedToken = JSON.parse(Buffer.from(authData.idToken.split('.')[1], 'base64').toString());
 
   return {
     uid: decodedToken.user_id,
     email: userInfo.email,
     displayName: userInfo.displayName,
-    token: idToken
+    token: authData.idToken
   };
 }
 

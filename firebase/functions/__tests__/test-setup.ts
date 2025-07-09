@@ -169,3 +169,30 @@ afterAll(async () => {
 
 // Global test timeout
 jest.setTimeout(TEST_CONFIG.JEST_TIMEOUT_MS);
+
+// Helper function to authenticate users using Firebase REST API
+export async function authenticateTestUser(email: string, password: string): Promise<string> {
+  const firebaseApiKey = process.env.FIREBASE_API_KEY || 'test-api-key';
+  
+  // Use Firebase Auth REST API to sign in
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        returnSecureToken: true
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json() as any;
+    throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
+  }
+
+  const data = await response.json() as any;
+  return data.idToken;
+}

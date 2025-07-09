@@ -2,7 +2,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import express from 'express';
 import { authenticate } from './auth/middleware';
-import { login, register } from './auth/handlers';
+import { register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
 import { getFirebaseConfigResponse } from './utils/config';
@@ -135,7 +135,6 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
 });
 
 // Auth endpoints (no auth required)
-app.post('/login', asyncHandler(login));
 app.post('/register', asyncHandler(register));
 
 // User document creation (requires auth)
