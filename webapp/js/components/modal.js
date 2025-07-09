@@ -1,3 +1,5 @@
+import { createElementSafe } from '../utils/safe-dom.js';
+
 export class ModalComponent {
   static activeModals = new Map();
 
@@ -11,24 +13,63 @@ export class ModalComponent {
       closeButton = true
     } = config;
 
-    return `
-      <div id="${id}" class="modal-overlay hidden">
-        <div class="modal-content modal-${size}">
-          <div class="modal-header">
-            <h3 class="modal-title">${title}</h3>
-            ${closeButton ? `<button class="modal-close" data-modal-close="${id}">&times;</button>` : ''}
-          </div>
-          <div class="modal-body">
-            ${body}
-          </div>
-          ${footer ? `
-            <div class="modal-footer">
-              ${footer}
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
+    const modalOverlay = createElementSafe('div', {
+      id,
+      className: 'modal-overlay hidden'
+    });
+
+    const modalContent = createElementSafe('div', {
+      className: `modal-content modal-${size}`
+    });
+
+    const modalHeader = createElementSafe('div', {
+      className: 'modal-header'
+    });
+
+    const modalTitle = createElementSafe('h3', {
+      className: 'modal-title',
+      textContent: title
+    });
+    modalHeader.appendChild(modalTitle);
+
+    if (closeButton) {
+      const closeBtn = createElementSafe('button', {
+        className: 'modal-close',
+        'data-modal-close': id,
+        textContent: '×'
+      });
+      modalHeader.appendChild(closeBtn);
+    }
+
+    const modalBody = createElementSafe('div', {
+      className: 'modal-body'
+    });
+    
+    if (typeof body === 'string') {
+      modalBody.innerHTML = body;
+    } else if (body instanceof Node) {
+      modalBody.appendChild(body);
+    }
+
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+
+    if (footer) {
+      const modalFooter = createElementSafe('div', {
+        className: 'modal-footer'
+      });
+      
+      if (typeof footer === 'string') {
+        modalFooter.innerHTML = footer;
+      } else if (footer instanceof Node) {
+        modalFooter.appendChild(footer);
+      }
+      
+      modalContent.appendChild(modalFooter);
+    }
+
+    modalOverlay.appendChild(modalContent);
+    return modalOverlay.outerHTML;
   }
 
   static show(modalId) {
@@ -83,14 +124,28 @@ export class ModalComponent {
 
     const modalId = `confirmModal_${Date.now()}`;
     
+    const bodyElement = createElementSafe('p', { textContent: message });
+    
+    const footerElement = createElementSafe('div');
+    const cancelButton = createElementSafe('button', {
+      className: 'button button--secondary',
+      id: `${modalId}_cancel`,
+      textContent: cancelText
+    });
+    const confirmButton = createElementSafe('button', {
+      className: `button ${confirmClass}`,
+      id: `${modalId}_confirm`,
+      textContent: confirmText
+    });
+    
+    footerElement.appendChild(cancelButton);
+    footerElement.appendChild(confirmButton);
+
     const modalHtml = this.render({
       id: modalId,
       title,
-      body: `<p>${message}</p>`,
-      footer: `
-        <button class="button button--secondary" id="${modalId}_cancel">${cancelText}</button>
-        <button class="button ${confirmClass}" id="${modalId}_confirm">${confirmText}</button>
-      `
+      body: bodyElement,
+      footer: footerElement
     });
 
     const tempDiv = document.createElement('div');

@@ -147,49 +147,101 @@ export class GroupsList {
     renderGroupCard(group) {
         const balanceClass = group.yourBalance >= 0 ? 'balance--positive' : 'balance--negative';
         const balanceText = group.yourBalance >= 0 ? 'you are owed' : 'you owe';
-        const membersPreview = group.members.slice(0, 4).map(member => 
-            `<div class="member-avatar" title="${member.name}">${member.initials}</div>`
-        ).join('');
-        const extraMembers = group.memberCount > 4 ? `<div class="member-avatar member-avatar--extra">+${group.memberCount - 4}</div>` : '';
+        
+        const groupCard = createElementSafe('div', {
+            className: 'group-card',
+            'data-group-id': group.id
+        });
 
-        const lastExpenseTime = group.lastExpenseTime ? this._formatLastActivity(group.lastExpenseTime) : null;
+        const header = createElementSafe('div', { className: 'group-card__header' });
+        const nameElement = createElementSafe('h4', { className: 'group-card__name' });
+        nameElement.textContent = group.name;
+        
+        if (group.expenseCount) {
+            const expenseCountSpan = createElementSafe('span', { className: 'expense-count' });
+            expenseCountSpan.textContent = ` (${group.expenseCount})`;
+            nameElement.appendChild(expenseCountSpan);
+        }
 
-        return `
-            <div class="group-card" data-group-id="${group.id}">
-                <div class="group-card__header">
-                    <h4 class="group-card__name">${group.name}${group.expenseCount ? ` <span class="expense-count">(${group.expenseCount})</span>` : ''}</h4>
-                    <div class="group-card__balance ${balanceClass}">
-                        $${Math.abs(group.yourBalance).toFixed(2)}
-                    </div>
-                </div>
-                
-                <div class="group-card__members">
-                    <div class="members-preview">
-                        ${membersPreview}${extraMembers}
-                    </div>
-                    <span class="member-count">${group.memberCount} member${group.memberCount !== 1 ? 's' : ''}</span>
-                </div>
-                
-                
-                ${group.lastExpense ? `
-                    <div class="group-card__last-expense">
-                        <span class="last-expense__description">${group.lastExpense.description}</span>
-                        <span class="last-expense__amount">$${group.lastExpense.amount.toFixed(2)}</span>
-                    </div>
-                ` : ''}
-                
-                <div class="group-card__footer">
-                    <span class="group-card__activity">${group.lastActivity}</span>
-                    <div class="group-card__balance-text ${balanceClass}">
-                        ${balanceText}
-                    </div>
-                </div>
-                
-                <button type="button" class="group-card__add-expense" title="Add expense to ${group.name}">
-                    + Add Expense
-                </button>
-            </div>
-        `;
+        const balanceElement = createElementSafe('div', { 
+            className: `group-card__balance ${balanceClass}`,
+            textContent: `$${Math.abs(group.yourBalance).toFixed(2)}`
+        });
+
+        header.appendChild(nameElement);
+        header.appendChild(balanceElement);
+
+        const membersSection = createElementSafe('div', { className: 'group-card__members' });
+        const membersPreview = createElementSafe('div', { className: 'members-preview' });
+        
+        group.members.slice(0, 4).forEach(member => {
+            const memberAvatar = createElementSafe('div', {
+                className: 'member-avatar',
+                title: member.name,
+                textContent: member.initials
+            });
+            membersPreview.appendChild(memberAvatar);
+        });
+
+        if (group.memberCount > 4) {
+            const extraMembers = createElementSafe('div', {
+                className: 'member-avatar member-avatar--extra',
+                textContent: `+${group.memberCount - 4}`
+            });
+            membersPreview.appendChild(extraMembers);
+        }
+
+        const memberCount = createElementSafe('span', {
+            className: 'member-count',
+            textContent: `${group.memberCount} member${group.memberCount !== 1 ? 's' : ''}`
+        });
+
+        membersSection.appendChild(membersPreview);
+        membersSection.appendChild(memberCount);
+
+        groupCard.appendChild(header);
+        groupCard.appendChild(membersSection);
+
+        if (group.lastExpense) {
+            const lastExpenseSection = createElementSafe('div', { className: 'group-card__last-expense' });
+            const description = createElementSafe('span', {
+                className: 'last-expense__description',
+                textContent: group.lastExpense.description
+            });
+            const amount = createElementSafe('span', {
+                className: 'last-expense__amount',
+                textContent: `$${group.lastExpense.amount.toFixed(2)}`
+            });
+            
+            lastExpenseSection.appendChild(description);
+            lastExpenseSection.appendChild(amount);
+            groupCard.appendChild(lastExpenseSection);
+        }
+
+        const footer = createElementSafe('div', { className: 'group-card__footer' });
+        const activity = createElementSafe('span', {
+            className: 'group-card__activity',
+            textContent: group.lastActivity
+        });
+        const balanceText = createElementSafe('div', {
+            className: `group-card__balance-text ${balanceClass}`,
+            textContent: balanceText
+        });
+
+        footer.appendChild(activity);
+        footer.appendChild(balanceText);
+
+        const addExpenseButton = createElementSafe('button', {
+            className: 'group-card__add-expense',
+            title: `Add expense to ${group.name}`,
+            textContent: '+ Add Expense'
+        });
+        addExpenseButton.type = 'button';
+
+        groupCard.appendChild(footer);
+        groupCard.appendChild(addExpenseButton);
+
+        return groupCard.outerHTML;
     }
 
     _formatLastActivity(timestamp) {
@@ -248,12 +300,21 @@ export class GroupsList {
 
         const groupsHtml = sortedGroups.map(group => this.renderGroupCard(group)).join('');
 
-        this.container.innerHTML = `
-            ${headerHtml}
-            <div class="groups-grid">
-                ${groupsHtml}
-            </div>
-        `;
+        clearElement(this.container);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = headerHtml;
+        this.container.appendChild(tempDiv.firstElementChild);
+        
+        const groupsGrid = createElementSafe('div', { className: 'groups-grid' });
+        const tempGroupsDiv = document.createElement('div');
+        tempGroupsDiv.innerHTML = groupsHtml;
+        
+        while (tempGroupsDiv.firstChild) {
+            groupsGrid.appendChild(tempGroupsDiv.firstChild);
+        }
+        
+        this.container.appendChild(groupsGrid);
 
         this.attachEventListeners();
     }
