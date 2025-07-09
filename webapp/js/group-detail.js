@@ -1,5 +1,6 @@
 import { logger } from './utils/logger.js';
 import { ModalComponent } from './components/modal.js';
+import { createElementSafe, clearElement } from './utils/safe-dom.js';
 
 let currentGroup = null;
 let currentGroupId = null;
@@ -250,7 +251,11 @@ async function loadGroupExpenses() {
     const expensesList = document.getElementById('expensesList');
     
     if (expensesOffset === 0) {
-        expensesList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
+        clearElement(expensesList);
+        const spinner = createElementSafe('div', { className: 'loading-spinner' });
+        const icon = createElementSafe('i', { className: 'fas fa-spinner fa-spin' });
+        spinner.appendChild(icon);
+        expensesList.appendChild(spinner);
     }
     
     isLoadingExpenses = true;
@@ -260,11 +265,15 @@ async function loadGroupExpenses() {
         const expenses = response.data;
         
         if (expensesOffset === 0) {
-            expensesList.innerHTML = '';
+            clearElement(expensesList);
         }
         
         if (expenses.length === 0 && expensesOffset === 0) {
-            expensesList.innerHTML = '<p class="no-data">No expenses yet</p>';
+            const noDataMsg = createElementSafe('p', { 
+                className: 'no-data',
+                textContent: 'No expenses yet'
+            });
+            expensesList.appendChild(noDataMsg);
         } else {
             expenses.forEach(expense => {
                 expensesList.appendChild(createExpenseItem(expense));
@@ -277,7 +286,19 @@ async function loadGroupExpenses() {
         expensesOffset += expenses.length;
     } catch (error) {
         logger.error('Error loading expenses:', error);
-        expensesList.innerHTML = '<p class="error">Failed to load expenses</p>';
+        logger.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            status: error.status,
+            response: error.response
+        });
+        clearElement(expensesList);
+        const errorMsg = createElementSafe('p', { 
+            className: 'error',
+            textContent: `Failed to load expenses: ${error.message || 'Unknown error'}`
+        });
+        expensesList.appendChild(errorMsg);
     } finally {
         isLoadingExpenses = false;
     }
