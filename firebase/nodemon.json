@@ -1,0 +1,12 @@
+{
+  "watch": ["../webapp/src"],
+  "ignore": [
+    "../webapp/dist",
+    "../webapp/node_modules",
+    "../webapp/tsconfig.json",
+    "../webapp/package.json",
+    "../webapp/package-lock.json"
+  ],
+  "ext": "html,css,js",
+  "exec": "npm run build:webapp"
+}

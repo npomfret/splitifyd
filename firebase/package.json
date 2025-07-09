@@ -4,10 +4,10 @@
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
     "clean": "rm -rf public && mkdir -p public",
-    "build:webapp": "cp -r ../webapp/src/* public/",
+    "build:webapp": "cd ../webapp && npm run build && cd ../firebase && cp -r ../webapp/dist/* public/",
     "build": "npm run clean && npm run build:webapp",
     "serve": "npm run build && cd functions && npm run build && cd .. && firebase emulators:start",
-    "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon --watch ../webapp --ext html,css,js --exec 'npm run build:webapp' & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
+    "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
     "dev:with-data": "rm -f *.log && npm run build && cd functions && npm run build && cd .. && node scripts/start-with-data.js",
     "generate-test-data": "cd functions && node scripts/generate-test-data.js",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",

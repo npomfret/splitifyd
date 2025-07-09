@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build": "mkdir -p dist && cp -r src/* dist/ && tsc --noEmitOnError || true",
     "test": "jest --config jest.config.js"
   },
   "keywords": [],
@@ -11,7 +12,9 @@
   "description": "",
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
+    "@types/jest": "^30.0.0",
     "babel-jest": "^30.0.4",
-    "jest": "^30.0.4"
+    "jest": "^30.0.4",
+    "typescript": "^5.8.3"
   }
 }
