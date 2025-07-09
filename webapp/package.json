@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "mkdir -p dist && cp -r src/* dist/ && tsc --noEmitOnError || true",
+    "build": "rm -rf dist && mkdir -p dist && tsc && cp -r src/* dist/ && find dist -name '*.ts' -delete",
     "test": "jest --config jest.config.js"
   },
   "keywords": [],
