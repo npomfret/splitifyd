@@ -11,9 +11,10 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns=__tests__/integration/",
+    "test:integration": "jest __tests__/integration/",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:api": "jest __tests__/api.test.ts",
     "validate-cors": "node scripts/validate-cors.js"
   },
   "engines": {
@@ -55,7 +56,6 @@
     ],
     "testMatch": [
       "**/__tests__/**/*.test.ts",
-      "!**/__tests__/api-endpoints.test.ts",
       "src/**/*.test.ts"
     ],
     "transform": {

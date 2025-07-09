@@ -1,9 +1,9 @@
 import request from 'supertest';
 import express from 'express';
-import { setupTestApp, cleanupTestData } from './test-setup';
+import { setupTestApp, cleanupTestData } from '../test-setup';
 
 // Mock logger to prevent console errors in tests
-jest.mock('../src/logger', () => ({
+jest.mock('../../src/logger', () => ({
   logger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -41,7 +41,7 @@ jest.mock('firebase-admin', () => ({
 }));
 
 // Mock sendError to prevent actual error responses
-jest.mock('../src/utils/errors', () => ({
+jest.mock('../../src/utils/errors', () => ({
   sendError: jest.fn((res, error, correlationId) => {
     res.status(error.statusCode).json({
       error: {
