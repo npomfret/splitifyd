@@ -20,6 +20,11 @@ if (typeof module !== 'undefined' && module.exports) {
 
 const warningBannerManager = {
     init() {
+        if (!window.firebaseConfigManager) {
+            setTimeout(() => this.init(), 100);
+            return;
+        }
+        
         window.firebaseConfigManager.initialize()
             .then(() => {
                 this.displayWarningBanner();

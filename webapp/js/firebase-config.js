@@ -6,6 +6,7 @@ class FirebaseConfigManager {
         this.initialized = false;
         this.app = null;
         this.auth = null;
+        this.emulatorConnected = false;
     }
 
     async initialize() {
@@ -31,9 +32,19 @@ class FirebaseConfigManager {
             this.app = initializeApp(firebaseConfig);
             this.auth = getAuth(this.app);
             
-            if (this.isLocalEnvironment()) {
-                logger.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
-                connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
+            if (this.isLocalEnvironment() && !this.emulatorConnected) {
+                try {
+                    logger.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
+                    connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
+                    this.emulatorConnected = true;
+                } catch (error) {
+                    if (error.code === 'auth/emulator-config-failed') {
+                        logger.log('Auth emulator already connected, skipping');
+                        this.emulatorConnected = true;
+                    } else {
+                        throw error;
+                    }
+                }
             }
             
             window.firebaseAuth = {
