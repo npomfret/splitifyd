@@ -1,11 +1,17 @@
 # Duplicated Modal Creation Logic
 
 ## Problem
-- **Location**: `webapp/js/groups.js`
-- **Description**: The `openCreateGroupModal` and `showShareGroupModal` functions both contain logic for dynamically creating and injecting modal HTML into the DOM. This is a duplication of concerns. The `ModalComponent` in `webapp/js/components/modal.js` should be the single source of truth for creating and managing modals.
+- **Location**: ~~`webapp/js/groups.js`~~ (FIXED) `webapp/js/group-detail.js`
+- **Description**: ~~The `openCreateGroupModal` and `showShareGroupModal` functions both contain logic for dynamically creating and injecting modal HTML into the DOM.~~ The `showShareGroupModal` function in `group-detail.js` contains logic for manually creating and injecting modal HTML into the DOM. This is a duplication of concerns. The `ModalComponent` in `webapp/js/components/modal.js` should be the single source of truth for creating and managing modals.
 - **Current vs Expected**:
-  - **Current**: Modal HTML is manually created and managed in the `groups.js` file.
-  - **Expected**: The `groups.js` file should use the `ModalComponent` to render and manage modals, separating the group logic from the modal presentation logic.
+  - **Current**: ~~Modal HTML is manually created and managed in the `groups.js` file.~~ Modal HTML was manually created and managed in the `group-detail.js` file.
+  - **Expected**: ~~The `groups.js` file should use the `ModalComponent` to render and manage modals, separating the group logic from the modal presentation logic.~~ The `group-detail.js` file should use the `ModalComponent` to render and manage modals, separating the group logic from the modal presentation logic.
+
+## Status: COMPLETED ✅
+- `openCreateGroupModal` in `groups.js` was already using `ModalComponent` correctly
+- `showShareGroupModal` in `group-detail.js` has been refactored to use `ModalComponent`
+- `closeShareGroupModal` function was removed as it's no longer needed
+- All tests are passing
 
 ## Solution
 1.  **Refactor `openCreateGroupModal`**:

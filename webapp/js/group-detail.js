@@ -1,4 +1,5 @@
 import { logger } from './utils/logger.js';
+import { ModalComponent } from './components/modal.js';
 
 let currentGroup = null;
 let currentGroupId = null;
@@ -536,38 +537,28 @@ async function showShareGroupModal() {
         logger.log('Share link response:', response);
         const shareUrl = response.data.shareableUrl;
         
-        const modalHtml = `
-            <div id="shareGroupModal" class="modal show">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Share Group</h2>
-                        <button class="close-button" id="shareModalCloseBtn">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Share this link with others to invite them to join the group:</p>
-                        <div class="share-link-container">
-                            <input type="text" id="shareLink" class="form-control" value="${shareUrl}" readonly>
-                            <button class="button button--primary" id="copyShareLinkBtn">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                        </div>
-                        <p class="share-info">Anyone with this link can join the group after logging in.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="button button--secondary" id="shareModalCancelBtn">Close</button>
-                    </div>
+        const modalId = 'shareGroupModal';
+        const modalHtml = ModalComponent.render({
+            id: modalId,
+            title: 'Share Group',
+            body: `
+                <p>Share this link with others to invite them to join the group:</p>
+                <div class="share-link-container">
+                    <input type="text" id="shareLink" class="form-control" value="${shareUrl}" readonly>
+                    <button class="button button--primary" id="copyShareLinkBtn">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
                 </div>
-            </div>
-        `;
+                <p class="share-info">Anyone with this link can join the group after logging in.</p>
+            `,
+            footer: `<button class="button button--secondary" id="shareModalCloseBtn">Close</button>`
+        });
         
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        document.body.classList.add('modal-open');
+        ModalComponent.show(modalId);
         
         // Add event listeners after modal is created
-        document.getElementById('shareModalCloseBtn').addEventListener('click', closeShareGroupModal);
-        document.getElementById('shareModalCancelBtn').addEventListener('click', closeShareGroupModal);
+        document.getElementById('shareModalCloseBtn').addEventListener('click', () => ModalComponent.hide(modalId));
         document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareLink);
         
         document.getElementById('shareLink').select();
@@ -577,13 +568,6 @@ async function showShareGroupModal() {
     }
 }
 
-function closeShareGroupModal() {
-    const modal = document.getElementById('shareGroupModal');
-    if (modal) {
-        modal.remove();
-        document.body.classList.remove('modal-open');
-    }
-}
 
 function copyShareLink() {
     const shareLink = document.getElementById('shareLink');
