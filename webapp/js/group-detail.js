@@ -305,13 +305,16 @@ async function loadGroupExpenses() {
 }
 
 function createExpenseItem(expense) {
+    logger.debug('Creating expense item for:', expense);
+    
     const expenseItem = document.createElement('div');
     expenseItem.className = 'expense-item';
     
     const currentUserId = localStorage.getItem('userId');
     const paidByYou = expense.paidBy === currentUserId;
-    const yourShare = expense.splits.find(s => s.userId === currentUserId).amount;
-    const payer = currentGroup.members.find(m => m.uid === expense.paidBy);
+    const yourSplit = expense.splits ? expense.splits.find(s => s.userId === currentUserId) : null;
+    const yourShare = yourSplit ? yourSplit.amount : 0;
+    const payer = currentGroup.members ? currentGroup.members.find(m => m.uid === expense.paidBy) : null;
     
     const date = new Date(expense.date);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -329,14 +332,14 @@ function createExpenseItem(expense) {
     
     const expenseDescription = document.createElement('div');
     expenseDescription.className = 'expense-description';
-    expenseDescription.textContent = expense.description;
+    expenseDescription.textContent = expense.description || 'No description';
     
     const expenseMeta = document.createElement('div');
     expenseMeta.className = 'expense-meta';
     
     const expensePayer = document.createElement('span');
     expensePayer.className = 'expense-payer';
-    expensePayer.textContent = `${paidByYou ? 'You' : payer.name} paid`;
+    expensePayer.textContent = `${paidByYou ? 'You' : (payer ? payer.name : 'Unknown')} paid`;
     
     const expenseDate = document.createElement('span');
     expenseDate.className = 'expense-date';
@@ -352,11 +355,11 @@ function createExpenseItem(expense) {
     
     const expenseTotal = document.createElement('div');
     expenseTotal.className = 'expense-total';
-    expenseTotal.textContent = `$${expense.amount.toFixed(2)}`;
+    expenseTotal.textContent = `$${expense.amount ? expense.amount.toFixed(2) : '0.00'}`;
     
     const expenseYourShare = document.createElement('div');
     expenseYourShare.className = `expense-your-share ${paidByYou ? 'positive' : 'negative'}`;
-    expenseYourShare.textContent = `${paidByYou ? '+' : '-'}$${yourShare.toFixed(2)}`;
+    expenseYourShare.textContent = `${paidByYou ? '+' : '-'}$${yourShare ? yourShare.toFixed(2) : '0.00'}`;
     
     expenseAmounts.appendChild(expenseTotal);
     expenseAmounts.appendChild(expenseYourShare);
