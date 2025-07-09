@@ -14,7 +14,8 @@ const COLLECTIONS_TO_DELETE = [
   'documents',
   'expenses', 
   '_health_check',
-  'rate_limits'
+  'rate_limits',
+  'group-balances'
 ];
 
 async function deleteCollection(collectionName) {
