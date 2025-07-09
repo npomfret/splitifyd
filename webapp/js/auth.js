@@ -1,5 +1,6 @@
 import { logger } from './utils/logger.js';
 import { config } from './config.js';
+import { firebaseConfigManager } from './firebase-config.js';
 
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
 
@@ -125,7 +126,7 @@ class AuthManager {
     async #setDevelopmentDefaults(form) {
         try {
             await config.getConfig();
-            const formDefaults = window.firebaseConfigManager.getFormDefaults();
+            const formDefaults = firebaseConfigManager.getFormDefaults();
             
             if (!formDefaults || Object.keys(formDefaults).length === 0) {
                 return;
