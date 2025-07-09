@@ -1,6 +1,8 @@
 import { logger } from './utils/logger.js';
 import { ModalComponent } from './components/modal.js';
 import { createElementSafe, clearElement } from './utils/safe-dom.js';
+import { authManager } from './auth.js';
+import { apiService } from './api.js';
 
 let currentGroup = null;
 let currentGroupId = null;
@@ -13,12 +15,12 @@ async function waitForAuthManager() {
     const maxAttempts = 50;
     let attempts = 0;
     
-    while ((!window.authManager || !window.authManager.isAuthenticated()) && attempts < maxAttempts) {
+    while ((!authManager || !authManager.isAuthenticated()) && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
     }
     
-    if (!window.authManager || !window.authManager.isAuthenticated()) {
+    if (!authManager || !authManager.isAuthenticated()) {
         throw new Error('Authentication manager failed to initialize or user not authenticated');
     }
 }
@@ -97,7 +99,7 @@ function switchTab(tabName) {
 
 async function loadGroupDetails() {
     try {
-        const response = await api.getGroup(currentGroupId);
+        const response = await apiService.getGroup(currentGroupId);
         currentGroup = response.data;
         
         updateGroupHeader();
@@ -139,7 +141,7 @@ async function loadBalances() {
     const simplifiedDebts = document.getElementById('simplifiedDebts');
     
     try {
-        const response = await api.getGroupBalances(currentGroupId);
+        const response = await apiService.getGroupBalances(currentGroupId);
         const { userBalances, simplifiedDebts: serverSimplifiedDebts } = response.data;
         
         balanceSummary.innerHTML = '';
@@ -261,7 +263,7 @@ async function loadGroupExpenses() {
     isLoadingExpenses = true;
     
     try {
-        const response = await api.getGroupExpenses(currentGroupId, expensesLimit, expensesOffset);
+        const response = await apiService.getGroupExpenses(currentGroupId, expensesLimit, expensesOffset);
         const expenses = response.data;
         
         if (expensesOffset === 0) {
@@ -461,7 +463,7 @@ async function saveGroupSettings() {
     }
     
     try {
-        await api.updateGroup(currentGroupId, { name: newName });
+        await apiService.updateGroup(currentGroupId, { name: newName });
         currentGroup.name = newName;
         updateGroupHeader();
         closeGroupSettingsModal();
@@ -478,7 +480,7 @@ async function deleteGroup() {
     }
     
     try {
-        await api.deleteGroup(currentGroupId);
+        await apiService.deleteGroup(currentGroupId);
         window.location.href = 'dashboard.html';
     } catch (error) {
         logger.error('Error deleting group:', error);
@@ -501,7 +503,7 @@ async function sendInvite() {
     }
     
     try {
-        await api.inviteToGroup(currentGroupId, email);
+        await apiService.inviteToGroup(currentGroupId, email);
         successDiv.textContent = `Invitation sent to ${email}`;
         successDiv.style.display = 'block';
         document.getElementById('inviteEmail').value = '';
@@ -521,7 +523,7 @@ async function removeMember(userId) {
     }
     
     try {
-        await api.removeGroupMember(currentGroupId, userId);
+        await apiService.removeGroupMember(currentGroupId, userId);
         await loadGroupDetails();
         openGroupSettingsModal();
         showMessage('Member removed successfully', 'success');
@@ -557,7 +559,7 @@ function showMessage(message, type = 'info') {
 
 async function showShareGroupModal() {
     try {
-        const response = await api.generateShareableLink(currentGroupId);
+        const response = await apiService.generateShareableLink(currentGroupId);
         logger.log('Share link response:', response);
         const shareUrl = response.data.shareableUrl;
         

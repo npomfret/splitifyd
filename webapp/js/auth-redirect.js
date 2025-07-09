@@ -1,7 +1,9 @@
+import { authManager } from './auth.js';
+
 // Authentication redirect logic for index.html
 window.addEventListener('DOMContentLoaded', () => {
     // Check if user is already authenticated
-    if (window.authManager && window.authManager.isAuthenticated()) {
+    if (authManager && authManager.isAuthenticated()) {
         // Check if there's a pending join group request
         const urlParams = new URLSearchParams(window.location.search);
         const joinLinkId = urlParams.get('join');

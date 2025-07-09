@@ -155,8 +155,8 @@ class FirebaseConfigManager {
     }
 }
 
-window.firebaseConfigManager = new FirebaseConfigManager();
+export const firebaseConfigManager = new FirebaseConfigManager();
 
-window.firebaseConfigManager.initialize().catch(error => {
+firebaseConfigManager.initialize().catch(error => {
     logger.error('Failed to initialize Firebase on startup:', error);
 });

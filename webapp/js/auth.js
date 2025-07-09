@@ -1,4 +1,5 @@
 import { logger } from './utils/logger.js';
+import { config } from './config.js';
 
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
 
@@ -491,12 +492,12 @@ class AuthManager {
     }
 }
 
+export const authManager = new AuthManager();
+
 // Initialize auth when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    window.authManager = new AuthManager();
-    
     // Clean up on page unload
     window.addEventListener('beforeunload', () => {
-        window.authManager?.destroy();
+        authManager?.destroy();
     });
 });

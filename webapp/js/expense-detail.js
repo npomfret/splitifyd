@@ -1,5 +1,8 @@
 import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
+import { apiService } from './api.js';
+import { authManager } from './auth.js';
+import { ExpenseService } from './expenses.js';
 
 let currentExpense = null;
 let currentUser = null;
@@ -9,12 +12,12 @@ async function waitForAuthManager() {
     const maxAttempts = 50;
     let attempts = 0;
     
-    while ((!window.authManager || !window.authManager.isAuthenticated()) && attempts < maxAttempts) {
+    while ((!authManager || !authManager.isAuthenticated()) && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
     }
     
-    if (!window.authManager || !window.authManager.isAuthenticated()) {
+    if (!authManager || !authManager.isAuthenticated()) {
         throw new Error('Authentication manager failed to initialize or user not authenticated');
     }
 }
@@ -53,7 +56,7 @@ async function loadExpenseDetails(expenseId) {
         const user = { uid: localStorage.getItem('userId') };
 
         // Fetch group data to get member information for ID-to-name mapping
-        const groupResponse = await window.api.getGroup(expense.groupId);
+        const groupResponse = await apiService.getGroup(expense.groupId);
         const group = groupResponse.data;
 
         currentExpense = expense;
@@ -65,7 +68,7 @@ async function loadExpenseDetails(expenseId) {
         
     } catch (error) {
         logger.error('Error loading expense details:', error);
-        showError('Failed to load expense details');
+        showError(`Failed to load expense details: ${error.message || 'Unknown error'}`);
     }
 }
 

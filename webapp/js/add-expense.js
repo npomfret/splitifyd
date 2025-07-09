@@ -1,4 +1,6 @@
 import { logger } from './utils/logger.js';
+import { authManager } from './auth.js';
+import { apiService } from './api.js';
 
 let currentGroup = null;
 let currentGroupId = null;
@@ -9,12 +11,12 @@ async function waitForAuthManager() {
     const maxAttempts = 50;
     let attempts = 0;
     
-    while ((!window.authManager || !window.authManager.isAuthenticated()) && attempts < maxAttempts) {
+    while ((!authManager || !authManager.isAuthenticated()) && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
     }
     
-    if (!window.authManager || !window.authManager.isAuthenticated()) {
+    if (!authManager || !authManager.isAuthenticated()) {
         throw new Error('Authentication manager failed to initialize or user not authenticated');
     }
 }
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', initializeAddExpensePage);
 
 async function loadExpenseForEditing(expenseId) {
     try {
-        const response = await api.getExpense(expenseId);
+        const response = await apiService.getExpense(expenseId);
         const expense = response.data;
         
         currentGroupId = expense.groupId;
@@ -72,7 +74,7 @@ async function loadExpenseForEditing(expenseId) {
 
 async function loadGroupData() {
     try {
-        const response = await api.getGroup(currentGroupId);
+        const response = await apiService.getGroup(currentGroupId);
         currentGroup = response.data;
         
         populatePaidByOptions();
@@ -86,7 +88,7 @@ async function loadGroupData() {
 async function loadUserPreferences() {
     try {
         const currentUserId = localStorage.getItem('userId');
-        const response = await api.getGroupExpenses(currentGroupId, 1, 0);
+        const response = await apiService.getGroupExpenses(currentGroupId, 1, 0);
         
         if (response.data && response.data.length > 0) {
             const lastExpense = response.data.find(expense => expense.paidBy === currentUserId);
@@ -350,9 +352,9 @@ async function handleSubmit(event) {
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         
         if (isEdit && editExpenseId) {
-            await api.updateExpense(editExpenseId, expenseData);
+            await apiService.updateExpense(editExpenseId, expenseData);
         } else {
-            await api.createExpense(expenseData);
+            await apiService.createExpense(expenseData);
         }
         
         showMessage('Expense added successfully!', 'success');

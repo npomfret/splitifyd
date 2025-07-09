@@ -1,17 +1,19 @@
+import { firebaseConfigManager } from './firebase-config.js';
+
 class Config {
     constructor() {
     }
 
     async getApiUrl() {
-        if (!window.firebaseConfigManager.isInitialized()) {
-            await window.firebaseConfigManager.initialize();
+        if (!firebaseConfigManager.isInitialized()) {
+            await firebaseConfigManager.initialize();
         }
-        return window.firebaseConfigManager.getApiUrl();
+        return firebaseConfigManager.getApiUrl();
     }
 
     getApiUrlSync() {
-        if (window.firebaseConfigManager.isInitialized()) {
-            return window.firebaseConfigManager.getApiUrl();
+        if (firebaseConfigManager.isInitialized()) {
+            return firebaseConfigManager.getApiUrl();
         }
         
         const hostname = window.location.hostname;
@@ -30,11 +32,11 @@ class Config {
     }
 
     async getConfig() {
-        if (!window.firebaseConfigManager.isInitialized()) {
-            await window.firebaseConfigManager.initialize();
+        if (!firebaseConfigManager.isInitialized()) {
+            await firebaseConfigManager.initialize();
         }
-        return window.firebaseConfigManager.getConfig();
+        return firebaseConfigManager.getConfig();
     }
 }
 
-const config = new Config();
+export const config = new Config();

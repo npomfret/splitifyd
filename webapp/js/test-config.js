@@ -1,3 +1,6 @@
+import { firebaseConfigManager } from './firebase-config.js';
+import { config } from './config.js';
+
 const testResults = document.getElementById('test-results');
 const runButton = document.getElementById('run-tests');
 
@@ -33,7 +36,7 @@ async function testFirebaseConfigFetch() {
     try {
         addTestResult('Firebase Config Fetch', 'pending', 'Testing...');
         
-        const config = await window.firebaseConfigManager.fetchFirebaseConfig();
+        const config = await firebaseConfigManager.fetchFirebaseConfig();
         
         if (!config.projectId) {
             throw new Error('Config missing projectId');
@@ -42,7 +45,7 @@ async function testFirebaseConfigFetch() {
         addTestResult('Firebase Config Fetch', 'success', {
             projectId: config.projectId,
             authDomain: config.authDomain,
-            configUrl: window.firebaseConfigManager.getConfigUrl()
+            configUrl: firebaseConfigManager.getConfigUrl()
         });
         
         return true;
@@ -56,9 +59,9 @@ async function testFirebaseInitialization() {
     try {
         addTestResult('Firebase Initialization', 'pending', 'Testing...');
         
-        await window.firebaseConfigManager.initialize();
+        await firebaseConfigManager.initialize();
         
-        if (!window.firebaseConfigManager.isInitialized()) {
+        if (!firebaseConfigManager.isInitialized()) {
             throw new Error('Firebase not initialized');
         }
         
@@ -179,7 +182,7 @@ async function testProductionUrlDetection() {
     try {
         addTestResult('Production URL Detection', 'pending', 'Testing...');
         
-        const configManager = window.firebaseConfigManager;
+        const configManager = firebaseConfigManager;
         const isLocal = configManager.isLocalEnvironment();
         const configUrl = configManager.getConfigUrl();
         const apiUrl = configManager.getApiUrlForProject('splitifyd');

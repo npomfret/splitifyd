@@ -1,3 +1,5 @@
+import { authManager } from '../auth.js';
+
 export class HeaderComponent {
   static render(config = {}) {
     const { 
@@ -27,7 +29,7 @@ export class HeaderComponent {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
-        window.authManager.logout();
+        authManager.logout();
       });
     }
   }

@@ -1,5 +1,6 @@
 import { logger } from './utils/logger.js';
 import { AppInit } from './app-init.js';
+import { apiService } from './api.js';
 
 async function handleJoinGroup() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -35,7 +36,7 @@ async function processJoinGroup(linkId) {
     try {
         AppInit.showError('Joining group...', 0);
         
-        const response = await api.joinGroupByLink(linkId);
+        const response = await apiService.joinGroupByLink(linkId);
         
         if (response.success) {
             AppInit.hideError();

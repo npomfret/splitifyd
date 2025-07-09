@@ -1,5 +1,6 @@
 import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
+import { apiService, apiCall } from './api.js';
 
 // Dynamic import of ModalComponent when needed
 let ModalComponent = null;

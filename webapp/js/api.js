@@ -1,3 +1,5 @@
+import { config } from './config.js';
+
 class ApiService {
     constructor() {
         this._baseUrlPromise = null;
@@ -291,10 +293,10 @@ class ApiService {
 
 }
 
-const apiService = new ApiService();
+export const apiService = new ApiService();
 
 // Generic API call function for expense and group services
-async function apiCall(endpoint, options = {}) {
+export async function apiCall(endpoint, options = {}) {
     const baseUrl = await apiService._getBaseUrl();
     const url = `${baseUrl}${endpoint}`;
     
@@ -330,18 +332,3 @@ async function apiCall(endpoint, options = {}) {
     return response.json();
 }
 
-// Global API object
-window.api = {
-    getGroups: () => apiService.getGroups(),
-    createGroup: (groupData) => apiService.createGroup(groupData),
-    getGroup: (groupId) => apiService.getGroup(groupId),
-    getGroupBalances: (groupId) => apiService.getGroupBalances(groupId),
-    getGroupExpenses: (groupId, limit, offset) => apiService.getGroupExpenses(groupId, limit, offset),
-    updateGroup: (groupId, updates) => apiService.updateGroup(groupId, updates),
-    deleteGroup: (groupId) => apiService.deleteGroup(groupId),
-    createExpense: (expenseData) => apiService.createExpense(expenseData),
-    getExpense: (expenseId) => apiService.getExpense(expenseId),
-    updateExpense: (expenseId, updateData) => apiService.updateExpense(expenseId, updateData),
-    generateShareableLink: (groupId) => apiService.generateShareableLink(groupId),
-    joinGroupByLink: (linkId) => apiService.joinGroupByLink(linkId)
-};

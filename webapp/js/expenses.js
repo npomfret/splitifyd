@@ -1,4 +1,6 @@
-class ExpenseService {
+import { apiCall } from './api.js';
+
+export class ExpenseService {
   static async createExpense(expenseData) {
     return apiCall('/expenses', {
       method: 'POST',
