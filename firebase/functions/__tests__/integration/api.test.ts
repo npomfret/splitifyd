@@ -458,6 +458,96 @@ describe('Comprehensive API Test Suite', () => {
     expect(fetchedExpense.category).toBe(updatedData.category);
   });
 
+  test('should recalculate splits when only amount is updated', async () => {
+    // Create a new expense specifically for this test
+    const testExpenseData = {
+      groupId: group.id,
+      description: 'Split Recalculation Test',
+      amount: 100,
+      category: 'other',
+      date: new Date().toISOString(),
+      paidBy: users[0].uid,
+      splitType: 'equal',
+      participants: users.map(u => u.uid)
+    };
+
+    const createResponse = await apiRequest('/expenses', 'POST', testExpenseData, users[0].token);
+    expect(createResponse.id).toBeDefined();
+
+    // Fetch the created expense to verify initial splits
+    const initialExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    expect(initialExpense.amount).toBe(100);
+    expect(initialExpense.splits).toHaveLength(2);
+    expect(initialExpense.splits[0].amount).toBe(50);
+    expect(initialExpense.splits[1].amount).toBe(50);
+
+    // Update only the amount
+    const updatedData = {
+      amount: 150.50
+    };
+
+    await apiRequest(`/expenses?id=${createResponse.id}`, 'PUT', updatedData, users[0].token);
+
+    // Fetch the updated expense to verify splits were recalculated
+    const updatedExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    
+    expect(updatedExpense.amount).toBe(150.50);
+    expect(updatedExpense.splits).toHaveLength(2);
+    expect(updatedExpense.splits[0].amount).toBe(75.25);
+    expect(updatedExpense.splits[1].amount).toBe(75.25);
+    
+    // Verify that the total of splits equals the new amount
+    const totalSplits = updatedExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
+    expect(totalSplits).toBe(150.50);
+  });
+
+  test('should recalculate splits when amount is updated with exact split type', async () => {
+    // Create an expense with exact splits
+    const testExpenseData = {
+      groupId: group.id,
+      description: 'Exact Split Test',
+      amount: 100,
+      category: 'other',
+      date: new Date().toISOString(),
+      paidBy: users[0].uid,
+      splitType: 'exact',
+      participants: users.map(u => u.uid),
+      splits: [
+        { userId: users[0].uid, amount: 60 },
+        { userId: users[1].uid, amount: 40 }
+      ]
+    };
+
+    const createResponse = await apiRequest('/expenses', 'POST', testExpenseData, users[0].token);
+    expect(createResponse.id).toBeDefined();
+
+    // Fetch the created expense to verify initial splits
+    const initialExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    expect(initialExpense.amount).toBe(100);
+    expect(initialExpense.splits).toHaveLength(2);
+    expect(initialExpense.splits.find((s: any) => s.userId === users[0].uid).amount).toBe(60);
+    expect(initialExpense.splits.find((s: any) => s.userId === users[1].uid).amount).toBe(40);
+
+    // Update only the amount - should revert to equal splits since no new splits provided
+    const updatedData = {
+      amount: 150
+    };
+
+    await apiRequest(`/expenses?id=${createResponse.id}`, 'PUT', updatedData, users[0].token);
+
+    // Fetch the updated expense to verify splits were recalculated to equal
+    const updatedExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    
+    expect(updatedExpense.amount).toBe(150);
+    expect(updatedExpense.splits).toHaveLength(2);
+    expect(updatedExpense.splits[0].amount).toBe(75);
+    expect(updatedExpense.splits[1].amount).toBe(75);
+    
+    // Verify that the total of splits equals the new amount
+    const totalSplits = updatedExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
+    expect(totalSplits).toBe(150);
+  });
+
   test("should update a group's name", async () => {
     const newGroupName = `Updated Group Name ${uuidv4()}`;
     await apiRequest(`/groups?id=${group.id}`, 'PUT', { name: newGroupName }, users[0].token);

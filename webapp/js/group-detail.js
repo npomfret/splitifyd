@@ -305,7 +305,7 @@ async function loadGroupExpenses() {
 }
 
 function createExpenseItem(expense) {
-    logger.debug('Creating expense item for:', expense);
+    logger.log('Creating expense item for:', expense);
     
     const expenseItem = document.createElement('div');
     expenseItem.className = 'expense-item';

@@ -199,13 +199,25 @@ export const updateExpense = async (
     updates.date = Timestamp.fromDate(new Date(updateData.date));
   }
 
-  if (updateData.splitType || updateData.participants || updateData.splits) {
+  if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
     const amount = updateData.amount || expense.amount;
     const splitType = updateData.splitType || expense.splitType;
     const participants = updateData.participants || expense.participants;
-    const splits = updateData.splits || expense.splits;
+    
+    // If only amount is updated and splitType is 'exact', we need to recalculate as equal splits
+    // since the old exact splits won't match the new amount
+    let finalSplitType = splitType;
+    let splits = updateData.splits || expense.splits;
+    
+    if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
+      if (splitType === 'exact') {
+        // When only amount changes on exact splits, convert to equal splits
+        finalSplitType = 'equal';
+        splits = [];
+      }
+    }
 
-    updates.splits = calculateSplits(amount, splitType, participants, splits);
+    updates.splits = calculateSplits(amount, finalSplitType, participants, splits);
   }
 
   await docRef.update(updates);
