@@ -472,7 +472,7 @@ describe('Comprehensive API Test Suite', () => {
       description: 'Unequal Split Expense',
       amount: 100,
       paidBy: users[0].uid,
-      splitType: 'unequal',
+      splitType: 'exact',
       participants: users.map(u => u.uid),
       splits: [
         { userId: users[0].uid, amount: 80 },
