@@ -96,7 +96,7 @@ class ApiService {
                     name: groupData.name.trim(),
                     description: groupData.description?.trim() || '',
                     memberEmails: groupData.memberEmails || [],
-                    members: [{ uid: 'current_user', name: 'You', initials: 'YO' }],
+                    members: [{ uid: localStorage.getItem('userId'), name: 'You', initials: 'YO' }],
                     yourBalance: 0,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
@@ -117,7 +117,7 @@ class ApiService {
                 lastActivity: 'Just now',
                 lastActivityRaw: new Date().toISOString(),
                 lastExpense: null,
-                members: [{ uid: 'current_user', name: 'You', initials: 'YO' }]
+                members: [{ uid: localStorage.getItem('userId'), name: 'You', initials: 'YO' }]
             };
             
         } catch (error) {

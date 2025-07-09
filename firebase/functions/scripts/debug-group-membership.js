@@ -19,7 +19,7 @@ async function debugGroupMembership() {
     console.log('🔍 Debugging Group Membership Issue\n');
     
     // Group ID from the error
-    const groupId = 'gaqY5XiNSSIHXlvixFIW';
+    const groupId = 'IWddJCDULL7f4nFDyfbz';
     const userEmail = 'test1@test.com';
     
     // Get user info
