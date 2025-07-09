@@ -278,4 +278,32 @@ describe('Comprehensive API Test Suite', () => {
       apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, outsiderUser.token)
     ).rejects.toThrow(/403|FORBIDDEN/);
   });
+
+  test('should return proper CORS headers', async () => {
+    const testOrigin = 'http://localhost:3000';
+    const url = `${API_BASE_URL}/health`;
+    
+    const response = await fetch(url, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': testOrigin,
+        'Access-Control-Request-Method': 'GET',
+        'Access-Control-Request-Headers': 'Content-Type,Authorization'
+      }
+    });
+    
+    expect(response.status).toBe(204);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
+    expect(response.headers.get('Access-Control-Allow-Methods')).toBeTruthy();
+    expect(response.headers.get('Access-Control-Allow-Headers')).toBeTruthy();
+  });
+
+  test('should return security headers', async () => {
+    const url = `${API_BASE_URL}/health`;
+    const response = await fetch(url);
+    
+    expect(response.headers.get('X-Content-Type-Options')).toBeTruthy();
+    expect(response.headers.get('X-Frame-Options')).toBeTruthy();
+    expect(response.headers.get('X-XSS-Protection')).toBeTruthy();
+  });
 });

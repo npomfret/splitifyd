@@ -13,9 +13,6 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:endpoints": "ts-node src/tests/api-endpoints.test.ts",
-    "test:endpoints:local": "ts-node src/tests/api-endpoints.test.ts local",
-    "test:endpoints:prod": "ts-node src/tests/api-endpoints.test.ts production",
     "validate-cors": "node scripts/validate-cors.js"
   },
   "engines": {
