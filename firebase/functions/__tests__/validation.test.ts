@@ -1,5 +1,5 @@
-import { validateLoginRequest, validateRegisterRequest } from '../validation';
-import { ApiError } from '../../utils/errors';
+import { validateLoginRequest, validateRegisterRequest } from '../src/auth/validation';
+import { ApiError } from '../src/utils/errors';
 
 describe('Auth Validation', () => {
   describe('validateLoginRequest', () => {

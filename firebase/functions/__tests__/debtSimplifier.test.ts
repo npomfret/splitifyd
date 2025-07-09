@@ -1,4 +1,4 @@
-import { simplifyDebts, UserBalance } from '../debtSimplifier';
+import { simplifyDebts, UserBalance } from '../src/utils/debtSimplifier';
 
 describe('simplifyDebts', () => {
     it('should return empty array for empty balances', () => {

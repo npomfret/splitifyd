@@ -1,4 +1,4 @@
-import { sanitizeString, checkForDangerousPatterns, isDangerousProperty } from '../utils/security';
+import { sanitizeString, checkForDangerousPatterns, isDangerousProperty } from '../src/utils/security';
 
 describe('Security Utils', () => {
   describe('sanitizeString', () => {

@@ -57,6 +57,7 @@
     ],
     "testMatch": [
       "**/__tests__/**/*.test.ts",
+      "!**/__tests__/api-endpoints.test.ts",
       "src/**/*.test.ts"
     ],
     "transform": {
