@@ -245,6 +245,36 @@
             line-height: 1.7;
         }
 
+        .globe-section {
+            padding: 100px 0;
+            background-color: var(--light-gray);
+            text-align: center;
+        }
+
+        .globe-section h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .globe-section p {
+            font-size: 1.2em;
+            margin-bottom: 50px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.9;
+        }
+
+        #globe-container {
+            width: 100%;
+            height: 500px;
+            margin: 0 auto;
+        }
+
         .feature-item[data-icon-color="green"] img, .feature-item[data-icon-color="green"] svg {
             background-color: #16a34a; /* Green */
         }
