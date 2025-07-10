@@ -344,24 +344,6 @@ class AuthManager {
         }
     }
 
-    private async makeRequest(endpoint: string, data: any): Promise<Response> {
-        const apiUrl = await config.getApiUrl();
-        const response = await fetch(`${apiUrl}${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(this.token && { 'Authorization': `Bearer ${this.token}` })
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message);
-        }
-
-        return response;
-    }
 
     private setButtonLoading(button: HTMLButtonElement, text: string): void {
         button.textContent = text;
