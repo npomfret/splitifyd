@@ -1,11 +1,20 @@
+import { AuthCardConfig } from '../types/components';
+
+interface ExtendedAuthCardConfig extends AuthCardConfig {
+    subtitleTitle?: string | null;
+    formContent?: string;
+    footerContent?: string;
+    cardClass?: string;
+}
+
 export const AuthCardComponent = {
-    render: (config) => {
+    render: (config: ExtendedAuthCardConfig): string => {
         const { 
             title = 'Splitifyd', 
             subtitle = 'Split bills with friends',
             subtitleTitle = null,
-            formContent,
-            footerContent,
+            formContent = '',
+            footerContent = '',
             cardClass = ''
         } = config;
 
