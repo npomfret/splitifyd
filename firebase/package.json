@@ -6,9 +6,9 @@
     "clean": "rm -rf public && mkdir -p public",
     "build:webapp": "cd ../webapp && npm run build && cd ../firebase && cp -r ../webapp/dist/* public/",
     "build": "npm run clean && npm run build:webapp",
-    "serve": "npm run build && cd functions && npm run build && cd .. && firebase emulators:start",
-    "dev": "npm run build && cd functions && npm run build && cd .. && (nodemon & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
-    "dev:with-data": "rm -f *.log && npm run build && cd functions && npm run build && cd .. && node scripts/start-with-data.js",
+    "serve": "npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && firebase emulators:start",
+    "dev": "npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && (nodemon & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
+    "dev:with-data": "rm -f *.log && npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && node scripts/start-with-data.js",
     "generate-test-data": "cd functions && node scripts/generate-test-data.js",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
@@ -17,7 +17,8 @@
     "deploy:hosting": "npm run build && firebase use splitifyd && firebase deploy --only hosting",
     "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
     "logs": "firebase use splitifyd && firebase functions:log",
-    "kill-emulators": "node scripts/kill-emulators.js"
+    "kill-emulators": "node scripts/kill-emulators.js",
+    "switch-instance": "node scripts/switch-instance.js"
   },
   "author": "",
   "license": "MIT",
@@ -26,6 +27,7 @@
     "nodemon": "^3.1.10"
   },
   "dependencies": {
-    "xss": "^1.0.15"
+    "xss": "^1.0.15",
+    "dotenv": "^16.0.0"
   }
 }

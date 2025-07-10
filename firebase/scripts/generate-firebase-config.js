@@ -1,4 +1,10 @@
-{
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../functions/.env') });
+
+const firebaseConfigTemplate = {
   "functions": [
     {
       "source": "functions",
@@ -57,21 +63,33 @@
   },
   "emulators": {
     "auth": {
-      "port": 9299
+      "port": parseInt(process.env.FIREBASE_AUTH_EMULATOR_PORT || '9099')
     },
     "functions": {
-      "port": 7001
+      "port": parseInt(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001')
     },
     "firestore": {
-      "port": 8280
+      "port": parseInt(process.env.FIREBASE_FIRESTORE_EMULATOR_PORT || '8080')
     },
     "hosting": {
-      "port": 7002
+      "port": parseInt(process.env.FIREBASE_HOSTING_EMULATOR_PORT || '5002')
     },
     "ui": {
       "enabled": true,
-      "port": 7000
+      "port": parseInt(process.env.FIREBASE_EMULATOR_UI_PORT || '4000')
     },
     "singleProjectMode": true
   }
-}
+};
+
+const configPath = path.join(__dirname, '../firebase.json');
+const configContent = JSON.stringify(firebaseConfigTemplate, null, 2);
+
+fs.writeFileSync(configPath, configContent);
+
+console.log('🔥 Firebase configuration generated with ports:');
+console.log(`  - UI: ${process.env.FIREBASE_EMULATOR_UI_PORT || '4000'}`);
+console.log(`  - Auth: ${process.env.FIREBASE_AUTH_EMULATOR_PORT || '9099'}`);
+console.log(`  - Functions: ${process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001'}`);
+console.log(`  - Firestore: ${process.env.FIREBASE_FIRESTORE_EMULATOR_PORT || '8080'}`);
+console.log(`  - Hosting: ${process.env.FIREBASE_HOSTING_EMULATOR_PORT || '5002'}`);

@@ -3,8 +3,16 @@
 const { spawn } = require('child_process');
 const { generateTestData } = require('../functions/scripts/generate-test-data');
 const http = require('http');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../functions/.env') });
+
+// Get ports from environment variables
+const UI_PORT = process.env.FIREBASE_EMULATOR_UI_PORT || '4000';
+const FUNCTIONS_PORT = process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001';
 
 console.log('🚀 Starting Firebase emulator with test data generation...\n');
+console.log(`📍 Emulator UI will be available at: http://localhost:${UI_PORT}`);
+console.log(`📍 Functions will be available at: http://localhost:${FUNCTIONS_PORT}\n`);
 
 // Start Firebase emulators (fresh start - no import)
 const emulatorProcess = spawn('firebase', [
@@ -47,7 +55,7 @@ function checkEmulatorReady() {
   return new Promise((resolve, reject) => {
     const req = http.request({
       hostname: 'localhost',
-      port: 4000,
+      port: UI_PORT,
       path: '/',
       method: 'GET',
       timeout: 1000
@@ -66,7 +74,7 @@ function checkApiReady() {
   return new Promise((resolve, reject) => {
     const req = http.request({
       hostname: 'localhost',
-      port: 5001,
+      port: FUNCTIONS_PORT,
       path: '/splitifyd/us-central1/api',
       method: 'GET',
       timeout: 1000

@@ -59,8 +59,9 @@ class FirebaseConfigManager {
             
             if (this.isLocalEnvironment() && !this.emulatorConnected) {
                 try {
-                    logger.log('🔧 Connecting to Firebase Auth emulator at localhost:9099');
-                    connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
+                    const authPort = this.getLocalAuthPort();
+                    logger.log(`🔧 Connecting to Firebase Auth emulator at localhost:${authPort}`);
+                    connectAuthEmulator(this.auth, `http://localhost:${authPort}`, { disableWarnings: true });
                     this.emulatorConnected = true;
                 } catch (error) {
                     const firebaseError = error as FirebaseError;
@@ -133,7 +134,7 @@ class FirebaseConfigManager {
 
     private getConfigUrl(): string {
         const localHost = window.location.hostname;
-        const LOCAL_FUNCTIONS_PORT = 5001;
+        const LOCAL_FUNCTIONS_PORT = this.getLocalFunctionsPort();
         
         if (this.isLocalEnvironment()) {
             return `http://${localHost}:${LOCAL_FUNCTIONS_PORT}/splitifyd/us-central1/api/config`;
@@ -146,7 +147,7 @@ class FirebaseConfigManager {
 
     private getApiUrlForProject(projectId: string = 'splitifyd'): string {
         const localHost = window.location.hostname;
-        const LOCAL_FUNCTIONS_PORT = 5001;
+        const LOCAL_FUNCTIONS_PORT = this.getLocalFunctionsPort();
         
         if (this.isLocalEnvironment()) {
             return `http://${localHost}:${LOCAL_FUNCTIONS_PORT}/${projectId}/us-central1/api`;
@@ -170,6 +171,16 @@ class FirebaseConfigManager {
 
     isInitialized(): boolean {
         return this.initialized;
+    }
+
+    private getLocalFunctionsPort(): number {
+        const hostingPort = parseInt(window.location.port || '5002');
+        return hostingPort === 5002 ? 5001 : hostingPort - 1;
+    }
+
+    private getLocalAuthPort(): number {
+        const hostingPort = parseInt(window.location.port || '5002');
+        return hostingPort === 5002 ? 9099 : 9000 + hostingPort;
     }
 
     getFormDefaults(): any {
