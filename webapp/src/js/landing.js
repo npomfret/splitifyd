@@ -1,7 +1,7 @@
-import ScrollReveal from './scrollreveal.js';
-import { gsap } from './gsap.js';
+import ScrollReveal from 'scrollreveal';
+import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { initGlobe } from './globe';
+import { initGlobe } from './globe.js';
 
 gsap.registerPlugin(ScrollTrigger);
 

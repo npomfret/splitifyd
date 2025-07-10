@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/ && cp node_modules/three/build/three.module.js dist/js/three.module.js && cp node_modules/gsap/dist/gsap.js dist/js/gsap.js && cp node_modules/scrollreveal/dist/scrollreveal.js dist/js/scrollreveal.js && esbuild 'src/js/**/*.ts' 'src/js/**/*.js' --outdir=dist/js --outbase=src/js --format=esm",
+    "copy:assets": "mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/",
+    "build:js": "esbuild 'src/js/**/*.ts' 'src/js/**/*.js' --bundle --outdir=dist/js --outbase=src/js --format=esm",
+    "build": "npm run clean && npm run copy:assets && npm run build:js",
     "test": "jest --config jest.config.js"
   },
   "keywords": [],

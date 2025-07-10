@@ -1,4 +1,4 @@
-import * as THREE from './three.module.js';
+import * as THREE from 'three';
 
 export function initGlobe() {
     const container = document.getElementById('globe-container');
