@@ -8,6 +8,7 @@ declare global {
       sendPasswordResetEmail(email: string): Promise<void>;
       onAuthStateChanged(callback: (user: any) => void): () => void;
       getCurrentUser(): any;
+      signOut(): Promise<void>;
     };
     ModalComponent: {
       render(config: {
@@ -123,6 +124,42 @@ interface Logger {
   error(...args: any[]): void;
 }
 
+// Firebase SDK types
+interface FirebaseApp {
+  name: string;
+  options: any;
+}
+
+interface FirebaseAuth {
+  currentUser: FirebaseUser | null;
+  app: FirebaseApp;
+}
+
+interface FirebaseUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+  photoURL: string | null;
+  providerData: any[];
+  getIdToken(): Promise<string>;
+}
+
+interface FirebaseError extends Error {
+  code: string;
+  customData?: any;
+}
+
+// Firebase Config Manager types
+interface FirebaseConfigManagerConfig {
+  firebaseConfig: FirebaseConfig;
+  apiUrl: string;
+  isLocal: boolean;
+  formDefaults?: any;
+  warningBanner?: string;
+}
+
 export {
   ValidationOptions,
   ValidationResult,
@@ -134,5 +171,10 @@ export {
   Expense,
   ExpenseSplit,
   Settlement,
-  Logger
+  Logger,
+  FirebaseApp,
+  FirebaseAuth,
+  FirebaseUser,
+  FirebaseError,
+  FirebaseConfigManagerConfig
 };

@@ -1,6 +1,6 @@
 import { firebaseConfigManager } from './firebase-config.js';
 
-function showWarning(message) {
+function showWarning(message: string): void {
     const bannerElement = document.getElementById('warningBanner');
     if (bannerElement) {
         bannerElement.textContent = message;
@@ -8,7 +8,7 @@ function showWarning(message) {
     }
 }
 
-function hideWarning() {
+function hideWarning(): void {
     const bannerElement = document.getElementById('warningBanner');
     if (bannerElement) {
         bannerElement.classList.add('hidden');
@@ -20,7 +20,12 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = { showWarning, hideWarning };
 }
 
-const warningBannerManager = {
+interface WarningBannerManager {
+    init(): void;
+    displayWarningBanner(): void;
+}
+
+const warningBannerManager: WarningBannerManager = {
     init() {
         if (!firebaseConfigManager) {
             setTimeout(() => this.init(), 100);
@@ -31,7 +36,7 @@ const warningBannerManager = {
             .then(() => {
                 this.displayWarningBanner();
             })
-            .catch(error => {
+            .catch((error: Error) => {
                 throw error;
             });
     },

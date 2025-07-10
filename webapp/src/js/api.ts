@@ -1,22 +1,37 @@
 import { config } from './config.js';
+import type { ApiResponse } from './types/global.js';
+import type {
+    CreateGroupRequest,
+    CreateExpenseRequest,
+    UpdateExpenseRequest,
+    ListDocumentsResponse,
+    DocumentResponse,
+    GroupDocument,
+    Member,
+    TransformedGroup,
+    GroupDetail,
+    ExpenseData,
+    GroupBalances,
+    ShareableLinkResponse,
+    JoinGroupResponse,
+    FirestoreTimestamp
+} from './types/api.js';
 
 class ApiService {
-    constructor() {
-        this._baseUrlPromise = null;
-    }
+    private _baseUrlPromise: Promise<string> | null = null;
 
-    async _getBaseUrl() {
+    private async _getBaseUrl(): Promise<string> {
         if (!this._baseUrlPromise) {
             this._baseUrlPromise = config.getApiUrl();
         }
         return this._baseUrlPromise;
     }
 
-    _getAuthToken() {
+    private _getAuthToken(): string | null {
         return localStorage.getItem('splitifyd_auth_token');
     }
 
-    _getAuthHeaders() {
+    private _getAuthHeaders(): Record<string, string> {
         const token = this._getAuthToken();
         if (!token) {
             throw new Error('Authentication required');
@@ -27,9 +42,9 @@ class ApiService {
         };
     }
 
-    async getGroups() {
+    async getGroups(): Promise<TransformedGroup[]> {
         try {
-            const data = await apiCall('/listDocuments', {
+            const data = await apiCall<ListDocumentsResponse>('/listDocuments', {
                 method: 'GET'
             });
             return this._transformGroupsData(data.documents);
@@ -39,7 +54,7 @@ class ApiService {
         }
     }
 
-    _transformGroupsData(documents) {
+    private _transformGroupsData(documents: DocumentResponse[]): TransformedGroup[] {
         return documents.map(doc => ({
             id: doc.id,
             name: doc.data.name || 'Unnamed Group',
@@ -54,22 +69,22 @@ class ApiService {
         }));
     }
 
-    _formatLastActivity(timestamp) {
+    private _formatLastActivity(timestamp: string | FirestoreTimestamp | undefined): string {
         if (!timestamp) {
             return 'Never';
         }
         
-        let date;
-        if (timestamp && typeof timestamp === 'object' && timestamp._seconds) {
+        let date: Date;
+        if (timestamp && typeof timestamp === 'object' && '_seconds' in timestamp) {
             // Handle Firestore Timestamp format
             date = new Date(timestamp._seconds * 1000);
         } else {
             // Handle ISO string or regular timestamp
-            date = new Date(timestamp);
+            date = new Date(timestamp as string);
         }
         
         const now = new Date();
-        const diffMs = now - date;
+        const diffMs = now.getTime() - date.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
         const diffMinutes = Math.floor(diffMs / (1000 * 60));
@@ -85,7 +100,7 @@ class ApiService {
     }
 
 
-    async createGroup(groupData) {
+    async createGroup(groupData: CreateGroupRequest): Promise<TransformedGroup> {
         if (!groupData.name?.trim()) {
             throw new Error('Group name is required');
         }
@@ -103,7 +118,7 @@ class ApiService {
                 }
             };
 
-            const data = await apiCall('/createDocument', {
+            const data = await apiCall<{ id: string }>('/createDocument', {
                 method: 'POST',
                 body: JSON.stringify(groupDoc)
             });
@@ -117,7 +132,9 @@ class ApiService {
                 lastActivity: 'Just now',
                 lastActivityRaw: new Date().toISOString(),
                 lastExpense: null,
-                members: [{ uid: localStorage.getItem('userId'), name: 'You', initials: 'YO' }]
+                members: [{ uid: localStorage.getItem('userId') || '', name: 'You', initials: 'YO' }],
+                expenseCount: 0,
+                lastExpenseTime: null
             };
             
         } catch (error) {
@@ -125,26 +142,29 @@ class ApiService {
         }
     }
 
-    _transformGroupData(document) {
+    private _transformGroupData(document: DocumentResponse): TransformedGroup {
         return {
             id: document.id,
             name: document.data.name,
             memberCount: document.data.members.length,
             yourBalance: document.data.yourBalance,
             lastActivity: this._formatLastActivity(document.data.updatedAt),
+            lastActivityRaw: document.data.updatedAt,
             lastExpense: document.data.lastExpense,
-            members: document.data.members
+            members: document.data.members,
+            expenseCount: document.data.expenseCount || 0,
+            lastExpenseTime: document.data.lastExpenseTime || null
         };
     }
 
 
-    async getGroup(groupId) {
+    async getGroup(groupId: string): Promise<{ data: GroupDetail }> {
         if (!groupId) {
             throw new Error('Group ID is required');
         }
 
         try {
-            const data = await apiCall(`/getDocument?id=${groupId}`, {
+            const data = await apiCall<GroupDocument>(`/getDocument?id=${groupId}`, {
                 method: 'GET'
             });
             return { data: this._transformGroupDetail(data) };
@@ -153,7 +173,7 @@ class ApiService {
         }
     }
 
-    _transformGroupDetail(document) {
+    private _transformGroupDetail(document: GroupDocument): GroupDetail {
         const data = document.data;
         return {
             id: document.id,
@@ -167,9 +187,9 @@ class ApiService {
     }
 
 
-    async getGroupBalances(groupId) {
+    async getGroupBalances(groupId: string): Promise<{ data: GroupBalances }> {
         try {
-            const data = await apiCall(`/groups/balances?groupId=${groupId}`, {
+            const data = await apiCall<GroupBalances>(`/groups/balances?groupId=${groupId}`, {
                 method: 'GET'
             });
             return { data: data };
@@ -179,9 +199,9 @@ class ApiService {
     }
 
 
-    async getGroupExpenses(groupId, limit = 20, offset = 0) {
+    async getGroupExpenses(groupId: string, limit: number = 20, offset: number = 0): Promise<{ data: ExpenseData[] }> {
         try {
-            const data = await apiCall(`/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
+            const data = await apiCall<{ expenses: ExpenseData[] }>(`/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
                 method: 'GET'
             });
             return { data: data.expenses };
@@ -191,7 +211,7 @@ class ApiService {
     }
 
 
-    async updateGroup(groupId, updates) {
+    async updateGroup(groupId: string, updates: Partial<GroupDetail>): Promise<any> {
         try {
             const data = await apiCall(`/updateDocument?id=${groupId}`, {
                 method: 'PUT',
@@ -203,7 +223,7 @@ class ApiService {
         }
     }
 
-    async deleteGroup(groupId) {
+    async deleteGroup(groupId: string): Promise<{ success: boolean }> {
         try {
             await apiCall(`/deleteDocument?id=${groupId}`, {
                 method: 'DELETE'
@@ -216,9 +236,9 @@ class ApiService {
 
 
 
-    async createExpense(expenseData) {
+    async createExpense(expenseData: CreateExpenseRequest): Promise<{ success: boolean; data: ExpenseData }> {
         try {
-            const data = await apiCall('/expenses', {
+            const data = await apiCall<ExpenseData>('/expenses', {
                 method: 'POST',
                 body: JSON.stringify(expenseData)
             });
@@ -228,13 +248,13 @@ class ApiService {
         }
     }
 
-    async getExpense(expenseId) {
+    async getExpense(expenseId: string): Promise<{ data: ExpenseData }> {
         if (!expenseId) {
             throw new Error('Expense ID is required');
         }
 
         try {
-            const data = await apiCall(`/expenses?id=${expenseId}`, {
+            const data = await apiCall<ExpenseData>(`/expenses?id=${expenseId}`, {
                 method: 'GET'
             });
             return { data: data };
@@ -243,13 +263,13 @@ class ApiService {
         }
     }
 
-    async updateExpense(expenseId, updateData) {
+    async updateExpense(expenseId: string, updateData: UpdateExpenseRequest): Promise<{ success: boolean; data: ExpenseData }> {
         if (!expenseId) {
             throw new Error('Expense ID is required');
         }
 
         try {
-            const data = await apiCall(`/expenses?id=${expenseId}`, {
+            const data = await apiCall<ExpenseData>(`/expenses?id=${expenseId}`, {
                 method: 'PUT',
                 body: JSON.stringify(updateData)
             });
@@ -259,13 +279,13 @@ class ApiService {
         }
     }
 
-    async generateShareableLink(groupId) {
+    async generateShareableLink(groupId: string): Promise<{ success: boolean; data: ShareableLinkResponse }> {
         if (!groupId) {
             throw new Error('Group ID is required');
         }
 
         try {
-            const data = await apiCall('/groups/share', {
+            const data = await apiCall<ShareableLinkResponse>('/groups/share', {
                 method: 'POST',
                 body: JSON.stringify({ groupId })
             });
@@ -275,13 +295,13 @@ class ApiService {
         }
     }
 
-    async joinGroupByLink(linkId) {
+    async joinGroupByLink(linkId: string): Promise<{ success: boolean; data: JoinGroupResponse }> {
         if (!linkId) {
             throw new Error('Link ID is required');
         }
 
         try {
-            const data = await apiCall('/groups/join', {
+            const data = await apiCall<JoinGroupResponse>('/groups/join', {
                 method: 'POST',
                 body: JSON.stringify({ linkId })
             });
@@ -296,16 +316,16 @@ class ApiService {
 export const apiService = new ApiService();
 
 // Generic API call function for expense and group services
-export async function apiCall(endpoint, options = {}) {
-    const baseUrl = await apiService._getBaseUrl();
+export async function apiCall<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const baseUrl = await apiService['_getBaseUrl']();
     const url = `${baseUrl}${endpoint}`;
     
-    const defaultHeaders = {
+    const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json'
     };
     
     // Add auth headers if we have a token
-    const token = apiService._getAuthToken();
+    const token = apiService['_getAuthToken']();
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
@@ -331,4 +351,3 @@ export async function apiCall(endpoint, options = {}) {
     
     return response.json();
 }
-

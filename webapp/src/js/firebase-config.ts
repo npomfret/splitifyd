@@ -1,15 +1,37 @@
 import { logger } from './utils/logger.js';
+import type { 
+    FirebaseConfig, 
+    FirebaseApp, 
+    FirebaseAuth, 
+    FirebaseUser,
+    FirebaseError,
+    FirebaseConfigManagerConfig 
+} from './types/global.js';
+
+// Firebase SDK module types
+interface FirebaseAppModule {
+    initializeApp(config: FirebaseConfig): FirebaseApp;
+}
+
+interface FirebaseAuthModule {
+    getAuth(app: FirebaseApp): FirebaseAuth;
+    connectAuthEmulator(auth: FirebaseAuth, url: string, options?: { disableWarnings?: boolean }): void;
+    signInWithEmailAndPassword(auth: FirebaseAuth, email: string, password: string): Promise<any>;
+    createUserWithEmailAndPassword(auth: FirebaseAuth, email: string, password: string): Promise<any>;
+    signOut(auth: FirebaseAuth): Promise<void>;
+    onAuthStateChanged(auth: FirebaseAuth, callback: (user: FirebaseUser | null) => void): () => void;
+    updateProfile(user: FirebaseUser, profile: { displayName?: string; photoURL?: string }): Promise<void>;
+    sendPasswordResetEmail(auth: FirebaseAuth, email: string): Promise<void>;
+}
 
 class FirebaseConfigManager {
-    constructor() {
-        this.config = null;
-        this.initialized = false;
-        this.app = null;
-        this.auth = null;
-        this.emulatorConnected = false;
-    }
+    private config: FirebaseConfigManagerConfig | null = null;
+    private initialized: boolean = false;
+    private app: FirebaseApp | null = null;
+    private auth: FirebaseAuth | null = null;
+    private emulatorConnected: boolean = false;
 
-    async initialize() {
+    async initialize(): Promise<FirebaseConfigManagerConfig | null> {
         if (this.initialized) {
             return this.config;
         }
@@ -17,7 +39,10 @@ class FirebaseConfigManager {
         try {
             const firebaseConfig = await this.fetchFirebaseConfig();
             
+            // @ts-ignore - Dynamic import from CDN
             const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            // @ts-ignore - Dynamic import from CDN
+            const firebaseAuthModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
             const { 
                 getAuth, 
                 connectAuthEmulator,
@@ -27,7 +52,7 @@ class FirebaseConfigManager {
                 onAuthStateChanged,
                 updateProfile,
                 sendPasswordResetEmail
-            } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+            } = firebaseAuthModule;
             
             this.app = initializeApp(firebaseConfig);
             this.auth = getAuth(this.app);
@@ -38,7 +63,8 @@ class FirebaseConfigManager {
                     connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
                     this.emulatorConnected = true;
                 } catch (error) {
-                    if (error.code === 'auth/emulator-config-failed') {
+                    const firebaseError = error as FirebaseError;
+                    if (firebaseError.code === 'auth/emulator-config-failed') {
                         logger.log('Auth emulator already connected, skipping');
                         this.emulatorConnected = true;
                     } else {
@@ -48,15 +74,15 @@ class FirebaseConfigManager {
             }
             
             window.firebaseAuth = {
-                signInWithEmailAndPassword: (email, password) => 
-                    signInWithEmailAndPassword(this.auth, email, password),
-                createUserWithEmailAndPassword: (email, password) => 
-                    createUserWithEmailAndPassword(this.auth, email, password),
-                updateProfile: (user, profile) => updateProfile(user, profile),
-                signOut: () => signOut(this.auth),
-                onAuthStateChanged: (callback) => onAuthStateChanged(this.auth, callback),
-                getCurrentUser: () => this.auth.currentUser,
-                sendPasswordResetEmail: (email) => sendPasswordResetEmail(this.auth, email)
+                signInWithEmailAndPassword: (email: string, password: string) => 
+                    signInWithEmailAndPassword(this.auth!, email, password),
+                createUserWithEmailAndPassword: (email: string, password: string) => 
+                    createUserWithEmailAndPassword(this.auth!, email, password),
+                updateProfile: (user: any, profile: { displayName: string }) => updateProfile(user, profile),
+                signOut: () => signOut(this.auth!),
+                onAuthStateChanged: (callback: (user: any) => void) => onAuthStateChanged(this.auth!, callback),
+                getCurrentUser: () => this.auth!.currentUser,
+                sendPasswordResetEmail: (email: string) => sendPasswordResetEmail(this.auth!, email)
             };
             
             this.initialized = true;
@@ -66,11 +92,11 @@ class FirebaseConfigManager {
             
         } catch (error) {
             logger.error('Failed to initialize Firebase:', error);
-            throw new Error(`Firebase initialization failed: ${error.message}`);
+            throw new Error(`Firebase initialization failed: ${(error as Error).message}`);
         }
     }
 
-    async fetchFirebaseConfig() {
+    private async fetchFirebaseConfig(): Promise<FirebaseConfig> {
         const configUrl = this.getConfigUrl();
         logger.log('Fetching Firebase configuration from:', configUrl);
         
@@ -82,7 +108,7 @@ class FirebaseConfigManager {
                 throw new Error(errorData.error.message);
             }
             
-            const firebaseConfig = await response.json();
+            const firebaseConfig = await response.json() as FirebaseConfig & { formDefaults?: any; warningBanner?: string };
             logger.log('Firebase configuration loaded:', { projectId: firebaseConfig.projectId });
             
             this.config = {
@@ -96,16 +122,16 @@ class FirebaseConfigManager {
             return firebaseConfig;
             
         } catch (error) {
-            throw new Error(`Firebase configuration fetch failed: ${error.message}. Ensure Firebase emulator is running at ${configUrl}`);
+            throw new Error(`Firebase configuration fetch failed: ${(error as Error).message}. Ensure Firebase emulator is running at ${configUrl}`);
         }
     }
 
-    isLocalEnvironment() {
+    private isLocalEnvironment(): boolean {
         const hostname = window.location.hostname;
         return hostname === 'localhost' || hostname === '127.0.0.1';
     }
 
-    getConfigUrl() {
+    private getConfigUrl(): string {
         const localHost = window.location.hostname;
         const LOCAL_FUNCTIONS_PORT = 5001;
         
@@ -118,7 +144,7 @@ class FirebaseConfigManager {
         return `${protocol}//${host}/api/config`;
     }
 
-    getApiUrlForProject(projectId = 'splitifyd') {
+    private getApiUrlForProject(projectId: string = 'splitifyd'): string {
         const localHost = window.location.hostname;
         const LOCAL_FUNCTIONS_PORT = 5001;
         
@@ -131,32 +157,32 @@ class FirebaseConfigManager {
         return `${protocol}//${host}/api`;
     }
 
-    getConfig() {
+    getConfig(): FirebaseConfigManagerConfig {
         if (!this.config) {
             throw new Error('Firebase not initialized. Call initialize() first.');
         }
         return this.config;
     }
 
-    getApiUrl() {
+    getApiUrl(): string {
         return this.getConfig().apiUrl;
     }
 
-    isInitialized() {
+    isInitialized(): boolean {
         return this.initialized;
     }
 
-    getFormDefaults() {
-        return this.config.formDefaults;
+    getFormDefaults(): any {
+        return this.config?.formDefaults;
     }
 
-    getWarningBanner() {
-        return this.config.warningBanner;
+    getWarningBanner(): string | undefined {
+        return this.config?.warningBanner;
     }
 }
 
 export const firebaseConfigManager = new FirebaseConfigManager();
 
-firebaseConfigManager.initialize().catch(error => {
+firebaseConfigManager.initialize().catch((error: Error) => {
     logger.error('Failed to initialize Firebase on startup:', error);
 });

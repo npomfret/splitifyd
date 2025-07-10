@@ -1,11 +1,20 @@
 import { logger } from './utils/logger.js';
 import { config } from './config.js';
 import { firebaseConfigManager } from './firebase-config.js';
+import type { FirebaseUser, FirebaseError } from './types/global.js';
+import type { 
+    LoginCredentials, 
+    RegistrationData, 
+    ValidatorMap, 
+    EventListenerInfo,
+    UserCredential,
+    DebouncedFunction 
+} from './types/auth.js';
 
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
 
-const validateInput = {
-    email: (value) => {
+const validateInput: ValidatorMap = {
+    email: (value: string): string => {
         if (!value) throw new Error('Email is required');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
             throw new Error('Invalid email format');
@@ -13,7 +22,7 @@ const validateInput = {
         return value.toLowerCase().trim();
     },
     
-    password: (value) => {
+    password: (value: string): string => {
         if (!value) throw new Error('Password is required');
         if (value.length < 8) throw new Error('Password must be at least 8 characters');
         if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])/.test(value)) {
@@ -22,7 +31,7 @@ const validateInput = {
         return value;
     },
     
-    displayName: (value) => {
+    displayName: (value: string): string => {
         if (!value) throw new Error('Display name is required');
         const trimmed = value.trim();
         if (trimmed.length < 2) throw new Error('Display name must be at least 2 characters');
@@ -31,38 +40,38 @@ const validateInput = {
     }
 };
 
-const debounce = (fn, delay) => {
-    let timeoutId;
-    return (...args) => {
+const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number): DebouncedFunction<T> => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return (...args: Parameters<T>) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => fn.apply(null, args), delay);
     };
 };
 
 class AuthManager {
-    #token = null;
-    #eventListeners = new Map();
+    private token: string | null = null;
+    private eventListeners: Map<Element, EventListenerInfo[]> = new Map();
 
     constructor() {
-        this.#token = localStorage.getItem(AUTH_TOKEN_KEY);
-        this.#initializeAsync();
+        this.token = localStorage.getItem(AUTH_TOKEN_KEY);
+        this.initializeAsync();
     }
 
-    async #initializeAsync() {
+    private async initializeAsync(): Promise<void> {
         try {
             // Ensure Firebase is initialized before setting up event listeners
             await config.getConfig();
-            this.#initializeEventListeners();
+            this.initializeEventListeners();
         } catch (error) {
             logger.error('Failed to initialize AuthManager:', error);
         }
     }
 
-    #initializeEventListeners() {
+    private initializeEventListeners(): void {
         const elements = {
-            loginForm: document.getElementById('loginForm'),
-            registerForm: document.getElementById('registerForm'),
-            resetForm: document.getElementById('resetForm'),
+            loginForm: document.getElementById('loginForm') as HTMLFormElement,
+            registerForm: document.getElementById('registerForm') as HTMLFormElement,
+            resetForm: document.getElementById('resetForm') as HTMLFormElement,
             forgotPassword: document.getElementById('forgotPassword'),
             signUpLink: document.getElementById('signUpLink'),
             signInLink: document.getElementById('signInLink'),
@@ -70,60 +79,60 @@ class AuthManager {
         };
 
         if (elements.loginForm) {
-            this.#addEventListenerWithCleanup(elements.loginForm, 'submit', this.#handleLogin.bind(this));
-            this.#setupFormValidation(elements.loginForm);
-            this.#setDevelopmentDefaults(elements.loginForm);
+            this.addEventListenerWithCleanup(elements.loginForm, 'submit', this.handleLogin.bind(this));
+            this.setupFormValidation(elements.loginForm);
+            this.setDevelopmentDefaults(elements.loginForm);
         }
 
         if (elements.registerForm) {
-            this.#addEventListenerWithCleanup(elements.registerForm, 'submit', this.#handleRegister.bind(this));
-            this.#setupFormValidation(elements.registerForm);
-            this.#setDevelopmentDefaults(elements.registerForm);
+            this.addEventListenerWithCleanup(elements.registerForm, 'submit', this.handleRegister.bind(this));
+            this.setupFormValidation(elements.registerForm);
+            this.setDevelopmentDefaults(elements.registerForm);
         }
 
         if (elements.resetForm) {
-            this.#addEventListenerWithCleanup(elements.resetForm, 'submit', this.#handlePasswordReset.bind(this));
-            this.#setupFormValidation(elements.resetForm);
+            this.addEventListenerWithCleanup(elements.resetForm, 'submit', this.handlePasswordReset.bind(this));
+            this.setupFormValidation(elements.resetForm);
         }
 
         if (elements.forgotPassword) {
-            this.#addEventListenerWithCleanup(elements.forgotPassword, 'click', this.#handleForgotPassword.bind(this));
+            this.addEventListenerWithCleanup(elements.forgotPassword, 'click', this.handleForgotPassword.bind(this));
         }
 
         if (elements.signUpLink) {
-            this.#addEventListenerWithCleanup(elements.signUpLink, 'click', this.#handleSignUp.bind(this));
+            this.addEventListenerWithCleanup(elements.signUpLink, 'click', this.handleSignUp.bind(this));
         }
 
         if (elements.signInLink) {
-            this.#addEventListenerWithCleanup(elements.signInLink, 'click', this.#handleSignIn.bind(this));
+            this.addEventListenerWithCleanup(elements.signInLink, 'click', this.handleSignIn.bind(this));
         }
         
         if (elements.logoutButton) {
-            this.#addEventListenerWithCleanup(elements.logoutButton, 'click', this.#handleLogout.bind(this));
+            this.addEventListenerWithCleanup(elements.logoutButton, 'click', this.handleLogout.bind(this));
         }
     }
 
-    #addEventListenerWithCleanup(element, event, handler) {
+    private addEventListenerWithCleanup(element: Element, event: string, handler: EventListener): void {
         element.addEventListener(event, handler);
         
-        if (!this.#eventListeners.has(element)) {
-            this.#eventListeners.set(element, []);
+        if (!this.eventListeners.has(element)) {
+            this.eventListeners.set(element, []);
         }
-        this.#eventListeners.get(element).push({ event, handler });
+        this.eventListeners.get(element)!.push({ event, handler });
     }
 
-    #setupFormValidation(form) {
-        const inputs = form.querySelectorAll('.form-input');
+    private setupFormValidation(form: HTMLFormElement): void {
+        const inputs = form.querySelectorAll<HTMLInputElement>('.form-input');
         
         inputs.forEach(input => {
-            const debouncedValidation = debounce(() => this.#validateField(input), 300);
+            const debouncedValidation = debounce(() => this.validateField(input), 300);
             
-            this.#addEventListenerWithCleanup(input, 'blur', () => this.#validateField(input));
-            this.#addEventListenerWithCleanup(input, 'input', debouncedValidation);
+            this.addEventListenerWithCleanup(input, 'blur', () => this.validateField(input));
+            this.addEventListenerWithCleanup(input, 'input', debouncedValidation as EventListener);
         });
     }
 
-    async #setDevelopmentDefaults(form) {
+    private async setDevelopmentDefaults(form: HTMLFormElement): Promise<void> {
         try {
             await config.getConfig();
             const formDefaults = firebaseConfigManager.getFormDefaults();
@@ -132,14 +141,14 @@ class AuthManager {
                 return;
             }
 
-            const registerDefaults = {
+            const registerDefaults: Record<string, string> = {
                 displayName: formDefaults.displayName,
                 email: formDefaults.email,
                 password: formDefaults.password,
                 confirmPassword: formDefaults.password
             };
 
-            const loginDefaults = {
+            const loginDefaults: Record<string, string> = {
                 email: formDefaults.email,
                 password: formDefaults.password
             };
@@ -147,7 +156,7 @@ class AuthManager {
             const defaults = form.id === 'registerForm' ? registerDefaults : loginDefaults;
 
             Object.entries(defaults).forEach(([fieldName, defaultValue]) => {
-                const input = form.querySelector(`[name="${fieldName}"]`);
+                const input = form.querySelector<HTMLInputElement>(`[name="${fieldName}"]`);
                 if (input && !input.value && defaultValue) {
                     input.value = defaultValue;
                 }
@@ -157,7 +166,7 @@ class AuthManager {
         }
     }
 
-    #validateField(input) {
+    private validateField(input: HTMLInputElement): void {
         const errorElement = document.getElementById(`${input.id}-error`);
         if (!errorElement) return;
 
@@ -165,71 +174,71 @@ class AuthManager {
             const { name, value } = input;
             
             if (name === 'confirmPassword') {
-                const passwordInput = document.getElementById('password');
+                const passwordInput = document.getElementById('password') as HTMLInputElement;
                 if (passwordInput && value !== passwordInput.value) {
                     throw new Error('Passwords do not match');
                 }
-            } else if (validateInput[name]) {
-                validateInput[name](value);
+            } else if (name in validateInput) {
+                validateInput[name as keyof ValidatorMap](value);
             }
             
-            this.#clearFieldError(input, errorElement);
+            this.clearFieldError(input, errorElement);
         } catch (error) {
-            this.#showFieldError(input, errorElement, error.message);
+            this.showFieldError(input, errorElement, (error as Error).message);
         }
     }
 
-    #showFieldError(input, errorElement, message) {
+    private showFieldError(input: HTMLInputElement, errorElement: HTMLElement, message: string): void {
         input.classList.add('form-input--error');
         errorElement.textContent = message;
         errorElement.setAttribute('aria-live', 'polite');
     }
 
-    #clearFieldError(input, errorElement) {
+    private clearFieldError(input: HTMLInputElement, errorElement: HTMLElement): void {
         input.classList.remove('form-input--error');
         errorElement.textContent = '';
         errorElement.removeAttribute('aria-live');
     }
 
-    async #handleLogin(event) {
+    private async handleLogin(event: Event): Promise<void> {
         event.preventDefault();
         
-        const formData = new FormData(event.target);
-        const credentials = {
-            email: formData.get('email'),
-            password: formData.get('password')
+        const formData = new FormData(event.target as HTMLFormElement);
+        const credentials: LoginCredentials = {
+            email: formData.get('email') as string,
+            password: formData.get('password') as string
         };
         
-        const button = event.target.querySelector('button[type="submit"]');
+        const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
         try {
-            this.#validateCredentials(credentials);
-            await this.#submitLogin(credentials, button);
+            this.validateCredentials(credentials);
+            await this.submitLogin(credentials, button!);
         } catch (error) {
-            this.#showFormError(event.target, error.message);
+            this.showFormError(event.target as HTMLFormElement, (error as Error).message);
         }
     }
 
-    #validateCredentials(credentials) {
+    private validateCredentials(credentials: LoginCredentials): void {
         validateInput.email(credentials.email);
         validateInput.password(credentials.password);
     }
 
-    async #submitLogin(credentials, button) {
-        const originalText = button.textContent;
+    private async submitLogin(credentials: LoginCredentials, button: HTMLButtonElement): Promise<void> {
+        const originalText = button.textContent || '';
         
         try {
-            this.#setButtonLoading(button, 'Signing in...');
+            this.setButtonLoading(button, 'Signing in...');
             
             // Use Firebase Auth directly for login
             if (!window.firebaseAuth) {
                 throw new Error('Firebase not initialized');
             }
-            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(credentials.email, credentials.password);
+            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(credentials.email, credentials.password) as UserCredential;
             
             // Get ID token for API authentication
             const idToken = await userCredential.user.getIdToken();
-            this.#setToken(idToken);
+            this.setToken(idToken);
             
             // Store user ID for client-side operations
             localStorage.setItem('userId', userCredential.user.uid);
@@ -237,44 +246,45 @@ class AuthManager {
             window.location.href = 'dashboard.html';
             
         } catch (error) {
+            const firebaseError = error as FirebaseError;
             let errorMessage = 'Login failed';
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+            if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
                 errorMessage = 'Invalid email or password';
-            } else if (error.code === 'auth/invalid-email') {
+            } else if (firebaseError.code === 'auth/invalid-email') {
                 errorMessage = 'Invalid email format';
-            } else if (error.code === 'auth/user-disabled') {
+            } else if (firebaseError.code === 'auth/user-disabled') {
                 errorMessage = 'Account has been disabled';
-            } else if (error.code === 'auth/too-many-requests') {
+            } else if (firebaseError.code === 'auth/too-many-requests') {
                 errorMessage = 'Too many failed attempts. Try again later';
             }
             throw new Error(errorMessage);
         } finally {
-            this.#resetButton(button, originalText);
+            this.resetButton(button, originalText);
         }
     }
 
-    async #handleRegister(event) {
+    private async handleRegister(event: Event): Promise<void> {
         event.preventDefault();
         
-        const formData = new FormData(event.target);
-        const userData = {
-            displayName: formData.get('displayName'),
-            email: formData.get('email'),
-            password: formData.get('password'),
-            confirmPassword: formData.get('confirmPassword')
+        const formData = new FormData(event.target as HTMLFormElement);
+        const userData: RegistrationData = {
+            displayName: formData.get('displayName') as string,
+            email: formData.get('email') as string,
+            password: formData.get('password') as string,
+            confirmPassword: formData.get('confirmPassword') as string
         };
         
-        const button = event.target.querySelector('button[type="submit"]');
+        const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
         try {
-            this.#validateRegistrationData(userData);
-            await this.#submitRegistration(userData, button);
+            this.validateRegistrationData(userData);
+            await this.submitRegistration(userData, button!);
         } catch (error) {
-            this.#showFormError(event.target, error.message);
+            this.showFormError(event.target as HTMLFormElement, (error as Error).message);
         }
     }
 
-    #validateRegistrationData(userData) {
+    private validateRegistrationData(userData: RegistrationData): void {
         validateInput.displayName(userData.displayName);
         validateInput.email(userData.email);
         validateInput.password(userData.password);
@@ -284,17 +294,17 @@ class AuthManager {
         }
     }
 
-    async #submitRegistration(userData, button) {
-        const originalText = button.textContent;
+    private async submitRegistration(userData: RegistrationData, button: HTMLButtonElement): Promise<void> {
+        const originalText = button.textContent || '';
         
         try {
-            this.#setButtonLoading(button, 'Creating Account...');
+            this.setButtonLoading(button, 'Creating Account...');
 
             // Use Firebase Auth directly for registration
             if (!window.firebaseAuth) {
                 throw new Error('Firebase not initialized');
             }
-            const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password);
+            const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password) as UserCredential;
             
             // Update display name using Firebase Auth updateProfile
             await window.firebaseAuth.updateProfile(userCredential.user, {
@@ -303,7 +313,7 @@ class AuthManager {
             
             // Get ID token for API authentication
             const idToken = await userCredential.user.getIdToken();
-            this.#setToken(idToken);
+            this.setToken(idToken);
             
             // Store user ID for client-side operations
             localStorage.setItem('userId', userCredential.user.uid);
@@ -314,32 +324,33 @@ class AuthManager {
             window.location.href = 'dashboard.html';
             
         } catch (error) {
+            const firebaseError = error as FirebaseError;
             logger.error('Registration error:', error);
             let errorMessage = 'Registration failed';
-            if (error.code === 'auth/email-already-in-use') {
+            if (firebaseError.code === 'auth/email-already-in-use') {
                 errorMessage = 'An account with this email already exists';
-            } else if (error.code === 'auth/invalid-email') {
+            } else if (firebaseError.code === 'auth/invalid-email') {
                 errorMessage = 'Invalid email format';
-            } else if (error.code === 'auth/weak-password') {
+            } else if (firebaseError.code === 'auth/weak-password') {
                 errorMessage = 'Password is too weak';
-            } else if (error.code === 'auth/operation-not-allowed') {
+            } else if (firebaseError.code === 'auth/operation-not-allowed') {
                 errorMessage = 'Registration is currently disabled';
             } else {
-                errorMessage = `Registration failed: ${error.message}`;
+                errorMessage = `Registration failed: ${firebaseError.message}`;
             }
             throw new Error(errorMessage);
         } finally {
-            this.#resetButton(button, originalText);
+            this.resetButton(button, originalText);
         }
     }
 
-    async #makeRequest(endpoint, data) {
+    private async makeRequest(endpoint: string, data: any): Promise<Response> {
         const apiUrl = await config.getApiUrl();
         const response = await fetch(`${apiUrl}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...(this.#token && { 'Authorization': `Bearer ${this.#token}` })
+                ...(this.token && { 'Authorization': `Bearer ${this.token}` })
             },
             body: JSON.stringify(data),
         });
@@ -352,72 +363,78 @@ class AuthManager {
         return response;
     }
 
-    #setButtonLoading(button, text) {
+    private setButtonLoading(button: HTMLButtonElement, text: string): void {
         button.textContent = text;
         button.disabled = true;
         button.setAttribute('aria-busy', 'true');
     }
 
-    #resetButton(button, originalText) {
+    private resetButton(button: HTMLButtonElement, originalText: string): void {
         button.textContent = originalText;
         button.disabled = false;
         button.removeAttribute('aria-busy');
     }
 
-    #showFormError(form, message) {
-        let errorContainer = form.querySelector('.form-error--general');
+    private showFormError(form: HTMLFormElement, message: string): void {
+        let errorContainer = form.querySelector<HTMLDivElement>('.form-error--general');
         
         if (!errorContainer) {
             errorContainer = document.createElement('div');
             errorContainer.className = 'form-error form-error--general';
             errorContainer.setAttribute('role', 'alert');
-            form.insertBefore(errorContainer, form.querySelector('button'));
+            const submitButton = form.querySelector('button');
+            if (submitButton) {
+                form.insertBefore(errorContainer, submitButton);
+            }
         }
         
         errorContainer.textContent = message;
         errorContainer.setAttribute('aria-live', 'assertive');
     }
 
-    #showSuccessMessage(form, message) {
-        let successContainer = form.querySelector('.form-success--general');
+    private showSuccessMessage(form: HTMLFormElement, message: string): void {
+        let successContainer = form.querySelector<HTMLDivElement>('.form-success--general');
         
         if (!successContainer) {
             successContainer = document.createElement('div');
             successContainer.className = 'form-success form-success--general';
             successContainer.setAttribute('role', 'alert');
-            form.insertBefore(successContainer, form.querySelector('button'));
+            const submitButton = form.querySelector('button');
+            if (submitButton) {
+                form.insertBefore(successContainer, submitButton);
+            }
         }
         
         successContainer.textContent = message;
         successContainer.setAttribute('aria-live', 'polite');
     }
 
-    #handleForgotPassword(event) {
+    private handleForgotPassword(event: Event): void {
         event.preventDefault();
         window.location.href = 'reset-password.html';
     }
 
-    async #handlePasswordReset(event) {
+    private async handlePasswordReset(event: Event): Promise<void> {
         event.preventDefault();
         
-        const formData = new FormData(event.target);
-        const email = formData.get('email');
+        const formData = new FormData(event.target as HTMLFormElement);
+        const email = formData.get('email') as string;
         
-        const button = event.target.querySelector('button[type="submit"]');
+        const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
         try {
             validateInput.email(email);
-            await this.#submitPasswordReset(email, button);
+            await this.submitPasswordReset(email, button!);
         } catch (error) {
-            this.#showFormError(event.target, error.message);
+            this.showFormError(event.target as HTMLFormElement, (error as Error).message);
         }
     }
 
-    async #submitPasswordReset(email, button) {
-        const originalText = button.textContent;
+    private async submitPasswordReset(email: string, button: HTMLButtonElement): Promise<void> {
+        const originalText = button.textContent || '';
         
         try {
-            this.#setButtonLoading(button, 'Sending...');
+            this.setButtonLoading(button, 'Sending...');
             
             if (!window.firebaseAuth) {
                 throw new Error('Firebase not initialized');
@@ -425,71 +442,72 @@ class AuthManager {
             
             await window.firebaseAuth.sendPasswordResetEmail(email);
             
-            this.#showSuccessMessage(button.closest('form'), 'Password reset email sent! Check your inbox.');
+            this.showSuccessMessage(button.closest('form')!, 'Password reset email sent! Check your inbox.');
             
         } catch (error) {
+            const firebaseError = error as FirebaseError;
             let errorMessage = 'Failed to send reset email';
-            if (error.code === 'auth/user-not-found') {
+            if (firebaseError.code === 'auth/user-not-found') {
                 errorMessage = 'No account found with this email address';
-            } else if (error.code === 'auth/invalid-email') {
+            } else if (firebaseError.code === 'auth/invalid-email') {
                 errorMessage = 'Invalid email format';
-            } else if (error.code === 'auth/too-many-requests') {
+            } else if (firebaseError.code === 'auth/too-many-requests') {
                 errorMessage = 'Too many requests. Please try again later';
             }
             throw new Error(errorMessage);
         } finally {
-            this.#resetButton(button, originalText);
+            this.resetButton(button, originalText);
         }
     }
 
-    #handleSignUp(event) {
+    private handleSignUp(event: Event): void {
         event.preventDefault();
         window.location.href = 'register.html';
     }
 
-    #handleSignIn(event) {
+    private handleSignIn(event: Event): void {
         event.preventDefault();
         window.location.href = 'index.html';
     }
     
-    #handleLogout(event) {
+    private handleLogout(event: Event): void {
         event.preventDefault();
         this.logout();
     }
 
-    #setToken(token) {
+    private setToken(token: string): void {
         if (!token) throw new Error('Invalid token provided');
         
-        this.#token = token;
+        this.token = token;
         localStorage.setItem(AUTH_TOKEN_KEY, token);
     }
 
-    getToken() {
-        return this.#token;
+    getToken(): string | null {
+        return this.token;
     }
 
-    clearToken() {
-        this.#token = null;
+    clearToken(): void {
+        this.token = null;
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem('userId');
     }
 
-    isAuthenticated() {
-        return !!this.#token;
+    isAuthenticated(): boolean {
+        return !!this.token;
     }
 
-    logout() {
+    logout(): void {
         this.clearToken();
         window.location.href = 'index.html';
     }
 
-    destroy() {
-        this.#eventListeners.forEach((listeners, element) => {
+    destroy(): void {
+        this.eventListeners.forEach((listeners, element) => {
             listeners.forEach(({ event, handler }) => {
                 element.removeEventListener(event, handler);
             });
         });
-        this.#eventListeners.clear();
+        this.eventListeners.clear();
     }
 }
 
