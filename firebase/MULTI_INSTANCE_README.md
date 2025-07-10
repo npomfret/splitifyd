@@ -42,7 +42,7 @@ npm run dev:with-data
 - Hosting: http://localhost:6002
 
 ### Instance 3
-- UI: http://localhost:7000
+- UI: http://localhost:7100
 - Auth: 9299
 - Functions: 7001
 - Firestore: 8280

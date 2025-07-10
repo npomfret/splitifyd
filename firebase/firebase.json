@@ -70,7 +70,7 @@
     },
     "ui": {
       "enabled": true,
-      "port": 7000
+      "port": 7100
     },
     "singleProjectMode": true
   }
