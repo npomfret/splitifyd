@@ -1,11 +1,26 @@
 #!/usr/bin/env node
 
 const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
-// Get emulator ports from environment or use defaults
-const FUNCTIONS_PORT = process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001';
-const FIRESTORE_PORT = process.env.FIREBASE_FIRESTORE_EMULATOR_PORT || '8080';
-const AUTH_PORT = process.env.FIREBASE_AUTH_EMULATOR_PORT || '9099';
+// Read ports from generated firebase.json
+const firebaseConfigPath = path.join(__dirname, '../../firebase.json');
+
+if (!fs.existsSync(firebaseConfigPath)) {
+  console.error('❌ firebase.json not found. Run the build process first to generate it.');
+  process.exit(1);
+}
+
+const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port;
+const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
+const AUTH_PORT = firebaseConfig.emulators.auth.port;
+
+if (!FUNCTIONS_PORT || !FIRESTORE_PORT || !AUTH_PORT) {
+  console.error('❌ Invalid firebase.json configuration - missing emulator ports');
+  process.exit(1);
+}
 
 // API base URL
 const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/splitifyd/us-central1/api`;
@@ -84,7 +99,7 @@ async function apiRequest(endpoint, method = 'POST', body = null, token = null) 
 
 async function exchangeCustomTokenForIdToken(customToken) {
   const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
-  const url = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`;
+  const url = `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`;
   
   try {
     const response = await fetch(url, {
@@ -123,7 +138,7 @@ async function createTestUser(userInfo) {
     // Use Firebase Auth REST API to sign in
     const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
     const signInResponse = await fetch(
-      `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+      `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +170,7 @@ async function createTestUser(userInfo) {
       // Use Firebase Auth REST API to sign in
       const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
       const signInResponse = await fetch(
-        `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+        `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

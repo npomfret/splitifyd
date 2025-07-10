@@ -4,86 +4,41 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../functions/.env') });
 
-const firebaseConfigTemplate = {
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
-    }
-  ],
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "headers": [
-      {
-        "source": "**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate, private, max-age=0"
-          },
-          {
-            "key": "Pragma",
-            "value": "no-cache"
-          },
-          {
-            "key": "Expires",
-            "value": "0"
-          },
-          {
-            "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://firebase.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://ws-mt1.pusher.com http://localhost:* http://127.0.0.1:*; frame-src 'self' https://splitifyd.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self';"
-          }
-        ]
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "/api/**",
-        "function": "api"
-      }
-    ]
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "emulators": {
-    "auth": {
-      "port": parseInt(process.env.FIREBASE_AUTH_EMULATOR_PORT || '9099')
-    },
-    "functions": {
-      "port": parseInt(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001')
-    },
-    "firestore": {
-      "port": parseInt(process.env.FIREBASE_FIRESTORE_EMULATOR_PORT || '8080')
-    },
-    "hosting": {
-      "port": parseInt(process.env.FIREBASE_HOSTING_EMULATOR_PORT || '5002')
-    },
-    "ui": {
-      "enabled": true,
-      "port": parseInt(process.env.FIREBASE_EMULATOR_UI_PORT || '4000')
-    },
-    "singleProjectMode": true
-  }
-};
-
+// Read template and substitute environment variables
+const templatePath = path.join(__dirname, '../firebase.template.json');
 const configPath = path.join(__dirname, '../firebase.json');
-const configContent = JSON.stringify(firebaseConfigTemplate, null, 2);
+
+if (!fs.existsSync(templatePath)) {
+  console.error('❌ firebase.template.json not found');
+  process.exit(1);
+}
+
+let configContent = fs.readFileSync(templatePath, 'utf8');
+
+// Required environment variables
+const requiredVars = [
+  'FIREBASE_AUTH_EMULATOR_PORT',
+  'FIREBASE_FUNCTIONS_EMULATOR_PORT', 
+  'FIREBASE_FIRESTORE_EMULATOR_PORT',
+  'FIREBASE_HOSTING_EMULATOR_PORT',
+  'FIREBASE_EMULATOR_UI_PORT'
+];
+
+// Check all required variables are set
+const missingVars = requiredVars.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+  console.error('❌ Missing required environment variables:');
+  missingVars.forEach(varName => console.error(`  - ${varName}`));
+  console.error('Ensure .env file is properly configured.');
+  process.exit(1);
+}
+
+// Substitute placeholders with actual values
+requiredVars.forEach(varName => {
+  const placeholder = `{{${varName}}}`;
+  const value = parseInt(process.env[varName]);
+  configContent = configContent.replace(new RegExp(placeholder, 'g'), value);
+});
 
 fs.writeFileSync(configPath, configContent);
 

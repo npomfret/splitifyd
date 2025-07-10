@@ -57,20 +57,20 @@
   },
   "emulators": {
     "auth": {
-      "port": 9199
+      "port": "{{FIREBASE_AUTH_EMULATOR_PORT}}"
     },
     "functions": {
-      "port": 6001
+      "port": "{{FIREBASE_FUNCTIONS_EMULATOR_PORT}}"
     },
     "firestore": {
-      "port": 8480
+      "port": "{{FIREBASE_FIRESTORE_EMULATOR_PORT}}"
     },
     "hosting": {
-      "port": 6002
+      "port": "{{FIREBASE_HOSTING_EMULATOR_PORT}}"
     },
     "ui": {
       "enabled": true,
-      "port": 6100
+      "port": "{{FIREBASE_EMULATOR_UI_PORT}}"
     },
     "singleProjectMode": true
   }
