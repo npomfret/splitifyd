@@ -120,7 +120,7 @@ export function validateInput(input: string | undefined | null, options: Validat
     return { valid: false, error: `Minimum length is ${minLength} characters` };
   }
   
-  if (!isSafeString(input, maxLength)) {
+  if (input && !isSafeString(input, maxLength)) {
     return { valid: false, error: 'Invalid characters detected' };
   }
   
