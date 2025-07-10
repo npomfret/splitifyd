@@ -1,7 +1,12 @@
-import { authManager } from '../auth.js';
+import { authManager } from '../auth';
+import { HeaderConfig } from '../types/components';
+
+interface ExtendedHeaderConfig extends Partial<HeaderConfig> {
+  titleLink?: string;
+}
 
 export class HeaderComponent {
-  static render(config = {}) {
+  static render(config: ExtendedHeaderConfig = {}): string {
     const { 
       title = 'Dashboard',
       showLogout = true,
@@ -25,8 +30,8 @@ export class HeaderComponent {
     `;
   }
 
-  static attachEventListeners() {
-    const logoutBtn = document.getElementById('logoutBtn');
+  static attachEventListeners(): void {
+    const logoutBtn = document.getElementById('logoutBtn') as HTMLButtonElement | null;
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
         authManager.logout();

@@ -1,13 +1,25 @@
 import { createElementSafe } from '../utils/safe-dom.js';
+import { ModalConfig, ModalConfirmConfig } from '../types/components';
+
+interface ExtendedModalConfig extends Partial<ModalConfig> {
+  body?: string | Node;
+  footer?: string | Node;
+  size?: 'small' | 'medium' | 'large';
+  closeButton?: boolean;
+}
+
+interface InternalModalConfirmConfig extends ModalConfirmConfig {
+  confirmClass?: string;
+}
 
 export class ModalComponent {
-  static activeModals = new Map();
+  static activeModals = new Map<string, HTMLElement>();
 
-  static render(config) {
+  static render(config: ExtendedModalConfig): string {
     const {
       id,
       title,
-      body,
+      body = '',
       footer,
       size = 'medium',
       closeButton = true
@@ -72,8 +84,8 @@ export class ModalComponent {
     return modalOverlay.outerHTML;
   }
 
-  static show(modalId) {
-    const modal = document.getElementById(modalId);
+  static show(modalId: string): void {
+    const modal = document.getElementById(modalId) as HTMLElement | null;
     if (modal) {
       modal.classList.remove('hidden');
       modal.classList.add('visible-flex');
@@ -83,8 +95,8 @@ export class ModalComponent {
     }
   }
 
-  static hide(modalId) {
-    const modal = document.getElementById(modalId);
+  static hide(modalId: string): void {
+    const modal = document.getElementById(modalId) as HTMLElement | null;
     if (modal) {
       modal.classList.add('hidden');
       modal.classList.remove('visible-flex');
@@ -95,23 +107,23 @@ export class ModalComponent {
     }
   }
 
-  static attachCloseHandlers(modalId) {
-    const modal = document.getElementById(modalId);
+  static attachCloseHandlers(modalId: string): void {
+    const modal = document.getElementById(modalId) as HTMLElement | null;
     if (!modal) return;
 
-    const closeBtn = modal.querySelector(`[data-modal-close="${modalId}"]`);
+    const closeBtn = modal.querySelector(`[data-modal-close="${modalId}"]`) as HTMLButtonElement | null;
     if (closeBtn) {
       closeBtn.onclick = () => this.hide(modalId);
     }
 
-    modal.onclick = (e) => {
+    modal.onclick = (e: MouseEvent) => {
       if (e.target === modal) {
         this.hide(modalId);
       }
     };
   }
 
-  static confirm(config) {
+  static confirm(config: InternalModalConfirmConfig): void {
     const {
       title = 'Confirm',
       message = 'Are you sure?',
@@ -150,20 +162,29 @@ export class ModalComponent {
 
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = modalHtml;
-    document.body.appendChild(tempDiv.firstElementChild);
+    const modalElement = tempDiv.firstElementChild as HTMLElement;
+    document.body.appendChild(modalElement);
 
     this.show(modalId);
 
-    document.getElementById(`${modalId}_confirm`).onclick = () => {
-      this.hide(modalId);
-      document.getElementById(modalId).remove();
-      if (onConfirm) onConfirm();
-    };
+    const confirmBtn = document.getElementById(`${modalId}_confirm`) as HTMLButtonElement;
+    const cancelBtn = document.getElementById(`${modalId}_cancel`) as HTMLButtonElement;
+    const modalEl = document.getElementById(modalId) as HTMLElement;
 
-    document.getElementById(`${modalId}_cancel`).onclick = () => {
-      this.hide(modalId);
-      document.getElementById(modalId).remove();
-      if (onCancel) onCancel();
-    };
+    if (confirmBtn) {
+      confirmBtn.onclick = () => {
+        this.hide(modalId);
+        if (modalEl) modalEl.remove();
+        if (onConfirm) onConfirm();
+      };
+    }
+
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        this.hide(modalId);
+        if (modalEl) modalEl.remove();
+        if (onCancel) onCancel();
+      };
+    }
   }
 }
