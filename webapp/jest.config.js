@@ -1,9 +1,10 @@
 module.exports = {
-  testMatch: ['<rootDir>/src/js/**/*.test.js'],
+  testMatch: ['<rootDir>/src/js/**/*.test.ts', '<rootDir>/src/js/**/*.test.js'],
   transform: {
+    '^.+\.ts$': 'ts-jest',
     '^.+\.js$': 'babel-jest',
   },
-  moduleFileExtensions: ['js', 'json', 'node'],
+  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   transformIgnorePatterns: [
     '<rootDir>/node_modules/',
   ],

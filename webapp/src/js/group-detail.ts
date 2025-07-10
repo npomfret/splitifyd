@@ -274,6 +274,10 @@ async function loadGroupExpenses(): Promise<void> {
     if (isLoadingExpenses) return;
     
     const expensesList = document.getElementById('expensesList');
+    if (!expensesList) {
+        logger.error('expensesList element not found');
+        return;
+    }
     
     if (expensesOffset === 0) {
         clearElement(expensesList);
@@ -286,6 +290,10 @@ async function loadGroupExpenses(): Promise<void> {
     isLoadingExpenses = true;
     
     try {
+        if (!currentGroupId) {
+            logger.error('currentGroupId is null');
+            return;
+        }
         const response = await apiService.getGroupExpenses(currentGroupId, expensesLimit, expensesOffset);
         const expenses = response.data;
         
@@ -306,22 +314,19 @@ async function loadGroupExpenses(): Promise<void> {
         }
         
         hasMoreExpenses = expenses.length === expensesLimit;
-        document.getElementById('loadMoreContainer').style.display = hasMoreExpenses ? 'block' : 'none';
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        if (loadMoreContainer) {
+            loadMoreContainer.style.display = hasMoreExpenses ? 'block' : 'none';
+        }
         
         expensesOffset += expenses.length;
     } catch (error) {
         logger.error('Error loading expenses:', error);
-        logger.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-            status: error.status,
-            response: error.response
-        });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         clearElement(expensesList);
         const errorMsg = createElementSafe('p', { 
             className: 'error',
-            textContent: `Failed to load expenses: ${error.message || 'Unknown error'}`
+            textContent: `Failed to load expenses: ${errorMessage}`
         });
         expensesList.appendChild(errorMsg);
     } finally {
@@ -339,7 +344,7 @@ function createExpenseItem(expense: ExpenseData): HTMLElement {
     const paidByYou = expense.paidBy === currentUserId;
     const yourSplit = expense.splits ? expense.splits.find(s => s.userId === currentUserId) : null;
     const yourShare = yourSplit ? yourSplit.amount : 0;
-    const payer = currentGroup.members ? currentGroup.members.find(m => m.uid === expense.paidBy) : null;
+    const payer = currentGroup?.members?.find(m => m.uid === expense.paidBy) || null;
     
     const date = new Date(expense.createdAt);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -419,6 +424,10 @@ function loadMoreExpenses(): void {
 
 async function loadGroupActivity(): Promise<void> {
     const activityTimeline = document.getElementById('activityTimeline');
+    if (!activityTimeline) {
+        logger.error('activityTimeline element not found');
+        return;
+    }
     activityTimeline.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
     
     throw new Error('Activity timeline not implemented');
@@ -426,10 +435,35 @@ async function loadGroupActivity(): Promise<void> {
 
 function openGroupSettingsModal(): void {
     const modal = document.getElementById('groupSettingsModal');
-    (document.getElementById('editGroupName') as HTMLInputElement).value = currentGroup!.name;
+    if (!modal) {
+        logger.error('groupSettingsModal element not found');
+        return;
+    }
+    
+    const editGroupNameEl = document.getElementById('editGroupName') as HTMLInputElement;
+    if (!editGroupNameEl) {
+        logger.error('editGroupName element not found');
+        return;
+    }
+    
+    if (!currentGroup) {
+        logger.error('currentGroup is null');
+        return;
+    }
+    
+    editGroupNameEl.value = currentGroup.name;
     
     const membersList = document.getElementById('groupMembersList');
+    if (!membersList) {
+        logger.error('groupMembersList element not found');
+        return;
+    }
     membersList.innerHTML = '';
+    
+    if (!currentGroup) {
+        logger.error('currentGroup is null');
+        return;
+    }
     
     currentGroup.members.forEach(member => {
         const memberItem = document.createElement('div');
@@ -449,7 +483,7 @@ function openGroupSettingsModal(): void {
         
         const removeButton = document.createElement('button');
         removeButton.className = 'button--icon button--danger';
-        removeButton.disabled = member.uid === currentGroup.createdBy;
+        removeButton.disabled = member.uid === currentGroup?.createdBy;
         removeButton.onclick = () => removeMember(member.uid);
         
         const removeIcon = document.createElement('i');
@@ -468,21 +502,55 @@ function openGroupSettingsModal(): void {
 }
 
 function closeGroupSettingsModal(): void {
-    document.getElementById('groupSettingsModal').classList.remove('show');
+    const modal = document.getElementById('groupSettingsModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
 }
 
 function closeInviteMembersModal(): void {
-    document.getElementById('inviteMembersModal').classList.remove('show');
-    (document.getElementById('inviteEmail') as HTMLInputElement).value = '';
-    document.getElementById('inviteError').style.display = 'none';
-    document.getElementById('inviteSuccess').style.display = 'none';
+    const modal = document.getElementById('inviteMembersModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    
+    const inviteEmail = document.getElementById('inviteEmail') as HTMLInputElement;
+    if (inviteEmail) {
+        inviteEmail.value = '';
+    }
+    
+    const inviteError = document.getElementById('inviteError');
+    if (inviteError) {
+        inviteError.style.display = 'none';
+    }
+    
+    const inviteSuccess = document.getElementById('inviteSuccess');
+    if (inviteSuccess) {
+        inviteSuccess.style.display = 'none';
+    }
 }
 
 async function saveGroupSettings(): Promise<void> {
-    const newName = (document.getElementById('editGroupName') as HTMLInputElement).value.trim();
+    const editGroupNameEl = document.getElementById('editGroupName') as HTMLInputElement;
+    if (!editGroupNameEl) {
+        logger.error('editGroupName element not found');
+        return;
+    }
+    
+    const newName = editGroupNameEl.value.trim();
     
     if (!newName) {
         showMessage('Group name cannot be empty', 'error');
+        return;
+    }
+    
+    if (!currentGroupId) {
+        logger.error('currentGroupId is null');
+        return;
+    }
+    
+    if (!currentGroup) {
+        logger.error('currentGroup is null');
         return;
     }
     
@@ -503,6 +571,11 @@ async function deleteGroup(): Promise<void> {
         return;
     }
     
+    if (!currentGroupId) {
+        logger.error('currentGroupId is null');
+        return;
+    }
+    
     try {
         await apiService.deleteGroup(currentGroupId);
         window.location.href = 'dashboard.html';
@@ -516,6 +589,11 @@ async function sendInvite(): Promise<void> {
     const email = (document.getElementById('inviteEmail') as HTMLInputElement).value.trim();
     const errorDiv = document.getElementById('inviteError');
     const successDiv = document.getElementById('inviteSuccess');
+    
+    if (!errorDiv || !successDiv) {
+        logger.error('Invite error/success divs not found');
+        return;
+    }
     
     errorDiv.style.display = 'none';
     successDiv.style.display = 'none';
@@ -531,15 +609,18 @@ async function sendInvite(): Promise<void> {
         // await apiService.inviteToGroup(currentGroupId, email);
         showMessage('Invite functionality not implemented', 'error');
         return;
-        successDiv.textContent = `Invitation sent to ${email}`;
-        successDiv.style.display = 'block';
-        (document.getElementById('inviteEmail') as HTMLInputElement).value = '';
-        setTimeout(() => {
-            closeInviteMembersModal();
-        }, 2000);
+        
+        // TODO: Uncomment when API is available
+        // successDiv.textContent = `Invitation sent to ${email}`;
+        // successDiv.style.display = 'block';
+        // (document.getElementById('inviteEmail') as HTMLInputElement).value = '';
+        // setTimeout(() => {
+        //     closeInviteMembersModal();
+        // }, 2000);
     } catch (error) {
         logger.error('Error sending invite:', error);
-        errorDiv.textContent = error.response?.data?.error || 'Failed to send invitation';
+        const errorMessage = error instanceof Error ? error.message : 'Failed to send invitation';
+        errorDiv.textContent = errorMessage;
         errorDiv.style.display = 'block';
     }
 }
@@ -588,6 +669,11 @@ function showMessage(message: string, type: string = 'info'): void {
 }
 
 async function showShareGroupModal(): Promise<void> {
+    if (!currentGroupId) {
+        logger.error('currentGroupId is null');
+        return;
+    }
+    
     try {
         const response = await apiService.generateShareableLink(currentGroupId);
         logger.log('Share link response:', response);
@@ -614,10 +700,20 @@ async function showShareGroupModal(): Promise<void> {
         ModalComponent.show(modalId);
         
         // Add event listeners after modal is created
-        document.getElementById('shareModalCloseBtn').addEventListener('click', () => ModalComponent.hide(modalId));
-        document.getElementById('copyShareLinkBtn').addEventListener('click', copyShareLink);
+        const closeBtn = document.getElementById('shareModalCloseBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => ModalComponent.hide(modalId));
+        }
         
-        (document.getElementById('shareLink') as HTMLInputElement).select();
+        const copyBtn = document.getElementById('copyShareLinkBtn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', copyShareLink);
+        }
+        
+        const shareLink = document.getElementById('shareLink') as HTMLInputElement;
+        if (shareLink) {
+            shareLink.select();
+        }
     } catch (error) {
         logger.error('Error generating share link:', error);
         showMessage('Failed to generate share link', 'error');

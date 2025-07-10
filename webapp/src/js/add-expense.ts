@@ -239,7 +239,7 @@ function updateCustomSplitInputs(): void {
     if (!currentGroup) return;
     
     selectedMembers.forEach(memberId => {
-        const member = currentGroup.members.find((m: Member) => m.uid === memberId);
+        const member = currentGroup?.members.find((m: Member) => m.uid === memberId);
         if (!member) return;
         
         const inputGroup = document.createElement('div');

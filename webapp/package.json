@@ -4,7 +4,14 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf dist && mkdir -p dist && tsc && cp -r src/* dist/ && find dist -name '*.ts' -delete",
-    "test": "jest --config jest.config.js"
+    "test": "jest --config jest.config.js",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "tsc --noEmit",
+      "git add"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -14,7 +21,10 @@
     "@babel/preset-env": "^7.28.0",
     "@types/jest": "^30.0.0",
     "babel-jest": "^30.0.4",
+    "husky": "^9.1.7",
     "jest": "^30.0.4",
+    "lint-staged": "^16.1.2",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   }
 }

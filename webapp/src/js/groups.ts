@@ -23,7 +23,7 @@ async function ensureModalComponent(): Promise<typeof ModalComponentType> {
     ModalComponent = module.ModalComponent;
     window.ModalComponent = ModalComponent;
   }
-  return window.ModalComponent || ModalComponent!;
+  return (window.ModalComponent || ModalComponent) as typeof ModalComponentType;
 }
 
 export class GroupService {
