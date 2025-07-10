@@ -57,20 +57,20 @@
   },
   "emulators": {
     "auth": {
-      "port": 9299
+      "port": 9099
     },
     "functions": {
-      "port": 7001
+      "port": 5001
     },
     "firestore": {
-      "port": 8280
+      "port": 8080
     },
     "hosting": {
-      "port": 7002
+      "port": 5002
     },
     "ui": {
       "enabled": true,
-      "port": 7000
+      "port": 4000
     },
     "singleProjectMode": true
   }
