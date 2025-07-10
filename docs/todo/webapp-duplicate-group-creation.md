@@ -1,13 +1,10 @@
-# Bug Report: Duplicate Group Creation
+# Webapp Issue: Duplicate Group Creation
 
-**Status:** Identified
-**Severity:** Critical
-
-## 1. Issue
+## Issue Description
 
 When a user attempts to create a new group, cancels the process, and then attempts to create a group again, two identical groups are created simultaneously.
 
-## 2. Root Cause Analysis
+## Root Cause Analysis
 
 The bug is located in the `webapp/src/js/groups.js` file, specifically within the `openCreateGroupModal` function and its interaction with the modal's lifecycle.
 
@@ -27,34 +24,7 @@ The sequence of events leading to the bug is as follows:
 
 As a result, the `apiService.createGroup()` function is called twice in rapid succession, leading to the creation of two groups on the backend.
 
-## 3. Code Evidence
-
-**Problem Area 1: Modal not removed on cancel**
-
-In `webapp/src/js/groups.js`, the cancel button's event listener only hides the modal:
-
-```javascript
-// Inside openCreateGroupModal()
-const cancelCreateGroupButton = document.getElementById('cancelCreateGroupButton');
-if (cancelCreateGroupButton) {
-    cancelCreateGroupButton.addEventListener('click', () => {
-        // This only hides the modal, it does not remove it.
-        window.ModalComponent.hide('createGroupMdal');
-    });
-}
-```
-
-**Problem Area 2: New modal created without cleanup**
-
-The `openCreateGroupModal` function unconditionally creates a new modal every time it is called, without checking for or cleaning up any pre-existing modals.
-
-```javascript
-// Inside openCreateGroupModal()
-const modalHtml = window.ModalComponent.render({ id: 'createGroupModal', ... });
-document.body.insertAdjacentHTML('beforeend', modalHtml); // Appends a new modal each time
-```
-
-## 4. Recommended Solution
+## Recommended Solution
 
 To fix this bug, the `openCreateGroupModal` function must be refactored to ensure that only one instance of the create group modal exists and has active listeners at any given time.
 

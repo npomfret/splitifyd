@@ -1,19 +1,21 @@
-# Firebase Deployment Report
+# Webapp Issue: Content Not Deployed to Firebase Hosting
 
-## Issue: Webapp Content Not Deployed
+## Issue Description
 
 The `firebase/public` directory, which is configured for Firebase Hosting, is currently empty. This means that the `webapp` content is not being deployed to Firebase Hosting.
 
-## Analysis:
+## Analysis
 
 - The `firebase.json` file correctly configures `public` as the hosting directory.
 - There are no `package.json` files in the root or `webapp` directories, indicating that the `webapp` is likely a static site and does not have a build process that automatically places files into `firebase/public`.
 
-## Recommendation:
+## Recommendation
 
 To deploy the `webapp` content, the files from the `/Users/nickpomfret/projects/splitifyd/webapp` directory need to be copied into the `/Users/nickpomfret/projects/splitifyd/firebase/public` directory.
 
 This can be done manually, or by adding a script to the `firebase/package.json` (if one is created for the webapp) or to the `firebase/functions/package.json` (if the functions project is the primary build orchestrator) that copies the `webapp` files to the `public` directory before deployment.
+
+### Implementation Suggestions
 
 **Example of a script to add to `firebase/functions/package.json` (under `scripts`):**
 

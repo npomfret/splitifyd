@@ -1,6 +1,4 @@
-# API Data Validation and Hardening Plan
-
-**Status:** Proposed
+# Backend Issue: API Data Validation and Hardening Plan
 
 ## Objective
 
