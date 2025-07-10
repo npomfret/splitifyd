@@ -50,8 +50,9 @@ emulatorProcess.stderr.on('data', (data) => {
 
 // Start nodemon for webapp watching
 const nodemonProcess = spawn('nodemon', [
-  '--watch', '../webapp',
+  '--watch', '../webapp/src',
   '--ext', 'html,css,js',
+  '--ignore', '../webapp/dist',
   '--exec', 'npm run build:webapp'
 ], {
   stdio: 'inherit'

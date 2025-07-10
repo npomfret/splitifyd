@@ -147,3 +147,7 @@ firebase/functions/*service-account-key.json
 
 # macOS
 .DS_Store
+
+
+# Build outputs
+webapp/dist/
