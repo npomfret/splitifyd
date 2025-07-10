@@ -57,20 +57,20 @@
   },
   "emulators": {
     "auth": {
-      "port": "{{FIREBASE_AUTH_EMULATOR_PORT}}"
+      "port": {{EMULATOR_AUTH_PORT}}
     },
     "functions": {
-      "port": "{{FIREBASE_FUNCTIONS_EMULATOR_PORT}}"
+      "port": {{EMULATOR_FUNCTIONS_PORT}}
     },
     "firestore": {
-      "port": "{{FIREBASE_FIRESTORE_EMULATOR_PORT}}"
+      "port": {{EMULATOR_FIRESTORE_PORT}}
     },
     "hosting": {
-      "port": "{{FIREBASE_HOSTING_EMULATOR_PORT}}"
+      "port": {{EMULATOR_HOSTING_PORT}}
     },
     "ui": {
       "enabled": true,
-      "port": "{{FIREBASE_EMULATOR_UI_PORT}}"
+      "port": {{EMULATOR_UI_PORT}}
     },
     "singleProjectMode": true
   }

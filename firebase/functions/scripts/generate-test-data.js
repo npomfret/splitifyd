@@ -26,8 +26,8 @@ if (!FUNCTIONS_PORT || !FIRESTORE_PORT || !AUTH_PORT) {
 const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/splitifyd/us-central1/api`;
 
 // Set emulator environment variables before initializing
-process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
-process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
+process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${FIRESTORE_PORT}`;
+process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${AUTH_PORT}`;
 
 // Initialize Firebase Admin for emulator (only for getting user info after creation)
 admin.initializeApp({
@@ -248,9 +248,45 @@ async function createTestExpense(groupId, expense, participants, createdBy) {
   }
 }
 
+async function waitForApiReady() {
+  const maxAttempts = 10;
+  let attempts = 0;
+  
+  while (attempts < maxAttempts) {
+    attempts++;
+    try {
+      console.log(`⏳ Checking API readiness... (${attempts}/${maxAttempts})`);
+      await apiRequest('/health', 'GET');
+      return;
+    } catch (error) {
+      if (error.message.includes('Firebase Functions not ready yet')) {
+        console.log('⏳ Functions not ready yet, waiting 3 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        continue;
+      }
+      
+      // For other errors (like 404 on /health), the API is ready but endpoint doesn't exist
+      // This means functions are loaded
+      if (!error.message.includes('Function us-central1-api does not exist')) {
+        return;
+      }
+      
+      console.log('⏳ Functions not ready yet, waiting 3 seconds...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+  
+  throw new Error('API functions failed to become ready within timeout');
+}
+
 async function generateTestData() {
   try {
     console.log('🚀 Starting test data generation...\n');
+
+    // Wait for API to be ready before proceeding
+    console.log('⏳ Verifying API endpoints are ready...');
+    await waitForApiReady();
+    console.log('✓ API endpoints are ready\n');
 
     // Create test users
     console.log('📝 Creating test users...');

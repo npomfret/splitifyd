@@ -31,11 +31,11 @@ try {
   require('./generate-firebase-config.js');
   
   console.log('\n📍 Emulator ports for this instance:');
-  console.log(`  - UI: ${process.env.FIREBASE_EMULATOR_UI_PORT}`);
-  console.log(`  - Auth: ${process.env.FIREBASE_AUTH_EMULATOR_PORT}`);
-  console.log(`  - Functions: ${process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT}`);
-  console.log(`  - Firestore: ${process.env.FIREBASE_FIRESTORE_EMULATOR_PORT}`);
-  console.log(`  - Hosting: ${process.env.FIREBASE_HOSTING_EMULATOR_PORT}`);
+  console.log(`  - UI: ${process.env.EMULATOR_UI_PORT}`);
+  console.log(`  - Auth: ${process.env.EMULATOR_AUTH_PORT}`);
+  console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT}`);
+  console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT}`);
+  console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT}`);
   
   console.log('\n🚀 You can now run: npm run dev:with-data');
   

@@ -17,11 +17,11 @@ let configContent = fs.readFileSync(templatePath, 'utf8');
 
 // Required environment variables
 const requiredVars = [
-  'FIREBASE_AUTH_EMULATOR_PORT',
-  'FIREBASE_FUNCTIONS_EMULATOR_PORT', 
-  'FIREBASE_FIRESTORE_EMULATOR_PORT',
-  'FIREBASE_HOSTING_EMULATOR_PORT',
-  'FIREBASE_EMULATOR_UI_PORT'
+  'EMULATOR_AUTH_PORT',
+  'EMULATOR_FUNCTIONS_PORT', 
+  'EMULATOR_FIRESTORE_PORT',
+  'EMULATOR_HOSTING_PORT',
+  'EMULATOR_UI_PORT'
 ];
 
 // Check all required variables are set
@@ -43,8 +43,8 @@ requiredVars.forEach(varName => {
 fs.writeFileSync(configPath, configContent);
 
 console.log('🔥 Firebase configuration generated with ports:');
-console.log(`  - UI: ${process.env.FIREBASE_EMULATOR_UI_PORT || '4000'}`);
-console.log(`  - Auth: ${process.env.FIREBASE_AUTH_EMULATOR_PORT || '9099'}`);
-console.log(`  - Functions: ${process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001'}`);
-console.log(`  - Firestore: ${process.env.FIREBASE_FIRESTORE_EMULATOR_PORT || '8080'}`);
-console.log(`  - Hosting: ${process.env.FIREBASE_HOSTING_EMULATOR_PORT || '5002'}`);
+console.log(`  - UI: ${process.env.EMULATOR_UI_PORT || '4000'}`);
+console.log(`  - Auth: ${process.env.EMULATOR_AUTH_PORT || '9099'}`);
+console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT || '5001'}`);
+console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT || '8080'}`);
+console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT || '5002'}`);
