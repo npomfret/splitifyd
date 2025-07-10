@@ -46,3 +46,8 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
 # Dependencies 
  - DO NOT USE AXIOS. NEVER USE AXIOS. Node has a perfectly good request library. 
  - Avoid using external libraries in general if possible
+
+# Web
+ - Do not bundle our js files into 1 file
+ - Do not obfuscate or minimise
+ - 
