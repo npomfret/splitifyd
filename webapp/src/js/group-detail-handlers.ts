@@ -1,7 +1,7 @@
 // Event handlers for group-detail.html
-export function initializeGroupDetailHandlers() {
+export function initializeGroupDetailHandlers(): void {
     // Back button handler
-    const backButton = document.querySelector('.back-button');
+    const backButton = document.querySelector('.back-button') as HTMLButtonElement;
     if (backButton) {
         backButton.addEventListener('click', () => {
             window.location.href = 'dashboard.html';
@@ -21,8 +21,8 @@ export function initializeGroupDetailHandlers() {
     });
 }
 
-export function closeGroupSettingsModal() {
-    const modal = document.getElementById('groupSettingsModal');
+export function closeGroupSettingsModal(): void {
+    const modal = document.getElementById('groupSettingsModal') as HTMLElement;
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('visible-flex');
@@ -30,8 +30,8 @@ export function closeGroupSettingsModal() {
     }
 }
 
-export function closeInviteMembersModal() {
-    const modal = document.getElementById('inviteMembersModal');
+export function closeInviteMembersModal(): void {
+    const modal = document.getElementById('inviteMembersModal') as HTMLElement;
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('visible-flex');
@@ -43,5 +43,5 @@ export function closeInviteMembersModal() {
 document.addEventListener('DOMContentLoaded', initializeGroupDetailHandlers);
 
 // Make functions globally available for any remaining inline handlers
-window.closeGroupSettingsModal = closeGroupSettingsModal;
-window.closeInviteMembersModal = closeInviteMembersModal;
+(window as any).closeGroupSettingsModal = closeGroupSettingsModal;
+(window as any).closeInviteMembersModal = closeInviteMembersModal;

@@ -1,13 +1,14 @@
 import { logger } from './utils/logger.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
+import type { GroupDetail, Member, ExpenseData } from './types/api';
 
-let currentGroup = null;
-let currentGroupId = null;
-let selectedMembers = new Set();
-let lastExpenseData = null;
+let currentGroup: GroupDetail | null = null;
+let currentGroupId: string | null = null;
+let selectedMembers = new Set<string>();
+let lastExpenseData: ExpenseData | null = null;
 
-async function waitForAuthManager() {
+async function waitForAuthManager(): Promise<void> {
     const maxAttempts = 50;
     let attempts = 0;
     
@@ -21,7 +22,7 @@ async function waitForAuthManager() {
     }
 }
 
-async function initializeAddExpensePage() {
+async function initializeAddExpensePage(): Promise<void> {
     try {
         await waitForAuthManager();
         
@@ -53,18 +54,20 @@ async function initializeAddExpensePage() {
 
 document.addEventListener('DOMContentLoaded', initializeAddExpensePage);
 
-async function loadExpenseForEditing(expenseId) {
+async function loadExpenseForEditing(expenseId: string): Promise<void> {
     try {
         const response = await apiService.getExpense(expenseId);
-        const expense = response.data;
+        const expense = response.data!;
         
         currentGroupId = expense.groupId;
         await loadGroupData();
         
         populateFormWithExpense(expense);
         
-        document.querySelector('.page-title').textContent = 'Edit Expense';
-        document.getElementById('submitButton').textContent = 'Update Expense';
+        const titleEl = document.querySelector('.page-title') as HTMLElement;
+        const submitBtn = document.getElementById('submitButton') as HTMLButtonElement;
+        titleEl.textContent = 'Edit Expense';
+        submitBtn.textContent = 'Update Expense';
         
     } catch (error) {
         logger.error('Error loading expense for editing:', error);
@@ -72,10 +75,10 @@ async function loadExpenseForEditing(expenseId) {
     }
 }
 
-async function loadGroupData() {
+async function loadGroupData(): Promise<void> {
     try {
-        const response = await apiService.getGroup(currentGroupId);
-        currentGroup = response.data;
+        const response = await apiService.getGroup(currentGroupId!);
+        currentGroup = response.data!;
         
         populatePaidByOptions();
         populateMembers();
@@ -85,17 +88,20 @@ async function loadGroupData() {
     }
 }
 
-async function loadUserPreferences() {
+async function loadUserPreferences(): Promise<void> {
     try {
         const currentUserId = localStorage.getItem('userId');
-        const response = await apiService.getGroupExpenses(currentGroupId, 1, 0);
+        const response = await apiService.getGroupExpenses(currentGroupId!, 1, 0);
         
         if (response.data && response.data.length > 0) {
-            const lastExpense = response.data.find(expense => expense.paidBy === currentUserId);
+            const lastExpense = response.data.find((expense: ExpenseData) => expense.paidBy === currentUserId);
             if (lastExpense) {
                 lastExpenseData = lastExpense;
-                document.getElementById('category').value = lastExpense.category;
-                document.getElementById('description').value = lastExpense.description;
+                const categoryEl = document.getElementById('category') as HTMLSelectElement;
+                const descriptionEl = document.getElementById('description') as HTMLInputElement;
+                // ExpenseData from api.d.ts doesn't have category field
+                // categoryEl.value = lastExpense.category || '';
+                descriptionEl.value = lastExpense.description;
             }
         }
     } catch (error) {
@@ -103,33 +109,37 @@ async function loadUserPreferences() {
     }
 }
 
-function populatePaidByOptions() {
-    const paidBySelect = document.getElementById('paidBy');
+function populatePaidByOptions(): void {
+    const paidBySelect = document.getElementById('paidBy') as HTMLSelectElement;
     const currentUserId = localStorage.getItem('userId');
     
     paidBySelect.innerHTML = '<option value="">Select who paid</option>';
     
-    currentGroup.members.forEach(member => {
+    if (!currentGroup) return;
+    
+    currentGroup.members.forEach((member: Member) => {
         const option = document.createElement('option');
         option.value = member.uid;
         option.textContent = member.uid === currentUserId ? 'You' : member.name;
         paidBySelect.appendChild(option);
     });
     
-    paidBySelect.value = currentUserId;
+    paidBySelect.value = currentUserId || '';
 }
 
-function populateMembers() {
-    const membersList = document.getElementById('membersList');
+function populateMembers(): void {
+    const membersList = document.getElementById('membersList') as HTMLElement;
     const currentUserId = localStorage.getItem('userId');
     
     membersList.innerHTML = '';
     
-    currentGroup.members.forEach(member => {
+    if (!currentGroup) return;
+    
+    currentGroup.members.forEach((member: Member) => {
         const memberItem = document.createElement('div');
         memberItem.className = 'member-item';
         
-        const checkbox = document.createElement('input');
+        const checkbox = document.createElement('input') as HTMLInputElement;
         checkbox.type = 'checkbox';
         checkbox.id = `member-${member.uid}`;
         checkbox.value = member.uid;
@@ -160,28 +170,34 @@ function populateMembers() {
     });
 }
 
-function initializeEventListeners() {
-    document.getElementById('backButton').addEventListener('click', () => {
+function initializeEventListeners(): void {
+    const backBtn = document.getElementById('backButton') as HTMLButtonElement;
+    const cancelBtn = document.getElementById('cancelButton') as HTMLButtonElement;
+    const form = document.getElementById('expenseForm') as HTMLFormElement;
+    const amountInput = document.getElementById('amount') as HTMLInputElement;
+    
+    backBtn.addEventListener('click', () => {
         window.location.href = `group-detail.html?id=${currentGroupId}`;
     });
     
-    document.getElementById('cancelButton').addEventListener('click', () => {
+    cancelBtn.addEventListener('click', () => {
         window.location.href = `group-detail.html?id=${currentGroupId}`;
     });
     
-    document.getElementById('expenseForm').addEventListener('submit', handleSubmit);
+    form.addEventListener('submit', handleSubmit);
     
-    document.querySelectorAll('input[name="splitMethod"]').forEach(radio => {
+    document.querySelectorAll<HTMLInputElement>('input[name="splitMethod"]').forEach(radio => {
         radio.addEventListener('change', handleSplitMethodChange);
     });
     
-    document.getElementById('amount').addEventListener('input', updateCustomSplitInputs);
+    amountInput.addEventListener('input', updateCustomSplitInputs);
 }
 
-function handleMemberToggle(event) {
-    const memberId = event.target.value;
+function handleMemberToggle(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const memberId = target.value;
     
-    if (event.target.checked) {
+    if (target.checked) {
         selectedMembers.add(memberId);
     } else {
         selectedMembers.delete(memberId);
@@ -190,10 +206,11 @@ function handleMemberToggle(event) {
     updateCustomSplitInputs();
 }
 
-function handleSplitMethodChange(event) {
-    const customSection = document.getElementById('customSplitSection');
+function handleSplitMethodChange(event: Event): void {
+    const customSection = document.getElementById('customSplitSection') as HTMLElement;
+    const target = event.target as HTMLInputElement;
     
-    if (event.target.value === 'custom') {
+    if (target.value === 'custom') {
         customSection.style.display = 'block';
         updateCustomSplitInputs();
     } else {
@@ -201,22 +218,29 @@ function handleSplitMethodChange(event) {
     }
 }
 
-function updateCustomSplitInputs() {
-    const splitMethod = document.querySelector('input[name="splitMethod"]:checked').value;
+function updateCustomSplitInputs(): void {
+    const splitMethodEl = document.querySelector<HTMLInputElement>('input[name="splitMethod"]:checked');
+    if (!splitMethodEl) return;
+    
+    const splitMethod = splitMethodEl.value;
     
     if (splitMethod !== 'custom') return;
     
-    const amount = parseFloat(document.getElementById('amount').value) || 0;
-    const customInputs = document.getElementById('customSplitInputs');
-    const splitTotal = document.getElementById('splitTotal');
+    const amountEl = document.getElementById('amount') as HTMLInputElement;
+    const amount = parseFloat(amountEl.value) || 0;
+    const customInputs = document.getElementById('customSplitInputs') as HTMLElement;
+    const splitTotal = document.getElementById('splitTotal') as HTMLElement;
     
     customInputs.innerHTML = '';
     
     const equalSplit = selectedMembers.size > 0 ? amount / selectedMembers.size : 0;
     const currentUserId = localStorage.getItem('userId');
     
+    if (!currentGroup) return;
+    
     selectedMembers.forEach(memberId => {
-        const member = currentGroup.members.find(m => m.uid === memberId);
+        const member = currentGroup.members.find((m: Member) => m.uid === memberId);
+        if (!member) return;
         
         const inputGroup = document.createElement('div');
         inputGroup.className = 'custom-split-input';
@@ -224,7 +248,7 @@ function updateCustomSplitInputs() {
         const label = document.createElement('label');
         label.textContent = member.uid === currentUserId ? 'You' : member.name;
         
-        const input = document.createElement('input');
+        const input = document.createElement('input') as HTMLInputElement;
         input.type = 'number';
         input.step = '0.01';
         input.min = '0';
@@ -240,30 +264,37 @@ function updateCustomSplitInputs() {
     updateSplitTotal();
 }
 
-function populateFormWithExpense(expense) {
-    document.getElementById('description').value = expense.description;
-    document.getElementById('amount').value = expense.amount;
-    document.getElementById('category').value = expense.category || '';
-    document.getElementById('paidBy').value = expense.paidBy;
+function populateFormWithExpense(expense: ExpenseData): void {
+    const descriptionEl = document.getElementById('description') as HTMLInputElement;
+    const amountEl = document.getElementById('amount') as HTMLInputElement;
+    const categoryEl = document.getElementById('category') as HTMLSelectElement;
+    const paidByEl = document.getElementById('paidBy') as HTMLSelectElement;
+    
+    descriptionEl.value = expense.description;
+    amountEl.value = expense.amount.toString();
+    // ExpenseData from api.d.ts doesn't have category field
+    // categoryEl.value = expense.category || '';
+    paidByEl.value = expense.paidBy;
     
     const splits = expense.splits || [];
     
     const splitMethod = determineSplitMethod(splits);
-    document.querySelector(`input[name="splitMethod"][value="${splitMethod}"]`).checked = true;
+    const splitMethodEl = document.querySelector<HTMLInputElement>(`input[name="splitMethod"][value="${splitMethod}"]`);
+    if (splitMethodEl) splitMethodEl.checked = true;
     
     splits.forEach(split => {
         selectedMembers.add(split.userId);
     });
     
     updateMemberCheckboxes();
-    handleSplitMethodChange({ target: { value: splitMethod } });
+    handleSplitMethodChange({ target: { value: splitMethod } } as any);
     
     if (splitMethod === 'custom') {
         populateCustomSplits(splits);
     }
 }
 
-function determineSplitMethod(splits) {
+function determineSplitMethod(splits: Array<{userId: string; amount: number}>): string {
     
     const amounts = splits.map(split => split.amount);
     const totalAmount = amounts.reduce((sum, amount) => sum + amount, 0);
@@ -276,32 +307,32 @@ function determineSplitMethod(splits) {
     return isEqual ? 'equal' : 'custom';
 }
 
-function populateCustomSplits(splits) {
-    const customInputs = document.getElementById('customSplitInputs');
-    const inputs = customInputs.querySelectorAll('input');
+function populateCustomSplits(splits: Array<{userId: string; amount: number}>): void {
+    const customInputs = document.getElementById('customSplitInputs') as HTMLElement;
+    const inputs = customInputs.querySelectorAll<HTMLInputElement>('input');
     
     splits.forEach(split => {
         const input = Array.from(inputs).find(input => 
             input.dataset.memberId === split.userId
         );
         if (input) {
-            input.value = split.amount;
+            input.value = split.amount.toString();
         }
     });
     
     updateSplitTotal();
 }
 
-function updateMemberCheckboxes() {
-    const memberCheckboxes = document.querySelectorAll('#membersList input[type="checkbox"]');
+function updateMemberCheckboxes(): void {
+    const memberCheckboxes = document.querySelectorAll<HTMLInputElement>('#membersList input[type="checkbox"]');
     memberCheckboxes.forEach(checkbox => {
         checkbox.checked = selectedMembers.has(checkbox.value);
     });
 }
 
-function updateSplitTotal() {
-    const customInputs = document.querySelectorAll('#customSplitInputs input');
-    const splitTotal = document.getElementById('splitTotal');
+function updateSplitTotal(): void {
+    const customInputs = document.querySelectorAll<HTMLInputElement>('#customSplitInputs input');
+    const splitTotal = document.getElementById('splitTotal') as HTMLElement;
     
     let total = 0;
     customInputs.forEach(input => {
@@ -311,15 +342,16 @@ function updateSplitTotal() {
     splitTotal.textContent = total.toFixed(2);
 }
 
-async function handleSubmit(event) {
+async function handleSubmit(event: Event): Promise<void> {
     event.preventDefault();
     
-    const formData = new FormData(event.target);
-    const description = formData.get('description').trim();
-    const amount = parseFloat(formData.get('amount'));
-    const category = formData.get('category');
-    const paidBy = formData.get('paidBy');
-    const splitMethod = formData.get('splitMethod');
+    const target = event.target as HTMLFormElement;
+    const formData = new FormData(target);
+    const description = (formData.get('description') as string).trim();
+    const amount = parseFloat(formData.get('amount') as string);
+    const category = formData.get('category') as string;
+    const paidBy = formData.get('paidBy') as string;
+    const splitMethod = formData.get('splitMethod') as string;
     
     if (!validateForm(description, amount, paidBy)) {
         return;
@@ -332,12 +364,12 @@ async function handleSubmit(event) {
         amount,
         category,
         paidBy,
-        groupId: currentGroupId,
+        groupId: currentGroupId!,
         splitType: splitMethod === 'equal' ? 'equal' : 'exact',
         participants: Array.from(selectedMembers),
         splits: Object.entries(splits).map(([userId, amount]) => ({
             userId,
-            amount: parseFloat(amount)
+            amount: parseFloat(amount as any)
         })),
         date: new Date().toISOString()
     };
@@ -347,7 +379,7 @@ async function handleSubmit(event) {
     const isEdit = urlParams.get('edit') === 'true';
     
     try {
-        const submitButton = document.getElementById('submitButton');
+        const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         
@@ -367,13 +399,13 @@ async function handleSubmit(event) {
         logger.error('Error creating expense:', error);
         showMessage('Failed to add expense', 'error');
         
-        const submitButton = document.getElementById('submitButton');
+        const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
         submitButton.disabled = false;
         submitButton.innerHTML = '<i class="fas fa-save"></i> Save';
     }
 }
 
-function validateForm(description, amount, paidBy) {
+function validateForm(description: string, amount: number, paidBy: string): boolean {
     let isValid = true;
     
     if (!description) {
@@ -396,9 +428,9 @@ function validateForm(description, amount, paidBy) {
         isValid = false;
     }
     
-    const splitMethod = document.querySelector('input[name="splitMethod"]:checked').value;
-    if (splitMethod === 'custom') {
-        const customInputs = document.querySelectorAll('#customSplitInputs input');
+    const splitMethodEl = document.querySelector<HTMLInputElement>('input[name="splitMethod"]:checked');
+    if (splitMethodEl && splitMethodEl.value === 'custom') {
+        const customInputs = document.querySelectorAll<HTMLInputElement>('#customSplitInputs input');
         let customTotal = 0;
         
         customInputs.forEach(input => {
@@ -414,8 +446,8 @@ function validateForm(description, amount, paidBy) {
     return isValid;
 }
 
-function calculateSplits(amount, splitMethod) {
-    const splits = {};
+function calculateSplits(amount: number, splitMethod: string): Record<string, number> {
+    const splits: Record<string, number> = {};
     
     if (splitMethod === 'equal') {
         const splitAmount = amount / selectedMembers.size;
@@ -423,9 +455,9 @@ function calculateSplits(amount, splitMethod) {
             splits[memberId] = Math.round(splitAmount * 100) / 100;
         });
     } else {
-        const customInputs = document.querySelectorAll('#customSplitInputs input');
+        const customInputs = document.querySelectorAll<HTMLInputElement>('#customSplitInputs input');
         customInputs.forEach(input => {
-            const memberId = input.dataset.memberId;
+            const memberId = input.dataset.memberId!;
             const memberAmount = parseFloat(input.value) || 0;
             splits[memberId] = memberAmount;
         });
@@ -434,7 +466,7 @@ function calculateSplits(amount, splitMethod) {
     return splits;
 }
 
-function showFieldError(fieldName, message) {
+function showFieldError(fieldName: string, message: string): void {
     const errorElement = document.getElementById(`${fieldName}-error`);
     if (errorElement) {
         errorElement.textContent = message;
@@ -446,7 +478,7 @@ function showFieldError(fieldName, message) {
     }
 }
 
-function showMessage(message, type = 'info') {
+function showMessage(message: string, type: string = 'info'): void {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;

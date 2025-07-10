@@ -1,7 +1,7 @@
 // Event handlers for expense-detail.html
 window.addEventListener('DOMContentLoaded', () => {
     // Back button handler
-    const backButton = document.querySelector('.back-button');
+    const backButton = document.querySelector('.back-button') as HTMLButtonElement;
     if (backButton) {
         backButton.addEventListener('click', () => {
             history.back();
@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     // Retry button handler
-    const retryButton = document.querySelector('.btn.btn-secondary[onclick*="location.reload"]');
+    const retryButton = document.querySelector('.btn.btn-secondary[onclick*="location.reload"]') as HTMLButtonElement;
     if (retryButton) {
         retryButton.addEventListener('click', () => {
             location.reload();
@@ -23,8 +23,8 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
+function closeDeleteModal(): void {
+    const modal = document.getElementById('deleteModal') as HTMLElement;
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('visible-flex');
@@ -33,4 +33,4 @@ function closeDeleteModal() {
 }
 
 // Make function globally available for any remaining inline handlers
-window.closeDeleteModal = closeDeleteModal;
+(window as any).closeDeleteModal = closeDeleteModal;

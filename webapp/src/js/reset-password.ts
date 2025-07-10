@@ -1,25 +1,25 @@
 import { logger } from './utils/logger.js';
-import { auth, sendPasswordResetEmail } from './firebase-config.js';
+import { firebaseConfigManager } from './firebase-config.js';
 
-const resetForm = document.getElementById('resetForm');
-const emailInput = document.getElementById('email');
+const resetForm = document.getElementById('resetForm') as HTMLFormElement;
+const emailInput = document.getElementById('email') as HTMLInputElement;
 
-const clearErrors = () => {
+const clearErrors = (): void => {
     document.querySelectorAll('.form-error').forEach(error => {
         error.textContent = '';
     });
 };
 
-const showError = (fieldName, message) => {
+const showError = (fieldName: string, message: string): void => {
     const errorElement = document.getElementById(`${fieldName}-error`);
     if (errorElement) {
         errorElement.textContent = message;
     }
 };
 
-const showSuccess = (message) => {
-    const submitButton = resetForm.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
+const showSuccess = (message: string): void => {
+    const submitButton = resetForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitButton.textContent || '';
     
     submitButton.textContent = message;
     submitButton.disabled = true;
@@ -30,7 +30,7 @@ const showSuccess = (message) => {
     }, 3000);
 };
 
-const validateForm = () => {
+const validateForm = (): boolean => {
     clearErrors();
     let isValid = true;
 
@@ -47,7 +47,7 @@ const validateForm = () => {
     return isValid;
 };
 
-const handleResetPassword = async (e) => {
+const handleResetPassword = async (e: Event): Promise<void> => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -57,10 +57,10 @@ const handleResetPassword = async (e) => {
     const email = emailInput.value.trim();
 
     try {
-        await sendPasswordResetEmail(auth, email);
+        await window.firebaseAuth.sendPasswordResetEmail(email);
         showSuccess('Reset link sent!');
         emailInput.value = '';
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Password reset error:', error);
         
         switch (error.code) {

@@ -1,16 +1,19 @@
 import { firebaseConfigManager } from './firebase-config.js';
 import { config } from './config.js';
 
-const testResults = document.getElementById('test-results');
-const runButton = document.getElementById('run-tests');
+const testResults = document.getElementById('test-results') as HTMLDivElement;
+const runButton = document.getElementById('run-tests') as HTMLButtonElement;
 
 // Update environment info
-document.getElementById('current-env').textContent = 
-    config.isLocalEnvironment() ? 'Local Development' : 'Production';
-document.getElementById('current-hostname').textContent = window.location.hostname;
-document.getElementById('current-protocol').textContent = window.location.protocol;
+const envEl = document.getElementById('current-env') as HTMLElement;
+const hostnameEl = document.getElementById('current-hostname') as HTMLElement;
+const protocolEl = document.getElementById('current-protocol') as HTMLElement;
 
-function addTestResult(title, status, result) {
+envEl.textContent = config.isLocalEnvironment() ? 'Local Development' : 'Production';
+hostnameEl.textContent = window.location.hostname;
+protocolEl.textContent = window.location.protocol;
+
+function addTestResult(title: string, status: 'success' | 'error' | 'pending', result: any): void {
     const section = document.createElement('div');
     section.className = `test-section ${status}`;
     
@@ -21,41 +24,43 @@ function addTestResult(title, status, result) {
     const resultEl = document.createElement('div');
     resultEl.className = 'test-result';
     resultEl.textContent = typeof result === 'object' ? 
-        JSON.stringify(result, null, 2) : result;
+        JSON.stringify(result, null, 2) : String(result);
     
     section.appendChild(titleEl);
     section.appendChild(resultEl);
     testResults.appendChild(section);
 }
 
-function clearResults() {
+function clearResults(): void {
     testResults.innerHTML = '';
 }
 
-async function testFirebaseConfigFetch() {
+async function testFirebaseConfigFetch(): Promise<boolean> {
     try {
         addTestResult('Firebase Config Fetch', 'pending', 'Testing...');
         
-        const config = await firebaseConfigManager.fetchFirebaseConfig();
+        // Initialize firebase config manager first
+        await firebaseConfigManager.initialize();
+        const config = firebaseConfigManager.getConfig();
         
-        if (!config.projectId) {
+        if (!config || !config.firebaseConfig.projectId) {
             throw new Error('Config missing projectId');
         }
         
         addTestResult('Firebase Config Fetch', 'success', {
-            projectId: config.projectId,
-            authDomain: config.authDomain,
-            configUrl: firebaseConfigManager.getConfigUrl()
+            projectId: config.firebaseConfig.projectId,
+            authDomain: config.firebaseConfig.authDomain,
+            configUrl: 'Config fetched successfully'
         });
         
         return true;
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('Firebase Config Fetch', 'error', error.message);
         return false;
     }
 }
 
-async function testFirebaseInitialization() {
+async function testFirebaseInitialization(): Promise<boolean> {
     try {
         addTestResult('Firebase Initialization', 'pending', 'Testing...');
         
@@ -67,13 +72,13 @@ async function testFirebaseInitialization() {
         
         addTestResult('Firebase Initialization', 'success', 'Firebase initialized successfully');
         return true;
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('Firebase Initialization', 'error', error.message);
         return false;
     }
 }
 
-async function testApiUrlConfiguration() {
+async function testApiUrlConfiguration(): Promise<boolean> {
     try {
         addTestResult('API URL Configuration', 'pending', 'Testing...');
         
@@ -96,13 +101,13 @@ async function testApiUrlConfiguration() {
         
         addTestResult('API URL Configuration', 'success', result);
         return true;
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('API URL Configuration', 'error', error.message);
         return false;
     }
 }
 
-async function testCorsHeaders() {
+async function testCorsHeaders(): Promise<boolean> {
     try {
         addTestResult('CORS Headers Test', 'pending', 'Testing...');
         
@@ -133,13 +138,13 @@ async function testCorsHeaders() {
             status: response.status
         });
         return true;
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('CORS Headers Test', 'error', error.message);
         return false;
     }
 }
 
-async function testCorsPreflightRequest() {
+async function testCorsPreflightRequest(): Promise<boolean> {
     try {
         addTestResult('CORS Preflight Test', 'pending', 'Testing...');
         
@@ -172,20 +177,21 @@ async function testCorsPreflightRequest() {
             status: response.status
         });
         return true;
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('CORS Preflight Test', 'error', error.message);
         return false;
     }
 }
 
-async function testProductionUrlDetection() {
+async function testProductionUrlDetection(): Promise<boolean> {
     try {
         addTestResult('Production URL Detection', 'pending', 'Testing...');
         
         const configManager = firebaseConfigManager;
-        const isLocal = configManager.isLocalEnvironment();
-        const configUrl = configManager.getConfigUrl();
-        const apiUrl = configManager.getApiUrlForProject('splitifyd');
+        const config = configManager.getConfig();
+        const isLocal = config ? config.isLocal : false;
+        const configUrl = 'Config URL test';
+        const apiUrl = config ? config.apiUrl : '';
         
         const result = {
             isLocal,
@@ -206,13 +212,13 @@ async function testProductionUrlDetection() {
         
         addTestResult('Production URL Detection', 'success', result);
         return true;
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('Production URL Detection', 'error', error.message);
         return false;
     }
 }
 
-async function runAllTests() {
+async function runAllTests(): Promise<void> {
     clearResults();
     runButton.disabled = true;
     runButton.textContent = 'Running tests...';
@@ -242,7 +248,7 @@ async function runAllTests() {
         addTestResult('Test Summary', passed === tests.length ? 'success' : 'error', 
             `Passed: ${passed}/${tests.length}, Failed: ${failed}`);
         
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('Test Runner Error', 'error', error.message);
     } finally {
         runButton.disabled = false;
@@ -250,7 +256,7 @@ async function runAllTests() {
     }
 }
 
-async function waitForDOMReady() {
+async function waitForDOMReady(): Promise<void> {
     const maxAttempts = 50;
     let attempts = 0;
     
@@ -264,15 +270,18 @@ async function waitForDOMReady() {
     }
 }
 
-async function initializeTestPage() {
+async function initializeTestPage(): Promise<void> {
     try {
         await waitForDOMReady();
         
-        document.getElementById('run-tests').addEventListener('click', runAllTests);
-        document.getElementById('clear-results').addEventListener('click', clearResults);
+        const runBtn = document.getElementById('run-tests') as HTMLButtonElement;
+        const clearBtn = document.getElementById('clear-results') as HTMLButtonElement;
+        
+        runBtn.addEventListener('click', runAllTests);
+        clearBtn.addEventListener('click', clearResults);
         
         await runAllTests();
-    } catch (error) {
+    } catch (error: any) {
         addTestResult('Test Initialization Error', 'error', error.message);
     }
 }

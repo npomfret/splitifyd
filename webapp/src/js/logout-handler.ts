@@ -3,7 +3,7 @@ import { authManager } from './auth.js';
 
 // Shared logout functionality
 window.addEventListener('DOMContentLoaded', () => {
-    const logoutButton = document.getElementById('logoutButton');
+    const logoutButton = document.getElementById('logoutButton') as HTMLButtonElement | null;
     if (logoutButton) {
         logoutButton.addEventListener('click', async () => {
             try {

@@ -1,27 +1,27 @@
 import { logger } from './utils/logger.js';
-import { auth, createUserWithEmailAndPassword, updateProfile } from './firebase-config.js';
+import { firebaseConfigManager } from './firebase-config.js';
 import { config } from './config.js';
 
-const registerForm = document.getElementById('registerForm');
-const displayNameInput = document.getElementById('displayName');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const confirmPasswordInput = document.getElementById('confirmPassword');
+const registerForm = document.getElementById('registerForm') as HTMLFormElement;
+const displayNameInput = document.getElementById('displayName') as HTMLInputElement;
+const emailInput = document.getElementById('email') as HTMLInputElement;
+const passwordInput = document.getElementById('password') as HTMLInputElement;
+const confirmPasswordInput = document.getElementById('confirmPassword') as HTMLInputElement;
 
-const clearErrors = () => {
+const clearErrors = (): void => {
     document.querySelectorAll('.form-error').forEach(error => {
         error.textContent = '';
     });
 };
 
-const showError = (fieldName, message) => {
+const showError = (fieldName: string, message: string): void => {
     const errorElement = document.getElementById(`${fieldName}-error`);
     if (errorElement) {
         errorElement.textContent = message;
     }
 };
 
-const validateForm = () => {
+const validateForm = (): boolean => {
     clearErrors();
     let isValid = true;
 
@@ -71,7 +71,7 @@ const validateForm = () => {
     return isValid;
 };
 
-const handleRegister = async (e) => {
+const handleRegister = async (e: Event): Promise<void> => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -83,11 +83,11 @@ const handleRegister = async (e) => {
     const password = passwordInput.value;
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName });
+        const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(email, password);
+        await window.firebaseAuth.updateProfile(userCredential.user, { displayName });
         
-        window.location.href = config.dashboardUrl;
-    } catch (error) {
+        window.location.href = 'dashboard.html';
+    } catch (error: any) {
         logger.error('Registration error:', error);
         
         switch (error.code) {

@@ -1,7 +1,18 @@
 // Functions are available globally from warning-banner.js
+import type { FirebaseUser } from './types/global';
+
+// These functions are declared in global.d.ts
+declare function showWarning(message: string): void;
+declare function hideWarning(): void;
+
+interface AppInitConfig {
+  requireAuth?: boolean;
+  onAuthStateChanged?: ((user: FirebaseUser | null) => void) | null;
+  onReady?: (() => void) | null;
+}
 
 export class AppInit {
-  static async initialize(config = {}) {
+  static async initialize(config: AppInitConfig = {}): Promise<void> {
     const {
       requireAuth = true,
       onAuthStateChanged = null,
@@ -21,7 +32,7 @@ export class AppInit {
     }
   }
 
-  static async waitForFirebase() {
+  static async waitForFirebase(): Promise<void> {
     const maxAttempts = 50;
     const intervalMs = 100;
     let attempts = 0;
@@ -37,8 +48,8 @@ export class AppInit {
     }
   }
 
-  static setupAuthListener(customHandler) {
-    window.firebaseAuth.onAuthStateChanged((user) => {
+  static setupAuthListener(customHandler: ((user: FirebaseUser | null) => void) | null): void {
+    window.firebaseAuth.onAuthStateChanged((user: FirebaseUser | null) => {
       if (customHandler) {
         customHandler(user);
       } else if (!user) {
@@ -47,7 +58,7 @@ export class AppInit {
     });
   }
 
-  static setupWarningBanner() {
+  static setupWarningBanner(): void {
     window.addEventListener('online', () => {
       hideWarning();
     });
@@ -61,22 +72,22 @@ export class AppInit {
     }
   }
 
-  static showError(message, duration = 5000) {
+  static showError(message: string, duration: number = 5000): void {
     showWarning(message);
     if (duration > 0) {
       setTimeout(() => hideWarning(), duration);
     }
   }
 
-  static hideError() {
+  static hideError(): void {
     hideWarning();
   }
 
-  static async getCurrentUser() {
+  static async getCurrentUser(): Promise<FirebaseUser | null> {
     const user = window.firebaseAuth.getCurrentUser();
     if (!user) {
-      await new Promise((resolve) => {
-        const unsubscribe = window.firebaseAuth.onAuthStateChanged((user) => {
+      return await new Promise((resolve) => {
+        const unsubscribe = window.firebaseAuth.onAuthStateChanged((user: FirebaseUser | null) => {
           unsubscribe();
           resolve(user);
         });
@@ -85,7 +96,7 @@ export class AppInit {
     return window.firebaseAuth.getCurrentUser();
   }
 
-  static async requireUser() {
+  static async requireUser(): Promise<FirebaseUser> {
     const user = await this.getCurrentUser();
     if (!user) {
       window.location.href = '/';
@@ -94,7 +105,7 @@ export class AppInit {
     return user;
   }
 
-  static handleError(error, userMessage = null) {
+  static handleError(error: any, userMessage: string | null = null): void {
     let message = userMessage || 'An error occurred. Please try again.';
     
     if (error.code) {

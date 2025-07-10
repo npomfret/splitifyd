@@ -2,7 +2,7 @@ import { logger } from './utils/logger.js';
 import { AppInit } from './app-init.js';
 import { apiService } from './api.js';
 
-async function handleJoinGroup() {
+async function handleJoinGroup(): Promise<void> {
     const urlParams = new URLSearchParams(window.location.search);
     const linkId = urlParams.get('linkId');
     
@@ -32,13 +32,13 @@ async function handleJoinGroup() {
     }
 }
 
-async function processJoinGroup(linkId) {
+async function processJoinGroup(linkId: string): Promise<void> {
     try {
         AppInit.showError('Joining group...', 0);
         
         const response = await apiService.joinGroupByLink(linkId);
         
-        if (response.success) {
+        if (response.success && response.data) {
             AppInit.hideError();
             sessionStorage.removeItem('pendingJoinLinkId');
             
@@ -49,15 +49,15 @@ async function processJoinGroup(linkId) {
                 window.location.href = `group-detail.html?id=${response.data.groupId}`;
             }, 1500);
         }
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Error joining group:', error);
         
-        if (error.message.includes('already a member')) {
+        if (error.message && error.message.includes('already a member')) {
             AppInit.showError('You are already a member of this group');
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
             }, 2000);
-        } else if (error.message.includes('Invalid or expired')) {
+        } else if (error.message && error.message.includes('Invalid or expired')) {
             AppInit.showError('This invite link is invalid or has expired');
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
@@ -71,7 +71,7 @@ async function processJoinGroup(linkId) {
     }
 }
 
-function showMessage(message, type = 'info') {
+function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;
