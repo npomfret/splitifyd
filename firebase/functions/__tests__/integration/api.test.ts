@@ -7,7 +7,7 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import fetch, { RequestInit } from 'node-fetch';
+// Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
@@ -92,15 +92,15 @@ async function createTestUser(userInfo: { email: string; password: string; displ
   );
 
   if (!signInResponse.ok) {
-    const error = await signInResponse.json();
+    const error = await signInResponse.json() as { error?: { message?: string } };
     throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
   }
 
-  const authData = await signInResponse.json();
+  const authData = await signInResponse.json() as { idToken: string };
   
   // We need the UID. In a real test setup, you might need to use the Admin SDK
   // to get this, but for this test, we'll just decode the token (INSECURE, FOR TESTING ONLY).
-  const decodedToken = JSON.parse(Buffer.from(authData.idToken.split('.')[1], 'base64').toString());
+  const decodedToken = JSON.parse(Buffer.from(authData.idToken.split('.')[1], 'base64').toString()) as { user_id: string };
 
   return {
     uid: decodedToken.user_id,
