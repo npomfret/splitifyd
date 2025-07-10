@@ -6,24 +6,8 @@ const path = require('path');
 
 console.log('🔥 Killing Firebase emulators...');
 
-// Kill processes by name
-const processesToKill = [
-  'firebase emulators:start',
-  'firebase',
-  'java.*firestore',
-  'java.*pubsub',
-  'java.*storage',
-  'nodemon'
-];
-
-processesToKill.forEach(processName => {
-  try {
-    execSync(`pkill -f "${processName}"`, { stdio: 'ignore' });
-    console.log(`✅ Killed processes matching: ${processName}`);
-  } catch (error) {
-    // Process not found, which is fine
-  }
-});
+// Only kill processes on specific ports (instance-specific)
+console.log('🎯 Killing only processes on this instance\'s ports...');
 
 // Read ports from firebase.json
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
