@@ -9,13 +9,23 @@
 
 import fetch, { RequestInit } from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import path from 'path';
 
-const API_BASE_URL = 'http://localhost:5001/splitifyd/us-central1/api';
+// Read emulator configuration from firebase.json
+const firebaseConfigPath = path.join(__dirname, '../../../firebase.json');
+const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+
+const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port;
+const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
+const AUTH_PORT = firebaseConfig.emulators.auth.port;
+
+const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/splitifyd/us-central1/api`;
 const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
 
 // Set emulator environment variables
-process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
-process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
+process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
 
 interface User {
   uid: string;
@@ -69,7 +79,7 @@ async function createTestUser(userInfo: { email: string; password: string; displ
 
   // Use Firebase Auth REST API to sign in
   const signInResponse = await fetch(
-    `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+    `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

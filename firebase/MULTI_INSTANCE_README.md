@@ -35,17 +35,17 @@ npm run dev:with-data
 - Hosting: http://localhost:5002
 
 ### Instance 2
-- UI: http://localhost:6000
+- UI: http://localhost:6100
 - Auth: 9199
 - Functions: 6001
-- Firestore: 8180
+- Firestore: 8480
 - Hosting: http://localhost:6002
 
 ### Instance 3
-- UI: http://localhost:7000
+- UI: http://localhost:7100
 - Auth: 9299
 - Functions: 7001
-- Firestore: 8280
+- Firestore: 8380
 - Hosting: http://localhost:7002
 
 ## How It Works

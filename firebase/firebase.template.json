@@ -57,20 +57,20 @@
   },
   "emulators": {
     "auth": {
-      "port": 9099
+      "port": {{EMULATOR_AUTH_PORT}}
     },
     "functions": {
-      "port": 5001
+      "port": {{EMULATOR_FUNCTIONS_PORT}}
     },
     "firestore": {
-      "port": 8080
+      "port": {{EMULATOR_FIRESTORE_PORT}}
     },
     "hosting": {
-      "port": 5002
+      "port": {{EMULATOR_HOSTING_PORT}}
     },
     "ui": {
       "enabled": true,
-      "port": 4000
+      "port": {{EMULATOR_UI_PORT}}
     },
     "singleProjectMode": true
   }

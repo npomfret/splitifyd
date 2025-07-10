@@ -180,7 +180,13 @@ class FirebaseConfigManager {
 
     private getLocalAuthPort(): number {
         const hostingPort = parseInt(window.location.port || '5002');
-        return hostingPort === 5002 ? 9099 : 9000 + hostingPort;
+        // Map hosting ports to auth emulator ports based on multi-instance configuration
+        switch (hostingPort) {
+            case 5002: return 9099; // Instance 1
+            case 6002: return 9199; // Instance 2
+            case 7002: return 9299; // Instance 3
+            default: return 9099;   // Default to Instance 1
+        }
     }
 
     getFormDefaults(): any {

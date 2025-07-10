@@ -4,11 +4,18 @@ const { spawn } = require('child_process');
 const { generateTestData } = require('../functions/scripts/generate-test-data');
 const http = require('http');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../functions/.env') });
+const fs = require('fs');
 
-// Get ports from environment variables
-const UI_PORT = process.env.FIREBASE_EMULATOR_UI_PORT || '4000';
-const FUNCTIONS_PORT = process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001';
+// Read ports from firebase.json
+const firebaseConfigPath = path.join(__dirname, '../firebase.json');
+if (!fs.existsSync(firebaseConfigPath)) {
+  console.error('❌ firebase.json not found. Run the build process first to generate it.');
+  process.exit(1);
+}
+
+const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+const UI_PORT = firebaseConfig.emulators.ui.port || '4000';
+const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port || '5001';
 
 console.log('🚀 Starting Firebase emulator with test data generation...\n');
 console.log(`📍 Emulator UI will be available at: http://localhost:${UI_PORT}`);
@@ -123,9 +130,28 @@ setTimeout(async () => {
   
   console.log('\n🎯 All emulators are ready!');
   
-  // Wait a bit more to ensure everything is fully initialized
-  console.log('\n⏳ Waiting for functions to fully initialize...');
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  // Now wait for API functions to be ready
+  console.log('\n⏳ Waiting for API functions to be ready...');
+  let apiAttempts = 0;
+  const maxApiAttempts = 30;
+  let apiReady = false;
+  
+  while (apiAttempts < maxApiAttempts && !apiReady) {
+    apiAttempts++;
+    console.log(`⏳ Checking API functions... (${apiAttempts}/${maxApiAttempts})`);
+    apiReady = await checkApiReady();
+    if (!apiReady) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+  
+  if (!apiReady) {
+    console.error('❌ API functions failed to become ready within timeout');
+    console.error('This may indicate an issue with function deployment or configuration');
+    return;
+  }
+  
+  console.log('\n🎯 API functions are ready!');
   
   try {
     console.log('\n🎲 Generating test data...');

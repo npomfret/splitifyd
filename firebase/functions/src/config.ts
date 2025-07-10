@@ -1,6 +1,11 @@
 import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import * as functions from 'firebase-functions';
 
+// Load environment variables from .env file for local development
+if (process.env.FUNCTIONS_EMULATOR === 'true') {
+  require('dotenv').config();
+}
+
 // Firebase Functions don't automatically set NODE_ENV=production, so we need to detect deployment
 // During build/deploy phase, environment variables might not be available yet
 const isBuildPhase = !process.env.FUNCTIONS_EMULATOR && !process.env.K_SERVICE;
@@ -53,9 +58,9 @@ export const CONFIG = {
   
   
   emulatorPorts: {
-    auth: process.env.FIREBASE_AUTH_EMULATOR_PORT ? parseInteger(process.env.FIREBASE_AUTH_EMULATOR_PORT, 'FIREBASE_AUTH_EMULATOR_PORT') : PORTS.AUTH_EMULATOR,
-    firestore: process.env.FIRESTORE_EMULATOR_PORT ? parseInteger(process.env.FIRESTORE_EMULATOR_PORT, 'FIRESTORE_EMULATOR_PORT') : PORTS.FIRESTORE_EMULATOR,
-    functions: process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT ? parseInteger(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT, 'FIREBASE_FUNCTIONS_EMULATOR_PORT') : PORTS.LOCAL_5001,
+    auth: process.env.EMULATOR_AUTH_PORT ? parseInteger(process.env.EMULATOR_AUTH_PORT, 'EMULATOR_AUTH_PORT') : PORTS.AUTH_EMULATOR,
+    firestore: process.env.EMULATOR_FIRESTORE_PORT ? parseInteger(process.env.EMULATOR_FIRESTORE_PORT, 'EMULATOR_FIRESTORE_PORT') : PORTS.FIRESTORE_EMULATOR,
+    functions: process.env.EMULATOR_FUNCTIONS_PORT ? parseInteger(process.env.EMULATOR_FUNCTIONS_PORT, 'EMULATOR_FUNCTIONS_PORT') : PORTS.LOCAL_5001,
   },
   
   firebase: {
@@ -101,6 +106,15 @@ export const CONFIG = {
 // Configure emulators for development
 export function configureEmulators() {
   if (!ENV_IS_PRODUCTION && process.env.FUNCTIONS_EMULATOR === 'true') {
+    
+    // Debug: Log environment variables
+    functions.logger.info('Environment variables debug', {
+      EMULATOR_AUTH_PORT: process.env.EMULATOR_AUTH_PORT,
+      EMULATOR_FIRESTORE_PORT: process.env.EMULATOR_FIRESTORE_PORT,
+      calculatedAuthPort: CONFIG.emulatorPorts.auth,
+      calculatedFirestorePort: CONFIG.emulatorPorts.firestore,
+    });
+    
     process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.auth}`;
     process.env.FIRESTORE_EMULATOR_HOST = `localhost:${CONFIG.emulatorPorts.firestore}`;
     
