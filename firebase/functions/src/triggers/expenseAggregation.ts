@@ -33,9 +33,12 @@ const recalculateGroupStats = async (groupId: string): Promise<void> => {
   });
 };
 
-export const onExpenseCreateV5 = functions.firestore
+export const onExpenseCreateV5 = functions
+  .region('us-central1')
+  .runWith({ memory: '256MB' })
+  .firestore
   .document('expenses/{expenseId}')
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snapshot, _context) => {
     const expense = snapshot.data();
     const groupId = expense.groupId;
     
@@ -54,9 +57,12 @@ export const onExpenseCreateV5 = functions.firestore
     }
   });
 
-export const onExpenseUpdateV5 = functions.firestore
+export const onExpenseUpdateV5 = functions
+  .region('us-central1')
+  .runWith({ memory: '256MB' })
+  .firestore
   .document('expenses/{expenseId}')
-  .onUpdate(async (change, context) => {
+  .onUpdate(async (change, _context) => {
     const beforeData = change.before.data();
     const afterData = change.after.data();
     
@@ -76,9 +82,12 @@ export const onExpenseUpdateV5 = functions.firestore
     }
   });
 
-export const onExpenseDeleteV5 = functions.firestore
+export const onExpenseDeleteV5 = functions
+  .region('us-central1')
+  .runWith({ memory: '256MB' })
+  .firestore
   .document('expenses/{expenseId}')
-  .onDelete(async (snapshot, context) => {
+  .onDelete(async (snapshot, _context) => {
     const expense = snapshot.data();
     const groupId = expense.groupId;
     

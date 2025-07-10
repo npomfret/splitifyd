@@ -2,9 +2,12 @@ import * as functions from 'firebase-functions/v1';
 import { updateGroupBalances } from '../services/balanceCalculator';
 import { logger } from '../logger';
 
-export const onExpenseWrite = functions.firestore
+export const onExpenseWrite = functions
+    .region('us-central1')
+    .runWith({ memory: '256MB' })
+    .firestore
     .document('expenses/{expenseId}')
-    .onWrite(async (change: any, context: any) => {
+    .onWrite(async (change, context) => {
         const expenseId = context.params.expenseId;
         
         let groupId: string | null = null;

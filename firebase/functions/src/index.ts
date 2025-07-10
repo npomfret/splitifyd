@@ -222,7 +222,8 @@ export const api = onRequest({
   invoker: 'public', // Allow unauthenticated access for CORS and public endpoints
   maxInstances: 100,
   timeoutSeconds: 540, // 9 minutes
-  region: 'us-central1'
+  region: 'us-central1',
+  memory: '512MiB' // Optimized for API workload with authentication and database operations
 }, app);
 
 // Export Firestore triggers
