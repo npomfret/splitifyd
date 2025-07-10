@@ -3,28 +3,25 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && tsc && cp -r src/* dist/ && find dist -name '*.ts' -delete",
-    "test": "jest --config jest.config.js",
-    "prepare": "husky install"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "tsc --noEmit",
-      "git add"
-    ]
+    "build": "rm -rf dist && mkdir -p dist && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public dist/ && esbuild src/js/landing.js --bundle --outfile=dist/landing.js",
+    "test": "jest --config jest.config.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "scrollreveal": "^4.0.9",
+    "three": "^0.162.0"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
     "@types/jest": "^30.0.0",
+    "@types/scrollreveal": "^0.0.11",
     "babel-jest": "^30.0.4",
-    "husky": "^9.1.7",
+    "esbuild": "^0.20.2",
     "jest": "^30.0.4",
-    "lint-staged": "^16.1.2",
-    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   }
 }
