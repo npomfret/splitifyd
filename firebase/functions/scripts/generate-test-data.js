@@ -2,12 +2,17 @@
 
 const admin = require('firebase-admin');
 
+// Get emulator ports from environment or use defaults
+const FUNCTIONS_PORT = process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT || '5001';
+const FIRESTORE_PORT = process.env.FIREBASE_FIRESTORE_EMULATOR_PORT || '8080';
+const AUTH_PORT = process.env.FIREBASE_AUTH_EMULATOR_PORT || '9099';
+
 // API base URL
-const API_BASE_URL = 'http://localhost:5001/splitifyd/us-central1/api';
+const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/splitifyd/us-central1/api`;
 
 // Set emulator environment variables before initializing
-process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
-process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
+process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
 
 // Initialize Firebase Admin for emulator (only for getting user info after creation)
 admin.initializeApp({

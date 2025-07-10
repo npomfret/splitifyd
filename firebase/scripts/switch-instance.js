@@ -27,6 +27,9 @@ try {
   // Load the new config to show the ports
   require('dotenv').config({ path: targetPath });
   
+  // Regenerate firebase.json with the new ports
+  require('./generate-firebase-config.js');
+  
   console.log('\n📍 Emulator ports for this instance:');
   console.log(`  - UI: ${process.env.FIREBASE_EMULATOR_UI_PORT}`);
   console.log(`  - Auth: ${process.env.FIREBASE_AUTH_EMULATOR_PORT}`);
