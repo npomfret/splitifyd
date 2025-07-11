@@ -13,6 +13,7 @@ import type {
 } from './types/auth.js';
 
 const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
+const USER_ID_KEY = 'userId';
 
 const validateInput: ValidatorMap = {
     email: (value: string): string => {
@@ -238,7 +239,7 @@ class AuthManager {
             this.setToken(idToken);
             
             // Store user ID for client-side operations
-            localStorage.setItem('userId', userCredential.user.uid);
+            this.setUserId(userCredential.user.uid);
             
             window.location.href = 'dashboard.html';
             
@@ -313,7 +314,7 @@ class AuthManager {
             this.setToken(idToken);
             
             // Store user ID for client-side operations
-            localStorage.setItem('userId', userCredential.user.uid);
+            this.setUserId(userCredential.user.uid);
             
             // Skip user document creation for now - can be done on first dashboard load
             logger.log('Registration successful, redirecting to dashboard');
@@ -439,10 +440,22 @@ class AuthManager {
         return this.token;
     }
 
+    getUserId(): string | null {
+        return localStorage.getItem(USER_ID_KEY);
+    }
+
+    setUserId(userId: string): void {
+        localStorage.setItem(USER_ID_KEY, userId);
+    }
+
+    clearUserId(): void {
+        localStorage.removeItem(USER_ID_KEY);
+    }
+
     clearToken(): void {
         this.token = null;
         localStorage.removeItem(AUTH_TOKEN_KEY);
-        localStorage.removeItem('userId');
+        this.clearUserId();
     }
 
     isAuthenticated(): boolean {

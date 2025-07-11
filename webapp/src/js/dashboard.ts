@@ -1,5 +1,6 @@
 import { clearElement } from './utils/safe-dom.js';
 import { GroupsList } from './groups.js';
+import { authManager } from './auth.js';
 
 interface MetaElement {
   tag: string;
@@ -94,9 +95,7 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     const logoutButton = document.getElementById('logoutButton') as HTMLButtonElement;
     if (logoutButton) {
       logoutButton.addEventListener('click', (): void => {
-        localStorage.removeItem('splitifyd_auth_token');
-        localStorage.removeItem('userId');
-        window.location.href = '/login.html';
+        authManager.logout();
       });
     }
 
