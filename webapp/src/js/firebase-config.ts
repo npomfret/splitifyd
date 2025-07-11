@@ -36,6 +36,10 @@ interface FirebaseAuthService {
 
 export let firebaseAuthInstance: FirebaseAuthService | null = null;
 
+export function isFirebaseInitialized(): boolean {
+    return firebaseAuthInstance !== null;
+}
+
 class FirebaseConfigManager {
     private config: FirebaseConfigManagerConfig | null = null;
     private initialized: boolean = false;

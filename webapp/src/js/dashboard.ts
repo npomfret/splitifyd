@@ -71,8 +71,6 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       <main class="dashboard-main">
         <div class="dashboard-container">
           <section class="dashboard-content">
-            <h2>Welcome to Splitifyd!</h2>
-            <p>You are successfully logged in.</p>
             <div id="groupsContainer" class="groups-container">
               <div class="loading-state" id="loadingState">
                 <p>Loading your groups...</p>

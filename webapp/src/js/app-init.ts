@@ -1,6 +1,6 @@
 import type { FirebaseUser } from './types/global';
 import { showWarning, hideWarning } from './utils/ui-messages.js';
-import { firebaseAuthInstance } from './firebase-config.js';
+import { firebaseAuthInstance, isFirebaseInitialized } from './firebase-config.js';
 
 interface AppInitConfig {
   requireAuth?: boolean;
@@ -35,12 +35,12 @@ export class AppInit {
     let attempts = 0;
     
     // Wait for firebaseAuth to be available
-    while (!firebaseAuthInstance && attempts < maxAttempts) {
+    while (!isFirebaseInitialized() && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, intervalMs));
       attempts++;
     }
     
-    if (!firebaseAuthInstance) {
+    if (!isFirebaseInitialized()) {
       throw new Error(`Firebase failed to load after ${maxAttempts * intervalMs}ms`);
     }
   }
