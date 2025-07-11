@@ -352,7 +352,7 @@ async function handleSubmit(event: Event): Promise<void> {
         category,
         paidBy,
         groupId: currentGroupId!,
-        splitType: splitMethod === 'equal' ? 'equal' : 'exact',
+        splitType: splitMethod === 'equal' ? 'equal' : (splitMethod === 'exact' ? 'exact' : 'percentage') as 'equal' | 'exact' | 'percentage',
         participants: Array.from(selectedMembers),
         splits: Object.entries(splits).map(([userId, amount]) => ({
             userId,

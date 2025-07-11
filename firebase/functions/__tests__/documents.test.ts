@@ -30,7 +30,11 @@ const mockWhere = jest.fn();
 const mockSelect = jest.fn();
 const mockOrderBy = jest.fn();
 const mockLimit = jest.fn();
-const mockTimestamp = { toDate: () => new Date('2023-01-01T00:00:00Z') };
+const mockTimestamp = { 
+  _seconds: 1672531200, // 2023-01-01T00:00:00Z
+  _nanoseconds: 0,
+  toDate: () => new Date('2023-01-01T00:00:00Z') 
+};
 
 // Mock for expenses collection
 const mockExpensesWhere = jest.fn();
@@ -142,8 +146,8 @@ describe('Document Handlers', () => {
           id: 'doc123',
           userId: 'user123',
           data: { test: 'data', nested: { value: 123 } },
-          createdAt: expect.any(Date),
-          updatedAt: expect.any(Date)
+          createdAt: expect.any(Object),
+          updatedAt: expect.any(Object)
         })
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -274,7 +278,7 @@ describe('Document Handlers', () => {
 
       expect(mockUpdate).toHaveBeenCalledWith({
         data: { updated: 'data' },
-        updatedAt: expect.any(Date)
+        updatedAt: expect.any(Object)
       });
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: 'Document updated successfully'

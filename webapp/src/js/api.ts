@@ -84,6 +84,10 @@ class ApiService {
             date = new Date(timestamp as string);
         }
         
+        if (isNaN(date.getTime())) {
+            return 'Never';
+        }
+        
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -113,9 +117,7 @@ class ApiService {
                     description: groupData.description?.trim() || '',
                     memberEmails: groupData.memberEmails || [],
                     members: [{ uid: authManager.getUserId(), name: 'You', initials: 'YO' }],
-                    yourBalance: 0,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                    yourBalance: 0
                 }
             };
 

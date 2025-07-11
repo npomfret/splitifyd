@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { Errors } from '../utils/errors';
@@ -83,8 +84,8 @@ export const createDocument = async (
     id: docRef.id,
     userId,
     data: sanitizedData,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: Timestamp.fromDate(now),
+    updatedAt: Timestamp.fromDate(now),
   };
 
   await docRef.set(document);
@@ -151,7 +152,7 @@ export const updateDocument = async (
   // Update document
   await docRef.update({
     data: sanitizedData,
-    updatedAt: new Date(),
+    updatedAt: Timestamp.now(),
   });
 
   res.json({
@@ -232,6 +233,14 @@ export const listDocuments = async (
       .slice(0, limit) // Remove the extra document used for pagination check
       .map(async (doc) => {
         const data = doc.data() as Document;
+        // Ensure timestamps are Firestore Timestamps
+        if (!data.createdAt || typeof data.createdAt !== 'object' || !('_seconds' in data.createdAt)) {
+          throw new Error(`Expected createdAt to be Firestore Timestamp, got ${typeof data.createdAt} with value: ${JSON.stringify(data.createdAt)}`);
+        }
+        if (!data.updatedAt || typeof data.updatedAt !== 'object' || !('_seconds' in data.updatedAt)) {
+          throw new Error(`Expected updatedAt to be Firestore Timestamp, got ${typeof data.updatedAt} with value: ${JSON.stringify(data.updatedAt)}`);
+        }
+
         const documentData = {
           id: doc.id,
           data: data.data,

@@ -590,4 +590,52 @@ describe('Comprehensive API Test Suite', () => {
     // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
     expect(testGroupInList.data.yourBalance).toBe(50);
   });
+
+  test('should include expense metadata in listDocuments response after creating expenses', async () => {
+    // Create a group for this test
+    const testGroup = await driver.createGroup(`Expense Metadata Test Group ${uuidv4()}`, users, users[0].token);
+    
+    // First, verify the group starts with no expense metadata
+    const initialListResponse = await driver.apiRequest('/listDocuments', 'GET', {}, users[0].token);
+    const initialGroupInList = initialListResponse.documents.find((doc: any) => doc.id === testGroup.id);
+    
+    expect(initialGroupInList).toBeDefined();
+    expect(initialGroupInList.data.expenseCount).toBeUndefined();
+    expect(initialGroupInList.data.lastExpenseTime).toBeUndefined();
+    
+    // Add an expense
+    const expenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 75);
+    await driver.createExpense(expenseData, users[0].token);
+    
+    // Wait for expense aggregation triggers to process using polling
+    const updatedGroupInList = await driver.waitForListDocumentsExpenseMetadata(testGroup.id, users[0].token, 1);
+    
+    expect(updatedGroupInList).toBeDefined();
+    
+    // Verify expense metadata is populated by triggers
+    expect(updatedGroupInList.data).toHaveProperty('expenseCount');
+    expect(updatedGroupInList.data.expenseCount).toBe(1);
+    
+    expect(updatedGroupInList.data).toHaveProperty('lastExpenseTime');
+    expect(updatedGroupInList.data.lastExpenseTime).toBeDefined();
+    expect(typeof updatedGroupInList.data.lastExpenseTime).toBe('string');
+    
+    // Verify the lastExpenseTime is a valid ISO timestamp
+    expect(new Date(updatedGroupInList.data.lastExpenseTime).getTime()).not.toBeNaN();
+    
+    // Add another expense to test count increment
+    const secondExpenseData = driver.createTestExpense(testGroup.id, users[1].uid, users.map(u => u.uid), 25);
+    await driver.createExpense(secondExpenseData, users[1].token);
+    
+    // Wait for aggregation triggers again with polling
+    const finalGroupInList = await driver.waitForListDocumentsExpenseMetadata(testGroup.id, users[0].token, 2);
+    
+    expect(finalGroupInList.data.expenseCount).toBe(2);
+    expect(finalGroupInList.data.lastExpenseTime).toBeDefined();
+    
+    // The lastExpenseTime should be updated to the more recent expense
+    const lastExpenseTime = new Date(finalGroupInList.data.lastExpenseTime);
+    const initialExpenseTime = new Date(updatedGroupInList.data.lastExpenseTime);
+    expect(lastExpenseTime.getTime()).toBeGreaterThanOrEqual(initialExpenseTime.getTime());
+  });
 });
