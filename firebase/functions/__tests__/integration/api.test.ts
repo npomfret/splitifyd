@@ -561,4 +561,33 @@ describe('Comprehensive API Test Suite', () => {
     expect(response.headers.get('X-Frame-Options')).toBeTruthy();
     expect(response.headers.get('X-XSS-Protection')).toBeTruthy();
   });
+
+  test('should include balance data in listDocuments response', async () => {
+    // Create a group and add an expense to generate balance data
+    const testGroup = await driver.createGroup(`List Balance Test Group ${uuidv4()}`, users, users[0].token);
+    
+    // Add an expense: User 0 pays 100, split equally between 2 users
+    const expenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100);
+    await driver.createExpense(expenseData, users[0].token);
+    
+    // Wait for balance calculations to complete
+    await driver.waitForBalanceUpdate(testGroup.id, users[0].token);
+    
+    // Test the listDocuments endpoint (which dashboard uses)
+    const listResponse = await driver.apiRequest('/listDocuments', 'GET', {}, users[0].token);
+    
+    expect(listResponse).toHaveProperty('documents');
+    expect(Array.isArray(listResponse.documents)).toBe(true);
+    
+    // Find our test group in the list
+    const testGroupInList = listResponse.documents.find((doc: any) => doc.id === testGroup.id);
+    expect(testGroupInList).toBeDefined();
+    
+    // Verify balance data is included
+    expect(testGroupInList.data).toHaveProperty('yourBalance');
+    expect(typeof testGroupInList.data.yourBalance).toBe('number');
+    
+    // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
+    expect(testGroupInList.data.yourBalance).toBe(50);
+  });
 });
