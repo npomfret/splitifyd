@@ -1,5 +1,6 @@
 import { clearElement } from './utils/safe-dom.js';
 import { GroupsList } from './groups.js';
+import { authManager } from './auth.js';
 
 interface MetaElement {
   tag: string;
@@ -71,8 +72,6 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       <main class="dashboard-main">
         <div class="dashboard-container">
           <section class="dashboard-content">
-            <h2>Welcome to Splitifyd!</h2>
-            <p>You are successfully logged in.</p>
             <div id="groupsContainer" class="groups-container">
               <div class="loading-state" id="loadingState">
                 <p>Loading your groups...</p>
@@ -94,9 +93,7 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     const logoutButton = document.getElementById('logoutButton') as HTMLButtonElement;
     if (logoutButton) {
       logoutButton.addEventListener('click', (): void => {
-        localStorage.removeItem('splitifyd_auth_token');
-        localStorage.removeItem('userId');
-        window.location.href = '/login.html';
+        authManager.logout();
       });
     }
 

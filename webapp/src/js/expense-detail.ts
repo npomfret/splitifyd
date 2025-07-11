@@ -29,8 +29,8 @@ async function initializeExpenseDetailPage(): Promise<void> {
     try {
         await waitForAuthManager();
         
-        if (!localStorage.getItem('userId')) {
-            localStorage.setItem('userId', 'user1');
+        if (!authManager.getUserId()) {
+            authManager.setUserId('user1');
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -56,7 +56,7 @@ async function loadExpenseDetails(expenseId: string): Promise<void> {
         
         // Use real API to get expense details
         const expense = await ExpenseService.getExpense(expenseId);
-        const user: User = { uid: localStorage.getItem('userId') || '' } as User;
+        const user: User = { uid: authManager.getUserId() || '' } as User;
 
         // Fetch group data to get member information for ID-to-name mapping
         const groupResponse = await apiService.getGroup(expense.groupId);

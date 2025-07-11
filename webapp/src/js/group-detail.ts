@@ -32,8 +32,8 @@ async function initializeGroupDetailPage(): Promise<void> {
     try {
         await waitForAuthManager();
         
-        if (!localStorage.getItem('userId')) {
-            localStorage.setItem('userId', 'user1');
+        if (!authManager.getUserId()) {
+            authManager.setUserId('user1');
         }
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -188,7 +188,7 @@ async function loadBalances(): Promise<void> {
 
 
 function displayUserBalances(balances: any, container: HTMLElement): void {
-    const currentUserId = localStorage.getItem('userId');
+    const currentUserId = authManager.getUserId();
     
     Object.values(balances).forEach((userBalance: any) => {
         const balanceCard = document.createElement('div');
@@ -233,7 +233,7 @@ function displaySimplifiedDebts(simplified: any[], container: HTMLElement): void
         return;
     }
     
-    const currentUserId = localStorage.getItem('userId');
+    const currentUserId = authManager.getUserId();
     
     simplified.forEach(debt => {
         const debtItem = document.createElement('div');
@@ -341,7 +341,7 @@ function createExpenseItem(expense: ExpenseData): HTMLElement {
     const expenseItem = document.createElement('div');
     expenseItem.className = 'expense-item';
     
-    const currentUserId = localStorage.getItem('userId');
+    const currentUserId = authManager.getUserId();
     const paidByYou = expense.paidBy === currentUserId;
     const yourSplit = expense.splits ? expense.splits.find(s => s.userId === currentUserId) : null;
     const yourShare = yourSplit ? yourSplit.amount : 0;

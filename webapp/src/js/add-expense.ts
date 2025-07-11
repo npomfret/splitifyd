@@ -27,8 +27,8 @@ async function initializeAddExpensePage(): Promise<void> {
     try {
         await waitForAuthManager();
         
-        if (!localStorage.getItem('userId')) {
-            localStorage.setItem('userId', 'user1');
+        if (!authManager.getUserId()) {
+            authManager.setUserId('user1');
         }
         
         const urlParams = new URLSearchParams(window.location.search);
@@ -91,7 +91,7 @@ async function loadGroupData(): Promise<void> {
 
 async function loadUserPreferences(): Promise<void> {
     try {
-        const currentUserId = localStorage.getItem('userId');
+        const currentUserId = authManager.getUserId();
         const response = await apiService.getGroupExpenses(currentGroupId!, 1, 0);
         
         if (response.data && response.data.length > 0) {
@@ -112,7 +112,7 @@ async function loadUserPreferences(): Promise<void> {
 
 function populatePaidByOptions(): void {
     const paidBySelect = document.getElementById('paidBy') as HTMLSelectElement;
-    const currentUserId = localStorage.getItem('userId');
+    const currentUserId = authManager.getUserId();
     
     paidBySelect.innerHTML = '<option value="">Select who paid</option>';
     
@@ -130,7 +130,7 @@ function populatePaidByOptions(): void {
 
 function populateMembers(): void {
     const membersList = document.getElementById('membersList') as HTMLElement;
-    const currentUserId = localStorage.getItem('userId');
+    const currentUserId = authManager.getUserId();
     
     membersList.innerHTML = '';
     
@@ -235,7 +235,7 @@ function updateCustomSplitInputs(): void {
     customInputs.innerHTML = '';
     
     const equalSplit = selectedMembers.size > 0 ? amount / selectedMembers.size : 0;
-    const currentUserId = localStorage.getItem('userId');
+    const currentUserId = authManager.getUserId();
     
     if (!currentGroup) return;
     

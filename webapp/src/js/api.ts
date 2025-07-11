@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { authManager } from './auth.js';
 import type { ApiResponse } from './types/global.js';
 import type {
     CreateGroupRequest,
@@ -111,7 +112,7 @@ class ApiService {
                     name: groupData.name.trim(),
                     description: groupData.description?.trim() || '',
                     memberEmails: groupData.memberEmails || [],
-                    members: [{ uid: localStorage.getItem('userId'), name: 'You', initials: 'YO' }],
+                    members: [{ uid: authManager.getUserId(), name: 'You', initials: 'YO' }],
                     yourBalance: 0,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
@@ -132,7 +133,7 @@ class ApiService {
                 lastActivity: 'Just now',
                 lastActivityRaw: new Date().toISOString(),
                 lastExpense: null,
-                members: [{ uid: localStorage.getItem('userId') || '', name: 'You', initials: 'YO' }],
+                members: [{ uid: authManager.getUserId() || '', name: 'You', initials: 'YO' }],
                 expenseCount: 0,
                 lastExpenseTime: null
             };
