@@ -166,13 +166,16 @@ export class GroupsList {
       nameElement.appendChild(expenseCountSpan);
     }
 
-    const balanceElement = createElementSafe('div', { 
-      className: `group-card__balance ${balanceClass}`,
-      textContent: `$${Math.abs(group.yourBalance).toFixed(2)}`
-    });
-
     header.appendChild(nameElement);
-    header.appendChild(balanceElement);
+    
+    // Only show balance element if it's not zero
+    if (group.yourBalance !== 0) {
+      const balanceElement = createElementSafe('div', { 
+        className: `group-card__balance ${balanceClass}`,
+        textContent: `$${Math.abs(group.yourBalance).toFixed(2)}`
+      });
+      header.appendChild(balanceElement);
+    }
 
     const membersSection = createElementSafe('div', { className: 'group-card__members' });
     const membersPreview = createElementSafe('div', { className: 'members-preview' });
@@ -223,13 +226,31 @@ export class GroupsList {
     // }
 
     const footer = createElementSafe('div', { className: 'group-card__footer' });
+    
+    // Show more meaningful activity text
+    let activityText = group.lastActivity;
+    if (activityText === 'Never' || !activityText) {
+      activityText = 'No recent activity';
+    }
+    
     const activity = createElementSafe('span', {
       className: 'group-card__activity',
-      textContent: group.lastActivity
+      textContent: activityText
     });
+    
+    // Show balance status with amount
+    let balanceDisplayText = '';
+    if (group.yourBalance === 0) {
+      balanceDisplayText = 'settled up';
+    } else if (group.yourBalance > 0) {
+      balanceDisplayText = `you are owed $${Math.abs(group.yourBalance).toFixed(2)}`;
+    } else {
+      balanceDisplayText = `you owe $${Math.abs(group.yourBalance).toFixed(2)}`;
+    }
+    
     const balanceTextElement = createElementSafe('div', {
       className: `group-card__balance-text ${balanceClass}`,
-      textContent: balanceText
+      textContent: balanceDisplayText
     });
 
     footer.appendChild(activity);
@@ -283,9 +304,8 @@ export class GroupsList {
     const totalOwed = this.groups.reduce((sum, group) => sum + Math.max(0, group.yourBalance), 0);
     const totalOwe = this.groups.reduce((sum, group) => sum + Math.max(0, -group.yourBalance), 0);
 
-    const headerHtml = `
+    const summaryHtml = `
       <div class="dashboard-summary">
-        <h2 class="dashboard-summary__title">Your Groups</h2>
         <div class="dashboard-summary__balances">
           <div class="balance-summary balance-summary--positive">
             <span class="balance-summary__label">You are owed</span>
@@ -296,6 +316,12 @@ export class GroupsList {
             <span class="balance-summary__amount">$${totalOwe.toFixed(2)}</span>
           </div>
         </div>
+      </div>
+    `;
+
+    const headerHtml = `
+      <div class="groups-header">
+        <h2 class="groups-header__title">Your Groups</h2>
         <button type="button" class="button button--primary" id="createGroupBtn">
           + Create Group
         </button>
@@ -306,10 +332,17 @@ export class GroupsList {
 
     clearElement(this.container);
     
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = headerHtml;
-    this.container.appendChild(tempDiv.firstElementChild!);
+    // Add summary box
+    const tempSummaryDiv = document.createElement('div');
+    tempSummaryDiv.innerHTML = summaryHtml;
+    this.container.appendChild(tempSummaryDiv.firstElementChild!);
     
+    // Add groups header
+    const tempHeaderDiv = document.createElement('div');
+    tempHeaderDiv.innerHTML = headerHtml;
+    this.container.appendChild(tempHeaderDiv.firstElementChild!);
+    
+    // Add groups grid
     const groupsGrid = createElementSafe('div', { className: 'groups-grid' });
     const tempGroupsDiv = document.createElement('div');
     tempGroupsDiv.innerHTML = groupsHtml;
