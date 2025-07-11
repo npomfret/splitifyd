@@ -3,6 +3,7 @@ import { createElementSafe, clearElement, appendChildren } from './utils/safe-do
 import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import { ExpenseService } from './expenses.js';
+import { waitForAuthManager } from './utils/auth-utils.js';
 import type { User } from './types/global';
 import type { Member, GroupDetail } from './types/api';
 import type { ExpenseData } from './types/business-logic';
@@ -10,20 +11,6 @@ import type { ExpenseData } from './types/business-logic';
 let currentExpense: ExpenseData | null = null;
 let currentUser: User | null = null;
 let currentGroup: GroupDetail | null = null;
-
-async function waitForAuthManager(): Promise<void> {
-    const maxAttempts = 50;
-    let attempts = 0;
-    
-    while ((!authManager || !authManager.isAuthenticated()) && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    if (!authManager || !authManager.isAuthenticated()) {
-        throw new Error('Authentication manager failed to initialize or user not authenticated');
-    }
-}
 
 async function initializeExpenseDetailPage(): Promise<void> {
     try {

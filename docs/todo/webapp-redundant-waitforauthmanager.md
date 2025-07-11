@@ -1,8 +1,22 @@
-# Webapp Issue: Redundant Logic - `waitForAuthManager` Function
+# Webapp Issue: Redundant Logic - `waitForAuthManager` Function - COMPLETED
 
 ## Issue Description
 
 The `waitForAuthManager` function is repeated in `add-expense.ts`, `expense-detail.ts`, and `group-detail.ts`.
+
+## ✅ IMPLEMENTATION COMPLETED
+
+The refactoring has been successfully implemented:
+
+1. **Created `webapp/src/js/utils/auth-utils.ts`** - Centralized utility file with the shared `waitForAuthManager` function
+2. **Updated all files** to use the centralized function:
+   - `add-expense.ts` - Updated to import and use shared `waitForAuthManager`
+   - `expense-detail.ts` - Updated to import and use shared `waitForAuthManager`
+   - `group-detail.ts` - Updated to import and use shared `waitForAuthManager`
+3. **Removed duplicate functions** - All redundant function implementations were removed from individual files
+4. **Build and tests successful** - The webapp builds without errors and all tests pass (34/34)
+
+The refactoring successfully eliminated duplicate code while maintaining all existing functionality and improving code maintainability.
 
 ## Recommendation
 

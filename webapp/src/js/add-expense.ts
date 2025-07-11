@@ -2,26 +2,13 @@ import { logger } from './utils/logger.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage, showFieldError } from './utils/ui-messages.js';
+import { waitForAuthManager } from './utils/auth-utils.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;
 let currentGroupId: string | null = null;
 let selectedMembers = new Set<string>();
 let lastExpenseData: ExpenseData | null = null;
-
-async function waitForAuthManager(): Promise<void> {
-    const maxAttempts = 50;
-    let attempts = 0;
-    
-    while ((!authManager || !authManager.isAuthenticated()) && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    if (!authManager || !authManager.isAuthenticated()) {
-        throw new Error('Authentication manager failed to initialize or user not authenticated');
-    }
-}
 
 async function initializeAddExpensePage(): Promise<void> {
     try {

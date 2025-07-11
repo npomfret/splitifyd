@@ -4,6 +4,7 @@ import { createElementSafe, clearElement } from './utils/safe-dom.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
+import { waitForAuthManager } from './utils/auth-utils.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -13,20 +14,6 @@ let expensesOffset: number = 0;
 const expensesLimit: number = 20;
 let isLoadingExpenses: boolean = false;
 let hasMoreExpenses: boolean = true;
-
-async function waitForAuthManager(): Promise<void> {
-    const maxAttempts = 50;
-    let attempts = 0;
-    
-    while ((!authManager || !authManager.isAuthenticated()) && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    if (!authManager || !authManager.isAuthenticated()) {
-        throw new Error('Authentication manager failed to initialize or user not authenticated');
-    }
-}
 
 async function initializeGroupDetailPage(): Promise<void> {
     try {
