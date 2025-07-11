@@ -4,9 +4,17 @@ import { UserBalance, simplifyDebts } from '../utils/debtSimplifier';
 import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
 
+// Initialize Firebase Admin SDK globally for reuse across invocations
+if (!admin.apps.length) {
+    admin.initializeApp();
+}
+
+// Initialize Firestore client globally for reuse across invocations
+const db = admin.firestore();
+
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });
-    const expensesSnapshot = await admin.firestore()
+    const expensesSnapshot = await db
         .collection('expenses')
         .where('groupId', '==', groupId)
         .get();
@@ -23,7 +31,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         nonDeletedExpenses: expenses.length 
     });
 
-    const groupDoc = await admin.firestore()
+    const groupDoc = await db
         .collection('documents')
         .doc(groupId)
         .get();
@@ -131,7 +139,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
 export async function updateGroupBalances(groupId: string): Promise<void> {
     const balances = await calculateGroupBalances(groupId);
     
-    await admin.firestore()
+    await db
         .collection('group-balances')
         .doc(groupId)
         .set(balances);

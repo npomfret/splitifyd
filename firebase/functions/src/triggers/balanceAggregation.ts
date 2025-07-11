@@ -1,6 +1,15 @@
 import * as functions from 'firebase-functions/v1';
+import * as admin from 'firebase-admin';
 import { updateGroupBalances } from '../services/balanceCalculator';
 import { logger } from '../logger';
+
+// Initialize Firebase Admin SDK globally for reuse across invocations
+if (!admin.apps.length) {
+    admin.initializeApp();
+}
+
+// Initialize Firestore client globally for reuse across invocations
+const db = admin.firestore();
 
 export const onExpenseWrite = functions
     .region('us-central1')
@@ -9,6 +18,7 @@ export const onExpenseWrite = functions
     .document('expenses/{expenseId}')
     .onWrite(async (change, context) => {
         const expenseId = context.params.expenseId;
+        const eventId = context.eventId;
         
         let groupId: string | null = null;
         
@@ -21,17 +31,39 @@ export const onExpenseWrite = functions
         }
         
         if (!groupId) {
-            logger.error('No groupId found for expense', { expenseId });
+            logger.error('No groupId found for expense', { expenseId, eventId });
             return;
         }
 
+        // Idempotency check using eventId to prevent duplicate processing
+        const processingDoc = db.collection('_processing_events').doc(eventId);
+        
         try {
-            await updateGroupBalances(groupId);
-            logger.info('Updated group balances', { groupId, expenseId });
+            await db.runTransaction(async (transaction) => {
+                const processingSnapshot = await transaction.get(processingDoc);
+                
+                if (processingSnapshot.exists && processingSnapshot.data()?.processed === true) {
+                    logger.info('Event already processed, skipping', { eventId, expenseId, groupId });
+                    return;
+                }
+                
+                // Mark as processing
+                transaction.set(processingDoc, { 
+                    processed: true, 
+                    expenseId, 
+                    groupId, 
+                    timestamp: admin.firestore.FieldValue.serverTimestamp() 
+                });
+                
+                // Update group balances
+                await updateGroupBalances(groupId);
+                logger.info('Updated group balances', { groupId, expenseId, eventId });
+            });
         } catch (error) {
             logger.error('Failed to update group balances', { 
                 groupId, 
                 expenseId, 
+                eventId,
                 error: error instanceof Error ? error : new Error(String(error))
             });
             throw error;
