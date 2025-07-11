@@ -1,9 +1,5 @@
-// Functions are available globally from warning-banner.js
 import type { FirebaseUser } from './types/global';
-
-// These functions are declared in global.d.ts
-declare function showWarning(message: string): void;
-declare function hideWarning(): void;
+import { showWarning, hideWarning } from './utils/ui-messages.js';
 
 interface AppInitConfig {
   requireAuth?: boolean;

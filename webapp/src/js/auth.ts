@@ -1,6 +1,7 @@
 import { logger } from './utils/logger.js';
 import { config } from './config.js';
 import { firebaseConfigManager } from './firebase-config.js';
+import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
 import type { 
     LoginCredentials, 
@@ -189,15 +190,11 @@ class AuthManager {
     }
 
     private showFieldError(input: HTMLInputElement, errorElement: HTMLElement, message: string): void {
-        input.classList.add('form-input--error');
-        errorElement.textContent = message;
-        errorElement.setAttribute('aria-live', 'polite');
+        showFieldErrorWithInput(input, errorElement, message);
     }
 
     private clearFieldError(input: HTMLInputElement, errorElement: HTMLElement): void {
-        input.classList.remove('form-input--error');
-        errorElement.textContent = '';
-        errorElement.removeAttribute('aria-live');
+        clearFieldErrorWithInput(input, errorElement);
     }
 
     private async handleLogin(event: Event): Promise<void> {
@@ -358,37 +355,11 @@ class AuthManager {
     }
 
     private showFormError(form: HTMLFormElement, message: string): void {
-        let errorContainer = form.querySelector<HTMLDivElement>('.form-error--general');
-        
-        if (!errorContainer) {
-            errorContainer = document.createElement('div');
-            errorContainer.className = 'form-error form-error--general';
-            errorContainer.setAttribute('role', 'alert');
-            const submitButton = form.querySelector('button');
-            if (submitButton) {
-                form.insertBefore(errorContainer, submitButton);
-            }
-        }
-        
-        errorContainer.textContent = message;
-        errorContainer.setAttribute('aria-live', 'assertive');
+        showFormError(form, message);
     }
 
     private showSuccessMessage(form: HTMLFormElement, message: string): void {
-        let successContainer = form.querySelector<HTMLDivElement>('.form-success--general');
-        
-        if (!successContainer) {
-            successContainer = document.createElement('div');
-            successContainer.className = 'form-success form-success--general';
-            successContainer.setAttribute('role', 'alert');
-            const submitButton = form.querySelector('button');
-            if (submitButton) {
-                form.insertBefore(successContainer, submitButton);
-            }
-        }
-        
-        successContainer.textContent = message;
-        successContainer.setAttribute('aria-live', 'polite');
+        showSuccessMessage(form, message);
     }
 
     private handleForgotPassword(event: Event): void {

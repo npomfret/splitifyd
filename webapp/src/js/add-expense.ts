@@ -1,6 +1,7 @@
 import { logger } from './utils/logger.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
+import { showMessage, showFieldError } from './utils/ui-messages.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;
@@ -466,33 +467,3 @@ function calculateSplits(amount: number, splitMethod: string): Record<string, nu
     return splits;
 }
 
-function showFieldError(fieldName: string, message: string): void {
-    const errorElement = document.getElementById(`${fieldName}-error`);
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-        
-        setTimeout(() => {
-            errorElement.style.display = 'none';
-        }, 5000);
-    }
-}
-
-function showMessage(message: string, type: string = 'info'): void {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message message-${type}`;
-    messageDiv.textContent = message;
-    
-    document.body.appendChild(messageDiv);
-    
-    setTimeout(() => {
-        messageDiv.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        messageDiv.classList.remove('show');
-        setTimeout(() => {
-            messageDiv.remove();
-        }, 300);
-    }, 3000);
-}

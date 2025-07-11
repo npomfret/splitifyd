@@ -3,6 +3,7 @@ import { ModalComponent } from './components/modal.js';
 import { createElementSafe, clearElement } from './utils/safe-dom.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
+import { showMessage } from './utils/ui-messages.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -649,24 +650,6 @@ function showExpenseDetails(expense: ExpenseData): void {
     window.location.href = `expense-detail.html?id=${expense.id}&return=${encodeURIComponent(window.location.pathname + window.location.search)}`;
 }
 
-function showMessage(message: string, type: string = 'info'): void {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message message-${type}`;
-    messageDiv.textContent = message;
-    
-    document.body.appendChild(messageDiv);
-    
-    setTimeout(() => {
-        messageDiv.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        messageDiv.classList.remove('show');
-        setTimeout(() => {
-            messageDiv.remove();
-        }, 300);
-    }, 3000);
-}
 
 async function showShareGroupModal(): Promise<void> {
     if (!currentGroupId) {
