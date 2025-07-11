@@ -6,6 +6,7 @@ This directory contains detailed documentation for each high-level feature of th
 (WIP) Handles user login, registration, and session management.
 [Details](user-authentication.md)
 
+
 ### Dashboard and Home Page
 (WIP) The main landing page for users, showing an overview of their finances.
 [Details](dashboard-home-page.md)
