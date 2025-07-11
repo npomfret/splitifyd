@@ -18,19 +18,23 @@ interface LogContext {
 
 export const logger = {
   debug: (message: string, context?: LogContext) => {
-    functions.logger.debug(message, context);
+    const args = context ? [context] : [];
+    functions.logger.debug(message, ...args);
   },
   
   info: (message: string, context?: LogContext) => {
-    functions.logger.info(message, context);
+    const args = context ? [context] : [];
+    functions.logger.info(message, ...args);
   },
   
   warn: (message: string, context?: LogContext) => {
-    functions.logger.warn(message, context);
+    const args = context ? [context] : [];
+    functions.logger.warn(message, ...args);
   },
   
   error: (message: string, context?: LogContext) => {
-    functions.logger.error(message, context);
+    const args = context ? [context] : [];
+    functions.logger.error(message, ...args);
   },
   
   // Request logging helper
