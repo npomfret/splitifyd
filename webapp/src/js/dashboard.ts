@@ -1,9 +1,12 @@
 import { clearElement } from './utils/safe-dom.js';
+import { GroupsList } from './groups.js';
 
 interface MetaElement {
   tag: string;
   attrs: Record<string, string>;
 }
+
+let groupsList: GroupsList | null = null;
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   try {
@@ -113,7 +116,9 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       loadScript('/js/firebase-config.js'),
       loadScript('/js/warning-banner.js')
     ]).then(() => {
-      // Scripts loaded successfully
+      // Scripts loaded successfully, now initialize groups list
+      groupsList = new GroupsList('groupsContainer');
+      groupsList.loadGroups();
     }).catch((error: Error) => {
       // Handle script loading errors
       const errorDiv = document.createElement('div');

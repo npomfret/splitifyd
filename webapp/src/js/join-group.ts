@@ -1,6 +1,7 @@
 import { logger } from './utils/logger.js';
 import { AppInit } from './app-init.js';
 import { apiService } from './api.js';
+import { showMessage } from './utils/ui-messages.js';
 
 async function handleJoinGroup(): Promise<void> {
     const urlParams = new URLSearchParams(window.location.search);
@@ -71,24 +72,6 @@ async function processJoinGroup(linkId: string): Promise<void> {
     }
 }
 
-function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message message-${type}`;
-    messageDiv.textContent = message;
-    
-    document.body.appendChild(messageDiv);
-    
-    setTimeout(() => {
-        messageDiv.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        messageDiv.classList.remove('show');
-        setTimeout(() => {
-            messageDiv.remove();
-        }, 300);
-    }, 3000);
-}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', handleJoinGroup);
