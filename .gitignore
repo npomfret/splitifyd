@@ -137,7 +137,7 @@ dist
 .pnp.*
 
 # Firebase build output
-firebase/public/
+# firebase/public/ - allowing symlink to be committed
 
 # Firebase emulator data
 firebase/emulator-data/
@@ -152,3 +152,4 @@ firebase/functions/*service-account-key.json
 # Build outputs
 webapp/dist/
 .DS_Store
+
