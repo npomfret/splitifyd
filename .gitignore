@@ -151,3 +151,4 @@ firebase/functions/*service-account-key.json
 
 # Build outputs
 webapp/dist/
+.DS_Store
