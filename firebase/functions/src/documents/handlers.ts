@@ -239,7 +239,24 @@ export const listDocuments = async (
           updatedAt: (data.updatedAt as any).toDate().toISOString(),
         };
 
-        // Expense stats are now pre-aggregated in the document data by triggers
+        // For group documents, fetch balance information
+        if (data.data?.name && data.data?.members) {
+          const balanceDoc = await admin.firestore().collection('group-balances').doc(doc.id).get();
+          if (balanceDoc.exists) {
+            const balanceData = balanceDoc.data();
+            const userBalanceData = balanceData?.userBalances?.[userId];
+            documentData.data.yourBalance = userBalanceData?.netBalance || 0;
+          } else {
+            // If no cached balance exists, calculate it
+            const { calculateGroupBalances } = await import('../services/balanceCalculator');
+            const balances = await calculateGroupBalances(doc.id);
+            const userBalanceData = balances.userBalances[userId];
+            documentData.data.yourBalance = userBalanceData?.netBalance || 0;
+            
+            // Cache the calculated balance for future requests
+            await admin.firestore().collection('group-balances').doc(doc.id).set(balances);
+          }
+        }
 
         return documentData;
       })

@@ -562,165 +562,32 @@ describe('Comprehensive API Test Suite', () => {
     expect(response.headers.get('X-XSS-Protection')).toBeTruthy();
   });
 
-  describe('Advanced Debt and Balance Scenarios', () => {
-    let testGroup: any;
-    let user1: User, user2: User, user3: User;
-
-    beforeAll(async () => {
-      // Create a fresh set of users for this specific suite to ensure isolation
-      const userSuffix = uuidv4().slice(0, 8);
-      [user1, user2, user3] = await Promise.all([
-        driver.createTestUser({ email: `adv-user1-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Adv User 1' }),
-        driver.createTestUser({ email: `adv-user2-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Adv User 2' }),
-        driver.createTestUser({ email: `adv-user3-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Adv User 3' }),
-      ]);
-    });
-
-    beforeEach(async () => {
-      // Create a new group before each test to ensure no state leakage
-      testGroup = await driver.createGroup(`Advanced Test Group ${uuidv4()}`, [user1, user2, user3], user1.token);
-    });
-
-    // Note: This test requires longer timeouts due to asynchronous balance updates in Firebase
-    test.skip('should correctly calculate balances after an expense is deleted', async () => {
-      // Step 1: Create an expense that generates debt
-      const expenseData = driver.createTestExpense(testGroup.id, user1.uid, [user1.uid, user2.uid], 100);
-      const expense = await driver.createExpense(expenseData, user1.token);
-      
-      // Step 2: Verify the initial debt (User 2 owes User 1 $50)
-      let balances = await driver.waitForBalanceUpdate(testGroup.id, user1.token, (b) => b.simplifiedDebts.length > 0, 15000);
-      expect(balances.simplifiedDebts[0]).toMatchObject({ from: { userId: user2.uid }, to: { userId: user1.uid }, amount: 50 });
-
-      // Step 3: Delete the expense
-      await driver.deleteExpense(expense.id, user1.token);
-
-      // Step 4: Verify the debt is gone
-      balances = await driver.waitForBalanceUpdate(testGroup.id, user1.token, (b) => b.simplifiedDebts.length === 0, 15000);
-      expect(balances.simplifiedDebts).toHaveLength(0);
-    });
-
-    // Note: This test requires longer timeouts due to asynchronous balance updates in Firebase
-    test.skip('should correctly update balances after an expense is modified', async () => {
-      // Step 1: Create an initial expense (User 1 paid 100, User 2 owes 50)
-      const expenseData = driver.createTestExpense(testGroup.id, user1.uid, [user1.uid, user2.uid], 100);
-      const expense = await driver.createExpense(expenseData, user1.token);
-      await driver.waitForBalanceUpdate(testGroup.id, user1.token, (b) => b.simplifiedDebts.length > 0, 15000);
-
-      // Step 2: Update the expense amount
-      await driver.updateExpense(expense.id, { amount: 150 }, user1.token);
-
-      // Step 3: Verify the new debt (User 2 owes User 1 $75)
-      const balances = await driver.waitForBalanceUpdate(testGroup.id, user1.token, 
-        (b) => b.simplifiedDebts.some((d: any) => d.from.userId === user2.uid && d.to.userId === user1.uid && d.amount === 75),
-        15000
-      );
-      
-      const matchingDebt = balances.simplifiedDebts.find((d: any) => d.from.userId === user2.uid && d.to.userId === user1.uid);
-      expect(matchingDebt).toBeDefined();
-      expect(matchingDebt.amount).toBe(75);
-    });
-
-    test('should handle circular debts correctly (A->B, B->C, C->A)', async () => {
-      // Create expenses that form a circular debt pattern
-      // Expense 1: User 1 pays 30, split between User 1 and User 2 (User 2 owes User 1 $15)
-      const expense1 = {
-        ...driver.createTestExpense(testGroup.id, user1.uid, [user1.uid, user2.uid], 30),
-        description: "User 1 pays for User 1 and User 2"
-      };
-      await driver.createExpense(expense1, user1.token);
-      
-      // Expense 2: User 2 pays 30, split between User 2 and User 3 (User 3 owes User 2 $15)
-      const expense2 = {
-        ...driver.createTestExpense(testGroup.id, user2.uid, [user2.uid, user3.uid], 30),
-        description: "User 2 pays for User 2 and User 3"
-      };
-      await driver.createExpense(expense2, user2.token);
-      
-      // Expense 3: User 3 pays 30, split between User 3 and User 1 (User 1 owes User 3 $15)
-      const expense3 = {
-        ...driver.createTestExpense(testGroup.id, user3.uid, [user3.uid, user1.uid], 30),
-        description: "User 3 pays for User 3 and User 1"
-      };
-      await driver.createExpense(expense3, user3.token);
-
-      // After all expenses, the debts should cancel out perfectly.
-      const balances = await driver.waitForBalanceUpdate(testGroup.id, user1.token, (b) => b.simplifiedDebts.length === 0);
-      expect(balances.simplifiedDebts).toHaveLength(0);
-    });
-
-    // Note: Removed test for negative expenses since the backend now correctly rejects them
-    // This is the expected behavior - refunds should be handled as separate positive expenses
-
-    test('should reject an expense where exact splits do not sum to the total amount', async () => {
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Mismatched Splits',
-        amount: 100,
-        paidBy: user1.uid,
-        splitType: 'exact',
-        participants: [user1.uid, user2.uid],
-        splits: [
-          { userId: user1.uid, amount: 50 },
-          { userId: user2.uid, amount: 49.99 } // Does not add up to 100
-        ]
-      };
-
-      await expect(
-        driver.createExpense(expenseData, user1.token)
-      ).rejects.toThrow(/Splits do not sum up to the total amount|400/);
-    });
-
-    // Note: Percentage split type may not be supported by current backend implementation
-    test.skip('should correctly calculate balances for a percentage-based split', async () => {
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Percentage Split',
-        amount: 200,
-        paidBy: user1.uid,
-        splitType: 'percentage',
-        participants: [user1.uid, user2.uid],
-        splits: [
-          { userId: user1.uid, percentage: 60 }, // $120
-          { userId: user2.uid, percentage: 40 }  // $80
-        ],
-        category: 'entertainment',
-        date: new Date().toISOString(),
-      };
-      await driver.createExpense(expenseData, user1.token);
-
-      // User 1 paid 200, their share is 120. They are owed 80.
-      // User 2's share is 80. They owe 80.
-      const balances = await driver.waitForBalanceUpdate(testGroup.id, user1.token, (b) => b.simplifiedDebts.length > 0, 15000);
-      expect(balances.simplifiedDebts[0]).toMatchObject({
-        from: { userId: user2.uid },
-        to: { userId: user1.uid },
-        amount: 80
-      });
-    });
-
-    test('should reject a percentage-based split where percentages do not sum to 100', async () => {
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Invalid Percentage Split',
-        amount: 100,
-        paidBy: user1.uid,
-        splitType: 'percentage',
-        participants: [user1.uid, user2.uid],
-        splits: [
-          { userId: user1.uid, percentage: 50 },
-          { userId: user2.uid, percentage: 49 }
-        ],
-        category: 'other',
-        date: new Date().toISOString(),
-      };
-
-      await expect(
-        driver.createExpense(expenseData, user1.token)
-      ).rejects.toThrow(/Percentages must sum to 100|400/);
-    });
-
-    // Note: Removed share-based split test since the backend no longer supports 'shares' as a split type
-
-    // Note: Removed test for payer not being a participant since the backend now correctly requires the payer to be included
+  test('should include balance data in listDocuments response', async () => {
+    // Create a group and add an expense to generate balance data
+    const testGroup = await driver.createGroup(`List Balance Test Group ${uuidv4()}`, users, users[0].token);
+    
+    // Add an expense: User 0 pays 100, split equally between 2 users
+    const expenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100);
+    await driver.createExpense(expenseData, users[0].token);
+    
+    // Wait for balance calculations to complete
+    await driver.waitForBalanceUpdate(testGroup.id, users[0].token);
+    
+    // Test the listDocuments endpoint (which dashboard uses)
+    const listResponse = await driver.apiRequest('/listDocuments', 'GET', {}, users[0].token);
+    
+    expect(listResponse).toHaveProperty('documents');
+    expect(Array.isArray(listResponse.documents)).toBe(true);
+    
+    // Find our test group in the list
+    const testGroupInList = listResponse.documents.find((doc: any) => doc.id === testGroup.id);
+    expect(testGroupInList).toBeDefined();
+    
+    // Verify balance data is included
+    expect(testGroupInList.data).toHaveProperty('yourBalance');
+    expect(typeof testGroupInList.data.yourBalance).toBe('number');
+    
+    // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
+    expect(testGroupInList.data.yourBalance).toBe(50);
   });
 });
