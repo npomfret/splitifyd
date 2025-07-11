@@ -215,29 +215,44 @@ export class ApiDriver {
     return await this.apiRequest(`/groups/balances?groupId=${groupId}`, 'GET', null, token);
   }
 
-  async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<any> {
+  async waitForBalanceUpdate(
+    groupId: string,
+    token: string,
+    predicateOrTimeout?: ((balances: any) => boolean) | number,
+    timeoutForPredicate: number = 10000,
+  ): Promise<any> {
+    const predicate =
+      typeof predicateOrTimeout === 'function'
+        ? predicateOrTimeout
+        : (balances: any) =>
+            balances.userBalances &&
+            Object.keys(balances.userBalances).length > 0 &&
+            balances.lastUpdated;
+    const timeoutMs =
+      typeof predicateOrTimeout === 'number'
+        ? predicateOrTimeout
+        : timeoutForPredicate;
+
     const startTime = Date.now();
     let lastError: Error | null = null;
-    
+
     while (Date.now() - startTime < timeoutMs) {
       try {
         const balances = await this.getGroupBalances(groupId, token);
-        
-        // Check if balances have been updated (not empty and has lastUpdated timestamp)
-        if (balances.userBalances && Object.keys(balances.userBalances).length > 0 && balances.lastUpdated) {
+        if (predicate(balances)) {
           return balances;
         }
-        
-        // Wait before next attempt
-        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
         lastError = error as Error;
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 500));
       }
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
-    
-    throw new Error(`Balance update timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+
+    throw new Error(
+      `Balance update timeout after ${timeoutMs}ms. Last error: ${
+        lastError?.message || 'Unknown'
+      }`
+    );
   }
 
   async waitForGroupStats(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
