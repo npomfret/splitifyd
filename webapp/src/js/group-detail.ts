@@ -62,7 +62,6 @@ function initializeEventListeners(): void {
     });
     
     const addExpenseBtn = document.getElementById('addExpenseBtn') as HTMLButtonElement;
-    const settleUpBtn = document.getElementById('settleUpBtn') as HTMLButtonElement;
     const inviteMembersBtn = document.getElementById('inviteMembersBtn') as HTMLButtonElement;
     const groupSettingsBtn = document.getElementById('groupSettingsBtn') as HTMLButtonElement;
     const saveGroupSettingsBtn = document.getElementById('saveGroupSettingsBtn') as HTMLButtonElement;
@@ -72,10 +71,6 @@ function initializeEventListeners(): void {
     
     addExpenseBtn.addEventListener('click', () => {
         window.location.href = `add-expense.html?groupId=${currentGroupId}`;
-    });
-    
-    settleUpBtn.addEventListener('click', () => {
-        showMessage('Settlement feature coming soon!', 'info');
     });
     
     inviteMembersBtn.addEventListener('click', async () => {
@@ -107,12 +102,9 @@ function switchTab(tabName: string): void {
     tabPane.classList.add('active');
     
     const expensesList = document.getElementById('expensesList') as HTMLElement;
-    const activityTimeline = document.getElementById('activityTimeline') as HTMLElement;
     
     if (tabName === 'expenses' && expensesList.children.length === 1) {
         loadGroupExpenses();
-    } else if (tabName === 'activity' && activityTimeline.children.length === 1) {
-        loadGroupActivity();
     }
 }
 
@@ -422,16 +414,6 @@ function loadMoreExpenses(): void {
     loadGroupExpenses();
 }
 
-async function loadGroupActivity(): Promise<void> {
-    const activityTimeline = document.getElementById('activityTimeline');
-    if (!activityTimeline) {
-        logger.error('activityTimeline element not found');
-        return;
-    }
-    activityTimeline.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
-    
-    throw new Error('Activity timeline not implemented');
-}
 
 function openGroupSettingsModal(): void {
     const modal = document.getElementById('groupSettingsModal');
