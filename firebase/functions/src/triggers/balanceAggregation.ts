@@ -28,8 +28,8 @@ export const onExpenseWrite = functions
             return;
         }
 
-        // Idempotency check using eventId to prevent duplicate processing
-        const processingDoc = db.collection('_processing_events').doc(eventId);
+        // Idempotency check using eventId with trigger name to prevent duplicate processing
+        const processingDoc = db.collection('_processing_events').doc(`${eventId}-balanceUpdate`);
         
         try {
             await db.runTransaction(async (transaction) => {

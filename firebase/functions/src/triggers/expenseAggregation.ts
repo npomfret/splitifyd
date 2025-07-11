@@ -44,21 +44,40 @@ export const onExpenseCreateV5 = functions
     const eventId = context.eventId;
     const expenseId = context.params.expenseId;
     
+    logger.info('🔥 EXPENSE CREATE TRIGGER FIRED', { 
+      eventId, 
+      expenseId, 
+      groupId,
+      expenseDescription: expense.description,
+      expenseAmount: expense.amount
+    });
+    
     if (!groupId) {
+      logger.warn('No groupId found in expense, skipping trigger', { expenseId, eventId });
       return;
     }
     
-    // Idempotency check using eventId to prevent duplicate processing
-    const processingDoc = db.collection('_processing_events').doc(eventId);
+    // Idempotency check using eventId with trigger name to prevent duplicate processing
+    const processingDoc = db.collection('_processing_events').doc(`${eventId}-expenseCreate`);
     
     try {
       await db.runTransaction(async (transaction) => {
+        logger.info('Starting transaction for expense create', { eventId, expenseId, groupId });
+        
         const processingSnapshot = await transaction.get(processingDoc);
+        logger.info('Processing snapshot check', { 
+          eventId, 
+          expenseId, 
+          exists: processingSnapshot.exists, 
+          processed: processingSnapshot.data()?.processed
+        });
         
         if (processingSnapshot.exists && processingSnapshot.data()?.processed === true) {
           logger.info('Event already processed, skipping', { eventId, expenseId, groupId });
           return;
         }
+        
+        logger.info('Processing expense create trigger', { eventId, expenseId, groupId });
         
         // Mark as processing
         transaction.set(processingDoc, { 
@@ -69,11 +88,32 @@ export const onExpenseCreateV5 = functions
         });
         
         // Update group stats
+        const lastExpenseTime = (expense.createdAt as any).toDate().toISOString();
+        logger.info('About to update group stats', { 
+          eventId, 
+          expenseId, 
+          groupId,
+          lastExpenseTime,
+          updateData: {
+            'data.expenseCount': 'increment(1)',
+            'data.lastExpenseTime': lastExpenseTime
+          }
+        });
+        
         transaction.update(db.collection('documents').doc(groupId), {
           'data.expenseCount': FieldValue.increment(1),
-          'data.lastExpenseTime': (expense.createdAt as any).toDate().toISOString()
+          'data.lastExpenseTime': lastExpenseTime
+        });
+        
+        logger.info('Successfully updated group stats', { 
+          eventId, 
+          expenseId, 
+          groupId,
+          lastExpenseTime
         });
       });
+      
+      logger.info('Transaction completed successfully', { eventId, expenseId, groupId });
     } catch (error) {
       logger.error('Failed to update group stats on expense create', { error: error as Error, groupId, eventId });
       throw error;
@@ -95,8 +135,8 @@ export const onExpenseUpdateV5 = functions
       return;
     }
     
-    // Idempotency check using eventId to prevent duplicate processing
-    const processingDoc = db.collection('_processing_events').doc(eventId);
+    // Idempotency check using eventId with trigger name to prevent duplicate processing
+    const processingDoc = db.collection('_processing_events').doc(`${eventId}-expenseUpdate`);
     
     try {
       await db.runTransaction(async (transaction) => {
@@ -149,8 +189,8 @@ export const onExpenseDeleteV5 = functions
       return;
     }
     
-    // Idempotency check using eventId to prevent duplicate processing
-    const processingDoc = db.collection('_processing_events').doc(eventId);
+    // Idempotency check using eventId with trigger name to prevent duplicate processing
+    const processingDoc = db.collection('_processing_events').doc(`${eventId}-expenseDelete`);
     
     try {
       await db.runTransaction(async (transaction) => {

@@ -90,7 +90,7 @@ export class ApiDriver {
       },
     };
 
-    if (body) {
+    if (body && method !== 'GET') {
       options.body = JSON.stringify(body);
     }
 
@@ -264,6 +264,51 @@ export class ApiDriver {
     }
     
     throw new Error(`Group stats update timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+  }
+
+  async waitForListDocumentsExpenseMetadata(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
+    const startTime = Date.now();
+    let lastError: Error | null = null;
+    
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const listResponse = await this.apiRequest('/listDocuments', 'GET', {}, token);
+        const groupInList = listResponse.documents.find((doc: any) => doc.id === groupId);
+        
+        if (groupInList && 
+            groupInList.data.expenseCount !== undefined && 
+            groupInList.data.lastExpenseTime !== undefined &&
+            (expectedExpenseCount === undefined || groupInList.data.expenseCount === expectedExpenseCount)) {
+          return groupInList;
+        }
+        
+        // Wait before next attempt
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        lastError = error as Error;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    throw new Error(`List documents expense metadata timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+  }
+
+  async clearProcessingEvents(): Promise<void> {
+    // Clear stale processing events that might interfere with triggers
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/clearProcessingEvents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.warn('Failed to clear processing events, continuing anyway');
+      }
+    } catch (error) {
+      console.warn('Failed to clear processing events, continuing anyway:', error);
+    }
   }
 
   async generateShareLink(groupId: string, token: string): Promise<{ shareableUrl: string; linkId: string }> {

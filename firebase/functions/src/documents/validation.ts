@@ -1,4 +1,5 @@
 import * as Joi from 'joi';
+import * as admin from 'firebase-admin';
 import { Errors } from '../utils/errors';
 import { CONFIG } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
@@ -12,8 +13,8 @@ export interface Document {
   id?: string;
   userId: string;
   data: any;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: admin.firestore.Timestamp;
+  updatedAt: admin.firestore.Timestamp;
 }
 
 /**

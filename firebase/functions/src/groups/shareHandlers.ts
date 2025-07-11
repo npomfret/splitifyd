@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -86,7 +87,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     
     await groupRef.update({
       'data.shareableLink': shareToken,
-      updatedAt: new Date().toISOString(),
+      updatedAt: Timestamp.now(),
     });
 
     const baseUrl = process.env.NODE_ENV === 'production' 
@@ -192,7 +193,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       'data.members': [...currentMembers, newMember],
       'data.memberEmails': [...currentEmails, userEmail],
       'data.memberIds': allMemberIds,
-      updatedAt: new Date().toISOString(),
+      updatedAt: Timestamp.now(),
     });
 
     logger.info('User joined group via share link', {
