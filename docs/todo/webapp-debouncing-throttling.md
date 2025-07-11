@@ -1,8 +1,22 @@
-# Webapp Issue: Debouncing and Throttling
+# Webapp Issue: Debouncing and Throttling - COMPLETED
 
 ## Issue Description
 
 Frequent events like search input and window resizing trigger expensive operations on every event, leading to a sluggish UI.
+
+## ✅ IMPLEMENTATION COMPLETED
+
+The debouncing and throttling utilities have been successfully implemented:
+
+1. **Created `webapp/src/js/utils/event-utils.ts`** - Added centralized `debounce` and `throttle` functions
+2. **Refactored `webapp/src/js/auth.ts`** - Replaced local debounce implementation with centralized version
+3. **Applied debouncing to `webapp/src/js/add-expense.ts`** - Added 300ms debounce to:
+   - Amount input field when updating custom split inputs
+   - Individual split amount inputs when updating total
+4. **Applied throttling to `webapp/src/js/globe.js`** - Added 100ms throttle to window resize event
+5. **Build and tests successful** - All 34 tests pass, no TypeScript errors
+
+The implementation successfully reduces UI sluggishness by limiting the rate of expensive operations during frequent events.
 
 ## Recommendation
 

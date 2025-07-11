@@ -2,6 +2,7 @@ import { logger } from './utils/logger.js';
 import { config } from './config.js';
 import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
+import { debounce } from './utils/event-utils.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
 import type { 
     LoginCredentials, 
@@ -42,13 +43,6 @@ const validateInput: ValidatorMap = {
     }
 };
 
-const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number): DebouncedFunction<T> => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    return (...args: Parameters<T>) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => fn.apply(null, args), delay);
-    };
-};
 
 class AuthManager {
     private token: string | null = null;

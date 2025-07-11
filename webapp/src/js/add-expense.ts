@@ -3,6 +3,7 @@ import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage, showFieldError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
+import { debounce } from './utils/event-utils.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;
@@ -177,7 +178,7 @@ function initializeEventListeners(): void {
         radio.addEventListener('change', handleSplitMethodChange);
     });
     
-    amountInput.addEventListener('input', updateCustomSplitInputs);
+    amountInput.addEventListener('input', debounce(updateCustomSplitInputs, 300));
 }
 
 function handleMemberToggle(event: Event): void {
@@ -241,7 +242,7 @@ function updateCustomSplitInputs(): void {
         input.min = '0';
         input.value = equalSplit.toFixed(2);
         input.dataset.memberId = memberId;
-        input.addEventListener('input', updateSplitTotal);
+        input.addEventListener('input', debounce(updateSplitTotal, 300));
         
         inputGroup.appendChild(label);
         inputGroup.appendChild(input);

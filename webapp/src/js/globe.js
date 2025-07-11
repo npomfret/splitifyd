@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { throttle } from './utils/event-utils.js';
 
 export function initGlobe() {
     const container = document.getElementById('globe-container');
@@ -50,9 +51,9 @@ export function initGlobe() {
 
     animate();
 
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', throttle(() => {
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, container.clientHeight);
-    });
+    }, 100));
 }
