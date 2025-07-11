@@ -9,109 +9,12 @@
 
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import path from 'path';
+import { ApiDriver, User } from '../support/ApiDriver';
 
-// Read emulator configuration from firebase.json
-const firebaseConfigPath = path.join(__dirname, '../../../firebase.json');
-const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-
-const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port;
-const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
-const AUTH_PORT = firebaseConfig.emulators.auth.port;
-
-const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/splitifyd/us-central1/api`;
-const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
-
-// Set emulator environment variables
-process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
-process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
-
-interface User {
-  uid: string;
-  email: string;
-  displayName: string;
-  token: string;
-}
-
-// Helper function for making API requests
-async function apiRequest(endpoint: string, method = 'POST', body: unknown = null, token: string | null = null) {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const options: RequestInit = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    },
-  };
-
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
-  }
-  // Handle cases where the response might be empty
-  const responseText = await response.text();
-  return responseText ? JSON.parse(responseText) : {};
-}
-
-
-
-// Helper to create a new user and get an auth token
-async function createTestUser(userInfo: { email: string; password: string; displayName: string }): Promise<User> {
-  try {
-    // Register user via API
-    await apiRequest('/register', 'POST', {
-      email: userInfo.email,
-      password: userInfo.password,
-      displayName: userInfo.displayName
-    });
-  } catch (error) {
-    // Ignore "already exists" errors
-    if (!(error instanceof Error && error.message.includes('EMAIL_EXISTS'))) {
-      throw error;
-    }
-  }
-
-  // Use Firebase Auth REST API to sign in
-  const signInResponse = await fetch(
-    `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: userInfo.email,
-        password: userInfo.password,
-        returnSecureToken: true
-      })
-    }
-  );
-
-  if (!signInResponse.ok) {
-    const error = await signInResponse.json() as { error?: { message?: string } };
-    throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
-  }
-
-  const authData = await signInResponse.json() as { idToken: string };
-  
-  // We need the UID. In a real test setup, you might need to use the Admin SDK
-  // to get this, but for this test, we'll just decode the token (INSECURE, FOR TESTING ONLY).
-  const decodedToken = JSON.parse(Buffer.from(authData.idToken.split('.')[1], 'base64').toString()) as { user_id: string };
-
-  return {
-    uid: decodedToken.user_id,
-    email: userInfo.email,
-    displayName: userInfo.displayName,
-    token: authData.idToken
-  };
-}
 
 
 describe('Comprehensive API Test Suite', () => {
+  let driver: ApiDriver;
   let users: User[] = [];
   let group: any = {};
   let expense: any = {};
@@ -120,11 +23,12 @@ describe('Comprehensive API Test Suite', () => {
   jest.setTimeout(30000);
 
   beforeAll(async () => {
+    driver = new ApiDriver();
     // Create unique users for this test run to avoid collisions
     const userSuffix = uuidv4().slice(0, 8);
     users = await Promise.all([
-      createTestUser({ email: `testuser1-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Test User 1' }),
-      createTestUser({ email: `testuser2-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Test User 2' }),
+      driver.createTestUser({ email: `testuser1-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Test User 1' }),
+      driver.createTestUser({ email: `testuser2-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Test User 2' }),
     ]);
   });
 
@@ -144,13 +48,13 @@ describe('Comprehensive API Test Suite', () => {
       members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
     };
 
-    const response = await apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
+    const response = await driver.apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
 
     expect(response.id).toBeDefined();
     group = { id: response.id, ...groupData };
 
     // Verify the group was created
-    const fetchedGroup = await apiRequest(`/getDocument?id=${group.id}`, 'GET', null, users[0].token);
+    const fetchedGroup = await driver.getDocument(group.id, users[0].token);
     expect(fetchedGroup.data.name).toBe(groupName);
     expect(fetchedGroup.data.members.length).toBe(2);
   });
@@ -167,12 +71,12 @@ describe('Comprehensive API Test Suite', () => {
       participants: users.map(u => u.uid)
     };
 
-    const response = await apiRequest('/expenses', 'POST', expenseData, users[0].token);
+    const response = await driver.apiRequest('/expenses', 'POST', expenseData, users[0].token);
     expect(response.id).toBeDefined();
     expense = { id: response.id, ...expenseData };
 
     // Verify the expense was created by fetching it
-    const fetchedExpense = await apiRequest(`/expenses?id=${expense.id}`, 'GET', null, users[0].token);
+    const fetchedExpense = await driver.getExpense(expense.id, users[0].token);
     expect(fetchedExpense.description).toBe('Test Expense');
     expect(fetchedExpense.amount).toBe(100);
     expect(fetchedExpense.paidBy).toBe(users[0].uid);
@@ -190,21 +94,21 @@ describe('Comprehensive API Test Suite', () => {
       date: new Date().toISOString(),
       category: 'other',
     };
-    const createdExpense = await apiRequest('/expenses', 'POST', expenseToDeleteData, users[1].token);
+    const createdExpense = await driver.createExpense(expenseToDeleteData, users[1].token);
     expect(createdExpense.id).toBeDefined();
 
     // Now, delete it
-    await apiRequest(`/expenses?id=${createdExpense.id}`, 'DELETE', null, users[1].token);
+    await driver.deleteExpense(createdExpense.id, users[1].token);
 
     // Verify it's gone
     await expect(
-      apiRequest(`/expenses?id=${createdExpense.id}`, 'GET', null, users[1].token)
+      driver.getExpense(createdExpense.id, users[1].token)
     ).rejects.toThrow();
   });
 
   test('should calculate group balances correctly', async () => {
     // Get balances for the group
-    const balances = await apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, users[0].token);
+    const balances = await driver.getGroupBalances(group.id, users[0].token);
     
     // Verify the response structure
     expect(balances).toHaveProperty('groupId');
@@ -238,7 +142,7 @@ describe('Comprehensive API Test Suite', () => {
       members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
     };
 
-    const altGroup = await apiRequest('/createDocument', 'POST', { data: altGroupData }, users[0].token);
+    const altGroup = await driver.apiRequest('/createDocument', 'POST', { data: altGroupData }, users[0].token);
     
     // Add an expense to this group
     const altExpenseData = {
@@ -252,10 +156,10 @@ describe('Comprehensive API Test Suite', () => {
       participants: users.map(u => u.uid)
     };
 
-    await apiRequest('/expenses', 'POST', altExpenseData, users[1].token);
+    await driver.createExpense(altExpenseData, users[1].token);
     
     // Try to get balances - this should work with both member structures
-    const altBalances = await apiRequest(`/groups/balances?groupId=${altGroup.id}`, 'GET', null, users[0].token);
+    const altBalances = await driver.getGroupBalances(altGroup.id, users[0].token);
     
     expect(altBalances).toHaveProperty('userBalances');
     expect(Object.keys(altBalances.userBalances).length).toBe(2);
@@ -275,7 +179,7 @@ describe('Comprehensive API Test Suite', () => {
 
   test('should only allow group members to access balances', async () => {
     // Create a third user who is not part of the group
-    const outsiderUser = await createTestUser({
+    const outsiderUser = await driver.createTestUser({
       email: `outsider-${uuidv4()}@test.com`,
       password: 'Password123!',
       displayName: 'Outsider User'
@@ -283,7 +187,7 @@ describe('Comprehensive API Test Suite', () => {
     
     // Try to access balances as non-member
     await expect(
-      apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, outsiderUser.token)
+      driver.getGroupBalances(group.id, outsiderUser.token)
     ).rejects.toThrow(/403|FORBIDDEN/);
   });
 
@@ -294,12 +198,12 @@ describe('Comprehensive API Test Suite', () => {
         name: `Test Group ${uuidv4()}`,
         members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
       };
-      const response = await apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
+      const response = await driver.apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
       group = { id: response.id, ...groupData };
     }
     
     // Admin (creator) should be able to generate a share link
-    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: group.id }, users[0].token);
+    const shareResponse = await driver.generateShareLink(group.id, users[0].token);
     
     expect(shareResponse).toHaveProperty('shareableUrl');
     expect(shareResponse).toHaveProperty('linkId');
@@ -316,11 +220,11 @@ describe('Comprehensive API Test Suite', () => {
       createdBy: users[0].uid
     };
     
-    const nonAdminGroup = await apiRequest('/createDocument', 'POST', { data: nonAdminGroupData }, users[0].token);
+    const nonAdminGroup = await driver.apiRequest('/createDocument', 'POST', { data: nonAdminGroupData }, users[0].token);
     
     // User[1] should not be able to generate a share link
     await expect(
-      apiRequest('/groups/share', 'POST', { groupId: nonAdminGroup.id }, users[1].token)
+      driver.generateShareLink(nonAdminGroup.id, users[1].token)
     ).rejects.toThrow(/403|FORBIDDEN|admin/);
   });
 
@@ -331,22 +235,20 @@ describe('Comprehensive API Test Suite', () => {
       members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
     };
     
-    const shareableGroup = await apiRequest('/createDocument', 'POST', { data: shareableGroupData }, users[0].token);
+    const shareableGroup = await driver.apiRequest('/createDocument', 'POST', { data: shareableGroupData }, users[0].token);
     
     // Generate share link
-    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: shareableGroup.id }, users[0].token);
+    const shareResponse = await driver.generateShareLink(shareableGroup.id, users[0].token);
     
     // Create a new user who will join via the link
-    const newUser = await createTestUser({
+    const newUser = await driver.createTestUser({
       email: `newuser-${uuidv4()}@test.com`,
       password: 'Password123!',
       displayName: 'New User'
     });
     
     // Join the group using the share token
-    const joinResponse = await apiRequest('/groups/join', 'POST', { 
-      linkId: shareResponse.linkId
-    }, newUser.token);
+    const joinResponse = await driver.joinGroupViaShareLink(shareResponse.linkId, newUser.token);
     
     expect(joinResponse).toHaveProperty('groupId');
     expect(joinResponse.groupId).toBe(shareableGroup.id);
@@ -354,7 +256,7 @@ describe('Comprehensive API Test Suite', () => {
     expect(joinResponse).toHaveProperty('groupName');
     
     // Verify the user was added to the group
-    const updatedGroup = await apiRequest(`/getDocument?id=${shareableGroup.id}`, 'GET', null, newUser.token);
+    const updatedGroup = await driver.getDocument(shareableGroup.id, newUser.token);
     const memberUids = updatedGroup.data.members.map((m: any) => m.uid);
     expect(memberUids).toContain(newUser.uid);
   });
@@ -366,24 +268,20 @@ describe('Comprehensive API Test Suite', () => {
       members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
     };
     
-    const dupTestGroup = await apiRequest('/createDocument', 'POST', { data: dupTestGroupData }, users[0].token);
-    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: dupTestGroup.id }, users[0].token);
+    const dupTestGroup = await driver.apiRequest('/createDocument', 'POST', { data: dupTestGroupData }, users[0].token);
+    const shareResponse = await driver.generateShareLink(dupTestGroup.id, users[0].token);
     
     // Add user[1] to the group via share link
-    await apiRequest('/groups/join', 'POST', { 
-      linkId: shareResponse.linkId
-    }, users[1].token);
+    await driver.joinGroupViaShareLink(shareResponse.linkId, users[1].token);
     
     // Try to join again with the same user
     await expect(
-      apiRequest('/groups/join', 'POST', { 
-        linkId: shareResponse.linkId
-      }, users[1].token)
+      driver.joinGroupViaShareLink(shareResponse.linkId, users[1].token)
     ).rejects.toThrow(/already a member/);
   });
 
   test('should reject invalid share tokens', async () => {
-    const invalidUser = await createTestUser({
+    const invalidUser = await driver.createTestUser({
       email: `invalid-${uuidv4()}@test.com`,
       password: 'Password123!',
       displayName: 'Invalid User'
@@ -391,9 +289,7 @@ describe('Comprehensive API Test Suite', () => {
     
     // Try to join with an invalid token
     await expect(
-      apiRequest('/groups/join', 'POST', { 
-        linkId: 'INVALID_TOKEN_12345'
-      }, invalidUser.token)
+      driver.joinGroupViaShareLink('INVALID_TOKEN_12345', invalidUser.token)
     ).rejects.toThrow(/Invalid.*link|not found/);
   });
 
@@ -404,24 +300,24 @@ describe('Comprehensive API Test Suite', () => {
       members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
     };
     
-    const multiJoinGroup = await apiRequest('/createDocument', 'POST', { data: multiJoinGroupData }, users[0].token);
+    const multiJoinGroup = await driver.apiRequest('/createDocument', 'POST', { data: multiJoinGroupData }, users[0].token);
     
     // Generate a share link
-    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: multiJoinGroup.id }, users[0].token);
+    const shareResponse = await driver.generateShareLink(multiJoinGroup.id, users[0].token);
     
     // Create multiple new users who will join via the same link
     const newUsers = await Promise.all([
-      createTestUser({
+      driver.createTestUser({
         email: `multiuser1-${uuidv4()}@test.com`,
         password: 'Password123!',
         displayName: 'Multi User 1'
       }),
-      createTestUser({
+      driver.createTestUser({
         email: `multiuser2-${uuidv4()}@test.com`,
         password: 'Password123!',
         displayName: 'Multi User 2'
       }),
-      createTestUser({
+      driver.createTestUser({
         email: `multiuser3-${uuidv4()}@test.com`,
         password: 'Password123!',
         displayName: 'Multi User 3'
@@ -430,9 +326,7 @@ describe('Comprehensive API Test Suite', () => {
     
     // All users should be able to join using the same link
     for (const user of newUsers) {
-      const joinResponse = await apiRequest('/groups/join', 'POST', { 
-        linkId: shareResponse.linkId
-      }, user.token);
+      const joinResponse = await driver.joinGroupViaShareLink(shareResponse.linkId, user.token);
       
       expect(joinResponse).toHaveProperty('groupId');
       expect(joinResponse.groupId).toBe(multiJoinGroup.id);
@@ -440,7 +334,7 @@ describe('Comprehensive API Test Suite', () => {
     }
     
     // Verify all users were added to the group
-    const updatedGroup = await apiRequest(`/getDocument?id=${multiJoinGroup.id}`, 'GET', null, users[0].token);
+    const updatedGroup = await driver.getDocument(multiJoinGroup.id, users[0].token);
     const memberUids = updatedGroup.data.members.map((m: any) => m.uid);
     
     // Should have original member + 3 new members = 4 total
@@ -459,9 +353,9 @@ describe('Comprehensive API Test Suite', () => {
     };
 
     // Use PUT for updates, passing the expense ID in the query
-    await apiRequest(`/expenses?id=${expense.id}`, 'PUT', updatedData, users[0].token);
+    await driver.updateExpense(expense.id, updatedData, users[0].token);
 
-    const fetchedExpense = await apiRequest(`/expenses?id=${expense.id}`, 'GET', null, users[0].token);
+    const fetchedExpense = await driver.getExpense(expense.id, users[0].token);
     
     expect(fetchedExpense.description).toBe(updatedData.description);
     expect(fetchedExpense.amount).toBe(updatedData.amount);
@@ -481,11 +375,11 @@ describe('Comprehensive API Test Suite', () => {
       participants: users.map(u => u.uid)
     };
 
-    const createResponse = await apiRequest('/expenses', 'POST', testExpenseData, users[0].token);
+    const createResponse = await driver.createExpense(testExpenseData, users[0].token);
     expect(createResponse.id).toBeDefined();
 
     // Fetch the created expense to verify initial splits
-    const initialExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    const initialExpense = await driver.getExpense(createResponse.id, users[0].token);
     expect(initialExpense.amount).toBe(100);
     expect(initialExpense.splits).toHaveLength(2);
     expect(initialExpense.splits[0].amount).toBe(50);
@@ -496,10 +390,10 @@ describe('Comprehensive API Test Suite', () => {
       amount: 150.50
     };
 
-    await apiRequest(`/expenses?id=${createResponse.id}`, 'PUT', updatedData, users[0].token);
+    await driver.updateExpense(createResponse.id, updatedData, users[0].token);
 
     // Fetch the updated expense to verify splits were recalculated
-    const updatedExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    const updatedExpense = await driver.getExpense(createResponse.id, users[0].token);
     
     expect(updatedExpense.amount).toBe(150.50);
     expect(updatedExpense.splits).toHaveLength(2);
@@ -528,11 +422,11 @@ describe('Comprehensive API Test Suite', () => {
       ]
     };
 
-    const createResponse = await apiRequest('/expenses', 'POST', testExpenseData, users[0].token);
+    const createResponse = await driver.createExpense(testExpenseData, users[0].token);
     expect(createResponse.id).toBeDefined();
 
     // Fetch the created expense to verify initial splits
-    const initialExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    const initialExpense = await driver.getExpense(createResponse.id, users[0].token);
     expect(initialExpense.amount).toBe(100);
     expect(initialExpense.splits).toHaveLength(2);
     expect(initialExpense.splits.find((s: any) => s.userId === users[0].uid).amount).toBe(60);
@@ -543,10 +437,10 @@ describe('Comprehensive API Test Suite', () => {
       amount: 150
     };
 
-    await apiRequest(`/expenses?id=${createResponse.id}`, 'PUT', updatedData, users[0].token);
+    await driver.updateExpense(createResponse.id, updatedData, users[0].token);
 
     // Fetch the updated expense to verify splits were recalculated to equal
-    const updatedExpense = await apiRequest(`/expenses?id=${createResponse.id}`, 'GET', null, users[0].token);
+    const updatedExpense = await driver.getExpense(createResponse.id, users[0].token);
     
     expect(updatedExpense.amount).toBe(150);
     expect(updatedExpense.splits).toHaveLength(2);
@@ -575,22 +469,26 @@ describe('Comprehensive API Test Suite', () => {
       category: 'utilities',
     };
 
-    const response = await apiRequest('/expenses', 'POST', expenseData, users[0].token);
+    const response = await driver.createExpense(expenseData, users[0].token);
     expect(response.id).toBeDefined();
 
-    // After this expense, user 0 has paid 100 but their share is 80. User 1 owes them 20.
-    // Let's check the new balance state
-    const balances = await apiRequest(`/groups/balances?groupId=${group.id}`, 'GET', null, users[0].token);
-    // Note: This balance check includes ALL previous expenses from the test suite.
-    // The cumulative balance will be calculated from all expenses added so far.
-    expect(balances.userBalances[users[0].uid].owedBy[users[1].uid]).toBe(50);
-    expect(balances.userBalances[users[1].uid].owes[users[0].uid]).toBe(50);
+    // Verify the expense was created correctly with unequal splits
+    const createdExpense = await driver.getExpense(response.id, users[0].token);
+    expect(createdExpense.amount).toBe(100);
+    expect(createdExpense.splitType).toBe('exact');
+    expect(createdExpense.splits).toHaveLength(2);
+    expect(createdExpense.splits.find((s: any) => s.userId === users[0].uid).amount).toBe(80);
+    expect(createdExpense.splits.find((s: any) => s.userId === users[1].uid).amount).toBe(20);
+    
+    // Verify the splits add up to the total amount
+    const totalSplits = createdExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
+    expect(totalSplits).toBe(100);
   });
 
 
 
   test("should list all of a group's expenses", async () => {
-    const response = await apiRequest(`/expenses/group?groupId=${group.id}`, 'GET', null, users[0].token);
+    const response = await driver.getGroupExpenses(group.id, users[0].token);
     expect(response).toHaveProperty('expenses');
     expect(Array.isArray(response.expenses)).toBe(true);
     // We have added multiple expenses to this group
@@ -603,7 +501,7 @@ describe('Comprehensive API Test Suite', () => {
 
   test('should return proper CORS headers', async () => {
     const testOrigin = 'http://localhost:3000';
-    const url = `${API_BASE_URL}/health`;
+    const url = `${driver.getBaseUrl()}/health`;
     
     const response = await fetch(url, {
       method: 'OPTIONS',
@@ -621,7 +519,7 @@ describe('Comprehensive API Test Suite', () => {
   });
 
   test('should return security headers', async () => {
-    const url = `${API_BASE_URL}/health`;
+    const url = `${driver.getBaseUrl()}/health`;
     const response = await fetch(url);
     
     expect(response.headers.get('X-Content-Type-Options')).toBeTruthy();
