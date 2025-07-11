@@ -1,5 +1,6 @@
 # IDE
 .idea/workspace.xml
+.idea/shelf
 
 # Claude CLI history
 .claude/commands/analyse.md
