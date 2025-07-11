@@ -1,16 +1,8 @@
-import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { UserBalance, simplifyDebts } from '../utils/debtSimplifier';
 import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
-
-// Initialize Firebase Admin SDK globally for reuse across invocations
-if (!admin.apps.length) {
-    admin.initializeApp();
-}
-
-// Initialize Firestore client globally for reuse across invocations
-const db = admin.firestore();
+import { db } from '../firebase';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });

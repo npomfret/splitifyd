@@ -1,15 +1,7 @@
 import * as functions from 'firebase-functions/v1';
-import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
-
-// Initialize Firebase Admin SDK globally for reuse across invocations
-if (!admin.apps.length) {
-    admin.initializeApp();
-}
-
-// Initialize Firestore client globally for reuse across invocations
-const db = admin.firestore();
+import { db } from '../firebase';
 
 const recalculateGroupStats = async (groupId: string): Promise<void> => {
   const expensesCollection = db.collection('expenses');
@@ -73,7 +65,7 @@ export const onExpenseCreateV5 = functions
           processed: true, 
           expenseId, 
           groupId, 
-          timestamp: admin.firestore.FieldValue.serverTimestamp() 
+          timestamp: FieldValue.serverTimestamp() 
         });
         
         // Update group stats
@@ -121,7 +113,7 @@ export const onExpenseUpdateV5 = functions
           expenseId,
           beforeGroupId: beforeData.groupId,
           afterGroupId: afterData.groupId,
-          timestamp: admin.firestore.FieldValue.serverTimestamp() 
+          timestamp: FieldValue.serverTimestamp() 
         });
       });
       
@@ -174,7 +166,7 @@ export const onExpenseDeleteV5 = functions
           processed: true, 
           expenseId, 
           groupId, 
-          timestamp: admin.firestore.FieldValue.serverTimestamp() 
+          timestamp: FieldValue.serverTimestamp() 
         });
       });
       

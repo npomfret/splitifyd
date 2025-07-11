@@ -1,5 +1,4 @@
 import { onRequest } from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
 import express from 'express';
 import { authenticate } from './auth/middleware';
 import { register } from './auth/handlers';
@@ -30,10 +29,7 @@ import { onExpenseCreateV5, onExpenseUpdateV5, onExpenseDeleteV5 } from './trigg
 import { onExpenseWrite } from './triggers/balanceAggregation';
 import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
-
-// Firebase Admin initialization (emulators auto-configured in config.ts)
-
-admin.initializeApp();
+import { admin } from './firebase';
 
 // Test emulator connections when running locally
 if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {

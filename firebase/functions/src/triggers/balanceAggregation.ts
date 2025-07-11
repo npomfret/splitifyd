@@ -1,15 +1,8 @@
 import * as functions from 'firebase-functions/v1';
-import * as admin from 'firebase-admin';
 import { updateGroupBalances } from '../services/balanceCalculator';
 import { logger } from '../logger';
-
-// Initialize Firebase Admin SDK globally for reuse across invocations
-if (!admin.apps.length) {
-    admin.initializeApp();
-}
-
-// Initialize Firestore client globally for reuse across invocations
-const db = admin.firestore();
+import { db } from '../firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export const onExpenseWrite = functions
     .region('us-central1')
@@ -52,7 +45,7 @@ export const onExpenseWrite = functions
                     processed: true, 
                     expenseId, 
                     groupId, 
-                    timestamp: admin.firestore.FieldValue.serverTimestamp() 
+                    timestamp: FieldValue.serverTimestamp() 
                 });
                 
                 // Update group balances
