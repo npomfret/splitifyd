@@ -192,6 +192,28 @@ function setupEventListeners(): void {
     editBtn.addEventListener('click', editExpense);
     deleteBtn.addEventListener('click', showDeleteModal);
     confirmBtn.addEventListener('click', deleteExpense);
+    
+    // Back button handler
+    const backButton = document.querySelector('.back-button') as HTMLButtonElement;
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            history.back();
+        });
+    }
+    
+    // Retry button handler
+    const retryButton = document.querySelector('.btn.btn-secondary[onclick*="location.reload"]') as HTMLButtonElement;
+    if (retryButton) {
+        retryButton.addEventListener('click', () => {
+            location.reload();
+        });
+    }
+    
+    // Delete modal close handlers
+    const deleteModalCloseButtons = document.querySelectorAll('[onclick*="closeDeleteModal"]');
+    deleteModalCloseButtons.forEach(button => {
+        button.addEventListener('click', closeDeleteModal);
+    });
 }
 
 function editExpense(): void {
@@ -217,8 +239,19 @@ function showDeleteModal(): void {
 }
 
 function closeDeleteModal(): void {
-    const modalEl = document.getElementById('delete-confirmation-modal') as HTMLElement;
-    modalEl.style.display = 'none';
+    // Try both modal IDs to handle different modal implementations
+    const modalEl1 = document.getElementById('delete-confirmation-modal') as HTMLElement;
+    const modalEl2 = document.getElementById('deleteModal') as HTMLElement;
+    
+    if (modalEl1) {
+        modalEl1.style.display = 'none';
+    }
+    
+    if (modalEl2) {
+        modalEl2.classList.add('hidden');
+        modalEl2.classList.remove('visible-flex');
+        document.body.classList.remove('modal-open');
+    }
 }
 
 async function deleteExpense(): Promise<void> {
