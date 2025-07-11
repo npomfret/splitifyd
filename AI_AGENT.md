@@ -20,6 +20,7 @@
 - Avoid environment variables, prefer configuration files
 
 # Commands
+- IMPORTANT! run `pwd` before you run ANY shell commands.
 - Start local services: `cd firebase && npm run dev:with-data`
 - Build: `cd <sub-project> && npm run build`
 - Test: `cd <sub-project> && npm test`
