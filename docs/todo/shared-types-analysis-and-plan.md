@@ -547,8 +547,8 @@ const PercentageSplitComponent = ({ splits }: { splits: ExpenseSplit[] }) => {
 ## Migration Timeline
 
 ### Week 1: Foundation
-- [ ] Create shared-types package structure
-- [ ] Define core type definitions
+- [x] Create shared-types package structure
+- [x] Define core type definitions
 - [ ] Set up TypeScript configuration
 - [ ] Create build process
 
@@ -569,6 +569,33 @@ const PercentageSplitComponent = ({ splits }: { splits: ExpenseSplit[] }) => {
 - [ ] Remove duplicate type definitions
 - [ ] Update documentation
 - [ ] Deploy to staging environment
+
+## Progress Update (July 11, 2024)
+
+### Completed Tasks
+1. **Created shared-types package structure**
+   - Created `/shared-types` directory at project root
+   - Created subdirectories: `src/core/`, `src/validation/`
+   - Created core type files: `expense.ts`, `group.ts`, `api.ts`
+   - Created main export file: `index.ts`
+
+2. **Added shared-types to .gitignore**
+   - Added `shared-types/dist/` to ignore build outputs
+   - Cleaned up build artifacts (`.js` and `.js.map` files) from source directories
+   - Fixed issue where build artifacts were mixed with TypeScript source files
+
+### Issues Identified and Fixed
+1. **Build artifacts in source directories**
+   - Found JavaScript files being compiled in-place alongside TypeScript files
+   - Removed all `.js` and `.js.map` files from:
+     - `/shared-types/src/`
+     - `/firebase/functions/src/shared-types/`
+   - Updated `.gitignore` to only ignore the `dist` directory
+
+### Next Steps
+1. Set up proper TypeScript configuration to output to `dist` directory only
+2. Configure build process for the shared-types package
+3. Continue with Week 2 integration tasks
 
 ## Risk Assessment
 
