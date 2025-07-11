@@ -16,8 +16,6 @@ import { ApiDriver, User } from '../support/ApiDriver';
 describe('Comprehensive API Test Suite', () => {
   let driver: ApiDriver;
   let users: User[] = [];
-  let group: any = {};
-  let expense: any = {};
 
   // Set a longer timeout for these integration tests
   jest.setTimeout(30000);
@@ -51,17 +49,20 @@ describe('Comprehensive API Test Suite', () => {
     const response = await driver.apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
 
     expect(response.id).toBeDefined();
-    group = { id: response.id, ...groupData };
+    const createdGroup = { id: response.id, ...groupData };
 
     // Verify the group was created
-    const fetchedGroup = await driver.getDocument(group.id, users[0].token);
+    const fetchedGroup = await driver.getDocument(createdGroup.id, users[0].token);
     expect(fetchedGroup.data.name).toBe(groupName);
     expect(fetchedGroup.data.members.length).toBe(2);
   });
 
   test('should add an expense to the group', async () => {
+    // First create a group for this test
+    const testGroup = await driver.createGroup(`Test Group ${uuidv4()}`, users, users[0].token);
+    
     const expenseData = {
-      groupId: group.id,
+      groupId: testGroup.id,
       description: 'Test Expense',
       amount: 100,
       category: 'other',
@@ -73,19 +74,22 @@ describe('Comprehensive API Test Suite', () => {
 
     const response = await driver.apiRequest('/expenses', 'POST', expenseData, users[0].token);
     expect(response.id).toBeDefined();
-    expense = { id: response.id, ...expenseData };
+    const createdExpense = { id: response.id, ...expenseData };
 
     // Verify the expense was created by fetching it
-    const fetchedExpense = await driver.getExpense(expense.id, users[0].token);
+    const fetchedExpense = await driver.getExpense(createdExpense.id, users[0].token);
     expect(fetchedExpense.description).toBe('Test Expense');
     expect(fetchedExpense.amount).toBe(100);
     expect(fetchedExpense.paidBy).toBe(users[0].uid);
   });
 
   test('should delete an expense', async () => {
+    // Create a group for this test
+    const testGroup = await driver.createGroup(`Delete Test Group ${uuidv4()}`, users, users[0].token);
+    
     // First, create an expense to be deleted
     const expenseToDeleteData = {
-      groupId: group.id,
+      groupId: testGroup.id,
       description: 'To be deleted',
       amount: 50,
       paidBy: users[1].uid,
@@ -107,8 +111,15 @@ describe('Comprehensive API Test Suite', () => {
   });
 
   test('should calculate group balances correctly', async () => {
+    // Create a group and expense for this test
+    const testGroup = await driver.createGroup(`Balance Test Group ${uuidv4()}`, users, users[0].token);
+    
+    // Create an expense: User 0 pays 100, split equally between 2 users
+    const expenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100);
+    await driver.createExpense(expenseData, users[0].token);
+    
     // Get balances for the group
-    const balances = await driver.getGroupBalances(group.id, users[0].token);
+    const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
     
     // Verify the response structure
     expect(balances).toHaveProperty('groupId');
@@ -178,6 +189,9 @@ describe('Comprehensive API Test Suite', () => {
   });
 
   test('should only allow group members to access balances', async () => {
+    // Create a group for this test
+    const testGroup = await driver.createGroup(`Members Only Group ${uuidv4()}`, users, users[0].token);
+    
     // Create a third user who is not part of the group
     const outsiderUser = await driver.createTestUser({
       email: `outsider-${uuidv4()}@test.com`,
@@ -187,23 +201,16 @@ describe('Comprehensive API Test Suite', () => {
     
     // Try to access balances as non-member
     await expect(
-      driver.getGroupBalances(group.id, outsiderUser.token)
+      driver.getGroupBalances(testGroup.id, outsiderUser.token)
     ).rejects.toThrow(/403|FORBIDDEN/);
   });
 
   test('should generate shareable link for group (admin only)', async () => {
-    // Create a test group if not already created
-    if (!group.id) {
-      const groupData = {
-        name: `Test Group ${uuidv4()}`,
-        members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
-      };
-      const response = await driver.apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
-      group = { id: response.id, ...groupData };
-    }
+    // Create a test group
+    const testGroup = await driver.createGroup(`Share Link Test Group ${uuidv4()}`, users, users[0].token);
     
     // Admin (creator) should be able to generate a share link
-    const shareResponse = await driver.generateShareLink(group.id, users[0].token);
+    const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
     
     expect(shareResponse).toHaveProperty('shareableUrl');
     expect(shareResponse).toHaveProperty('linkId');
@@ -346,6 +353,11 @@ describe('Comprehensive API Test Suite', () => {
   });
 
   test('should update an expense', async () => {
+    // Create a group and expense for this test
+    const testGroup = await driver.createGroup(`Update Test Group ${uuidv4()}`, users, users[0].token);
+    const initialExpenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100);
+    const createdExpense = await driver.createExpense(initialExpenseData, users[0].token);
+    
     const updatedData = {
       description: 'Updated Test Expense',
       amount: 150.50,
@@ -353,9 +365,9 @@ describe('Comprehensive API Test Suite', () => {
     };
 
     // Use PUT for updates, passing the expense ID in the query
-    await driver.updateExpense(expense.id, updatedData, users[0].token);
+    await driver.updateExpense(createdExpense.id, updatedData, users[0].token);
 
-    const fetchedExpense = await driver.getExpense(expense.id, users[0].token);
+    const fetchedExpense = await driver.getExpense(createdExpense.id, users[0].token);
     
     expect(fetchedExpense.description).toBe(updatedData.description);
     expect(fetchedExpense.amount).toBe(updatedData.amount);
@@ -363,9 +375,12 @@ describe('Comprehensive API Test Suite', () => {
   });
 
   test('should recalculate splits when only amount is updated', async () => {
+    // Create a group for this test
+    const testGroup = await driver.createGroup(`Split Recalc Group ${uuidv4()}`, users, users[0].token);
+    
     // Create a new expense specifically for this test
     const testExpenseData = {
-      groupId: group.id,
+      groupId: testGroup.id,
       description: 'Split Recalculation Test',
       amount: 100,
       category: 'other',
@@ -406,9 +421,12 @@ describe('Comprehensive API Test Suite', () => {
   });
 
   test('should recalculate splits when amount is updated with exact split type', async () => {
+    // Create a group for this test
+    const testGroup = await driver.createGroup(`Exact Split Group ${uuidv4()}`, users, users[0].token);
+    
     // Create an expense with exact splits
     const testExpenseData = {
-      groupId: group.id,
+      groupId: testGroup.id,
       description: 'Exact Split Test',
       amount: 100,
       category: 'other',
@@ -454,8 +472,11 @@ describe('Comprehensive API Test Suite', () => {
 
 
   test('should add an expense with an unequal split', async () => {
+    // Create a group for this test
+    const testGroup = await driver.createGroup(`Unequal Split Group ${uuidv4()}`, users, users[0].token);
+    
     const expenseData = {
-      groupId: group.id,
+      groupId: testGroup.id,
       description: 'Unequal Split Expense',
       amount: 100,
       paidBy: users[0].uid,
@@ -488,14 +509,27 @@ describe('Comprehensive API Test Suite', () => {
 
 
   test("should list all of a group's expenses", async () => {
-    const response = await driver.getGroupExpenses(group.id, users[0].token);
+    // Create a group and add multiple expenses
+    const testGroup = await driver.createGroup(`List Expenses Group ${uuidv4()}`, users, users[0].token);
+    
+    // Add multiple expenses
+    await driver.createExpense({
+      ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100),
+      description: 'First Test Expense'
+    }, users[0].token);
+    
+    await driver.createExpense({
+      ...driver.createTestExpense(testGroup.id, users[1].uid, users.map(u => u.uid), 50),
+      description: 'Second Test Expense'
+    }, users[1].token);
+    
+    const response = await driver.getGroupExpenses(testGroup.id, users[0].token);
     expect(response).toHaveProperty('expenses');
     expect(Array.isArray(response.expenses)).toBe(true);
-    // We have added multiple expenses to this group
-    expect(response.expenses.length).toBeGreaterThanOrEqual(2);
+    expect(response.expenses.length).toBe(2);
     const expenseDescriptions = response.expenses.map((e: any) => e.description);
-    expect(expenseDescriptions).toContain('Updated Test Expense');
-    expect(expenseDescriptions).toContain('Unequal Split Expense');
+    expect(expenseDescriptions).toContain('First Test Expense');
+    expect(expenseDescriptions).toContain('Second Test Expense');
   });
 
 
