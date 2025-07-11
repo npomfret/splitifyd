@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
-    "clean": "rm -rf public",
+    "clean": "rm -rf public && cd functions && rm -rf lib && cd ..",
     "build:webapp": "cd ../webapp && npm run build && cd ../firebase && ln -sf ../webapp/dist public",
 
-    "build": "npm run clean && npm run build:webapp",
+    "build": "npm run clean && npm run build:webapp && cd functions && npm run build && cd ..",
     "serve": "npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && firebase emulators:start",
     "dev": "npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && (nodemon & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
     "dev:with-data": "rm -f *.log && npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && node scripts/start-with-data.js",
