@@ -100,8 +100,7 @@ async function loadUserPreferences(): Promise<void> {
                 lastExpenseData = lastExpense;
                 const categoryEl = document.getElementById('category') as HTMLSelectElement;
                 const descriptionEl = document.getElementById('description') as HTMLInputElement;
-                // ExpenseData from api.d.ts doesn't have category field
-                // categoryEl.value = lastExpense.category || '';
+                categoryEl.value = lastExpense.category || '';
                 descriptionEl.value = lastExpense.description;
             }
         }
@@ -273,8 +272,7 @@ function populateFormWithExpense(expense: ExpenseData): void {
     
     descriptionEl.value = expense.description;
     amountEl.value = expense.amount.toString();
-    // ExpenseData from api.d.ts doesn't have category field
-    // categoryEl.value = expense.category || '';
+    categoryEl.value = expense.category || '';
     paidByEl.value = expense.paidBy;
     
     const splits = expense.splits || [];

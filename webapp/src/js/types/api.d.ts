@@ -93,6 +93,9 @@ export interface ExpenseData {
   splits: ExpenseSplit[];
   createdAt: string;
   createdBy: string;
+  category?: string;
+  date?: string;
+  updatedAt?: string;
 }
 
 export interface ExpenseSplit {

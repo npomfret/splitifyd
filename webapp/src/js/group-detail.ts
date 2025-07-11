@@ -355,8 +355,7 @@ function createExpenseItem(expense: ExpenseData): HTMLElement {
     const expenseIcon = document.createElement('div');
     expenseIcon.className = 'expense-icon';
     const icon = document.createElement('i');
-    // ExpenseData doesn't have category field
-    icon.className = `fas fa-${getCategoryIcon('other')}`;
+    icon.className = `fas fa-${getCategoryIcon(expense.category || 'other')}`;
     expenseIcon.appendChild(icon);
     
     const expenseDetails = document.createElement('div');
