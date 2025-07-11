@@ -18,7 +18,11 @@
     "removeComments": true,
     "sourceMap": false,
     "resolveJsonModule": true,
-    "noEmitOnError": false
+    "noEmitOnError": false,
+    "paths": {
+      "@splitifyd/shared-types": ["../shared-types/dist/index.d.ts"],
+      "@splitifyd/shared-types/*": ["../shared-types/dist/*"]
+    }
   },
   "include": [
     "src/**/*.ts"

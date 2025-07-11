@@ -13,7 +13,12 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "lib": ["es2020"],
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "paths": {
+      "@splitifyd/shared-types": ["../../shared-types/dist/index.d.ts"],
+      "@splitifyd/shared-types/*": ["../../shared-types/dist/*"]
+    },
+    "baseUrl": "."
   },
   "compileOnSave": true,
   "include": [

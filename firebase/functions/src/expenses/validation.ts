@@ -2,12 +2,12 @@ import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as admin from 'firebase-admin';
-
-export interface ExpenseSplit {
-  userId: string;
-  amount: number;
-  percentage?: number;
-}
+import { 
+  ExpenseSplit, 
+  CreateExpenseRequest, 
+  UpdateExpenseRequest, 
+  EXPENSE_CATEGORIES 
+} from '@splitifyd/shared-types';
 
 export interface Expense {
   id: string;
@@ -26,42 +26,6 @@ export interface Expense {
   createdAt: admin.firestore.Timestamp | Date;
   updatedAt: admin.firestore.Timestamp | Date;
 }
-
-export interface CreateExpenseRequest {
-  groupId: string;
-  paidBy: string;
-  amount: number;
-  description: string;
-  category: string;
-  date: string;
-  splitType: 'equal' | 'exact' | 'percentage';
-  participants: string[];
-  splits?: ExpenseSplit[];
-  receiptUrl?: string;
-}
-
-export interface UpdateExpenseRequest {
-  amount?: number;
-  description?: string;
-  category?: string;
-  date?: string;
-  splitType?: 'equal' | 'exact' | 'percentage';
-  participants?: string[];
-  splits?: ExpenseSplit[];
-  receiptUrl?: string;
-}
-
-const EXPENSE_CATEGORIES = [
-  'food',
-  'transport',
-  'utilities',
-  'entertainment',
-  'shopping',
-  'accommodation',
-  'healthcare',
-  'education',
-  'other'
-];
 
 const expenseSplitSchema = Joi.object({
   userId: Joi.string().required(),

@@ -37,6 +37,7 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
 
 ## Keep it clean
  - Don't leave temporary files lying around. Delete them (don't got ignore them!)
+ - DO not mix build artifacts with checked in files
 
 ## Content Security Policy (CSP)
  - NEVER use inline event handlers like `onclick="function()"` in HTML - they violate CSP
