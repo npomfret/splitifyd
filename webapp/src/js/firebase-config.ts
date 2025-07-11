@@ -1,4 +1,5 @@
 import { logger } from './utils/logger.js';
+import { loadEnvironment, getEnvironment, isLocalEnvironment } from './utils/env-loader.js';
 import type { 
     FirebaseConfig, 
     FirebaseApp, 
@@ -53,6 +54,9 @@ class FirebaseConfigManager {
         }
 
         try {
+            // Load environment configuration first
+            await loadEnvironment();
+            
             const firebaseConfig = await this.fetchFirebaseConfig();
             
             // @ts-ignore - Dynamic import from CDN
@@ -73,11 +77,12 @@ class FirebaseConfigManager {
             this.app = initializeApp(firebaseConfig);
             this.auth = getAuth(this.app);
             
-            if (this.isLocalEnvironment() && !this.emulatorConnected) {
+            const env = getEnvironment();
+            if (env.FIREBASE_EMULATOR_HOST && env.FIREBASE_AUTH_EMULATOR_PORT && !this.emulatorConnected) {
                 try {
-                    const authPort = this.getLocalAuthPort();
-                    logger.log(`🔧 Connecting to Firebase Auth emulator at localhost:${authPort}`);
-                    connectAuthEmulator(this.auth, `http://localhost:${authPort}`, { disableWarnings: true });
+                    const authEmulatorUrl = `http://${env.FIREBASE_EMULATOR_HOST}:${env.FIREBASE_AUTH_EMULATOR_PORT}`;
+                    logger.log(`🔧 Connecting to Firebase Auth emulator at ${authEmulatorUrl}`);
+                    connectAuthEmulator(this.auth, authEmulatorUrl, { disableWarnings: true });
                     this.emulatorConnected = true;
                 } catch (error) {
                     const firebaseError = error as FirebaseError;
@@ -129,10 +134,11 @@ class FirebaseConfigManager {
             const firebaseConfig = await response.json() as FirebaseConfig & { formDefaults?: any; warningBanner?: string };
             logger.log('Firebase configuration loaded:', { projectId: firebaseConfig.projectId });
             
+            const env = getEnvironment();
             this.config = {
                 firebaseConfig,
-                apiUrl: this.getApiUrlForProject(firebaseConfig.projectId),
-                isLocal: this.isLocalEnvironment(),
+                apiUrl: env.API_BASE_URL,
+                isLocal: isLocalEnvironment(),
                 formDefaults: firebaseConfig.formDefaults,
                 warningBanner: firebaseConfig.warningBanner
             };
@@ -144,36 +150,12 @@ class FirebaseConfigManager {
         }
     }
 
-    private isLocalEnvironment(): boolean {
-        const hostname = window.location.hostname;
-        return hostname === 'localhost' || hostname === '127.0.0.1';
-    }
 
     private getConfigUrl(): string {
-        const localHost = window.location.hostname;
-        const LOCAL_FUNCTIONS_PORT = this.getLocalFunctionsPort();
-        
-        if (this.isLocalEnvironment()) {
-            return `http://${localHost}:${LOCAL_FUNCTIONS_PORT}/splitifyd/us-central1/api/config`;
-        }
-        
-        const protocol = window.location.protocol;
-        const host = window.location.host;
-        return `${protocol}//${host}/api/config`;
+        const env = getEnvironment();
+        return `${env.API_BASE_URL}/config`;
     }
 
-    private getApiUrlForProject(projectId: string = 'splitifyd'): string {
-        const localHost = window.location.hostname;
-        const LOCAL_FUNCTIONS_PORT = this.getLocalFunctionsPort();
-        
-        if (this.isLocalEnvironment()) {
-            return `http://${localHost}:${LOCAL_FUNCTIONS_PORT}/${projectId}/us-central1/api`;
-        }
-        
-        const protocol = window.location.protocol;
-        const host = window.location.host;
-        return `${protocol}//${host}/api`;
-    }
 
     getConfig(): FirebaseConfigManagerConfig {
         if (!this.config) {
@@ -190,21 +172,6 @@ class FirebaseConfigManager {
         return this.initialized;
     }
 
-    private getLocalFunctionsPort(): number {
-        const hostingPort = parseInt(window.location.port || '5002');
-        return hostingPort === 5002 ? 5001 : hostingPort - 1;
-    }
-
-    private getLocalAuthPort(): number {
-        const hostingPort = parseInt(window.location.port || '5002');
-        // Map hosting ports to auth emulator ports based on multi-instance configuration
-        switch (hostingPort) {
-            case 5002: return 9099; // Instance 1
-            case 6002: return 9199; // Instance 2
-            case 7002: return 9299; // Instance 3
-            default: return 9099;   // Default to Instance 1
-        }
-    }
 
     getFormDefaults(): any {
         return this.config?.formDefaults;

@@ -15,10 +15,8 @@ function hideWarning(): void {
     }
 }
 
-// Export for module usage if available
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { showWarning, hideWarning };
-}
+// Functions available for import
+export { showWarning, hideWarning };
 
 interface WarningBannerManager {
     init(): void;

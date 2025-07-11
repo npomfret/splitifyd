@@ -1,4 +1,5 @@
 import { firebaseConfigManager } from './firebase-config.js';
+import { getEnvironment, isLocalEnvironment } from './utils/env-loader.js';
 import type { ConfigData } from './types/global';
 
 class Config {
@@ -17,19 +18,16 @@ class Config {
       return firebaseConfigManager.getApiUrl();
     }
     
-    const hostname = window.location.hostname;
-    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-    
-    if (isLocal) {
-      return `http://${hostname}:5001/splitifyd/us-central1/api`;
+    try {
+      const env = getEnvironment();
+      return env.API_BASE_URL;
+    } catch (error) {
+      throw new Error('Environment configuration not loaded. Cannot determine API URL.');
     }
-    
-    return `${window.location.protocol}//${window.location.host}/api`;
   }
 
   isLocalEnvironment(): boolean {
-    const hostname = window.location.hostname;
-    return hostname === 'localhost' || hostname === '127.0.0.1';
+    return isLocalEnvironment();
   }
 
   async getConfig(): Promise<ConfigData> {
