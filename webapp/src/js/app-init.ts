@@ -1,5 +1,6 @@
 import type { FirebaseUser } from './types/global';
 import { showWarning, hideWarning } from './utils/ui-messages.js';
+import { firebaseAuthInstance } from './firebase-config.js';
 
 interface AppInitConfig {
   requireAuth?: boolean;
@@ -34,18 +35,18 @@ export class AppInit {
     let attempts = 0;
     
     // Wait for firebaseAuth to be available
-    while (!window.firebaseAuth && attempts < maxAttempts) {
+    while (!firebaseAuthInstance && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, intervalMs));
       attempts++;
     }
     
-    if (!window.firebaseAuth) {
+    if (!firebaseAuthInstance) {
       throw new Error(`Firebase failed to load after ${maxAttempts * intervalMs}ms`);
     }
   }
 
   static setupAuthListener(customHandler: ((user: FirebaseUser | null) => void) | null): void {
-    window.firebaseAuth.onAuthStateChanged((user: FirebaseUser | null) => {
+    firebaseAuthInstance!.onAuthStateChanged((user: FirebaseUser | null) => {
       if (customHandler) {
         customHandler(user);
       } else if (!user) {
@@ -80,16 +81,16 @@ export class AppInit {
   }
 
   static async getCurrentUser(): Promise<FirebaseUser | null> {
-    const user = window.firebaseAuth.getCurrentUser();
+    const user = firebaseAuthInstance!.getCurrentUser();
     if (!user) {
       return await new Promise((resolve) => {
-        const unsubscribe = window.firebaseAuth.onAuthStateChanged((user: FirebaseUser | null) => {
+        const unsubscribe = firebaseAuthInstance!.onAuthStateChanged((user: FirebaseUser | null) => {
           unsubscribe();
           resolve(user);
         });
       });
     }
-    return window.firebaseAuth.getCurrentUser();
+    return firebaseAuthInstance!.getCurrentUser();
   }
 
   static async requireUser(): Promise<FirebaseUser> {

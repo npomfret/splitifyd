@@ -1,27 +1,7 @@
 // Global window extensions
 declare global {
   interface Window {
-    firebaseAuth: {
-      signInWithEmailAndPassword(email: string, password: string): Promise<any>;
-      createUserWithEmailAndPassword(email: string, password: string): Promise<any>;
-      updateProfile(user: any, profile: { displayName: string }): Promise<void>;
-      sendPasswordResetEmail(email: string): Promise<void>;
-      onAuthStateChanged(callback: (user: any) => void): () => void;
-      getCurrentUser(): any;
-      signOut(): Promise<void>;
-    };
-    ModalComponent: {
-      render(config: {
-        id: string;
-        title: string;
-        content: string;
-        confirmText: string;
-        cancelText: string;
-        showCancelButton: boolean;
-      }): string;
-      show(modalId: string): void;
-      hide(modalId: string): void;
-    };
+    // Global window extensions can be added here when needed
   }
 }
 

@@ -1,4 +1,5 @@
 import { logger } from './utils/logger.js';
+import { firebaseAuthInstance } from './firebase-config.js';
 
 // Shared logout functionality that doesn't import authManager to avoid duplicate instances
 window.addEventListener('DOMContentLoaded', () => {
@@ -11,8 +12,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 localStorage.removeItem('userId');
                 
                 // Sign out from Firebase if available
-                if (window.firebaseAuth && window.firebaseAuth.signOut) {
-                    await window.firebaseAuth.signOut();
+                if (firebaseAuthInstance && firebaseAuthInstance.signOut) {
+                    await firebaseAuthInstance.signOut();
                 }
                 
                 window.location.href = 'index.html';

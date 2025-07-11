@@ -1,5 +1,5 @@
 import { logger } from './utils/logger.js';
-import { firebaseConfigManager } from './firebase-config.js';
+import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
 import { clearErrors, showFieldError, showSuccess } from './utils/ui-messages.js';
 
 const resetForm = document.getElementById('resetForm') as HTMLFormElement;
@@ -33,7 +33,10 @@ const handleResetPassword = async (e: Event): Promise<void> => {
     const email = emailInput.value.trim();
 
     try {
-        await window.firebaseAuth.sendPasswordResetEmail(email);
+        if (!firebaseAuthInstance) {
+            throw new Error('Firebase not initialized');
+        }
+        await firebaseAuthInstance.sendPasswordResetEmail(email);
         const submitButton = resetForm.querySelector('button[type="submit"]') as HTMLButtonElement;
         showSuccess('Reset link sent!', submitButton);
         emailInput.value = '';

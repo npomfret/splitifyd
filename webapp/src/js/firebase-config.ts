@@ -24,6 +24,18 @@ interface FirebaseAuthModule {
     sendPasswordResetEmail(auth: FirebaseAuth, email: string): Promise<void>;
 }
 
+interface FirebaseAuthService {
+    signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    createUserWithEmailAndPassword(email: string, password: string): Promise<any>;
+    updateProfile(user: any, profile: { displayName: string }): Promise<void>;
+    sendPasswordResetEmail(email: string): Promise<void>;
+    onAuthStateChanged(callback: (user: any) => void): () => void;
+    getCurrentUser(): any;
+    signOut(): Promise<void>;
+}
+
+export let firebaseAuthInstance: FirebaseAuthService | null = null;
+
 class FirebaseConfigManager {
     private config: FirebaseConfigManagerConfig | null = null;
     private initialized: boolean = false;
@@ -74,7 +86,7 @@ class FirebaseConfigManager {
                 }
             }
             
-            window.firebaseAuth = {
+            firebaseAuthInstance = {
                 signInWithEmailAndPassword: (email: string, password: string) => 
                     signInWithEmailAndPassword(this.auth!, email, password),
                 createUserWithEmailAndPassword: (email: string, password: string) => 

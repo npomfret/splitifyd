@@ -1,8 +1,24 @@
-# Webapp Issue: Global Variables (`window.firebaseAuth`, `window.ModalComponent`)
+# Webapp Issue: Global Variables (`window.firebaseAuth`, `window.ModalComponent`) - COMPLETED
 
 ## Issue Description
 
 The codebase relies on global variables (`window.firebaseAuth`, `window.ModalComponent`) for accessing Firebase authentication and modal components. While declared in `global.d.ts`, this practice deviates from modern TypeScript modularity principles and the "NO HACKS" rule in `GEMINI.md`.
+
+## ✅ IMPLEMENTATION COMPLETED
+
+The refactoring has been successfully implemented:
+
+1. **Removed Global Declarations** - Removed `firebaseAuth` and `ModalComponent` from `window` in `webapp/src/js/types/global.d.ts`
+2. **Refactored Firebase Config** - Updated `firebase-config.ts` to export `firebaseAuthInstance` instead of assigning to `window.firebaseAuth`
+3. **Updated All Consumer Files** - Updated all files that used `window.firebaseAuth` to import `firebaseAuthInstance` directly:
+   - `auth.ts` - Updated to use `firebaseAuthInstance`
+   - `reset-password.ts` - Updated to use `firebaseAuthInstance`
+   - `app-init.ts` - Updated to use `firebaseAuthInstance`
+   - `logout-handler.ts` - Updated to use `firebaseAuthInstance`
+4. **Updated Modal Component Usage** - Updated `groups.ts` to import `ModalComponent` directly instead of using `window.ModalComponent`
+5. **Build Successful** - The webapp builds without errors, confirming the refactoring works correctly
+
+The refactoring successfully eliminated global variable usage while maintaining all existing functionality and improving code modularity.
 
 ## Recommendation
 

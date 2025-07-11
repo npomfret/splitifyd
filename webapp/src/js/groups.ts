@@ -1,7 +1,7 @@
 import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 import { apiService, apiCall } from './api.js';
-import type { ModalComponent as ModalComponentType } from './components/modal.js';
+import { ModalComponent } from './components/modal.js';
 import type {
   Group,
   CreateGroupRequest as CreateGroupRequestBL,
@@ -13,18 +13,6 @@ import type {
   CreateGroupRequest,
   Member
 } from './types/api.js';
-
-// Dynamic import of ModalComponent when needed
-let ModalComponent: any = null;
-
-async function ensureModalComponent(): Promise<typeof ModalComponentType> {
-  if (!ModalComponent && !window.ModalComponent) {
-    const module = await import('./components/modal.js');
-    ModalComponent = module.ModalComponent;
-    window.ModalComponent = ModalComponent;
-  }
-  return (window.ModalComponent || ModalComponent) as typeof ModalComponentType;
-}
 
 export class GroupService {
   static async getUserGroups(): Promise<TransformedGroup[]> {
@@ -369,14 +357,7 @@ export class GroupsList {
   }
 
   private async openCreateGroupModal(): Promise<void> {
-    await ensureModalComponent();
-    
-    if (!window.ModalComponent) {
-      logger.error('ModalComponent not available');
-      return;
-    }
-
-    const modalHtml = (window.ModalComponent as any).render({
+    const modalHtml = ModalComponent.render({
       id: 'createGroupModal',
       title: 'Create New Group',
       body: `
@@ -410,13 +391,13 @@ export class GroupsList {
     });
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    window.ModalComponent.show('createGroupModal');
+    ModalComponent.show('createGroupModal');
 
     // Attach event listener to the cancel button
     const cancelCreateGroupButton = document.getElementById('cancelCreateGroupButton');
     if (cancelCreateGroupButton) {
       cancelCreateGroupButton.addEventListener('click', () => {
-        (window.ModalComponent as any).hide('createGroupModal');
+        ModalComponent.hide('createGroupModal');
       });
     }
 
@@ -488,7 +469,7 @@ export class GroupsList {
           this.filteredGroups = [...this.groups];
           this.render();
           
-          (window.ModalComponent as any).hide('createGroupModal');
+          ModalComponent.hide('createGroupModal');
           const modal = document.getElementById('createGroupModal');
           modal?.remove();
         } catch (error) {

@@ -1,6 +1,6 @@
 import { logger } from './utils/logger.js';
 import { config } from './config.js';
-import { firebaseConfigManager } from './firebase-config.js';
+import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
 import type { 
@@ -228,10 +228,10 @@ class AuthManager {
             this.setButtonLoading(button, 'Signing in...');
             
             // Use Firebase Auth directly for login
-            if (!window.firebaseAuth) {
+            if (!firebaseAuthInstance) {
                 throw new Error('Firebase not initialized');
             }
-            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(credentials.email, credentials.password) as UserCredential;
+            const userCredential = await firebaseAuthInstance.signInWithEmailAndPassword(credentials.email, credentials.password) as UserCredential;
             
             // Get ID token for API authentication
             const idToken = await userCredential.user.getIdToken();
@@ -298,13 +298,13 @@ class AuthManager {
             this.setButtonLoading(button, 'Creating Account...');
 
             // Use Firebase Auth directly for registration
-            if (!window.firebaseAuth) {
+            if (!firebaseAuthInstance) {
                 throw new Error('Firebase not initialized');
             }
-            const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(userData.email, userData.password) as UserCredential;
+            const userCredential = await firebaseAuthInstance.createUserWithEmailAndPassword(userData.email, userData.password) as UserCredential;
             
             // Update display name using Firebase Auth updateProfile
-            await window.firebaseAuth.updateProfile(userCredential.user, {
+            await firebaseAuthInstance.updateProfile(userCredential.user, {
                 displayName: userData.displayName
             });
             
@@ -389,11 +389,11 @@ class AuthManager {
         try {
             this.setButtonLoading(button, 'Sending...');
             
-            if (!window.firebaseAuth) {
+            if (!firebaseAuthInstance) {
                 throw new Error('Firebase not initialized');
             }
             
-            await window.firebaseAuth.sendPasswordResetEmail(email);
+            await firebaseAuthInstance.sendPasswordResetEmail(email);
             
             this.showSuccessMessage(button.closest('form')!, 'Password reset email sent! Check your inbox.');
             
