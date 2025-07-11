@@ -27,6 +27,7 @@ const mockSet = jest.fn();
 const mockUpdate = jest.fn();
 const mockDelete = jest.fn();
 const mockWhere = jest.fn();
+const mockSelect = jest.fn();
 const mockOrderBy = jest.fn();
 const mockLimit = jest.fn();
 const mockTimestamp = { toDate: () => new Date('2023-01-01T00:00:00Z') };
@@ -102,6 +103,9 @@ describe('Document Handlers', () => {
       delete: mockDelete
     });
     mockWhere.mockReturnValue({
+      select: mockSelect
+    });
+    mockSelect.mockReturnValue({
       orderBy: mockOrderBy
     });
     mockOrderBy.mockReturnValue({

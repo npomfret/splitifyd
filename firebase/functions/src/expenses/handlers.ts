@@ -278,6 +278,7 @@ export const listGroupExpenses = async (
 
   let query = getExpensesCollection()
     .where('groupId', '==', groupId)
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
@@ -353,6 +354,7 @@ export const listUserExpenses = async (
 
   let query = getExpensesCollection()
     .where('memberIds', 'array-contains', userId)
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
