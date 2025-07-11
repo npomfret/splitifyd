@@ -53,3 +53,9 @@ firebase/functions/*service-account-key.json
 webapp/dist/
 firebase/public
 shared-types/dist/
+
+# JavaScript build artifacts in source directories
+shared-types/src/**/*.js
+shared-types/src/**/*.js.map
+firebase/functions/src/**/*.js
+firebase/functions/src/**/*.js.map

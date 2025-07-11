@@ -3,6 +3,7 @@ import { Errors } from '../utils/errors';
 import { CONFIG } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
+import { Member } from '@splitifyd/shared-types';
 
 /**
  * Document structure
@@ -16,13 +17,9 @@ export interface Document {
 }
 
 /**
- * Group member structure
+ * Group member structure - use shared types
  */
-export interface GroupMember {
-  uid: string;
-  name: string;
-  initials: string;
-}
+export type GroupMember = Member;
 
 /**
  * Group data structure (stored in document.data)
