@@ -53,6 +53,33 @@ export class ApiDriver {
     process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
   }
 
+  async checkEmulatorStatus(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, { 
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async waitForEmulatorRestart(maxWaitMs: number = 30000): Promise<void> {
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < maxWaitMs) {
+      if (await this.checkEmulatorStatus()) {
+        // Wait an additional 2 seconds for emulator to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return;
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    throw new Error(`Emulator failed to restart within ${maxWaitMs}ms`);
+  }
+
   async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
     const options: RequestInit = {
@@ -67,14 +94,28 @@ export class ApiDriver {
       options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const errorText = await response.text();
+        
+        // Check if this might be an emulator restart
+        if (response.status === 500 && errorText.includes('ECONNREFUSED')) {
+          throw new Error(`Emulator appears to be restarting. Please wait and try again.`);
+        }
+        
+        throw new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+      }
+      // Handle cases where the response might be empty
+      const responseText = await response.text();
+      return responseText ? JSON.parse(responseText) : {};
+    } catch (error) {
+      // Check for connection errors that might indicate emulator restart
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Cannot connect to emulator. Please ensure the Firebase emulator is running.`);
+      }
+      throw error;
     }
-    // Handle cases where the response might be empty
-    const responseText = await response.text();
-    return responseText ? JSON.parse(responseText) : {};
   }
 
   async createTestUser(userInfo: { email: string; password: string; displayName: string }): Promise<User> {
@@ -174,10 +215,55 @@ export class ApiDriver {
     return await this.apiRequest(`/groups/balances?groupId=${groupId}`, 'GET', null, token);
   }
 
-  async waitForBalanceUpdate(groupId: string, token: string, delayMs: number = 2000): Promise<any> {
-    // Wait for Firebase triggers to complete (they are asynchronous)
-    await new Promise(resolve => setTimeout(resolve, delayMs));
-    return await this.getGroupBalances(groupId, token);
+  async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<any> {
+    const startTime = Date.now();
+    let lastError: Error | null = null;
+    
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const balances = await this.getGroupBalances(groupId, token);
+        
+        // Check if balances have been updated (not empty and has lastUpdated timestamp)
+        if (balances.userBalances && Object.keys(balances.userBalances).length > 0 && balances.lastUpdated) {
+          return balances;
+        }
+        
+        // Wait before next attempt
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        lastError = error as Error;
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    throw new Error(`Balance update timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+  }
+
+  async waitForGroupStats(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
+    const startTime = Date.now();
+    let lastError: Error | null = null;
+    
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const group = await this.getDocument(groupId, token);
+        const stats = group.data;
+        
+        // Check if stats have been updated
+        if (stats.expenseCount !== undefined && 
+            (expectedExpenseCount === undefined || stats.expenseCount === expectedExpenseCount)) {
+          return group;
+        }
+        
+        // Wait before next attempt
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        lastError = error as Error;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    throw new Error(`Group stats update timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
   }
 
   async generateShareLink(groupId: string, token: string): Promise<{ shareableUrl: string; linkId: string }> {

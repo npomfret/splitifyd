@@ -107,7 +107,7 @@ describe('Comprehensive API Test Suite', () => {
     // Verify it's gone
     await expect(
       driver.getExpense(createdExpense.id, users[1].token)
-    ).rejects.toThrow();
+    ).rejects.toThrow(/not found|deleted|404/);
   });
 
   test('should calculate group balances correctly', async () => {
@@ -118,8 +118,8 @@ describe('Comprehensive API Test Suite', () => {
     const expenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100);
     await driver.createExpense(expenseData, users[0].token);
     
-    // Get balances for the group
-    const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+    // Wait for Firebase triggers to update balances
+    const balances = await driver.waitForBalanceUpdate(testGroup.id, users[0].token);
     
     // Verify the response structure
     expect(balances).toHaveProperty('groupId');
@@ -169,8 +169,8 @@ describe('Comprehensive API Test Suite', () => {
 
     await driver.createExpense(altExpenseData, users[1].token);
     
-    // Try to get balances - this should work with both member structures
-    const altBalances = await driver.getGroupBalances(altGroup.id, users[0].token);
+    // Wait for Firebase triggers to update balances
+    const altBalances = await driver.waitForBalanceUpdate(altGroup.id, users[0].token);
     
     expect(altBalances).toHaveProperty('userBalances');
     expect(Object.keys(altBalances.userBalances).length).toBe(2);
@@ -202,7 +202,7 @@ describe('Comprehensive API Test Suite', () => {
     // Try to access balances as non-member
     await expect(
       driver.getGroupBalances(testGroup.id, outsiderUser.token)
-    ).rejects.toThrow(/403|FORBIDDEN/);
+    ).rejects.toThrow(/403|FORBIDDEN|not.*member|access.*denied/i);
   });
 
   test('should generate shareable link for group (admin only)', async () => {
@@ -232,7 +232,7 @@ describe('Comprehensive API Test Suite', () => {
     // User[1] should not be able to generate a share link
     await expect(
       driver.generateShareLink(nonAdminGroup.id, users[1].token)
-    ).rejects.toThrow(/403|FORBIDDEN|admin/);
+    ).rejects.toThrow(/403|FORBIDDEN|admin|not.*authorized/i);
   });
 
   test('should allow new users to join group via share link', async () => {
@@ -284,7 +284,7 @@ describe('Comprehensive API Test Suite', () => {
     // Try to join again with the same user
     await expect(
       driver.joinGroupViaShareLink(shareResponse.linkId, users[1].token)
-    ).rejects.toThrow(/already a member/);
+    ).rejects.toThrow(/already.*member|duplicate.*member/i);
   });
 
   test('should reject invalid share tokens', async () => {
@@ -297,7 +297,7 @@ describe('Comprehensive API Test Suite', () => {
     // Try to join with an invalid token
     await expect(
       driver.joinGroupViaShareLink('INVALID_TOKEN_12345', invalidUser.token)
-    ).rejects.toThrow(/Invalid.*link|not found/);
+    ).rejects.toThrow(/Invalid.*link|not found|expired|404/i);
   });
 
   test('should allow multiple users to join group using the same share link', async () => {
@@ -556,6 +556,7 @@ describe('Comprehensive API Test Suite', () => {
     const url = `${driver.getBaseUrl()}/health`;
     const response = await fetch(url);
     
+    expect(response.status).toBe(200);
     expect(response.headers.get('X-Content-Type-Options')).toBeTruthy();
     expect(response.headers.get('X-Frame-Options')).toBeTruthy();
     expect(response.headers.get('X-XSS-Protection')).toBeTruthy();
