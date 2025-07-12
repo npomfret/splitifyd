@@ -7,9 +7,8 @@
     "webapp"
   ],
   "scripts": {
-    "clean:firebase": "node firebase/scripts/kill-emulators.js && rm -rf firebase/firebase-export-* firebase/*.log firebase/functions/*.log *.log",
-    "super-clean": "npm run clean:firebase && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
-    "dev:prep": "npm run clean:firebase && npm run build",
+    "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
+    "dev:prep": "cd firebase && npm run clean && cd .. && npm run build",
     "dev": "npm run dev:prep && concurrently \"cd webapp && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
     "build": "npm run build -ws --if-present",
     "watch": "npm run watch -ws --if-present",

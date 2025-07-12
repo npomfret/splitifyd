@@ -13,6 +13,7 @@
     "deploy:hosting": "cd .. && npm run build && cd firebase && firebase use splitifyd && firebase deploy --only hosting",
     "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
     "logs": "firebase use splitifyd && firebase functions:log",
+    "clean": "node scripts/kill-emulators.js && rm -rf firebase-export-* *.log functions/*.log ../*.log",
     "kill-emulators": "node scripts/kill-emulators.js",
     "switch-instance": "node scripts/switch-instance.js"
   },
