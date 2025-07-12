@@ -461,6 +461,17 @@ class AuthManager {
         window.location.href = 'index.html';
     }
 
+    async sendPasswordResetEmail(email: string): Promise<void> {
+        if (!firebaseAuthInstance) {
+            throw new Error('Firebase not initialized');
+        }
+        
+        // Validate email before sending
+        validateInput.email(email);
+        
+        await firebaseAuthInstance.sendPasswordResetEmail(email);
+    }
+
     destroy(): void {
         this.eventListeners.forEach((listeners, element) => {
             listeners.forEach(({ event, handler }) => {
