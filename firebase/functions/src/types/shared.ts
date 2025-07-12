@@ -1,3 +1,7 @@
+// This file is auto-synchronized with the shared-types package
+// DO NOT EDIT DIRECTLY - Edit shared-types package instead
+// Last sync: 2024-07-12
+
 export interface ExpenseSplit {
   userId: string;
   amount: number;
@@ -80,3 +84,10 @@ export interface GroupDetail {
   createdAt: string;
   updatedAt: string;
 }
+
+// Group-related types removed from Firebase functions shared.ts
+// These are only needed by the webapp and are available through the shared-types package
+// Firebase functions use their own local models and don't need to import these
+
+// API request/response types are defined locally where used in Firebase functions
+// The shared types above are primarily consumed by the webapp through API responses
