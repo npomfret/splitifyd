@@ -2,6 +2,8 @@ import { clearElement } from './utils/safe-dom.js';
 import { GroupsList } from './groups.js';
 import { authManager } from './auth.js';
 import { HeaderComponent } from './components/header.js';
+import { logger } from './utils/logger.js';
+import { showError } from './utils/ui-messages.js';
 
 interface MetaElement {
   tag: string;
@@ -113,20 +115,33 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       document.body.appendChild(errorDiv);
     });
 
-  } catch (error) {
-    // Handle page rendering errors
-    clearElement(document.body);
-    const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = 'padding: 20px; color: red; background: white;';
+  } catch (error: any) {
+    logger.error('Failed to load dashboard:', error);
     
-    const title = document.createElement('h1');
-    title.textContent = 'Error loading dashboard';
-    errorDiv.appendChild(title);
-    
-    const message = document.createElement('pre');
-    message.textContent = error instanceof Error ? error.message : String(error);
-    errorDiv.appendChild(message);
-    
-    document.body.appendChild(errorDiv);
+    // Try to show error message using UI utilities if possible
+    try {
+      showError('Failed to load dashboard. Please refresh the page or try again later.');
+    } catch {
+      // Fallback if UI utilities fail
+      clearElement(document.body);
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = 'padding: 20px; text-align: center; margin-top: 50px;';
+      
+      const title = document.createElement('h1');
+      title.textContent = 'Unable to load dashboard';
+      errorDiv.appendChild(title);
+      
+      const message = document.createElement('p');
+      message.textContent = 'Please refresh the page or try again later.';
+      errorDiv.appendChild(message);
+      
+      const retryButton = document.createElement('button');
+      retryButton.textContent = 'Refresh Page';
+      retryButton.style.cssText = 'margin-top: 20px; padding: 10px 20px; cursor: pointer;';
+      retryButton.addEventListener('click', () => window.location.reload());
+      errorDiv.appendChild(retryButton);
+      
+      document.body.appendChild(errorDiv);
+    }
   }
 });
