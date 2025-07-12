@@ -1,10 +1,11 @@
 import { logger } from './utils/logger.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
-import { showMessage, showFieldError } from './utils/ui-messages.js';
+import { showMessage, showFieldError, showError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { debounce } from './utils/event-utils.js';
 import { HeaderComponent } from './components/header.js';
+import { clearElement, createElementSafe, appendChildren } from './utils/safe-dom.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;
@@ -37,8 +38,13 @@ async function initializeAddExpensePage(): Promise<void> {
             await loadUserPreferences();
         }
         initializeEventListeners();
-    } catch (error) {
-        window.location.href = 'index.html';
+    } catch (error: any) {
+        logger.error('Failed to initialize add expense page:', error);
+        showError('Failed to load expense form. Please try again.');
+        
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 3000);
     }
 }
 
@@ -102,7 +108,9 @@ function populatePaidByOptions(): void {
     const paidBySelect = document.getElementById('paidBy') as HTMLSelectElement;
     const currentUserId = authManager.getUserId();
     
-    paidBySelect.innerHTML = '<option value="">Select who paid</option>';
+    clearElement(paidBySelect);
+    const defaultOption = createElementSafe('option', { value: '', textContent: 'Select who paid' });
+    paidBySelect.appendChild(defaultOption);
     
     if (!currentGroup) return;
     
@@ -120,7 +128,7 @@ function populateMembers(): void {
     const membersList = document.getElementById('membersList') as HTMLElement;
     const currentUserId = authManager.getUserId();
     
-    membersList.innerHTML = '';
+    clearElement(membersList);
     
     if (!currentGroup) return;
     
@@ -220,7 +228,7 @@ function updateCustomSplitInputs(): void {
     const customInputs = document.getElementById('customSplitInputs') as HTMLElement;
     const splitTotal = document.getElementById('splitTotal') as HTMLElement;
     
-    customInputs.innerHTML = '';
+    clearElement(customInputs);
     
     const equalSplit = selectedMembers.size > 0 ? amount / selectedMembers.size : 0;
     const currentUserId = authManager.getUserId();
@@ -369,7 +377,10 @@ async function handleSubmit(event: Event): Promise<void> {
     try {
         const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
         submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        clearElement(submitButton);
+        const spinnerIcon = createElementSafe('i', { className: 'fas fa-spinner fa-spin' });
+        submitButton.appendChild(spinnerIcon);
+        submitButton.appendChild(document.createTextNode(' Saving...'));
         
         if (isEdit && editExpenseId) {
             await apiService.updateExpense(editExpenseId, expenseData);
@@ -389,7 +400,10 @@ async function handleSubmit(event: Event): Promise<void> {
         
         const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
         submitButton.disabled = false;
-        submitButton.innerHTML = '<i class="fas fa-save"></i> Save';
+        clearElement(submitButton);
+        const saveIcon = createElementSafe('i', { className: 'fas fa-save' });
+        submitButton.appendChild(saveIcon);
+        submitButton.appendChild(document.createTextNode(' Save'));
     }
 }
 

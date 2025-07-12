@@ -1,6 +1,7 @@
 
 import { BaseComponent } from './base-component';
 import { NavigationConfig, NavigationAction } from '../types/components';
+import { createElementSafe, appendChildren } from '../utils/safe-dom';
 
 interface ExtendedNavigationAction extends NavigationAction {
   type?: 'button' | 'link';
@@ -24,44 +25,72 @@ export class NavigationComponent extends BaseComponent<HTMLElement> {
   protected render(): HTMLElement {
     const { title = '', backUrl = null, backText = 'Back', actions = [] } = this.config;
 
-    const nav = document.createElement('nav');
-    nav.className = 'nav-header';
+    const nav = createElementSafe('nav', { className: 'nav-header' });
 
-    let backButtonHTML = '';
     if (backUrl) {
-      backButtonHTML = `
-        <a href="${backUrl}" class="back-link">
-          <i class="fas fa-arrow-left"></i> ${backText}
-        </a>
-      `;
+      const backLink = createElementSafe('a', {
+        href: backUrl,
+        className: 'back-link'
+      });
+      const backIcon = createElementSafe('i', { className: 'fas fa-arrow-left' });
+      backLink.appendChild(backIcon);
+      backLink.appendChild(document.createTextNode(' ' + backText));
+      nav.appendChild(backLink);
     }
 
-    const actionsHTML = actions.map(action => {
-      if (action.type === 'button') {
-        return `
-          <button class="button ${action.class || 'button--secondary'}" id="${action.id || ''}" ${action.disabled ? 'disabled' : ''}>
-            ${action.icon ? `<i class="${action.icon}"></i>` : ''}
-            ${action.text || ''}
-          </button>
-        `;
-      } else if (action.type === 'link') {
-        return `
-          <a href="${action.href || '#'}" class="button ${action.class || 'button--secondary'}" id="${action.id || ''}">
-            ${action.icon ? `<i class="${action.icon}"></i>` : ''}
-            ${action.text || ''}
-          </a>
-        `;
-      }
-      return '';
-    }).join('');
+    const pageTitle = createElementSafe('h1', {
+      className: 'page-title',
+      textContent: title
+    });
+    nav.appendChild(pageTitle);
 
-    nav.innerHTML = `
-      ${backButtonHTML}
-      <h1 class="page-title">${title}</h1>
-      <div class="header-actions">
-        ${actionsHTML}
-      </div>
-    `;
+    const headerActions = createElementSafe('div', { className: 'header-actions' });
+    
+    actions.forEach(action => {
+      if (action.type === 'button') {
+        const button = createElementSafe('button', {
+          className: `button ${action.class || 'button--secondary'}`,
+          id: action.id || '',
+          disabled: action.disabled || false
+        });
+        
+        if (action.icon) {
+          const icon = createElementSafe('i', { className: action.icon });
+          button.appendChild(icon);
+        }
+        
+        if (action.text) {
+          if (action.icon) {
+            button.appendChild(document.createTextNode(' '));
+          }
+          button.appendChild(document.createTextNode(action.text));
+        }
+        
+        headerActions.appendChild(button);
+      } else if (action.type === 'link') {
+        const link = createElementSafe('a', {
+          href: action.href || '#',
+          className: `button ${action.class || 'button--secondary'}`,
+          id: action.id || ''
+        });
+        
+        if (action.icon) {
+          const icon = createElementSafe('i', { className: action.icon });
+          link.appendChild(icon);
+        }
+        
+        if (action.text) {
+          if (action.icon) {
+            link.appendChild(document.createTextNode(' '));
+          }
+          link.appendChild(document.createTextNode(action.text));
+        }
+        
+        headerActions.appendChild(link);
+      }
+    });
+
+    nav.appendChild(headerActions);
 
     this.element = nav;
     return nav;

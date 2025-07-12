@@ -1,7 +1,9 @@
-import { clearElement } from './utils/safe-dom.js';
+import { clearElement, createElementSafe, appendChildren } from './utils/safe-dom.js';
 import { GroupsList } from './groups.js';
 import { authManager } from './auth.js';
 import { HeaderComponent } from './components/header.js';
+import { logger } from './utils/logger.js';
+import { showError } from './utils/ui-messages.js';
 
 interface MetaElement {
   tag: string;
@@ -51,41 +53,47 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     // Render body content safely
     clearElement(document.body);
     
-    const bodyContent = `
-      <div id="warningBanner" class="warning-banner" style="display: none;">
-        <div class="warning-content">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span id="warningMessage"></span>
-        </div>
-      </div>
-      
-      <div id="header-container"></div>
-      
-      <main class="dashboard-main">
-        <div class="dashboard-container">
-          <section class="dashboard-content">
-            <div id="groupsContainer" class="groups-container">
-              <div class="loading-state" id="loadingState">
-                <p>Loading your groups...</p>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
-    `;
+    // Create warning banner
+    const warningBanner = createElementSafe('div', {
+      id: 'warningBanner',
+      className: 'warning-banner',
+      style: 'display: none;'
+    });
+    const warningContent = createElementSafe('div', { className: 'warning-content' });
+    const warningIcon = createElementSafe('i', { className: 'fas fa-exclamation-triangle' });
+    const warningMessage = createElementSafe('span', { id: 'warningMessage' });
+    appendChildren(warningContent, [warningIcon, warningMessage]);
+    warningBanner.appendChild(warningContent);
     
-    // Create body content safely
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = bodyContent;
-    while (tempDiv.firstChild) {
-      document.body.appendChild(tempDiv.firstChild);
-    }
+    // Create header container
+    const headerContainer = createElementSafe('div', { id: 'header-container' });
+    
+    // Create main content
+    const main = createElementSafe('main', { className: 'dashboard-main' });
+    const dashboardContainer = createElementSafe('div', { className: 'dashboard-container' });
+    const dashboardContent = createElementSafe('section', { className: 'dashboard-content' });
+    const groupsContainer = createElementSafe('div', {
+      id: 'groupsContainer',
+      className: 'groups-container'
+    });
+    const loadingState = createElementSafe('div', {
+      className: 'loading-state',
+      id: 'loadingState'
+    });
+    const loadingText = createElementSafe('p', { textContent: 'Loading your groups...' });
+    
+    loadingState.appendChild(loadingText);
+    groupsContainer.appendChild(loadingState);
+    dashboardContent.appendChild(groupsContainer);
+    dashboardContainer.appendChild(dashboardContent);
+    main.appendChild(dashboardContainer);
+    
+    // Append all to body
+    appendChildren(document.body, [warningBanner, headerContainer, main]);
 
-    const headerContainer = document.getElementById('header-container');
-    if (headerContainer) {
-        const header = new HeaderComponent({ title: 'Splitifyd', showLogout: true });
-        header.mount(headerContainer);
-    }
+    // Mount header component
+    const header = new HeaderComponent({ title: 'Splitifyd', showLogout: true });
+    header.mount(headerContainer);
 
     // Load additional scripts
     const loadScript = (src: string): Promise<void> => {
@@ -113,20 +121,33 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       document.body.appendChild(errorDiv);
     });
 
-  } catch (error) {
-    // Handle page rendering errors
-    clearElement(document.body);
-    const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = 'padding: 20px; color: red; background: white;';
+  } catch (error: any) {
+    logger.error('Failed to load dashboard:', error);
     
-    const title = document.createElement('h1');
-    title.textContent = 'Error loading dashboard';
-    errorDiv.appendChild(title);
-    
-    const message = document.createElement('pre');
-    message.textContent = error instanceof Error ? error.message : String(error);
-    errorDiv.appendChild(message);
-    
-    document.body.appendChild(errorDiv);
+    // Try to show error message using UI utilities if possible
+    try {
+      showError('Failed to load dashboard. Please refresh the page or try again later.');
+    } catch {
+      // Fallback if UI utilities fail
+      clearElement(document.body);
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = 'padding: 20px; text-align: center; margin-top: 50px;';
+      
+      const title = document.createElement('h1');
+      title.textContent = 'Unable to load dashboard';
+      errorDiv.appendChild(title);
+      
+      const message = document.createElement('p');
+      message.textContent = 'Please refresh the page or try again later.';
+      errorDiv.appendChild(message);
+      
+      const retryButton = document.createElement('button');
+      retryButton.textContent = 'Refresh Page';
+      retryButton.style.cssText = 'margin-top: 20px; padding: 10px 20px; cursor: pointer;';
+      retryButton.addEventListener('click', () => window.location.reload());
+      errorDiv.appendChild(retryButton);
+      
+      document.body.appendChild(errorDiv);
+    }
   }
 });

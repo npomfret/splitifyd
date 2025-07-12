@@ -2,6 +2,7 @@
 import { authManager } from '../auth';
 import { HeaderConfig } from '../types/components';
 import { BaseComponent } from './base-component';
+import { createElementSafe, appendChildren } from '../utils/safe-dom';
 
 interface ExtendedHeaderConfig extends Partial<HeaderConfig> {
   titleLink?: string;
@@ -22,22 +23,31 @@ export class HeaderComponent extends BaseComponent<HTMLElement> {
       titleLink = '/dashboard.html'
     } = this.config;
 
-    const header = document.createElement('header');
-    header.className = 'header';
+    const header = createElementSafe('header', { className: 'header' });
 
-    header.innerHTML = `
-      <div class="container header-container">
-        <h1 class="header-title">
-          <a href="${titleLink}" class="header-link">${title}</a>
-        </h1>
-        ${showLogout ? `
-          <button class="button button--secondary" id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </button>
-        ` : ''}
-      </div>
-    `;
+    const container = createElementSafe('div', { className: 'container header-container' });
+
+    const headerTitle = createElementSafe('h1', { className: 'header-title' });
+    const headerLink = createElementSafe('a', { 
+      className: 'header-link', 
+      href: titleLink,
+      textContent: title 
+    });
+    headerTitle.appendChild(headerLink);
+    container.appendChild(headerTitle);
+
+    if (showLogout) {
+      const logoutBtn = createElementSafe('button', { 
+        className: 'button button--secondary',
+        id: 'logoutBtn'
+      });
+      const icon = createElementSafe('i', { className: 'fas fa-sign-out-alt' });
+      const span = createElementSafe('span', { textContent: 'Logout' });
+      appendChildren(logoutBtn, [icon, span]);
+      container.appendChild(logoutBtn);
+    }
+
+    header.appendChild(container);
 
     this.element = header;
     return header;

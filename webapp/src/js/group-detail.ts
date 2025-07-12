@@ -125,7 +125,7 @@ function updateGroupHeader(): void {
     const membersList = document.getElementById('membersList') as HTMLElement;
     const membersCount = document.getElementById('membersCount') as HTMLElement;
     
-    membersList.innerHTML = '';
+    clearElement(membersList);
     const maxVisibleMembers = 4;
     
     currentGroup.members.slice(0, maxVisibleMembers).forEach((member: Member, index: number) => {
@@ -155,11 +155,16 @@ async function loadBalances(): Promise<void> {
         const userBalances = (balances as any).userBalances;
         const serverSimplifiedDebts = (balances as any).simplifiedDebts;
         
-        balanceSummary.innerHTML = '';
+        clearElement(balanceSummary);
         
         if (!userBalances || Object.keys(userBalances).length === 0) {
-            balanceSummary.innerHTML = '<p class="no-data">All settled up!</p>';
-            simplifiedDebts.innerHTML = '<p class="no-data">No outstanding debts</p>';
+            clearElement(balanceSummary);
+            const settledMsg = createElementSafe('p', { className: 'no-data', textContent: 'All settled up!' });
+            balanceSummary.appendChild(settledMsg);
+            
+            clearElement(simplifiedDebts);
+            const noDebtsMsg = createElementSafe('p', { className: 'no-data', textContent: 'No outstanding debts' });
+            simplifiedDebts.appendChild(noDebtsMsg);
             return;
         }
         
@@ -168,7 +173,9 @@ async function loadBalances(): Promise<void> {
         
     } catch (error) {
         logger.error('Error loading balances:', error);
-        balanceSummary.innerHTML = '<p class="error">Failed to load balances</p>';
+        clearElement(balanceSummary);
+        const errorMsg = createElementSafe('p', { className: 'error', textContent: 'Failed to load balances' });
+        balanceSummary.appendChild(errorMsg);
     }
 }
 
@@ -213,10 +220,12 @@ function displayUserBalances(balances: any, container: HTMLElement): void {
 
 
 function displaySimplifiedDebts(simplified: any[], container: HTMLElement): void {
-    container.innerHTML = '';
+    clearElement(container);
     
     if (simplified.length === 0) {
-        container.innerHTML = '<p class="no-data">All settled up!</p>';
+        clearElement(container);
+        const settledMsg = createElementSafe('p', { className: 'no-data', textContent: 'All settled up!' });
+        container.appendChild(settledMsg);
         return;
     }
     
@@ -450,7 +459,7 @@ function openGroupSettingsModal(): void {
         logger.error('groupMembersList element not found');
         return;
     }
-    membersList.innerHTML = '';
+    clearElement(membersList);
     
     if (!currentGroup) {
         logger.error('currentGroup is null');
@@ -662,7 +671,7 @@ async function showShareGroupModal(): Promise<void> {
         const copyButton = createElementSafe('button', { className: 'button button--primary' });
         const copyIcon = createElementSafe('i', { className: 'fas fa-copy' });
         copyButton.appendChild(copyIcon);
-        copyButton.innerHTML += ' Copy';
+        copyButton.appendChild(document.createTextNode(' Copy'));
         shareLinkContainer.appendChild(input);
         shareLinkContainer.appendChild(copyButton);
         const p2 = createElementSafe('p', { className: 'share-info', textContent: 'Anyone with this link can join the group after logging in.' });

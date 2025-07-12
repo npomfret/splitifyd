@@ -169,3 +169,20 @@ export const firebaseConfigManager = {
 firebaseInitializer.initialize().catch((error: Error) => {
     logger.error('Failed to initialize Firebase on startup:', error);
 });
+
+// Setup global error handlers when module loads
+window.addEventListener('error', (event: ErrorEvent) => {
+    logger.error('Unhandled JavaScript Error:', event.error);
+    import('./utils/ui-messages.js').then(({ showError }) => {
+        showError('An unexpected error occurred. Please refresh the page.');
+    });
+    event.preventDefault();
+});
+
+window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+    logger.error('Unhandled Promise Rejection:', event.reason);
+    import('./utils/ui-messages.js').then(({ showError }) => {
+        showError('An operation failed unexpectedly. Please try again.');
+    });
+    event.preventDefault();
+});

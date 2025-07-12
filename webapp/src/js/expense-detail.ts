@@ -5,6 +5,7 @@ import { authManager } from './auth.js';
 import { ExpenseService } from './expenses.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { HeaderComponent } from './components/header.js';
+import { showError as showUIError } from './utils/ui-messages.js';
 import type { User } from './types/global';
 import type { Member, GroupDetail } from './types/api';
 import type { ExpenseData } from './types/business-logic';
@@ -111,7 +112,7 @@ function displayPayerInfo(paidBy: string, splits: Array<{userId: string; amount:
 
 function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>, totalAmount: number): void {
     const splitBreakdown = document.getElementById('split-breakdown') as HTMLElement;
-    splitBreakdown.innerHTML = '';
+    clearElement(splitBreakdown);
 
 
     splits.forEach(split => {
@@ -264,9 +265,9 @@ async function deleteExpense(): Promise<void> {
         const returnUrl = urlParams.get('return') || 'dashboard.html';
         window.location.href = returnUrl;
         
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Error deleting expense:', error);
-        alert('Failed to delete expense. Please try again.');
+        showUIError('Failed to delete expense. Please try again.');
         
         const deleteBtn = document.getElementById('confirm-delete-btn') as HTMLButtonElement;
         deleteBtn.disabled = false;

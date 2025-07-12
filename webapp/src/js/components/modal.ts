@@ -59,7 +59,7 @@ export class ModalComponent extends BaseComponent<HTMLElement> {
     });
     
     if (typeof body === 'string') {
-      modalBody.innerHTML = body;
+      modalBody.textContent = body;
     } else if (body instanceof Node) {
       modalBody.appendChild(body);
     }
@@ -73,7 +73,7 @@ export class ModalComponent extends BaseComponent<HTMLElement> {
       });
       
       if (typeof footer === 'string') {
-        modalFooter.innerHTML = footer;
+        modalFooter.textContent = footer;
       } else if (footer instanceof Node) {
         modalFooter.appendChild(footer);
       }

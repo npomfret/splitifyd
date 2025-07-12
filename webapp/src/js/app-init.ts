@@ -1,7 +1,8 @@
 import type { FirebaseUser } from './types/global';
-import { showWarning, hideWarning } from './utils/ui-messages.js';
+import { showWarning, hideWarning, showError } from './utils/ui-messages.js';
 import { firebaseAuthInstance, isFirebaseInitialized } from './firebase-init.js';
 import { MAX_AUTH_ATTEMPTS, AUTH_ATTEMPT_INTERVAL_MS } from './constants.js';
+import { logger } from './utils/logger.js';
 
 interface AppInitConfig {
   requireAuth?: boolean;
@@ -17,6 +18,7 @@ export class AppInit {
       onReady = null
     } = config;
 
+    this.setupGlobalErrorHandlers();
     await this.waitForFirebase();
     
     if (requireAuth) {
@@ -66,6 +68,20 @@ export class AppInit {
     if (!navigator.onLine) {
       showWarning('You are currently offline. Some features may not work properly.');
     }
+  }
+
+  static setupGlobalErrorHandlers(): void {
+    window.addEventListener('error', (event: ErrorEvent) => {
+      logger.error('Unhandled JavaScript Error:', event.error);
+      showError('An unexpected error occurred. Please refresh the page.');
+      event.preventDefault();
+    });
+
+    window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+      logger.error('Unhandled Promise Rejection:', event.reason);
+      showError('An operation failed unexpectedly. Please try again.');
+      event.preventDefault();
+    });
   }
 
   static showError(message: string, duration: number = 5000): void {
