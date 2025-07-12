@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     gsap.from('.navbar', { duration: 1, y: -100, opacity: 0, ease: 'power2.out' });
     gsap.from('.hero h1', { duration: 1.5, y: -50, opacity: 0, ease: 'elastic.out(1, 0.5)', delay: 0.5 });
     gsap.from('.hero p', { duration: 1.5, y: 50, opacity: 0, delay: 1, ease: 'power2.out' });
-    gsap.from('.cta-button', { duration: 1.5, scale: 0.5, opacity: 0, delay: 1.5, ease: 'elastic.out(1, 0.5)' });
 
     // Parallax hero image
     gsap.to('.hero-image', {

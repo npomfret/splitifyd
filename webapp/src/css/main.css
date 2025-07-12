@@ -2138,3 +2138,82 @@ main section {
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
 }
+
+/* ===== STATIC PAGE STYLES ===== */
+.static-page-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.static-page-header .logo {
+    display: inline-block;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-primary);
+    text-decoration: none;
+    margin-bottom: var(--space-md);
+    transition: opacity 0.2s ease;
+}
+
+.static-page-header .logo:hover {
+    opacity: 0.8;
+}
+
+.static-page-header h1 {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    color: var(--color-text);
+}
+
+.static-page-content {
+    background: var(--color-surface);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-xl);
+}
+
+.static-page-content section {
+    margin-bottom: var(--space-xl);
+}
+
+.static-page-content section:last-child {
+    margin-bottom: 0;
+}
+
+.static-page-content h2 {
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-md);
+}
+
+.static-page-content p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-md);
+}
+
+.static-page-content p:last-child {
+    margin-bottom: 0;
+}
+
+.static-page-content ul,
+.static-page-content ol {
+    margin: var(--space-md) 0;
+    padding-left: var(--space-xl);
+    color: var(--color-text-secondary);
+}
+
+.static-page-content li {
+    margin-bottom: var(--space-sm);
+    line-height: 1.7;
+}
+
+.static-page-footer {
+    text-align: center;
+    padding: var(--space-lg) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
