@@ -19,6 +19,7 @@
   "description": "",
   "dependencies": {
     "@splitifyd/shared-types": "^1.0.0",
+    "chokidar-cli": "^3.0.0",
     "gsap": "^3.12.5",
     "scrollreveal": "^4.0.9",
     "three": "^0.162.0"

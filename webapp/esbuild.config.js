@@ -26,7 +26,12 @@ const commonConfig = {
   // All configuration now comes from the API at runtime
 };
 
-esbuild.build({
-  ...commonConfig,
-  ...(isWatchMode ? { watch: true } : {}),
-}).catch(() => process.exit(1));
+if (isWatchMode) {
+  esbuild.context({
+    ...commonConfig,
+  }).then(ctx => ctx.watch()).catch(() => process.exit(1));
+} else {
+  esbuild.build({
+    ...commonConfig,
+  }).catch(() => process.exit(1));
+}
