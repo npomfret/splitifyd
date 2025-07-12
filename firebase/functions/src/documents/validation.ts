@@ -193,4 +193,3 @@ export const sanitizeDocumentData = (data: any): any => {
   
   return sanitized;
 };
-
