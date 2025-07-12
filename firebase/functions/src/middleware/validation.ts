@@ -98,19 +98,74 @@ export const validateContentType = (
   next();
 };
 
+// In-memory rate limiting store (for production, consider Redis)
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
 /**
- * Rate limit by IP address for unauthenticated endpoints
+ * Rate limit by IP address with configurable limits
  */
 export const rateLimitByIP = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  // Simple IP-based rate limiting for health checks and other public endpoints
   const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowMs = CONFIG.rateLimiting.windowMs;
+  const maxRequests = CONFIG.rateLimiting.maxRequests;
   
   // Store the IP for logging purposes
   req.headers['x-client-ip'] = ip;
   
+  // Get or create rate limit entry for this IP
+  let entry = rateLimitStore.get(ip);
+  
+  // Reset if window has expired
+  if (!entry || now > entry.resetTime) {
+    entry = {
+      count: 1,
+      resetTime: now + windowMs
+    };
+    rateLimitStore.set(ip, entry);
+    return next();
+  }
+  
+  // Increment request count
+  entry.count++;
+  
+  // Check if limit exceeded
+  if (entry.count > maxRequests) {
+    const remainingTime = Math.ceil((entry.resetTime - now) / 1000);
+    
+    res.status(429).json({
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Too many requests from this IP. Try again in ${remainingTime} seconds.`,
+        retryAfter: remainingTime
+      }
+    });
+    return;
+  }
+  
+  // Add rate limit headers
+  res.setHeader('X-RateLimit-Limit', maxRequests);
+  res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - entry.count));
+  res.setHeader('X-RateLimit-Reset', Math.ceil(entry.resetTime / 1000));
+  
   next();
 };
+
+// Cleanup old entries periodically to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitStore.entries()) {
+    if (now > entry.resetTime) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}, CONFIG.rateLimiting.cleanupIntervalMs);

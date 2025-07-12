@@ -152,7 +152,7 @@ describe('Configuration Response Functions', () => {
       expect(config.environment.warningBanner).toBeUndefined();
     });
 
-    it('should include form defaults when available', () => {
+    it('should include form defaults when available (excluding sensitive data)', () => {
       (CONFIG as any).formDefaults = {
         displayName: 'test',
         email: 'test@test.com',
@@ -161,10 +161,11 @@ describe('Configuration Response Functions', () => {
       
       const config = getEnhancedConfigResponse();
       
+      // SECURITY FIX: Password should be excluded from public config endpoint
       expect(config.formDefaults).toEqual({
         displayName: 'test',
-        email: 'test@test.com',
-        password: 'rrRR44$$'
+        email: 'test@test.com'
+        // password is intentionally excluded for security
       });
     });
   });

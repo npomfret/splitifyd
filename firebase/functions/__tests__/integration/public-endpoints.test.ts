@@ -122,8 +122,8 @@ describe('Public Endpoints Tests', () => {
       const jsonString = JSON.stringify(data);
       // Should not contain sensitive keys or internal configuration
       expect(jsonString).not.toMatch(/serviceAccount|privateKey|clientSecret/i);
-      // KNOWN ISSUE: Config endpoint exposes test password - this is a security issue
-      // expect(jsonString).not.toMatch(/password|secret.*key|admin.*key/i);
+      // SECURITY FIX: Config endpoint should not expose passwords or secrets
+      expect(jsonString).not.toMatch(/password|secret.*key|admin.*key/i);
     });
   });
 
