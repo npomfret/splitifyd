@@ -669,7 +669,9 @@ async function showShareGroupModal(): Promise<void> {
         modal.mount(document.body);
         modal.show();
 
-        copyButton.addEventListener('click', () => copyShareLink(input));
+        copyButton.addEventListener('click', async () => {
+            await copyShareLink(input);
+        });
         closeButton.addEventListener('click', () => {
             modal.hide();
             modal.unmount();
@@ -684,14 +686,14 @@ async function showShareGroupModal(): Promise<void> {
 }
 
 
-function copyShareLink(inputElement: HTMLInputElement): void {
-    inputElement.select();
-    inputElement.setSelectionRange(0, 99999);
-
+async function copyShareLink(inputElement: HTMLInputElement): Promise<void> {
+    const shareLink = inputElement.value;
+    
     try {
-        document.execCommand('copy');
+        await navigator.clipboard.writeText(shareLink);
         showMessage('Link copied to clipboard!', 'success');
     } catch (err) {
+        logger.error('Clipboard API write failed:', err);
         showMessage('Failed to copy link', 'error');
     }
 }

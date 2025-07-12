@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import { debounce } from './utils/event-utils.js';
+import { AUTH_TOKEN_KEY, USER_ID_KEY } from './constants.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
 import type { 
     LoginCredentials, 
@@ -12,9 +13,6 @@ import type {
     UserCredential,
     DebouncedFunction 
 } from './types/auth.js';
-
-const AUTH_TOKEN_KEY = 'splitifyd_auth_token';
-const USER_ID_KEY = 'userId';
 
 const validateInput: ValidatorMap = {
     email: (value: string): string => {
