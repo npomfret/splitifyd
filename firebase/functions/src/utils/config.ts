@@ -121,8 +121,13 @@ export const getEnhancedConfigResponse = (): AppConfiguration => {
     environment
   };
   
+  // SECURITY FIX: Only include safe form defaults, exclude sensitive data like passwords
   if (CONFIG.formDefaults) {
-    appConfig.formDefaults = CONFIG.formDefaults;
+    appConfig.formDefaults = {
+      displayName: CONFIG.formDefaults.displayName,
+      email: CONFIG.formDefaults.email,
+      // Never include password in public config endpoint
+    };
   }
   
   try {

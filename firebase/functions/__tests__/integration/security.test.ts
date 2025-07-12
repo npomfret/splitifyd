@@ -148,19 +148,11 @@ describe('Comprehensive Security Test Suite', () => {
         );
         const expense = await driver.createExpense(expenseData, users[0].token);
 
-        // SECURITY ISSUE: User 2 can access the expense even though not a participant
-        // This is a critical security flaw that needs to be fixed
-        // Current behavior: API allows access to any group member's expenses
-        const expenseResult = await driver.getExpense(expense.id, users[1].token);
-        
-        // For now, just verify the expense exists (showing the security issue)
-        expect(expenseResult.id).toBe(expense.id);
-        
-        // TODO: Fix authorization to only allow participants or group admins to access expenses
-        // The test should be:
-        // await expect(
-        //   driver.getExpense(expense.id, users[1].token)
-        // ).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized/i);
+        // SECURITY FIX: User 2 should NOT be able to access the expense since they're not a participant
+        // This should now return a 403 Forbidden error
+        await expect(
+          driver.getExpense(expense.id, users[1].token)
+        ).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized|not.*participant/i);
       });
 
       test('should prevent users from modifying other users expenses', async () => {
@@ -214,17 +206,10 @@ describe('Comprehensive Security Test Suite', () => {
           }
         };
 
-        // SECURITY ISSUE: API currently allows document updates without proper validation
-        // This is a critical security flaw that needs to be fixed
-        const updateResult = await driver.apiRequest(`/updateDocument?id=${testGroup.id}`, 'PUT', maliciousUpdate, users[1].token);
-        
-        // CRITICAL SECURITY FLAW: Update succeeded when it should have been rejected
-        expect(updateResult.message).toBe("Document updated successfully");
-        
-        // TODO: This test should be changed to:
-        // await expect(
-        //   driver.apiRequest(`/updateDocument?id=${testGroup.id}`, 'PUT', maliciousUpdate, users[1].token)
-        // ).rejects.toThrow(/400|403|forbidden|unauthorized|not.*allowed|validation/i);
+        // SECURITY FIX: API should now reject attempts to modify group membership directly
+        await expect(
+          driver.apiRequest(`/updateDocument?id=${testGroup.id}`, 'PUT', maliciousUpdate, users[1].token)
+        ).rejects.toThrow(/400|403|forbidden|unauthorized|not.*allowed|validation|cannot.*be.*modified/i);
       });
     });
   });
@@ -462,21 +447,14 @@ describe('Comprehensive Security Test Suite', () => {
       const testGroup = await driver.createGroup(`DoS Test Group ${uuidv4()}`, users, users[0].token);
       
       const enormousPayload = {
-        description: 'A'.repeat(1000000), // 1MB string
-        ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50)
+        ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
+        description: 'A'.repeat(1000000), // 1MB string - override after spread
       };
 
-      // SECURITY ISSUE: API accepts enormous payloads without proper size limits
-      // This can be used for DoS attacks
-      try {
-        const result = await driver.createExpense(enormousPayload, users[0].token);
-        // If it succeeds, it's a security issue
-        expect(result).toBeDefined();
-        // TODO: Implement proper payload size limits
-      } catch (error) {
-        // It's good if enormous payloads are rejected
-        expect((error as Error).message).toMatch(/400|payload.*too.*large|request.*entity.*too.*large|validation/i);
-      }
+      // SECURITY FIX: API should reject enormous payloads due to validation limits
+      await expect(
+        driver.createExpense(enormousPayload, users[0].token)
+      ).rejects.toThrow(/400|validation|description|too.*long|max.*length/i);
     });
   });
 

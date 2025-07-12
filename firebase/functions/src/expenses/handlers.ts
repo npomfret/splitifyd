@@ -69,6 +69,29 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
 
   await verifyGroupMembership(expense.groupId, userId);
 
+  // SECURITY FIX: Check if user is a participant in this specific expense or group admin
+  const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
+  const groupData = groupDoc.data();
+  
+  // Check if user is group owner (creator)
+  if (groupData?.userId === userId) {
+    return { docRef, expense };
+  }
+  
+  // Check if user is a group admin (role-based admin check temporarily removed - basic security still enforced)
+  // const groupDataTyped = groupData?.data as GroupData;
+  // if (groupDataTyped?.members && Array.isArray(groupDataTyped.members)) {
+  //   const userMember = groupDataTyped.members.find((member: GroupMember) => member.uid === userId);
+  //   if (userMember?.role === 'admin') {
+  //     return { docRef, expense };
+  //   }
+  // }
+  
+  // Check if user is a participant in this expense
+  if (!expense.participants || !expense.participants.includes(userId)) {
+    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
+  }
+
   return { docRef, expense };
 };
 

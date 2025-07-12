@@ -140,6 +140,11 @@ export const updateDocument = async (
   // Sanitize document data
   const sanitizedData = sanitizeDocumentData(data);
 
+  // SECURITY FIX: Prevent direct manipulation of group membership
+  if (sanitizedData.members || sanitizedData.memberIds || sanitizedData.memberEmails) {
+    throw Errors.INVALID_INPUT('Group membership cannot be modified through updateDocument. Use proper group management endpoints instead.');
+  }
+
   // Fetch and verify document ownership
   const { docRef } = await fetchUserDocument(documentId, userId);
 
