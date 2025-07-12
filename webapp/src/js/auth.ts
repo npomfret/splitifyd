@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import { debounce } from './utils/event-utils.js';
+import { validateInput } from './utils/safe-dom.js';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from './constants.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
 import type { 
@@ -14,30 +15,53 @@ import type {
     DebouncedFunction 
 } from './types/auth.js';
 
-const validateInput: ValidatorMap = {
+const authValidators: ValidatorMap = {
     email: (value: string): string => {
-        if (!value) throw new Error('Email is required');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            throw new Error('Invalid email format');
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const result = validateInput(value, { 
+            required: true, 
+            allowedPattern: emailPattern,
+            maxLength: 254 
+        });
+        
+        if (!result.valid) {
+            throw new Error(result.error || 'Invalid email');
         }
-        return value.toLowerCase().trim();
+        
+        return result.value?.toLowerCase() || '';
     },
     
     password: (value: string): string => {
-        if (!value) throw new Error('Password is required');
-        if (value.length < 8) throw new Error('Password must be at least 8 characters');
-        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])/.test(value)) {
-            throw new Error('Password must contain uppercase, lowercase, number, and special character');
+        const passwordPattern = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_-])/;
+        const result = validateInput(value, { 
+            required: true, 
+            minLength: 8,
+            maxLength: 128,
+            allowedPattern: passwordPattern
+        });
+        
+        if (!result.valid) {
+            const errorMsg = result.error === 'Invalid format' 
+                ? 'Password must contain uppercase, lowercase, number, and special character'
+                : result.error || 'Invalid password';
+            throw new Error(errorMsg);
         }
-        return value;
+        
+        return result.value || '';
     },
     
     displayName: (value: string): string => {
-        if (!value) throw new Error('Display name is required');
-        const trimmed = value.trim();
-        if (trimmed.length < 2) throw new Error('Display name must be at least 2 characters');
-        if (trimmed.length > 50) throw new Error('Display name must be less than 50 characters');
-        return trimmed;
+        const result = validateInput(value, { 
+            required: true, 
+            minLength: 2,
+            maxLength: 50
+        });
+        
+        if (!result.valid) {
+            throw new Error(result.error || 'Invalid display name');
+        }
+        
+        return result.value || '';
     }
 };
 
@@ -172,8 +196,8 @@ class AuthManager {
                 if (passwordInput && value !== passwordInput.value) {
                     throw new Error('Passwords do not match');
                 }
-            } else if (name in validateInput) {
-                validateInput[name as keyof ValidatorMap](value);
+            } else if (name in authValidators) {
+                authValidators[name as keyof ValidatorMap](value);
             }
             
             this.clearFieldError(input, errorElement);
@@ -210,8 +234,8 @@ class AuthManager {
     }
 
     private validateCredentials(credentials: LoginCredentials): void {
-        validateInput.email(credentials.email);
-        validateInput.password(credentials.password);
+        authValidators.email(credentials.email);
+        authValidators.password(credentials.password);
     }
 
     private async submitLogin(credentials: LoginCredentials, button: HTMLButtonElement): Promise<void> {
@@ -275,9 +299,9 @@ class AuthManager {
     }
 
     private validateRegistrationData(userData: RegistrationData): void {
-        validateInput.displayName(userData.displayName);
-        validateInput.email(userData.email);
-        validateInput.password(userData.password);
+        authValidators.displayName(userData.displayName);
+        authValidators.email(userData.email);
+        authValidators.password(userData.password);
         
         if (userData.password !== userData.confirmPassword) {
             throw new Error('Passwords do not match');
@@ -369,7 +393,7 @@ class AuthManager {
         const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
         try {
-            validateInput.email(email);
+            authValidators.email(email);
             await this.submitPasswordReset(email, button!);
         } catch (error) {
             this.showFormError(event.target as HTMLFormElement, (error as Error).message);
@@ -465,7 +489,7 @@ class AuthManager {
         }
         
         // Validate email before sending
-        validateInput.email(email);
+        authValidators.email(email);
         
         await firebaseAuthInstance.sendPasswordResetEmail(email);
     }
