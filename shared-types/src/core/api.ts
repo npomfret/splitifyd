@@ -23,7 +23,7 @@ export interface DocumentResponse {
 
 export interface ShareableLinkResponse {
   linkId: string;
-  url: string;
+  shareableUrl: string;
   expiresAt: string;
 }
 

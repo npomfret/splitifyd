@@ -8,7 +8,7 @@
     "build:js": "node scripts/build.js build",
     "typecheck": "tsc --noEmit",
     "build": "npm run clean && npm run typecheck && npm run copy:assets && npm run build:js",
-    "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"node scripts/build.js watch\"",
+    "watch": "concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"node scripts/build.js watch\"",
     "test": "jest --config jest.config.js",
     "type-coverage": "typescript-coverage-report --threshold 90",
     "prepare": "husky install"
