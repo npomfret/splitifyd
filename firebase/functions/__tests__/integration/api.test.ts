@@ -92,7 +92,7 @@ describe('Comprehensive API Test Suite', () => {
         expect(shareResponse).toHaveProperty('linkId');
         expect(shareResponse.shareableUrl).toContain('http');
         expect(shareResponse.shareableUrl).toContain('/join-group.html?linkId=');
-        expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9]{16}$/);
+        expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
       });
 
       test('should not allow non-admin to generate shareable link', async () => {

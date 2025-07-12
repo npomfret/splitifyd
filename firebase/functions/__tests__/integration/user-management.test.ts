@@ -58,7 +58,7 @@ describe('User Management Tests', () => {
             displayName: 'Test User'
           });
           // If registration succeeds, the email validation is too permissive
-          fail(`Email validation is too permissive: "${email}" was accepted`);
+          throw new Error(`Email validation is too permissive: "${email}" was accepted`);
         } catch (error) {
           const errorMessage = (error as Error).message;
           // Accept both validation errors (400) and existing account errors (409)
