@@ -4,6 +4,8 @@
 
 The current configuration management system for the Splitifyd project, particularly for local development with Firebase Emulators, exhibits several points of brittleness and complexity:
 
+7.  **Increased Testing Complexity:** Recent changes to `jest.setup.js` (e.g., `jest.useFakeTimers();`) introduce a global change to how tests handle timers. While intended for test reliability, such global test environment configurations can add a layer of complexity to understanding and debugging tests, potentially complicating the overall development and build process.
+
 1.  **Distributed Configuration:** Configuration values are scattered across multiple `.env` files, `firebase.json` (template and generated), and TypeScript files (`firebase/functions/src/config.ts`, `webapp/src/js/utils/env-loader.ts`).
 2.  **Complex Emulator Port Management:** Switching between different emulator instances (and their respective ports) requires manual copying of `.env.instanceX` files and running a separate script (`generate-firebase-config.js`) to update `firebase.json`. This is prone to errors and makes it difficult to run multiple emulator instances side-by-side without port clashes.
 3.  **Inconsistent Client-Side Configuration:** The Firebase client configuration (API Key, Auth Domain, etc.) is duplicated in `.env.instanceX` files and then read by the backend functions. The webapp then relies on a `firebaseConfigManager` to get this config, which is not directly tied to the active emulator instance's ports.
