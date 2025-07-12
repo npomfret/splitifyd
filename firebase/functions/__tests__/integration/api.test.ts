@@ -519,10 +519,9 @@ describe('Comprehensive API Test Suite', () => {
       expect(testGroupInList!.data.yourBalance).toBe(50);
     });
 
-    // TODO: This test is flaky due to Firebase emulator read-after-write consistency issues
-    // The trigger successfully writes data but listDocuments may return stale cached data
-    // Revisit when we find a solution for emulator consistency or move to integration tests against real Firebase
-    test.skip('should include expense metadata in listDocuments response after creating expenses', async () => {
+    // NOTE: This test now uses synchronous metadata updates in expense handlers
+    // instead of relying solely on triggers, ensuring consistency in both emulator and production
+    test('should include expense metadata in listDocuments response after creating expenses', async () => {
       // First, verify the group starts with no expense metadata
       const initialListResponse = await driver.listDocuments(users[0].token);
       const initialGroupInList = initialListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
@@ -535,35 +534,37 @@ describe('Comprehensive API Test Suite', () => {
       const expenseData = driver.createTestExpense(balanceTestGroup.id, users[0].uid, users.map(u => u.uid), 75);
       await driver.createExpense(expenseData, users[0].token);
       
-      // Wait for expense aggregation triggers to process using polling
-      const updatedGroupInList = await driver.waitForListDocumentsExpenseMetadata(balanceTestGroup.id, users[0].token, 1, 5000);
+      // Check immediately after creating expense (should be synchronous now)
+      const updatedListResponse = await driver.listDocuments(users[0].token);
+      const updatedGroupInList = updatedListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
       
       expect(updatedGroupInList).toBeDefined();
       
-      // Verify expense metadata is populated by triggers
-      expect(updatedGroupInList.data).toHaveProperty('expenseCount');
-      expect(updatedGroupInList.data.expenseCount).toBe(1);
+      // Verify expense metadata is populated synchronously
+      expect(updatedGroupInList!.data).toHaveProperty('expenseCount');
+      expect(updatedGroupInList!.data.expenseCount).toBe(1);
       
-      expect(updatedGroupInList.data).toHaveProperty('lastExpenseTime');
-      expect(updatedGroupInList.data.lastExpenseTime).toBeDefined();
-      expect(typeof updatedGroupInList.data.lastExpenseTime).toBe('string');
+      expect(updatedGroupInList!.data).toHaveProperty('lastExpenseTime');
+      expect(updatedGroupInList!.data.lastExpenseTime).toBeDefined();
+      expect(typeof updatedGroupInList!.data.lastExpenseTime).toBe('string');
       
       // Verify the lastExpenseTime is a valid ISO timestamp
-      expect(new Date(updatedGroupInList.data.lastExpenseTime).getTime()).not.toBeNaN();
+      expect(new Date(updatedGroupInList!.data.lastExpenseTime).getTime()).not.toBeNaN();
       
       // Add another expense to test count increment
       const secondExpenseData = driver.createTestExpense(balanceTestGroup.id, users[1].uid, users.map(u => u.uid), 25);
       await driver.createExpense(secondExpenseData, users[1].token);
       
-      // Wait for aggregation triggers again with polling
-      const finalGroupInList = await driver.waitForListDocumentsExpenseMetadata(balanceTestGroup.id, users[0].token, 2, 5000);
+      // Check immediately after second expense
+      const finalListResponse = await driver.listDocuments(users[0].token);
+      const finalGroupInList = finalListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
       
-      expect(finalGroupInList.data.expenseCount).toBe(2);
-      expect(finalGroupInList.data.lastExpenseTime).toBeDefined();
+      expect(finalGroupInList!.data.expenseCount).toBe(2);
+      expect(finalGroupInList!.data.lastExpenseTime).toBeDefined();
       
       // The lastExpenseTime should be updated to the more recent expense
-      const lastExpenseTime = new Date(finalGroupInList.data.lastExpenseTime);
-      const initialExpenseTime = new Date(updatedGroupInList.data.lastExpenseTime);
+      const lastExpenseTime = new Date(finalGroupInList!.data.lastExpenseTime);
+      const initialExpenseTime = new Date(updatedGroupInList!.data.lastExpenseTime);
       expect(lastExpenseTime.getTime()).toBeGreaterThanOrEqual(initialExpenseTime.getTime());
     });
   });
