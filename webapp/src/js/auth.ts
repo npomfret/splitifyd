@@ -131,22 +131,22 @@ class AuthManager {
     private async setDevelopmentDefaults(form: HTMLFormElement): Promise<void> {
         try {
             await config.getConfig();
-            const formDefaults = firebaseConfigManager.getFormDefaults();
+            const formDefaults = await firebaseConfigManager.getFormDefaults();
             
             if (!formDefaults || Object.keys(formDefaults).length === 0) {
                 return;
             }
 
             const registerDefaults: Record<string, string> = {
-                displayName: formDefaults.displayName,
-                email: formDefaults.email,
-                password: formDefaults.password,
-                confirmPassword: formDefaults.password
+                displayName: formDefaults.displayName || '',
+                email: formDefaults.email || '',
+                password: formDefaults.password || '',
+                confirmPassword: formDefaults.password || ''
             };
 
             const loginDefaults: Record<string, string> = {
-                email: formDefaults.email,
-                password: formDefaults.password
+                email: formDefaults.email || '',
+                password: formDefaults.password || ''
             };
 
             const defaults = form.id === 'registerForm' ? registerDefaults : loginDefaults;

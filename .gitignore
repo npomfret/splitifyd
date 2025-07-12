@@ -33,12 +33,9 @@ node_modules/
 # Output of 'npm pack'
 *.tgz
 
-# dotenv environment variable files
+# Environment files (only root and .gemini)
 .env
-.env.*.local
-.env.local
-.env.development
-.env.production
+.gemini/.env
 
 # Firebase emulator data
 firebase/emulator-data/

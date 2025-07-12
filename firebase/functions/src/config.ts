@@ -24,7 +24,7 @@ function parseInteger(value: string | undefined, name: string): number {
   return parsed;
 }
 
-function getEmulatorPort(hostEnvVar: string, portEnvVar: string): number {
+function getEmulatorPort(hostEnvVar: string, portEnvVar: string, defaultPort?: number): number | undefined {
   // First try to parse from Firebase CLI environment variable (e.g., FIREBASE_AUTH_EMULATOR_HOST=localhost:9199)
   const host = process.env[hostEnvVar];
   if (host) {
@@ -43,7 +43,8 @@ function getEmulatorPort(hostEnvVar: string, portEnvVar: string): number {
     }
   }
   
-  throw new Error(`Environment variable for emulator port not found: ${hostEnvVar} or ${portEnvVar}`);
+  // Return default if provided, otherwise undefined
+  return defaultPort;
 }
 
 // Project ID - Firebase emulator uses GCLOUD_PROJECT
@@ -79,11 +80,11 @@ export const CONFIG = {
   },
   
   
-  emulatorPorts: {
-    auth: getEmulatorPort('FIREBASE_AUTH_EMULATOR_HOST', 'EMULATOR_AUTH_PORT'),
-    firestore: getEmulatorPort('FIRESTORE_EMULATOR_HOST', 'EMULATOR_FIRESTORE_PORT'),
-    functions: parseInteger(process.env.EMULATOR_FUNCTIONS_PORT, 'EMULATOR_FUNCTIONS_PORT'),
-    hosting: getEmulatorPort('FIREBASE_HOSTING_EMULATOR_HOST', 'EMULATOR_HOSTING_PORT'),
+  emulatorPorts: (ENV_IS_TEST || isBuildPhase || !process.env.FUNCTIONS_EMULATOR) ? {} : {
+    auth: getEmulatorPort('FIREBASE_AUTH_EMULATOR_HOST', 'EMULATOR_AUTH_PORT', 9099),
+    firestore: getEmulatorPort('FIRESTORE_EMULATOR_HOST', 'EMULATOR_FIRESTORE_PORT', 8080),
+    functions: process.env.EMULATOR_FUNCTIONS_PORT ? parseInteger(process.env.EMULATOR_FUNCTIONS_PORT, 'EMULATOR_FUNCTIONS_PORT') : 5001,
+    hosting: getEmulatorPort('FIREBASE_HOSTING_EMULATOR_HOST', 'EMULATOR_HOSTING_PORT', 5000),
   },
   
   firebase: {

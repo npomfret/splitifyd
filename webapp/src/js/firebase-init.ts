@@ -1,17 +1,16 @@
 import { logger } from './utils/logger.js';
-import { loadEnvironment, getEnvironment, isLocalEnvironment } from './utils/env-loader.js';
+import { firebaseConfigManager as configManager } from './firebase-config-manager.js';
 import type { 
-    FirebaseConfig, 
     FirebaseApp, 
     FirebaseAuth, 
     FirebaseUser,
-    FirebaseError,
-    FirebaseConfigManagerConfig 
+    FirebaseError
 } from './types/global.js';
+import type { AppConfiguration } from './types/config.types.js';
 
 // Firebase SDK module types
 interface FirebaseAppModule {
-    initializeApp(config: FirebaseConfig): FirebaseApp;
+    initializeApp(config: any): FirebaseApp;
 }
 
 interface FirebaseAuthModule {
@@ -41,23 +40,20 @@ export function isFirebaseInitialized(): boolean {
     return firebaseAuthInstance !== null;
 }
 
-class FirebaseConfigManager {
-    private config: FirebaseConfigManagerConfig | null = null;
-    private initialized: boolean = false;
+class FirebaseInitializer {
     private app: FirebaseApp | null = null;
     private auth: FirebaseAuth | null = null;
     private emulatorConnected: boolean = false;
+    private initialized: boolean = false;
 
-    async initialize(): Promise<FirebaseConfigManagerConfig | null> {
+    async initialize(): Promise<void> {
         if (this.initialized) {
-            return this.config;
+            return;
         }
 
         try {
-            // Load environment configuration first
-            await loadEnvironment();
-            
-            const firebaseConfig = await this.fetchFirebaseConfig();
+            // Fetch configuration from API
+            const config = await configManager.getConfig();
             
             // @ts-ignore - Dynamic import from CDN
             const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
@@ -74,13 +70,14 @@ class FirebaseConfigManager {
                 sendPasswordResetEmail
             } = firebaseAuthModule;
             
-            this.app = initializeApp(firebaseConfig);
+            // Initialize Firebase with config from API
+            this.app = initializeApp(config.firebase);
             this.auth = getAuth(this.app);
             
-            const env = getEnvironment();
-            if (env.FIREBASE_EMULATOR_HOST && env.FIREBASE_AUTH_EMULATOR_PORT && !this.emulatorConnected) {
+            // Connect to emulators if in development
+            if (config.environment.isEmulator && config.environment.emulatorPorts?.auth && !this.emulatorConnected) {
                 try {
-                    const authEmulatorUrl = `http://${env.FIREBASE_EMULATOR_HOST}:${env.FIREBASE_AUTH_EMULATOR_PORT}`;
+                    const authEmulatorUrl = `http://localhost:${config.environment.emulatorPorts.auth}`;
                     logger.log(`🔧 Connecting to Firebase Auth emulator at ${authEmulatorUrl}`);
                     connectAuthEmulator(this.auth, authEmulatorUrl, { disableWarnings: true });
                     this.emulatorConnected = true;
@@ -95,6 +92,11 @@ class FirebaseConfigManager {
                 }
             }
             
+            // Store API base URL globally for backward compatibility
+            // This will be removed in future phases
+            (window as any).__API_BASE_URL__ = config.api.baseUrl;
+            
+            // Create auth service instance
             firebaseAuthInstance = {
                 signInWithEmailAndPassword: (email: string, password: string) => 
                     signInWithEmailAndPassword(this.auth!, email, password),
@@ -110,8 +112,6 @@ class FirebaseConfigManager {
             this.initialized = true;
             logger.log('Firebase initialized successfully');
             
-            return this.config;
-            
         } catch (error) {
             logger.error('Failed to initialize Firebase:', error);
             this.initialized = false;
@@ -119,71 +119,53 @@ class FirebaseConfigManager {
         }
     }
 
-    private async fetchFirebaseConfig(): Promise<FirebaseConfig> {
-        const configUrl = this.getConfigUrl();
-        logger.log('Fetching Firebase configuration from:', configUrl);
-        
-        try {
-            const response = await fetch(configUrl);
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error.message);
-            }
-            
-            const firebaseConfig = await response.json() as FirebaseConfig & { formDefaults?: any; warningBanner?: string };
-            logger.log('Firebase configuration loaded:', { projectId: firebaseConfig.projectId });
-            
-            const env = getEnvironment();
-            this.config = {
-                firebaseConfig,
-                apiUrl: env.API_BASE_URL,
-                isLocal: isLocalEnvironment(),
-                formDefaults: firebaseConfig.formDefaults,
-                warningBanner: firebaseConfig.warningBanner
-            };
-            
-            return firebaseConfig;
-            
-        } catch (error) {
-            throw new Error(`Firebase configuration fetch failed: ${(error as Error).message}. Ensure Firebase emulator is running at ${configUrl}`);
-        }
-    }
-
-
-    private getConfigUrl(): string {
-        const env = getEnvironment();
-        return `${env.API_BASE_URL}/config`;
-    }
-
-
-    getConfig(): FirebaseConfigManagerConfig {
-        if (!this.config) {
-            throw new Error('Firebase not initialized. Call initialize() first.');
-        }
-        return this.config;
-    }
-
-    getApiUrl(): string {
-        return this.getConfig().apiUrl;
-    }
-
     isInitialized(): boolean {
         return this.initialized;
     }
 
-
-    getFormDefaults(): any {
-        return this.config?.formDefaults;
+    getApp(): FirebaseApp | null {
+        return this.app;
     }
 
-    getWarningBanner(): string | undefined {
-        return this.config?.warningBanner;
+    getAuth(): FirebaseAuth | null {
+        return this.auth;
     }
 }
 
-export const firebaseConfigManager = new FirebaseConfigManager();
+export const firebaseInitializer = new FirebaseInitializer();
 
-firebaseConfigManager.initialize().catch((error: Error) => {
+// For backward compatibility - expose old firebaseConfigManager interface
+export const firebaseConfigManager = {
+    async initialize() {
+        await firebaseInitializer.initialize();
+        return await this.getConfig();
+    },
+    async getConfig() {
+        const config = await configManager.getConfig();
+        return {
+            firebaseConfig: config.firebase,
+            apiUrl: config.api.baseUrl,
+            isLocal: config.environment.isDevelopment || config.environment.isEmulator,
+            formDefaults: config.formDefaults,
+            warningBanner: config.environment.warningBanner?.message
+        };
+    },
+    getApiUrl() {
+        return configManager.getApiBaseUrl();
+    },
+    isInitialized() {
+        return firebaseInitializer.isInitialized();
+    },
+    async getFormDefaults() {
+        return await configManager.getFormDefaults();
+    },
+    async getWarningBanner() {
+        const banner = await configManager.getWarningBanner();
+        return banner?.message;
+    }
+};
+
+// Auto-initialize Firebase
+firebaseInitializer.initialize().catch((error: Error) => {
     logger.error('Failed to initialize Firebase on startup:', error);
 });

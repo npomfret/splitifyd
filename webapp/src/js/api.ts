@@ -320,37 +320,15 @@ export const apiService = new ApiService();
 
 // Generic API call function for expense and group services
 export async function apiCall<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const baseUrl = await apiService['_getBaseUrl']();
-    const url = `${baseUrl}${endpoint}`;
-    
-    const defaultHeaders: Record<string, string> = {
-        'Content-Type': 'application/json'
-    };
-    
-    // Add auth headers if we have a token
-    const token = apiService['_getAuthToken']();
-    if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
-    
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            ...defaultHeaders,
-            ...options.headers
-        }
-    });
-    
-    if (!response.ok) {
-        if (response.status === 401) {
+    // Use the new API client instead
+    const { apiClient } = await import('./api-client.js');
+    try {
+        return await apiClient.request<T>(endpoint, options);
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('401')) {
             localStorage.removeItem('splitifyd_auth_token');
             window.location.href = 'index.html';
-            throw new Error('Authentication required');
         }
-        
-        const errorData = await response.json();
-        throw new Error(errorData.message || errorData.error?.message || 'Request failed');
+        throw error;
     }
-    
-    return response.json();
 }

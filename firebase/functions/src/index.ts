@@ -4,7 +4,7 @@ import { authenticate } from './auth/middleware';
 import { register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
-import { getFirebaseConfigResponse } from './utils/config';
+import { getEnhancedConfigResponse } from './utils/config';
 import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
@@ -109,7 +109,13 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
 
 // Firebase configuration endpoint (public - for client initialization)
 app.get('/config', asyncHandler((req: express.Request, res: express.Response) => {
-  const config = getFirebaseConfigResponse();
+  // Always use enhanced config now
+  const config = getEnhancedConfigResponse();
+  
+  // Cache for 5 minutes in development, 1 hour in production
+  const maxAge = CONFIG.isDevelopment ? 300 : 3600;
+  res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
+  
   res.json(config);
 }));
 

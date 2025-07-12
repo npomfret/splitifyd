@@ -18,9 +18,9 @@ var warningBannerManager = {
       throw error;
     });
   },
-  displayWarningBanner() {
+  async displayWarningBanner() {
     logger.log('displayWarningBanner() called');
-    const bannerText = firebaseConfigManager.getWarningBanner();
+    const bannerText = await firebaseConfigManager.getWarningBanner();
     logger.log('Retrieved bannerText:', bannerText);
     if (bannerText) {
       showWarning(bannerText);

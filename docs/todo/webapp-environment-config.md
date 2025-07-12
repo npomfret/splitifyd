@@ -2,196 +2,69 @@
 
 ## Issue Description
 
-The current system determines the environment (local vs. production) on the client-side by checking `window.location.hostname`. This approach is brittle, lacks scalability, poses a security risk, and is inflexible.
+The system previously used client-side environment detection by checking `window.location.hostname` and build-time environment variable injection. This approach was brittle, lacked scalability, posed security risks, and was inflexible.
 
-## ✅ IMPLEMENTATION COMPLETED
+## ✅ IMPLEMENTATION COMPLETED - Runtime Configuration
 
-The environment-specific configuration system has been successfully implemented:
+The environment-specific configuration system has been migrated to a **runtime configuration approach**:
 
-1. **Created Environment Loader Module** - Implemented `webapp/src/js/utils/env-loader.ts` to load and parse environment files
-2. **Updated Firebase Configuration** - Modified `firebase-config.ts` to use environment variables instead of hardcoded values
-3. **Updated Config Module** - Modified `config.ts` to use environment variables with proper fallbacks
-4. **Updated HTML Files** - Added env-loader script to all HTML files that use configuration
-5. **Build and Tests Successful** - The webapp builds without errors and all tests pass (34/34)
+### What Was Done
 
-The implementation successfully eliminated hardcoded environment detection while maintaining all existing functionality and improving configuration flexibility.
+1. **Removed Build-Time Configuration**
+   - Deleted `.env.development` and `.env.production` files
+   - Removed `scripts/build.js` that injected environment variables at build time
+   - Updated `package.json` to use `esbuild.config.js` directly
 
-## Recommendation
+2. **Enhanced Server Configuration Endpoint**
+   - The `/api/config` endpoint now provides all configuration data including:
+     - Firebase configuration
+     - API endpoints
+     - Environment settings
+     - Feature flags
+     - Form defaults (for development)
+     - Warning banners
 
-Adopt a formal system for environment variables using `.env` files to create a more professional, secure, and flexible application.
+3. **Created Runtime Configuration Manager**
+   - `firebase-config-manager.ts` fetches configuration from the server at runtime
+   - Implements caching and retry logic for reliability
+   - Provides typed access to configuration values
 
-## Implementation Suggestions
+4. **Updated All Configuration Consumers**
+   - `config.ts` now uses `firebaseConfigManager` instead of environment variables
+   - `firebase-init.ts` fetches Firebase config from the API
+   - `api-client.ts` gets API endpoints from runtime configuration
+   - All components initialize after configuration is loaded
 
-### Step 1: Create `.env` Files
+### Benefits of Runtime Configuration
 
-In the `webapp` directory, create the following files:
+1. **Security**: No sensitive configuration in client-side code
+2. **Flexibility**: Configuration can be changed without rebuilding
+3. **Environment Agnostic**: Same build works in all environments
+4. **Dynamic Updates**: Configuration can be updated server-side
+5. **Type Safety**: Full TypeScript support for configuration
 
-*   **.env.development**: For local development.
-*   **.env.production**: For the live production environment.
-*   **.gitignore**: Update it to ignore all `.env` files to prevent committing them.
+### Architecture
 
-**`webapp/.env.development`**
 ```
-# Local development environment
-API_BASE_URL=http://localhost:5001/splitifyd/us-central1/api
-FIREBASE_EMULATOR_HOST=http://localhost
-FIREBASE_AUTH_EMULATOR_PORT=9099
-```
-
-**`webapp/.env.production`**
-```
-# Production environment
-API_BASE_URL=/api
-# In production, we don't use emulators, so these can be empty or omitted
-FIREBASE_EMULATOR_HOST=
-FIREBASE_AUTH_EMULATOR_PORT=
-```
-
-**`webapp/.gitignore`** (ensure this line is present)
-```
-# Environment variables
-.env.*
-```
-
-### Step 2: Create a Script to Load Environment Variables
-
-Create a new file: `webapp/js/env-loader.js`
-
-```javascript
-// webapp/js/env-loader.js
-
-async function loadEnv() {
-  // In a real build system, this would be replaced by process.env.NODE_ENV
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const env = isLocal ? 'development' : 'production';
-
-  try {
-    const response = await fetch(`/webapp/.env.${env}`);
-    if (!response.ok) {
-      throw new Error(`Failed to load .env.${env} file.`);
-    }
-    const text = await response.text();
-    const lines = text.split('\n');
-    
-    window.env = window.env || {};
-
-    lines.forEach(line => {
-      if (line.trim() && !line.startsWith('#')) {
-        const [key, value] = line.split('=');
-        window.env[key.trim()] = value.trim();
-      }
-    });
-  } catch (error) {
-    console.error('Error loading environment variables:', error);
-    // Fallback or default values can be set here if needed
-    window.env = {
-        API_BASE_URL: '/api',
-        FIREBASE_EMULATOR_HOST: '',
-        FIREBASE_AUTH_EMULATOR_PORT: ''
-    };
-  }
-}
-
-// We need to block until the environment is loaded.
-// A better approach with a bundler would be to have these values at build time.
-await loadEnv();
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Client    │────▶│ /api/config  │────▶│   Server    │
+│  (Browser)  │     │   Endpoint   │     │   Config    │
+└─────────────┘     └──────────────┘     └─────────────┘
+       │                                         │
+       ▼                                         ▼
+┌─────────────────┐                    ┌─────────────────┐
+│ FirebaseConfig  │                    │ Environment     │
+│    Manager      │                    │ Variables       │
+└─────────────────┘                    └─────────────────┘
 ```
 
-### Step 3: Update HTML to Load the Environment Script
+### Configuration Flow
 
-In all your HTML files (`index.html`, `dashboard.html`, etc.), include the `env-loader.js` script **before** any other application scripts.
+1. Client loads the application
+2. `firebase-config-manager.ts` fetches configuration from `/api/config`
+3. Configuration is cached and made available to all components
+4. Components initialize using the runtime configuration
 
-```html
-<!-- In <head> or at the start of <body> -->
-<script src="js/env-loader.js"></script>
-<!-- Other scripts follow -->
-<script src="js/firebase-config.js"></script>
-<script src="js/config.js"></script>
-...
-```
+### Migration Notes
 
-### Step 4: Refactor `firebase-config.js` and `config.js`
-
-Update the existing configuration files to use the variables from `window.env`.
-
-**`webapp/js/config.js` (Refactored)**
-
-```javascript
-class Config {
-    constructor() {}
-
-    async getApiUrl() {
-        return window.env.API_BASE_URL;
-    }
-
-    getApiUrlSync() {
-        return window.env.API_BASE_URL;
-    }
-
-    isLocalEnvironment() {
-        return !!window.env.FIREBASE_EMULATOR_HOST;
-    }
-
-    async getConfig() {
-        if (!window.firebaseConfigManager.isInitialized()) {
-            await window.firebaseConfigManager.initialize();
-        }
-        return window.firebaseConfigManager.getConfig();
-    }
-}
-
-const config = new Config();
-```
-
-**`webapp/js/firebase-config.js` (Refactored Snippets)**
-
-Modify the `initialize` and `fetchFirebaseConfig` methods to use the new environment variables.
-
-```javascript
-// Inside FirebaseConfigManager class
-
-    async initialize() {
-        // ... (imports remain the same)
-        
-        this.app = initializeApp(firebaseConfig);
-        this.auth = getAuth(this.app);
-        
-        // Use the new env variables
-        if (window.env.FIREBASE_EMULATOR_HOST && window.env.FIREBASE_AUTH_EMULATOR_PORT) {
-            const authEmulatorUrl = `${window.env.FIREBASE_EMULATOR_HOST}:${window.env.FIREBASE_AUTH_EMULATOR_PORT}`;
-            console.log(`🔧 Connecting to Firebase Auth emulator at ${authEmulatorUrl}`);
-            connectAuthEmulator(this.auth, authEmulatorUrl, { disableWarnings: true });
-        }
-        
-        // ... (rest of the method)
-    }
-
-    async fetchFirebaseConfig() {
-        const configUrl = `${window.env.API_BASE_URL}/config`;
-        console.log('Fetching Firebase configuration from:', configUrl);
-        
-        try {
-            // ... (fetch logic remains the same)
-            
-            this.config = {
-                firebaseConfig,
-                apiUrl: window.env.API_BASE_URL,
-                isLocal: !!window.env.FIREBASE_EMULATOR_HOST,
-                formDefaults: firebaseConfig.formDefaults,
-                warningBanner: firebaseConfig.warningBanner
-            };
-            
-            return firebaseConfig;
-            
-        } catch (error) {
-            // ... (error handling)
-        }
-    }
-
-    // Remove isLocalEnvironment, getConfigUrl, getApiUrlForProject methods
-    // as they are now handled by the env variables.
-```
-
-## Conclusion
-
-This approach establishes a clean separation of configuration from code. It makes the application more robust, secure, and easier to manage across different environments. While the `env-loader.js` script is a temporary solution for a project without a build step, it provides the immediate benefits of environment-specific configurations and paves the way for a more advanced build system in the future.
+The old build-time environment variable system has been completely removed. All configuration now comes from the server at runtime, making the application more secure and easier to deploy across different environments.

@@ -36,12 +36,6 @@ try {
   console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT}`);
   console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT}`);
   console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT}`);
-  
-  // Generate webapp/.env.development
-  const webappEnvPath = path.join(__dirname, '../../webapp/.env.development');
-  const webappEnvContent = `API_BASE_URL=http://localhost:${process.env.EMULATOR_FUNCTIONS_PORT}/splitifyd/us-central1/api\nAUTH_EMULATOR_HOST=http://localhost:${process.env.EMULATOR_AUTH_PORT}`;
-  fs.writeFileSync(webappEnvPath, webappEnvContent);
-  console.log(`✅ Generated webapp/.env.development with API_BASE_URL and AUTH_EMULATOR_HOST for instance ${instance}`);
 
   console.log('\n🚀 You can now run: npm run dev:with-data');
   
