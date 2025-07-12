@@ -33,7 +33,10 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     }
 
     const groupData = groupDoc.data() as any;
-    const members = groupData.data?.members || groupData.members || [];
+    const members = groupData.data?.members || [];
+    if (members.length === 0) {
+        throw new Error(`Group ${groupId} has no members for balance calculation`);
+    }
     const memberMap: Record<string, string> = {};
     
     logger.info('[BalanceCalculator] Group members', { 

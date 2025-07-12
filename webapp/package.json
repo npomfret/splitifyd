@@ -4,9 +4,10 @@
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf dist",
-    "copy:assets": "mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/",
-    "build:js": "esbuild 'src/js/**/*.ts' 'src/js/**/*.js' --bundle --outdir=dist/js --outbase=src/js --format=esm",
+    "copy:assets": "mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/ && cp .env.* dist/",
+    "build:js": "esbuild 'src/js/**/*.ts' 'src/js/**/*.js' --outdir=dist/js --outbase=src/js --format=esm",
     "build": "npm run clean && npm run copy:assets && npm run build:js",
+    "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"esbuild 'src/js/**/*.ts' 'src/js/**/*.js' --bundle --outdir=dist/js --outbase=src/js --format=esm --watch\"",
     "test": "jest --config jest.config.js",
     "type-coverage": "typescript-coverage-report --threshold 90",
     "prepare": "husky install"
@@ -16,22 +17,17 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@splitifyd/shared-types": "file:../shared-types",
+    "@splitifyd/shared-types": "^1.0.0",
     "gsap": "^3.12.5",
     "scrollreveal": "^4.0.9",
     "three": "^0.162.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
-    "@types/jest": "^30.0.0",
     "@types/scrollreveal": "^0.0.11",
     "babel-jest": "^30.0.4",
-    "esbuild": "^0.20.2",
     "husky": "^9.1.7",
-    "jest": "^30.0.4",
     "lint-staged": "^16.1.2",
-    "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3",
     "typescript-coverage-report": "^1.1.1"
   },
   "lint-staged": {

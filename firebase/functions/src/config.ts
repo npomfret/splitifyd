@@ -1,4 +1,4 @@
-import { PORTS, RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
+import { RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import * as functions from 'firebase-functions';
 
 // Load environment variables from .env file for local development
@@ -22,6 +22,29 @@ function parseInteger(value: string | undefined, name: string): number {
     throw new Error(`Environment variable ${name} must be a valid integer`);
   }
   return parsed;
+}
+
+function getEmulatorPort(hostEnvVar: string, portEnvVar: string, fallback: number): number {
+  // First try to parse from Firebase CLI environment variable (e.g., FIREBASE_AUTH_EMULATOR_HOST=localhost:9199)
+  const host = process.env[hostEnvVar];
+  if (host) {
+    const match = host.match(/:(\d+)$/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+  }
+  
+  // Fallback to explicit port environment variable
+  const portStr = process.env[portEnvVar];
+  if (portStr) {
+    const port = parseInt(portStr, 10);
+    if (!isNaN(port)) {
+      return port;
+    }
+  }
+  
+  // Final fallback to default
+  return fallback;
 }
 
 // Project ID - Firebase emulator uses GCLOUD_PROJECT
@@ -58,9 +81,9 @@ export const CONFIG = {
   
   
   emulatorPorts: {
-    auth: process.env.EMULATOR_AUTH_PORT ? parseInteger(process.env.EMULATOR_AUTH_PORT, 'EMULATOR_AUTH_PORT') : PORTS.AUTH_EMULATOR,
-    firestore: process.env.EMULATOR_FIRESTORE_PORT ? parseInteger(process.env.EMULATOR_FIRESTORE_PORT, 'EMULATOR_FIRESTORE_PORT') : PORTS.FIRESTORE_EMULATOR,
-    functions: process.env.EMULATOR_FUNCTIONS_PORT ? parseInteger(process.env.EMULATOR_FUNCTIONS_PORT, 'EMULATOR_FUNCTIONS_PORT') : PORTS.LOCAL_5001,
+    auth: getEmulatorPort('FIREBASE_AUTH_EMULATOR_HOST', 'EMULATOR_AUTH_PORT', 9099),
+    firestore: getEmulatorPort('FIRESTORE_EMULATOR_HOST', 'EMULATOR_FIRESTORE_PORT', 8080),
+    functions: process.env.EMULATOR_FUNCTIONS_PORT ? parseInteger(process.env.EMULATOR_FUNCTIONS_PORT, 'EMULATOR_FUNCTIONS_PORT') : 5001,
   },
   
   firebase: {

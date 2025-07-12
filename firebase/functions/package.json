@@ -4,12 +4,8 @@
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "build": "tsc",
-    "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
-    "shell": "npm run build && firebase functions:shell",
-    "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log",
+    "watch": "tsc --watch",
+    "clean": "rm -rf lib",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns=__tests__/integration/",
     "test:integration": "jest __tests__/integration/",
@@ -22,7 +18,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@splitifyd/shared-types": "file:../../shared-types",
+    "@splitifyd/shared-types": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^4.21.2",
@@ -34,15 +30,10 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.23",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^20.19.2",
     "@types/supertest": "^6.0.3",
     "@types/uuid": "^10.0.0",
     "depcheck": "^1.4.7",
-    "jest": "^29.7.0",
     "supertest": "^6.3.4",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.6.3",
     "uuid": "^11.1.0"
   },
   "jest": {

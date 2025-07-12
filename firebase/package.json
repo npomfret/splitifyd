@@ -3,19 +3,14 @@
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
-    "clean": "rm -rf public && cd functions && rm -rf lib && cd ..",
-    "build:webapp": "cd ../webapp && npm run build && cd ../firebase && ln -sf ../webapp/dist public",
-
-    "build": "npm run clean && npm run build:webapp && cd functions && npm run build && cd ..",
-    "serve": "npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && firebase emulators:start",
-    "dev": "npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && (nodemon & NODE_ENV=development firebase emulators:start --import=./emulator-data --export-on-exit)",
-    "dev:with-data": "rm -f *.log && npm run build && cd functions && npm run build && cd .. && node scripts/generate-firebase-config.js && node scripts/start-with-data.js",
+    "link-webapp": "ln -sf ../webapp/dist public",
+    "start-emulators": "node scripts/generate-firebase-config.js && node scripts/start-with-data.js",
     "generate-test-data": "cd functions && node scripts/generate-test-data.js",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
-    "deploy:prod": "npm run build && firebase use splitifyd && firebase deploy",
+    "deploy:prod": "cd .. && npm run build && cd firebase && firebase use splitifyd && firebase deploy",
     "deploy:functions": "firebase use splitifyd && firebase deploy --only functions",
-    "deploy:hosting": "npm run build && firebase use splitifyd && firebase deploy --only hosting",
+    "deploy:hosting": "cd .. && npm run build && cd firebase && firebase use splitifyd && firebase deploy --only hosting",
     "deploy:rules": "firebase use splitifyd && firebase deploy --only firestore:rules",
     "logs": "firebase use splitifyd && firebase functions:log",
     "kill-emulators": "node scripts/kill-emulators.js",
@@ -24,8 +19,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "firebase-tools": "^13.0.0",
-    "nodemon": "^3.1.10"
   },
   "dependencies": {
     "xss": "^1.0.15",

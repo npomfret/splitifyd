@@ -30,6 +30,38 @@ export interface Expense {
   receiptUrl?: string;
 }
 
+// Polling configuration interface
+interface PollOptions {
+  timeout?: number;      // Total timeout in ms (default: 10000)
+  interval?: number;     // Polling interval in ms (default: 500)
+  errorMsg?: string;     // Custom error message
+  onRetry?: (attempt: number, error?: Error) => void;  // Callback for debugging
+}
+
+// Generic matcher type
+type Matcher<T> = (value: T) => boolean | Promise<boolean>;
+
+// Response types for type safety
+interface ApiResponse {
+  [key: string]: any;
+}
+
+interface ListDocumentsResponse extends ApiResponse {
+  documents: Array<{
+    id: string;
+    data: any;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  count: number;
+  hasMore: boolean;
+}
+
+interface BalanceResponse extends ApiResponse {
+  userBalances: Record<string, any>;
+  lastUpdated?: string;
+}
+
 export class ApiDriver {
   private readonly baseUrl: string;
   private readonly authPort: number;
@@ -215,97 +247,149 @@ export class ApiDriver {
     return await this.apiRequest(`/groups/balances?groupId=${groupId}`, 'GET', null, token);
   }
 
-  async waitForBalanceUpdate(
-    groupId: string,
-    token: string,
-    predicateOrTimeout?: ((balances: any) => boolean) | number,
-    timeoutForPredicate: number = 10000,
-  ): Promise<any> {
-    const predicate =
-      typeof predicateOrTimeout === 'function'
-        ? predicateOrTimeout
-        : (balances: any) =>
-            balances.userBalances &&
-            Object.keys(balances.userBalances).length > 0 &&
-            balances.lastUpdated;
-    const timeoutMs =
-      typeof predicateOrTimeout === 'number'
-        ? predicateOrTimeout
-        : timeoutForPredicate;
+  // Generic polling method
+  private async pollUntil<T>(
+    fetcher: () => Promise<T>,
+    matcher: Matcher<T>,
+    options: PollOptions = {}
+  ): Promise<T> {
+    const {
+      timeout = 10000,
+      interval = 500,
+      errorMsg = 'Condition not met',
+      onRetry
+    } = options;
 
     const startTime = Date.now();
     let lastError: Error | null = null;
+    let attempts = 0;
 
-    while (Date.now() - startTime < timeoutMs) {
+    while (Date.now() - startTime < timeout) {
       try {
-        const balances = await this.getGroupBalances(groupId, token);
-        if (predicate(balances)) {
-          return balances;
+        attempts++;
+        const result = await fetcher();
+        if (await matcher(result)) {
+          return result;
         }
       } catch (error) {
         lastError = error as Error;
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
+
+      if (onRetry) {
+        onRetry(attempts, lastError || undefined);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, interval));
     }
 
     throw new Error(
-      `Balance update timeout after ${timeoutMs}ms. Last error: ${
-        lastError?.message || 'Unknown'
-      }`
+      `${errorMsg} after ${timeout}ms (${attempts} attempts). ` +
+      `Last error: ${lastError?.message || 'None'}`
+    );
+  }
+
+  // Type-safe endpoint polling methods
+  async pollGetDocumentUntil(
+    documentId: string,
+    token: string,
+    matcher: Matcher<any>,
+    options?: PollOptions
+  ): Promise<any> {
+    return this.pollUntil(
+      () => this.getDocument(documentId, token),
+      matcher,
+      { errorMsg: `Document ${documentId} condition not met`, ...options }
+    );
+  }
+
+  async pollListDocumentsUntil(
+    token: string,
+    matcher: Matcher<ListDocumentsResponse>,
+    options?: PollOptions
+  ): Promise<ListDocumentsResponse> {
+    return this.pollUntil(
+      () => this.apiRequest('/listDocuments', 'GET', {}, token) as Promise<ListDocumentsResponse>,
+      matcher,
+      { errorMsg: 'List documents condition not met', ...options }
+    );
+  }
+
+  async pollGroupBalancesUntil(
+    groupId: string,
+    token: string,
+    matcher: Matcher<BalanceResponse>,
+    options?: PollOptions
+  ): Promise<BalanceResponse> {
+    return this.pollUntil(
+      () => this.getGroupBalances(groupId, token),
+      matcher,
+      { errorMsg: `Group ${groupId} balance condition not met`, ...options }
+    );
+  }
+
+  // Common matchers
+  static readonly matchers = {
+    // Document matchers
+    documentHasField: (field: string) => (doc: any) => doc?.data?.[field] !== undefined,
+    documentFieldEquals: (field: string, value: any) => (doc: any) => doc?.data?.[field] === value,
+    documentFieldGreaterThan: (field: string, value: number) => (doc: any) => doc?.data?.[field] > value,
+    
+    // List documents matchers
+    listContainsDocumentWithId: (docId: string) => (response: ListDocumentsResponse) => 
+      response.documents.some(doc => doc.id === docId),
+    
+    listDocumentHasExpenseMetadata: (docId: string, expectedCount?: number) => (response: ListDocumentsResponse) => {
+      const doc = response.documents.find(d => d.id === docId);
+      if (!doc) return false;
+      if (doc.data.expenseCount === undefined || doc.data.lastExpenseTime === undefined) return false;
+      return expectedCount === undefined || doc.data.expenseCount === expectedCount;
+    },
+    
+    // Balance matchers
+    balanceIsNonZero: () => (balances: BalanceResponse) => 
+      balances.userBalances && Object.values(balances.userBalances).some((b: any) => b.netBalance !== 0),
+    
+    balanceHasUpdate: () => (balances: BalanceResponse) => 
+      balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated
+  };
+
+  // Backward compatibility - refactor existing methods to use the new polling pattern
+  async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<any> {
+    return this.pollGroupBalancesUntil(
+      groupId,
+      token,
+      ApiDriver.matchers.balanceHasUpdate(),
+      { timeout: timeoutMs }
     );
   }
 
   async waitForGroupStats(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
-    const startTime = Date.now();
-    let lastError: Error | null = null;
+    const matcher = (doc: any) => {
+      if (doc?.data?.expenseCount === undefined) return false;
+      return expectedExpenseCount === undefined || doc.data.expenseCount === expectedExpenseCount;
+    };
     
-    while (Date.now() - startTime < timeoutMs) {
-      try {
-        const group = await this.getDocument(groupId, token);
-        const stats = group.data;
-        
-        // Check if stats have been updated
-        if (stats.expenseCount !== undefined && 
-            (expectedExpenseCount === undefined || stats.expenseCount === expectedExpenseCount)) {
-          return group;
-        }
-        
-        // Wait before next attempt
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (error) {
-        lastError = error as Error;
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    }
-    
-    throw new Error(`Group stats update timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+    return this.pollGetDocumentUntil(
+      groupId,
+      token,
+      matcher,
+      { timeout: timeoutMs, errorMsg: 'Group stats update timeout' }
+    );
   }
 
   async waitForListDocumentsExpenseMetadata(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
-    const startTime = Date.now();
-    let lastError: Error | null = null;
-    
-    while (Date.now() - startTime < timeoutMs) {
-      try {
-        const listResponse = await this.apiRequest('/listDocuments', 'GET', {}, token);
-        const groupInList = listResponse.documents.find((doc: any) => doc.id === groupId);
-        
-        if (groupInList && 
-            groupInList.data.expenseCount !== undefined && 
-            groupInList.data.lastExpenseTime !== undefined &&
-            (expectedExpenseCount === undefined || groupInList.data.expenseCount === expectedExpenseCount)) {
-          return groupInList;
-        }
-        
-        // Wait before next attempt
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (error) {
-        lastError = error as Error;
-        await new Promise(resolve => setTimeout(resolve, 500));
+    const response = await this.pollListDocumentsUntil(
+      token,
+      ApiDriver.matchers.listDocumentHasExpenseMetadata(groupId, expectedExpenseCount),
+      { 
+        timeout: timeoutMs, 
+        interval: 1000, // Longer delay for emulator consistency
+        errorMsg: 'List documents expense metadata timeout'
       }
-    }
+    );
     
-    throw new Error(`List documents expense metadata timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+    // Return just the group document for backward compatibility
+    return response.documents.find(doc => doc.id === groupId);
   }
 
   async clearProcessingEvents(): Promise<void> {
@@ -332,6 +416,14 @@ export class ApiDriver {
 
   async joinGroupViaShareLink(linkId: string, token: string): Promise<any> {
     return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
+  }
+
+  async createDocument(data: any, token: string): Promise<{ id: string }> {
+    return await this.apiRequest('/createDocument', 'POST', { data }, token);
+  }
+
+  async listDocuments(token: string): Promise<ListDocumentsResponse> {
+    return await this.apiRequest('/listDocuments', 'GET', {}, token);
   }
 
   async getDocument(documentId: string, token: string): Promise<any> {

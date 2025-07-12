@@ -20,7 +20,7 @@ CLIENT_MEASUREMENT_ID=
 To run the server locally via the firebase emulator
 
 ```
-cd firebase && npm run dev:with-data
+npm run dev
 ```
 
 In your browser go to http://localhost:5002/

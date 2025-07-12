@@ -12,14 +12,12 @@ export const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
 } as const;
 
-// Network Ports
+// Network Ports  
 export const PORTS = {
   LOCAL_3000: 3000,
   LOCAL_5000: 5000,
   LOCAL_5001: 5001,
   LOCAL_5002: 5002,
-  FIRESTORE_EMULATOR: 8080,
-  AUTH_EMULATOR: 9099,
 } as const;
 
 // Validation Limits

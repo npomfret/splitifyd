@@ -24,7 +24,10 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
     }
     
     const groupData = groupDoc.data()!;
-    const members = groupData.data?.members || groupData.members || [];
+    const members = groupData.data?.members || [];
+    if (members.length === 0) {
+        throw new Error(`Group ${groupId} has no members`);
+    }
     const memberIds = members.map((m: any) => m.uid);
     if (!memberIds.includes(userId)) {
         throw new ApiError(403, 'FORBIDDEN', 'User is not a member of this group');
