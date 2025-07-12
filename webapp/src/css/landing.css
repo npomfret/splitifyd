@@ -273,6 +273,107 @@
             color: #166534; /* Darker Green */
         }
 
+        /* Pricing Grid */
+        .pricing-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            align-items: stretch; /* Ensure cards stretch to same height */
+        }
+
+        .pricing-card {
+            text-align: center;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Push button to bottom */
+            align-items: center;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .pricing-card .price {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .pricing-card .price sup {
+            font-size: 0.5em;
+            vertical-align: super;
+        }
+
+        .pricing-card .price span {
+            font-size: 0.4em;
+            font-weight: 400;
+            color: var(--dark-gray);
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            margin-bottom: 40px;
+            padding: 0;
+            text-align: left;
+            width: 100%;
+        }
+
+        .pricing-card ul li {
+            font-size: 1.1em;
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .pricing-card ul li::before {
+            content: '\2713'; /* Checkmark */
+            color: var(--accent-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .pricing-card .cta-button {
+            width: 100%;
+            margin-top: auto; /* Push button to bottom */
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #3B0764 100%);
+            color: var(--light-text-color);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-medium);
+            border: 3px solid var(--secondary-color);
+        }
+
+        .pricing-card.featured h3,
+        .pricing-card.featured .price,
+        .pricing-card.featured .price span {
+            color: var(--light-text-color);
+        }
+
+        .pricing-card.featured ul li {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .pricing-card.featured ul li::before {
+            color: var(--secondary-color);
+        }
+
+        .pricing-card.featured .cta-button {
+            background-color: var(--secondary-color);
+            color: var(--light-text-color);
+        }
+
+        .pricing-card.featured .cta-button:hover {
+            background-color: #E05A50;
+        }
+
         /* Call to Action Bottom */
         .cta-bottom {
             background: linear-gradient(135deg, #FF6F61 0%, #FF9A8B 100%); /* Gradient from coral to lighter coral */
