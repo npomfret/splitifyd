@@ -75,7 +75,7 @@ html {
 
 body {
     font-family: var(--font-family-base);
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    background: var(--color-background);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
