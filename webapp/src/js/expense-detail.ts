@@ -111,7 +111,7 @@ function displayPayerInfo(paidBy: string, splits: Array<{userId: string; amount:
 
 function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>, totalAmount: number): void {
     const splitBreakdown = document.getElementById('split-breakdown') as HTMLElement;
-    splitBreakdown.innerHTML = '';
+    clearElement(splitBreakdown);
 
 
     splits.forEach(split => {

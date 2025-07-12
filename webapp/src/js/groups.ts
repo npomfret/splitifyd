@@ -147,7 +147,7 @@ export class GroupsList {
     this.container.appendChild(emptyState);
   }
 
-  private renderGroupCard(group: TransformedGroup): string {
+  private renderGroupCard(group: TransformedGroup): HTMLElement {
     const balanceClass = group.yourBalance >= 0 ? 'balance--positive' : 'balance--negative';
     const balanceText = group.yourBalance >= 0 ? 'you are owed' : 'you owe';
     
@@ -266,7 +266,7 @@ export class GroupsList {
     groupCard.appendChild(footer);
     groupCard.appendChild(addExpenseButton);
 
-    return groupCard.outerHTML;
+    return groupCard;
   }
 
   private _formatLastActivity(timestamp?: string): string {
@@ -304,53 +304,44 @@ export class GroupsList {
     const totalOwed = this.groups.reduce((sum, group) => sum + Math.max(0, group.yourBalance), 0);
     const totalOwe = this.groups.reduce((sum, group) => sum + Math.max(0, -group.yourBalance), 0);
 
-    const summaryHtml = `
-      <div class="dashboard-summary">
-        <div class="dashboard-summary__balances">
-          <div class="balance-summary balance-summary--positive">
-            <span class="balance-summary__label">You are owed</span>
-            <span class="balance-summary__amount">$${totalOwed.toFixed(2)}</span>
-          </div>
-          <div class="balance-summary balance-summary--negative">
-            <span class="balance-summary__label">You owe</span>
-            <span class="balance-summary__amount">$${totalOwe.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const headerHtml = `
-      <div class="groups-header">
-        <h2 class="groups-header__title">Your Groups</h2>
-        <button type="button" class="button button--primary" id="createGroupBtn">
-          + Create Group
-        </button>
-      </div>
-    `;
-
-    const groupsHtml = sortedGroups.map(group => this.renderGroupCard(group)).join('');
-
     clearElement(this.container);
     
     // Add summary box
-    const tempSummaryDiv = document.createElement('div');
-    tempSummaryDiv.innerHTML = summaryHtml;
-    this.container.appendChild(tempSummaryDiv.firstElementChild!);
+    const dashboardSummary = createElementSafe('div', { className: 'dashboard-summary' });
+    const balancesContainer = createElementSafe('div', { className: 'dashboard-summary__balances' });
+    
+    const positiveBalance = createElementSafe('div', { className: 'balance-summary balance-summary--positive' });
+    const positiveLabel = createElementSafe('span', { className: 'balance-summary__label', textContent: 'You are owed' });
+    const positiveAmount = createElementSafe('span', { className: 'balance-summary__amount', textContent: `$${totalOwed.toFixed(2)}` });
+    appendChildren(positiveBalance, [positiveLabel, positiveAmount]);
+    
+    const negativeBalance = createElementSafe('div', { className: 'balance-summary balance-summary--negative' });
+    const negativeLabel = createElementSafe('span', { className: 'balance-summary__label', textContent: 'You owe' });
+    const negativeAmount = createElementSafe('span', { className: 'balance-summary__amount', textContent: `$${totalOwe.toFixed(2)}` });
+    appendChildren(negativeBalance, [negativeLabel, negativeAmount]);
+    
+    appendChildren(balancesContainer, [positiveBalance, negativeBalance]);
+    dashboardSummary.appendChild(balancesContainer);
+    this.container.appendChild(dashboardSummary);
     
     // Add groups header
-    const tempHeaderDiv = document.createElement('div');
-    tempHeaderDiv.innerHTML = headerHtml;
-    this.container.appendChild(tempHeaderDiv.firstElementChild!);
+    const groupsHeader = createElementSafe('div', { className: 'groups-header' });
+    const headerTitle = createElementSafe('h2', { className: 'groups-header__title', textContent: 'Your Groups' });
+    const createGroupBtn = createElementSafe('button', {
+      type: 'button',
+      className: 'button button--primary',
+      id: 'createGroupBtn',
+      textContent: '+ Create Group'
+    });
+    appendChildren(groupsHeader, [headerTitle, createGroupBtn]);
+    this.container.appendChild(groupsHeader);
     
     // Add groups grid
     const groupsGrid = createElementSafe('div', { className: 'groups-grid' });
-    const tempGroupsDiv = document.createElement('div');
-    tempGroupsDiv.innerHTML = groupsHtml;
-    
-    while (tempGroupsDiv.firstChild) {
-      groupsGrid.appendChild(tempGroupsDiv.firstChild);
-    }
-    
+    sortedGroups.forEach(group => {
+      const groupCard = this.renderGroupCard(group);
+      groupsGrid.appendChild(groupCard);
+    });
     this.container.appendChild(groupsGrid);
 
     this.attachEventListeners();
