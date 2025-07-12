@@ -126,9 +126,37 @@ export const createExpense = async (
   }
 
   try {
-    await docRef.set(expense);
+    // Use transaction to create expense and update group metadata atomically
+    await admin.firestore().runTransaction(async (transaction) => {
+      const groupDocRef = getGroupsCollection().doc(expenseData.groupId);
+      const groupDoc = await transaction.get(groupDocRef);
+      
+      if (!groupDoc.exists) {
+        throw new Error(`Group ${expenseData.groupId} not found`);
+      }
+      
+      const groupData = groupDoc.data();
+      const currentExpenseCount = groupData?.data?.expenseCount || 0;
+      const lastExpenseTime = now.toISOString();
+      
+      // Create the expense
+      transaction.set(docRef, expense);
+      
+      // Update group metadata
+      transaction.update(groupDocRef, {
+        'data.expenseCount': currentExpenseCount + 1,
+        'data.lastExpenseTime': lastExpenseTime
+      });
+      
+      logger.info('Transaction: Creating expense and updating group metadata', {
+        expenseId: docRef.id,
+        groupId: expenseData.groupId,
+        newExpenseCount: currentExpenseCount + 1,
+        lastExpenseTime
+      });
+    });
 
-    logger.info('Expense created', {
+    logger.info('Expense created with metadata update', {
       expenseId: docRef.id,
       groupId: expenseData.groupId,
       amount: expenseData.amount,
@@ -223,17 +251,57 @@ export const updateExpense = async (
     updates.splits = calculateSplits(amount, finalSplitType, participants, splits);
   }
 
-  await docRef.update(updates);
+  try {
+    // If date is being updated, we need to update group metadata too
+    if (updateData.date) {
+      await admin.firestore().runTransaction(async (transaction) => {
+        const groupDocRef = getGroupsCollection().doc(expense.groupId);
+        const groupDoc = await transaction.get(groupDocRef);
+        
+        if (!groupDoc.exists) {
+          throw new Error(`Group ${expense.groupId} not found`);
+        }
+        
+        // Update the expense
+        transaction.update(docRef, updates);
+        
+        // Update group's lastExpenseTime if this becomes the latest expense
+        const newDate = new Date(updateData.date!);
+        const lastExpenseTime = newDate.toISOString();
+        
+        transaction.update(groupDocRef, {
+          'data.lastExpenseTime': lastExpenseTime
+        });
+        
+        logger.info('Transaction: Updating expense and group lastExpenseTime', {
+          expenseId,
+          groupId: expense.groupId,
+          newDate: lastExpenseTime
+        });
+      });
+    } else {
+      // No date change, just update the expense
+      await docRef.update(updates);
+    }
 
-  logger.info('Expense updated', {
-    expenseId,
-    userId,
-    updates: Object.keys(updateData)
-  });
+    logger.info('Expense updated', {
+      expenseId,
+      userId,
+      updates: Object.keys(updateData)
+    });
 
-  res.json({
-    message: 'Expense updated successfully',
-  });
+    res.json({
+      message: 'Expense updated successfully',
+    });
+  } catch (error) {
+    logger.error('Failed to update expense', {
+      expenseId,
+      userId,
+      error: error instanceof Error ? error : new Error('Unknown error'),
+      updates: Object.keys(updateData)
+    });
+    throw error;
+  }
 };
 
 export const deleteExpense = async (
@@ -250,17 +318,52 @@ export const deleteExpense = async (
     throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_CREATOR', 'Only the expense creator can delete it');
   }
 
-  await docRef.delete();
+  try {
+    // Use transaction to delete expense and update group metadata atomically
+    await admin.firestore().runTransaction(async (transaction) => {
+      const groupDocRef = getGroupsCollection().doc(expense.groupId);
+      const groupDoc = await transaction.get(groupDocRef);
+      
+      if (!groupDoc.exists) {
+        throw new Error(`Group ${expense.groupId} not found`);
+      }
+      
+      // Delete the expense
+      transaction.delete(docRef);
+      
+      // Simply decrement the expense count (triggers will recalculate correct values)
+      const groupData = groupDoc.data();
+      const currentExpenseCount = groupData?.data?.expenseCount || 1;
+      const newCount = Math.max(0, currentExpenseCount - 1);
+      
+      transaction.update(groupDocRef, {
+        'data.expenseCount': newCount
+      });
+      
+      logger.info('Transaction: Deleting expense and updating group metadata', {
+        expenseId,
+        groupId: expense.groupId,
+        newExpenseCount: newCount
+      });
+    });
 
-  logger.info('Expense deleted', {
-    expenseId,
-    groupId: expense.groupId,
-    userId
-  });
+    logger.info('Expense deleted with metadata update', {
+      expenseId,
+      groupId: expense.groupId,
+      userId
+    });
 
-  res.json({
-    message: 'Expense deleted successfully',
-  });
+    res.json({
+      message: 'Expense deleted successfully',
+    });
+  } catch (error) {
+    logger.error('Failed to delete expense', {
+      expenseId,
+      userId,
+      error: error instanceof Error ? error : new Error('Unknown error')
+    });
+    throw error;
+  }
 };
 
 export const listGroupExpenses = async (

@@ -282,6 +282,7 @@ export class ApiDriver {
       await new Promise(resolve => setTimeout(resolve, interval));
     }
 
+
     throw new Error(
       `${errorMsg} after ${timeout}ms (${attempts} attempts). ` +
       `Last error: ${lastError?.message || 'None'}`
