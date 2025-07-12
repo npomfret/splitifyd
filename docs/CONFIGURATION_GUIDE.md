@@ -14,9 +14,9 @@ Environment variables are crucial for managing sensitive information and environ
 
 This file serves as a template for all environment variables used by Firebase Functions. Copy it to `.env` and customize it for your specific environment.
 
-### Webapp Environment Variables
+### Webapp Configuration
 
-The webapp loads its environment configuration at runtime from a `.env.development` or `.env.production` file. These files are not committed to the repository. The `webapp/src/js/utils/env-loader.ts` script is responsible for fetching and parsing these files.
+The webapp now uses a pure runtime configuration system. All configuration is loaded dynamically from the `/api/config` endpoint served by Firebase Functions. This eliminates the need for build-time environment variables in the webapp.
 
 #### General Configuration
 - `NODE_ENV`: Defines the environment (e.g., `development`, `test`, `production`). This impacts logging, CORS, and security headers.
@@ -34,7 +34,7 @@ The webapp loads its environment configuration at runtime from a `.env.developme
 - `VERBOSE_LOGGING`: Enable verbose logging.
 
 #### Firebase Client Configuration
-These variables are used to configure the Firebase SDK on the client-side. They are fetched dynamically by the web application.
+These server-side environment variables are used to configure the Firebase SDK configuration that is served to the client via the `/api/config` endpoint:
 - `FIREBASE_API_KEY` (or `API_KEY` in `firebase/functions/src/config.ts`): Your Firebase Web API Key.
 - `FIREBASE_AUTH_DOMAIN`: Your Firebase Auth Domain.
 - `FIREBASE_STORAGE_BUCKET`: Your Firebase Storage Bucket.
@@ -70,7 +70,7 @@ The `firebase/firebase.json` file defines the core structure and behavior of you
   - `source`: Directory containing function source code (`functions`).
   - `codebase`: Identifies the codebase (`default`).
   - `ignore`: Files/directories to ignore during deployment (e.g., `node_modules`).
-  - `predeploy`: Scripts to run before deployment (e.g., `npm run build`).
+  - `predeploy`: Scripts to run before deployment (TypeScript compilation and build).
 - **`hosting`**: Configures Firebase Hosting.
   - `public`: Directory to deploy (`public`).
   - `ignore`: Files/directories to ignore.
@@ -163,17 +163,19 @@ This middleware applies various HTTP security headers to enhance the application
 3.  Add the same nonce as an attribute to all inline `<script>` and `<style>` tags (e.g., `<script nonce="YOUR_NONCE_HERE">`).
 This allows only scripts/styles with the correct nonce to execute, effectively mitigating inline script/style injection.
 
-## 8. Client-Side Configuration (`webapp/js/firebase-config.js`, `webapp/js/config.js`)
+## 8. Client-Side Configuration
 
-The web application dynamically fetches its Firebase configuration from the backend.
+The web application uses a centralized runtime configuration system:
 
-- `webapp/js/firebase-config.js`:
-  - Manages Firebase initialization on the client.
-  - Fetches Firebase configuration from the `/api/config` endpoint exposed by Firebase Functions.
-  - Connects to Firebase Auth emulator if in a local environment.
-  - Exposes Firebase Auth functions globally (`window.firebaseAuth`).
-- `webapp/js/config.js`:
-  - Provides methods to get the API URL and other configuration details, relying on `firebaseConfigManager`.
+- `webapp/src/js/firebase-config-manager.ts`:
+  - Manages centralized configuration fetching with caching and retry logic
+  - Fetches all configuration from the `/api/config` endpoint
+  - Provides type-safe access to configuration values
+- `webapp/src/js/firebase-init.ts`:
+  - Manages Firebase initialization on the client
+  - Uses the configuration manager to get Firebase settings
+  - Connects to Firebase Auth emulator if in a local environment
+  - Exposes Firebase Auth functions for the application
 
 **Security Note:** While Firebase client configuration values are generally safe to be public (as they are protected by Firebase Security Rules), it's good practice to fetch them dynamically from a trusted source (like your own Firebase Function) rather than hardcoding them directly into the client-side code.
 
@@ -191,8 +193,8 @@ The `security.ts` utility file provides functions to check for and sanitize dang
 
 The `package.json` file in the root of the project contains scripts for building and deploying the application.
 
-- **`npm run build`**: Builds all the packages in the monorepo.
-- **`npm run dev`**: Starts the Firebase emulators and the webapp in development mode.
+- **`npm run build`**: Builds all the packages in the monorepo using TypeScript compilation and esbuild.
+- **`npm run dev`**: Starts the Firebase emulators with automatic webapp building and file watching.
 - **`npm run deploy:prod`**: Deploys the entire project to production (requires `firebase use splitifyd`).
 
 ## 11. Local Development Setup

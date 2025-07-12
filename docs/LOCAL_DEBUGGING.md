@@ -33,7 +33,7 @@ Located in the Firebase project root (same directory as `firebase.json`):
 
 ### Issue: console.log() Not Showing in Terminal
 - **Cause**: Functions emulator may need restart after code changes
-- **Solution**: Restart emulators with `npm run dev` or rebuild with `npm run build`
+- **Solution**: Restart emulators with `npm run dev` (TypeScript compilation happens automatically)
 
 ### Issue: Error Details Missing
 - **Cause**: Using only `functions.logger` which may not show in terminal
@@ -41,7 +41,7 @@ Located in the Firebase project root (same directory as `firebase.json`):
 
 ### Issue: Logs Not Updating
 - **Cause**: Functions not rebuilding after TypeScript changes
-- **Solution**: Restart the dev environment with `npm run dev`
+- **Solution**: The dev environment now has automatic TypeScript compilation, but restart with `npm run dev` if issues persist
 
 ## Best Practices for Local Debugging
 
