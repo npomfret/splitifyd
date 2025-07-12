@@ -8,21 +8,28 @@ This happens because the `shared-types` package, which is a dependency for both 
 
 The use of `file:` dependencies in `package.json` files creates symlinks, but it does not guarantee the build order. This is a significant design flaw in a monorepo setup.
 
-## 2. The Solution: Adopt npm Workspaces
+## 2. The Solution: Adopt a Modern Monorepo Strategy
 
-To fix this, we will adopt `npm` workspaces, which is the standard, modern way to manage monorepos with `npm`. This will provide a robust and maintainable build process.
+To fix this, we will adopt a modern monorepo strategy using `npm` workspaces for package management and Turborepo for build orchestration. This will provide a robust, maintainable, and high-performance build process.
 
-The plan involves four main steps:
-1.  Introduce `npm` workspaces by creating a root `package.json`.
-2.  Hoist common development dependencies to the root.
-3.  Refactor build scripts to leverage workspace commands, including a "super clean" option.
-4.  Update package dependencies to use the `workspace:` protocol.
+### 2.1. Foundation: `npm` Workspaces
+
+`npm` workspaces are the modern standard for managing monorepos with `npm`. They handle dependency hoisting and local package symlinking, which is the foundation of our new setup.
+
+### 2.2. High-Performance Builds: Turborepo
+
+[Turborepo](https://turbo.build/repo) is a high-performance build system for JavaScript and TypeScript codebases. It sits on top of `npm` workspaces and provides:
+
+*   **Incremental Builds:** Never rebuild the same code twice.
+*   **Parallel Execution:** Run builds, tests, and other tasks in parallel.
+*   **Remote Caching:** Share build caches across your team and CI/CD pipelines.
+*   **Task Pipelines:** Define the relationships between your tasks and let Turborepo optimize their execution.
 
 ## 3. Detailed Implementation Plan
 
 ### Step 1: Create a Root `package.json` and Define Workspaces
 
-A `package.json` file will be created in the project root (`/Users/nickpomfret/projects/splitifyd`). This file will define the packages (workspaces) in our monorepo.
+We will create a `package.json` in the project root to define the workspaces and add Turborepo as a development dependency.
 
 ```json
 // /package.json
@@ -31,70 +38,17 @@ A `package.json` file will be created in the project root (`/Users/nickpomfret/p
   "private": true,
   "workspaces": [
     "shared-types",
-    "firebase",
+    "firebase/functions",
     "webapp"
   ],
   "scripts": {
-    "build": "npm run build -w --if-present",
-    "clean": "npm run clean -w --if-present",
-    "test": "npm test -w --if-present"
-  }
-}
-```
-
-### Step 2: Hoist Dependencies
-
-To ensure consistency and simplify dependency management, we will move common development dependencies to the root `package.json`.
-
-```json
-// /package.json (with devDependencies)
-{
-  "name": "splitifyd-monorepo",
-  "private": true,
-  "workspaces": [
-    "shared-types",
-    "firebase",
-    "webapp"
-  ],
-  "scripts": {
-    "build": "npm run build -w --if-present",
-    "clean": "npm run clean -w --if-present",
-    "test": "npm test -w --if-present"
+    "build": "turbo run build",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^20.19.2"
-  }
-}
-```
-*Note: We will need to analyze all `package.json` files to identify all common dependencies and their most appropriate versions.*
-
-### Step 3: Refactor Build Scripts and Implement "Super Clean"
-
-The root `package.json` will contain the primary build and clean scripts. We will add a `super-clean` script to the root to remove all build artifacts, logs, and `node_modules` directories from the entire project. The `dev` and `dev:with-data` scripts will be moved to the root and updated to use this clean script, ensuring a completely fresh start every time.
-
-```json
-// /package.json (with all scripts)
-{
-  "name": "splitifyd-monorepo",
-  "private": true,
-  "workspaces": [
-    "shared-types",
-    "firebase",
-    "webapp"
-  ],
-  "scripts": {
-    "super-clean": "rm -rf node_modules && rm -rf packages/*/node_modules && rm -rf packages/*/*/node_modules && npm run clean -ws --if-present && rm -f firebase/*.log",
-    "dev": "npm run super-clean && npm install && npm run build && cd firebase && npm run dev",
-    "dev:with-data": "npm run super-clean && npm install && npm run build && cd firebase && npm run dev:with-data",
-    "build": "npm run build -ws --if-present",
-    "clean": "npm run clean -ws --if-present",
-    "test": "npm test -ws --if-present"
-  },
-  "devDependencies": {
+    "turbo": "^1.13.3",
     "typescript": "^5.6.3",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
@@ -104,11 +58,36 @@ The root `package.json` will contain the primary build and clean scripts. We wil
 }
 ```
 
-The old `dev` and `dev:with-data` scripts in `firebase/package.json` should be removed to avoid confusion.
+### Step 2: Create a `turbo.json` Configuration
 
-### Step 4: Update `package.json` Dependencies
+Turborepo is configured using a `turbo.json` file in the project root. This file defines the task pipeline.
 
-We will replace the `file:` protocol with the `workspace:` protocol for all internal package dependencies. This makes the relationship between packages explicit to `npm`.
+```json
+// /turbo.json
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "lib/**"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
+    },
+    "dev": {
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
+```
+
+### Step 3: Update `package.json` Dependencies
+
+We will replace the `file:` protocol with the `workspace:*` protocol for all internal package dependencies. This makes the relationship between packages explicit to `npm` and Turborepo.
 
 **Example: `firebase/functions/package.json`**
 
@@ -123,16 +102,58 @@ We will replace the `file:` protocol with the `workspace:` protocol for all inte
 **After:**
 ```json
 "dependencies": {
-    "@splitifyd/shared-types": "workspace:^",
+    "@splitifyd/shared-types": "workspace:*",
     ...
 }
 ```
-This will be done for `webapp/package.json` as well.
+This change will also be applied to `webapp/package.json`.
+
+### Step 4: Refactor `package.json` Scripts
+
+We will update the `scripts` in each `package.json` to be compatible with Turborepo.
+
+**`shared-types/package.json`**
+```json
+"scripts": {
+  "build": "tsc",
+  "clean": "rm -rf dist"
+}
+```
+
+**`firebase/functions/package.json`**
+```json
+"scripts": {
+  "build": "tsc",
+  "clean": "rm -rf lib",
+  "dev": "npm run build && firebase emulators:start"
+}
+```
+
+**`webapp/package.json`**
+```json
+"scripts": {
+  "build": "webpack", // or your build command
+  "clean": "rm -rf dist",
+  "dev": "npm run build && http-server dist" // or your dev command
+}
+```
 
 ## 4. New Development Workflow
 
 1.  **Initial Setup:** Run `npm install` from the project root. This will install all dependencies for all workspaces and create the necessary symlinks.
-2.  **Development:** Run `npm run dev` or `npm run dev:with-data` from the project root. This will perform a "super clean," reinstall dependencies, and then build everything in the correct order before starting the development server.
-3.  **Testing:** Run `npm test` from the project root to run all tests, or `npm test -w <workspace_name>` to test a specific package.
+2.  **Development:** Run `npm run dev` from the project root. Turborepo will run the `dev` script for each workspace in parallel.
+3.  **Building:** Run `npm run build` from the project root. Turborepo will build all packages in the correct order.
+4.  **Testing:** Run `npm test` from the project root to run all tests.
 
 This new setup will resolve the build issues, improve developer experience, and provide a solid foundation for future development.
+
+## 5. Future Considerations
+
+*   **CI/CD Integration:** Turborepo is designed for CI/CD. We can use `turbo run build --cache-dir=.turbo` to cache build artifacts and speed up our pipelines. We can also use Vercel's Remote Caching to share the cache across the team.
+*   **Versioning and Publishing:** For managing versions and publishing packages, we can use a tool like [Changesets](https://github.com/changesets/changesets). It works well with monorepos and can automate the release process.
+
+## 6. Useful Resources
+
+*   [Turborepo Documentation](https://turbo.build/repo/docs)
+*   [npm Workspaces Documentation](https://docs.npmjs.com/cli/v10/using-npm/workspaces)
+*   [Changesets Documentation](https://github.com/changesets/changesets/blob/main/docs/introducing-changesets.md)
