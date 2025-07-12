@@ -8,4 +8,7 @@ module.exports = {
   transformIgnorePatterns: [
     '<rootDir>/node_modules/',
   ],
+  moduleNameMapper: {
+    '^(.+)\\.js$': '$1'
+  }
 };
