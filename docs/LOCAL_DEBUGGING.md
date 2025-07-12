@@ -3,7 +3,7 @@
 ## Where to Find Logs When Running Locally
 
 ### 1. **Console Output (Primary)**
-- **Location**: Terminal window where `npm run dev` or `firebase emulators:start` is running
+- **Location**: Terminal window where `npm run dev` is running
 - **Content**: All `console.log()`, `console.error()`, `console.warn()`, and `console.info()` output from Functions
 - **Best for**: Real-time debugging, error messages, flow tracking
 
@@ -41,7 +41,7 @@ Located in the Firebase project root (same directory as `firebase.json`):
 
 ### Issue: Logs Not Updating
 - **Cause**: Functions not rebuilding after TypeScript changes
-- **Solution**: Run `cd functions && npm run build` then restart emulators
+- **Solution**: Restart the dev environment with `npm run dev`
 
 ## Best Practices for Local Debugging
 

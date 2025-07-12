@@ -1,12 +1,9 @@
 {
-  "watch": ["../webapp/src"],
+  "watch": ["functions/lib"],
   "ignore": [
-    "../webapp/dist",
-    "../webapp/node_modules",
-    "../webapp/tsconfig.json",
-    "../webapp/package.json",
-    "../webapp/package-lock.json"
+    "functions/node_modules",
+    "*.log"
   ],
-  "ext": "html,css,js",
-  "exec": "npm run build:webapp"
+  "ext": "js",
+  "exec": "echo 'Functions reloaded'"
 }

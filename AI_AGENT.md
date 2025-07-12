@@ -21,9 +21,10 @@
 
 # Commands
 - IMPORTANT! run `pwd` before you run ANY shell commands.
-- Start local services: `cd firebase && npm run dev:with-data`
-- Build: `cd <sub-project> && npm run build`
-- Test: `cd <sub-project> && npm test`
+- Start local dev server (with auto-reload): `npm run dev`
+- Build: `npm run build`
+- Test: `npm test`
+- Super clean (removes all node_modules): `npm run super-clean`
 - Check git status: `git status --porcelain`
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 

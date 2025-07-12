@@ -48,15 +48,7 @@ emulatorProcess.stderr.on('data', (data) => {
   process.stderr.write(data); // Forward errors to console
 });
 
-// Start nodemon for webapp watching
-const nodemonProcess = spawn('nodemon', [
-  '--watch', '../webapp/src',
-  '--ext', 'html,css,js',
-  '--ignore', '../webapp/dist',
-  '--exec', 'npm run build:webapp'
-], {
-  stdio: 'inherit'
-});
+// Nodemon is no longer needed - webapp watching is handled by npm run watch
 
 // Function to check if emulator is ready
 function checkEmulatorReady() {
@@ -177,9 +169,6 @@ process.on('SIGINT', () => {
     emulatorProcess.kill('SIGINT');
   }
   
-  if (nodemonProcess && !nodemonProcess.killed) {
-    nodemonProcess.kill('SIGINT');
-  }
   
   setTimeout(() => {
     process.exit(0);
@@ -194,9 +183,6 @@ process.on('SIGTERM', () => {
     emulatorProcess.kill('SIGTERM');
   }
   
-  if (nodemonProcess && !nodemonProcess.killed) {
-    nodemonProcess.kill('SIGTERM');
-  }
   
   setTimeout(() => {
     process.exit(0);
@@ -206,18 +192,10 @@ process.on('SIGTERM', () => {
 emulatorProcess.on('exit', (code) => {
   if (!isShuttingDown) {
     console.log(`\n🔥 Firebase emulator exited with code ${code}`);
-    if (nodemonProcess && !nodemonProcess.killed) {
-      nodemonProcess.kill('SIGINT');
-    }
     process.exit(code);
   }
 });
 
-nodemonProcess.on('exit', (code) => {
-  if (!isShuttingDown) {
-    console.log(`\n👀 Nodemon watcher exited with code ${code}`);
-  }
-});
 
 // Handle uncaught exceptions to prevent the EIO error
 process.on('uncaughtException', (error) => {
