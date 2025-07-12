@@ -13,7 +13,11 @@ if (!API_BASE_URL) {
 }
 
 const define = {
-  'process.env.API_BASE_URL': JSON.stringify(API_BASE_URL),
+  'API_BASE_URL': JSON.stringify(API_BASE_URL),
+  'FIREBASE_EMULATOR_HOST': JSON.stringify('localhost'),
+  'FIREBASE_AUTH_EMULATOR_PORT': JSON.stringify('9099'),
+  'FIREBASE_FUNCTIONS_PORT': JSON.stringify('5001'),
+  'FIREBASE_HOSTING_PORT': JSON.stringify('5002'),
 };
 
 const commonEsbuildOptions = {
