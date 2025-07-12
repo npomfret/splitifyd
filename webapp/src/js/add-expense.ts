@@ -1,7 +1,7 @@
 import { logger } from './utils/logger.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
-import { showMessage, showFieldError } from './utils/ui-messages.js';
+import { showMessage, showFieldError, showError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { debounce } from './utils/event-utils.js';
 import { HeaderComponent } from './components/header.js';
@@ -38,8 +38,13 @@ async function initializeAddExpensePage(): Promise<void> {
             await loadUserPreferences();
         }
         initializeEventListeners();
-    } catch (error) {
-        window.location.href = 'index.html';
+    } catch (error: any) {
+        logger.error('Failed to initialize add expense page:', error);
+        showError('Failed to load expense form. Please try again.');
+        
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 3000);
     }
 }
 
