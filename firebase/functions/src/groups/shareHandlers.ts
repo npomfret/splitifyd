@@ -5,6 +5,7 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { CONFIG } from '../config';
 
 const generateShareToken = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -92,7 +93,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
 
     const baseUrl = process.env.NODE_ENV === 'production' 
       ? 'https://splitifyd.web.app' 
-      : 'http://localhost:5002';
+      : `http://localhost:${CONFIG.emulatorPorts.hosting}`;
     
     const shareableUrl = `${baseUrl}/join-group.html?linkId=${shareToken}`;
 

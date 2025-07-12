@@ -1,6 +1,6 @@
 import type { FirebaseUser } from './types/global';
 import { showWarning, hideWarning } from './utils/ui-messages.js';
-import { firebaseAuthInstance, isFirebaseInitialized } from './firebase-config.js';
+import { firebaseAuthInstance, isFirebaseInitialized } from './firebase-init.js';
 
 interface AppInitConfig {
   requireAuth?: boolean;

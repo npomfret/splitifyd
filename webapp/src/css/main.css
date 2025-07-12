@@ -103,6 +103,9 @@ body {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 24px;
+    box-sizing: border-box;
+    display: block; /* Ensure it's displayed as a block element */
 }
 
 /* Screen reader only content */

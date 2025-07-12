@@ -1,4 +1,4 @@
-import { firebaseConfigManager } from './firebase-config.js';
+import { firebaseConfigManager } from './firebase-init.js';
 import { getEnvironment, isLocalEnvironment } from './utils/env-loader.js';
 import type { ConfigData } from './types/global';
 

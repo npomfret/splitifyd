@@ -1,5 +1,5 @@
 import { logger } from './utils/logger.js';
-import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
+import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init.js';
 import { clearErrors, showFieldError, showSuccess } from './utils/ui-messages.js';
 
 const resetForm = document.getElementById('resetForm') as HTMLFormElement;

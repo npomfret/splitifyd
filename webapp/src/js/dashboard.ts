@@ -110,7 +110,6 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
 
     // Load scripts
     Promise.all([
-      loadScript('/js/firebase-config.js'),
       loadScript('/js/warning-banner.js')
     ]).then(() => {
       // Scripts loaded successfully, now initialize groups list

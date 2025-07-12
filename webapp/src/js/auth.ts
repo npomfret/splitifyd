@@ -1,6 +1,6 @@
 import { logger } from './utils/logger.js';
 import { config } from './config.js';
-import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
+import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import { debounce } from './utils/event-utils.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
