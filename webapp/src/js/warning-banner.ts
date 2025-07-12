@@ -1,55 +1,36 @@
-import { firebaseConfigManager } from './firebase-config.js';
+import { firebaseConfigManager } from './firebase-init.js';
+import { showWarning, hideWarning } from './utils/ui-messages';
+import { logger } from './utils/logger.js';
 
-function showWarning(message: string): void {
-    const bannerElement = document.getElementById('warningBanner');
-    if (bannerElement) {
-        bannerElement.textContent = message;
-        bannerElement.classList.remove('hidden');
+var warningBannerManager = {
+  init() {
+    logger.log('warningBannerManager.init() called');
+    if (!firebaseConfigManager) {
+      logger.warn('firebaseConfigManager not yet available, retrying in 100ms');
+      setTimeout(() => this.init(), 100);
+      return;
     }
-}
-
-function hideWarning(): void {
-    const bannerElement = document.getElementById('warningBanner');
-    if (bannerElement) {
-        bannerElement.classList.add('hidden');
+    firebaseConfigManager.initialize().then(() => {
+      logger.log('firebaseConfigManager initialized successfully in warningBannerManager');
+      this.displayWarningBanner();
+    }).catch((error) => {
+      logger.error('Error initializing firebaseConfigManager in warningBannerManager:', error);
+      throw error;
+    });
+  },
+  displayWarningBanner() {
+    logger.log('displayWarningBanner() called');
+    const bannerText = firebaseConfigManager.getWarningBanner();
+    logger.log('Retrieved bannerText:', bannerText);
+    if (bannerText) {
+      showWarning(bannerText);
+    } else {
+      hideWarning();
+      logger.log('No bannerText found, hiding warning banner.');
     }
-}
-
-// Functions available for import
-export { showWarning, hideWarning };
-
-interface WarningBannerManager {
-    init(): void;
-    displayWarningBanner(): void;
-}
-
-const warningBannerManager: WarningBannerManager = {
-    init() {
-        if (!firebaseConfigManager) {
-            setTimeout(() => this.init(), 100);
-            return;
-        }
-        
-        firebaseConfigManager.initialize()
-            .then(() => {
-                this.displayWarningBanner();
-            })
-            .catch((error: Error) => {
-                throw error;
-            });
-    },
-
-    displayWarningBanner() {
-        const bannerText = firebaseConfigManager.getWarningBanner();
-        const bannerElement = document.getElementById('warningBanner');
-        
-        if (bannerText && bannerElement) {
-            bannerElement.textContent = bannerText;
-            bannerElement.classList.remove('hidden');
-        }
-    }
+  }
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    warningBannerManager.init();
+document.addEventListener("DOMContentLoaded", () => {
+  warningBannerManager.init();
+  logger.log('DOMContentLoaded event fired, warningBannerManager.init() called.');
 });

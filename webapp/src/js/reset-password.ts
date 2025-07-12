@@ -1,5 +1,5 @@
 import { logger } from './utils/logger.js';
-import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
+import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init.js';
 import { clearErrors, showFieldError, showSuccess } from './utils/ui-messages.js';
 import { HeaderComponent } from './components/header.js';
 
@@ -14,21 +14,11 @@ const resetForm = document.getElementById('resetForm') as HTMLFormElement;
 const emailInput = document.getElementById('email') as HTMLInputElement;
 
 
+import { validateEmail } from './utils/form-validation.js';
+
 const validateForm = (): boolean => {
     clearErrors();
-    let isValid = true;
-
-    const email = emailInput.value.trim();
-
-    if (!email) {
-        showFieldError('email', 'Email is required');
-        isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showFieldError('email', 'Please enter a valid email address');
-        isValid = false;
-    }
-
-    return isValid;
+    return validateEmail(emailInput.value.trim(), 'email');
 };
 
 const handleResetPassword = async (e: Event): Promise<void> => {

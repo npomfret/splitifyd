@@ -1,4 +1,7 @@
+import { logger } from './logger.js';
+
 export function showMessage(message: string, type: 'info' | 'success' | 'error' = 'info', duration: number = 3000): void {
+    logger.log(`showMessage called: ${message}, type: ${type}, duration: ${duration}`);
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;
@@ -20,10 +23,12 @@ export function showMessage(message: string, type: 'info' | 'success' | 'error' 
 }
 
 export function showError(message: string, duration: number = 5000): void {
+    logger.log(`showError called: ${message}, duration: ${duration}`);
     showMessage(message, 'error', duration);
 }
 
 export function hideError(): void {
+    logger.log('hideError called');
     const bannerElement = document.getElementById('warningBanner');
     if (bannerElement) {
         bannerElement.classList.add('hidden');
@@ -31,14 +36,17 @@ export function hideError(): void {
 }
 
 export function showWarning(message: string): void {
+    logger.log(`showWarning called: ${message}`);
     const bannerElement = document.getElementById('warningBanner');
     if (bannerElement) {
         bannerElement.textContent = message;
         bannerElement.classList.remove('hidden');
+        bannerElement.style.display = 'block'; // Force display for debugging
     }
 }
 
 export function hideWarning(): void {
+    logger.log('hideWarning called');
     const bannerElement = document.getElementById('warningBanner');
     if (bannerElement) {
         bannerElement.classList.add('hidden');
@@ -46,6 +54,7 @@ export function hideWarning(): void {
 }
 
 export function showFieldError(fieldName: string, message: string): void {
+    logger.log(`showFieldError called for ${fieldName}: ${message}`);
     const errorElement = document.getElementById(`${fieldName}-error`);
     if (errorElement) {
         errorElement.textContent = message;
@@ -58,6 +67,7 @@ export function showFieldError(fieldName: string, message: string): void {
 }
 
 export function clearFieldErrors(formElement: HTMLFormElement): void {
+    logger.log('clearFieldErrors called');
     formElement.querySelectorAll('.form-error').forEach(error => {
         error.textContent = '';
     });
@@ -67,6 +77,7 @@ export function clearFieldErrors(formElement: HTMLFormElement): void {
 }
 
 export function showFormError(form: HTMLFormElement, message: string): void {
+    logger.log(`showFormError called: ${message}`);
     let errorContainer = form.querySelector<HTMLDivElement>('.form-error--general');
     
     if (!errorContainer) {
@@ -84,6 +95,7 @@ export function showFormError(form: HTMLFormElement, message: string): void {
 }
 
 export function showSuccessMessage(form: HTMLFormElement, message: string): void {
+    logger.log(`showSuccessMessage called: ${message}`);
     let successContainer = form.querySelector<HTMLDivElement>('.form-success--general');
     
     if (!successContainer) {
@@ -105,12 +117,14 @@ export function showSuccessMessage(form: HTMLFormElement, message: string): void
 }
 
 export function clearErrors(): void {
+    logger.log('clearErrors called');
     document.querySelectorAll('.form-error').forEach(error => {
         error.textContent = '';
     });
 }
 
 export function showSuccess(message: string, targetElement?: HTMLElement): void {
+    logger.log(`showSuccess called: ${message}`);
     if (targetElement) {
         const originalText = targetElement.textContent || '';
         targetElement.textContent = message;
@@ -130,12 +144,14 @@ export function showSuccess(message: string, targetElement?: HTMLElement): void 
 }
 
 export function showFieldErrorWithInput(input: HTMLInputElement, errorElement: HTMLElement, message: string): void {
+    logger.log(`showFieldErrorWithInput called for input: ${input.id}, message: ${message}`);
     input.classList.add('form-input--error');
     errorElement.textContent = message;
     errorElement.setAttribute('aria-live', 'polite');
 }
 
 export function clearFieldErrorWithInput(input: HTMLInputElement, errorElement: HTMLElement): void {
+    logger.log(`clearFieldErrorWithInput called for input: ${input.id}`);
     input.classList.remove('form-input--error');
     errorElement.textContent = '';
     errorElement.removeAttribute('aria-live');

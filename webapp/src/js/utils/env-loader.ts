@@ -8,65 +8,31 @@ export interface Environment {
     FIREBASE_HOSTING_PORT: string;
 }
 
-let environment: Environment | null = null;
+declare const API_BASE_URL: string;
+declare const FIREBASE_EMULATOR_HOST: string;
+declare const FIREBASE_AUTH_EMULATOR_PORT: string;
+declare const FIREBASE_FUNCTIONS_PORT: string;
+declare const FIREBASE_HOSTING_PORT: string;
 
-export async function loadEnvironment(): Promise<Environment> {
-    if (environment) {
-        return environment;
-    }
-
-    // Determine environment based on hostname
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const envName = isLocal ? 'development' : 'production';
-    
-    try {
-        const response = await fetch(`/.env.${envName}`);
-        if (!response.ok) {
-            throw new Error(`Failed to load .env.${envName} file: ${response.status}`);
-        }
-        
-        const envText = await response.text();
-        const env: Partial<Environment> = {};
-        
-        // Parse the .env file
-        const lines = envText.split('\n');
-        for (const line of lines) {
-            const trimmedLine = line.trim();
-            if (trimmedLine && !trimmedLine.startsWith('#')) {
-                const [key, ...valueParts] = trimmedLine.split('=');
-                if (key && valueParts.length > 0) {
-                    const value = valueParts.join('=').trim();
-                    env[key.trim() as keyof Environment] = value;
-                }
-            }
-        }
-        
-        // Set defaults for missing values
-        environment = {
-            API_BASE_URL: env.API_BASE_URL || (isLocal ? 'http://localhost:6001/splitifyd/us-central1/api' : '/api'),
-            FIREBASE_EMULATOR_HOST: env.FIREBASE_EMULATOR_HOST || (isLocal ? 'localhost' : ''),
-            FIREBASE_AUTH_EMULATOR_PORT: env.FIREBASE_AUTH_EMULATOR_PORT || (isLocal ? '9199' : ''),
-            FIREBASE_FUNCTIONS_PORT: env.FIREBASE_FUNCTIONS_PORT || (isLocal ? '6001' : ''),
-            FIREBASE_HOSTING_PORT: env.FIREBASE_HOSTING_PORT || (isLocal ? '6002' : '')
-        };
-        
-        logger.log(`Environment loaded: ${envName}`, environment);
-        return environment;
-        
-    } catch (error) {
-        logger.error('Failed to load environment configuration:', error);
-        throw new Error(`Environment configuration failed to load: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-}
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 export function getEnvironment(): Environment {
-    if (!environment) {
-        throw new Error('Environment not loaded. Call loadEnvironment() first.');
-    }
-    return environment;
+    const env: Environment = {
+        API_BASE_URL: API_BASE_URL || (isLocal ? 'http://localhost:6001/splitifyd/us-central1/api' : '/api'),
+        FIREBASE_EMULATOR_HOST: FIREBASE_EMULATOR_HOST || (isLocal ? 'localhost' : ''),
+        FIREBASE_AUTH_EMULATOR_PORT: FIREBASE_AUTH_EMULATOR_PORT || (isLocal ? '9199' : ''),
+        FIREBASE_FUNCTIONS_PORT: FIREBASE_FUNCTIONS_PORT || (isLocal ? '6001' : ''),
+        FIREBASE_HOSTING_PORT: FIREBASE_HOSTING_PORT || (isLocal ? '6002' : '')
+    };
+    logger.log(`Environment loaded: ${isLocal ? 'development' : 'production'}`, env);
+    return env;
 }
 
 export function isLocalEnvironment(): boolean {
-    const hostname = window.location.hostname;
-    return hostname === 'localhost' || hostname === '127.0.0.1';
+    return isLocal;
+}
+
+// No need for loadEnvironment() anymore as variables are injected at build time
+export async function loadEnvironment(): Promise<Environment> {
+    return getEnvironment();
 }

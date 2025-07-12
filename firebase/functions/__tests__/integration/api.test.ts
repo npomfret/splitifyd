@@ -336,7 +336,7 @@ describe('Comprehensive API Test Suite', () => {
         expect(fetchedExpense.category).toBe(updatedData.category);
       });
 
-      test('should recalculate splits when only amount is updated', async () => {
+      test('should recalculate splits when amount is updated with exact split type', async () => {
         // Create a new expense specifically for this test
         const testExpenseData = {
           groupId: testGroup.id,

@@ -346,7 +346,7 @@ describe('Document Handlers', () => {
         mockResponse as Response
       );
 
-      expect(mockWhere).toHaveBeenCalledWith('userId', '==', 'user123');
+      expect(mockWhere).toHaveBeenCalledWith('data.memberIds', 'array-contains', 'user123');
       expect(mockOrderBy).toHaveBeenCalledWith('updatedAt', 'desc');
       expect(mockLimit).toHaveBeenCalledWith(101); // 100 + 1 for pagination check
       expect(mockResponse.json).toHaveBeenCalledWith({
