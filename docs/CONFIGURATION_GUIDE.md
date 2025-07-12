@@ -14,6 +14,10 @@ Environment variables are crucial for managing sensitive information and environ
 
 This file serves as a template for all environment variables used by Firebase Functions. Copy it to `.env` and customize it for your specific environment.
 
+### Webapp Environment Variables
+
+The webapp loads its environment configuration at runtime from a `.env.development` or `.env.production` file. These files are not committed to the repository. The `webapp/src/js/utils/env-loader.ts` script is responsible for fetching and parsing these files.
+
 #### General Configuration
 - `NODE_ENV`: Defines the environment (e.g., `development`, `test`, `production`). This impacts logging, CORS, and security headers.
 - `GCLOUD_PROJECT`: Your Firebase project ID. Required for production deployments.
@@ -185,61 +189,22 @@ The `security.ts` utility file provides functions to check for and sanitize dang
 
 ## 10. Deployment Configuration
 
-The `firebase/package.json` and `firebase/functions/package.json` files contain scripts for building and deploying the application.
+The `package.json` file in the root of the project contains scripts for building and deploying the application.
 
-- **`firebase/package.json`**:
-  - `clean`: Cleans build artifacts.
-  - `build:webapp`: Copies webapp files to the `public` directory for hosting.
-  - `build`: Runs `clean` and `build:webapp`.
-  - `serve`: Starts Firebase emulators for local development.
-  - `dev`: Starts emulators with `nodemon` for hot-reloading webapp changes.
-  - `deploy:prod`: Deploys the entire project to production (requires `firebase use splitifyd`).
-  - `deploy:functions`: Deploys only Firebase Functions.
-  - `deploy:hosting`: Deploys only Firebase Hosting.
-  - `deploy:rules`: Deploys only Firestore security rules.
-- **`firebase/functions/package.json`**:
-  - `build`: Compiles TypeScript to JavaScript.
-  - `serve`: Starts functions emulator.
-  - `deploy`: Deploys functions.
-  - `test`: Runs Jest tests.
-  - `test:endpoints`: Runs API endpoint tests (local and production).
-
-**Security Best Practice:**
-- Always use `deploy:prod` for production deployments to ensure all necessary components are updated.
-- Ensure your CI/CD pipeline (if any) uses secure credentials for deployment.
-- Regularly review `package.json` scripts to understand what is being built and deployed.
+- **`npm run build`**: Builds all the packages in the monorepo.
+- **`npm run dev`**: Starts the Firebase emulators and the webapp in development mode.
+- **`npm run deploy:prod`**: Deploys the entire project to production (requires `firebase use splitifyd`).
 
 ## 11. Local Development Setup
 
 To run the project locally using Firebase Emulators:
 
-1.  **Install Firebase CLI:**
+1.  **Install dependencies:**
     ```bash
-    npm install -g firebase-tools
-    ```
-2.  **Login to Firebase:**
-    ```bash
-    firebase login
-    ```
-3.  **Navigate to `firebase/functions` and install dependencies:**
-    ```bash
-    cd firebase/functions
     npm install
     ```
-4.  **Copy `.env.example` to `.env` and configure:**
+2.  **Start the emulators:**
     ```bash
-    cp .env.example .env
-    # Edit .env to set desired values, especially for CORS_ALLOWED_ORIGINS
-    ```
-5.  **Navigate back to the `firebase` directory and install dependencies:**
-    ```bash
-    cd ..
-    npm install
-    ```
-6.  **Start the emulators:**
-    ```bash
-    npm run serve
-    # Or for hot-reloading webapp changes:
     npm run dev
     ```
     This will start the Firebase emulators for Auth, Firestore, Functions, and Hosting. The web application will be served from `http://localhost:5002` (or the port specified in `firebase.json`).
