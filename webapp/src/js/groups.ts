@@ -153,7 +153,8 @@ export class GroupsList {
     
     const groupCard = createElementSafe('div', {
       className: 'group-card',
-      'data-group-id': group.id
+      'data-group-id': group.id,
+      'data-id': group.id
     });
 
     const header = createElementSafe('div', { className: 'group-card__header' });
@@ -347,6 +348,41 @@ export class GroupsList {
     this.attachEventListeners();
   }
 
+  private addGroupToList(newGroup: TransformedGroup): void {
+    const groupsGrid = this.container.querySelector('.groups-grid');
+    if (!groupsGrid) {
+      logger.error('Groups grid not found, falling back to full render');
+      this.render();
+      return;
+    }
+    
+    const newGroupCard = this.renderGroupCard(newGroup);
+    groupsGrid.prepend(newGroupCard);
+    this.attachGroupCardEventListeners(newGroupCard);
+  }
+
+  private updateGroupInList(updatedGroup: TransformedGroup): void {
+    const existingCard = this.container.querySelector(`[data-id="${updatedGroup.id}"]`);
+    if (!existingCard) {
+      logger.error(`Group card with id ${updatedGroup.id} not found for update`);
+      return;
+    }
+    
+    const newGroupCard = this.renderGroupCard(updatedGroup);
+    existingCard.replaceWith(newGroupCard);
+    this.attachGroupCardEventListeners(newGroupCard);
+  }
+
+  private removeGroupFromList(groupId: string): void {
+    const existingCard = this.container.querySelector(`[data-id="${groupId}"]`);
+    if (!existingCard) {
+      logger.error(`Group card with id ${groupId} not found for removal`);
+      return;
+    }
+    
+    existingCard.remove();
+  }
+
   private attachEventListeners(): void {
     const createGroupBtn = document.getElementById('createGroupBtn');
     if (createGroupBtn) {
@@ -356,28 +392,34 @@ export class GroupsList {
     }
 
     document.querySelectorAll('.group-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (!target.classList.contains('group-card__add-expense')) {
-          const groupCard = card as HTMLElement;
-          const groupId = groupCard.dataset.groupId;
-          if (groupId) {
-            this.openGroupDetail(groupId);
-          }
-        }
-      });
+      this.attachGroupCardEventListeners(card as HTMLElement);
     });
+  }
 
-    document.querySelectorAll('.group-card__add-expense').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+  private attachGroupCardEventListeners(card: HTMLElement): void {
+    const clickHandler = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains('group-card__add-expense')) {
+        const groupId = card.dataset.groupId;
+        if (groupId) {
+          this.openGroupDetail(groupId);
+        }
+      }
+    };
+
+    const addExpenseBtn = card.querySelector('.group-card__add-expense');
+    if (addExpenseBtn) {
+      const addExpenseHandler = (e: Event) => {
         e.stopPropagation();
-        const groupCard = (e.target as HTMLElement).closest('.group-card') as HTMLElement;
-        const groupId = groupCard?.dataset.groupId;
+        const groupId = card.dataset.groupId;
         if (groupId) {
           this.openAddExpenseModal(groupId);
         }
-      });
-    });
+      };
+      addExpenseBtn.addEventListener('click', addExpenseHandler);
+    }
+
+    card.addEventListener('click', clickHandler);
   }
 
   private async openCreateGroupModal(): Promise<void> {
@@ -470,7 +512,15 @@ export class GroupsList {
             const newGroup = await apiService.createGroup(groupData);
             this.groups.unshift(newGroup);
             this.filteredGroups = [...this.groups];
-            this.render();
+            
+            // Use granular DOM update instead of full re-render
+            if (this.groups.length === 1) {
+                // First group - need to replace empty state with full render
+                this.render();
+            } else {
+                // Add to existing list
+                this.addGroupToList(newGroup);
+            }
 
             modal.hide();
             modal.unmount();

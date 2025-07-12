@@ -315,10 +315,9 @@ async function loadGroupExpenses(): Promise<void> {
             });
             expensesList.appendChild(noDataMsg);
         } else {
+            // Use granular DOM updates to add each expense
             expenses.forEach(expense => {
-                const { element, cleanup } = createExpenseItem(expense);
-                expensesList.appendChild(element);
-                expenseItemCleanups.set(element, cleanup);
+                addExpenseToList(expense);
             });
         }
         
@@ -348,6 +347,7 @@ function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanu
     
     const expenseItem = document.createElement('div');
     expenseItem.className = 'expense-item';
+    expenseItem.setAttribute('data-id', expense.id);
     
     const currentUserId = authManager.getUserId();
     const paidByYou = expense.paidBy === currentUserId;
@@ -417,6 +417,66 @@ function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanu
     };
     
     return { element: expenseItem, cleanup };
+}
+
+function addExpenseToList(expense: ExpenseData): void {
+    const expensesList = document.getElementById('expensesList');
+    if (!expensesList) {
+        logger.error('expensesList element not found');
+        return;
+    }
+
+    const { element, cleanup } = createExpenseItem(expense);
+    expensesList.appendChild(element);
+    expenseItemCleanups.set(element, cleanup);
+}
+
+function updateExpenseInList(updatedExpense: ExpenseData): void {
+    const expensesList = document.getElementById('expensesList');
+    if (!expensesList) {
+        logger.error('expensesList element not found');
+        return;
+    }
+
+    const existingItem = expensesList.querySelector(`[data-id="${updatedExpense.id}"]`) as HTMLElement;
+    if (!existingItem) {
+        logger.error(`Expense item with id ${updatedExpense.id} not found for update`);
+        return;
+    }
+    
+    // Clean up existing item
+    const existingCleanup = expenseItemCleanups.get(existingItem);
+    if (existingCleanup) {
+        existingCleanup();
+        expenseItemCleanups.delete(existingItem);
+    }
+
+    // Create and replace with updated item
+    const { element, cleanup } = createExpenseItem(updatedExpense);
+    existingItem.replaceWith(element);
+    expenseItemCleanups.set(element, cleanup);
+}
+
+function removeExpenseFromList(expenseId: string): void {
+    const expensesList = document.getElementById('expensesList');
+    if (!expensesList) {
+        logger.error('expensesList element not found');
+        return;
+    }
+
+    const existingItem = expensesList.querySelector(`[data-id="${expenseId}"]`) as HTMLElement;
+    if (!existingItem) {
+        logger.error(`Expense item with id ${expenseId} not found for removal`);
+        return;
+    }
+    
+    // Clean up existing item
+    const existingCleanup = expenseItemCleanups.get(existingItem);
+    if (existingCleanup) {
+        existingCleanup();
+        expenseItemCleanups.delete(existingItem);
+    }
+    existingItem.remove();
 }
 
 function getCategoryIcon(category: string): string {
