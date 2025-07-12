@@ -120,10 +120,12 @@ function updateGroupHeader(): void {
     if (!currentGroup) return;
     
     const groupNameEl = document.getElementById('groupName') as HTMLElement;
+    groupNameEl.classList.remove('skeleton-title');
     groupNameEl.textContent = currentGroup.name;
     
     const membersList = document.getElementById('membersList') as HTMLElement;
     const membersCount = document.getElementById('membersCount') as HTMLElement;
+    membersCount.classList.remove('skeleton-subtitle');
     
     clearElement(membersList);
     const maxVisibleMembers = 4;

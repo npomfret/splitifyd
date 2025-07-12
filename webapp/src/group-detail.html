@@ -29,43 +29,40 @@
     <main class="dashboard-main">
         <div class="dashboard-container">
             <div class="group-detail-container">
-                <nav class="nav-header">
-                    <button class="back-button" id="backButton">
-                        <i class="fas fa-arrow-left"></i>
-                        <span>Back</span>
-                    </button>
-                    <h1 class="page-title">Group Details</h1>
-                    <div class="header-actions">
+                <div id="groupHeader" class="group-header">
+                    <div class="group-header-top">
+                        <button class="back-button" id="backButton">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back</span>
+                        </button>
                         <button class="settings-button" id="groupSettingsBtn">
                             <i class="fas fa-cog"></i>
                         </button>
                     </div>
-                </nav>
-
-                <div id="groupHeader" class="group-header">
                     <div class="group-info">
-                        <div class="group-icon-large">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="group-details">
-                            <h2 id="groupName" class="group-name">Loading...</h2>
-                            <div class="group-members-preview">
-                                <div id="membersList" class="members-avatars"></div>
-                                <span id="membersCount" class="members-count"></span>
+                        <div class="group-info-left">
+                            <div class="group-icon-large">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="group-details">
+                                <h2 id="groupName" class="group-name skeleton-title"></h2>
+                                <div class="group-members-preview">
+                                    <div id="membersList" class="members-avatars"></div>
+                                    <span id="membersCount" class="members-count skeleton-subtitle"></span>
+                                </div>
                             </div>
                         </div>
+                        <div class="quick-actions">
+                            <button class="button button--primary" id="addExpenseBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Expense
+                            </button>
+                            <button class="button button--secondary" id="inviteMembersBtn">
+                                <i class="fas fa-user-plus"></i>
+                                Invite
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div class="quick-actions">
-                    <button class="button button--primary" id="addExpenseBtn">
-                        <i class="fas fa-plus"></i>
-                        Add Expense
-                    </button>
-                    <button class="button button--secondary" id="inviteMembersBtn">
-                        <i class="fas fa-user-plus"></i>
-                        Invite
-                    </button>
                 </div>
 
                 <div class="tab-navigation">
