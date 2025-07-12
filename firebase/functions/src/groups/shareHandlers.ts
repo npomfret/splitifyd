@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { randomBytes } from 'crypto';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -8,12 +9,9 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { CONFIG } from '../config';
 
 const generateShareToken = (): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let token = '';
-  for (let i = 0; i < 16; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
+  const bytes = randomBytes(12);
+  const base64url = bytes.toString('base64url');
+  return base64url.substring(0, 16);
 };
 
 interface ValidationResult {
