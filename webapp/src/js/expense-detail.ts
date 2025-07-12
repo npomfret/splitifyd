@@ -4,6 +4,7 @@ import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import { ExpenseService } from './expenses.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
+import { HeaderComponent } from './components/header.js';
 import type { User } from './types/global';
 import type { Member, GroupDetail } from './types/api';
 import type { ExpenseData } from './types/business-logic';
@@ -30,6 +31,12 @@ async function initializeExpenseDetailPage(): Promise<void> {
 
         await loadExpenseDetails(expenseId);
         setupEventListeners();
+
+        const headerContainer = document.getElementById('header-container');
+        if (headerContainer) {
+            const header = new HeaderComponent({ title: 'Expense Details', showLogout: true });
+            header.mount(headerContainer);
+        }
     } catch (error) {
         window.location.href = 'index.html';
     }

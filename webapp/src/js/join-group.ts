@@ -2,8 +2,15 @@ import { logger } from './utils/logger.js';
 import { AppInit } from './app-init.js';
 import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
+import { HeaderComponent } from './components/header.js';
 
 async function handleJoinGroup(): Promise<void> {
+    const headerContainer = document.getElementById('header-container');
+    if (headerContainer) {
+        const header = new HeaderComponent({ title: 'Join Group', showLogout: false });
+        header.mount(headerContainer);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const linkId = urlParams.get('linkId');
     

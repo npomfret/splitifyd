@@ -4,6 +4,7 @@ import { apiService } from './api.js';
 import { showMessage, showFieldError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { debounce } from './utils/event-utils.js';
+import { HeaderComponent } from './components/header.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;

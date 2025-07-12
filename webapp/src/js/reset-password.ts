@@ -1,6 +1,14 @@
 import { logger } from './utils/logger.js';
 import { firebaseConfigManager, firebaseAuthInstance } from './firebase-config.js';
 import { clearErrors, showFieldError, showSuccess } from './utils/ui-messages.js';
+import { HeaderComponent } from './components/header.js';
+
+const headerContainer = document.getElementById('header-container');
+if (headerContainer) {
+    const header = new HeaderComponent({ title: 'Reset Password', showLogout: false });
+    header.mount(headerContainer);
+}
+
 
 const resetForm = document.getElementById('resetForm') as HTMLFormElement;
 const emailInput = document.getElementById('email') as HTMLInputElement;

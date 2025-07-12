@@ -390,127 +390,104 @@ export class GroupsList {
   }
 
   private async openCreateGroupModal(): Promise<void> {
-    const modalHtml = ModalComponent.render({
-      id: 'createGroupModal',
-      title: 'Create New Group',
-      body: `
-        <form id="createGroupForm">
-          <div class="form-group">
-            <label for="groupName">Group Name</label>
-            <input type="text" id="groupName" name="groupName" required 
-                   placeholder="Enter group name" class="form-input">
-          </div>
-          <div class="form-group">
-            <label for="groupDescription">Description (optional)</label>
-            <textarea id="groupDescription" name="groupDescription" 
-                      placeholder="What's this group for?" class="form-input form-textarea"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Initial Members (Optional)</label>
-            <div class="members-input-container" id="membersContainer">
-              <div class="member-input-row">
-                <input type="email" placeholder="Enter email address" class="form-input member-email" name="memberEmail[]">
-                <button type="button" class="button--icon" disabled>×</button>
-              </div>
-            </div>
-            <button type="button" class="button button--small" id="addMemberBtn">+ Add Another Member</button>
-          </div>
-        </form>
-      `,
-      footer: `
-        <button class="button button--secondary" id="cancelCreateGroupButton">Cancel</button>
-        <button class="button button--primary" id="createGroupSubmit">Create Group</button>
-      `
+    const modalId = 'createGroupModal';
+
+    // Create Body
+    const form = createElementSafe('form', { id: 'createGroupForm' }) as HTMLFormElement;
+    const groupNameGroup = createElementSafe('div', { className: 'form-group' });
+    const groupNameLabel = createElementSafe('label', { htmlFor: 'groupName', textContent: 'Group Name' });
+    const groupNameInput = createElementSafe('input', { type: 'text', id: 'groupName', name: 'groupName', required: true, placeholder: 'Enter group name', className: 'form-input' });
+    groupNameGroup.appendChild(groupNameLabel);
+    groupNameGroup.appendChild(groupNameInput);
+
+    const descriptionGroup = createElementSafe('div', { className: 'form-group' });
+    const descriptionLabel = createElementSafe('label', { htmlFor: 'groupDescription', textContent: 'Description (optional)' });
+    const descriptionTextarea = createElementSafe('textarea', { id: 'groupDescription', name: 'groupDescription', placeholder: "What's this group for?", className: 'form-input form-textarea' });
+    descriptionGroup.appendChild(descriptionLabel);
+    descriptionGroup.appendChild(descriptionTextarea);
+
+    const membersGroup = createElementSafe('div', { className: 'form-group' });
+    const membersLabel = createElementSafe('label', { textContent: 'Initial Members (Optional)' });
+    const membersContainer = createElementSafe('div', { className: 'members-input-container', id: 'membersContainer' });
+    const addMemberButton = createElementSafe('button', { type: 'button', className: 'button button--small', id: 'addMemberBtn', textContent: '+ Add Another Member' });
+
+    const createMemberInputRow = () => {
+        const row = createElementSafe('div', { className: 'member-input-row' });
+        const emailInput = createElementSafe('input', { type: 'email', placeholder: 'Enter email address', className: 'form-input member-email', name: 'memberEmail[]' });
+        const removeButton = createElementSafe('button', { type: 'button', className: 'button--icon', textContent: '×' }) as HTMLButtonElement;
+        removeButton.addEventListener('click', () => {
+            row.remove();
+            const remainingButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
+            remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
+        });
+        row.appendChild(emailInput);
+        row.appendChild(removeButton);
+        return row;
+    };
+
+    membersContainer.appendChild(createMemberInputRow());
+
+    addMemberButton.addEventListener('click', () => {
+        membersContainer.appendChild(createMemberInputRow());
+        const removeButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
+        removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
     });
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    ModalComponent.show('createGroupModal');
+    membersGroup.appendChild(membersLabel);
+    membersGroup.appendChild(membersContainer);
+    membersGroup.appendChild(addMemberButton);
 
-    // Attach event listener to the cancel button
-    const cancelCreateGroupButton = document.getElementById('cancelCreateGroupButton');
-    if (cancelCreateGroupButton) {
-      cancelCreateGroupButton.addEventListener('click', () => {
-        ModalComponent.hide('createGroupModal');
-      });
-    }
+    form.appendChild(groupNameGroup);
+    form.appendChild(descriptionGroup);
+    form.appendChild(membersGroup);
 
-    // Add event listeners to initial member row remove button
-    const initialRemoveButton = document.querySelector('#membersContainer .button--icon') as HTMLButtonElement;
-    if (initialRemoveButton) {
-      initialRemoveButton.addEventListener('click', () => {
-        const memberRow = initialRemoveButton.parentElement;
-        memberRow?.remove();
-        // Update remove button states after removal
-        const container = document.getElementById('membersContainer');
-        const remainingButtons = container?.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-        remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
-      });
-    }
+    // Create Footer
+    const footerContainer = createElementSafe('div');
+    const cancelButton = createElementSafe('button', { className: 'button button--secondary', textContent: 'Cancel' });
+    const createButton = createElementSafe('button', { className: 'button button--primary', textContent: 'Create Group' });
+    footerContainer.appendChild(cancelButton);
+    footerContainer.appendChild(createButton);
 
-    // Add member functionality
-    const addMemberBtn = document.getElementById('addMemberBtn');
-    if (addMemberBtn) {
-      addMemberBtn.addEventListener('click', () => {
-        const container = document.getElementById('membersContainer');
-        if (!container) return;
-        
-        const newRow = document.createElement('div');
-        newRow.className = 'member-input-row';
-        newRow.innerHTML = `
-          <input type="email" placeholder="Enter email address" class="form-input member-email" name="memberEmail[]">
-          <button type="button" class="button--icon">×</button>
-        `;
-        container.appendChild(newRow);
-        
-        // Add event listener to the remove button
-        const removeButton = newRow.querySelector('.button--icon') as HTMLButtonElement;
-        removeButton.addEventListener('click', () => {
-          newRow.remove();
-          // Update remove button states after removal
-          const remainingButtons = container.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-          remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
-        });
-        
-        // Enable remove buttons when there are multiple rows
-        const removeButtons = container.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-        removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
-      });
-    }
+    const modal = new ModalComponent({
+        id: modalId,
+        title: 'Create New Group',
+        body: form,
+        footer: footerContainer
+    });
 
-    const createGroupSubmit = document.getElementById('createGroupSubmit');
-    if (createGroupSubmit) {
-      createGroupSubmit.addEventListener('click', async () => {
-        const form = document.getElementById('createGroupForm') as HTMLFormElement;
-        if (!form) return;
-        
+    modal.mount(document.body);
+    modal.show();
+
+    cancelButton.addEventListener('click', () => {
+        modal.hide();
+        modal.unmount();
+    });
+
+    createButton.addEventListener('click', async () => {
         const formData = new FormData(form);
-        
-        // Collect member emails
         const memberEmails = Array.from(form.querySelectorAll('.member-email') as NodeListOf<HTMLInputElement>)
-          .map(input => input.value.trim())
-          .filter(email => email.length > 0);
-        
+            .map(input => input.value.trim())
+            .filter(email => email.length > 0);
+
         try {
-          const groupData: CreateGroupRequest = {
-            name: formData.get('groupName') as string,
-            description: formData.get('groupDescription') as string,
-            memberEmails: memberEmails
-          };
-          
-          const newGroup = await apiService.createGroup(groupData);
-          this.groups.unshift(newGroup);
-          this.filteredGroups = [...this.groups];
-          this.render();
-          
-          ModalComponent.hide('createGroupModal');
-          const modal = document.getElementById('createGroupModal');
-          modal?.remove();
+            const groupData: CreateGroupRequest = {
+                name: formData.get('groupName') as string,
+                description: formData.get('groupDescription') as string,
+                memberEmails: memberEmails
+            };
+
+            const newGroup = await apiService.createGroup(groupData);
+            this.groups.unshift(newGroup);
+            this.filteredGroups = [...this.groups];
+            this.render();
+
+            modal.hide();
+            modal.unmount();
         } catch (error) {
-          logger.error('Failed to create group:', error);
-          alert('Failed to create group. Please try again.');
+            logger.error('Failed to create group:', error);
+            alert('Failed to create group. Please try again.');
         }
-      });
-    }
+    });
   }
 
   private openGroupDetail(groupId: string): void {

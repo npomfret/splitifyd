@@ -5,6 +5,7 @@ import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
+import { HeaderComponent } from './components/header.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -33,6 +34,12 @@ async function initializeGroupDetailPage(): Promise<void> {
         
         await loadGroupDetails();
         initializeEventListeners();
+
+        const headerContainer = document.getElementById('header-container');
+        if (headerContainer) {
+            const header = new HeaderComponent({ title: 'Group Details', showLogout: true });
+            header.mount(headerContainer);
+        }
     } catch (error) {
         window.location.href = 'index.html';
     }
@@ -624,47 +631,52 @@ async function showShareGroupModal(): Promise<void> {
         logger.error('currentGroupId is null');
         return;
     }
-    
+
     try {
         const response = await apiService.generateShareableLink(currentGroupId);
-        logger.log('Share link response:', response);
         const shareUrl = response.data!.url;
-        
+
         const modalId = 'shareGroupModal';
-        const modalHtml = ModalComponent.render({
+
+        // Create Body
+        const bodyContainer = createElementSafe('div');
+        const p1 = createElementSafe('p', { textContent: 'Share this link with others to invite them to join the group:' });
+        const shareLinkContainer = createElementSafe('div', { className: 'share-link-container' });
+        const input = createElementSafe('input', { type: 'text', id: 'shareLink', className: 'form-control', value: shareUrl, readOnly: 'true' }) as HTMLInputElement;
+        const copyButton = createElementSafe('button', { className: 'button button--primary' });
+        const copyIcon = createElementSafe('i', { className: 'fas fa-copy' });
+        copyButton.appendChild(copyIcon);
+        copyButton.innerHTML += ' Copy';
+        shareLinkContainer.appendChild(input);
+        shareLinkContainer.appendChild(copyButton);
+        const p2 = createElementSafe('p', { className: 'share-info', textContent: 'Anyone with this link can join the group after logging in.' });
+        bodyContainer.appendChild(p1);
+        bodyContainer.appendChild(shareLinkContainer);
+        bodyContainer.appendChild(p2);
+
+        // Create Footer
+        const footerContainer = createElementSafe('div');
+        const closeButton = createElementSafe('button', { className: 'button button--secondary', textContent: 'Close' });
+        footerContainer.appendChild(closeButton);
+
+        const modal = new ModalComponent({
             id: modalId,
             title: 'Share Group',
-            body: `
-                <p>Share this link with others to invite them to join the group:</p>
-                <div class="share-link-container">
-                    <input type="text" id="shareLink" class="form-control" value="${shareUrl}" readonly>
-                    <button class="button button--primary" id="copyShareLinkBtn">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                <p class="share-info">Anyone with this link can join the group after logging in.</p>
-            `,
-            footer: `<button class="button button--secondary" id="shareModalCloseBtn">Close</button>`
+            body: bodyContainer,
+            footer: footerContainer
         });
-        
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        ModalComponent.show(modalId);
-        
-        // Add event listeners after modal is created
-        const closeBtn = document.getElementById('shareModalCloseBtn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => ModalComponent.hide(modalId));
-        }
-        
-        const copyBtn = document.getElementById('copyShareLinkBtn');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', copyShareLink);
-        }
-        
-        const shareLink = document.getElementById('shareLink') as HTMLInputElement;
-        if (shareLink) {
-            shareLink.select();
-        }
+
+        modal.mount(document.body);
+        modal.show();
+
+        copyButton.addEventListener('click', () => copyShareLink(input));
+        closeButton.addEventListener('click', () => {
+            modal.hide();
+            modal.unmount();
+        });
+
+        input.select();
+
     } catch (error) {
         logger.error('Error generating share link:', error);
         showMessage('Failed to generate share link', 'error');
@@ -672,11 +684,10 @@ async function showShareGroupModal(): Promise<void> {
 }
 
 
-function copyShareLink(): void {
-    const shareLink = document.getElementById('shareLink') as HTMLInputElement;
-    shareLink.select();
-    shareLink.setSelectionRange(0, 99999);
-    
+function copyShareLink(inputElement: HTMLInputElement): void {
+    inputElement.select();
+    inputElement.setSelectionRange(0, 99999);
+
     try {
         document.execCommand('copy');
         showMessage('Link copied to clipboard!', 'success');

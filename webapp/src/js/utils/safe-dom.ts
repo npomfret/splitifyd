@@ -4,7 +4,7 @@ interface ElementAttributes {
   textContent?: string;
   className?: string;
   id?: string;
-  [key: string]: string | undefined;
+  [key: string]: string | boolean | undefined;
 }
 
 type ChildElement = string | Node;
@@ -20,13 +20,21 @@ export function createElementSafe(
     if (value === undefined) return;
     
     if (key === 'textContent') {
-      element.textContent = value;
+      element.textContent = String(value);
     } else if (key === 'className') {
-      element.className = value;
+      element.className = String(value);
     } else if (key.startsWith('data-')) {
-      element.setAttribute(key, value);
+      element.setAttribute(key, String(value));
     } else if (key === 'id') {
-      element.id = value;
+      element.id = String(value);
+    } else if (typeof value === 'boolean') {
+      if (value) {
+        element.setAttribute(key, ''); // Set as a boolean attribute (e.g., <input disabled>)
+      } else {
+        element.removeAttribute(key); // Remove if false
+      }
+    } else {
+      element.setAttribute(key, String(value)); // Default to string conversion
     }
   });
   

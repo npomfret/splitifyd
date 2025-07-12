@@ -1,5 +1,7 @@
+
 import { createElementSafe } from '../utils/safe-dom.js';
 import { ModalConfig, ModalConfirmConfig } from '../types/components';
+import { BaseComponent } from './base-component';
 
 interface ExtendedModalConfig extends Partial<ModalConfig> {
   body?: string | Node;
@@ -12,18 +14,16 @@ interface InternalModalConfirmConfig extends ModalConfirmConfig {
   confirmClass?: string;
 }
 
-export class ModalComponent {
-  static activeModals = new Map<string, HTMLElement>();
+export class ModalComponent extends BaseComponent<HTMLElement> {
+  private config: ExtendedModalConfig;
 
-  static render(config: ExtendedModalConfig): string {
-    const {
-      id,
-      title,
-      body = '',
-      footer,
-      size = 'medium',
-      closeButton = true
-    } = config;
+  constructor(config: ExtendedModalConfig) {
+    super();
+    this.config = config;
+  }
+
+  protected render(): HTMLElement {
+    const { id, title, body = '', footer, size = 'medium', closeButton = true } = this.config;
 
     const modalOverlay = createElementSafe('div', {
       id,
@@ -81,110 +81,96 @@ export class ModalComponent {
     }
 
     modalOverlay.appendChild(modalContent);
-    return modalOverlay.outerHTML;
+    this.element = modalOverlay;
+    return modalOverlay;
   }
 
-  static show(modalId: string): void {
-    const modal = document.getElementById(modalId) as HTMLElement | null;
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('visible-flex');
-      document.body.classList.add('modal-open');
-      this.activeModals.set(modalId, modal);
-      this.attachCloseHandlers(modalId);
-    }
+  public show(): void {
+    if (!this.element) return;
+    this.element.classList.remove('hidden');
+    this.element.classList.add('visible-flex');
+    document.body.classList.add('modal-open');
   }
 
-  static hide(modalId: string): void {
-    const modal = document.getElementById(modalId) as HTMLElement | null;
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('visible-flex');
-      if (this.activeModals.size === 1) {
-        document.body.classList.remove('modal-open');
-      }
-      this.activeModals.delete(modalId);
-    }
+  public hide(): void {
+    if (!this.element) return;
+    this.element.classList.add('hidden');
+    this.element.classList.remove('visible-flex');
+    document.body.classList.remove('modal-open');
   }
 
-  static attachCloseHandlers(modalId: string): void {
-    const modal = document.getElementById(modalId) as HTMLElement | null;
-    if (!modal) return;
+  protected setupEventListeners(): void {
+    if (!this.element) return;
 
-    const closeBtn = modal.querySelector(`[data-modal-close="${modalId}"]`) as HTMLButtonElement | null;
+    const closeBtn = this.element.querySelector(`[data-modal-close="${this.config.id}"]`) as HTMLButtonElement | null;
     if (closeBtn) {
-      closeBtn.onclick = () => this.hide(modalId);
+      closeBtn.addEventListener('click', this.handleClose);
     }
 
-    modal.onclick = (e: MouseEvent) => {
-      if (e.target === modal) {
-        this.hide(modalId);
-      }
-    };
+    this.element.addEventListener('click', this.handleOverlayClick);
+  }
+
+  private handleClose = (): void => {
+    this.hide();
+  }
+
+  private handleOverlayClick = (e: MouseEvent): void => {
+    if (e.target === this.element) {
+      this.hide();
+    }
+  }
+
+  protected cleanup(): void {
+    if (!this.element) return;
+
+    const closeBtn = this.element.querySelector(`[data-modal-close="${this.config.id}"]`) as HTMLButtonElement | null;
+    if (closeBtn) {
+      closeBtn.removeEventListener('click', this.handleClose);
+    }
+
+    this.element.removeEventListener('click', this.handleOverlayClick);
   }
 
   static confirm(config: InternalModalConfirmConfig): void {
-    const {
-      title = 'Confirm',
-      message = 'Are you sure?',
-      confirmText = 'Confirm',
-      cancelText = 'Cancel',
-      confirmClass = 'button--danger',
-      onConfirm,
-      onCancel
-    } = config;
+    const { title = 'Confirm', message = 'Are you sure?', confirmText = 'Confirm', cancelText = 'Cancel', confirmClass = 'button--danger', onConfirm, onCancel } = config;
 
     const modalId = `confirmModal_${Date.now()}`;
     
     const bodyElement = createElementSafe('p', { textContent: message });
     
-    const footerElement = createElementSafe('div');
+    const footerElement = document.createElement('div');
     const cancelButton = createElementSafe('button', {
       className: 'button button--secondary',
-      id: `${modalId}_cancel`,
       textContent: cancelText
     });
     const confirmButton = createElementSafe('button', {
       className: `button ${confirmClass}`,
-      id: `${modalId}_confirm`,
       textContent: confirmText
     });
     
     footerElement.appendChild(cancelButton);
     footerElement.appendChild(confirmButton);
 
-    const modalHtml = this.render({
+    const modal = new ModalComponent({
       id: modalId,
       title,
       body: bodyElement,
       footer: footerElement
     });
 
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = modalHtml;
-    const modalElement = tempDiv.firstElementChild as HTMLElement;
-    document.body.appendChild(modalElement);
+    modal.mount(document.body);
+    modal.show();
 
-    this.show(modalId);
+    confirmButton.addEventListener('click', () => {
+      modal.hide();
+      modal.unmount();
+      if (onConfirm) onConfirm();
+    });
 
-    const confirmBtn = document.getElementById(`${modalId}_confirm`) as HTMLButtonElement;
-    const cancelBtn = document.getElementById(`${modalId}_cancel`) as HTMLButtonElement;
-    const modalEl = document.getElementById(modalId) as HTMLElement;
-
-    if (confirmBtn) {
-      confirmBtn.onclick = () => {
-        this.hide(modalId);
-        if (modalEl) modalEl.remove();
-        if (onConfirm) onConfirm();
-      };
-    }
-
-    if (cancelBtn) {
-      cancelBtn.onclick = () => {
-        this.hide(modalId);
-        if (modalEl) modalEl.remove();
-        if (onCancel) onCancel();
-      };
-    }
+    cancelButton.addEventListener('click', () => {
+      modal.hide();
+      modal.unmount();
+      if (onCancel) onCancel();
+    });
   }
 }

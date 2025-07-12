@@ -1,6 +1,7 @@
 import { clearElement } from './utils/safe-dom.js';
 import { GroupsList } from './groups.js';
 import { authManager } from './auth.js';
+import { HeaderComponent } from './components/header.js';
 
 interface MetaElement {
   tag: string;
@@ -58,16 +59,7 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
         </div>
       </div>
       
-      <header class="dashboard-header">
-        <div class="dashboard-container">
-          <h1 class="dashboard-title">
-            <a href="dashboard.html" class="dashboard-title-link">Splitifyd</a>
-          </h1>
-          <button type="button" class="button button--logout" id="logoutButton">
-            Logout
-          </button>
-        </div>
-      </header>
+      <div id="header-container"></div>
       
       <main class="dashboard-main">
         <div class="dashboard-container">
@@ -89,12 +81,10 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       document.body.appendChild(tempDiv.firstChild);
     }
 
-    // Add logout functionality
-    const logoutButton = document.getElementById('logoutButton') as HTMLButtonElement;
-    if (logoutButton) {
-      logoutButton.addEventListener('click', (): void => {
-        authManager.logout();
-      });
+    const headerContainer = document.getElementById('header-container');
+    if (headerContainer) {
+        const header = new HeaderComponent({ title: 'Splitifyd', showLogout: true });
+        header.mount(headerContainer);
     }
 
     // Load additional scripts
