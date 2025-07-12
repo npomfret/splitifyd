@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "super-clean": "node firebase/scripts/kill-emulators.js && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present && rm -rf firebase/firebase-export-* firebase/*.log firebase/functions/*.log *.log firebase/public",
-    "dev": "node firebase/scripts/kill-emulators.js && rm -rf firebase/firebase-export-* firebase/*.log firebase/functions/*.log *.log firebase/public && npm run build && concurrently \"npm run watch -ws --if-present\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
+    "dev:prep": "node firebase/scripts/kill-emulators.js && rm -rf firebase/firebase-export-* firebase/*.log firebase/functions/*.log *.log firebase/public && npm run build",
+    "dev": "npm run dev:prep && concurrently \"cd webapp && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
     "build": "npm run build -ws --if-present",
     "watch": "npm run watch -ws --if-present",
     "clean": "npm run clean -ws --if-present",
@@ -23,7 +24,6 @@
     "concurrently": "^8.2.2",
     "esbuild": "^0.20.2",
     "firebase-tools": "^13.0.0",
-    "nodemon": "^3.1.10",
-    "chokidar-cli": "^3.0.0"
+    "nodemon": "^3.1.10"
   }
 }
