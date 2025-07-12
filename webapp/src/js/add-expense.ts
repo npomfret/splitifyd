@@ -392,23 +392,14 @@ async function handleSubmit(event: Event): Promise<void> {
     }
 }
 
+import { validateRequired } from './utils/form-validation.js';
+
 function validateForm(description: string, amount: number, paidBy: string): boolean {
     let isValid = true;
     
-    if (!description) {
-        showFieldError('description', 'Description is required');
-        isValid = false;
-    }
-    
-    if (!amount || amount <= 0) {
-        showFieldError('amount', 'Amount must be greater than 0');
-        isValid = false;
-    }
-    
-    if (!paidBy) {
-        showFieldError('paidBy', 'Please select who paid');
-        isValid = false;
-    }
+    isValid = validateRequired(description, 'description', 'Description is required') && isValid;
+    isValid = validateRequired(amount, 'amount', 'Amount must be greater than 0') && isValid;
+    isValid = validateRequired(paidBy, 'paidBy', 'Please select who paid') && isValid;
     
     if (selectedMembers.size === 0) {
         showFieldError('members', 'Please select at least one member');
