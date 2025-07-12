@@ -4,7 +4,7 @@ import { Errors } from '../utils/errors';
 import { CONFIG } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
-import { Member } from '@splitifyd/shared-types';
+import { Member } from '../types/shared';
 
 /**
  * Document structure

@@ -7,7 +7,7 @@ import {
   CreateExpenseRequest, 
   UpdateExpenseRequest, 
   EXPENSE_CATEGORIES 
-} from '@splitifyd/shared-types';
+} from '../types/shared';
 
 export interface Expense {
   id: string;
