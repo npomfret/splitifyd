@@ -1,4 +1,5 @@
 import type { FormFieldConfig, FormActionButton } from '../types/business-logic.js';
+import { hideElement, showElement } from '../utils/ui-visibility.js';
 
 export class FormComponents {
   static formGroup(config: FormFieldConfig): string {
@@ -75,7 +76,7 @@ export class FormComponents {
     const element = document.getElementById(elementId);
     if (element) {
       element.textContent = message;
-      element.classList.remove('hidden');
+      showElement(element);
     }
   }
 
@@ -83,7 +84,7 @@ export class FormComponents {
     const element = document.getElementById(elementId);
     if (element) {
       element.textContent = '';
-      element.classList.add('hidden');
+      hideElement(element);
     }
   }
 
@@ -93,7 +94,7 @@ export class FormComponents {
       const errorElements = form.querySelectorAll('.error-message');
       errorElements.forEach(el => {
         el.textContent = '';
-        el.classList.add('hidden');
+        hideElement(el as HTMLElement);
       });
     }
   }

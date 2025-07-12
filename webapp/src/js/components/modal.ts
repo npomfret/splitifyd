@@ -2,6 +2,7 @@
 import { createElementSafe } from '../utils/safe-dom.js';
 import { ModalConfig, ModalConfirmConfig } from '../types/components';
 import { BaseComponent } from './base-component';
+import { hideElement, showElement } from '../utils/ui-visibility.js';
 
 interface ExtendedModalConfig extends Partial<ModalConfig> {
   body?: string | Node;
@@ -87,15 +88,13 @@ export class ModalComponent extends BaseComponent<HTMLElement> {
 
   public show(): void {
     if (!this.element) return;
-    this.element.classList.remove('hidden');
-    this.element.classList.add('visible-flex');
+    showElement(this.element, 'flex'); // Use 'flex' because the modal uses 'visible-flex' class
     document.body.classList.add('modal-open');
   }
 
   public hide(): void {
     if (!this.element) return;
-    this.element.classList.add('hidden');
-    this.element.classList.remove('visible-flex');
+    hideElement(this.element);
     document.body.classList.remove('modal-open');
   }
 
