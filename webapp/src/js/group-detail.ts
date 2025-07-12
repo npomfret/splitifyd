@@ -15,6 +15,7 @@ let expensesOffset: number = 0;
 const expensesLimit: number = 20;
 let isLoadingExpenses: boolean = false;
 let hasMoreExpenses: boolean = true;
+const expenseItemCleanups = new Map<HTMLElement, () => void>();
 
 async function initializeGroupDetailPage(): Promise<void> {
     try {
@@ -267,6 +268,14 @@ async function loadGroupExpenses(): Promise<void> {
     }
     
     if (expensesOffset === 0) {
+        // Clean up existing expense items before clearing
+        Array.from(expensesList.children).forEach(child => {
+            const cleanupFn = expenseItemCleanups.get(child as HTMLElement);
+            if (cleanupFn) {
+                cleanupFn();
+                expenseItemCleanups.delete(child as HTMLElement);
+            }
+        });
         clearElement(expensesList);
         const spinner = createElementSafe('div', { className: 'loading-spinner' });
         const icon = createElementSafe('i', { className: 'fas fa-spinner fa-spin' });
@@ -296,7 +305,9 @@ async function loadGroupExpenses(): Promise<void> {
             expensesList.appendChild(noDataMsg);
         } else {
             expenses.forEach(expense => {
-                expensesList.appendChild(createExpenseItem(expense));
+                const { element, cleanup } = createExpenseItem(expense);
+                expensesList.appendChild(element);
+                expenseItemCleanups.set(element, cleanup);
             });
         }
         
@@ -321,7 +332,7 @@ async function loadGroupExpenses(): Promise<void> {
     }
 }
 
-function createExpenseItem(expense: ExpenseData): HTMLElement {
+function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanup: () => void } {
     logger.log('Creating expense item for:', expense);
     
     const expenseItem = document.createElement('div');
@@ -385,11 +396,16 @@ function createExpenseItem(expense: ExpenseData): HTMLElement {
     expenseItem.appendChild(expenseDetails);
     expenseItem.appendChild(expenseAmounts);
     
-    expenseItem.addEventListener('click', () => {
+    const clickHandler = () => {
         showExpenseDetails(expense);
-    });
+    };
+    expenseItem.addEventListener('click', clickHandler);
     
-    return expenseItem;
+    const cleanup = () => {
+        expenseItem.removeEventListener('click', clickHandler);
+    };
+    
+    return { element: expenseItem, cleanup };
 }
 
 function getCategoryIcon(category: string): string {
