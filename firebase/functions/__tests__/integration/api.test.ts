@@ -50,7 +50,7 @@ describe('Comprehensive API Test Suite', () => {
           members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
         };
 
-        const response = await driver.apiRequest('/createDocument', 'POST', { data: groupData }, users[0].token);
+        const response = await driver.createDocument(groupData, users[0].token);
 
         expect(response.id).toBeDefined();
         const createdGroup = { id: response.id, ...groupData };
@@ -103,7 +103,7 @@ describe('Comprehensive API Test Suite', () => {
           createdBy: users[0].uid
         };
         
-        const nonAdminGroup = await driver.apiRequest('/createDocument', 'POST', { data: nonAdminGroupData }, users[0].token);
+        const nonAdminGroup = await driver.createDocument(nonAdminGroupData, users[0].token);
         
         // User[1] should not be able to generate a share link
         await expect(
@@ -118,7 +118,7 @@ describe('Comprehensive API Test Suite', () => {
           members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
         };
         
-        const shareableGroup = await driver.apiRequest('/createDocument', 'POST', { data: shareableGroupData }, users[0].token);
+        const shareableGroup = await driver.createDocument(shareableGroupData, users[0].token);
         
         // Generate share link
         const shareResponse = await driver.generateShareLink(shareableGroup.id, users[0].token);
@@ -151,7 +151,7 @@ describe('Comprehensive API Test Suite', () => {
           members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
         };
         
-        const dupTestGroup = await driver.apiRequest('/createDocument', 'POST', { data: dupTestGroupData }, users[0].token);
+        const dupTestGroup = await driver.createDocument(dupTestGroupData, users[0].token);
         const shareResponse = await driver.generateShareLink(dupTestGroup.id, users[0].token);
         
         // Add user[1] to the group via share link
@@ -183,7 +183,7 @@ describe('Comprehensive API Test Suite', () => {
           members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
         };
         
-        const multiJoinGroup = await driver.apiRequest('/createDocument', 'POST', { data: multiJoinGroupData }, users[0].token);
+        const multiJoinGroup = await driver.createDocument(multiJoinGroupData, users[0].token);
         
         // Generate a share link
         const shareResponse = await driver.generateShareLink(multiJoinGroup.id, users[0].token);
@@ -250,7 +250,7 @@ describe('Comprehensive API Test Suite', () => {
           participants: users.map(u => u.uid)
         };
 
-        const response = await driver.apiRequest('/expenses', 'POST', expenseData, users[0].token);
+        const response = await driver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
         const createdExpense = { id: response.id, ...expenseData };
 
@@ -502,7 +502,7 @@ describe('Comprehensive API Test Suite', () => {
       await driver.waitForBalanceUpdate(balanceTestGroup.id, users[0].token);
       
       // Test the listDocuments endpoint (which dashboard uses)
-      const listResponse = await driver.apiRequest('/listDocuments', 'GET', {}, users[0].token);
+      const listResponse = await driver.listDocuments(users[0].token);
       
       expect(listResponse).toHaveProperty('documents');
       expect(Array.isArray(listResponse.documents)).toBe(true);
@@ -512,11 +512,11 @@ describe('Comprehensive API Test Suite', () => {
       expect(testGroupInList).toBeDefined();
       
       // Verify balance data is included
-      expect(testGroupInList.data).toHaveProperty('yourBalance');
-      expect(typeof testGroupInList.data.yourBalance).toBe('number');
+      expect(testGroupInList!.data).toHaveProperty('yourBalance');
+      expect(typeof testGroupInList!.data.yourBalance).toBe('number');
       
       // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
-      expect(testGroupInList.data.yourBalance).toBe(50);
+      expect(testGroupInList!.data.yourBalance).toBe(50);
     });
 
     // TODO: This test is flaky due to Firebase emulator read-after-write consistency issues
@@ -524,12 +524,12 @@ describe('Comprehensive API Test Suite', () => {
     // Revisit when we find a solution for emulator consistency or move to integration tests against real Firebase
     test.skip('should include expense metadata in listDocuments response after creating expenses', async () => {
       // First, verify the group starts with no expense metadata
-      const initialListResponse = await driver.apiRequest('/listDocuments', 'GET', {}, users[0].token);
+      const initialListResponse = await driver.listDocuments(users[0].token);
       const initialGroupInList = initialListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
       
       expect(initialGroupInList).toBeDefined();
-      expect(initialGroupInList.data.expenseCount).toBeUndefined();
-      expect(initialGroupInList.data.lastExpenseTime).toBeUndefined();
+      expect(initialGroupInList!.data.expenseCount).toBeUndefined();
+      expect(initialGroupInList!.data.lastExpenseTime).toBeUndefined();
       
       // Add an expense
       const expenseData = driver.createTestExpense(balanceTestGroup.id, users[0].uid, users.map(u => u.uid), 75);

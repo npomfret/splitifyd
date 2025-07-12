@@ -418,6 +418,14 @@ export class ApiDriver {
     return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
   }
 
+  async createDocument(data: any, token: string): Promise<{ id: string }> {
+    return await this.apiRequest('/createDocument', 'POST', { data }, token);
+  }
+
+  async listDocuments(token: string): Promise<ListDocumentsResponse> {
+    return await this.apiRequest('/listDocuments', 'GET', {}, token);
+  }
+
   async getDocument(documentId: string, token: string): Promise<any> {
     return await this.apiRequest(`/getDocument?id=${documentId}`, 'GET', null, token);
   }
