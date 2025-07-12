@@ -5,10 +5,10 @@
   "scripts": {
     "clean": "rm -rf dist",
     "copy:assets": "mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/",
-    "build:js": "node esbuild.config.js",
-    "watch:js": "node esbuild.config.js --watch",
-    "build": "npm run clean && npm run copy:assets && npm run build:js",
-    "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"esbuild 'src/js/**/*.ts' 'src/js/**/*.js' --bundle --outdir=dist/js --outbase=src/js --format=esm --watch\"",
+    "build:js": "node scripts/build.js build",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run clean && npm run typecheck && npm run copy:assets && npm run build:js",
+    "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"node scripts/build.js watch\"",
     "test": "jest --config jest.config.js",
     "type-coverage": "typescript-coverage-report --threshold 90",
     "prepare": "husky install"
