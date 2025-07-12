@@ -51,4 +51,8 @@ MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
 # Web
  - Do not bundle our js files into 1 file
  - Do not obfuscate or minimise
- - 
+
+## Firebase Configuration
+ - NEVER edit `firebase/firebase.json` directly - it is a build artifact
+ - ALWAYS edit `firebase/firebase.template.json` instead
+ - The build process generates `firebase.json` from the template
