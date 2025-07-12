@@ -196,7 +196,7 @@ export const listDocuments = async (
 
   // Build base query
   const baseQuery = getDocumentsCollection()
-    .where('userId', '==', userId)
+    .where('data.memberIds', 'array-contains', userId)
     .select('data', 'createdAt', 'updatedAt')
     .orderBy('updatedAt', order)
     .limit(limit + DOCUMENT_CONFIG.PAGINATION_EXTRA_ITEM); // Get one extra to check if there are more pages
@@ -294,4 +294,3 @@ export const listDocuments = async (
     },
   });
 };
-
