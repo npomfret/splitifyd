@@ -149,7 +149,6 @@ export class GroupsList {
 
   private renderGroupCard(group: TransformedGroup): HTMLElement {
     const balanceClass = group.yourBalance >= 0 ? 'balance--positive' : 'balance--negative';
-    const balanceText = group.yourBalance >= 0 ? 'you are owed' : 'you owe';
     
     const groupCard = createElementSafe('div', {
       className: 'group-card',
@@ -158,24 +157,42 @@ export class GroupsList {
     });
 
     const header = createElementSafe('div', { className: 'group-card__header' });
-    const nameElement = createElementSafe('h4', { className: 'group-card__name' });
+    
+    // Group name with expense count
+    const nameElement = createElementSafe('h3', { className: 'group-card__name' });
     nameElement.textContent = group.name;
     
     if (group.expenseCount) {
-      const expenseCountSpan = createElementSafe('span', { className: 'expense-count' });
-      expenseCountSpan.textContent = ` (${group.expenseCount})`;
+      const expenseCountSpan = createElementSafe('span', { className: 'group-card__expense-count' });
+      expenseCountSpan.textContent = ` • ${group.expenseCount} expense${group.expenseCount !== 1 ? 's' : ''}`;
       nameElement.appendChild(expenseCountSpan);
     }
 
     header.appendChild(nameElement);
     
-    // Only show balance element if it's not zero
+    // Balance status badge
     if (group.yourBalance !== 0) {
-      const balanceElement = createElementSafe('div', { 
-        className: `group-card__balance ${balanceClass}`,
+      const balanceContainer = createElementSafe('div', { className: 'group-card__balance' });
+      
+      const balanceAmount = createElementSafe('span', {
+        className: `group-card__balance-amount ${balanceClass}`,
         textContent: `$${Math.abs(group.yourBalance).toFixed(2)}`
       });
-      header.appendChild(balanceElement);
+      
+      const balanceLabel = createElementSafe('span', {
+        className: 'group-card__balance-label',
+        textContent: group.yourBalance > 0 ? 'you are owed' : 'you owe'
+      });
+      
+      balanceContainer.appendChild(balanceLabel);
+      balanceContainer.appendChild(balanceAmount);
+      header.appendChild(balanceContainer);
+    } else {
+      const settledBadge = createElementSafe('div', {
+        className: 'group-card__settled',
+        textContent: 'settled up'
+      });
+      header.appendChild(settledBadge);
     }
 
     const membersSection = createElementSafe('div', { className: 'group-card__members' });
@@ -238,24 +255,8 @@ export class GroupsList {
       className: 'group-card__activity',
       textContent: activityText
     });
-    
-    // Show balance status with amount
-    let balanceDisplayText = '';
-    if (group.yourBalance === 0) {
-      balanceDisplayText = 'settled up';
-    } else if (group.yourBalance > 0) {
-      balanceDisplayText = `you are owed $${Math.abs(group.yourBalance).toFixed(2)}`;
-    } else {
-      balanceDisplayText = `you owe $${Math.abs(group.yourBalance).toFixed(2)}`;
-    }
-    
-    const balanceTextElement = createElementSafe('div', {
-      className: `group-card__balance-text ${balanceClass}`,
-      textContent: balanceDisplayText
-    });
 
     footer.appendChild(activity);
-    footer.appendChild(balanceTextElement);
 
     const addExpenseButton = createElementSafe('button', {
       className: 'group-card__add-expense',
