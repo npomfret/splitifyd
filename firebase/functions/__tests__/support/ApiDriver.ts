@@ -269,11 +269,14 @@ export class ApiDriver {
   async waitForListDocumentsExpenseMetadata(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
     const startTime = Date.now();
     let lastError: Error | null = null;
+    let attemptCount = 0;
     
     while (Date.now() - startTime < timeoutMs) {
       try {
+        attemptCount++;
         const listResponse = await this.apiRequest('/listDocuments', 'GET', {}, token);
         const groupInList = listResponse.documents.find((doc: any) => doc.id === groupId);
+        
         
         if (groupInList && 
             groupInList.data.expenseCount !== undefined && 
@@ -282,15 +285,15 @@ export class ApiDriver {
           return groupInList;
         }
         
-        // Wait before next attempt
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Wait before next attempt (longer delay for emulator consistency)
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
         lastError = error as Error;
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
     
-    throw new Error(`List documents expense metadata timeout after ${timeoutMs}ms. Last error: ${lastError?.message || 'Unknown'}`);
+    throw new Error(`List documents expense metadata timeout after ${timeoutMs}ms after ${attemptCount} attempts. Last error: ${lastError?.message || 'Unknown'}`);
   }
 
   async clearProcessingEvents(): Promise<void> {

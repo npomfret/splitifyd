@@ -64,7 +64,11 @@ export const onExpenseCreateV5 = functions
       await db.runTransaction(async (transaction) => {
         logger.info('Starting transaction for expense create', { eventId, expenseId, groupId });
         
+        // ALL READS FIRST - Firestore transaction requirement
         const processingSnapshot = await transaction.get(processingDoc);
+        const groupDocRef = db.collection('documents').doc(groupId);
+        const groupDoc = await transaction.get(groupDocRef);
+        
         logger.info('Processing snapshot check', { 
           eventId, 
           expenseId, 
@@ -77,8 +81,14 @@ export const onExpenseCreateV5 = functions
           return;
         }
         
+        if (!groupDoc.exists) {
+          logger.warn('Group document does not exist', { groupId, eventId });
+          return;
+        }
+        
         logger.info('Processing expense create trigger', { eventId, expenseId, groupId });
         
+        // ALL WRITES SECOND
         // Mark as processing
         transaction.set(processingDoc, { 
           processed: true, 
@@ -89,19 +99,18 @@ export const onExpenseCreateV5 = functions
         
         // Update group stats
         const lastExpenseTime = (expense.createdAt as any).toDate().toISOString();
-        logger.info('About to update group stats', { 
-          eventId, 
-          expenseId, 
+        const currentData = groupDoc.data();
+        const currentExpenseCount = currentData?.data?.expenseCount || 0;
+        
+        logger.info('About to update group document', {
           groupId,
-          lastExpenseTime,
-          updateData: {
-            'data.expenseCount': 'increment(1)',
-            'data.lastExpenseTime': lastExpenseTime
-          }
+          currentExpenseCount,
+          newCount: currentExpenseCount + 1,
+          lastExpenseTime
         });
         
-        transaction.update(db.collection('documents').doc(groupId), {
-          'data.expenseCount': FieldValue.increment(1),
+        transaction.update(groupDocRef, {
+          'data.expenseCount': currentExpenseCount + 1,
           'data.lastExpenseTime': lastExpenseTime
         });
         
@@ -109,7 +118,8 @@ export const onExpenseCreateV5 = functions
           eventId, 
           expenseId, 
           groupId,
-          lastExpenseTime
+          lastExpenseTime,
+          newCount: currentExpenseCount + 1
         });
       });
       

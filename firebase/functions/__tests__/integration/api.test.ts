@@ -607,8 +607,8 @@ describe('Comprehensive API Test Suite', () => {
     const expenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 75);
     await driver.createExpense(expenseData, users[0].token);
     
-    // Wait for expense aggregation triggers to process using polling
-    const updatedGroupInList = await driver.waitForListDocumentsExpenseMetadata(testGroup.id, users[0].token, 1);
+    // Wait for expense aggregation triggers to process using polling (longer timeout for emulator consistency)
+    const updatedGroupInList = await driver.waitForListDocumentsExpenseMetadata(testGroup.id, users[0].token, 1, 20000);
     
     expect(updatedGroupInList).toBeDefined();
     
