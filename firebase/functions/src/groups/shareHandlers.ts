@@ -205,7 +205,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
 
     res.status(HTTP_STATUS.OK).json({
       groupId,
-      groupName: groupData.data?.name || 'Untitled Group',
+      groupName: groupData.data?.name || 'Unknown Group',
       message: 'Successfully joined group',
     });
   } catch (error) {

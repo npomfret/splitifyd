@@ -39,7 +39,7 @@ const fetchUserDocument = async (documentId: string, userId: string): Promise<{ 
   // For group documents, check if user is a member
   if (document.data?.members && Array.isArray(document.data.members)) {
     const isMember = document.data.members.some((member: any) => 
-      member.userId === userId || member.id === userId || member.uid === userId
+      member.uid === userId
     );
     if (isMember) {
       return { docRef, document };
@@ -111,14 +111,8 @@ export const getDocument = async (
   // Fetch and verify document ownership
   const { docRef, document } = await fetchUserDocument(documentId, userId);
 
-  // Handle both Firestore Timestamp and string dates
-  const createdAt = typeof document.createdAt === 'string' 
-    ? document.createdAt 
-    : (document.createdAt as any).toDate().toISOString();
-  
-  const updatedAt = typeof document.updatedAt === 'string'
-    ? document.updatedAt
-    : (document.updatedAt as any).toDate().toISOString();
+  const createdAt = (document.createdAt as any).toDate().toISOString();
+  const updatedAt = (document.updatedAt as any).toDate().toISOString();
 
   res.json({
     id: docRef.id,
@@ -252,18 +246,23 @@ export const listDocuments = async (
         if (data.data?.name && data.data?.members) {
           const balanceDoc = await admin.firestore().collection('group-balances').doc(doc.id).get();
           if (balanceDoc.exists) {
-            const balanceData = balanceDoc.data();
-            const userBalanceData = balanceData?.userBalances?.[userId];
+            const balanceData = balanceDoc.data()!;
+            const userBalanceData = balanceData.userBalances?.[userId];
             documentData.data.yourBalance = userBalanceData?.netBalance || 0;
           } else {
-            // If no cached balance exists, calculate it
-            const { calculateGroupBalances } = await import('../services/balanceCalculator');
-            const balances = await calculateGroupBalances(doc.id);
-            const userBalanceData = balances.userBalances[userId];
-            documentData.data.yourBalance = userBalanceData?.netBalance || 0;
-            
-            // Cache the calculated balance for future requests
-            await admin.firestore().collection('group-balances').doc(doc.id).set(balances);
+            // If no cached balance exists, try to calculate it
+            try {
+              const { calculateGroupBalances } = await import('../services/balanceCalculator');
+              const balances = await calculateGroupBalances(doc.id);
+              const userBalanceData = balances.userBalances[userId];
+              documentData.data.yourBalance = userBalanceData?.netBalance || 0;
+              
+              // Cache the calculated balance for future requests
+              await admin.firestore().collection('group-balances').doc(doc.id).set(balances);
+            } catch (error) {
+              // If balance calculation fails (e.g., no members), default to 0
+              documentData.data.yourBalance = 0;
+            }
           }
         }
 

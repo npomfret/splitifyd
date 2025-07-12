@@ -88,7 +88,10 @@ export const createExpense = async (
 
   const groupDoc = await getGroupsCollection().doc(expenseData.groupId).get();
   const groupData = groupDoc.data();
-  const memberIds = groupData?.data?.memberIds || [userId];
+  if (!groupData?.data?.memberIds) {
+    throw new Error(`Group ${expenseData.groupId} not found or missing member data`);
+  }
+  const memberIds = groupData.data.memberIds;
 
   const now = new Date();
   const docRef = getExpensesCollection().doc();
