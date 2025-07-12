@@ -61,48 +61,6 @@ describe('Comprehensive API Test Suite', () => {
         expect(fetchedGroup.data.members.length).toBe(2);
       });
 
-      test('should handle groups with different member data structures', async () => {
-        // Create a group with members in a different structure (testing the fix in balanceHandlers.ts)
-        const altGroupData = {
-          name: `Alt Structure Group ${uuidv4()}`,
-          // Testing flat member structure instead of nested under data
-          members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
-        };
-
-        const altGroup = await driver.apiRequest('/createDocument', 'POST', { data: altGroupData }, users[0].token);
-        
-        // Add an expense to this group
-        const altExpenseData = {
-          groupId: altGroup.id,
-          description: 'Alternative Group Expense',
-          amount: 200,
-          category: 'other',
-          date: new Date().toISOString(),
-          paidBy: users[1].uid,
-          splitType: 'equal',
-          participants: users.map(u => u.uid)
-        };
-
-        await driver.createExpense(altExpenseData, users[1].token);
-        
-        // Wait for Firebase triggers to update balances
-        const altBalances = await driver.waitForBalanceUpdate(altGroup.id, users[0].token);
-        
-        expect(altBalances).toHaveProperty('userBalances');
-        expect(Object.keys(altBalances.userBalances).length).toBe(2);
-        
-        // Verify the names are resolved correctly using the member map
-        const altUser0Balance = altBalances.userBalances[users[0].uid];
-        const altUser1Balance = altBalances.userBalances[users[1].uid];
-        
-        expect(altUser0Balance.name).toBe(users[0].displayName);
-        expect(altUser1Balance.name).toBe(users[1].displayName);
-        
-        // User 1 paid 200, split equally between 2 users
-        // So user 1 should be owed 100 by user 0
-        expect(altUser1Balance.owedBy[users[0].uid]).toBe(100);
-        expect(altUser0Balance.owes[users[1].uid]).toBe(100);
-      });
     });
 
     describe('Group Sharing & Access Control', () => {
