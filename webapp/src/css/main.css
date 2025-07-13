@@ -1344,6 +1344,7 @@ main section {
     min-height: 120px;
     display: flex;
     flex-direction: column;
+    gap: var(--space-md);
     justify-content: center;
 }
 
@@ -1432,10 +1433,16 @@ main section {
     background: var(--color-background);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: var(--space-md);
+    padding: var(--space-lg);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.balance-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .balance-user {
@@ -1500,9 +1507,15 @@ main section {
 }
 
 .expense-detail-container {
-    max-width: 600px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: var(--space-md);
+}
+
+@media (max-width: 768px) {
+    .expense-detail-container {
+        max-width: 600px;
+    }
 }
 
 .expense-detail-content {
@@ -1516,13 +1529,31 @@ main section {
     margin-bottom: var(--space-lg);
     box-shadow: var(--shadow-md);
     text-align: center;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-xl);
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .expense-header {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
 }
 
 .expense-amount {
-    font-size: var(--font-size-3xl);
+    font-size: 4rem;
     font-weight: 700;
     color: var(--color-primary);
     margin-bottom: var(--space-sm);
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .expense-amount {
+        font-size: var(--font-size-3xl);
+    }
 }
 
 .expense-amount .currency-symbol {
@@ -1531,7 +1562,13 @@ main section {
 }
 
 .expense-info {
-    /* Expense info specific styles */
+    text-align: left;
+}
+
+@media (max-width: 768px) {
+    .expense-info {
+        text-align: center;
+    }
 }
 
 .expense-info h2 {
@@ -1549,11 +1586,17 @@ main section {
 
 .expense-meta {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     gap: var(--space-lg);
     flex-wrap: wrap;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+    .expense-meta {
+        justify-content: center;
+    }
 }
 
 .expense-date,
@@ -1569,9 +1612,19 @@ main section {
 }
 
 .expense-details-section {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: var(--space-lg);
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+    .expense-details-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.expense-details-section .detail-card:last-child {
+    grid-column: 1 / -1;
 }
 
 .expense-item {
@@ -1825,6 +1878,10 @@ main section {
 }
 
 /* ===== DEBTS ===== */
+.simplified-debts-section {
+    margin-top: var(--space-xl);
+}
+
 .simplified-debts-section h4 {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
@@ -1835,17 +1892,23 @@ main section {
 .simplified-debts {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: var(--space-md);
 }
 
 .debt-item {
     background: var(--color-background);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: var(--space-md);
+    padding: var(--space-lg);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.debt-item:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .debt-description {

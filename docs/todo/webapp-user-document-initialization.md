@@ -135,15 +135,51 @@ Move user document creation to the authentication process itself for better user
 4. Existing users are not affected by the changes
 5. Proper error handling for edge cases
 
+## Updated Implementation Plan (2025-07-13)
+
+### Analysis Completed ✅
+- Confirmed gap exists: auth.ts line 335 has comment about skipping user document creation
+- Dashboard has no user document verification (dashboard.ts lines 12-16)
+- Backend endpoint `/createUserDocument` already exists and is functional
+- Implementation is straightforward and low-risk
+
+### Detailed Implementation Steps
+
+#### Step 1: Dashboard User Document Verification
+**File:** `webapp/src/js/dashboard.ts`
+- Add `ensureUserDocumentExists()` call in `initializeDashboard()` before loading groups
+- Implement user document verification using existing API service pattern
+
+#### Step 2: User Document Creation Function  
+**File:** `webapp/src/js/dashboard.ts`
+- Add `createUserDocumentIfNeeded()` function
+- Use existing `/createUserDocument` endpoint (not `/user/create` as initially suggested)
+- Request body should be `{ displayName }` (uid/email extracted from auth token)
+
+#### Step 3: Error Handling Integration
+- Integrate with existing error handling patterns in dashboard
+- Ensure graceful fallback if user document creation fails
+- Add appropriate user messaging
+
+### Commit Strategy (Small Commits Preferred)
+1. **Commit 1:** Add user document verification to dashboard initialization
+2. **Commit 2:** Add user document creation function with error handling  
+3. **Commit 3:** Add tests for user document initialization
+
+### Testing Plan
+- Manual test: Delete user document in Firestore, verify auto-creation on login
+- Verify existing users unaffected
+- Test error scenarios (network failure, auth issues)
+
 ## Estimated Effort
 
-- **Development:** 4-6 hours
-- **Testing:** 2-3 hours  
-- **Documentation:** 1 hour
+- **Development:** 2-3 hours (reduced due to existing backend infrastructure)
+- **Testing:** 1-2 hours  
+- **Documentation:** 30 minutes
 
 ## Priority
 
-**Medium** - This fixes a significant user experience issue but has a workaround (manual user document creation).
+**High** - Well-defined task with existing infrastructure, addresses real architectural gap
 
 ## Dependencies
 
