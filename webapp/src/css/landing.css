@@ -50,12 +50,14 @@
         }
 
         .logo {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2em;
-            font-weight: 700;
-            color: var(--primary-color);
+            display: inline-block;
             text-decoration: none;
             transition: transform 0.3s ease;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
         }
 
         .logo:hover {
