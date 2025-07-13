@@ -56,9 +56,9 @@ The webapp has a solid component foundation:
 1. ✅ `reset-password.html` - Converted to component-based architecture using ResetPasswordComponent
 2. TODO: Audit and complete `login.html` and `register.html` component usage
 
-**Phase 2: Complex Forms (Small commit)** ✅ PARTIALLY COMPLETE
+**Phase 2: Complex Forms (Small commit)** ✅ COMPLETE
 3. ✅ `add-expense.html` - Converted to use AddExpenseComponent with FormComponents
-4. `join-group.html` - Standardize form implementation
+4. ✅ `join-group.html` - Converted to JoinGroupComponent with component-based architecture
 
 **Phase 3: Data Display Pages (Small commit)**
 5. `expense-detail.html` - Convert to programmatic rendering
