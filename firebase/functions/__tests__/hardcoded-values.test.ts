@@ -41,6 +41,7 @@ describe('Hardcoded Values Validation', () => {
       // Firebase infrastructure scripts (not user-visible)
       'firebase/functions/scripts/',
       'firebase/functions/__tests__/',
+      'firebase/functions/src/__tests__/', // Test files
       'firebase/functions/src/config.ts', // Contains fallback defaults
       'firebase/functions/src/groups/shareHandlers.ts', // Backend URL construction
       'firebase/functions/src/utils/config.ts', // Contains fallback defaults
@@ -49,9 +50,15 @@ describe('Hardcoded Values Validation', () => {
       'webapp/src/js/utils/page-title.ts', // Contains fallback for rare config failures
       'webapp/src/js/landing.js', // Contains replacement logic for "Splitifyd"
       'webapp/src/js/static-page-init.js', // Contains replacement logic for "Splitifyd"
-      // localStorage keys and tests (will be addressed separately if needed)
+      // localStorage keys and tests - these MUST contain splitifyd for compatibility
       'webapp/src/js/store.ts',
-      'webapp/src/js/store.test.ts',
+      'webapp/src/js/store.test.ts', 
+      'webapp/src/js/auth.test.ts', // Test file with localStorage references
+      'webapp/src/js/api.ts', // Contains localStorage keys that must stay as 'splitifyd_auth_token'
+      'webapp/src/js/api.test.ts', // Test file with localStorage references
+      'webapp/src/js/api-client.ts', // Contains localStorage keys that must stay
+      'webapp/src/js/dashboard.ts', // Contains localStorage keys that must stay
+      'webapp/src/js/constants.ts', // Defines localStorage key constants
       // Developer tools (not user-visible)
       'webapp/developer_tools/',
       // Additional webapp pages that need runtime replacement

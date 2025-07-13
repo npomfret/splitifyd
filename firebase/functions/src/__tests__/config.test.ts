@@ -2,7 +2,7 @@ import { getFirebaseConfigResponse, getEnhancedConfigResponse } from '../utils/c
 import { CONFIG } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
-// Mock the CONFIG object
+// Mock the CONFIG object and APP_CONFIG
 jest.mock('../config', () => ({
   CONFIG: {
     isDevelopment: false,
@@ -20,6 +20,13 @@ jest.mock('../config', () => ({
     formDefaults: undefined,
     warningBanner: '⚠️ this is a demo - your data will be deleted without notice',
     emulatorPorts: {}
+  },
+  APP_CONFIG: {
+    appName: 'split-app-2',
+    appDisplayName: 'Split App 2',
+    firebaseProjectId: 'splitifyd',
+    productionBaseUrl: 'https://splitifyd.web.app',
+    apiBaseUrl: 'https://api.splitifyd.com'
   }
 }));
 
