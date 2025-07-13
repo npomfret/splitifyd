@@ -2,6 +2,11 @@
 
 This document outlines the steps required to rename the application from "splitifyd" to a new, parameterized name. The goal is to make future renames easier by centralizing the application name and related configuration.
 
+## Status: IN PROGRESS
+- Task selected and analyzed
+- Implementation plan created
+- Integrating with existing config system
+
 ## 1. Centralized Configuration
 
 A new configuration file, `app-config.json`, will be created in the root of the project. This file will serve as the single source of truth for the application's name and other key configuration parameters.
@@ -63,13 +68,44 @@ The following files need to be updated to use the new configuration values:
 
 ## 4. Execution Plan
 
-1.  Create `app-config.json` in the root directory.
-2.  Modify `webapp/esbuild.config.js` to generate `webapp/src/js/config.js`.
-3.  Modify `firebase/functions/src/config.ts` to read from `app-config.json`.
-4.  Perform a global search and replace for "splitifyd" and replace with the appropriate config value. This should be done carefully, file by file, to ensure the correct value is used.
-5.  Update the `package.json` files and run `npm install`.
-6.  Update the `tsconfig.json` files.
-7.  Rename the `.idea/splitifyd.iml` file and update `.idea/modules.xml`.
-8.  Update the Firebase project using the Firebase CLI.
-9.  Update the `.env` files.
-10. Run all tests to ensure that the application is still working as expected.
+### Phase 1: Configuration Setup (Small commit)
+1. Create `app-config.json` in the root directory
+2. Update firebase build process to copy app-config.json during deployment
+3. Modify `firebase/functions/src/config.ts` to read from `app-config.json`
+4. Test that the firebase functions can read the config file in both emulator and production
+
+### Phase 2: Build Process Updates (Small commit)  
+1. Modify `webapp/esbuild.config.js` to read `app-config.json` and inject values
+2. Update webapp build to replace placeholders in HTML files with config values
+3. Create a build-time script to validate app-config.json
+4. Test the build process works correctly
+
+### Phase 3: Code Updates - Package and Project Files (Small commit)
+1. Update root `package.json` name field
+2. Update `shared-types/package.json` name to use config value
+3. Update tsconfig.json path aliases in both webapp and firebase
+4. Run `npm install` to update package-lock.json
+5. Test that imports still work correctly
+
+### Phase 4: Code Updates - Firebase Configuration (Small commit)
+1. Update `firebase/.firebaserc` with new project ID
+2. Update `firebase/package.json` deploy scripts
+3. Update `.env.*` files to use config values
+4. Test firebase deployment scripts
+
+### Phase 5: Code Updates - Application Code (Small commit)
+1. Replace hardcoded "splitifyd" strings in TypeScript/JavaScript files
+2. Update local storage keys to use config values
+3. Update API URLs and auth domains
+4. Test all functionality in emulator
+
+### Phase 6: Code Updates - User-Facing Content (Small commit)
+1. Update HTML files to use config values
+2. Update markdown documentation
+3. Update any remaining hardcoded strings
+4. Final testing of all features
+
+### Phase 7: IDE and Final Cleanup (Small commit)
+1. Rename `.idea/splitifyd.iml` and update `.idea/modules.xml`
+2. Run all tests
+3. Document any manual steps needed for deployment
