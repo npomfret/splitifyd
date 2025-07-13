@@ -2,29 +2,31 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Infrastructure References Validation', () => {
-  it('should contain "splitifyd" in required infrastructure files', () => {
+  const INFRASTRUCTURE_PROJECT_ID = 'splitifyd'; // This is the Firebase project ID that must remain constant
+  
+  it(`should contain "${INFRASTRUCTURE_PROJECT_ID}" in required infrastructure files`, () => {
     const projectRoot = path.join(__dirname, '../../..');
     
     // Files that MUST contain "splitifyd" for infrastructure to work
     const requiredReferences = [
       {
         file: 'firebase/.firebaserc',
-        expectedMatches: ['default": "splitifyd"'],
+        expectedMatches: [`default": "${INFRASTRUCTURE_PROJECT_ID}"`],
         description: 'Firebase project configuration'
       },
       {
         file: 'firebase/package.json', 
-        expectedMatches: ['firebase use splitifyd'],
+        expectedMatches: [`firebase use ${INFRASTRUCTURE_PROJECT_ID}`],
         description: 'Firebase deployment scripts'
       },
       {
         file: 'firebase/functions/.env.example',
         expectedMatches: ['your-project-id'],
-        description: 'Environment template (should NOT contain hardcoded splitifyd)'
+        description: `Environment template (should NOT contain hardcoded ${INFRASTRUCTURE_PROJECT_ID})`
       },
       {
         file: 'app-config.json',
-        expectedMatches: ['"firebaseProjectId": "splitifyd"'],
+        expectedMatches: [`"firebaseProjectId": "${INFRASTRUCTURE_PROJECT_ID}"`],
         description: 'App configuration with Firebase project reference'
       }
     ];
@@ -75,8 +77,10 @@ describe('Infrastructure References Validation', () => {
     }
   });
   
-  it('should NOT contain "splitifyd" in user-visible placeholder locations', () => {
+  it(`should NOT contain "${INFRASTRUCTURE_PROJECT_ID}" in user-visible placeholder locations`, () => {
     const projectRoot = path.join(__dirname, '../../..');
+    const APP_DISPLAY_NAME = 'Splitifyd';
+    const API_DOMAIN = `api.${INFRASTRUCTURE_PROJECT_ID}.com`;
     
     // Files that should use "app-name-here" instead of "splitifyd" for user-visible content
     const placeholderFiles = [
@@ -111,8 +115,8 @@ describe('Infrastructure References Validation', () => {
         
         lines.forEach((line, index) => {
           // Look for "Splitifyd" in user-visible contexts (titles, headers, content)
-          if (line.includes('Splitifyd') && 
-              !line.includes('api.splitifyd.com') && // Allow API URLs
+          if (line.includes(APP_DISPLAY_NAME) && 
+              !line.includes(API_DOMAIN) && // Allow API URLs
               !line.trim().startsWith('//') && // Skip comments
               !line.trim().startsWith('*')) { // Skip comments
             matchingLines.push(`  Line ${index + 1}: ${line.trim()}`);
@@ -129,7 +133,7 @@ describe('Infrastructure References Validation', () => {
     
     // Report violations
     if (violations.length > 0) {
-      console.log('\n⚠️  Found "Splitifyd" in user-visible locations that should use "app-name-here":\n');
+      console.log(`\n⚠️  Found "${APP_DISPLAY_NAME}" in user-visible locations that should use "app-name-here":\n`);
       violations.forEach(({ file, lines }) => {
         console.log(`📄 ${file}`);
         lines.forEach(line => console.log(line));

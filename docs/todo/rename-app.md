@@ -149,6 +149,14 @@ The following files need to be updated to use the new configuration values:
    - Removed hardcoded "Splitifyd" fallbacks from page-title.ts utilities
    - Added updateDnsPrefetch() to dynamically update DNS links from config
    - **Result: NO FALLBACKS - configuration is the single source of truth**
+6. ✅ **FIREBASE FUNCTIONS CLEANUP COMPLETED**: Removed all firebase/functions exclusions from hardcoded-values test
+   - Removed exclusions for firebase/functions/scripts/, firebase/functions/__tests__/, firebase/functions/src/
+   - Created shared config loader (load-app-config.js) for all firebase scripts
+   - Updated config.ts and utils/config.ts to use APP_CONFIG with no fallbacks
+   - Fixed violations in ApiDriver.ts to use dynamic project ID from APP_CONFIG
+   - Updated all script files to use loadAppConfig() instead of hardcoded "splitifyd"
+   - Added infrastructure-references.test.ts to exclusions (validates correct infrastructure usage)
+   - **Result: All firebase/functions code now dynamically loads app config, 0 hardcoded violations**
 
 **Infrastructure integrity maintained:**
 - ✅ Created infrastructure-references.test.ts ensuring "splitifyd" remains in Firebase project config
@@ -165,8 +173,9 @@ The following files need to be updated to use the new configuration values:
 - ✅ Bulletproof app name management via runtime configuration
 - ✅ Both tests (hardcoded-values and infrastructure-references) pass successfully
 - ✅ All builds succeed, functionality verified
-- ✅ No hardcoded exclusions remain for webapp source files
+- ✅ No hardcoded exclusions remain for webapp source files OR firebase/functions files
 - ✅ No hardcoded fallbacks - fail fast on configuration errors
+- ✅ Centralized configuration loading for all scripts and backend code
 
 ### Phase 6: Code Updates - User-Facing Content (MOSTLY COMPLETED)
 1. ✅ Updated page initialization to set document titles from /api/config

@@ -17,26 +17,11 @@ try {
     const configContent = fs.readFileSync(configPath, 'utf-8');
     appConfig = JSON.parse(configContent);
   } else {
-    // During build phase, the config might not be available yet
-    console.log('app-config.json not found, using defaults');
-    appConfig = {
-      appName: 'splitifyd',
-      appDisplayName: 'Splitifyd',
-      firebaseProjectId: 'splitifyd',
-      productionBaseUrl: 'https://splitifyd.web.app',
-      apiBaseUrl: 'https://api.splitifyd.com'
-    };
+    throw new Error('app-config.json not found. This file is required for the application to run.');
   }
 } catch (error) {
   console.error('Error loading app-config.json:', error);
-  // Use defaults if loading fails
-  appConfig = {
-    appName: 'splitifyd',
-    appDisplayName: 'Splitifyd',
-    firebaseProjectId: 'splitifyd',
-    productionBaseUrl: 'https://splitifyd.web.app',
-    apiBaseUrl: 'https://api.splitifyd.com'
-  };
+  throw error;
 }
 
 // Firebase Functions don't automatically set NODE_ENV=production, so we need to detect deployment

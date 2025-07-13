@@ -22,11 +22,11 @@ jest.mock('../config', () => ({
     emulatorPorts: {}
   },
   APP_CONFIG: {
-    appName: 'split-app-2',
-    appDisplayName: 'Split App 2',
-    firebaseProjectId: 'splitifyd',
-    productionBaseUrl: 'https://splitifyd.web.app',
-    apiBaseUrl: 'https://api.splitifyd.com'
+    appName: 'test-app',
+    appDisplayName: 'Test App',
+    firebaseProjectId: 'test-project',
+    productionBaseUrl: 'https://test-project.web.app',
+    apiBaseUrl: 'https://api.test-project.com'
   }
 }));
 

@@ -10,6 +10,7 @@ describe('Hardcoded Values Validation', () => {
     const excludePatterns = [
       'app-config.json',
       'hardcoded-values.test.ts',
+      'infrastructure-references.test.ts', // This test validates infrastructure configuration
       '.idea/',
       'package-lock.json',
       'package.json', // Package names don't matter for renaming
@@ -30,12 +31,6 @@ describe('Hardcoded Values Validation', () => {
       'README.md',
       'docs/',
       // Firebase infrastructure scripts (not user-visible)
-      'firebase/functions/scripts/',
-      'firebase/functions/__tests__/',
-      'firebase/functions/src/__tests__/', // Test files
-      'firebase/functions/src/config.ts', // Contains fallback defaults
-      'firebase/functions/src/groups/shareHandlers.ts', // Backend URL construction
-      'firebase/functions/src/utils/config.ts', // Contains fallback defaults
       'firebase/scripts/', // Build/deployment scripts
       // Developer tools (not user-visible)
       'webapp/developer_tools/'

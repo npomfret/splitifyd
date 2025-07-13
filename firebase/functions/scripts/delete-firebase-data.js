@@ -1,10 +1,16 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('../splitifyd-service-account-key.json');
+const { loadAppConfig } = require('./load-app-config');
+
+// Load app configuration
+const appConfig = loadAppConfig();
+
+// Load service account key dynamically based on project ID
+const serviceAccount = require(`../${appConfig.firebaseProjectId}-service-account-key.json`);
 
 // Initialize Firebase Admin for deployed instance
 const app = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  projectId: 'splitifyd'
+  projectId: appConfig.firebaseProjectId
 });
 
 // Connect to deployed Firebase
@@ -57,7 +63,7 @@ async function deleteCollection(collectionName) {
 async function deleteAllTestData() {
   console.log('🗑️  Starting deletion of test data from DEPLOYED Firebase...');
   console.log('⚠️  This will delete all data except users collection');
-  console.log('🌐 Connected to project: splitifyd (deployed instance)');
+  console.log(`🌐 Connected to project: ${appConfig.firebaseProjectId} (deployed instance)`);
   console.log('Collections to delete:', COLLECTIONS_TO_DELETE);
   
   try {

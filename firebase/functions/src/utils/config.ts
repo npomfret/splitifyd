@@ -51,11 +51,11 @@ function getWarningBanner(): WarningBanner | undefined {
 
 function getAppMetadata(): AppMetadata {
   return {
-    name: APP_CONFIG.appName || 'splitifyd',
-    displayName: APP_CONFIG.appDisplayName || 'Splitifyd', 
-    firebaseProjectId: APP_CONFIG.firebaseProjectId || 'splitifyd',
-    productionBaseUrl: APP_CONFIG.productionBaseUrl || 'https://splitifyd.web.app',
-    apiBaseUrl: APP_CONFIG.apiBaseUrl || 'https://api.splitifyd.com'
+    name: APP_CONFIG.appName,
+    displayName: APP_CONFIG.appDisplayName, 
+    firebaseProjectId: APP_CONFIG.firebaseProjectId,
+    productionBaseUrl: APP_CONFIG.productionBaseUrl,
+    apiBaseUrl: APP_CONFIG.apiBaseUrl
   };
 }
 

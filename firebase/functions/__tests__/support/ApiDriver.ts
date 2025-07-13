@@ -2,6 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+import { APP_CONFIG } from '../../src/config';
 
 export interface User {
   uid: string;
@@ -77,7 +78,7 @@ export class ApiDriver {
     const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
     const AUTH_PORT = firebaseConfig.emulators.auth.port;
     
-    this.baseUrl = `http://localhost:${FUNCTIONS_PORT}/splitifyd/us-central1/api`;
+    this.baseUrl = `http://localhost:${FUNCTIONS_PORT}/${APP_CONFIG.firebaseProjectId}/us-central1/api`;
     this.authPort = AUTH_PORT;
     this.firebaseApiKey = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
     

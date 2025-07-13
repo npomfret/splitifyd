@@ -1,12 +1,16 @@
 const admin = require('firebase-admin');
+const { loadAppConfig } = require('./load-app-config');
 
 // Set emulator environment variables
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
 process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
 
+// Load app configuration
+const appConfig = loadAppConfig();
+
 // Initialize Firebase Admin for emulator
 const app = admin.initializeApp({
-  projectId: 'splitifyd'
+  projectId: appConfig.firebaseProjectId
 });
 
 const db = admin.firestore();
