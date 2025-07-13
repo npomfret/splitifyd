@@ -4,6 +4,10 @@ const path = require('path');
 
 const isWatchMode = process.argv.includes('--watch');
 
+// Load app configuration
+const appConfigPath = path.join(__dirname, '../app-config.json');
+const appConfig = JSON.parse(fs.readFileSync(appConfigPath, 'utf-8'));
+
 const getEntryPoints = (dir) => {
   let entryPoints = [];
   fs.readdirSync(dir, { withFileTypes: true }).forEach(dirent => {
@@ -24,6 +28,9 @@ const commonConfig = {
   format: 'esm',
   // No more environment variable injection!
   // All configuration now comes from the API at runtime
+  define: {
+    'process.env.APP_CONFIG': JSON.stringify(appConfig)
+  }
 };
 
 if (isWatchMode) {

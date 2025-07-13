@@ -12,6 +12,7 @@ describe('Hardcoded Values Validation', () => {
       'hardcoded-values.test.ts',
       '.idea/',
       'package-lock.json',
+      'package.json', // Package names don't matter for renaming
       '.firebaserc',
       'firebase.template.json',
       'firebase.json',
