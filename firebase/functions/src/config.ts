@@ -120,8 +120,8 @@ export const CONFIG = {
   
   formDefaults: (ENV_IS_DEVELOPMENT && process.env.FUNCTIONS_EMULATOR === 'true') ? {
     displayName: 'test',
-    email: 'test@test.com',
-    password: 'rrRR44$$',
+    email: process.env.DEV_FORM_EMAIL || 'test@test.com',
+    password: process.env.DEV_FORM_PASSWORD || 'rrRR44$$',
   } : undefined,
   
   warningBanner: ENV_IS_PRODUCTION ? '⚠️ this is a demo - your data will be deleted without notice' : (ENV_IS_DEVELOPMENT ? '⚠️ emulator data will not be retained' : ''),
