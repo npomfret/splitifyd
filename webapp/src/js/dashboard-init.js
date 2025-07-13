@@ -34,6 +34,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const scriptLoader = ScriptLoaderComponent.createDashboardLoader();
   await scriptLoader.loadScripts();
   
+  // Import and initialize dashboard after all scripts are loaded
+  const { initializeDashboard } = await import('./dashboard.js');
+  await initializeDashboard();
+  
   if (loadingSpinner) {
     loadingSpinner.hide();
   }

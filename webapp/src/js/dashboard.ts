@@ -6,7 +6,7 @@ import { showError } from './utils/ui-messages.js';
 
 let groupsList: GroupsList | null = null;
 
-document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
+export async function initializeDashboard(): Promise<void> {
   try {
     // Check authentication first
     const token = localStorage.getItem('splitifyd_auth_token');
@@ -52,4 +52,4 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
       }
     }
   }
-});
+}
