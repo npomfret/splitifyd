@@ -43,20 +43,11 @@ const FormDefaultsSchema = z.object({
   password: z.string().optional(),
 });
 
-const AppMetadataSchema = z.object({
-  name: z.string().min(1),
-  displayName: z.string().min(1),
-  firebaseProjectId: z.string().min(1),
-  productionBaseUrl: z.string().url(),
-  apiBaseUrl: z.string().url(),
-});
-
 const AppConfigurationSchema = z.object({
   firebase: FirebaseConfigSchema,
   api: ApiConfigSchema,
   features: z.record(z.string(), z.boolean()),
   environment: EnvironmentConfigSchema,
-  app: AppMetadataSchema,
   formDefaults: FormDefaultsSchema.optional(),
 });
 

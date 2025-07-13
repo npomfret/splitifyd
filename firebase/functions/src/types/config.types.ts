@@ -34,7 +34,6 @@ export interface AppConfiguration {
   api: ApiConfig;
   features: FeatureFlags;
   environment: EnvironmentConfig;
-  app: AppMetadata;
   formDefaults?: FormDefaults;
 }
 
@@ -84,4 +83,3 @@ export interface FormDefaults {
   password?: string;
 }
 
-export interface AppMetadata {}

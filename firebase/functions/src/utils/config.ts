@@ -1,7 +1,7 @@
-import { CONFIG, APP_CONFIG } from '../config';
+import { CONFIG } from '../config';
 import { Errors } from './errors';
 import { logger } from '../logger';
-import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, EmulatorPorts, WarningBanner, AppMetadata } from '../types/config.types';
+import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, EmulatorPorts, WarningBanner } from '../types/config.types';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
 export interface FirebaseConfigResponse {
@@ -49,15 +49,6 @@ function getWarningBanner(): WarningBanner | undefined {
   };
 }
 
-function getAppMetadata(): AppMetadata {
-  return {
-    name: APP_CONFIG.appName,
-    displayName: APP_CONFIG.appDisplayName, 
-    firebaseProjectId: APP_CONFIG.firebaseProjectId,
-    productionBaseUrl: APP_CONFIG.productionBaseUrl,
-    apiBaseUrl: APP_CONFIG.apiBaseUrl
-  };
-}
 
 export const getFirebaseConfigResponse = (): FirebaseConfigResponse => {
   const clientConfig = CONFIG.clientConfig;
@@ -128,8 +119,7 @@ export const getEnhancedConfigResponse = (): AppConfiguration => {
     firebase,
     api,
     features: {},
-    environment,
-    app: getAppMetadata()
+    environment
   };
   
   // Include form defaults for development environments only
