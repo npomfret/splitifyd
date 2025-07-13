@@ -3,7 +3,6 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
-const { loadAppConfig } = require('./load-app-config');
 
 // Read ports from generated firebase.json
 const firebaseConfigPath = path.join(__dirname, '../../firebase.json');
@@ -23,11 +22,13 @@ if (!FUNCTIONS_PORT || !FIRESTORE_PORT || !AUTH_PORT) {
   process.exit(1);
 }
 
-// Load app configuration
-const appConfig = loadAppConfig();
+// Read Firebase project ID from .firebaserc
+const firebaseRcPath = path.join(__dirname, '../../.firebaserc');
+const firebaseRc = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
+const firebaseProjectId = firebaseRc.projects.default;
 
 // API base URL
-const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/${appConfig.firebaseProjectId}/us-central1/api`;
+const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/${firebaseProjectId}/us-central1/api`;
 
 // Set emulator environment variables before initializing
 process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${FIRESTORE_PORT}`;
@@ -35,7 +36,7 @@ process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${AUTH_PORT}`;
 
 // Initialize Firebase Admin for emulator (only for getting user info after creation)
 admin.initializeApp({
-  projectId: appConfig.firebaseProjectId
+  projectId: firebaseProjectId
 });
 
 const auth = admin.auth();
