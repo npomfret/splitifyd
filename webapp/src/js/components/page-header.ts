@@ -20,7 +20,9 @@ export class PageHeaderComponent extends BaseComponent<HTMLHeadElement> {
   }
 
   protected render(): HTMLHeadElement {
-    const head = document.head;
+    if (!document.head) {
+      throw new Error('document.head is null - HTML must have a <head> element');
+    }
     
     this.setTitle();
     this.setViewport();
@@ -29,7 +31,13 @@ export class PageHeaderComponent extends BaseComponent<HTMLHeadElement> {
     this.setupCSS();
     this.setupDNSPrefetch();
     
-    return head;
+    return document.head;
+  }
+
+  public mount(parent: HTMLElement): void {
+    // Don't append head to parent - just populate it in place
+    this.element = this.render();
+    this.setupEventListeners();
   }
 
   private setTitle(): void {
@@ -87,7 +95,7 @@ export class PageHeaderComponent extends BaseComponent<HTMLHeadElement> {
   }
 
   private addLinkIfNotExists(rel: string, href: string, crossorigin = false, as?: string): void {
-    const existing = document.querySelector(`link[href="${href}"]`);
+    const existing = document.querySelector(`link[rel="${rel}"][href="${href}"]`);
     if (existing) return;
 
     const link = document.createElement('link');

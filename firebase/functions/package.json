@@ -14,7 +14,7 @@
     "validate-cors": "node scripts/validate-cors.js"
   },
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "lib/index.js",
   "dependencies": {

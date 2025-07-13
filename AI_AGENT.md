@@ -36,6 +36,8 @@
 - Read the appropriate firebase docs before doing firebase code or configuration changes
 
 # Code Style
+- do not duplicate code or write _hacks_ for reasons of backward compatibility
+- do not duplicate code or write _hacks_ for reasons of "the data might not be in the format we expect"
 - async/await over promises
 - ES modules: `import { foo } from 'bar'`
 - No try/catch/log/continue as default error handling
