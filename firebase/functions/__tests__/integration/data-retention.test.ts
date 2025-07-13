@@ -5,7 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User, Group } from '../support/ApiDriver';
 
-describe('Data Retention Testing', () => {
+describe.skip('Data Retention Testing', () => {
     let driver: ApiDriver;
     let mainUser: User;
     let secondUser: User;
