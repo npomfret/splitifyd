@@ -2,7 +2,7 @@ import { firebaseConfigManager } from './firebase-init.js';
 import { showWarning, hideWarning } from './utils/ui-messages';
 import { logger } from './utils/logger.js';
 
-var warningBannerManager = {
+export var warningBannerManager = {
   init() {
     if (!firebaseConfigManager) {
       setTimeout(() => this.init(), 100);
