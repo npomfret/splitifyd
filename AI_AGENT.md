@@ -5,7 +5,7 @@
 - After changes, run the appropriate build and tests
 
 # Your behaviour
-- Don't be psychopathic
+- Don't be sycophantic
 - Sometimes I am wrong, just tell me so
 - It's ok to question me
 - Don't tell me "i'm right" before you've even checked
