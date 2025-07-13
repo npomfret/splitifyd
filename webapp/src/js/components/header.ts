@@ -23,7 +23,7 @@ export class HeaderComponent extends BaseComponent<HTMLElement> {
       titleLink = '/dashboard.html'
     } = this.config;
 
-    const header = createElementSafe('header', { className: 'header' });
+    const header = createElementSafe('header', { className: 'dashboard-header' });
 
     const container = createElementSafe('div', { className: 'container header-container' });
 
