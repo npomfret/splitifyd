@@ -39,8 +39,8 @@ Migrate all remaining static HTML pages to programmatic rendering, unify on a si
     *   **Approach:** Utilize `FormComponents` (`webapp/src/js/components/form-components.ts`) to render form fields. Implement a consistent pattern for form submission (e.g., using `FormData` and a centralized validation utility).
     *   **Benefit:** Ensures a uniform user experience for forms and simplifies validation and submission logic.
 
-## Status: PHASE 1 COMPLETE 
-Phase 1 (Authentication Forms) completed successfully.
+## Status: PHASE 2 COMPLETE 
+Phase 1 (Authentication Forms) and Phase 2 (Complex Forms - add-expense) completed successfully.
 
 ## Current Architecture Assessment
 
@@ -56,8 +56,8 @@ The webapp has a solid component foundation:
 1. ✅ `reset-password.html` - Converted to component-based architecture using ResetPasswordComponent
 2. TODO: Audit and complete `login.html` and `register.html` component usage
 
-**Phase 2: Complex Forms (Small commit)**  
-3. `add-expense.html` - Convert to use FormComponents for consistent form handling
+**Phase 2: Complex Forms (Small commit)** ✅ PARTIALLY COMPLETE
+3. ✅ `add-expense.html` - Converted to use AddExpenseComponent with FormComponents
 4. `join-group.html` - Standardize form implementation
 
 **Phase 3: Data Display Pages (Small commit)**
@@ -109,6 +109,44 @@ The migration will be executed in phases to ensure a stable, incremental transit
     *   Run `npm run build` and `npm test`.
     *   Manually test the "Reset Password" page in the browser to confirm it is visually and functionally identical to the original.
 
+### Phase 2: Convert `add-expense.html` (Completed)
+
+**Goal:** Convert the static `add-expense.html` page to use component-based architecture with programmatic form generation.
+
+**Completed Steps:**
+
+1. **Created `add-expense-init.ts`:**
+   - Entry point that mounts AddExpenseComponent to app-root
+   - Includes warning-banner.js import for consistency
+
+2. **Created `AddExpenseComponent.ts`:**
+   - Extends BaseComponent with full lifecycle management
+   - Uses PageLayoutComponent for consistent layout
+   - Uses HeaderComponent for navigation header
+   - Uses FormComponents for all form fields
+   - Uses ButtonComponent for action buttons
+   - Supports both add and edit modes
+   - Implements proper form validation
+   - Handles equal and custom expense splitting
+   - Manages member selection with checkboxes
+   - Updates custom split inputs dynamically
+
+3. **Refactored `add-expense.html`:**
+   - Converted to minimal HTML skeleton
+   - Contains only app-root div and necessary script imports
+   - Removed all hardcoded HTML forms and components
+
+4. **Key Features Preserved:**
+   - Full expense creation functionality
+   - Expense editing capability
+   - Form validation with error messages
+   - Dynamic member selection
+   - Equal/custom split options
+   - Real-time split amount calculations
+   - Navigation and logout functionality
+
+**Note:** The old `add-expense.ts` file should be removed as it's no longer used.
+
 ---
 
-*This plan has been created. I will await instructions before proceeding with the implementation.*
+*Phase 2 has been completed. Phase 3 (join-group.html) is next.*
