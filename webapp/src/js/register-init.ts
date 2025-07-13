@@ -3,29 +3,12 @@ import { WarningBannerComponent } from './components/warning-banner.js';
 import { ButtonComponent } from './components/button.js';
 import { ScriptLoaderComponent } from './components/script-loader.js';
 import { updatePageTitle } from './utils/page-title.js';
-import { firebaseConfigManager } from './firebase-config-manager.js';
 
-async function updateAppReferences(): Promise<void> {
-  try {
-    const appDisplayName = await firebaseConfigManager.getAppDisplayName();
-    
-    // Update title link
-    const titleLink = document.querySelector('.auth-card__title-link');
-    if (titleLink) {
-      titleLink.textContent = appDisplayName;
-    }
-    
-  } catch (error) {
-    console.warn('Failed to load app configuration for register page', error);
-  }
-}
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Update page title from configuration
   await updatePageTitle('Register');
   
-  // Update app references with runtime config
-  await updateAppReferences();
   
   const pageHeader = new PageHeaderComponent({
     title: 'Register' // Will be overridden by updatePageTitle

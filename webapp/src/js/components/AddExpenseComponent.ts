@@ -35,7 +35,7 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
         this.pageLayout.mount(container);
 
         const header = new HeaderComponent({
-            title: 'app-name-here',
+            title: 'Add Expense',
             showLogout: true
         });
         const mainContent = this.pageLayout.getContentContainer();
