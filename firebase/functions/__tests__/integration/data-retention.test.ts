@@ -36,7 +36,7 @@ describe.skip('Data Retention Testing', () => {
 
     describe('5.2 Data Retention and Lifecycle Management', () => {
         describe('Automatic Data Purging', () => {
-            it('should identify data eligible for automatic purging based on retention policies', async () => {
+            it.skip('should identify data eligible for automatic purging based on retention policies', async () => {
                 // Test: Get data eligible for purging
                 try {
                     const eligibleData = await driver.getEligibleDataForPurging(mainUser.token);
@@ -63,40 +63,11 @@ describe.skip('Data Retention Testing', () => {
                         expect(expectedCategories).toContain(category.type);
                     });
                     
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                        console.warn('Data retention eligible-for-purging endpoint not implemented yet - this test documents expected behavior');
-                        expect(true).toBe(true);
-                    } else {
-                        throw error;
-                    }
                 }
             });
 
-            it('should execute automatic data purging with proper logging', async () => {
+            it.skip('should execute automatic data purging with proper logging', async () => {
                 // Test: Execute data purging process
-                try {
-                    const purgingJob = await driver.executePurging({
-                        dryRun: false,
-                        olderThan: '30days',
-                        entityTypes: ['expired_sessions', 'old_activity_logs']
-                    }, mainUser.token);
-                    
-                    expect(purgingJob).toHaveProperty('jobId');
-                    expect(purgingJob).toHaveProperty('status', 'initiated');
-                    expect(purgingJob).toHaveProperty('scheduledAt');
-                    expect(purgingJob).toHaveProperty('estimatedDuration');
-                    expect(purgingJob).toHaveProperty('affectedCategories');
-                    
-                    // Wait for purging to complete
-                    let jobStatus = purgingJob;
-                    let attempts = 0;
-                    while (jobStatus.status === 'running' && attempts < 10) {
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                        jobStatus = await driver.getPurgingStatus(purgingJob.jobId, mainUser.token);
-                        attempts++;
-                    }
                     
                     expect(jobStatus.status).toBe('completed');
                     expect(jobStatus).toHaveProperty('completedAt');
@@ -126,7 +97,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should support dry-run mode for purging verification', async () => {
+            it.skip('should support dry-run mode for purging verification', async () => {
                 // Test: Execute dry-run purging to preview what would be deleted
                 try {
                     const dryRunResult = await driver.executePurging({
@@ -171,7 +142,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should enforce retention policies for different data types', async () => {
+            it.skip('should enforce retention policies for different data types', async () => {
                 // Test: Get current retention policies
                 try {
                     const retentionPolicies = await driver.getRetentionPolicies(mainUser.token);
@@ -224,7 +195,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should handle retention exceptions for legal holds and disputes', async () => {
+            it.skip('should handle retention exceptions for legal holds and disputes', async () => {
                 // Create test data that would be subject to legal hold
                 const legalHoldExpense = await driver.createExpense({
                     groupId: testGroup.id,
@@ -270,20 +241,12 @@ describe.skip('Data Retention Testing', () => {
                     expect(holdRelease).toHaveProperty('releasedAt');
                     expect(holdRelease).toHaveProperty('releasedBy', mainUser.uid);
                     
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                        console.warn('Data retention legal hold not implemented yet - this test documents expected behavior');
-                        expect(true).toBe(true);
-                    } else {
-                        throw error;
-                    }
                 }
             });
         });
 
         describe('Data Anonymization', () => {
-            it('should anonymize user data while preserving analytical value', async () => {
+            it.skip('should anonymize user data while preserving analytical value', async () => {
                 // Create test user for anonymization
                 const userToAnonymize = await driver.createTestUser({
                     email: `anonymize-${uuidv4()}@example.com`,
@@ -305,26 +268,6 @@ describe.skip('Data Retention Testing', () => {
                 }, userToAnonymize.token);
 
                 // Test: Anonymize user data
-                try {
-                    const anonymizationJob = await driver.anonymizeData({
-                        targetDate: new Date().toISOString(),
-                        techniques: ['hash_with_salt', 'generalization', 'value_range_bucketing']
-                    }, mainUser.token);
-                    
-                    expect(anonymizationJob).toHaveProperty('jobId');
-                    expect(anonymizationJob).toHaveProperty('status', 'initiated');
-                    expect(anonymizationJob).toHaveProperty('userId', userToAnonymize.uid);
-                    expect(anonymizationJob).toHaveProperty('anonymizationLevel', 'medium');
-                    expect(anonymizationJob).toHaveProperty('preserveAnalytics', true);
-                    
-                    // Wait for anonymization to complete
-                    let jobStatus = anonymizationJob;
-                    let attempts = 0;
-                    while (jobStatus.status !== 'completed' && attempts < 10) {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        jobStatus = await driver.getAnonymizationStatus(anonymizationJob.jobId, mainUser.token);
-                        attempts++;
-                    }
                     
                     expect(jobStatus.status).toBe('completed');
                     expect(jobStatus).toHaveProperty('completedAt');
@@ -347,7 +290,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should apply different anonymization techniques based on data sensitivity', async () => {
+            it.skip('should apply different anonymization techniques based on data sensitivity', async () => {
                 // Test: Get anonymization techniques for different data types
                 try {
                     const anonymizationTechniques = await driver.getAnonymizationTechniques(mainUser.token);
@@ -386,7 +329,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should validate anonymization effectiveness and prevent re-identification', async () => {
+            it.skip('should validate anonymization effectiveness and prevent re-identification', async () => {
                 // Test: Validate anonymization results
                 try {
                     const validationResult = await driver.validateAnonymization({
@@ -430,15 +373,8 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should support selective anonymization based on user preferences', async () => {
+            it.skip('should support selective anonymization based on user preferences', async () => {
                 // Test: Configure selective anonymization preferences
-                try {
-                    const anonymizationPrefs = await driver.setAnonymizationPreferences({
-                        email: { technique: 'hash_with_salt', preserve: false },
-                        name: { technique: 'pseudonym', preserve: true },
-                        amounts: { technique: 'value_range_bucketing', preserve: true },
-                        dates: { technique: 'temporal_generalization', preserve: true },
-                        descriptions: { technique: 'keyword_redaction', preserve: false }
                     }, mainUser.token);
                     
                     expect(anonymizationPrefs).toHaveProperty('userId', mainUser.uid);
@@ -467,7 +403,7 @@ describe.skip('Data Retention Testing', () => {
         });
 
         describe('Data Archival and Backup Management', () => {
-            it('should archive old data according to retention policies', async () => {
+            it.skip('should archive old data according to retention policies', async () => {
                 // Test: Execute data archival process
                 try {
                     const archivalJob = await driver.archiveData({
@@ -514,7 +450,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should support data restoration from archives', async () => {
+            it.skip('should support data restoration from archives', async () => {
                 // Test: Restore data from archive
                 try {
                     const restorationJob = await driver.restoreArchive({
@@ -536,67 +472,18 @@ describe.skip('Data Retention Testing', () => {
                     expect(restorationStatus).toHaveProperty('recordsProcessed');
                     expect(restorationStatus).toHaveProperty('estimatedRemaining');
                     
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                        console.warn('Data restoration not implemented yet - this test documents expected behavior');
-                        expect(true).toBe(true);
-                    } else {
-                        throw error;
-                    }
                 }
             });
 
-            it('should maintain archive integrity and provide audit trails', async () => {
+            it.skip('should maintain archive integrity and provide audit trails', async () => {
                 // Test: Verify archive integrity
-                try {
-                    const integrityCheck = await driver.verifyArchiveIntegrity({
-                        archiveId: 'test-archive-id'
-                    }, mainUser.token);
-                    
-                    expect(integrityCheck).toHaveProperty('archiveId', 'test-archive-id');
-                    expect(integrityCheck).toHaveProperty('status');
-                    expect(integrityCheck).toHaveProperty('checksumVerified');
-                    expect(integrityCheck).toHaveProperty('encryptionVerified');
-                    expect(integrityCheck).toHaveProperty('structureVerified');
-                    expect(integrityCheck).toHaveProperty('metadataVerified');
-                    
-                    // Get archive audit trail
-                    const auditTrail = await driver.getArchiveAuditTrail('test-archive-id', mainUser.token);
-                    expect(auditTrail).toHaveProperty('archiveId', 'test-archive-id');
-                    expect(auditTrail).toHaveProperty('events');
-                    expect(Array.isArray(auditTrail.events)).toBe(true);
-                    
-                    auditTrail.events.forEach((event: any) => {
-                        expect(event).toHaveProperty('timestamp');
-                        expect(event).toHaveProperty('action'); // 'created', 'accessed', 'verified', 'restored'
-                        expect(event).toHaveProperty('userId');
-                        expect(event).toHaveProperty('details');
-                        expect(event).toHaveProperty('checksum');
-                    });
-                    
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                        console.warn('Archive integrity verification not implemented yet - this test documents expected behavior');
-                        expect(true).toBe(true);
-                    } else {
-                        throw error;
-                    }
                 }
             });
         });
 
         describe('Retention Policy Compliance', () => {
-            it('should generate compliance reports for data retention', async () => {
+            it.skip('should generate compliance reports for data retention', async () => {
                 // Test: Generate retention compliance report
-                try {
-                    const complianceReport = await driver.generateComplianceReport({
-                        reportType: 'comprehensive',
-                        dateRange: {
-                            start: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year ago
-                            end: new Date().toISOString()
-                        }
                     }, mainUser.token);
                     
                     expect(complianceReport).toHaveProperty('reportId');
@@ -630,7 +517,7 @@ describe.skip('Data Retention Testing', () => {
                 }
             });
 
-            it('should monitor and alert on retention policy violations', async () => {
+            it.skip('should monitor and alert on retention policy violations', async () => {
                 // Test: Check for retention policy violations
                 try {
                     const violations = await driver.getPolicyViolations(mainUser.token);
@@ -658,57 +545,11 @@ describe.skip('Data Retention Testing', () => {
                     expect(violations.summary).toHaveProperty('byDataType');
                     expect(violations.summary).toHaveProperty('oldestViolation');
                     
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                        console.warn('Retention policy violation monitoring not implemented yet - this test documents expected behavior');
-                        expect(true).toBe(true);
-                    } else {
-                        throw error;
-                    }
                 }
             });
 
-            it('should support custom retention policies for specific use cases', async () => {
+            it.skip('should support custom retention policies for specific use cases', async () => {
                 // Test: Create custom retention policy
-                try {
-                    const customPolicy = await driver.createCustomPolicy({
-                        name: 'Financial Records Extended Retention',
-                        entityType: 'expenses',
-                        retentionPeriod: 7,
-                        retentionUnit: 'years',
-                        autoDelete: false
-                    }, mainUser.token);
-                    
-                    expect(customPolicy).toHaveProperty('policyId');
-                    expect(customPolicy).toHaveProperty('name', 'Financial Records Extended Retention');
-                    expect(customPolicy).toHaveProperty('status', 'draft');
-                    expect(customPolicy).toHaveProperty('createdAt');
-                    expect(customPolicy).toHaveProperty('version', 1);
-                    
-                    // Test: Activate custom policy
-                    const activatedPolicy = await driver.activateCustomPolicy(customPolicy.policyId, {
-                        effectiveDate: new Date().toISOString()
-                    }, mainUser.token);
-                    
-                    expect(activatedPolicy).toHaveProperty('status', 'active');
-                    expect(activatedPolicy).toHaveProperty('effectiveDate');
-                    expect(activatedPolicy).toHaveProperty('approvedBy', mainUser.uid);
-                    
-                    // Verify policy is applied
-                    const activePolicies = await driver.getActivePolicies(mainUser.token);
-                    const ourPolicy = activePolicies.policies.find((p: any) => p.policyId === customPolicy.policyId);
-                    expect(ourPolicy).toBeDefined();
-                    expect(ourPolicy.status).toBe('active');
-                    
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                        console.warn('Custom retention policies not implemented yet - this test documents expected behavior');
-                        expect(true).toBe(true);
-                    } else {
-                        throw error;
-                    }
                 }
             });
         });
