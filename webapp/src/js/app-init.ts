@@ -1,6 +1,6 @@
 import type { FirebaseUser } from './types/global';
 import { showWarning, hideWarning, showError } from './utils/ui-messages.js';
-import { firebaseAuthInstance, isFirebaseInitialized } from './firebase-init.js';
+import { firebaseAuthInstance, isFirebaseInitialized, firebaseInitializer } from './firebase-init.js';
 import { MAX_AUTH_ATTEMPTS, AUTH_ATTEMPT_INTERVAL_MS } from './constants.js';
 import { logger } from './utils/logger.js';
 
@@ -19,6 +19,12 @@ export class AppInit {
     } = config;
 
     this.setupGlobalErrorHandlers();
+    
+    // Initialize Firebase if not already initialized
+    if (!isFirebaseInitialized()) {
+      await firebaseInitializer.initialize();
+    }
+    
     await this.waitForFirebase();
     
     if (requireAuth) {

@@ -1,6 +1,6 @@
 import { logger } from './utils/logger.js';
 import { config } from './config.js';
-import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init.js';
+import { firebaseConfigManager, firebaseAuthInstance, isFirebaseInitialized, firebaseInitializer } from './firebase-init.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import { debounce } from './utils/event-utils.js';
 import { validateInput } from './utils/safe-dom.js';
@@ -79,6 +79,12 @@ class AuthManager {
         try {
             // Ensure Firebase is initialized before setting up event listeners
             await config.getConfig();
+            
+            // Initialize Firebase if not already initialized
+            if (!isFirebaseInitialized()) {
+                await firebaseInitializer.initialize();
+            }
+            
             this.initializeEventListeners();
         } catch (error) {
             logger.error('Failed to initialize AuthManager:', error);

@@ -78,13 +78,12 @@ class FirebaseInitializer {
             if (config.environment.isEmulator && config.environment.emulatorPorts?.auth && !this.emulatorConnected) {
                 try {
                     const authEmulatorUrl = `http://localhost:${config.environment.emulatorPorts.auth}`;
-                    logger.log(`🔧 Connecting to Firebase Auth emulator at ${authEmulatorUrl}`);
                     connectAuthEmulator(this.auth, authEmulatorUrl, { disableWarnings: true });
                     this.emulatorConnected = true;
+                    // Connected to emulator successfully
                 } catch (error) {
                     const firebaseError = error as FirebaseError;
                     if (firebaseError.code === 'auth/emulator-config-failed') {
-                        logger.log('Auth emulator already connected, skipping');
                         this.emulatorConnected = true;
                     } else {
                         throw error;
@@ -110,7 +109,7 @@ class FirebaseInitializer {
             };
             
             this.initialized = true;
-            logger.log('Firebase initialized successfully');
+            // Firebase initialized successfully
             
         } catch (error) {
             logger.error('Failed to initialize Firebase:', error);
@@ -137,7 +136,8 @@ export const firebaseInitializer = new FirebaseInitializer();
 // For backward compatibility - expose old firebaseConfigManager interface
 export const firebaseConfigManager = {
     async initialize() {
-        await firebaseInitializer.initialize();
+        // Return config without re-initializing Firebase
+        // Firebase initialization is handled by AppInit
         return await this.getConfig();
     },
     async getConfig() {
@@ -165,24 +165,5 @@ export const firebaseConfigManager = {
     }
 };
 
-// Auto-initialize Firebase
-firebaseInitializer.initialize().catch((error: Error) => {
-    logger.error('Failed to initialize Firebase on startup:', error);
-});
-
-// Setup global error handlers when module loads
-window.addEventListener('error', (event: ErrorEvent) => {
-    logger.error('Unhandled JavaScript Error:', event.error);
-    import('./utils/ui-messages.js').then(({ showError }) => {
-        showError('An unexpected error occurred. Please refresh the page.');
-    });
-    event.preventDefault();
-});
-
-window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-    logger.error('Unhandled Promise Rejection:', event.reason);
-    import('./utils/ui-messages.js').then(({ showError }) => {
-        showError('An operation failed unexpectedly. Please try again.');
-    });
-    event.preventDefault();
-});
+// Note: Firebase initialization is handled by app-init.ts or when first needed
+// This prevents double initialization and improves startup performance

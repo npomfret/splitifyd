@@ -32,7 +32,6 @@ class FirebaseConfigManager {
         }
 
         const config = await response.json();
-        logger.log('Configuration loaded successfully', { projectId: config.firebase.projectId });
         return config as AppConfiguration;
       } catch (error) {
         lastError = error as Error;
