@@ -1,5 +1,4 @@
 import { logger } from './utils/logger.js';
-import { ModalComponent } from './components/modal.js';
 import { ButtonComponent } from './components/button.js';
 import { createElementSafe, clearElement } from './utils/safe-dom.js';
 import { authManager } from './auth.js';
@@ -780,6 +779,9 @@ async function showShareGroupModal(): Promise<void> {
         const closeButton = closeButtonContainer;
         footerContainer.appendChild(closeButton);
 
+        // Dynamically import ModalComponent when needed
+        const { ModalComponent } = await import('./components/modal.js');
+        
         const modal = new ModalComponent({
             id: modalId,
             title: 'Share Group',

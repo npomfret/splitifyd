@@ -1,10 +1,9 @@
-import { GroupsList } from './groups.js';
 import { authManager } from './auth.js';
 import { HeaderComponent } from './components/header.js';
 import { logger } from './utils/logger.js';
 import { showError } from './utils/ui-messages.js';
 
-let groupsList: GroupsList | null = null;
+let groupsList: any | null = null;
 
 export async function initializeDashboard(): Promise<void> {
   try {
@@ -26,6 +25,9 @@ export async function initializeDashboard(): Promise<void> {
     const header = new HeaderComponent({ title: 'Splitifyd', showLogout: true });
     header.mount(headerContainer);
 
+    // Dynamically import GroupsList when needed
+    const { GroupsList } = await import('./groups.js');
+    
     // Initialize groups list using existing DOM structure
     groupsList = new GroupsList('groupsContainer');
     groupsList.loadGroups();
