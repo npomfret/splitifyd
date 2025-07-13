@@ -11,7 +11,8 @@ export async function updatePageTitle(pageTitle: string): Promise<void> {
     document.title = `${pageTitle} - ${appDisplayName}`;
   } catch (error) {
     console.error('Failed to load app display name from config', error);
-    throw error;
+    // Fallback to a simple title without app name
+    document.title = pageTitle;
   }
 }
 
@@ -28,7 +29,8 @@ export async function updatePageHeader(element: HTMLElement, pageTitle?: string)
     element.textContent = title;
   } catch (error) {
     console.error('Failed to load app display name from config', error);
-    throw error;
+    // Fallback to page title only or default text
+    element.textContent = pageTitle || 'Application';
   }
 }
 
