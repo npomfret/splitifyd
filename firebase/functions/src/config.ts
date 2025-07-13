@@ -1,9 +1,42 @@
 import { RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import * as functions from 'firebase-functions';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Load environment variables from .env file for local development
 if (process.env.FUNCTIONS_EMULATOR === 'true') {
   require('dotenv').config();
+}
+
+// Load app configuration from app-config.json
+let appConfig: any = {};
+try {
+  // Try to load from the root directory (3 levels up from src)
+  const configPath = path.join(__dirname, '../../../app-config.json');
+  if (fs.existsSync(configPath)) {
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    appConfig = JSON.parse(configContent);
+  } else {
+    // During build phase, the config might not be available yet
+    console.log('app-config.json not found, using defaults');
+    appConfig = {
+      appName: 'splitifyd',
+      appDisplayName: 'Splitifyd',
+      firebaseProjectId: 'splitifyd',
+      productionBaseUrl: 'https://splitifyd.web.app',
+      apiBaseUrl: 'https://api.splitifyd.com'
+    };
+  }
+} catch (error) {
+  console.error('Error loading app-config.json:', error);
+  // Use defaults if loading fails
+  appConfig = {
+    appName: 'splitifyd',
+    appDisplayName: 'Splitifyd',
+    firebaseProjectId: 'splitifyd',
+    productionBaseUrl: 'https://splitifyd.web.app',
+    apiBaseUrl: 'https://api.splitifyd.com'
+  };
 }
 
 // Firebase Functions don't automatically set NODE_ENV=production, so we need to detect deployment
@@ -48,7 +81,7 @@ function getEmulatorPort(hostEnvVar: string, portEnvVar: string, defaultPort?: n
 }
 
 // Project ID - Firebase emulator uses GCLOUD_PROJECT
-const projectId = process.env.PROJECT_ID || process.env.GCLOUD_PROJECT || (ENV_IS_TEST ? 'test-project' : isBuildPhase ? 'splitifyd' : (() => {
+const projectId = process.env.PROJECT_ID || process.env.GCLOUD_PROJECT || (ENV_IS_TEST ? 'test-project' : isBuildPhase ? appConfig.firebaseProjectId : (() => {
   throw new Error('PROJECT_ID or GCLOUD_PROJECT environment variable is required');
 })());
 
@@ -156,4 +189,7 @@ export function configureEmulators() {
 
 // Auto-configure emulators
 configureEmulators();
+
+// Export app configuration for use by other modules
+export const APP_CONFIG = appConfig;
 
