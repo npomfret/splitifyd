@@ -8,7 +8,7 @@ import { apiService } from '../api.js';
 import { showMessage, showFieldError, clearErrors } from '../utils/ui-messages.js';
 import { logger } from '../utils/logger.js';
 import { waitForAuthManager } from '../utils/auth-utils.js';
-import type { GroupDetail, Member, ExpenseData } from '@splitifyd/shared-types';
+import type { GroupDetail, Member, ExpenseData } from '@bill-splitter/shared-types';
 
 export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
     private pageLayout: PageLayoutComponent | null = null;

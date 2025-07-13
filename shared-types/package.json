@@ -1,7 +1,7 @@
 {
-  "name": "@splitifyd/shared-types",
+  "name": "@bill-splitter/shared-types",
   "version": "1.0.0",
-  "description": "Shared type definitions for Splitifyd webapp and Firebase functions",
+  "description": "Shared type definitions for Bill Splitter webapp and Firebase functions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

@@ -12,8 +12,7 @@ describe('Hardcoded Values Validation', () => {
       'hardcoded-values.test.ts',
       'infrastructure-references.test.ts', // This test validates infrastructure configuration
       '.idea/',
-      'package-lock.json',
-      'package.json', // Package names don't matter for renaming
+      'firebase/package.json', // Contains Firebase project ID references
       '.firebaserc',
       'firebase.template.json',
       'firebase.json',
@@ -76,10 +75,9 @@ describe('Hardcoded Values Validation', () => {
         lines.forEach((line, index) => {
           searchTerms.forEach(term => {
             if (line.includes(term)) {
-              // Skip lines that are comments or imports of @splitifyd/shared-types
+              // Skip lines that are comments
               if (line.trim().startsWith('//') || 
-                  line.trim().startsWith('*') ||
-                  line.includes('@splitifyd/shared-types')) {
+                  line.trim().startsWith('*')) {
                 return;
               }
               matchingLines.push(`  Line ${index + 1}: ${line.trim()}`);

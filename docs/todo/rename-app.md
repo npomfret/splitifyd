@@ -65,7 +65,7 @@ The following files need to be updated to use the new configuration values:
 - **`package.json` (root):** The `name` field should be updated.
 - **`package-lock.json`:** Will be updated automatically after running `npm install`.
 - **`shared-types/package.json`:** The `name` field for the shared types package will be updated to `@<new-app-name>/shared-types`.
-- **`firebase/functions/tsconfig.json` and `webapp/tsconfig.json`:** The path aliases for `@splitifyd/shared-types` will be updated to the new name.
+- **`firebase/functions/tsconfig.json` and `webapp/tsconfig.json`:** The path aliases for `@bill-splitter/shared-types` will be updated to the new name.
 - **`.idea/splitifyd.iml`:** This is an IDE-specific file. It should be renamed manually, and the `.idea/modules.xml` file should be updated to reflect the new name.
 
 ### 3.2. Firebase Configuration
@@ -112,7 +112,7 @@ The following files need to be updated to use the new configuration values:
 4. ~~Run `npm install` to update package-lock.json~~ - SKIPPED: Internal dependency management
 5. ~~Test that imports still work correctly~~ - SKIPPED: No changes made
 
-**Note:** The hardcoded-values.test.ts already excludes package.json files and @splitifyd/shared-types imports, so no test updates needed.
+**Note:** The hardcoded-values.test.ts already excludes package.json files and @bill-splitter/shared-types imports, so no test updates needed.
 
 ### Phase 4: Code Updates - Firebase Configuration (OUT OF SCOPE)
 **DECISION: Firebase project changes require creating new Firebase project first**

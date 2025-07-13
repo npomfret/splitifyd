@@ -20,4 +20,4 @@ export type {
   BalanceSummary,
   EXPENSE_CATEGORIES,
   ExpenseCategoryType
-} from '@splitifyd/shared-types';
+} from '@bill-splitter/shared-types';

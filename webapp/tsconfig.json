@@ -19,8 +19,8 @@
     "resolveJsonModule": true,
     "noEmitOnError": false,
     "paths": {
-      "@splitifyd/shared-types": ["../shared-types/dist/index.d.ts"],
-      "@splitifyd/shared-types/*": ["../shared-types/dist/*"]
+      "@bill-splitter/shared-types": ["../shared-types/dist/index.d.ts"],
+      "@bill-splitter/shared-types/*": ["../shared-types/dist/*"]
     }
   },
   "include": [

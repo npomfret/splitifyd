@@ -1,5 +1,5 @@
 {
-  "name": "splitifyd-monorepo",
+  "name": "bill-splitter-monorepo",
   "private": true,
   "workspaces": [
     "shared-types",
