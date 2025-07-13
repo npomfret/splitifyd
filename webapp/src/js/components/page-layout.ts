@@ -27,15 +27,15 @@ export class PageLayoutComponent extends BaseComponent<HTMLDivElement> {
       attributes: {},
       ...config
     };
-    this.componentId = `page-layout-${Date.now()}`;
+    this.componentId = this.generateUniqueId('page-layout');
   }
 
   protected render(): HTMLDivElement {
     const { type, containerClass, mainClass, attributes } = this.config;
     
     const layoutClass = this.getLayoutClass(type);
-    const containerClasses = `${layoutClass} ${containerClass}`.trim();
-    const mainClasses = `main-content ${mainClass}`.trim();
+    const containerClasses = `${layoutClass} ${containerClass || ''}`.trim();
+    const mainClasses = `main-content ${mainClass || ''}`.trim();
 
     const container = document.createElement('div');
     container.className = containerClasses;
@@ -104,6 +104,10 @@ export class PageLayoutComponent extends BaseComponent<HTMLDivElement> {
 
   getContentContainer(): HTMLElement | null {
     return this.contentContainer;
+  }
+
+  protected cleanup(): void {
+    this.contentContainer = null;
   }
 
   private getLayoutClass(type?: string): string {

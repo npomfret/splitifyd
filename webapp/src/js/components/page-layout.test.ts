@@ -381,9 +381,9 @@ describe('PageLayoutComponent', () => {
       layout.mount(container);
 
       const element = container.querySelector('.page-layout');
-      expect(element?.classList.contains('page-layout--default')).toBe(true);
-      expect(element?.querySelector('header')).toBeTruthy();
-      expect(element?.querySelector('footer')).toBeTruthy();
+      expect(element?.classList.contains('page-layout')).toBe(true);
+      expect(element?.querySelector('#header-placeholder')).toBeTruthy();
+      expect(element?.querySelector('#footer-placeholder')).toBeTruthy();
       expect(element?.querySelector('nav')).toBeFalsy();
       expect(element?.querySelector('.main-content')).toBeTruthy();
     });

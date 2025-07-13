@@ -22,7 +22,7 @@ export class CheckboxComponent extends BaseComponent<HTMLDivElement> {
   constructor(config: CheckboxConfig) {
     super();
     this.config = config;
-    this.componentId = `checkbox-${config.id}-${Date.now()}`;
+    this.componentId = this.generateUniqueId(`checkbox-${config.id}`);
   }
 
   protected render(): HTMLDivElement {

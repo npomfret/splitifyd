@@ -1,6 +1,11 @@
 
 export abstract class BaseComponent<T extends HTMLElement = HTMLElement> {
+  private static idCounter = 0;
   protected element: T | null = null;
+
+  protected generateUniqueId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${++BaseComponent.idCounter}`;
+  }
 
   protected abstract render(): T;
 
