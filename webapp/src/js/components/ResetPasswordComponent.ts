@@ -41,7 +41,7 @@ export class ResetPasswordComponent extends BaseComponent<HTMLDivElement> {
         `;
 
         const authCardHtml = AuthCardComponent.render({
-            title: 'Splitifyd',
+            title: 'app-name-here',
             subtitleTitle: 'Reset Password',
             subtitle: 'Enter your email to receive reset instructions',
             content: formContent,

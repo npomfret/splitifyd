@@ -5,7 +5,7 @@ import { ScriptLoaderComponent } from './components/script-loader.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   const pageHeader = new PageHeaderComponent({
-    title: 'Splitifyd - Dashboard'
+    title: 'app-name-here - Dashboard'
   });
   pageHeader.mount(document.body);
 

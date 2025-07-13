@@ -35,7 +35,7 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
         this.pageLayout.mount(container);
 
         const header = new HeaderComponent({
-            title: 'Splitifyd',
+            title: 'app-name-here',
             showLogout: true
         });
         const mainContent = this.pageLayout.getContentContainer();
