@@ -49,6 +49,14 @@
 - TypeScript strict mode
 - NO HACKS
 
+# Testing
+- automated testing is valuable - do it, lots. But...
+- Tests should be easy to read and maintain
+- Tests should be less complex than the code they are testing
+- Avoid complex DOM mocking setups (consider using the builder pattern instead of mocks)
+- Avoid high maintenance tests with low benefit
+- Avoid testing implementation details rather than behavior
+
 # Architecture Rules
 - Fail fast: validate early, throw on invalid state
 - Let exceptions bubble up - crash on broken state
