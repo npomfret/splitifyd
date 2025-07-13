@@ -6,10 +6,9 @@
     "clean": "rm -rf dist",
     "copy:assets": "mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/",
     "build:js": "node esbuild.config.js",
-    "replace:config": "node scripts/replace-app-config.js",
     "typecheck": "tsc --noEmit",
-    "build": "npm run clean && npm run typecheck && npm run copy:assets && npm run build:js && npm run replace:config",
-    "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets && npm run replace:config'\" \"node esbuild.config.js --watch\"",
+    "build": "npm run clean && npm run typecheck && npm run copy:assets && npm run build:js",
+    "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"node esbuild.config.js --watch\"",
     "test": "jest --config jest.config.js",
     "type-coverage": "typescript-coverage-report --threshold 90",
     "prepare": "husky install"

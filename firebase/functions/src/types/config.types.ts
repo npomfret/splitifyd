@@ -34,6 +34,7 @@ export interface AppConfiguration {
   api: ApiConfig;
   features: FeatureFlags;
   environment: EnvironmentConfig;
+  app: AppMetadata;
   formDefaults?: FormDefaults;
 }
 
@@ -81,4 +82,12 @@ export interface FormDefaults {
   displayName?: string;
   email?: string;
   password?: string;
+}
+
+export interface AppMetadata {
+  name: string;
+  displayName: string;
+  firebaseProjectId: string;
+  productionBaseUrl: string;
+  apiBaseUrl: string;
 }

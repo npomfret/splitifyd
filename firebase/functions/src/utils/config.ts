@@ -1,7 +1,7 @@
-import { CONFIG } from '../config';
+import { CONFIG, APP_CONFIG } from '../config';
 import { Errors } from './errors';
 import { logger } from '../logger';
-import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, EmulatorPorts, WarningBanner } from '../types/config.types';
+import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, EmulatorPorts, WarningBanner, AppMetadata } from '../types/config.types';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
 export interface FirebaseConfigResponse {
@@ -46,6 +46,16 @@ function getWarningBanner(): WarningBanner | undefined {
   return {
     enabled: true,
     message: CONFIG.warningBanner
+  };
+}
+
+function getAppMetadata(): AppMetadata {
+  return {
+    name: APP_CONFIG.appName || 'splitifyd',
+    displayName: APP_CONFIG.appDisplayName || 'Splitifyd', 
+    firebaseProjectId: APP_CONFIG.firebaseProjectId || 'splitifyd',
+    productionBaseUrl: APP_CONFIG.productionBaseUrl || 'https://splitifyd.web.app',
+    apiBaseUrl: APP_CONFIG.apiBaseUrl || 'https://api.splitifyd.com'
   };
 }
 
@@ -118,7 +128,8 @@ export const getEnhancedConfigResponse = (): AppConfiguration => {
     firebase,
     api,
     features: {},
-    environment
+    environment,
+    app: getAppMetadata()
   };
   
   // Include form defaults for development environments only

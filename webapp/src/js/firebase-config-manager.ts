@@ -81,6 +81,24 @@ class FirebaseConfigManager {
     const config = await this.getConfig();
     return config.environment.warningBanner;
   }
+
+  async getAppName() {
+    const config = await this.getConfig();
+    return config.app.name;
+  }
+
+  async getAppDisplayName() {
+    const config = await this.getConfig();
+    return config.app.displayName;
+  }
+
+  async getAppUrls() {
+    const config = await this.getConfig();
+    return {
+      production: config.app.productionBaseUrl,
+      api: config.app.apiBaseUrl
+    };
+  }
 }
 
 export const firebaseConfigManager = new FirebaseConfigManager();

@@ -12,11 +12,13 @@ This document outlines the steps required to rename the application from "spliti
   - Modified firebase/functions/src/config.ts to load app config
   - Created hardcoded-values.test.ts to track progress (43 files to update)
 - Phase 2: COMPLETED
-  - Modified webapp/esbuild.config.js to inject app config
-  - Created webapp/scripts/replace-app-config.js for HTML replacements
-  - Updated webapp build process to replace hardcoded values in HTML
-  - Created scripts/validate-app-config.js for config validation
-  - All builds tested successfully
+  - Extended AppConfiguration interface to include app metadata (name, displayName, URLs)
+  - Updated getEnhancedConfigResponse() to include app-config.json data from APP_CONFIG
+  - Added methods to FirebaseConfigManager for accessing app name/display name
+  - Created updatePageTitle() utility for runtime title updates from /api/config
+  - Updated page initialization files (dashboard-init.js, login-init.js) to use runtime config
+  - Reverted build-time HTML replacement approach in favor of runtime configuration
+  - All builds tested successfully, /api/config endpoint validated
 
 ## 1. Centralized Configuration
 

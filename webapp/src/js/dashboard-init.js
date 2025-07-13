@@ -2,10 +2,14 @@ import { PageHeaderComponent } from './components/page-header.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
 import { LoadingSpinnerComponent } from './components/loading-spinner.js';
 import { ScriptLoaderComponent } from './components/script-loader.js';
+import { updatePageTitle } from './utils/page-title.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Update page title from configuration
+  await updatePageTitle('Dashboard');
+  
   const pageHeader = new PageHeaderComponent({
-    title: 'Splitifyd - Dashboard'
+    title: 'Dashboard' // Will be overridden by config if needed
   });
   pageHeader.mount(document.body);
 
