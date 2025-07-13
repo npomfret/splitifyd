@@ -65,21 +65,13 @@ export class PageHeaderComponent extends BaseComponent<HTMLHeadElement> {
   }
 
   private setupFonts(): void {
-    if (!this.config.includeDefaults) return;
-
-    this.addLinkIfNotExists('preconnect', 'https://fonts.googleapis.com');
-    this.addLinkIfNotExists('preconnect', 'https://fonts.gstatic.com', true);
-    this.addLinkIfNotExists('stylesheet', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    // Fonts are now loaded directly in HTML files for better performance
+    // This method is kept for backward compatibility but does nothing by default
   }
 
   private setupCSS(): void {
-    if (this.config.includeDefaults) {
-      this.addLinkIfNotExists('preload', '/css/main.css', false, 'style');
-      this.addLinkIfNotExists('stylesheet', '/css/main.css');
-      this.addLinkIfNotExists('stylesheet', '/css/utility.css');
-      this.addLinkIfNotExists('stylesheet', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
-    }
-
+    // CSS is now loaded directly in HTML files for better performance
+    // Only handle additional CSS if explicitly provided
     this.config.preloadCss?.forEach(css => {
       this.addLinkIfNotExists('preload', css, false, 'style');
     });
@@ -90,8 +82,7 @@ export class PageHeaderComponent extends BaseComponent<HTMLHeadElement> {
   }
 
   private setupDNSPrefetch(): void {
-    if (!this.config.includeDefaults) return;
-    this.addLinkIfNotExists('dns-prefetch', '//api.splitifyd.com');
+    // DNS prefetch is now handled directly in HTML files for better performance
   }
 
   private addLinkIfNotExists(rel: string, href: string, crossorigin = false, as?: string): void {
