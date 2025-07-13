@@ -8,6 +8,36 @@ Application state is scattered across `localStorage`, DOM attributes, and global
 
 Create a single source of truth for shared application state.
 
+## Current State Analysis (2025-07-13)
+
+Based on analysis of the codebase, current state management includes:
+- **localStorage**: `splitifyd_auth_token`, `userId`
+- **sessionStorage**: `pendingJoinLinkId`
+- **Module-level variables**: `currentGroup`, `currentGroupId`, pagination state
+- **DOM attributes**: `data-tab`, `data-expense-id`, `data-group-id`, etc.
+- **URL parameters**: Group IDs, join links, return URLs
+- **No centralized state management system**
+
+## Implementation Plan
+
+### Phase 1: Create Basic Store (MINIMAL SCOPE) ✅ COMPLETED
+1. ✅ Created `webapp/src/js/store.ts` with:
+   - Type-safe state interface for User and AppState
+   - Proxy-based reactive state with automatic localStorage sync
+   - Subscribe/unsubscribe pattern for state change notifications
+   - Focus on auth state (user and authToken)
+2. ✅ Created comprehensive test suite `webapp/src/js/store.test.ts`
+   - 13 tests covering all functionality
+   - Tests for initialization, updates, subscriptions, and reset
+   - Tests for localStorage persistence
+3. ✅ Build passes with no TypeScript errors
+
+### Phase 2: Future Work (NOT IN THIS TASK)
+- Migrate other state gradually (currentGroup, pagination, etc.)
+- Refactor existing components to use the store
+- Add persistence layer for other state
+- Add devtools support
+
 ## Implementation Suggestions
 
 Implement a simple `store.js` (or `store.ts`) using a `Proxy` object to automatically notify components of state changes. Refactor components to read from this central store.
