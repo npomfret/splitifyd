@@ -1,0 +1,204 @@
+/* Checkbox Component Styles */
+.form-checkbox-wrapper {
+  margin-bottom: var(--space-md);
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.form-checkbox input[type="checkbox"] {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.checkbox-label a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.checkbox-label a:hover {
+  text-decoration: underline;
+}
+
+/* Form Help Text Component Styles */
+.form-help {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.form-help__icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.form-help__text {
+  line-height: 1.4;
+}
+
+.form-help--info {
+  color: var(--color-info);
+}
+
+.form-help--success {
+  color: var(--color-success);
+}
+
+.form-help--warning {
+  color: var(--color-warning);
+}
+
+/* Error State Component Styles */
+.error-state {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  min-height: 1.25rem;
+}
+
+.error-state--inline {
+  /* Default inline style */
+}
+
+.error-state--page {
+  background-color: var(--color-error-bg, #fee);
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.error-state--toast {
+  position: fixed;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  max-width: 400px;
+  background-color: var(--color-error);
+  color: white;
+  border-radius: var(--border-radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(120%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.error-state--toast.error-state--visible {
+  transform: translateX(0);
+}
+
+.error-state__content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.error-state__icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.error-state__message {
+  line-height: 1.4;
+  flex: 1;
+}
+
+.error-state__dismiss {
+  background: none;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  padding: var(--space-xs);
+  margin-left: var(--space-sm);
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.error-state__dismiss:hover {
+  opacity: 1;
+}
+
+.error-state--page .error-state__dismiss {
+  color: var(--color-error);
+}
+
+/* Page Layout Component Styles */
+.page-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-layout--full {
+  width: 100%;
+  max-width: none;
+}
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-secondary, #f5f5f5);
+}
+
+.dashboard-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "nav main";
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: auto 1fr;
+}
+
+.dashboard-layout #header-placeholder {
+  grid-area: header;
+}
+
+.dashboard-layout #navigation-placeholder {
+  grid-area: nav;
+}
+
+.dashboard-layout .main-content {
+  grid-area: main;
+  padding: var(--space-lg);
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .error-state--toast {
+    left: var(--space-md);
+    right: var(--space-md);
+    max-width: none;
+  }
+
+  .dashboard-layout {
+    grid-template-areas:
+      "header"
+      "main";
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-layout #navigation-placeholder {
+    display: none;
+  }
+}
