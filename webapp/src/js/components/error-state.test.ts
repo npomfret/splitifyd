@@ -21,7 +21,7 @@ describe('ErrorStateComponent', () => {
       });
       errorState.mount(container);
 
-      const element = container.querySelector('.error-state');
+      const element = container.querySelector('.error-state') as HTMLElement;
       expect(element).toBeTruthy();
       expect(element?.id).toBe('test-error');
       expect(element?.className).toBe('error-state error-state--inline');
@@ -47,7 +47,7 @@ describe('ErrorStateComponent', () => {
       });
       errorState.mount(container);
 
-      const element = container.querySelector('.error-state');
+      const element = container.querySelector('.error-state') as HTMLElement;
       expect(element?.style.display).not.toBe('none');
 
       const message = element?.querySelector('.error-state__message');
@@ -349,10 +349,15 @@ describe('ErrorStateComponent', () => {
       const errorState = new ErrorStateComponent({
         id: 'defaults-error'
       });
+      errorState.mount(container);
 
-      expect(errorState.config.type).toBe('inline');
-      expect(errorState.config.icon).toBe(true);
-      expect(errorState.config.dismissible).toBe(false);
+      const element = container.querySelector('.error-state');
+      // Default type is 'inline'
+      expect(element?.classList.contains('error-state--inline')).toBe(true);
+      // Default icon is true
+      expect(element?.querySelector('.error-state__icon')).toBeTruthy();
+      // Default dismissible is false
+      expect(element?.querySelector('.error-state__dismiss')).toBeFalsy();
     });
 
     it('should override defaults with provided values', () => {
@@ -362,10 +367,15 @@ describe('ErrorStateComponent', () => {
         icon: false,
         dismissible: true
       });
+      errorState.mount(container);
 
-      expect(errorState.config.type).toBe('toast');
-      expect(errorState.config.icon).toBe(false);
-      expect(errorState.config.dismissible).toBe(true);
+      const element = container.querySelector('.error-state');
+      // Type should be 'toast'
+      expect(element?.classList.contains('error-state--toast')).toBe(true);
+      // Icon should be false
+      expect(element?.querySelector('.error-state__icon')).toBeFalsy();
+      // Dismissible should be true
+      expect(element?.querySelector('.error-state__dismiss')).toBeTruthy();
     });
   });
 

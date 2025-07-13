@@ -81,7 +81,7 @@ describe('LoadingSpinnerComponent', () => {
       });
       spinner.mount(container);
 
-      const element = container.querySelector('.loading-spinner');
+      const element = container.querySelector('.loading-spinner') as HTMLElement;
       expect(element?.className).toContain('loading-spinner--default');
       expect(element?.style.position).toBe('');
     });
@@ -103,7 +103,7 @@ describe('LoadingSpinnerComponent', () => {
       });
       spinner.mount(container);
 
-      const element = container.querySelector('.loading-spinner');
+      const element = container.querySelector('.loading-spinner') as HTMLElement;
       expect(element?.className).toContain('loading-spinner--overlay');
       expect(element?.getAttribute('aria-label')).toBe('Processing...');
       
@@ -157,8 +157,7 @@ describe('LoadingSpinnerComponent', () => {
 
       expect(container.querySelector('.loading-spinner__message')).toBeFalsy();
 
-      // Enable showMessage and update
-      spinner.config.showMessage = true;
+      // Update message (this will add message element if showMessage becomes true)
       spinner.updateMessage('New message');
 
       const message = container.querySelector('.loading-spinner__message');

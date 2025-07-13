@@ -380,12 +380,12 @@ describe('PageLayoutComponent', () => {
       const layout = new PageLayoutComponent();
       layout.mount(container);
 
-      expect(layout.config.type).toBe('default');
-      expect(layout.config.header).toBe(true);
-      expect(layout.config.footer).toBe(true);
-      expect(layout.config.navigation).toBe(false);
-      expect(layout.config.containerClass).toBe('');
-      expect(layout.config.mainClass).toBe('');
+      const element = container.querySelector('.page-layout');
+      expect(element?.classList.contains('page-layout--default')).toBe(true);
+      expect(element?.querySelector('header')).toBeTruthy();
+      expect(element?.querySelector('footer')).toBeTruthy();
+      expect(element?.querySelector('nav')).toBeFalsy();
+      expect(element?.querySelector('.main-content')).toBeTruthy();
     });
   });
 

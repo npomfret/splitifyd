@@ -189,7 +189,7 @@ describe('CheckboxComponent', () => {
       });
       checkbox.mount(container);
 
-      const errorDiv = container.querySelector('.form-error');
+      const errorDiv = container.querySelector('.form-error') as HTMLElement;
       expect(errorDiv?.textContent).toBe('Initial error message');
       expect(errorDiv?.style.display).toBe('block');
     });
@@ -207,7 +207,7 @@ describe('CheckboxComponent', () => {
 
       checkbox.showError('Validation failed');
       expect(errorDiv?.textContent).toBe('Validation failed');
-      expect(errorDiv?.style.display).toBe('block');
+      expect((errorDiv as HTMLElement)?.style.display).toBe('block');
     });
 
     it('should hide error message when called', () => {
@@ -219,7 +219,7 @@ describe('CheckboxComponent', () => {
       checkbox.mount(container);
 
       checkbox.showError('Error to hide');
-      const errorDiv = container.querySelector('.form-error');
+      const errorDiv = container.querySelector('.form-error') as HTMLElement;
       expect(errorDiv?.style.display).toBe('block');
 
       checkbox.hideError();

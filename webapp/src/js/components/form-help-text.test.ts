@@ -70,7 +70,7 @@ describe('FormHelpTextComponent', () => {
       helpText.mount(container);
 
       const element = container.querySelector('.form-help') as HTMLElement;
-      expect(element?.style.display).toBe('none');
+      expect((element as HTMLElement)?.style.display).toBe('none');
     });
   });
 
@@ -232,10 +232,10 @@ describe('FormHelpTextComponent', () => {
       helpText.mount(container);
 
       const element = container.querySelector('.form-help') as HTMLElement;
-      expect(element?.style.display).toBe('none');
+      expect((element as HTMLElement)?.style.display).toBe('none');
 
       helpText.show();
-      expect(element?.style.display).toBe('block');
+      expect((element as HTMLElement)?.style.display).toBe('block');
     });
 
     it('should hide help text', () => {
@@ -247,10 +247,10 @@ describe('FormHelpTextComponent', () => {
       helpText.mount(container);
 
       const element = container.querySelector('.form-help') as HTMLElement;
-      expect(element?.style.display).not.toBe('none');
+      expect((element as HTMLElement)?.style.display).not.toBe('none');
 
       helpText.hide();
-      expect(element?.style.display).toBe('none');
+      expect((element as HTMLElement)?.style.display).toBe('none');
     });
 
     it('should toggle visibility', () => {
@@ -264,10 +264,10 @@ describe('FormHelpTextComponent', () => {
       const element = container.querySelector('.form-help') as HTMLElement;
 
       helpText.toggle();
-      expect(element?.style.display).toBe('none');
+      expect((element as HTMLElement)?.style.display).toBe('none');
 
       helpText.toggle();
-      expect(element?.style.display).toBe('block');
+      expect((element as HTMLElement)?.style.display).toBe('block');
     });
 
     it('should handle visibility methods when not mounted', () => {
@@ -296,8 +296,8 @@ describe('FormHelpTextComponent', () => {
       const element = container.querySelector('.form-help');
       const children = Array.from(element?.children || []);
       
-      expect(children[0]).toHaveClass('form-help__icon');
-      expect(children[1]).toHaveClass('form-help__text');
+      expect(children[0]?.classList.contains('form-help__icon')).toBe(true);
+      expect(children[1]?.classList.contains('form-help__text')).toBe(true);
     });
 
     it('should maintain icon position when type is updated', () => {
@@ -314,8 +314,8 @@ describe('FormHelpTextComponent', () => {
       const element = container.querySelector('.form-help');
       const children = Array.from(element?.children || []);
       
-      expect(children[0]).toHaveClass('form-help__icon');
-      expect(children[1]).toHaveClass('form-help__text');
+      expect(children[0]?.classList.contains('form-help__icon')).toBe(true);
+      expect(children[1]?.classList.contains('form-help__text')).toBe(true);
     });
   });
 
@@ -325,10 +325,14 @@ describe('FormHelpTextComponent', () => {
         id: 'defaults-help',
         text: 'Defaults help text'
       });
+      helpText.mount(container);
 
-      expect(helpText.config.type).toBe('default');
-      expect(helpText.config.icon).toBe(false);
-      expect(helpText.config.visible).toBe(true);
+      const element = container.querySelector('.form-help');
+      expect(element?.classList.contains('form-help--info')).toBe(false);
+      expect(element?.classList.contains('form-help--warning')).toBe(false);
+      expect(element?.classList.contains('form-help--success')).toBe(false);
+      expect(element?.querySelector('.form-help__icon')).toBeFalsy();
+      expect((element as HTMLElement)?.style.display).not.toBe('none');
     });
 
     it('should override defaults with provided values', () => {
@@ -339,10 +343,12 @@ describe('FormHelpTextComponent', () => {
         icon: true,
         visible: false
       });
+      helpText.mount(container);
 
-      expect(helpText.config.type).toBe('warning');
-      expect(helpText.config.icon).toBe(true);
-      expect(helpText.config.visible).toBe(false);
+      const element = container.querySelector('.form-help') as HTMLElement;
+      expect(element?.classList.contains('form-help--warning')).toBe(true);
+      expect(element?.querySelector('.form-help__icon')).toBeTruthy();
+      expect((element as HTMLElement)?.style.display).toBe('none');
     });
   });
 
