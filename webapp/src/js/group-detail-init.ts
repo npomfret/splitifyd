@@ -4,13 +4,13 @@ import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 /**
  * Updates app-name-here placeholders in the page
  */
-async function updateAppReferences() {
+async function updateAppReferences(): Promise<void> {
   try {
     const appDisplayName = await firebaseConfigManager.getAppDisplayName();
     
     // Update header title link
     const titleLink = document.querySelector('.dashboard-title-link');
-    if (titleLink && titleLink.textContent.includes('app-name-here')) {
+    if (titleLink && titleLink.textContent && titleLink.textContent.includes('app-name-here')) {
       titleLink.textContent = appDisplayName;
     }
   } catch (error) {
@@ -18,9 +18,9 @@ async function updateAppReferences() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Update page title from configuration
-  await updatePageTitle('Add Expense');
+  await updatePageTitle('Group Details');
   
   // Update DNS prefetch links from configuration
   await updateDnsPrefetch();

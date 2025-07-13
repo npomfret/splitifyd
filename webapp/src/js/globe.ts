@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { throttle } from './utils/event-utils.js';
 
-export function initGlobe() {
+export function initGlobe(): void {
     const container = document.getElementById('globe-container');
     if (!container) return;
 
@@ -43,7 +43,7 @@ export function initGlobe() {
 
     camera.position.z = 10;
 
-    function animate() {
+    function animate(): void {
         requestAnimationFrame(animate);
         globeGroup.rotation.y += 0.001;
         renderer.render(scene, camera);
@@ -51,7 +51,7 @@ export function initGlobe() {
 
     animate();
 
-    window.addEventListener('resize', throttle(() => {
+    window.addEventListener('resize', throttle((): void => {
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, container.clientHeight);

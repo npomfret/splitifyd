@@ -12,7 +12,6 @@
     "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "allowJs": true,
     "checkJs": false,
     "declaration": false,
     "removeComments": true,

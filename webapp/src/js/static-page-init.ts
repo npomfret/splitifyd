@@ -1,7 +1,7 @@
 import { firebaseConfigManager } from './firebase-config-manager.js';
 import { updatePageTitle } from './utils/page-title.js';
 
-async function updateAppReferences() {
+async function updateAppReferences(): Promise<void> {
   try {
     const appDisplayName = await firebaseConfigManager.getAppDisplayName();
     
@@ -14,7 +14,7 @@ async function updateAppReferences() {
     // Update all instances of "app-name-here" in the content
     const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th');
     textElements.forEach(element => {
-      if (element.textContent.includes('app-name-here')) {
+      if (element.textContent && element.textContent.includes('app-name-here')) {
         element.innerHTML = element.innerHTML.replace(/app-name-here/g, appDisplayName);
       }
     });
@@ -25,18 +25,18 @@ async function updateAppReferences() {
 }
 
 // Extract page title from the document title for updatePageTitle
-function getPageTitleFromDocument() {
+function getPageTitleFromDocument(): string {
   const titleElement = document.querySelector('title');
   if (titleElement) {
     const fullTitle = titleElement.textContent;
     // Extract the part before " - Splitifyd" if present
-    const parts = fullTitle.split(' - ');
+    const parts = fullTitle!.split(' - ');
     return parts[0];
   }
   return 'Page';
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   const pageTitle = getPageTitleFromDocument();
   
   // Update page title from configuration

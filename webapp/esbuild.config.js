@@ -10,7 +10,7 @@ const getEntryPoints = (dir) => {
     const fullPath = path.join(dir, dirent.name);
     if (dirent.isDirectory()) {
       entryPoints = entryPoints.concat(getEntryPoints(fullPath));
-    } else if (dirent.isFile() && (dirent.name.endsWith('.ts') || dirent.name.endsWith('.js')) && !dirent.name.endsWith('.test.ts') && !dirent.name.endsWith('.test.js')) {
+    } else if (dirent.isFile() && dirent.name.endsWith('.ts') && !dirent.name.endsWith('.test.ts')) {
       entryPoints.push(fullPath);
     }
   });
