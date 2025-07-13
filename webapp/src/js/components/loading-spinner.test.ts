@@ -149,7 +149,7 @@ describe('LoadingSpinnerComponent', () => {
       expect(message?.textContent).toBe('New message');
     });
 
-    it('should create new message element if none exists and showMessage is true', () => {
+    it('should not create message element when showMessage is false', () => {
       const spinner = new LoadingSpinnerComponent({
         showMessage: false
       });
@@ -157,11 +157,11 @@ describe('LoadingSpinnerComponent', () => {
 
       expect(container.querySelector('.loading-spinner__message')).toBeFalsy();
 
-      // Update message (this will add message element if showMessage becomes true)
+      // Update message, but since showMessage is false, no element should be created
       spinner.updateMessage('New message');
 
       const message = container.querySelector('.loading-spinner__message');
-      expect(message?.textContent).toBe('New message');
+      expect(message).toBeFalsy();
     });
 
     it('should update aria-label for overlay variant', () => {

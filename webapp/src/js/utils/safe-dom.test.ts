@@ -41,12 +41,15 @@ const mockNode: MockNode = {
     nodeType: 3 // TEXT_NODE
 };
 
-const mockDocument = {
-    createElement: jest.fn().mockReturnValue(mockElement),
-    createTextNode: jest.fn().mockReturnValue(mockNode)
-};
+// Mock document methods
+const originalCreateElement = document.createElement;
+const originalCreateTextNode = document.createTextNode;
 
-Object.defineProperty(global, 'document', { value: mockDocument });
+const mockCreateElement = jest.fn().mockReturnValue(mockElement);
+const mockCreateTextNode = jest.fn().mockReturnValue(mockNode);
+
+document.createElement = mockCreateElement as any;
+document.createTextNode = mockCreateTextNode as any;
 
 // Mock Node constructor for instanceof checks
 global.Node = class Node {
@@ -63,6 +66,13 @@ describe('safe-dom utilities', () => {
         mockElement.id = '';
         mockElement.firstChild = null;
         mockElement.childNodes = [];
+        mockCreateElement.mockClear();
+        mockCreateTextNode.mockClear();
+    });
+
+    afterAll(() => {
+        document.createElement = originalCreateElement;
+        document.createTextNode = originalCreateTextNode;
     });
 
     describe('createElementSafe', () => {
@@ -73,7 +83,7 @@ describe('safe-dom utilities', () => {
                 id: 'test-id'
             });
 
-            expect(mockDocument.createElement).toHaveBeenCalledWith('div');
+            expect(mockCreateElement).toHaveBeenCalledWith('div');
             expect(element.textContent).toBe('Hello World');
             expect(element.className).toBe('test-class');
             expect(element.id).toBe('test-id');
@@ -104,8 +114,8 @@ describe('safe-dom utilities', () => {
         it('should append string children as text nodes', () => {
             createElementSafe('div', {}, ['Hello', 'World']);
 
-            expect(mockDocument.createTextNode).toHaveBeenCalledWith('Hello');
-            expect(mockDocument.createTextNode).toHaveBeenCalledWith('World');
+            expect(mockCreateTextNode).toHaveBeenCalledWith('Hello');
+            expect(mockCreateTextNode).toHaveBeenCalledWith('World');
             expect(mockElement.appendChild).toHaveBeenCalledTimes(2);
         });
 
@@ -119,7 +129,7 @@ describe('safe-dom utilities', () => {
         it('should create element with no attributes or children', () => {
             const element = createElementSafe('div');
 
-            expect(mockDocument.createElement).toHaveBeenCalledWith('div');
+            expect(mockCreateElement).toHaveBeenCalledWith('div');
             expect(element).toBe(mockElement);
         });
     });

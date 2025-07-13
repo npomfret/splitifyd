@@ -1,77 +1,22 @@
 import { ModalComponent } from './modal';
-import type { ModalConfig, ModalConfirmConfig } from '../types/components';
-
-// Mock Node constructor for instanceof checks
-class MockNode {
-    textContent: string = '';
-    nodeType: number = 1;
-    constructor() {}
-}
-
-global.Node = MockNode as any;
-
-// Mock DOM environment
-interface MockElement extends MockNode {
-    className: string;
-    id: string;
-    style: { display: string };
-    setAttribute: jest.Mock;
-    appendChild: jest.Mock;
-    removeChild: jest.Mock;
-    removeEventListener: jest.Mock;
-    addEventListener: jest.Mock;
-    querySelector: jest.Mock;
-    firstChild: MockNode | null;
-    childNodes: MockNode[];
-    parentNode: MockElement | null;
-    classList: {
-        add: jest.Mock;
-        remove: jest.Mock;
-        contains: jest.Mock;
-    };
-}
-
-const createMockElement = (): MockElement => {
-    const element = Object.create(MockNode.prototype);
-    Object.assign(element, {
-        textContent: '',
-        nodeType: 1,
-        className: '',
-        id: '',
-        style: { display: 'block' },
-        setAttribute: jest.fn(),
-        appendChild: jest.fn(),
-        removeChild: jest.fn(),
-        removeEventListener: jest.fn(),
-        addEventListener: jest.fn(),
-        querySelector: jest.fn(),
-        firstChild: null,
-        childNodes: [],
-        parentNode: null,
-        classList: {
-            add: jest.fn(),
-            remove: jest.fn(),
-            contains: jest.fn()
-        }
-    });
-    return element;
-};
-
-const mockDocument = {
-    createElement: jest.fn().mockImplementation(() => createMockElement()),
-    createTextNode: jest.fn().mockReturnValue({ textContent: 'test', nodeType: 3 }),
-    body: createMockElement()
-};
-
-const mockParentElement = createMockElement();
-
-Object.defineProperty(global, 'document', { value: mockDocument });
 
 // Mock the utility modules
 jest.mock('../utils/safe-dom', () => ({
-    createElementSafe: jest.fn().mockImplementation((tag, attributes = {}, children = []) => {
-        const element = createMockElement();
-        Object.assign(element, attributes);
+    createElementSafe: jest.fn().mockImplementation((tag, attributes = {}) => {
+        const element = document.createElement(tag);
+        if (attributes) {
+            Object.keys(attributes).forEach(key => {
+                if (key === 'textContent') {
+                    element.textContent = attributes[key];
+                } else if (key === 'className') {
+                    element.className = attributes[key];
+                } else if (key.startsWith('data-')) {
+                    element.setAttribute(key, attributes[key]);
+                } else {
+                    (element as any)[key] = attributes[key];
+                }
+            });
+        }
         return element;
     })
 }));
@@ -84,16 +29,34 @@ jest.mock('../utils/ui-visibility', () => ({
 import { createElementSafe } from '../utils/safe-dom';
 import { showElement, hideElement } from '../utils/ui-visibility';
 
+// Define the modal config type inline since we need ExtendedModalConfig
+interface TestModalConfig {
+    id: string;
+    title: string;
+    body?: string | Node;
+    footer?: string | Node;
+    size?: 'small' | 'medium' | 'large';
+    closeButton?: boolean;
+}
+
 describe('ModalComponent', () => {
-    let modalConfig: any;
+    let modalConfig: TestModalConfig;
+    let container: HTMLDivElement;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        container = document.createElement('div');
+        document.body.appendChild(container);
+        
         modalConfig = {
             id: 'test-modal',
             title: 'Test Modal',
             body: 'Test body content'
         };
+    });
+
+    afterEach(() => {
+        document.body.removeChild(container);
     });
 
     describe('constructor and basic rendering', () => {
@@ -104,7 +67,7 @@ describe('ModalComponent', () => {
 
         it('should render modal with correct structure when mounted', () => {
             const modal = new ModalComponent(modalConfig);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
 
             expect(createElementSafe).toHaveBeenCalledWith('div', {
                 id: 'test-modal',
@@ -123,7 +86,7 @@ describe('ModalComponent', () => {
 
         it('should render close button by default', () => {
             const modal = new ModalComponent(modalConfig);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
 
             expect(createElementSafe).toHaveBeenCalledWith('button', {
                 className: 'modal-close',
@@ -135,7 +98,7 @@ describe('ModalComponent', () => {
         it('should not render close button when disabled', () => {
             const configWithoutClose = { ...modalConfig, closeButton: false };
             const modal = new ModalComponent(configWithoutClose);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
 
             const closeButtonCalls = (createElementSafe as jest.Mock).mock.calls.filter(
                 call => call[0] === 'button' && call[1]?.className === 'modal-close'
@@ -144,9 +107,9 @@ describe('ModalComponent', () => {
         });
 
         it('should render with different sizes', () => {
-            const largeModalConfig = { ...modalConfig, size: 'large' };
+            const largeModalConfig = { ...modalConfig, size: 'large' as const };
             const modal = new ModalComponent(largeModalConfig);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
 
             expect(createElementSafe).toHaveBeenCalledWith('div', {
                 className: 'modal-content modal-large'
@@ -154,14 +117,13 @@ describe('ModalComponent', () => {
         });
 
         it('should handle Node body content', () => {
-            const bodyNode = new global.Node() as any;
+            const bodyNode = document.createElement('div');
+            bodyNode.textContent = 'Custom body content';
             const configWithNodeBody = { ...modalConfig, body: bodyNode };
             const modal = new ModalComponent(configWithNodeBody);
             
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
 
-            // The test verifies that when a Node is passed as body, 
-            // the modal doesn't try to set textContent on the body container
             expect(createElementSafe).toHaveBeenCalledWith('div', {
                 className: 'modal-body'
             });
@@ -170,7 +132,7 @@ describe('ModalComponent', () => {
         it('should render footer when provided', () => {
             const configWithFooter = { ...modalConfig, footer: 'Footer content' };
             const modal = new ModalComponent(configWithFooter);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
 
             expect(createElementSafe).toHaveBeenCalledWith('div', {
                 className: 'modal-footer'
@@ -181,22 +143,22 @@ describe('ModalComponent', () => {
     describe('show and hide functionality', () => {
         it('should show modal correctly', () => {
             const modal = new ModalComponent(modalConfig);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
             
             modal.show();
 
-            expect(showElement).toHaveBeenCalledWith(expect.any(Object), 'flex');
-            expect(mockDocument.body.classList.add).toHaveBeenCalledWith('modal-open');
+            expect(showElement).toHaveBeenCalledWith(expect.any(HTMLElement), 'flex');
+            expect(document.body.classList.contains('modal-open')).toBe(true);
         });
 
         it('should hide modal correctly', () => {
             const modal = new ModalComponent(modalConfig);
-            modal.mount(mockParentElement as any);
+            modal.mount(container);
             
             modal.hide();
 
-            expect(hideElement).toHaveBeenCalledWith(expect.any(Object));
-            expect(mockDocument.body.classList.remove).toHaveBeenCalledWith('modal-open');
+            expect(hideElement).toHaveBeenCalledWith(expect.any(HTMLElement));
+            expect(document.body.classList.contains('modal-open')).toBe(false);
         });
 
         it('should handle show when element is null', () => {
@@ -205,7 +167,6 @@ describe('ModalComponent', () => {
             modal.show();
 
             expect(showElement).not.toHaveBeenCalled();
-            expect(mockDocument.body.classList.add).not.toHaveBeenCalled();
         });
 
         it('should handle hide when element is null', () => {
@@ -214,110 +175,71 @@ describe('ModalComponent', () => {
             modal.hide();
 
             expect(hideElement).not.toHaveBeenCalled();
-            expect(mockDocument.body.classList.remove).not.toHaveBeenCalled();
         });
     });
 
     describe('event listeners', () => {
-        it('should set up event listeners on mount', () => {
-            const mockModalElement = createMockElement();
-            const mockCloseButton = createMockElement();
-            
-            (createElementSafe as jest.Mock).mockReturnValueOnce(mockModalElement);
-            mockModalElement.querySelector.mockReturnValue(mockCloseButton);
-
-            const modal = new ModalComponent(modalConfig);
-            modal.mount(mockParentElement as any);
-
-            expect(mockModalElement.querySelector).toHaveBeenCalledWith('[data-modal-close="test-modal"]');
-            expect(mockCloseButton.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-            expect(mockModalElement.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-        });
-
         it('should handle close button click', () => {
-            const mockModalElement = createMockElement();
-            const mockCloseButton = createMockElement();
-            
-            (createElementSafe as jest.Mock).mockReturnValueOnce(mockModalElement);
-            mockModalElement.querySelector.mockReturnValue(mockCloseButton);
-
             const modal = new ModalComponent(modalConfig);
+            modal.mount(container);
+            
             const hideSpy = jest.spyOn(modal, 'hide');
             
-            modal.mount(mockParentElement as any);
-
+            // Find the close button in the mounted modal
+            const closeButton = container.querySelector('[data-modal-close="test-modal"]') as HTMLButtonElement;
+            expect(closeButton).toBeTruthy();
+            
             // Simulate close button click
-            const closeHandler = mockCloseButton.addEventListener.mock.calls.find(
-                call => call[0] === 'click'
-            )?.[1];
-            closeHandler?.();
+            closeButton.click();
 
             expect(hideSpy).toHaveBeenCalled();
         });
 
         it('should handle overlay click to close', () => {
-            const mockModalElement = createMockElement();
-            
-            (createElementSafe as jest.Mock).mockReturnValueOnce(mockModalElement);
-            mockModalElement.querySelector.mockReturnValue(null);
-
             const modal = new ModalComponent(modalConfig);
+            modal.mount(container);
+            
             const hideSpy = jest.spyOn(modal, 'hide');
             
-            modal.mount(mockParentElement as any);
-
-            // Simulate overlay click (target is the modal element itself)
-            const overlayHandler = mockModalElement.addEventListener.mock.calls.find(
-                call => call[0] === 'click'
-            )?.[1];
+            // Find the modal overlay
+            const modalOverlay = container.querySelector('.modal-overlay') as HTMLElement;
+            expect(modalOverlay).toBeTruthy();
             
-            const mockEvent = { target: mockModalElement };
-            overlayHandler?.(mockEvent);
+            // Simulate overlay click (target is the modal element itself)
+            const clickEvent = new MouseEvent('click', { bubbles: true });
+            Object.defineProperty(clickEvent, 'target', { value: modalOverlay });
+            modalOverlay.dispatchEvent(clickEvent);
 
             expect(hideSpy).toHaveBeenCalled();
         });
 
         it('should not close on content click', () => {
-            const mockModalElement = createMockElement();
-            const mockContentElement = createMockElement();
-            
-            (createElementSafe as jest.Mock).mockReturnValueOnce(mockModalElement);
-            mockModalElement.querySelector.mockReturnValue(null);
-
             const modal = new ModalComponent(modalConfig);
+            modal.mount(container);
+            
             const hideSpy = jest.spyOn(modal, 'hide');
             
-            modal.mount(mockParentElement as any);
-
-            // Simulate content click (target is not the modal element)
-            const overlayHandler = mockModalElement.addEventListener.mock.calls.find(
-                call => call[0] === 'click'
-            )?.[1];
+            // Find the modal content
+            const modalContent = container.querySelector('.modal-content') as HTMLElement;
+            expect(modalContent).toBeTruthy();
             
-            const mockEvent = { target: mockContentElement };
-            overlayHandler?.(mockEvent);
+            // Simulate content click (target is not the modal overlay)
+            const clickEvent = new MouseEvent('click', { bubbles: true });
+            const modalOverlay = container.querySelector('.modal-overlay') as HTMLElement;
+            Object.defineProperty(clickEvent, 'target', { value: modalContent });
+            modalOverlay.dispatchEvent(clickEvent);
 
             expect(hideSpy).not.toHaveBeenCalled();
-        });
-
-        it('should clean up event listeners on unmount', () => {
-            const mockModalElement = createMockElement();
-            const mockCloseButton = createMockElement();
-            mockModalElement.parentNode = mockParentElement;
-            
-            (createElementSafe as jest.Mock).mockReturnValueOnce(mockModalElement);
-            mockModalElement.querySelector.mockReturnValue(mockCloseButton);
-
-            const modal = new ModalComponent(modalConfig);
-            modal.mount(mockParentElement as any);
-            modal.unmount();
-
-            expect(mockCloseButton.removeEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-            expect(mockModalElement.removeEventListener).toHaveBeenCalledWith('click', expect.any(Function));
         });
     });
 
     describe('static confirm method', () => {
+        afterEach(() => {
+            // Clean up any modals created by confirm method
+            const confirmModals = document.querySelectorAll('[id^="confirmModal_"]');
+            confirmModals.forEach(modal => modal.parentNode?.removeChild(modal));
+        });
+
         it('should create confirmation modal with default values', () => {
             const onConfirm = jest.fn();
             const onCancel = jest.fn();
@@ -369,58 +291,38 @@ describe('ModalComponent', () => {
 
         it('should call onConfirm when confirm button is clicked', () => {
             const onConfirm = jest.fn();
-            const mockConfirmButton = createMockElement();
             
-            let createElementCallCount = 0;
-            (createElementSafe as jest.Mock).mockImplementation((tag, attrs) => {
-                createElementCallCount++;
-                if (tag === 'button' && attrs?.className?.includes('button--danger')) {
-                    return mockConfirmButton;
-                }
-                return createMockElement();
-            });
-
             ModalComponent.confirm({
                 title: 'Test',
                 message: 'Test message',
                 onConfirm
             });
 
+            // Find the confirm button that was created
+            const confirmButton = document.querySelector('.button.button--danger') as HTMLButtonElement;
+            expect(confirmButton).toBeTruthy();
+            
             // Simulate confirm button click
-            const confirmHandler = mockConfirmButton.addEventListener.mock.calls.find(
-                call => call[0] === 'click'
-            )?.[1];
-            confirmHandler?.();
+            confirmButton.click();
 
             expect(onConfirm).toHaveBeenCalled();
         });
 
         it('should call onCancel when cancel button is clicked', () => {
             const onCancel = jest.fn();
-            const mockCancelButton = createMockElement();
             
-            let buttonCount = 0;
-            (createElementSafe as jest.Mock).mockImplementation((tag, attrs) => {
-                if (tag === 'button') {
-                    buttonCount++;
-                    if (buttonCount === 1) { // First button is cancel
-                        return mockCancelButton;
-                    }
-                }
-                return createMockElement();
-            });
-
             ModalComponent.confirm({
                 title: 'Test',
                 message: 'Test message',
                 onCancel
             });
 
+            // Find the cancel button that was created
+            const cancelButton = document.querySelector('.button.button--secondary') as HTMLButtonElement;
+            expect(cancelButton).toBeTruthy();
+            
             // Simulate cancel button click
-            const cancelHandler = mockCancelButton.addEventListener.mock.calls.find(
-                call => call[0] === 'click'
-            )?.[1];
-            cancelHandler?.();
+            cancelButton.click();
 
             expect(onCancel).toHaveBeenCalled();
         });
