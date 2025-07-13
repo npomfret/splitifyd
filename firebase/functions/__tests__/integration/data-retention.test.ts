@@ -77,10 +77,10 @@ describe.skip('Data Retention Testing', () => {
             it('should execute automatic data purging with proper logging', async () => {
                 // Test: Execute data purging process
                 try {
-                    const purgingJob = await driver.apiRequest('/retention/execute-purging', 'POST', {
+                    const purgingJob = await driver.executePurging({
                         dryRun: false,
-                        categories: ['expired_sessions', 'old_activity_logs'],
-                        confirmedBy: mainUser.uid
+                        olderThan: '30days',
+                        entityTypes: ['expired_sessions', 'old_activity_logs']
                     }, mainUser.token);
                     
                     expect(purgingJob).toHaveProperty('jobId');
@@ -94,7 +94,7 @@ describe.skip('Data Retention Testing', () => {
                     let attempts = 0;
                     while (jobStatus.status === 'running' && attempts < 10) {
                         await new Promise(resolve => setTimeout(resolve, 3000));
-                        jobStatus = await driver.apiRequest(`/retention/purging-status/${purgingJob.jobId}`, 'GET', null, mainUser.token);
+                        jobStatus = await driver.getPurgingStatus(purgingJob.jobId, mainUser.token);
                         attempts++;
                     }
                     
@@ -109,7 +109,7 @@ describe.skip('Data Retention Testing', () => {
                     expect(jobStatus.summary).toHaveProperty('errors');
                     
                     // Verify purging was logged
-                    const purgingLog = await driver.apiRequest(`/retention/purging-log/${purgingJob.jobId}`, 'GET', null, mainUser.token);
+                    const purgingLog = await driver.getPurgingLog(purgingJob.jobId, mainUser.token);
                     expect(purgingLog).toHaveProperty('jobId', purgingJob.jobId);
                     expect(purgingLog).toHaveProperty('initiatedBy', mainUser.uid);
                     expect(purgingLog).toHaveProperty('categories');
@@ -129,10 +129,10 @@ describe.skip('Data Retention Testing', () => {
             it('should support dry-run mode for purging verification', async () => {
                 // Test: Execute dry-run purging to preview what would be deleted
                 try {
-                    const dryRunResult = await driver.apiRequest('/retention/execute-purging', 'POST', {
+                    const dryRunResult = await driver.executePurging({
                         dryRun: true,
-                        categories: ['all'],
-                        previewOnly: true
+                        olderThan: '1year',
+                        entityTypes: ['all']
                     }, mainUser.token);
                     
                     expect(dryRunResult).toHaveProperty('dryRun', true);
@@ -174,7 +174,7 @@ describe.skip('Data Retention Testing', () => {
             it('should enforce retention policies for different data types', async () => {
                 // Test: Get current retention policies
                 try {
-                    const retentionPolicies = await driver.apiRequest('/retention/policies', 'GET', null, mainUser.token);
+                    const retentionPolicies = await driver.getRetentionPolicies(mainUser.token);
                     
                     expect(retentionPolicies).toHaveProperty('policies');
                     expect(Array.isArray(retentionPolicies.policies)).toBe(true);
@@ -239,12 +239,11 @@ describe.skip('Data Retention Testing', () => {
 
                 // Test: Apply legal hold
                 try {
-                    const legalHold = await driver.apiRequest('/retention/legal-hold', 'POST', {
-                        resourceType: 'expense',
-                        resourceId: legalHoldExpense.id,
+                    const legalHold = await driver.createLegalHold({
+                        entityType: 'expense',
+                        entityId: legalHoldExpense.id,
                         reason: 'Dispute investigation',
-                        requestedBy: mainUser.uid,
-                        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
+                        retainUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
                     }, mainUser.token);
                     
                     expect(legalHold).toHaveProperty('holdId');
@@ -255,16 +254,15 @@ describe.skip('Data Retention Testing', () => {
                     expect(legalHold).toHaveProperty('expiresAt');
                     
                     // Verify legal hold prevents purging
-                    const retentionStatus = await driver.apiRequest(`/retention/status/expense/${legalHoldExpense.id}`, 'GET', null, mainUser.token);
+                    const retentionStatus = await driver.getRetentionStatus('expense', legalHoldExpense.id, mainUser.token);
                     expect(retentionStatus).toHaveProperty('eligibleForPurging', false);
                     expect(retentionStatus).toHaveProperty('reason', 'legal_hold');
                     expect(retentionStatus).toHaveProperty('holdDetails');
                     expect(retentionStatus.holdDetails).toHaveProperty('holdId', legalHold.holdId);
                     
                     // Test: Release legal hold
-                    const holdRelease = await driver.apiRequest(`/retention/legal-hold/${legalHold.holdId}/release`, 'POST', {
-                        reason: 'Investigation completed',
-                        releasedBy: mainUser.uid
+                    const holdRelease = await driver.releaseLegalHold(legalHold.holdId, {
+                        reason: 'Investigation completed'
                     }, mainUser.token);
                     
                     expect(holdRelease).toHaveProperty('holdId', legalHold.holdId);
@@ -308,11 +306,9 @@ describe.skip('Data Retention Testing', () => {
 
                 // Test: Anonymize user data
                 try {
-                    const anonymizationJob = await driver.apiRequest('/retention/anonymize', 'POST', {
-                        userId: userToAnonymize.uid,
-                        preserveAnalytics: true,
-                        anonymizationLevel: 'medium', // 'low', 'medium', 'high'
-                        reason: 'Data retention policy'
+                    const anonymizationJob = await driver.anonymizeData({
+                        targetDate: new Date().toISOString(),
+                        techniques: ['hash_with_salt', 'generalization', 'value_range_bucketing']
                     }, mainUser.token);
                     
                     expect(anonymizationJob).toHaveProperty('jobId');
@@ -326,7 +322,7 @@ describe.skip('Data Retention Testing', () => {
                     let attempts = 0;
                     while (jobStatus.status !== 'completed' && attempts < 10) {
                         await new Promise(resolve => setTimeout(resolve, 2000));
-                        jobStatus = await driver.apiRequest(`/retention/anonymization-status/${anonymizationJob.jobId}`, 'GET', null, mainUser.token);
+                        jobStatus = await driver.getAnonymizationStatus(anonymizationJob.jobId, mainUser.token);
                         attempts++;
                     }
                     
@@ -354,7 +350,7 @@ describe.skip('Data Retention Testing', () => {
             it('should apply different anonymization techniques based on data sensitivity', async () => {
                 // Test: Get anonymization techniques for different data types
                 try {
-                    const anonymizationTechniques = await driver.apiRequest('/retention/anonymization-techniques', 'GET', null, mainUser.token);
+                    const anonymizationTechniques = await driver.getAnonymizationTechniques(mainUser.token);
                     
                     expect(anonymizationTechniques).toHaveProperty('techniques');
                     expect(Array.isArray(anonymizationTechniques.techniques)).toBe(true);
@@ -393,9 +389,9 @@ describe.skip('Data Retention Testing', () => {
             it('should validate anonymization effectiveness and prevent re-identification', async () => {
                 // Test: Validate anonymization results
                 try {
-                    const validationResult = await driver.apiRequest('/retention/validate-anonymization', 'POST', {
-                        anonymizationJobId: 'test-job-id',
-                        validationLevel: 'comprehensive'
+                    const validationResult = await driver.validateAnonymization({
+                        dataSet: 'test-job-id',
+                        validationRules: ['reidentification_risk', 'linkability_risk', 'inference_risk']
                     }, mainUser.token);
                     
                     expect(validationResult).toHaveProperty('jobId', 'test-job-id');
@@ -437,17 +433,12 @@ describe.skip('Data Retention Testing', () => {
             it('should support selective anonymization based on user preferences', async () => {
                 // Test: Configure selective anonymization preferences
                 try {
-                    const anonymizationPrefs = await driver.apiRequest('/retention/anonymization-preferences', 'PUT', {
-                        userId: mainUser.uid,
-                        preferences: {
-                            email: { technique: 'hash_with_salt', preserve: false },
-                            name: { technique: 'pseudonym', preserve: true },
-                            amounts: { technique: 'value_range_bucketing', preserve: true },
-                            dates: { technique: 'temporal_generalization', preserve: true },
-                            descriptions: { technique: 'keyword_redaction', preserve: false }
-                        },
-                        autoApply: true,
-                        notifyOnCompletion: true
+                    const anonymizationPrefs = await driver.setAnonymizationPreferences({
+                        email: { technique: 'hash_with_salt', preserve: false },
+                        name: { technique: 'pseudonym', preserve: true },
+                        amounts: { technique: 'value_range_bucketing', preserve: true },
+                        dates: { technique: 'temporal_generalization', preserve: true },
+                        descriptions: { technique: 'keyword_redaction', preserve: false }
                     }, mainUser.token);
                     
                     expect(anonymizationPrefs).toHaveProperty('userId', mainUser.uid);
@@ -456,7 +447,7 @@ describe.skip('Data Retention Testing', () => {
                     expect(anonymizationPrefs).toHaveProperty('version');
                     
                     // Verify preferences were saved
-                    const savedPrefs = await driver.apiRequest(`/retention/anonymization-preferences/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const savedPrefs = await driver.getAnonymizationPreferences(mainUser.uid, mainUser.token);
                     expect(savedPrefs.preferences).toHaveProperty('email');
                     expect(savedPrefs.preferences).toHaveProperty('name');
                     expect(savedPrefs.preferences).toHaveProperty('amounts');
@@ -479,14 +470,10 @@ describe.skip('Data Retention Testing', () => {
             it('should archive old data according to retention policies', async () => {
                 // Test: Execute data archival process
                 try {
-                    const archivalJob = await driver.apiRequest('/retention/archive', 'POST', {
-                        dataTypes: ['old_expenses', 'inactive_groups'],
-                        archivalCriteria: {
-                            olderThan: '2years',
-                            inactiveFor: '1year'
-                        },
-                        compressionLevel: 'high',
-                        encryptionRequired: true
+                    const archivalJob = await driver.archiveData({
+                        olderThan: '2years',
+                        includeMetadata: true,
+                        compressionLevel: 9
                     }, mainUser.token);
                     
                     expect(archivalJob).toHaveProperty('jobId');
@@ -500,7 +487,7 @@ describe.skip('Data Retention Testing', () => {
                     let attempts = 0;
                     while (jobStatus.status !== 'completed' && attempts < 8) {
                         await new Promise(resolve => setTimeout(resolve, 3000));
-                        jobStatus = await driver.apiRequest(`/retention/archive-status/${archivalJob.jobId}`, 'GET', null, mainUser.token);
+                        jobStatus = await driver.getArchiveStatus(archivalJob.jobId, mainUser.token);
                         attempts++;
                     }
                     
@@ -530,18 +517,9 @@ describe.skip('Data Retention Testing', () => {
             it('should support data restoration from archives', async () => {
                 // Test: Restore data from archive
                 try {
-                    const restorationJob = await driver.apiRequest('/retention/restore', 'POST', {
+                    const restorationJob = await driver.restoreArchive({
                         archiveId: 'test-archive-id',
-                        restoreScope: 'specific_records',
-                        filters: {
-                            userId: mainUser.uid,
-                            dateRange: {
-                                start: '2024-01-01',
-                                end: '2024-12-31'
-                            }
-                        },
-                        restoreLocation: 'primary_database',
-                        verifyIntegrity: true
+                        targetDate: '2024-12-31'
                     }, mainUser.token);
                     
                     expect(restorationJob).toHaveProperty('jobId');
@@ -551,7 +529,7 @@ describe.skip('Data Retention Testing', () => {
                     expect(restorationJob).toHaveProperty('restoreScope', 'specific_records');
                     
                     // Check restoration status
-                    const restorationStatus = await driver.apiRequest(`/retention/restore-status/${restorationJob.jobId}`, 'GET', null, mainUser.token);
+                    const restorationStatus = await driver.getRestoreStatus(restorationJob.jobId, mainUser.token);
                     expect(restorationStatus).toHaveProperty('jobId', restorationJob.jobId);
                     expect(restorationStatus).toHaveProperty('progress');
                     expect(restorationStatus).toHaveProperty('currentPhase'); // 'extracting', 'validating', 'restoring'
@@ -572,9 +550,8 @@ describe.skip('Data Retention Testing', () => {
             it('should maintain archive integrity and provide audit trails', async () => {
                 // Test: Verify archive integrity
                 try {
-                    const integrityCheck = await driver.apiRequest('/retention/verify-archive-integrity', 'POST', {
-                        archiveId: 'test-archive-id',
-                        verificationLevel: 'comprehensive'
+                    const integrityCheck = await driver.verifyArchiveIntegrity({
+                        archiveId: 'test-archive-id'
                     }, mainUser.token);
                     
                     expect(integrityCheck).toHaveProperty('archiveId', 'test-archive-id');
@@ -585,7 +562,7 @@ describe.skip('Data Retention Testing', () => {
                     expect(integrityCheck).toHaveProperty('metadataVerified');
                     
                     // Get archive audit trail
-                    const auditTrail = await driver.apiRequest(`/retention/archive-audit-trail/test-archive-id`, 'GET', null, mainUser.token);
+                    const auditTrail = await driver.getArchiveAuditTrail('test-archive-id', mainUser.token);
                     expect(auditTrail).toHaveProperty('archiveId', 'test-archive-id');
                     expect(auditTrail).toHaveProperty('events');
                     expect(Array.isArray(auditTrail.events)).toBe(true);
@@ -614,13 +591,12 @@ describe.skip('Data Retention Testing', () => {
             it('should generate compliance reports for data retention', async () => {
                 // Test: Generate retention compliance report
                 try {
-                    const complianceReport = await driver.apiRequest('/retention/compliance-report', 'POST', {
+                    const complianceReport = await driver.generateComplianceReport({
                         reportType: 'comprehensive',
-                        timeframe: {
+                        dateRange: {
                             start: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year ago
                             end: new Date().toISOString()
-                        },
-                        includeDetails: true
+                        }
                     }, mainUser.token);
                     
                     expect(complianceReport).toHaveProperty('reportId');
@@ -657,7 +633,7 @@ describe.skip('Data Retention Testing', () => {
             it('should monitor and alert on retention policy violations', async () => {
                 // Test: Check for retention policy violations
                 try {
-                    const violations = await driver.apiRequest('/retention/policy-violations', 'GET', null, mainUser.token);
+                    const violations = await driver.getPolicyViolations(mainUser.token);
                     
                     expect(violations).toHaveProperty('violations');
                     expect(Array.isArray(violations.violations)).toBe(true);
@@ -696,19 +672,12 @@ describe.skip('Data Retention Testing', () => {
             it('should support custom retention policies for specific use cases', async () => {
                 // Test: Create custom retention policy
                 try {
-                    const customPolicy = await driver.apiRequest('/retention/custom-policy', 'POST', {
+                    const customPolicy = await driver.createCustomPolicy({
                         name: 'Financial Records Extended Retention',
-                        description: 'Extended retention for financial dispute resolution',
-                        dataTypes: ['expenses', 'balances'],
-                        criteria: {
-                            category: 'business',
-                            amountThreshold: 1000
-                        },
+                        entityType: 'expenses',
                         retentionPeriod: 7,
                         retentionUnit: 'years',
-                        action: 'archive_then_anonymize',
-                        legalBasis: 'legal_obligation',
-                        createdBy: mainUser.uid
+                        autoDelete: false
                     }, mainUser.token);
                     
                     expect(customPolicy).toHaveProperty('policyId');
@@ -718,9 +687,8 @@ describe.skip('Data Retention Testing', () => {
                     expect(customPolicy).toHaveProperty('version', 1);
                     
                     // Test: Activate custom policy
-                    const activatedPolicy = await driver.apiRequest(`/retention/custom-policy/${customPolicy.policyId}/activate`, 'POST', {
-                        effectiveDate: new Date().toISOString(),
-                        approvedBy: mainUser.uid
+                    const activatedPolicy = await driver.activateCustomPolicy(customPolicy.policyId, {
+                        effectiveDate: new Date().toISOString()
                     }, mainUser.token);
                     
                     expect(activatedPolicy).toHaveProperty('status', 'active');
@@ -728,7 +696,7 @@ describe.skip('Data Retention Testing', () => {
                     expect(activatedPolicy).toHaveProperty('approvedBy', mainUser.uid);
                     
                     // Verify policy is applied
-                    const activePolicies = await driver.apiRequest('/retention/active-policies', 'GET', null, mainUser.token);
+                    const activePolicies = await driver.getActivePolicies(mainUser.token);
                     const ourPolicy = activePolicies.policies.find((p: any) => p.policyId === customPolicy.policyId);
                     expect(ourPolicy).toBeDefined();
                     expect(ourPolicy.status).toBe('active');

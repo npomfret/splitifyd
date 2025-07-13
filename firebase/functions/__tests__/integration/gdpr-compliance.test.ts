@@ -170,9 +170,9 @@ describe('GDPR Compliance Testing', () => {
                 
                 for (const format of formats) {
                     try {
-                        const dataExport = await driver.apiRequest('/gdpr/export-data', 'POST', {
+                        const dataExport = await driver.exportUserData({
                             userId: mainUser.uid,
-                            format: format
+                            format: format as 'json' | 'csv'
                         }, mainUser.token);
                         
                         expect(dataExport).toHaveProperty('exportId');
@@ -342,10 +342,10 @@ describe('GDPR Compliance Testing', () => {
 
                 // Test: Delete user with shared data
                 try {
-                    const deletionRequest = await driver.apiRequest('/gdpr/delete-data', 'POST', {
+                    const deletionRequest = await driver.deleteUserData({
                         userId: sharedResourceUser.uid,
-                        confirmDeletion: true,
-                        handleSharedData: 'anonymize' // Options: 'anonymize', 'transfer', 'delete'
+                        deleteType: 'hard',
+                        reason: 'User requested account deletion with shared data anonymization'
                     }, sharedResourceUser.token);
                     
                     expect(deletionRequest).toHaveProperty('deletionId');
@@ -382,9 +382,8 @@ describe('GDPR Compliance Testing', () => {
             it('should provide deletion verification and compliance report', async () => {
                 // Test: Get deletion verification report
                 try {
-                    const deletionReport = await driver.apiRequest('/gdpr/deletion-verification', 'POST', {
-                        userId: mainUser.uid, // Admin checking deletion
-                        targetUserId: 'deleted_user_id_placeholder'
+                    const deletionReport = await driver.verifyDeletion({
+                        deletionId: 'deleted_user_id_placeholder'
                     }, mainUser.token);
                     
                     expect(deletionReport).toHaveProperty('verificationId');
@@ -420,7 +419,7 @@ describe('GDPR Compliance Testing', () => {
             it('should track and manage user consent for data processing', async () => {
                 // Test: Check current consent status
                 try {
-                    const consentStatus = await driver.apiRequest(`/gdpr/consent/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const consentStatus = await driver.getUserConsent(mainUser.uid, mainUser.token);
                     
                     expect(consentStatus).toHaveProperty('userId', mainUser.uid);
                     expect(consentStatus).toHaveProperty('consentRecords');
@@ -451,25 +450,12 @@ describe('GDPR Compliance Testing', () => {
             it('should allow users to update their consent preferences', async () => {
                 // Test: Update consent preferences
                 try {
-                    const consentUpdate = await driver.apiRequest('/gdpr/consent', 'PUT', {
+                    const consentUpdate = await driver.updateUserConsent({
                         userId: mainUser.uid,
-                        consents: [
-                            {
-                                purpose: 'data_processing',
-                                granted: true,
-                                legalBasis: 'contract'
-                            },
-                            {
-                                purpose: 'analytics',
-                                granted: false,
-                                legalBasis: 'legitimate_interest'
-                            },
-                            {
-                                purpose: 'marketing',
-                                granted: true,
-                                legalBasis: 'consent'
-                            }
-                        ]
+                        dataProcessing: true,
+                        marketing: true,
+                        analytics: false,
+                        thirdParty: false
                     }, mainUser.token);
                     
                     expect(consentUpdate).toHaveProperty('updated');
@@ -477,7 +463,7 @@ describe('GDPR Compliance Testing', () => {
                     expect(consentUpdate).toHaveProperty('version');
                     
                     // Verify consent was updated
-                    const updatedConsent = await driver.apiRequest(`/gdpr/consent/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const updatedConsent = await driver.getUserConsent(mainUser.uid, mainUser.token);
                     
                     const dataProcessingConsent = updatedConsent.consentRecords.find((c: any) => c.purpose === 'data_processing');
                     const analyticsConsent = updatedConsent.consentRecords.find((c: any) => c.purpose === 'analytics');
@@ -501,7 +487,7 @@ describe('GDPR Compliance Testing', () => {
             it('should maintain consent history for audit purposes', async () => {
                 // Test: Get consent history
                 try {
-                    const consentHistory = await driver.apiRequest(`/gdpr/consent/${mainUser.uid}/history`, 'GET', null, mainUser.token);
+                    const consentHistory = await driver.getConsentHistory(mainUser.uid, mainUser.token);
                     
                     expect(consentHistory).toHaveProperty('userId', mainUser.uid);
                     expect(consentHistory).toHaveProperty('history');
@@ -541,9 +527,8 @@ describe('GDPR Compliance Testing', () => {
             it('should handle consent withdrawal and data processing suspension', async () => {
                 // Test: Withdraw consent for data processing
                 try {
-                    const consentWithdrawal = await driver.apiRequest('/gdpr/consent/withdraw', 'POST', {
+                    const consentWithdrawal = await driver.withdrawConsent({
                         userId: mainUser.uid,
-                        purpose: 'analytics',
                         reason: 'User requested withdrawal'
                     }, mainUser.token);
                     
@@ -554,7 +539,7 @@ describe('GDPR Compliance Testing', () => {
                     expect(consentWithdrawal).toHaveProperty('impactDescription');
                     
                     // Verify data processing is suspended for withdrawn consent
-                    const processingStatus = await driver.apiRequest(`/gdpr/processing-status/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const processingStatus = await driver.getProcessingStatus(mainUser.uid, mainUser.token);
                     
                     expect(processingStatus).toHaveProperty('userId', mainUser.uid);
                     expect(processingStatus).toHaveProperty('activeProcessing');
@@ -580,7 +565,7 @@ describe('GDPR Compliance Testing', () => {
             it('should provide information about data processing activities', async () => {
                 // Test: Get data processing information
                 try {
-                    const processingInfo = await driver.apiRequest(`/gdpr/processing-info/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const processingInfo = await driver.getProcessingInfo(mainUser.uid, mainUser.token);
                     
                     expect(processingInfo).toHaveProperty('userId', mainUser.uid);
                     expect(processingInfo).toHaveProperty('dataTypes');
@@ -623,7 +608,7 @@ describe('GDPR Compliance Testing', () => {
             it('should provide privacy policy and data protection information', async () => {
                 // Test: Get privacy policy information
                 try {
-                    const privacyInfo = await driver.apiRequest('/gdpr/privacy-policy', 'GET', null, mainUser.token);
+                    const privacyInfo = await driver.getPrivacyPolicy(mainUser.token);
                     
                     expect(privacyInfo).toHaveProperty('version');
                     expect(privacyInfo).toHaveProperty('lastUpdated');

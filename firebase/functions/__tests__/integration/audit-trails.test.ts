@@ -103,7 +103,7 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Check audit log for update
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/expense/${initialExpense.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getExpenseAuditLogs(initialExpense.id, mainUser.token);
                     
                     const updateLog = auditLogs.logs.find((log: any) => log.action === 'UPDATE');
                     expect(updateLog).toBeDefined();
@@ -145,7 +145,7 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Check audit log for deletion
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/expense/${expenseToDelete.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getExpenseAuditLogs(expenseToDelete.id, mainUser.token);
                     
                     const deleteLog = auditLogs.logs.find((log: any) => log.action === 'DELETE');
                     expect(deleteLog).toBeDefined();
@@ -180,7 +180,7 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Check audit log for group membership change
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/group/${testGroup.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getGroupAuditLogs(testGroup.id, {}, mainUser.token);
                     
                     const membershipLog = auditLogs.logs.find((log: any) => 
                         log.action === 'MEMBER_ADDED' && log.details?.newMember?.uid === newUser.uid
@@ -220,14 +220,14 @@ describe('Audit Trails Testing', () => {
                 // Test: Try to modify audit log entries (should fail)
                 try {
                     // Attempt to get audit logs first
-                    const auditLogs = await driver.apiRequest(`/audit/expense/${testExpense.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getExpenseAuditLogs(testExpense.id, mainUser.token);
                     
                     if (auditLogs.logs && auditLogs.logs.length > 0) {
                         const firstLogId = auditLogs.logs[0].id;
                         
                         // Try to modify the audit log entry
                         await expect(
-                            driver.apiRequest(`/audit/logs/${firstLogId}`, 'PUT', {
+                            driver.updateAuditLog(firstLogId, {
                                 action: 'MODIFIED_ACTION',
                                 details: { tampered: true }
                             }, mainUser.token)
@@ -259,14 +259,14 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Try to delete audit log entries (should fail)
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/expense/${testExpense.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getExpenseAuditLogs(testExpense.id, mainUser.token);
                     
                     if (auditLogs.logs && auditLogs.logs.length > 0) {
                         const firstLogId = auditLogs.logs[0].id;
                         
                         // Try to delete the audit log entry
                         await expect(
-                            driver.apiRequest(`/audit/logs/${firstLogId}`, 'DELETE', null, mainUser.token)
+                            driver.deleteAuditLog(firstLogId, mainUser.token)
                         ).rejects.toThrow(/forbidden|immutable|cannot.*delete|405/i);
                     }
                 } catch (error) {
@@ -295,7 +295,7 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Verify audit log entries have integrity protection
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/expense/${testExpense.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getExpenseAuditLogs(testExpense.id, mainUser.token);
                     
                     if (auditLogs.logs && auditLogs.logs.length > 0) {
                         const logEntry = auditLogs.logs[0];
@@ -350,8 +350,8 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Query audit logs by user
                 try {
-                    const mainUserAuditLogs = await driver.apiRequest(`/audit/user/${mainUser.uid}`, 'GET', null, mainUser.token);
-                    const secondUserAuditLogs = await driver.apiRequest(`/audit/user/${secondUser.uid}`, 'GET', null, secondUser.token);
+                    const mainUserAuditLogs = await driver.getUserAuditLogs(mainUser.uid, mainUser.token);
+                    const secondUserAuditLogs = await driver.getUserAuditLogs(secondUser.uid, secondUser.token);
                     
                     expect(mainUserAuditLogs).toHaveProperty('logs');
                     expect(secondUserAuditLogs).toHaveProperty('logs');
@@ -394,7 +394,11 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Query audit logs by date range
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/range?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&groupId=${testGroup.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getAuditLogsByDateRange({
+                        startDate: startDate.toISOString(),
+                        endDate: endDate.toISOString(),
+                        groupId: testGroup.id
+                    }, mainUser.token);
                     
                     expect(auditLogs).toHaveProperty('logs');
                     expect(Array.isArray(auditLogs.logs)).toBe(true);
@@ -434,9 +438,9 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Query audit logs by action type
                 try {
-                    const createLogs = await driver.apiRequest(`/audit/actions/CREATE?groupId=${testGroup.id}`, 'GET', null, mainUser.token);
-                    const updateLogs = await driver.apiRequest(`/audit/actions/UPDATE?groupId=${testGroup.id}`, 'GET', null, mainUser.token);
-                    const deleteLogs = await driver.apiRequest(`/audit/actions/DELETE?groupId=${testGroup.id}`, 'GET', null, mainUser.token);
+                    const createLogs = await driver.getAuditLogsByAction('CREATE', testGroup.id, mainUser.token);
+                    const updateLogs = await driver.getAuditLogsByAction('UPDATE', testGroup.id, mainUser.token);
+                    const deleteLogs = await driver.getAuditLogsByAction('DELETE', testGroup.id, mainUser.token);
                     
                     // Verify action type filtering
                     createLogs.logs.forEach((log: any) => {
@@ -464,7 +468,7 @@ describe('Audit Trails Testing', () => {
             it('should support pagination for large audit log datasets', async () => {
                 // Test: Check pagination support in audit log queries
                 try {
-                    const firstPage = await driver.apiRequest(`/audit/group/${testGroup.id}?limit=5&offset=0`, 'GET', null, mainUser.token);
+                    const firstPage = await driver.getGroupAuditLogs(testGroup.id, { limit: 5, offset: 0 }, mainUser.token);
                     
                     expect(firstPage).toHaveProperty('logs');
                     expect(firstPage).toHaveProperty('pagination');
@@ -474,7 +478,7 @@ describe('Audit Trails Testing', () => {
                     expect(firstPage.pagination).toHaveProperty('hasMore');
                     
                     if (firstPage.pagination.hasMore) {
-                        const secondPage = await driver.apiRequest(`/audit/group/${testGroup.id}?limit=5&offset=5`, 'GET', null, mainUser.token);
+                        const secondPage = await driver.getGroupAuditLogs(testGroup.id, { limit: 5, offset: 5 }, mainUser.token);
                         
                         expect(secondPage).toHaveProperty('logs');
                         expect(secondPage.pagination).toHaveProperty('offset', 5);

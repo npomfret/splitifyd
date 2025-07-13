@@ -1,7 +1,7 @@
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface User {
   uid: string;
@@ -62,115 +62,6 @@ interface BalanceResponse extends ApiResponse {
   lastUpdated?: string;
 }
 
-// GDPR-related interfaces
-interface GdprExportRequest {
-  userId?: string;
-  format?: 'json' | 'csv';
-  includeDeleted?: boolean;
-}
-
-interface GdprExportResponse {
-  exportId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  estimatedCompletion?: string;
-}
-
-interface GdprDeletionRequest {
-  userId?: string;
-  deleteType: 'soft' | 'hard';
-  reason?: string;
-}
-
-interface GdprDeletionResponse {
-  deletionId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  scheduledDate?: string;
-}
-
-interface GdprConsentUpdate {
-  userId: string;
-  dataProcessing: boolean;
-  marketing: boolean;
-  analytics: boolean;
-  thirdParty: boolean;
-}
-
-// Audit trail interfaces
-interface AuditLogEntry {
-  id: string;
-  entityType: string;
-  entityId: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE';
-  userId: string;
-  timestamp: string;
-  changes?: Record<string, any>;
-  metadata?: Record<string, any>;
-}
-
-interface AuditQueryOptions {
-  startDate?: string;
-  endDate?: string;
-  groupId?: string;
-  action?: 'CREATE' | 'UPDATE' | 'DELETE';
-  limit?: number;
-  offset?: number;
-}
-
-// Data retention interfaces
-interface RetentionPurgingRequest {
-  dryRun?: boolean;
-  olderThan?: string;
-  entityTypes?: string[];
-  filters?: Record<string, any>;
-}
-
-interface RetentionJobResponse {
-  jobId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  progress?: number;
-  estimatedCompletion?: string;
-}
-
-interface RetentionLegalHoldRequest {
-  entityType: string;
-  entityId: string;
-  reason: string;
-  retainUntil?: string;
-}
-
-interface RetentionArchiveRequest {
-  olderThan: string;
-  includeMetadata?: boolean;
-  compressionLevel?: number;
-}
-
-interface RetentionPolicyRequest {
-  name: string;
-  entityType: string;
-  retentionPeriod: number;
-  retentionUnit: 'days' | 'months' | 'years';
-  autoDelete: boolean;
-}
-
-// User activity tracking interfaces
-interface ActivityLogEntry {
-  id: string;
-  userId: string;
-  action: string;
-  timestamp: string;
-  ipAddress?: string;
-  userAgent?: string;
-  metadata?: Record<string, any>;
-}
-
-interface SecurityEvent {
-  id: string;
-  userId: string;
-  eventType: 'failed_login' | 'suspicious_activity' | 'account_locked';
-  timestamp: string;
-  ipAddress?: string;
-  details?: Record<string, any>;
-}
 
 export class ApiDriver {
   private readonly baseUrl: string;
@@ -541,6 +432,34 @@ export class ApiDriver {
     return await this.apiRequest(`/getDocument?id=${documentId}`, 'GET', null, token);
   }
 
+  async createUserDocument(data: any, token: string): Promise<any> {
+    return await this.apiRequest('/createUserDocument', 'POST', data, token);
+  }
+
+  async listUserExpenses(token: string, params?: Record<string, any>): Promise<{ expenses: Expense[] }> {
+    let endpoint = '/expenses/user';
+    if (params) {
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      });
+      if (queryParams.toString()) {
+        endpoint += '?' + queryParams.toString();
+      }
+    }
+    return await this.apiRequest(endpoint, 'GET', null, token);
+  }
+
+  async updateDocument(documentId: string, data: any, token: string): Promise<void> {
+    return await this.apiRequest(`/updateDocument?id=${documentId}`, 'PUT', data, token);
+  }
+
+  async register(userData: { email: string; password: string; displayName: string }): Promise<any> {
+    return await this.apiRequest('/register', 'POST', userData);
+  }
+
   async expectRequestToFail(endpoint: string, method: string, body: any, token: string, expectedStatus: number): Promise<void> {
     try {
       await this.apiRequest(endpoint, method, body, token);
@@ -553,12 +472,12 @@ export class ApiDriver {
     }
   }
 
-  // GDPR-related methods
-  async exportUserData(request: GdprExportRequest, token: string): Promise<GdprExportResponse> {
+  // GDPR-related methods (mostly unimplemented - documented for future use)
+  async exportUserData(request: any, token: string): Promise<any> {
     return await this.apiRequest('/gdpr/export-data', 'POST', request, token);
   }
 
-  async getExportStatus(exportId: string, token: string): Promise<GdprExportResponse> {
+  async getExportStatus(exportId: string, token: string): Promise<any> {
     return await this.apiRequest(`/gdpr/export-status/${exportId}`, 'GET', null, token);
   }
 
@@ -570,11 +489,11 @@ export class ApiDriver {
     return await this.apiRequest('/gdpr/data-about-me', 'POST', request, token);
   }
 
-  async deleteUserData(request: GdprDeletionRequest, token: string): Promise<GdprDeletionResponse> {
+  async deleteUserData(request: any, token: string): Promise<any> {
     return await this.apiRequest('/gdpr/delete-data', 'POST', request, token);
   }
 
-  async getDeletionStatus(deletionId: string, token: string): Promise<GdprDeletionResponse> {
+  async getDeletionStatus(deletionId: string, token: string): Promise<any> {
     return await this.apiRequest(`/gdpr/deletion-status/${deletionId}`, 'GET', null, token);
   }
 
@@ -586,7 +505,7 @@ export class ApiDriver {
     return await this.apiRequest(`/gdpr/consent/${userId}`, 'GET', null, token);
   }
 
-  async updateUserConsent(consent: GdprConsentUpdate, token: string): Promise<any> {
+  async updateUserConsent(consent: any, token: string): Promise<any> {
     return await this.apiRequest('/gdpr/consent', 'PUT', consent, token);
   }
 
@@ -610,12 +529,12 @@ export class ApiDriver {
     return await this.apiRequest('/gdpr/privacy-policy', 'GET', null, token);
   }
 
-  // Audit trail methods
-  async getExpenseAuditLogs(expenseId: string, token: string): Promise<{ logs: AuditLogEntry[] }> {
+  // Audit trail methods (mostly unimplemented - documented for future use)
+  async getExpenseAuditLogs(expenseId: string, token: string): Promise<any> {
     return await this.apiRequest(`/audit/expense/${expenseId}`, 'GET', null, token);
   }
 
-  async getGroupAuditLogs(groupId: string, options: AuditQueryOptions = {}, token: string): Promise<{ logs: AuditLogEntry[] }> {
+  async getGroupAuditLogs(groupId: string, options: any = {}, token: string): Promise<any> {
     const queryParams = new URLSearchParams();
     if (options.limit) queryParams.append('limit', options.limit.toString());
     if (options.offset) queryParams.append('offset', options.offset.toString());
@@ -624,7 +543,7 @@ export class ApiDriver {
     return await this.apiRequest(endpoint, 'GET', null, token);
   }
 
-  async getUserAuditLogs(userId: string, token: string): Promise<{ logs: AuditLogEntry[] }> {
+  async getUserAuditLogs(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/audit/user/${userId}`, 'GET', null, token);
   }
 
@@ -636,7 +555,7 @@ export class ApiDriver {
     return await this.apiRequest(`/audit/logs/${logId}`, 'DELETE', null, token);
   }
 
-  async getAuditLogsByDateRange(options: AuditQueryOptions, token: string): Promise<{ logs: AuditLogEntry[] }> {
+  async getAuditLogsByDateRange(options: any, token: string): Promise<any> {
     const queryParams = new URLSearchParams();
     if (options.startDate) queryParams.append('startDate', options.startDate);
     if (options.endDate) queryParams.append('endDate', options.endDate);
@@ -645,7 +564,7 @@ export class ApiDriver {
     return await this.apiRequest(`/audit/range?${queryParams.toString()}`, 'GET', null, token);
   }
 
-  async getAuditLogsByAction(action: 'CREATE' | 'UPDATE' | 'DELETE', groupId?: string, token?: string): Promise<{ logs: AuditLogEntry[] }> {
+  async getAuditLogsByAction(action: 'CREATE' | 'UPDATE' | 'DELETE', groupId?: string, token?: string): Promise<any> {
     const queryParams = new URLSearchParams();
     if (groupId) queryParams.append('groupId', groupId);
     
@@ -653,16 +572,16 @@ export class ApiDriver {
     return await this.apiRequest(endpoint, 'GET', null, token);
   }
 
-  // Data retention methods
+  // Data retention methods (mostly unimplemented - documented for future use)
   async getEligibleDataForPurging(token: string): Promise<any> {
     return await this.apiRequest('/retention/eligible-for-purging', 'GET', null, token);
   }
 
-  async executePurging(request: RetentionPurgingRequest, token: string): Promise<RetentionJobResponse> {
+  async executePurging(request: any, token: string): Promise<any> {
     return await this.apiRequest('/retention/execute-purging', 'POST', request, token);
   }
 
-  async getPurgingStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+  async getPurgingStatus(jobId: string, token: string): Promise<any> {
     return await this.apiRequest(`/retention/purging-status/${jobId}`, 'GET', null, token);
   }
 
@@ -674,7 +593,7 @@ export class ApiDriver {
     return await this.apiRequest('/retention/policies', 'GET', null, token);
   }
 
-  async createLegalHold(request: RetentionLegalHoldRequest, token: string): Promise<any> {
+  async createLegalHold(request: any, token: string): Promise<any> {
     return await this.apiRequest('/retention/legal-hold', 'POST', request, token);
   }
 
@@ -686,11 +605,11 @@ export class ApiDriver {
     return await this.apiRequest(`/retention/legal-hold/${holdId}/release`, 'POST', request, token);
   }
 
-  async anonymizeData(request: { targetDate: string; techniques: string[] }, token: string): Promise<RetentionJobResponse> {
+  async anonymizeData(request: { targetDate: string; techniques: string[] }, token: string): Promise<any> {
     return await this.apiRequest('/retention/anonymize', 'POST', request, token);
   }
 
-  async getAnonymizationStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+  async getAnonymizationStatus(jobId: string, token: string): Promise<any> {
     return await this.apiRequest(`/retention/anonymization-status/${jobId}`, 'GET', null, token);
   }
 
@@ -710,19 +629,19 @@ export class ApiDriver {
     return await this.apiRequest(`/retention/anonymization-preferences/${userId}`, 'GET', null, token);
   }
 
-  async archiveData(request: RetentionArchiveRequest, token: string): Promise<RetentionJobResponse> {
+  async archiveData(request: any, token: string): Promise<any> {
     return await this.apiRequest('/retention/archive', 'POST', request, token);
   }
 
-  async getArchiveStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+  async getArchiveStatus(jobId: string, token: string): Promise<any> {
     return await this.apiRequest(`/retention/archive-status/${jobId}`, 'GET', null, token);
   }
 
-  async restoreArchive(request: { archiveId: string; targetDate?: string }, token: string): Promise<RetentionJobResponse> {
+  async restoreArchive(request: { archiveId: string; targetDate?: string }, token: string): Promise<any> {
     return await this.apiRequest('/retention/restore', 'POST', request, token);
   }
 
-  async getRestoreStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+  async getRestoreStatus(jobId: string, token: string): Promise<any> {
     return await this.apiRequest(`/retention/restore-status/${jobId}`, 'GET', null, token);
   }
 
@@ -742,7 +661,7 @@ export class ApiDriver {
     return await this.apiRequest('/retention/policy-violations', 'GET', null, token);
   }
 
-  async createCustomPolicy(policy: RetentionPolicyRequest, token: string): Promise<any> {
+  async createCustomPolicy(policy: any, token: string): Promise<any> {
     return await this.apiRequest('/retention/custom-policy', 'POST', policy, token);
   }
 
@@ -754,24 +673,24 @@ export class ApiDriver {
     return await this.apiRequest('/retention/active-policies', 'GET', null, token);
   }
 
-  // User activity tracking methods
-  async getUserActivityLogs(userId: string, token: string): Promise<{ logs: ActivityLogEntry[] }> {
+  // User activity tracking methods (mostly unimplemented - documented for future use)
+  async getUserActivityLogs(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/activity/user/${userId}`, 'GET', null, token);
   }
 
-  async getLoginHistory(userId: string, token: string): Promise<{ logs: ActivityLogEntry[] }> {
+  async getLoginHistory(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/activity/login-history/${userId}`, 'GET', null, token);
   }
 
-  async getFailedLogins(userId: string, token: string): Promise<{ events: SecurityEvent[] }> {
+  async getFailedLogins(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/activity/failed-logins/${userId}`, 'GET', null, token);
   }
 
-  async getSuspiciousActivity(userId: string, token: string): Promise<{ events: SecurityEvent[] }> {
+  async getSuspiciousActivity(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/activity/suspicious/${userId}`, 'GET', null, token);
   }
 
-  async getSecurityEvents(userId: string, token: string): Promise<{ events: SecurityEvent[] }> {
+  async getSecurityEvents(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/activity/security-events/${userId}`, 'GET', null, token);
   }
 
@@ -783,7 +702,7 @@ export class ApiDriver {
     return await this.apiRequest(`/activity/account/${userId}`, 'GET', null, token);
   }
 
-  async getDataAccessLogs(userId: string, token: string): Promise<{ logs: ActivityLogEntry[] }> {
+  async getDataAccessLogs(userId: string, token: string): Promise<any> {
     return await this.apiRequest(`/activity/data-access/${userId}`, 'GET', null, token);
   }
 

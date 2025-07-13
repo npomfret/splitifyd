@@ -34,7 +34,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const invalidToken = 'invalid-token-12345';
                 
                 await expect(
-                    driver.apiRequest('/expenses', 'POST', {
+                    driver.createExpense({
                         groupId: testGroup.id,
                         description: 'Test with invalid token',
                         amount: 100,
@@ -52,7 +52,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
                 
                 await expect(
-                    driver.apiRequest('/expenses', 'POST', {
+                    driver.createExpense({
                         groupId: testGroup.id,
                         description: 'Test with expired token',
                         amount: 100,
@@ -141,11 +141,11 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle malformed request payloads gracefully', async () => {
                 // Test with completely invalid JSON structure
                 await expect(
-                    driver.apiRequest('/expenses', 'POST', {
+                    driver.createExpense({
                         // Missing required fields
                         description: 'Malformed request',
                         invalidField: 'should not exist'
-                    }, mainUser.token)
+                    } as any, mainUser.token)
                 ).rejects.toThrow(/400|bad.*request|validation|required|invalid/i);
             });
 

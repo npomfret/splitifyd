@@ -48,12 +48,12 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check if registration activity is logged
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${newUser.uid}`, 'GET', null, newUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(newUser.uid, newUser.token);
                     
-                    expect(activityLogs).toHaveProperty('activities');
-                    expect(Array.isArray(activityLogs.activities)).toBe(true);
+                    expect(activityLogs).toHaveProperty('logs');
+                    expect(Array.isArray(activityLogs.logs)).toBe(true);
                     
-                    const registrationActivity = activityLogs.activities.find((activity: any) => 
+                    const registrationActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'USER_REGISTERED'
                     );
                     
@@ -85,9 +85,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check login activity logging
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${loginTestUser.uid}`, 'GET', null, loginTestUser.token);
+                    const activityLogs = await driver.getLoginHistory(loginTestUser.uid, loginTestUser.token);
                     
-                    const loginActivity = activityLogs.activities.find((activity: any) => 
+                    const loginActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'USER_LOGIN'
                     );
                     
@@ -125,11 +125,11 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Check if failed login attempt is logged
                 try {
-                    const securityLogs = await driver.apiRequest(`/activity/security/failed-logins`, 'GET', null, mainUser.token);
+                    const securityLogs = await driver.getFailedLogins(mainUser.uid, mainUser.token);
                     
-                    expect(securityLogs).toHaveProperty('activities');
+                    expect(securityLogs).toHaveProperty('events');
                     
-                    const failedLogin = securityLogs.activities.find((activity: any) => 
+                    const failedLogin = securityLogs.events.find((activity: any) => 
                         activity.details?.email === mainUser.email
                     );
                     
@@ -157,12 +157,13 @@ describe.skip('User Activity Tracking Testing', () => {
                 // Test: Check logout activity (simulated)
                 try {
                     // Simulate logout by calling logout endpoint if it exists
+                    // Note: logout endpoint not implemented in typed methods yet
                     await driver.apiRequest('/auth/logout', 'POST', {}, mainUser.token);
                     
                     // Check logout activity
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    const logoutActivity = activityLogs.activities.find((activity: any) => 
+                    const logoutActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'USER_LOGOUT'
                     );
                     
@@ -195,9 +196,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check group creation activity
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    const groupCreationActivity = activityLogs.activities.find((activity: any) => 
+                    const groupCreationActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'GROUP_CREATED' && 
                         activity.details?.groupId === activityTestGroup.id
                     );
@@ -235,9 +236,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check large expense creation activity
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    const largeExpenseActivity = activityLogs.activities.find((activity: any) => 
+                    const largeExpenseActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'LARGE_EXPENSE_CREATED' && 
                         activity.details?.expenseId === largeExpense.id
                     );
@@ -267,9 +268,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check share link generation activity
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    const shareLinkActivity = activityLogs.activities.find((activity: any) => 
+                    const shareLinkActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'SHARE_LINK_GENERATED' && 
                         activity.details?.linkId === shareLink.linkId
                     );
@@ -296,15 +297,16 @@ describe.skip('User Activity Tracking Testing', () => {
                 // Test: Simulate data export request
                 try {
                     // Try to export user data
+                    // Note: users export endpoint not implemented in typed methods yet
                     await driver.apiRequest('/users/export-data', 'POST', {
                         userId: mainUser.uid,
                         format: 'json'
                     }, mainUser.token);
                     
                     // Check data export activity
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    const exportActivity = activityLogs.activities.find((activity: any) => 
+                    const exportActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'DATA_EXPORT_REQUESTED'
                     );
                     
@@ -348,9 +350,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check bulk operation activity
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    const bulkActivity = activityLogs.activities.find((activity: any) => 
+                    const bulkActivity = activityLogs.logs.find((activity: any) => 
                         activity.action === 'BULK_EXPENSES_CREATED'
                     );
                     
@@ -378,14 +380,14 @@ describe.skip('User Activity Tracking Testing', () => {
             it('should log suspicious activity patterns', async () => {
                 // Test: Check suspicious activity detection
                 try {
-                    const securityLogs = await driver.apiRequest('/activity/security/suspicious', 'GET', null, mainUser.token);
+                    const securityLogs = await driver.getSuspiciousActivity(mainUser.uid, mainUser.token);
                     
-                    expect(securityLogs).toHaveProperty('activities');
-                    expect(Array.isArray(securityLogs.activities)).toBe(true);
+                    expect(securityLogs).toHaveProperty('events');
+                    expect(Array.isArray(securityLogs.events)).toBe(true);
                     
                     // If suspicious activities exist, verify structure
-                    if (securityLogs.activities.length > 0) {
-                        const suspiciousActivity = securityLogs.activities[0];
+                    if (securityLogs.events.length > 0) {
+                        const suspiciousActivity = securityLogs.events[0];
                         expect(suspiciousActivity).toHaveProperty('action');
                         expect(suspiciousActivity).toHaveProperty('timestamp');
                         expect(suspiciousActivity).toHaveProperty('severity'); // LOW, MEDIUM, HIGH
@@ -421,9 +423,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check unauthorized access logging
                 try {
-                    const securityLogs = await driver.apiRequest('/activity/security/unauthorized-access', 'GET', null, mainUser.token);
+                    const securityLogs = await driver.getSecurityEvents(mainUser.uid, mainUser.token);
                     
-                    const unauthorizedAccess = securityLogs.activities.find((activity: any) => 
+                    const unauthorizedAccess = securityLogs.events.find((activity: any) => 
                         activity.details?.userId === unauthorizedUser.uid
                     );
                     
@@ -459,9 +461,9 @@ describe.skip('User Activity Tracking Testing', () => {
 
                 // Test: Check rate limiting incident logging
                 try {
-                    const securityLogs = await driver.apiRequest('/activity/security/rate-limiting', 'GET', null, mainUser.token);
+                    const securityLogs = await driver.getSecurityEvents(mainUser.uid, mainUser.token);
                     
-                    const rateLimitIncident = securityLogs.activities.find((activity: any) => 
+                    const rateLimitIncident = securityLogs.events.find((activity: any) => 
                         activity.action === 'RATE_LIMIT_TRIGGERED' &&
                         activity.details?.userId === mainUser.uid
                     );
@@ -491,20 +493,20 @@ describe.skip('User Activity Tracking Testing', () => {
             it('should restrict access to user activity logs to authorized users only', async () => {
                 // Test: Try to access another user's activity logs
                 await expect(
-                    driver.apiRequest(`/activity/user/${secondUser.uid}`, 'GET', null, mainUser.token)
+                    driver.getUserActivityLogs(secondUser.uid, mainUser.token)
                 ).rejects.toThrow(/403|forbidden|access.*denied|unauthorized/i);
             });
 
             it('should allow users to access their own activity logs', async () => {
                 // Test: User should be able to access their own activity logs
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    expect(activityLogs).toHaveProperty('activities');
-                    expect(Array.isArray(activityLogs.activities)).toBe(true);
+                    expect(activityLogs).toHaveProperty('logs');
+                    expect(Array.isArray(activityLogs.logs)).toBe(true);
                     
                     // Verify all activities belong to the requesting user
-                    activityLogs.activities.forEach((activity: any) => {
+                    activityLogs.logs.forEach((activity: any) => {
                         expect(activity.userId).toBe(mainUser.uid);
                     });
                 } catch (error) {
@@ -521,9 +523,9 @@ describe.skip('User Activity Tracking Testing', () => {
             it('should sanitize sensitive information in activity logs', async () => {
                 // Test: Check that activity logs don't expose sensitive data
                 try {
-                    const activityLogs = await driver.apiRequest(`/activity/user/${mainUser.uid}`, 'GET', null, mainUser.token);
+                    const activityLogs = await driver.getUserActivityLogs(mainUser.uid, mainUser.token);
                     
-                    activityLogs.activities.forEach((activity: any) => {
+                    activityLogs.logs.forEach((activity: any) => {
                         // Should not contain passwords or other sensitive auth data
                         expect(JSON.stringify(activity)).not.toMatch(/password|secret|key|token/i);
                         
