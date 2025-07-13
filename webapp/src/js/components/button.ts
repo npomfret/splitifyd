@@ -192,6 +192,10 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
     }
   }
 
+  public getElement(): HTMLButtonElement | null {
+    return this.element;
+  }
+
   protected cleanup(): void {
     if (this.element && this.config.onClick) {
       this.element.removeEventListener('click', this.config.onClick);

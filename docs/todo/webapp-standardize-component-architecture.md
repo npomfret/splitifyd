@@ -39,8 +39,8 @@ Migrate all remaining static HTML pages to programmatic rendering, unify on a si
     *   **Approach:** Utilize `FormComponents` (`webapp/src/js/components/form-components.ts`) to render form fields. Implement a consistent pattern for form submission (e.g., using `FormData` and a centralized validation utility).
     *   **Benefit:** Ensures a uniform user experience for forms and simplifies validation and submission logic.
 
-## Status: READY TO START
-Task analyzed and implementation plan created.
+## Status: PHASE 2 COMPLETE 
+Phase 1 (Authentication Forms) and Phase 2 (Complex Forms - add-expense) completed successfully.
 
 ## Current Architecture Assessment
 
@@ -52,13 +52,13 @@ The webapp has a solid component foundation:
 
 ### Pages Requiring Conversion (Priority Order)
 
-**Phase 1: Authentication Forms (Small commit)**
-1. `reset-password.html` - Convert inline submit button to ButtonComponent
-2. Audit and complete `login.html` and `register.html` component usage
+**Phase 1: Authentication Forms (Small commit)** ✅ COMPLETED
+1. ✅ `reset-password.html` - Converted to component-based architecture using ResetPasswordComponent
+2. TODO: Audit and complete `login.html` and `register.html` component usage
 
-**Phase 2: Complex Forms (Small commit)**  
-3. `add-expense.html` - Convert to use FormComponents for consistent form handling
-4. `join-group.html` - Standardize form implementation
+**Phase 2: Complex Forms (Small commit)** ✅ COMPLETE
+3. ✅ `add-expense.html` - Converted to use AddExpenseComponent with FormComponents
+4. ✅ `join-group.html` - Converted to JoinGroupComponent with component-based architecture
 
 **Phase 3: Data Display Pages (Small commit)**
 5. `expense-detail.html` - Convert to programmatic rendering
@@ -73,16 +73,80 @@ The webapp has a solid component foundation:
 10. Test all converted pages
 11. Remove any unused static HTML patterns
 
-## Implementation Strategy
+## Implementation Plan
 
-Each phase will:
-1. Convert minimal HTML with only essential meta tags and root element
-2. Create/update TypeScript init files for programmatic rendering
-3. Use existing component architecture (BaseComponent, FormComponents, etc.)
-4. Maintain consistent styling and functionality
-5. Test functionality in emulator before moving to next phase
+The migration will be executed in phases to ensure a stable, incremental transition. Each phase will result in a distinct, testable, and committable unit of work.
 
-**Next Steps:**
-1. Start with Phase 1: Authentication forms conversion
-2. Focus on `reset-password.html` first as it has clear inline button issues
-3. Ensure each phase results in a working, testable state
+### Phase 1: Convert `reset-password.html` (First Commit)
+
+**Goal:** Convert the static `reset-password.html` page to be programmatically rendered, removing the inline `onclick` handler in favor of a component-based approach.
+
+**Detailed Steps:**
+
+1.  **Analyze `reset-password.html`:**
+    *   Examine `webapp/src/reset-password.html` to understand its structure, form elements, and the inline JavaScript used for submission.
+    *   Identify the `sendPasswordReset()` function call that needs to be moved into a component.
+
+2.  **Create `reset-password-init.ts`:**
+    *   Create a new entry point file: `webapp/src/js/reset-password-init.ts`.
+    *   This script will be responsible for initializing and rendering the page content.
+
+3.  **Create `ResetPasswordComponent.ts`:**
+    *   Create a new component file: `webapp/src/js/components/ResetPasswordComponent.ts`.
+    *   This component will extend `BaseComponent` and encapsulate the entire UI and logic for the reset password page.
+    *   It will use `PageLayoutComponent` to create the main page structure.
+    *   It will use `AuthCardComponent` to create the main card.
+    *   It will use `FormComponents.createInput` for the email field.
+    *   It will use `ButtonComponent` for the "Send Reset Email" button. The `onClick` handler for this button will contain the logic from the original `sendPasswordReset()` function.
+
+4.  **Refactor `reset-password.html`:**
+    *   Strip `webapp/src/reset-password.html` down to a minimal HTML skeleton.
+    *   The `<body>` should only contain `<div id="app-root"></div>` and the script tag pointing to the new init file: `<script type="module" src="./js/reset-password-init.ts"></script>`.
+    *   Remove the old `<script>` block containing `sendPasswordReset`.
+
+5.  **Update Build & Verification:**
+    *   Ensure the new `reset-password-init.ts` is included in the build process.
+    *   Run `npm run build` and `npm test`.
+    *   Manually test the "Reset Password" page in the browser to confirm it is visually and functionally identical to the original.
+
+### Phase 2: Convert `add-expense.html` (Completed)
+
+**Goal:** Convert the static `add-expense.html` page to use component-based architecture with programmatic form generation.
+
+**Completed Steps:**
+
+1. **Created `add-expense-init.ts`:**
+   - Entry point that mounts AddExpenseComponent to app-root
+   - Includes warning-banner.js import for consistency
+
+2. **Created `AddExpenseComponent.ts`:**
+   - Extends BaseComponent with full lifecycle management
+   - Uses PageLayoutComponent for consistent layout
+   - Uses HeaderComponent for navigation header
+   - Uses FormComponents for all form fields
+   - Uses ButtonComponent for action buttons
+   - Supports both add and edit modes
+   - Implements proper form validation
+   - Handles equal and custom expense splitting
+   - Manages member selection with checkboxes
+   - Updates custom split inputs dynamically
+
+3. **Refactored `add-expense.html`:**
+   - Converted to minimal HTML skeleton
+   - Contains only app-root div and necessary script imports
+   - Removed all hardcoded HTML forms and components
+
+4. **Key Features Preserved:**
+   - Full expense creation functionality
+   - Expense editing capability
+   - Form validation with error messages
+   - Dynamic member selection
+   - Equal/custom split options
+   - Real-time split amount calculations
+   - Navigation and logout functionality
+
+**Note:** The old `add-expense.ts` file should be removed as it's no longer used.
+
+---
+
+*Phase 2 has been completed. Phase 3 (join-group.html) is next.*
