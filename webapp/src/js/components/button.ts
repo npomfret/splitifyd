@@ -1,6 +1,6 @@
 import { BaseComponent } from './base-component.js';
 
-interface ButtonConfig {
+export interface ButtonConfig {
   text: string;
   type?: 'button' | 'submit' | 'reset';
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'link';
