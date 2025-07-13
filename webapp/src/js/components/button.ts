@@ -48,7 +48,7 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
       button.setAttribute('aria-busy', 'true');
     }
 
-    button.innerHTML = this.buildContent();
+    this.updateButtonContent(button);
     
     return button;
   }
@@ -73,31 +73,46 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
     return classes.join(' ');
   }
 
-  private buildContent(): string {
-    let content = '';
+  private updateButtonContent(button: HTMLButtonElement): void {
+    // Clear existing content
+    button.innerHTML = '';
     
     if (this.config.loading) {
-      content += '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>';
+      const spinner = document.createElement('i');
+      spinner.className = 'fas fa-spinner fa-spin';
+      spinner.setAttribute('aria-hidden', 'true');
+      button.appendChild(spinner);
+      
       if (this.config.text) {
-        content += ` ${this.config.text}`;
+        button.appendChild(document.createTextNode(` ${this.config.text}`));
       }
     } else {
       if (this.config.icon && this.config.iconPosition === 'left') {
-        content += `<i class="${this.config.icon}" aria-hidden="true"></i>`;
+        const icon = document.createElement('i');
+        icon.className = this.config.icon;
+        icon.setAttribute('aria-hidden', 'true');
+        button.appendChild(icon);
+        
         if (this.config.text) {
-          content += ` ${this.config.text}`;
+          button.appendChild(document.createTextNode(` ${this.config.text}`));
         }
       } else if (this.config.text) {
-        content += this.config.text;
+        button.appendChild(document.createTextNode(this.config.text));
+        
         if (this.config.icon && this.config.iconPosition === 'right') {
-          content += ` <i class="${this.config.icon}" aria-hidden="true"></i>`;
+          button.appendChild(document.createTextNode(' '));
+          const icon = document.createElement('i');
+          icon.className = this.config.icon;
+          icon.setAttribute('aria-hidden', 'true');
+          button.appendChild(icon);
         }
       } else if (this.config.icon) {
-        content += `<i class="${this.config.icon}" aria-hidden="true"></i>`;
+        const icon = document.createElement('i');
+        icon.className = this.config.icon;
+        icon.setAttribute('aria-hidden', 'true');
+        button.appendChild(icon);
       }
     }
-    
-    return content;
   }
 
   protected setupEventListeners(): void {
@@ -111,7 +126,7 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
     if (this.element) {
       this.element.disabled = this.config.disabled || loading;
       this.element.className = this.buildClassName();
-      this.element.innerHTML = this.buildContent();
+      this.updateButtonContent(this.element);
       
       if (loading) {
         this.element.setAttribute('aria-busy', 'true');
@@ -132,7 +147,7 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
   public setText(text: string): void {
     this.config.text = text;
     if (this.element) {
-      this.element.innerHTML = this.buildContent();
+      this.updateButtonContent(this.element);
     }
   }
 

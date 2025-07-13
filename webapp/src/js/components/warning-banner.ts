@@ -37,7 +37,10 @@ export class WarningBannerComponent extends BaseComponent<HTMLDivElement> {
       const closeButton = document.createElement('button');
       closeButton.className = 'warning-banner__close';
       closeButton.type = 'button';
-      closeButton.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-times';
+      icon.setAttribute('aria-hidden', 'true');
+      closeButton.appendChild(icon);
       closeButton.setAttribute('aria-label', 'Close banner');
       banner.appendChild(closeButton);
     }

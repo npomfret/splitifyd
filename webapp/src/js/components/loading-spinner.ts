@@ -34,7 +34,12 @@ export class LoadingSpinnerComponent extends BaseComponent<HTMLDivElement> {
 
     const spinner = document.createElement('div');
     spinner.className = 'loading-spinner__icon';
-    spinner.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>';
+    
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-spinner fa-spin';
+    icon.setAttribute('aria-hidden', 'true');
+    spinner.appendChild(icon);
+    
     container.appendChild(spinner);
 
     if (this.config.showMessage && this.config.message) {
