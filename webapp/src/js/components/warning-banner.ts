@@ -1,4 +1,5 @@
 import { BaseComponent } from './base-component.js';
+import { ButtonComponent } from './button.js';
 
 interface WarningBannerConfig {
   message: string;
@@ -11,6 +12,7 @@ interface WarningBannerConfig {
 export class WarningBannerComponent extends BaseComponent<HTMLDivElement> {
   private config: WarningBannerConfig;
   private hideTimeout?: number;
+  private closeButton: ButtonComponent | null = null;
 
   constructor(config: WarningBannerConfig) {
     super();
@@ -34,27 +36,30 @@ export class WarningBannerComponent extends BaseComponent<HTMLDivElement> {
     banner.appendChild(content);
 
     if (this.config.dismissible) {
-      const closeButton = document.createElement('button');
-      closeButton.className = 'warning-banner__close';
-      closeButton.type = 'button';
-      const icon = document.createElement('i');
-      icon.className = 'fas fa-times';
-      icon.setAttribute('aria-hidden', 'true');
-      closeButton.appendChild(icon);
-      closeButton.setAttribute('aria-label', 'Close banner');
-      banner.appendChild(closeButton);
+      this.closeButton = new ButtonComponent({
+        variant: 'icon',
+        icon: 'fas fa-times',
+        ariaLabel: 'Close banner',
+        onClick: () => this.hide()
+      });
+      
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'warning-banner__close-container';
+      this.closeButton.mount(buttonContainer);
+      
+      const buttonElement = buttonContainer.querySelector('button');
+      if (buttonElement) {
+        buttonElement.className = 'warning-banner__close';
+      }
+      
+      banner.appendChild(buttonContainer);
     }
 
     return banner;
   }
 
   protected setupEventListeners(): void {
-    if (!this.element || !this.config.dismissible) return;
-
-    const closeButton = this.element.querySelector('.warning-banner__close');
-    if (closeButton) {
-      closeButton.addEventListener('click', () => this.hide());
-    }
+    // No additional event listeners needed - ButtonComponent handles its own events
   }
 
   public show(): void {
@@ -101,6 +106,11 @@ export class WarningBannerComponent extends BaseComponent<HTMLDivElement> {
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
       this.hideTimeout = undefined;
+    }
+    
+    if (this.closeButton) {
+      this.closeButton.unmount();
+      this.closeButton = null;
     }
   }
 
