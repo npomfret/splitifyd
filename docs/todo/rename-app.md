@@ -32,17 +32,27 @@ A new configuration file, `app-config.json`, will be created in the root of the 
 }
 ```
 
-## 2. Build Process Modifications
+## 2. Configuration Distribution Strategy
 
-### 2.1. Webapp
+**PREFERRED APPROACH: Runtime Configuration via /api/config**
 
-The `webapp/esbuild.config.js` will be modified to read `app-config.json` and make the values available to the application code. This will be achieved by creating a `src/js/config.js` file at build time, which will export the configuration values.
+The existing `/api/config` endpoint will be extended to include app-level configuration (name, display name, URLs) from `app-config.json`. This approach is preferred because:
+- Eliminates build-time complexity
+- Allows dynamic configuration changes without rebuilds
+- Consistent with existing Firebase configuration pattern
+- Enables proper caching headers for performance
 
-The `webapp/package.json` will have a new script to generate this config file.
+### 2.1. Firebase Functions
 
-### 2.2. Firebase Functions
+The Firebase functions already read configuration at runtime via `firebase/functions/src/config.ts`. The `getEnhancedConfigResponse()` function will be extended to include app-level metadata from `app-config.json`.
 
-The Firebase functions will read the `app-config.json` file at runtime. The `firebase/functions/src/config.ts` file will be modified to load the configuration from this file.
+### 2.2. Webapp
+
+The webapp already has a `FirebaseConfigManager` that fetches from `/api/config`. This will be extended to include methods for accessing app name, display name, and URLs. Page initialization scripts will use this to set document titles and other dynamic content.
+
+**Build-time replacements should only be used for:**
+- Static content that cannot be dynamically loaded (rare cases)
+- Performance-critical scenarios where runtime config fetch is problematic
 
 ## 3. Code Modifications
 
@@ -85,11 +95,12 @@ The following files need to be updated to use the new configuration values:
 3. Modify `firebase/functions/src/config.ts` to read from `app-config.json`
 4. Test that the firebase functions can read the config file in both emulator and production
 
-### Phase 2: Build Process Updates (Small commit)  
-1. Modify `webapp/esbuild.config.js` to read `app-config.json` and inject values
-2. Update webapp build to replace placeholders in HTML files with config values
-3. Create a build-time script to validate app-config.json
-4. Test the build process works correctly
+### Phase 2: Runtime Configuration Updates (Small commit)  
+1. Extend `AppConfiguration` interface to include app metadata (name, displayName, URLs)
+2. Update `getEnhancedConfigResponse()` to include app-config.json data 
+3. Add convenience methods to `FirebaseConfigManager` for app name/display name
+4. Create a build-time script to validate app-config.json
+5. Test the /api/config endpoint returns app configuration
 
 ### Phase 3: Code Updates - Package and Project Files (Small commit)
 1. Update root `package.json` name field
@@ -105,15 +116,15 @@ The following files need to be updated to use the new configuration values:
 4. Test firebase deployment scripts
 
 ### Phase 5: Code Updates - Application Code (Small commit)
-1. Replace hardcoded "splitifyd" strings in TypeScript/JavaScript files
-2. Update local storage keys to use config values
-3. Update API URLs and auth domains
+1. Replace hardcoded "splitifyd" strings in TypeScript/JavaScript files with runtime config calls
+2. Update local storage keys to use config values from /api/config
+3. Update API URLs and auth domains (already handled by existing config system)
 4. Test all functionality in emulator
 
 ### Phase 6: Code Updates - User-Facing Content (Small commit)
-1. Update HTML files to use config values
-2. Update markdown documentation
-3. Update any remaining hardcoded strings
+1. Update page initialization to set document titles from /api/config
+2. Update any remaining hardcoded app references to use runtime config
+3. Update markdown documentation (simple find/replace sufficient)
 4. Final testing of all features
 
 ### Phase 7: IDE and Final Cleanup (Small commit)
