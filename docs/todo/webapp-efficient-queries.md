@@ -11,6 +11,49 @@ Some queries in the webapp may be slow due to a lack of proper indexing. Additio
 
 This task is a dependency for `webapp-advanced-search-filters` and `webapp-data-visualization` as those features will rely on efficient querying of large datasets.
 
+## Current State Analysis
+
+After analyzing the codebase:
+- **Pagination**: Already correctly implemented using cursor-based approach with `startAfter()` in backend functions
+- **Missing Indexes**: Only 2 indexes exist for documents collection, none for expenses collection
+- **Query Architecture**: All Firestore queries happen in backend Functions, not directly in webapp
+
+## Implementation Plan
+
+### Phase 1: Add Missing Indexes (Commit 1)
+1. Add composite index for group expense queries:
+   ```json
+   {
+     "collectionGroup": "expenses",
+     "queryScope": "COLLECTION",
+     "fields": [
+       { "fieldPath": "groupId", "order": "ASCENDING" },
+       { "fieldPath": "date", "order": "DESCENDING" },
+       { "fieldPath": "createdAt", "order": "DESCENDING" }
+     ]
+   }
+   ```
+
+2. Add composite index for user expense queries:
+   ```json
+   {
+     "collectionGroup": "expenses",
+     "queryScope": "COLLECTION",
+     "fields": [
+       { "fieldPath": "memberIds", "order": "ASCENDING" },
+       { "fieldPath": "date", "order": "DESCENDING" },
+       { "fieldPath": "createdAt", "order": "DESCENDING" }
+     ]
+   }
+   ```
+
+3. Deploy indexes: `cd firebase && firebase deploy --only firestore:indexes`
+
+### Phase 2: Performance Testing (Commit 2)
+1. Test query performance in Firebase console
+2. Monitor logs for any index-related warnings
+3. Document performance improvements
+
 ## Implementation Strategy
 
 1.  **Identify slow queries**: Use the Firebase console and application logs to identify queries that are performing poorly.
