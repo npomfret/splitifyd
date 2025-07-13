@@ -1,4 +1,5 @@
 import { BaseComponent } from './base-component.js';
+import { ButtonComponent } from './button.js';
 
 interface ErrorStateConfig {
   id: string;
@@ -13,6 +14,7 @@ interface ErrorStateConfig {
 export class ErrorStateComponent extends BaseComponent<HTMLDivElement> {
   private config: ErrorStateConfig;
   private autoHideTimeout: number | null = null;
+  private dismissButton: ButtonComponent | null = null;
 
   constructor(config: ErrorStateConfig) {
     super();
@@ -51,16 +53,28 @@ export class ErrorStateComponent extends BaseComponent<HTMLDivElement> {
     errorDiv.appendChild(contentDiv);
 
     if (dismissible) {
-      const dismissButton = document.createElement('button');
-      dismissButton.type = 'button';
-      dismissButton.className = 'error-state__dismiss';
-      dismissButton.setAttribute('aria-label', 'Dismiss error');
+      this.dismissButton = new ButtonComponent({
+        variant: 'icon',
+        icon: 'fas fa-times',
+        ariaLabel: 'Dismiss error',
+        onClick: () => {
+          this.hide();
+          if (this.config.onDismiss) {
+            this.config.onDismiss();
+          }
+        }
+      });
       
-      const dismissIcon = document.createElement('i');
-      dismissIcon.className = 'fas fa-times';
-      dismissButton.appendChild(dismissIcon);
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'error-state__dismiss-container';
+      this.dismissButton.mount(buttonContainer);
       
-      errorDiv.appendChild(dismissButton);
+      const buttonElement = buttonContainer.querySelector('button');
+      if (buttonElement) {
+        buttonElement.className = 'error-state__dismiss';
+      }
+      
+      errorDiv.appendChild(buttonContainer);
     }
 
     return errorDiv;
@@ -72,18 +86,6 @@ export class ErrorStateComponent extends BaseComponent<HTMLDivElement> {
     const messageSpan = this.element.querySelector('.error-state__message');
     if (messageSpan && this.config.message) {
       messageSpan.textContent = this.config.message;
-    }
-
-    if (this.config.dismissible) {
-      const dismissButton = this.element.querySelector('.error-state__dismiss');
-      if (dismissButton) {
-        dismissButton.addEventListener('click', () => {
-          this.hide();
-          if (this.config.onDismiss) {
-            this.config.onDismiss();
-          }
-        });
-      }
     }
 
     if (this.config.message && this.config.autoHideAfter) {
@@ -144,28 +146,42 @@ export class ErrorStateComponent extends BaseComponent<HTMLDivElement> {
 
   setDismissible(dismissible: boolean): void {
     if (this.element) {
-      const dismissButton = this.element.querySelector('.error-state__dismiss');
+      const existingButton = this.element.querySelector('.error-state__dismiss');
       
-      if (dismissible && !dismissButton) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'error-state__dismiss';
-        button.setAttribute('aria-label', 'Dismiss error');
-        
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-times';
-        button.appendChild(icon);
-        
-        this.element.appendChild(button);
-        
-        button.addEventListener('click', () => {
-          this.hide();
-          if (this.config.onDismiss) {
-            this.config.onDismiss();
+      if (dismissible && !existingButton) {
+        this.dismissButton = new ButtonComponent({
+          variant: 'icon',
+          icon: 'fas fa-times',
+          ariaLabel: 'Dismiss error',
+          onClick: () => {
+            this.hide();
+            if (this.config.onDismiss) {
+              this.config.onDismiss();
+            }
           }
         });
-      } else if (!dismissible && dismissButton) {
-        dismissButton.remove();
+        
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'error-state__dismiss-container';
+        this.dismissButton.mount(buttonContainer);
+        
+        const buttonElement = buttonContainer.querySelector('button');
+        if (buttonElement) {
+          buttonElement.className = 'error-state__dismiss';
+        }
+        
+        this.element.appendChild(buttonContainer);
+      } else if (!dismissible && existingButton) {
+        if (this.dismissButton) {
+          this.dismissButton.unmount();
+          this.dismissButton = null;
+        }
+        const container = this.element.querySelector('.error-state__dismiss-container');
+        if (container) {
+          container.remove();
+        } else {
+          existingButton.remove();
+        }
       }
     }
     this.config.dismissible = dismissible;
@@ -180,6 +196,11 @@ export class ErrorStateComponent extends BaseComponent<HTMLDivElement> {
   protected cleanup(): void {
     if (this.autoHideTimeout) {
       clearTimeout(this.autoHideTimeout);
+    }
+    
+    if (this.dismissButton) {
+      this.dismissButton.unmount();
+      this.dismissButton = null;
     }
   }
 }

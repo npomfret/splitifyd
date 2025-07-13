@@ -197,7 +197,7 @@ function setupEventListeners(): void {
     }
     
     // Retry button handler
-    const retryButton = document.querySelector('.btn.btn-secondary[onclick*="location.reload"]') as HTMLButtonElement;
+    const retryButton = document.querySelector('.button.button--secondary') as HTMLButtonElement;
     if (retryButton) {
         retryButton.addEventListener('click', () => {
             location.reload();

@@ -1,16 +1,19 @@
 import { BaseComponent } from './base-component.js';
 
 export interface ButtonConfig {
-  text: string;
+  text?: string;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'link';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'link' | 'logout' | 'icon';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
   icon?: string;
   iconPosition?: 'left' | 'right';
+  iconOnly?: boolean;
   ariaLabel?: string;
   ariaDescribedBy?: string;
+  title?: string;
+  id?: string;
   onClick?: (event: MouseEvent) => void;
 }
 
@@ -26,6 +29,7 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
       disabled: false,
       loading: false,
       iconPosition: 'left',
+      iconOnly: false,
       ...config
     };
   }
@@ -35,6 +39,14 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
     button.type = this.config.type!;
     button.className = this.buildClassName();
     button.disabled = this.config.disabled || this.config.loading || false;
+    
+    if (this.config.id) {
+      button.id = this.config.id;
+    }
+    
+    if (this.config.title) {
+      button.title = this.config.title;
+    }
     
     if (this.config.ariaLabel) {
       button.setAttribute('aria-label', this.config.ariaLabel);
@@ -70,6 +82,11 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
       classes.push('button--disabled');
     }
 
+    // Add icon-only class when no text is provided or iconOnly is explicitly true
+    if (this.config.iconOnly || (!this.config.text && this.config.icon)) {
+      classes.push('button--icon');
+    }
+
     return classes.join(' ');
   }
 
@@ -77,13 +94,15 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
     // Clear existing content
     button.innerHTML = '';
     
+    const isIconOnly = this.config.iconOnly || (!this.config.text && this.config.icon);
+    
     if (this.config.loading) {
       const spinner = document.createElement('i');
       spinner.className = 'fas fa-spinner fa-spin';
       spinner.setAttribute('aria-hidden', 'true');
       button.appendChild(spinner);
       
-      if (this.config.text) {
+      if (this.config.text && !isIconOnly) {
         button.appendChild(document.createTextNode(` ${this.config.text}`));
       }
     } else {
@@ -93,10 +112,10 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
         icon.setAttribute('aria-hidden', 'true');
         button.appendChild(icon);
         
-        if (this.config.text) {
+        if (this.config.text && !isIconOnly) {
           button.appendChild(document.createTextNode(` ${this.config.text}`));
         }
-      } else if (this.config.text) {
+      } else if (this.config.text && !isIconOnly) {
         button.appendChild(document.createTextNode(this.config.text));
         
         if (this.config.icon && this.config.iconPosition === 'right') {
@@ -107,11 +126,17 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
           button.appendChild(icon);
         }
       } else if (this.config.icon) {
+        // Icon-only mode
         const icon = document.createElement('i');
         icon.className = this.config.icon;
         icon.setAttribute('aria-hidden', 'true');
         button.appendChild(icon);
       }
+    }
+    
+    // Ensure proper accessibility for icon-only buttons
+    if (isIconOnly && !this.config.ariaLabel && this.config.text) {
+      button.setAttribute('aria-label', this.config.text);
     }
   }
 
@@ -147,7 +172,23 @@ export class ButtonComponent extends BaseComponent<HTMLButtonElement> {
   public setText(text: string): void {
     this.config.text = text;
     if (this.element) {
+      this.element.className = this.buildClassName();
       this.updateButtonContent(this.element);
+    }
+  }
+
+  public setIcon(icon: string): void {
+    this.config.icon = icon;
+    if (this.element) {
+      this.element.className = this.buildClassName();
+      this.updateButtonContent(this.element);
+    }
+  }
+
+  public setVariant(variant: ButtonConfig['variant']): void {
+    this.config.variant = variant;
+    if (this.element) {
+      this.element.className = this.buildClassName();
     }
   }
 
