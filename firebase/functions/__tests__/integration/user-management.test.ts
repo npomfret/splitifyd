@@ -32,7 +32,7 @@ describe('User Management Tests', () => {
         displayName: 'New Test User'
       };
 
-      const response = await driver.apiRequest('/register', 'POST', userData);
+      const response = await driver.register(userData);
       
       expect(response).toHaveProperty('user');
       expect(response.user).toHaveProperty('uid');
@@ -52,7 +52,7 @@ describe('User Management Tests', () => {
 
       for (const email of invalidEmails) {
         try {
-          await driver.apiRequest('/register', 'POST', {
+          await driver.register({
             email,
             password: 'Password123!',
             displayName: 'Test User'
@@ -84,7 +84,7 @@ describe('User Management Tests', () => {
       for (const password of weakPasswords) {
         const userSuffix = uuidv4().slice(0, 8);
         await expect(
-          driver.apiRequest('/register', 'POST', {
+          driver.register({
             email: `weak-${userSuffix}@test.com`,
             password,
             displayName: 'Test User'
@@ -103,7 +103,7 @@ describe('User Management Tests', () => {
 
       for (const data of incompleteData) {
         await expect(
-          driver.apiRequest('/register', 'POST', data)
+          driver.register(data as any)
         ).rejects.toThrow(/400|required|missing.*field|validation/i);
       }
     });
@@ -114,7 +114,7 @@ describe('User Management Tests', () => {
       const uniqueEmail = `duplicate-test-${userSuffix}@test.com`;
       
       // First registration should succeed
-      await driver.apiRequest('/register', 'POST', {
+      await driver.register({
         email: uniqueEmail,
         password: 'Password123!',
         displayName: 'First User'
@@ -122,7 +122,7 @@ describe('User Management Tests', () => {
       
       // Second registration with same email should fail
       await expect(
-        driver.apiRequest('/register', 'POST', {
+        driver.register({
           email: uniqueEmail,
           password: 'Password123!',
           displayName: 'Duplicate User'
@@ -135,7 +135,7 @@ describe('User Management Tests', () => {
       const maliciousDisplayName = '<script>alert("xss")</script>';
       
       await expect(
-        driver.apiRequest('/register', 'POST', {
+        driver.register({
           email: `sanitize-${userSuffix}@test.com`,
           password: 'Password123!',
           displayName: maliciousDisplayName
@@ -148,7 +148,7 @@ describe('User Management Tests', () => {
       const longDisplayName = 'A'.repeat(256); // Very long name
       
       await expect(
-        driver.apiRequest('/register', 'POST', {
+        driver.register({
           email: `longname-${userSuffix}@test.com`,
           password: 'Password123!',
           displayName: longDisplayName
@@ -166,7 +166,7 @@ describe('User Management Tests', () => {
         displayName: 'User Doc Test'
       });
 
-      const response = await driver.apiRequest('/createUserDocument', 'POST', {
+      const response = await driver.createUserDocument({
         displayName: newUser.displayName
       }, newUser.token);
 
@@ -176,10 +176,10 @@ describe('User Management Tests', () => {
 
     test('should require authentication for user document creation', async () => {
       await expect(
-        driver.apiRequest('/createUserDocument', 'POST', {
+        driver.createUserDocument({
           displayName: 'Test User',
           email: 'test@example.com'
-        }, null)
+        }, null as any)
       ).rejects.toThrow(/401|unauthorized|missing.*token/i);
     });
 
@@ -191,7 +191,7 @@ describe('User Management Tests', () => {
 
       for (const data of invalidData) {
         await expect(
-          driver.apiRequest('/createUserDocument', 'POST', data, testUser.token)
+          driver.createUserDocument(data, testUser.token)
         ).rejects.toThrow(/400|required|validation|missing/i);
       }
     });
@@ -202,7 +202,7 @@ describe('User Management Tests', () => {
       };
 
       await expect(
-        driver.apiRequest('/createUserDocument', 'POST', maliciousData, testUser.token)
+        driver.createUserDocument(maliciousData, testUser.token)
       ).rejects.toThrow(/400|invalid.*input|dangerous.*content/i);
     });
 
@@ -211,13 +211,13 @@ describe('User Management Tests', () => {
       // This documents the current behavior rather than expected behavior
       
       // First creation
-      const response1 = await driver.apiRequest('/createUserDocument', 'POST', {
+      const response1 = await driver.createUserDocument({
         displayName: testUser.displayName
       }, testUser.token);
       expect(response1.message).toBe('User document created');
 
       // Second creation - currently succeeds but ideally should fail
-      const response2 = await driver.apiRequest('/createUserDocument', 'POST', {
+      const response2 = await driver.createUserDocument({
         displayName: testUser.displayName
       }, testUser.token);
       
@@ -265,7 +265,7 @@ describe('User Management Tests', () => {
     });
 
     test('should list all expenses for a user across groups', async () => {
-      const response = await driver.apiRequest('/expenses/user', 'GET', null, testUser.token);
+      const response = await driver.listUserExpenses(testUser.token);
 
       expect(response).toHaveProperty('expenses');
       expect(Array.isArray(response.expenses)).toBe(true);
@@ -280,12 +280,12 @@ describe('User Management Tests', () => {
 
     test('should require authentication for user expenses', async () => {
       await expect(
-        driver.apiRequest('/expenses/user', 'GET', null, null)
+        driver.listUserExpenses(null as any)
       ).rejects.toThrow(/401|unauthorized|missing.*token/i);
     });
 
     test('should include expense metadata in user expenses', async () => {
-      const response = await driver.apiRequest('/expenses/user', 'GET', null, testUser.token);
+      const response = await driver.listUserExpenses(testUser.token);
 
       expect(response.expenses.length).toBeGreaterThan(0);
       
@@ -303,7 +303,7 @@ describe('User Management Tests', () => {
 
     test('should handle pagination parameters', async () => {
       // Test with limit parameter
-      const limitedResponse = await driver.apiRequest('/expenses/user?limit=2', 'GET', null, testUser.token);
+      const limitedResponse = await driver.listUserExpenses(testUser.token, { limit: 2 });
       
       expect(limitedResponse).toHaveProperty('expenses');
       expect(Array.isArray(limitedResponse.expenses)).toBe(true);
@@ -316,12 +316,10 @@ describe('User Management Tests', () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const response = await driver.apiRequest(
-        `/expenses/user?startDate=${yesterday.toISOString()}&endDate=${tomorrow.toISOString()}`,
-        'GET',
-        null,
-        testUser.token
-      );
+      const response = await driver.listUserExpenses(testUser.token, {
+        startDate: yesterday.toISOString(),
+        endDate: tomorrow.toISOString()
+      });
 
       expect(response).toHaveProperty('expenses');
       expect(Array.isArray(response.expenses)).toBe(true);
@@ -337,7 +335,7 @@ describe('User Management Tests', () => {
         displayName: 'No Expenses User'
       });
 
-      const response = await driver.apiRequest('/expenses/user', 'GET', null, newUser.token);
+      const response = await driver.listUserExpenses(newUser.token);
 
       expect(response).toHaveProperty('expenses');
       expect(Array.isArray(response.expenses)).toBe(true);
@@ -357,6 +355,7 @@ describe('User Management Tests', () => {
 
       for (const param of invalidParams) {
         try {
+          // For invalid parameter testing, we still use apiRequest to test error handling
           const response = await driver.apiRequest(`/expenses/user?${param}`, 'GET', null, testUser.token);
           // API currently allows invalid parameters and returns data anyway
           // TODO: Strengthen validation to reject invalid parameters
@@ -371,7 +370,7 @@ describe('User Management Tests', () => {
     });
 
     test('should not expose other users private data', async () => {
-      const response = await driver.apiRequest('/expenses/user', 'GET', null, testUser.token);
+      const response = await driver.listUserExpenses(testUser.token);
 
       // Should not include sensitive fields like internal IDs or audit logs
       const expense = response.expenses[0];
@@ -401,7 +400,7 @@ describe('User Management Tests', () => {
         }
       };
 
-      await driver.apiRequest(`/updateDocument?id=${userDoc.id}`, 'PUT', updatedData, testUser.token);
+      await driver.updateDocument(userDoc.id, updatedData, testUser.token);
 
       const retrievedDoc = await driver.getDocument(userDoc.id, testUser.token);
       expect(retrievedDoc.data.preferences.theme).toBe('dark');
@@ -424,7 +423,7 @@ describe('User Management Tests', () => {
 
       // testUser should not be able to update otherUser's document
       await expect(
-        driver.apiRequest(`/updateDocument?id=${otherUserDoc.id}`, 'PUT', {
+        driver.updateDocument(otherUserDoc.id, {
           data: {
             preferences: { theme: 'dark' }
           }
@@ -448,7 +447,7 @@ describe('User Management Tests', () => {
         }, testUser.token);
 
         await expect(
-          driver.apiRequest(`/updateDocument?id=${userDoc.id}`, 'PUT', { data: input }, testUser.token)
+          driver.updateDocument(userDoc.id, { data: input }, testUser.token)
         ).rejects.toThrow(/400|invalid.*input|dangerous.*content|validation/i);
       }
     });
@@ -462,7 +461,7 @@ describe('User Management Tests', () => {
 
       // Perform multiple concurrent updates
       const promises = Array.from({ length: 5 }, (_, i) => 
-        driver.apiRequest(`/updateDocument?id=${userDoc.id}`, 'PUT', {
+        driver.updateDocument(userDoc.id, {
           data: {
             counter: i + 1,
             timestamp: new Date().toISOString()
