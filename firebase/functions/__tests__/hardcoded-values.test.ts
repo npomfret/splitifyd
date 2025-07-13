@@ -12,7 +12,6 @@ describe('Hardcoded Values Validation', () => {
       'hardcoded-values.test.ts',
       'infrastructure-references.test.ts', // This test validates infrastructure configuration
       '.idea/',
-      'firebase/package.json', // Contains Firebase project ID references
       '.firebaserc',
       'firebase.template.json',
       'firebase.json',
