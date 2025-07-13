@@ -1,5 +1,6 @@
 import { firebaseConfigManager } from './firebase-config-manager.js';
 import { authManager } from './auth.js';
+import { AUTH_TOKEN_KEY } from './constants.js';
 import type { AppConfiguration } from './types/config.types.js';
 
 class ApiClient {
@@ -13,7 +14,7 @@ class ApiClient {
   }
 
   private getAuthToken(): string | null {
-    return localStorage.getItem('splitifyd_auth_token');
+    return localStorage.getItem(AUTH_TOKEN_KEY);
   }
 
   private getAuthHeaders(): Record<string, string> {

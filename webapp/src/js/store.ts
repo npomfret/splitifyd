@@ -1,3 +1,5 @@
+import { AUTH_TOKEN_KEY } from './constants.js';
+
 interface User {
   id: string;
   email: string;
@@ -17,7 +19,7 @@ class Store {
   private proxiedState: AppState;
 
   constructor() {
-    const storedToken = localStorage.getItem('splitifyd_auth_token');
+    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
     const storedUserId = localStorage.getItem('userId');
     
     this.state = {
@@ -34,9 +36,9 @@ class Store {
         
         if (property === 'authToken') {
           if (value) {
-            localStorage.setItem('splitifyd_auth_token', value);
+            localStorage.setItem(AUTH_TOKEN_KEY, value);
           } else {
-            localStorage.removeItem('splitifyd_auth_token');
+            localStorage.removeItem(AUTH_TOKEN_KEY);
           }
         }
         

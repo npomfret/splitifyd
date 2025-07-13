@@ -5,13 +5,14 @@ import { showError } from './utils/ui-messages.js';
 import { apiCall } from './api.js';
 import { firebaseAuthInstance } from './firebase-init.js';
 import { firebaseConfigManager } from './firebase-config-manager.js';
+import { AUTH_TOKEN_KEY } from './constants.js';
 
 let groupsList: any | null = null;
 
 export async function initializeDashboard(): Promise<void> {
   try {
     // Check authentication first
-    const token = localStorage.getItem('splitifyd_auth_token');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!token) {
       window.location.href = '/login.html';
       return;

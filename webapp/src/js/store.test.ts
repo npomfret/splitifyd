@@ -13,7 +13,7 @@ describe('Store', () => {
     });
 
     it('should load existing auth token from localStorage', () => {
-      localStorage.setItem('splitifyd_auth_token', 'test-token');
+      localStorage.setItem('auth_token', 'test-token');
       localStorage.setItem('userId', 'test-user-id');
       
       jest.resetModules();
@@ -37,18 +37,18 @@ describe('Store', () => {
       updateStore({ authToken: 'new-token' });
       
       expect(store.authToken).toBe('new-token');
-      expect(localStorage.getItem('splitifyd_auth_token')).toBe('new-token');
+      expect(localStorage.getItem('auth_token')).toBe('new-token');
     });
 
     it('should remove localStorage items when setting to null', () => {
       updateStore({ user: { id: '123', email: 'test@example.com' }, authToken: 'token' });
       expect(localStorage.getItem('userId')).toBe('123');
-      expect(localStorage.getItem('splitifyd_auth_token')).toBe('token');
+      expect(localStorage.getItem('auth_token')).toBe('token');
       
       updateStore({ user: null, authToken: null });
       
       expect(localStorage.getItem('userId')).toBeNull();
-      expect(localStorage.getItem('splitifyd_auth_token')).toBeNull();
+      expect(localStorage.getItem('auth_token')).toBeNull();
     });
 
     it('should update multiple properties at once', () => {
@@ -137,7 +137,7 @@ describe('Store', () => {
       expect(store.user).toBeNull();
       expect(store.authToken).toBeNull();
       expect(localStorage.getItem('userId')).toBeNull();
-      expect(localStorage.getItem('splitifyd_auth_token')).toBeNull();
+      expect(localStorage.getItem('auth_token')).toBeNull();
     });
 
     it('should notify subscribers when resetting', () => {

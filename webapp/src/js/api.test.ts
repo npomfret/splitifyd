@@ -371,7 +371,7 @@ describe('ApiService', () => {
         it('should generate shareable link for group', async () => {
             const mockResponse: ShareableLinkResponse = {
                 linkId: 'share-123',
-                shareableUrl: 'https://app.splitifyd.com/join/share-123',
+                shareableUrl: 'https://example.com/join/share-123',
                 expiresAt: '2023-12-31T23:59:59Z'
             };
 
@@ -440,7 +440,7 @@ describe('apiCall', () => {
 
         await expect(apiCall('/test')).rejects.toThrow('401 Unauthorized');
 
-        expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('splitifyd_auth_token');
+        expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('auth_token');
         // Note: jsdom doesn't support navigation, so we can't test window.location.href assignment
     });
 

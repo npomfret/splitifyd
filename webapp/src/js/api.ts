@@ -1,5 +1,6 @@
 import { config } from './config.js';
 import { authManager } from './auth.js';
+import { AUTH_TOKEN_KEY } from './constants.js';
 import type { ApiResponse } from './types/global.js';
 import type {
     CreateGroupRequest,
@@ -29,7 +30,7 @@ class ApiService {
     }
 
     private _getAuthToken(): string | null {
-        return localStorage.getItem('splitifyd_auth_token');
+        return localStorage.getItem(AUTH_TOKEN_KEY);
     }
 
     private _getAuthHeaders(): Record<string, string> {
@@ -326,7 +327,7 @@ export async function apiCall<T = any>(endpoint: string, options: RequestInit = 
         return await apiClient.request<T>(endpoint, options);
     } catch (error) {
         if (error instanceof Error && error.message.includes('401')) {
-            localStorage.removeItem('splitifyd_auth_token');
+            localStorage.removeItem(AUTH_TOKEN_KEY);
             window.location.href = 'index.html';
         }
         throw error;

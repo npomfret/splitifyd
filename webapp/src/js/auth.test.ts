@@ -10,8 +10,8 @@ jest.mock('./utils/ui-messages');
 jest.mock('./utils/event-utils');
 jest.mock('./utils/safe-dom');
 jest.mock('./constants', () => ({
-    AUTH_TOKEN_KEY: 'splitifyd_auth_token',
-    USER_ID_KEY: 'splitifyd_user_id'
+    AUTH_TOKEN_KEY: 'auth_token',
+    USER_ID_KEY: 'userId'
 }));
 
 // Mock Firebase Auth
@@ -120,7 +120,7 @@ describe('AuthManager', () => {
         it('should initialize with token from localStorage', () => {
             mockLocalStorage.getItem.mockReturnValue('existing-token');
             // Simulate initialization after localStorage is mocked
-            (authManager as any).token = localStorage.getItem('splitifyd_auth_token');
+            (authManager as any).token = localStorage.getItem('auth_token');
             
             const token = authManager.getToken();
             expect(token).toBe('existing-token');
@@ -138,7 +138,7 @@ describe('AuthManager', () => {
         it('should return true for isAuthenticated when token exists', () => {
             mockLocalStorage.getItem.mockReturnValue('valid-token');
             // Simulate initialization after localStorage is mocked
-            (authManager as any).token = localStorage.getItem('splitifyd_auth_token');
+            (authManager as any).token = localStorage.getItem('auth_token');
             
             expect(authManager.isAuthenticated()).toBe(true);
         });
@@ -154,22 +154,22 @@ describe('AuthManager', () => {
             
             authManager['setToken'](testToken);
             
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('splitifyd_auth_token', testToken);
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('auth_token', testToken);
             expect(authManager.getToken()).toBe(testToken);
         });
 
         it('should clear token and user ID', () => {
             authManager.clearToken();
             
-            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('splitifyd_auth_token');
-            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('splitifyd_user_id');
+            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('auth_token');
+            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('userId');
         });
 
         it('should get and set user ID', () => {
             const userId = 'user-123';
             
             authManager.setUserId(userId);
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('splitifyd_user_id', userId);
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('userId', userId);
             
             mockLocalStorage.getItem.mockReturnValue(userId);
             expect(authManager.getUserId()).toBe(userId);
@@ -209,8 +209,8 @@ describe('AuthManager', () => {
             
             expect(mockFirebaseAuth.signInWithEmailAndPassword).toHaveBeenCalledWith('test@example.com', 'TestPass123!');
             expect(mockUser.getIdToken).toHaveBeenCalled();
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('splitifyd_auth_token', 'id-token');
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('splitifyd_user_id', 'user-123');
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('auth_token', 'id-token');
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('userId', 'user-123');
         });
 
         it('should handle login with invalid credentials', async () => {
@@ -319,8 +319,8 @@ describe('AuthManager', () => {
                 displayName: 'Test User'
             });
             expect(mockUser.getIdToken).toHaveBeenCalled();
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('splitifyd_auth_token', 'id-token');
-            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('splitifyd_user_id', 'user-123');
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('auth_token', 'id-token');
+            expect(mockLocalStorage.setItem).toHaveBeenCalledWith('userId', 'user-123');
         });
 
         it('should handle email already in use error', async () => {
@@ -447,8 +447,8 @@ describe('AuthManager', () => {
         it('should logout and clear localStorage', () => {
             authManager.logout();
             
-            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('splitifyd_auth_token');
-            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('splitifyd_user_id');
+            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('auth_token');
+            expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('userId');
         });
     });
 
