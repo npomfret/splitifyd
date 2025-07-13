@@ -39,7 +39,50 @@ Migrate all remaining static HTML pages to programmatic rendering, unify on a si
     *   **Approach:** Utilize `FormComponents` (`webapp/src/js/components/form-components.ts`) to render form fields. Implement a consistent pattern for form submission (e.g., using `FormData` and a centralized validation utility).
     *   **Benefit:** Ensures a uniform user experience for forms and simplifies validation and submission logic.
 
+## Status: READY TO START
+Task analyzed and implementation plan created.
+
+## Current Architecture Assessment
+
+The webapp has a solid component foundation:
+- **BaseComponent**: Abstract base class with lifecycle management
+- **ModalComponent**: Well-implemented reusable modal system
+- **FormComponents**: Utility class for programmatic form generation
+- **PageLayoutComponent**: Layout management system
+
+### Pages Requiring Conversion (Priority Order)
+
+**Phase 1: Authentication Forms (Small commit)**
+1. `reset-password.html` - Convert inline submit button to ButtonComponent
+2. Audit and complete `login.html` and `register.html` component usage
+
+**Phase 2: Complex Forms (Small commit)**  
+3. `add-expense.html` - Convert to use FormComponents for consistent form handling
+4. `join-group.html` - Standardize form implementation
+
+**Phase 3: Data Display Pages (Small commit)**
+5. `expense-detail.html` - Convert to programmatic rendering
+6. `group-detail.html` - Convert to programmatic rendering
+
+**Phase 4: Content Pages (Small commit)**
+7. `index.html` - Landing page conversion (mostly static content)
+8. Policy pages (`privacy-policy.html`, `terms-of-service.html`, `cookies-policy.html`)
+
+**Phase 5: Verification (Small commit)**
+9. Audit all modal usage to ensure ModalComponent usage
+10. Test all converted pages
+11. Remove any unused static HTML patterns
+
+## Implementation Strategy
+
+Each phase will:
+1. Convert minimal HTML with only essential meta tags and root element
+2. Create/update TypeScript init files for programmatic rendering
+3. Use existing component architecture (BaseComponent, FormComponents, etc.)
+4. Maintain consistent styling and functionality
+5. Test functionality in emulator before moving to next phase
+
 **Next Steps:**
-1.  Prioritize which static pages to convert first (e.g., authentication pages).
-2.  Identify all hardcoded modals and plan their migration to `ModalComponent`.
-3.  Develop a strategy for programmatic form generation and integrate it into new and refactored pages.
+1. Start with Phase 1: Authentication forms conversion
+2. Focus on `reset-password.html` first as it has clear inline button issues
+3. Ensure each phase results in a working, testable state
