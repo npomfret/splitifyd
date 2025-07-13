@@ -28,12 +28,12 @@ export class HeaderComponent extends BaseComponent<HTMLElement> {
     const container = createElementSafe('div', { className: 'container header-container' });
 
     const headerTitle = createElementSafe('h1', { className: 'header-title' });
-    const headerLink = createElementSafe('a', { 
-      className: 'header-link', 
-      href: titleLink,
-      textContent: title 
+    const headerImg = createElementSafe('img', { 
+      className: 'dashboard-logo',
+      src: '/images/logo.svg',
+      alt: 'Logo'
     });
-    headerTitle.appendChild(headerLink);
+    headerTitle.appendChild(headerImg);
     container.appendChild(headerTitle);
 
     if (showLogout) {
