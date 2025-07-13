@@ -130,8 +130,10 @@ The following files need to be updated to use the new configuration values:
    - Login page (login.html) - via login-init.js  
    - Register page (register.html) - via register-init.js
    - Static pages (terms, privacy, cookies, pricing) - via static-page-init.js
+   - Dashboard and app pages (dashboard, add-expense, expense-detail, group-detail, join-group) - via respective init.js files
 2. ✅ Created utilities for runtime configuration:
    - updatePageTitle() function for dynamic document titles
+   - updateDnsPrefetch() function for dynamic DNS prefetch links
    - firebaseConfigManager methods for app name access
    - Comprehensive runtime replacement in page initialization scripts
 3. ✅ Updated hardcoded-values test to exclude files with runtime replacements
@@ -140,6 +142,13 @@ The following files need to be updated to use the new configuration values:
    - Runtime replacement code updated to replace "app-name-here" instead of "Splitifyd"
    - Created infrastructure-references test to ensure "splitifyd" IS used correctly in Firebase config
    - **Result: 0 hardcoded violations in user-visible content** (down from 41 initial violations)
+5. ✅ **CLEANUP COMPLETED**: Removed all webapp/src exclusions from hardcoded-values test
+   - Removed exclusions for all webapp/src HTML files
+   - Removed exclusions for all webapp/src/js files
+   - Replaced DNS prefetch URLs from "api.splitifyd.com" to "api.example.com" placeholder
+   - Removed hardcoded "Splitifyd" fallbacks from page-title.ts utilities
+   - Added updateDnsPrefetch() to dynamically update DNS links from config
+   - **Result: NO FALLBACKS - configuration is the single source of truth**
 
 **Infrastructure integrity maintained:**
 - ✅ Created infrastructure-references.test.ts ensuring "splitifyd" remains in Firebase project config
@@ -151,11 +160,13 @@ The following files need to be updated to use the new configuration values:
 - Component default titles in auth-card.ts, dashboard.ts  
 - Test files with hardcoded references for testing purposes
 
-**IMPLEMENTATION STATUS: Phase 5 FULLY COMPLETED**
+**IMPLEMENTATION STATUS: Phase 5 FULLY COMPLETED WITH CLEANUP**
 - ✅ Perfect separation between infrastructure and user-visible content
 - ✅ Bulletproof app name management via runtime configuration
 - ✅ Both tests (hardcoded-values and infrastructure-references) pass successfully
 - ✅ All builds succeed, functionality verified
+- ✅ No hardcoded exclusions remain for webapp source files
+- ✅ No hardcoded fallbacks - fail fast on configuration errors
 
 ### Phase 6: Code Updates - User-Facing Content (MOSTLY COMPLETED)
 1. ✅ Updated page initialization to set document titles from /api/config

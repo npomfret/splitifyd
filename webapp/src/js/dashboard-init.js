@@ -2,11 +2,14 @@ import { PageHeaderComponent } from './components/page-header.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
 import { LoadingSpinnerComponent } from './components/loading-spinner.js';
 import { ScriptLoaderComponent } from './components/script-loader.js';
-import { updatePageTitle } from './utils/page-title.js';
+import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Update page title from configuration
   await updatePageTitle('Dashboard');
+  
+  // Update DNS prefetch links from configuration
+  await updateDnsPrefetch();
   
   const pageHeader = new PageHeaderComponent({
     title: 'Dashboard' // Will be overridden by config if needed
