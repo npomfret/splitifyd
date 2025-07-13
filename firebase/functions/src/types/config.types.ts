@@ -85,7 +85,6 @@ export interface FormDefaults {
 }
 
 export interface AppMetadata {
-  name: string;
   displayName: string;
   firebaseProjectId: string;
 }

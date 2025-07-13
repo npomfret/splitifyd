@@ -82,10 +82,6 @@ class FirebaseConfigManager {
     return config.environment.warningBanner;
   }
 
-  async getAppName() {
-    const config = await this.getConfig();
-    return config.app.name;
-  }
 
   async getAppDisplayName() {
     const config = await this.getConfig();
