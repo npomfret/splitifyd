@@ -3,7 +3,6 @@
 - small commits are preferred
 - if there is obviously more to do, suggest next steps
 - After changes, run the appropriate build and tests
-- Never commit code
 
 # Your behaviour
 - Don't be psychopathic
@@ -64,5 +63,6 @@
 - Consider build-time and runtime impacts of structural changes
 
 # Other guidance
+- Aggressively tidy, delete, refactor the code.
 - before doing any filesystem operations, **make sure** you are in the correct directory
 - learn by your mistakes, if you break something, make a note of what you did wrong in a file called "common-mistakes.md"

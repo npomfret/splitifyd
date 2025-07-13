@@ -5,7 +5,7 @@
 # Claude CLI history
 .claude/commands/analyse.md
 .claude/commands/changes.md
-.claude/commands/refactor.md
+.claude/commands/next-task.md
 
 # Logs
 logs

@@ -1,58 +1,66 @@
 # Common Mistakes
 
-## Backward Compatible Code
- - DO NOT write any code for _backward compatibility_ reasons (unless instructed to do so). This project is a demo, there is no legacy data or legacy systems to integrate with.
- - Similarly, there is no existing data that can't be deleted. NEVER write migration scripts, or code to handle multiple formats
- - if data formats need to change, we will write a migration script.
+This document defines the rules, standards, and best practices for our demo project. Ensure the app runs locally, in the Firebase emulator, and in production without compromising security.
 
-## Keep it working
-The project needs to work locally, via the firebase emulator AND in a deployed firbase environment.
+---
 
-There are important configuration differences, largely around cross site scripting issues.
+## 1. Backward Compatibility
 
-MAKE SURE THE APP WILL RUN after a change is made.  Do not reduce security.
+* **No backward-compat code** unless explicitly requested. This is a demo—there’s no legacy data or systems.
+* **Never** write migration scripts or multi-format handlers. If formats change, we’ll handle migrations separately.
 
-## No hacking
- - Do not _bodge_ code in because it's easy
- - Do not write _fallback_ logic in case data isn't in the expected format - it will be
- - try/catch/log is usually an antipattern that leads to unknown state
- - it's often ok to let exceptions bubble out
- - read the latest documentation for the API's you are using
+## 2. Keep It Working
 
-## Type safety is good
- - Wherever possible, embrace the available type system
- - If there is a build that compiles code, after making a change: run it!
+* The app must run:
 
-## Write and run tests
- - no need to over-test; but under testing is very bad
- - some tests can be deleted
- - test should be conceptually simpler than the code they are testing
+    * Locally, in the Firebase emulator
+    * In the deployed Firebase environment
+* Account for config differences between these environments, especially CSP and CORS rules.
 
-## Trust 
- - Trust data coming from the server
- - Do not trust data coming from any external system (or our users)
+## 3. No Hacks or Fallbacks
 
-## Shell
- - run `pwd` BEFORE executing shell commands to ensure you are in the desired directory
+* **No bodges**: don’t add quick fixes just to make it work.
+* **No silent fallbacks** for unexpected data.
+* Let errors bubble up; **avoid** unnecessary `try/catch` blocks.
+* Always reference the latest API docs.
 
-## Keep it clean
- - Don't leave temporary files lying around. Delete them (don't got ignore them!)
- - DO not mix build artifacts with checked in files
+## 4. Type Safety
 
-## Content Security Policy (CSP)
- - NEVER use inline event handlers like `onclick="function()"` in HTML - they violate CSP
- - Always add event listeners via JavaScript using `addEventListener()` instead
- - This applies to all inline handlers: onclick, onchange, onsubmit, etc.
+* Embrace the type system everywhere.
+* After changes, run the build and fix all errors immediately.
 
-# Dependencies 
- - DO NOT USE AXIOS. NEVER USE AXIOS. Node has a perfectly good request library. 
- - Avoid using external libraries in general if possible
+## 5. Testing
 
-# Web
- - Do not bundle our js files into 1 file
- - Do not obfuscate or minimise
+* Write enough tests—**under-testing** is worse than over-testing.
+* Remove redundant tests.
+* Keep tests simpler than the code they validate.
 
-## Firebase Configuration
- - NEVER edit `firebase/firebase.json` directly - it is a build artifact
- - ALWAYS edit `firebase/firebase.template.json` instead
- - The build process generates `firebase.json` from the template
+## 6. Trust Model
+
+* **Trust** data from our server.
+* **Never trust** data from external sources or our users without validation.
+
+## 7. Cleanliness
+
+* Delete temporary files—**do not** ignore them in version control.
+* Keep build artifacts separate from source files.
+* Always run `pwd` before shell commands to confirm your working directory.
+
+## 8. Content Security Policy
+
+* **Never** use inline handlers (e.g., `onclick=…`).
+* Attach all event listeners via `addEventListener()` in JS.
+
+## 9. Dependencies
+
+* **Do not** use Axios—use Node’s built-in `request` library.
+* Minimize external dependencies; add libraries only when essential.
+
+## 10. Web Build
+
+* **Do not** bundle all JS into one file.
+* **Do not** minify or obfuscate source code.
+
+## 11. Firebase Configuration
+
+* **Never** edit `firebase/firebase.json` directly—it’s auto-generated. Instead, modify `firebase/firebase.template.json`; the build process produces `firebase.json`.
