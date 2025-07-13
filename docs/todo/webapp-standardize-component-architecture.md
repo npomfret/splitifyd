@@ -73,16 +73,42 @@ The webapp has a solid component foundation:
 10. Test all converted pages
 11. Remove any unused static HTML patterns
 
-## Implementation Strategy
+## Implementation Plan
 
-Each phase will:
-1. Convert minimal HTML with only essential meta tags and root element
-2. Create/update TypeScript init files for programmatic rendering
-3. Use existing component architecture (BaseComponent, FormComponents, etc.)
-4. Maintain consistent styling and functionality
-5. Test functionality in emulator before moving to next phase
+The migration will be executed in phases to ensure a stable, incremental transition. Each phase will result in a distinct, testable, and committable unit of work.
 
-**Next Steps:**
-1. Start with Phase 1: Authentication forms conversion
-2. Focus on `reset-password.html` first as it has clear inline button issues
-3. Ensure each phase results in a working, testable state
+### Phase 1: Convert `reset-password.html` (First Commit)
+
+**Goal:** Convert the static `reset-password.html` page to be programmatically rendered, removing the inline `onclick` handler in favor of a component-based approach.
+
+**Detailed Steps:**
+
+1.  **Analyze `reset-password.html`:**
+    *   Examine `webapp/src/reset-password.html` to understand its structure, form elements, and the inline JavaScript used for submission.
+    *   Identify the `sendPasswordReset()` function call that needs to be moved into a component.
+
+2.  **Create `reset-password-init.ts`:**
+    *   Create a new entry point file: `webapp/src/js/reset-password-init.ts`.
+    *   This script will be responsible for initializing and rendering the page content.
+
+3.  **Create `ResetPasswordComponent.ts`:**
+    *   Create a new component file: `webapp/src/js/components/ResetPasswordComponent.ts`.
+    *   This component will extend `BaseComponent` and encapsulate the entire UI and logic for the reset password page.
+    *   It will use `PageLayoutComponent` to create the main page structure.
+    *   It will use `AuthCardComponent` to create the main card.
+    *   It will use `FormComponents.createInput` for the email field.
+    *   It will use `ButtonComponent` for the "Send Reset Email" button. The `onClick` handler for this button will contain the logic from the original `sendPasswordReset()` function.
+
+4.  **Refactor `reset-password.html`:**
+    *   Strip `webapp/src/reset-password.html` down to a minimal HTML skeleton.
+    *   The `<body>` should only contain `<div id="app-root"></div>` and the script tag pointing to the new init file: `<script type="module" src="./js/reset-password-init.ts"></script>`.
+    *   Remove the old `<script>` block containing `sendPasswordReset`.
+
+5.  **Update Build & Verification:**
+    *   Ensure the new `reset-password-init.ts` is included in the build process.
+    *   Run `npm run build` and `npm test`.
+    *   Manually test the "Reset Password" page in the browser to confirm it is visually and functionally identical to the original.
+
+---
+
+*This plan has been created. I will await instructions before proceeding with the implementation.*
