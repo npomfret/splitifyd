@@ -208,7 +208,7 @@ describe('Comprehensive Security Test Suite', () => {
 
         // SECURITY FIX: API should now reject attempts to modify group membership directly
         await expect(
-          driver.apiRequest(`/updateDocument?id=${testGroup.id}`, 'PUT', maliciousUpdate, users[1].token)
+          driver.updateDocument(testGroup.id, maliciousUpdate, users[1].token)
         ).rejects.toThrow(/400|403|forbidden|unauthorized|not.*allowed|validation|cannot.*be.*modified/i);
       });
     });
@@ -280,7 +280,7 @@ describe('Comprehensive Security Test Suite', () => {
         
         // Try to create user document with malicious display name
         await expect(
-          driver.apiRequest('/createUserDocument', 'POST', {
+          driver.createUserDocument({
             displayName: xssPayload
           }, users[0].token)
         ).rejects.toThrow(); // Should be rejected or sanitized
