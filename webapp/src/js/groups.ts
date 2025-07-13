@@ -2,6 +2,7 @@ import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 import { apiService, apiCall } from './api.js';
 import { ModalComponent } from './components/modal.js';
+import { ButtonComponent } from './components/button.js';
 import type {
   Group,
   CreateGroupRequest as CreateGroupRequestBL,
@@ -107,22 +108,21 @@ export class GroupsList {
     const title = createElementSafe('h3', { textContent: 'Unable to load groups' });
     const actions = createElementSafe('div', { className: 'error-state__actions' });
     
-    const tryAgainBtn = createElementSafe('button', {
-      className: 'button button--secondary',
-      textContent: 'Try Again'
-    }) as HTMLButtonElement;
-    tryAgainBtn.type = 'button';
-    tryAgainBtn.addEventListener('click', () => this.loadGroups());
+    const tryAgainBtn = new ButtonComponent({
+      text: 'Try Again',
+      variant: 'secondary',
+      onClick: () => this.loadGroups()
+    });
     
-    const createGroupBtn = createElementSafe('button', {
+    const createGroupBtn = new ButtonComponent({
+      text: 'Create Group',
+      variant: 'primary',
       id: 'createGroupBtn',
-      className: 'button button--primary',
-      textContent: 'Create Group'
-    }) as HTMLButtonElement;
-    createGroupBtn.type = 'button';
-    createGroupBtn.addEventListener('click', () => this.openCreateGroupModal());
+      onClick: () => this.openCreateGroupModal()
+    });
     
-    appendChildren(actions, [tryAgainBtn, createGroupBtn]);
+    tryAgainBtn.mount(actions);
+    createGroupBtn.mount(actions);
     appendChildren(errorState, [title, actions]);
     this.container.appendChild(errorState);
   }
@@ -135,15 +135,15 @@ export class GroupsList {
     const title = createElementSafe('h3', { textContent: 'No groups yet' });
     const description = createElementSafe('p', { textContent: 'Create your first group to start splitting expenses with friends' });
     
-    const createGroupBtn = createElementSafe('button', {
+    const createGroupBtn = new ButtonComponent({
+      text: 'Create Your First Group',
+      variant: 'primary',
       id: 'createGroupBtn',
-      className: 'button button--primary',
-      textContent: 'Create Your First Group'
-    }) as HTMLButtonElement;
-    createGroupBtn.type = 'button';
-    createGroupBtn.addEventListener('click', () => this.openCreateGroupModal());
+      onClick: () => this.openCreateGroupModal()
+    });
     
-    appendChildren(emptyState, [icon, title, description, createGroupBtn]);
+    createGroupBtn.mount(emptyState);
+    appendChildren(emptyState, [icon, title, description]);
     this.container.appendChild(emptyState);
   }
 
@@ -329,13 +329,15 @@ export class GroupsList {
     // Add groups header
     const groupsHeader = createElementSafe('div', { className: 'groups-header' });
     const headerTitle = createElementSafe('h2', { className: 'groups-header__title', textContent: 'Your Groups' });
-    const createGroupBtn = createElementSafe('button', {
-      type: 'button',
-      className: 'button button--primary',
+    const createGroupBtn = new ButtonComponent({
+      text: '+ Create Group',
+      variant: 'primary',
       id: 'createGroupBtn',
-      textContent: '+ Create Group'
+      onClick: () => this.openCreateGroupModal()
     });
-    appendChildren(groupsHeader, [headerTitle, createGroupBtn]);
+    
+    createGroupBtn.mount(groupsHeader);
+    appendChildren(groupsHeader, [headerTitle]);
     this.container.appendChild(groupsHeader);
     
     // Add groups grid
@@ -443,33 +445,41 @@ export class GroupsList {
     const membersGroup = createElementSafe('div', { className: 'form-group' });
     const membersLabel = createElementSafe('label', { textContent: 'Initial Members (Optional)' });
     const membersContainer = createElementSafe('div', { className: 'members-input-container', id: 'membersContainer' });
-    const addMemberButton = createElementSafe('button', { type: 'button', className: 'button button--small', id: 'addMemberBtn', textContent: '+ Add Another Member' });
+    const addMemberButton = new ButtonComponent({
+      text: '+ Add Another Member',
+      size: 'small',
+      id: 'addMemberBtn',
+      onClick: () => {
+        membersContainer.appendChild(createMemberInputRow());
+        const removeButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
+        removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
+      }
+    });
 
     const createMemberInputRow = () => {
         const row = createElementSafe('div', { className: 'member-input-row' });
         const emailInput = createElementSafe('input', { type: 'email', placeholder: 'Enter email address', className: 'form-input member-email', name: 'memberEmail[]' });
-        const removeButton = createElementSafe('button', { type: 'button', className: 'button--icon', textContent: '×' }) as HTMLButtonElement;
-        removeButton.addEventListener('click', () => {
+        const removeButton = new ButtonComponent({
+          text: '×',
+          variant: 'icon',
+          iconOnly: true,
+          ariaLabel: 'Remove member',
+          onClick: () => {
             row.remove();
             const remainingButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
             remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
+          }
         });
         row.appendChild(emailInput);
-        row.appendChild(removeButton);
+        removeButton.mount(row);
         return row;
     };
 
     membersContainer.appendChild(createMemberInputRow());
 
-    addMemberButton.addEventListener('click', () => {
-        membersContainer.appendChild(createMemberInputRow());
-        const removeButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-        removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
-    });
-
     membersGroup.appendChild(membersLabel);
     membersGroup.appendChild(membersContainer);
-    membersGroup.appendChild(addMemberButton);
+    addMemberButton.mount(membersGroup);
 
     form.appendChild(groupNameGroup);
     form.appendChild(descriptionGroup);
@@ -477,27 +487,18 @@ export class GroupsList {
 
     // Create Footer
     const footerContainer = createElementSafe('div');
-    const cancelButton = createElementSafe('button', { className: 'button button--secondary', textContent: 'Cancel' });
-    const createButton = createElementSafe('button', { className: 'button button--primary', textContent: 'Create Group' });
-    footerContainer.appendChild(cancelButton);
-    footerContainer.appendChild(createButton);
-
-    const modal = new ModalComponent({
-        id: modalId,
-        title: 'Create New Group',
-        body: form,
-        footer: footerContainer
-    });
-
-    modal.mount(document.body);
-    modal.show();
-
-    cancelButton.addEventListener('click', () => {
+    const cancelButton = new ButtonComponent({
+      text: 'Cancel',
+      variant: 'secondary',
+      onClick: () => {
         modal.hide();
         modal.unmount();
+      }
     });
-
-    createButton.addEventListener('click', async () => {
+    const createButton = new ButtonComponent({
+      text: 'Create Group',
+      variant: 'primary',
+      onClick: async () => {
         const formData = new FormData(form);
         const memberEmails = Array.from(form.querySelectorAll('.member-email') as NodeListOf<HTMLInputElement>)
             .map(input => input.value.trim())
@@ -529,7 +530,21 @@ export class GroupsList {
             logger.error('Failed to create group:', error);
             alert('Failed to create group. Please try again.');
         }
+      }
     });
+    
+    cancelButton.mount(footerContainer);
+    createButton.mount(footerContainer);
+
+    const modal = new ModalComponent({
+        id: modalId,
+        title: 'Create New Group',
+        body: form,
+        footer: footerContainer
+    });
+
+    modal.mount(document.body);
+    modal.show();
   }
 
   private openGroupDetail(groupId: string): void {
