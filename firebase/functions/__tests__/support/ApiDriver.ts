@@ -62,6 +62,116 @@ interface BalanceResponse extends ApiResponse {
   lastUpdated?: string;
 }
 
+// GDPR-related interfaces
+interface GdprExportRequest {
+  userId?: string;
+  format?: 'json' | 'csv';
+  includeDeleted?: boolean;
+}
+
+interface GdprExportResponse {
+  exportId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  estimatedCompletion?: string;
+}
+
+interface GdprDeletionRequest {
+  userId?: string;
+  deleteType: 'soft' | 'hard';
+  reason?: string;
+}
+
+interface GdprDeletionResponse {
+  deletionId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  scheduledDate?: string;
+}
+
+interface GdprConsentUpdate {
+  userId: string;
+  dataProcessing: boolean;
+  marketing: boolean;
+  analytics: boolean;
+  thirdParty: boolean;
+}
+
+// Audit trail interfaces
+interface AuditLogEntry {
+  id: string;
+  entityType: string;
+  entityId: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  userId: string;
+  timestamp: string;
+  changes?: Record<string, any>;
+  metadata?: Record<string, any>;
+}
+
+interface AuditQueryOptions {
+  startDate?: string;
+  endDate?: string;
+  groupId?: string;
+  action?: 'CREATE' | 'UPDATE' | 'DELETE';
+  limit?: number;
+  offset?: number;
+}
+
+// Data retention interfaces
+interface RetentionPurgingRequest {
+  dryRun?: boolean;
+  olderThan?: string;
+  entityTypes?: string[];
+  filters?: Record<string, any>;
+}
+
+interface RetentionJobResponse {
+  jobId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  progress?: number;
+  estimatedCompletion?: string;
+}
+
+interface RetentionLegalHoldRequest {
+  entityType: string;
+  entityId: string;
+  reason: string;
+  retainUntil?: string;
+}
+
+interface RetentionArchiveRequest {
+  olderThan: string;
+  includeMetadata?: boolean;
+  compressionLevel?: number;
+}
+
+interface RetentionPolicyRequest {
+  name: string;
+  entityType: string;
+  retentionPeriod: number;
+  retentionUnit: 'days' | 'months' | 'years';
+  autoDelete: boolean;
+}
+
+// User activity tracking interfaces
+interface ActivityLogEntry {
+  id: string;
+  userId: string;
+  action: string;
+  timestamp: string;
+  ipAddress?: string;
+  userAgent?: string;
+  metadata?: Record<string, any>;
+}
+
+interface SecurityEvent {
+  id: string;
+  userId: string;
+  eventType: 'failed_login' | 'suspicious_activity' | 'account_locked';
+  timestamp: string;
+  ipAddress?: string;
+  details?: Record<string, any>;
+}
+
 export class ApiDriver {
   private readonly baseUrl: string;
   private readonly authPort: number;
@@ -441,6 +551,248 @@ export class ApiDriver {
       }
       throw error;
     }
+  }
+
+  // GDPR-related methods
+  async exportUserData(request: GdprExportRequest, token: string): Promise<GdprExportResponse> {
+    return await this.apiRequest('/gdpr/export-data', 'POST', request, token);
+  }
+
+  async getExportStatus(exportId: string, token: string): Promise<GdprExportResponse> {
+    return await this.apiRequest(`/gdpr/export-status/${exportId}`, 'GET', null, token);
+  }
+
+  async downloadExportData(exportId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/gdpr/download/${exportId}`, 'GET', null, token);
+  }
+
+  async getUserData(request: { userId?: string }, token: string): Promise<any> {
+    return await this.apiRequest('/gdpr/data-about-me', 'POST', request, token);
+  }
+
+  async deleteUserData(request: GdprDeletionRequest, token: string): Promise<GdprDeletionResponse> {
+    return await this.apiRequest('/gdpr/delete-data', 'POST', request, token);
+  }
+
+  async getDeletionStatus(deletionId: string, token: string): Promise<GdprDeletionResponse> {
+    return await this.apiRequest(`/gdpr/deletion-status/${deletionId}`, 'GET', null, token);
+  }
+
+  async verifyDeletion(request: { deletionId: string }, token: string): Promise<any> {
+    return await this.apiRequest('/gdpr/deletion-verification', 'POST', request, token);
+  }
+
+  async getUserConsent(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/gdpr/consent/${userId}`, 'GET', null, token);
+  }
+
+  async updateUserConsent(consent: GdprConsentUpdate, token: string): Promise<any> {
+    return await this.apiRequest('/gdpr/consent', 'PUT', consent, token);
+  }
+
+  async getConsentHistory(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/gdpr/consent/${userId}/history`, 'GET', null, token);
+  }
+
+  async withdrawConsent(request: { userId: string; reason?: string }, token: string): Promise<any> {
+    return await this.apiRequest('/gdpr/consent/withdraw', 'POST', request, token);
+  }
+
+  async getProcessingStatus(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/gdpr/processing-status/${userId}`, 'GET', null, token);
+  }
+
+  async getProcessingInfo(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/gdpr/processing-info/${userId}`, 'GET', null, token);
+  }
+
+  async getPrivacyPolicy(token: string): Promise<any> {
+    return await this.apiRequest('/gdpr/privacy-policy', 'GET', null, token);
+  }
+
+  // Audit trail methods
+  async getExpenseAuditLogs(expenseId: string, token: string): Promise<{ logs: AuditLogEntry[] }> {
+    return await this.apiRequest(`/audit/expense/${expenseId}`, 'GET', null, token);
+  }
+
+  async getGroupAuditLogs(groupId: string, options: AuditQueryOptions = {}, token: string): Promise<{ logs: AuditLogEntry[] }> {
+    const queryParams = new URLSearchParams();
+    if (options.limit) queryParams.append('limit', options.limit.toString());
+    if (options.offset) queryParams.append('offset', options.offset.toString());
+    
+    const endpoint = `/audit/group/${groupId}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return await this.apiRequest(endpoint, 'GET', null, token);
+  }
+
+  async getUserAuditLogs(userId: string, token: string): Promise<{ logs: AuditLogEntry[] }> {
+    return await this.apiRequest(`/audit/user/${userId}`, 'GET', null, token);
+  }
+
+  async updateAuditLog(logId: string, updateData: Record<string, any>, token: string): Promise<any> {
+    return await this.apiRequest(`/audit/logs/${logId}`, 'PUT', updateData, token);
+  }
+
+  async deleteAuditLog(logId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/audit/logs/${logId}`, 'DELETE', null, token);
+  }
+
+  async getAuditLogsByDateRange(options: AuditQueryOptions, token: string): Promise<{ logs: AuditLogEntry[] }> {
+    const queryParams = new URLSearchParams();
+    if (options.startDate) queryParams.append('startDate', options.startDate);
+    if (options.endDate) queryParams.append('endDate', options.endDate);
+    if (options.groupId) queryParams.append('groupId', options.groupId);
+    
+    return await this.apiRequest(`/audit/range?${queryParams.toString()}`, 'GET', null, token);
+  }
+
+  async getAuditLogsByAction(action: 'CREATE' | 'UPDATE' | 'DELETE', groupId?: string, token?: string): Promise<{ logs: AuditLogEntry[] }> {
+    const queryParams = new URLSearchParams();
+    if (groupId) queryParams.append('groupId', groupId);
+    
+    const endpoint = `/audit/actions/${action}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return await this.apiRequest(endpoint, 'GET', null, token);
+  }
+
+  // Data retention methods
+  async getEligibleDataForPurging(token: string): Promise<any> {
+    return await this.apiRequest('/retention/eligible-for-purging', 'GET', null, token);
+  }
+
+  async executePurging(request: RetentionPurgingRequest, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest('/retention/execute-purging', 'POST', request, token);
+  }
+
+  async getPurgingStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest(`/retention/purging-status/${jobId}`, 'GET', null, token);
+  }
+
+  async getPurgingLog(jobId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/retention/purging-log/${jobId}`, 'GET', null, token);
+  }
+
+  async getRetentionPolicies(token: string): Promise<any> {
+    return await this.apiRequest('/retention/policies', 'GET', null, token);
+  }
+
+  async createLegalHold(request: RetentionLegalHoldRequest, token: string): Promise<any> {
+    return await this.apiRequest('/retention/legal-hold', 'POST', request, token);
+  }
+
+  async getRetentionStatus(entityType: string, entityId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/retention/status/${entityType}/${entityId}`, 'GET', null, token);
+  }
+
+  async releaseLegalHold(holdId: string, request: { reason: string }, token: string): Promise<any> {
+    return await this.apiRequest(`/retention/legal-hold/${holdId}/release`, 'POST', request, token);
+  }
+
+  async anonymizeData(request: { targetDate: string; techniques: string[] }, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest('/retention/anonymize', 'POST', request, token);
+  }
+
+  async getAnonymizationStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest(`/retention/anonymization-status/${jobId}`, 'GET', null, token);
+  }
+
+  async getAnonymizationTechniques(token: string): Promise<any> {
+    return await this.apiRequest('/retention/anonymization-techniques', 'GET', null, token);
+  }
+
+  async validateAnonymization(request: { dataSet: string; validationRules: string[] }, token: string): Promise<any> {
+    return await this.apiRequest('/retention/validate-anonymization', 'POST', request, token);
+  }
+
+  async setAnonymizationPreferences(preferences: Record<string, any>, token: string): Promise<any> {
+    return await this.apiRequest('/retention/anonymization-preferences', 'PUT', preferences, token);
+  }
+
+  async getAnonymizationPreferences(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/retention/anonymization-preferences/${userId}`, 'GET', null, token);
+  }
+
+  async archiveData(request: RetentionArchiveRequest, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest('/retention/archive', 'POST', request, token);
+  }
+
+  async getArchiveStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest(`/retention/archive-status/${jobId}`, 'GET', null, token);
+  }
+
+  async restoreArchive(request: { archiveId: string; targetDate?: string }, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest('/retention/restore', 'POST', request, token);
+  }
+
+  async getRestoreStatus(jobId: string, token: string): Promise<RetentionJobResponse> {
+    return await this.apiRequest(`/retention/restore-status/${jobId}`, 'GET', null, token);
+  }
+
+  async verifyArchiveIntegrity(request: { archiveId: string }, token: string): Promise<any> {
+    return await this.apiRequest('/retention/verify-archive-integrity', 'POST', request, token);
+  }
+
+  async getArchiveAuditTrail(archiveId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/retention/archive-audit-trail/${archiveId}`, 'GET', null, token);
+  }
+
+  async generateComplianceReport(request: { reportType: string; dateRange: { start: string; end: string } }, token: string): Promise<any> {
+    return await this.apiRequest('/retention/compliance-report', 'POST', request, token);
+  }
+
+  async getPolicyViolations(token: string): Promise<any> {
+    return await this.apiRequest('/retention/policy-violations', 'GET', null, token);
+  }
+
+  async createCustomPolicy(policy: RetentionPolicyRequest, token: string): Promise<any> {
+    return await this.apiRequest('/retention/custom-policy', 'POST', policy, token);
+  }
+
+  async activateCustomPolicy(policyId: string, request: { effectiveDate: string }, token: string): Promise<any> {
+    return await this.apiRequest(`/retention/custom-policy/${policyId}/activate`, 'POST', request, token);
+  }
+
+  async getActivePolicies(token: string): Promise<any> {
+    return await this.apiRequest('/retention/active-policies', 'GET', null, token);
+  }
+
+  // User activity tracking methods
+  async getUserActivityLogs(userId: string, token: string): Promise<{ logs: ActivityLogEntry[] }> {
+    return await this.apiRequest(`/activity/user/${userId}`, 'GET', null, token);
+  }
+
+  async getLoginHistory(userId: string, token: string): Promise<{ logs: ActivityLogEntry[] }> {
+    return await this.apiRequest(`/activity/login-history/${userId}`, 'GET', null, token);
+  }
+
+  async getFailedLogins(userId: string, token: string): Promise<{ events: SecurityEvent[] }> {
+    return await this.apiRequest(`/activity/failed-logins/${userId}`, 'GET', null, token);
+  }
+
+  async getSuspiciousActivity(userId: string, token: string): Promise<{ events: SecurityEvent[] }> {
+    return await this.apiRequest(`/activity/suspicious/${userId}`, 'GET', null, token);
+  }
+
+  async getSecurityEvents(userId: string, token: string): Promise<{ events: SecurityEvent[] }> {
+    return await this.apiRequest(`/activity/security-events/${userId}`, 'GET', null, token);
+  }
+
+  async getSessionHistory(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/activity/sessions/${userId}`, 'GET', null, token);
+  }
+
+  async getAccountActivity(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/activity/account/${userId}`, 'GET', null, token);
+  }
+
+  async getDataAccessLogs(userId: string, token: string): Promise<{ logs: ActivityLogEntry[] }> {
+    return await this.apiRequest(`/activity/data-access/${userId}`, 'GET', null, token);
+  }
+
+  async getLocationHistory(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/activity/location/${userId}`, 'GET', null, token);
+  }
+
+  async getDeviceHistory(userId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/activity/devices/${userId}`, 'GET', null, token);
   }
 
   // Helper methods for creating test data

@@ -54,7 +54,7 @@ describe('Audit Trails Testing', () => {
 
                 // Test: Check if audit log endpoint exists and records creation
                 try {
-                    const auditLogs = await driver.apiRequest(`/audit/expense/${createdExpense.id}`, 'GET', null, mainUser.token);
+                    const auditLogs = await driver.getExpenseAuditLogs(createdExpense.id, mainUser.token);
                     
                     // If audit endpoint exists, validate structure
                     expect(auditLogs).toHaveProperty('logs');

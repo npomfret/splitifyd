@@ -39,7 +39,7 @@ describe.skip('Data Retention Testing', () => {
             it('should identify data eligible for automatic purging based on retention policies', async () => {
                 // Test: Get data eligible for purging
                 try {
-                    const eligibleData = await driver.apiRequest('/retention/eligible-for-purging', 'GET', null, mainUser.token);
+                    const eligibleData = await driver.getEligibleDataForPurging(mainUser.token);
                     
                     expect(eligibleData).toHaveProperty('categories');
                     expect(Array.isArray(eligibleData.categories)).toBe(true);

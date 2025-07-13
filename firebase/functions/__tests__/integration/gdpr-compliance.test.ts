@@ -62,7 +62,7 @@ describe('GDPR Compliance Testing', () => {
             it('should provide complete user data export in machine-readable format', async () => {
                 // Test: Request complete data export
                 try {
-                    const dataExport = await driver.apiRequest('/gdpr/export-data', 'POST', {
+                    const dataExport = await driver.exportUserData({
                         userId: mainUser.uid,
                         format: 'json'
                     }, mainUser.token);
@@ -77,7 +77,7 @@ describe('GDPR Compliance Testing', () => {
                     let attempts = 0;
                     while (exportStatus.status === 'processing' && attempts < 10) {
                         await new Promise(resolve => setTimeout(resolve, 2000));
-                        exportStatus = await driver.apiRequest(`/gdpr/export-status/${dataExport.exportId}`, 'GET', null, mainUser.token);
+                        exportStatus = await driver.getExportStatus(dataExport.exportId, mainUser.token);
                         attempts++;
                     }
                     
@@ -107,14 +107,13 @@ describe('GDPR Compliance Testing', () => {
             it('should export data in structured format with all personal data', async () => {
                 // Test: Verify exported data structure and completeness
                 try {
-                    const dataExport = await driver.apiRequest('/gdpr/export-data', 'POST', {
+                    const dataExport = await driver.exportUserData({
                         userId: mainUser.uid,
-                        format: 'json',
-                        includeMetadata: true
+                        format: 'json'
                     }, mainUser.token);
                     
                     // Get the actual exported data
-                    const exportData = await driver.apiRequest(`/gdpr/download/${dataExport.exportId}`, 'GET', null, mainUser.token);
+                    const exportData = await driver.downloadExportData(dataExport.exportId, mainUser.token);
                     
                     expect(exportData).toHaveProperty('metadata');
                     expect(exportData).toHaveProperty('userData');
@@ -203,7 +202,7 @@ describe('GDPR Compliance Testing', () => {
             it('should allow users to request data about them held by other users', async () => {
                 // Test: Request data about user held in other users' expenses/groups
                 try {
-                    const dataAboutUser = await driver.apiRequest('/gdpr/data-about-me', 'POST', {
+                    const dataAboutUser = await driver.getUserData({
                         userId: mainUser.uid
                     }, mainUser.token);
                     
@@ -268,9 +267,9 @@ describe('GDPR Compliance Testing', () => {
 
                 // Test: Request data deletion
                 try {
-                    const deletionRequest = await driver.apiRequest('/gdpr/delete-data', 'POST', {
+                    const deletionRequest = await driver.deleteUserData({
                         userId: userToDelete.uid,
-                        confirmDeletion: true,
+                        deleteType: 'hard',
                         reason: 'User requested account deletion'
                     }, userToDelete.token);
                     
@@ -290,7 +289,7 @@ describe('GDPR Compliance Testing', () => {
                     let attempts = 0;
                     while (deletionStatus.status !== 'completed' && attempts < 15) {
                         await new Promise(resolve => setTimeout(resolve, 2000));
-                        deletionStatus = await driver.apiRequest(`/gdpr/deletion-status/${deletionRequest.deletionId}`, 'GET', null, userToDelete.token);
+                        deletionStatus = await driver.getDeletionStatus(deletionRequest.deletionId, userToDelete.token);
                         attempts++;
                     }
                     
