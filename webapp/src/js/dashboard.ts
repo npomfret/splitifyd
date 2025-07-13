@@ -4,7 +4,6 @@ import { logger } from './utils/logger.js';
 import { showError } from './utils/ui-messages.js';
 import { apiCall } from './api.js';
 import { firebaseAuthInstance } from './firebase-init.js';
-import { firebaseConfigManager } from './firebase-config-manager.js';
 import { AUTH_TOKEN_KEY } from './constants.js';
 
 let groupsList: any | null = null;
@@ -28,9 +27,8 @@ export async function initializeDashboard(): Promise<void> {
       return;
     }
 
-    // Mount header component with dynamic app name
-    const appDisplayName = await firebaseConfigManager.getAppDisplayName();
-    const header = new HeaderComponent({ title: appDisplayName, showLogout: true });
+    // Mount header component
+    const header = new HeaderComponent({ title: 'Split App 2', showLogout: true });
     header.mount(headerContainer);
 
     // Dynamically import GroupsList when needed

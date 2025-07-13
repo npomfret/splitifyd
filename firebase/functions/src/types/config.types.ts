@@ -84,6 +84,4 @@ export interface FormDefaults {
   password?: string;
 }
 
-export interface AppMetadata {
-  displayName: string;
-}
+export interface AppMetadata {}

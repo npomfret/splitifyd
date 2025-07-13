@@ -83,10 +83,6 @@ class FirebaseConfigManager {
   }
 
 
-  async getAppDisplayName() {
-    const config = await this.getConfig();
-    return config.app.displayName;
-  }
 
 }
 
