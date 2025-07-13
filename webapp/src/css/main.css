@@ -2649,12 +2649,19 @@ main section {
 
 .static-page-header .logo {
     display: inline-block;
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    color: var(--color-primary);
     text-decoration: none;
     margin-bottom: var(--space-md);
     transition: opacity 0.2s ease;
+}
+
+.logo-img {
+    height: 35px;
+    width: auto;
+}
+
+.auth-card__logo {
+    height: 30px;
+    width: auto;
 }
 
 .static-page-header .logo:hover {
