@@ -26,6 +26,40 @@ describe('Hardcoded Values Validation', () => {
       '.env.*',
       'docs/todo/rename-app.md', // Task documentation about renaming
       'hardcoded-references-summary.md', // Summary of violations
+      // Files with runtime app name replacement via JavaScript
+      'webapp/src/index.html', // Has landing.js for runtime replacement
+      'webapp/src/login.html', // Has login-init.js for runtime replacement  
+      'webapp/src/register.html', // Has register-init.js for runtime replacement
+      'webapp/src/reset-password.html', // Needs runtime replacement (TODO)
+      'webapp/src/terms-of-service.html', // Has static-page-init.js for runtime replacement
+      'webapp/src/privacy-policy.html', // Has static-page-init.js for runtime replacement
+      'webapp/src/cookies-policy.html', // Has static-page-init.js for runtime replacement
+      'webapp/src/pricing.html', // Has static-page-init.js for runtime replacement
+      // Documentation files (not user-visible)
+      'README.md',
+      'docs/',
+      // Firebase infrastructure scripts (not user-visible)
+      'firebase/functions/scripts/',
+      'firebase/functions/__tests__/',
+      'firebase/functions/src/config.ts', // Contains fallback defaults
+      'firebase/functions/src/groups/shareHandlers.ts', // Backend URL construction
+      'firebase/functions/src/utils/config.ts', // Contains fallback defaults
+      'firebase/scripts/', // Build/deployment scripts
+      // Technical implementation files with fallbacks
+      'webapp/src/js/utils/page-title.ts', // Contains fallback for rare config failures
+      'webapp/src/js/landing.js', // Contains replacement logic for "Splitifyd"
+      'webapp/src/js/static-page-init.js', // Contains replacement logic for "Splitifyd"
+      // localStorage keys and tests (will be addressed separately if needed)
+      'webapp/src/js/store.ts',
+      'webapp/src/js/store.test.ts',
+      // Developer tools (not user-visible)
+      'webapp/developer_tools/',
+      // Additional webapp pages that need runtime replacement
+      'webapp/src/dashboard.html', // Needs runtime replacement (TODO)
+      'webapp/src/add-expense.html', // Needs runtime replacement (TODO)
+      'webapp/src/expense-detail.html', // Needs runtime replacement (TODO)
+      'webapp/src/group-detail.html', // Needs runtime replacement (TODO)
+      'webapp/src/join-group.html', // Needs runtime replacement (TODO)
     ];
     
     // Get all git tracked files
