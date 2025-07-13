@@ -1,7 +1,5 @@
 {
   "appName": "split-app-2",
   "appDisplayName": "Split App 2",
-  "firebaseProjectId": "splitifyd",
-  "productionBaseUrl": "https://splitifyd.web.app",
-  "apiBaseUrl": "https://api.splitifyd.com"
+  "firebaseProjectId": "splitifyd"
 }

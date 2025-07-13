@@ -92,13 +92,6 @@ class FirebaseConfigManager {
     return config.app.displayName;
   }
 
-  async getAppUrls() {
-    const config = await this.getConfig();
-    return {
-      production: config.app.productionBaseUrl,
-      api: config.app.apiBaseUrl
-    };
-  }
 }
 
 export const firebaseConfigManager = new FirebaseConfigManager();
