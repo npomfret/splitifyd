@@ -5,10 +5,7 @@ import { updatePageTitle } from './utils/page-title.js';
 function getPageTitleFromDocument(): string {
   const titleElement = document.querySelector('title');
   if (titleElement) {
-    const fullTitle = titleElement.textContent;
-    // Extract the part before " - Splitifyd" if present
-    const parts = fullTitle!.split(' - ');
-    return parts[0];
+    return titleElement.textContent || 'Page';
   }
   return 'Page';
 }

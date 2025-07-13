@@ -30,8 +30,6 @@ describe('Hardcoded Values Validation', () => {
       'docs/',
       // Firebase infrastructure scripts (not user-visible)
       'firebase/scripts/', // Build/deployment scripts
-      // Developer tools (not user-visible)
-      'webapp/developer_tools/'
     ];
     
     // Get all git tracked files
