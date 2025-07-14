@@ -18,7 +18,6 @@ if (!projectId) {
 
 // Direct configuration values
 export const CONFIG = {
-  environment: isEmulator ? 'development' : 'production',
   isProduction,
   isDevelopment: isEmulator,
   
