@@ -9,8 +9,14 @@ function getFirebaseAuthUrl(): string | undefined {
     return undefined;
   }
   
-  const authPort = CONFIG.emulatorPorts?.auth || 9099;
-  return `http://localhost:${authPort}`;
+  // Get auth URL from Firebase environment variable if available
+  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  if (authHost) {
+    return `http://${authHost}`;
+  }
+  
+  // Default fallback
+  return 'http://localhost:9099';
 }
 
 function getWarningBanner(): WarningBanner | undefined {

@@ -39,9 +39,7 @@ if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
       await admin.auth().listUsers(1);
       logger.info('Auth emulator connection successful');
     } catch (error: any) {
-      logger.errorWithContext('Auth emulator connection failed', error as Error, {
-        port: CONFIG.emulatorPorts.auth
-      });
+      logger.errorWithContext('Auth emulator connection failed', error as Error);
     }
   }, 1000);
 }

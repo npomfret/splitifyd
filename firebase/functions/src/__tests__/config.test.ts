@@ -2,12 +2,11 @@ import { getEnhancedConfigResponse } from '../utils/config-response';
 import { CONFIG } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
-// Mock the CONFIG object and APP_CONFIG
+// Mock the CONFIG object
 jest.mock('../config', () => ({
   CONFIG: {
     isDevelopment: false,
     isProduction: true,
-    isTest: false,
     projectId: 'test-project',
     clientConfig: {
       apiKey: 'test-api-key',
@@ -21,13 +20,7 @@ jest.mock('../config', () => ({
     warningBanner: '⚠️ this is a demo - your data will be deleted without notice',
     emulatorPorts: {}
   },
-  APP_CONFIG: {
-    appName: 'test-app',
-    appDisplayName: 'Test App',
-    firebaseProjectId: 'test-project',
-    productionBaseUrl: 'https://test-project.web.app',
-    apiBaseUrl: 'https://api.test-project.com'
-  }
+  PROJECT_ID: 'test-project'
 }));
 
 // Mock logger
