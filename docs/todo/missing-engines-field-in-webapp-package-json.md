@@ -23,3 +23,9 @@
 
 ## Implementation Notes
 This change will help ensure that all developers are using the same version of Node.js, which can prevent hard-to-debug issues.
+
+## Implementation Plan
+1. Add the `engines` field to `webapp/package.json` after the `license` field
+2. Specify Node.js version 22 to match `firebase/functions/package.json`
+3. Run build commands to ensure no issues with the change
+4. This is a single atomic change that can be committed in isolation
