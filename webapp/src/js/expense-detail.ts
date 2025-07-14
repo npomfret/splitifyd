@@ -83,10 +83,15 @@ function displayExpenseDetails(expense: ExpenseData): void {
     descriptionEl.textContent = expense.description;
     dateEl.textContent = formatDate(expense.date || expense.createdAt);
     categoryEl.textContent = 'General';
+    
+    // Display group info in header
+    const groupEl = document.getElementById('expense-group') as HTMLElement;
+    if (groupEl && currentGroup) {
+        groupEl.textContent = currentGroup.name;
+    }
 
     displayPayerInfo(expense.paidBy, expense.splits);
     displaySplitBreakdown(expense.splits, expense.amount);
-    displayGroupInfo(expense.groupId);
     
     // Receipt URL not available in ExpenseData type
     // if (expense.receiptUrl) {
@@ -146,18 +151,6 @@ function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>, 
     });
 }
 
-function displayGroupInfo(groupId: string): void {
-    const groupInfo = document.getElementById('group-info') as HTMLElement;
-    const groupName = currentGroup ? currentGroup.name : `Group ${groupId}`;
-    const memberCount = currentGroup ? currentGroup.members.length : 0;
-    
-    clearElement(groupInfo);
-    
-    const groupNameSpan = createElementSafe('span', { className: 'group-name', textContent: groupName });
-    const groupMembersSpan = createElementSafe('span', { className: 'group-members', textContent: `${memberCount} members` });
-    
-    appendChildren(groupInfo, [groupNameSpan, groupMembersSpan]);
-}
 
 function displayReceipt(receiptUrl: string): void {
     const receiptSection = document.getElementById('receipt-section') as HTMLElement;
