@@ -23,6 +23,10 @@ This directory contains detailed documentation for each high-level feature of th
 (Fully Complete) A form for users to add new expenses.
 [Details](add-expense-form.md)
 
+### Edit Expense
+(Unstarted) Allows users to edit an existing expense.
+[Details](edit-expense.md)
+
 ### Individual Expense Detail View
 (WIP) Allows users to view the detailed information of a single expense.
 [Details](individual-expense-detail-view.md)
