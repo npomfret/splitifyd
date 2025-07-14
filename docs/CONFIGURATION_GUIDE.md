@@ -1,6 +1,6 @@
 # Configuration Guide
 
-This guide details the various configuration aspects of the Splitifyd project, covering both development and production environments, with a strong emphasis on security.
+This guide details the various configuration aspects of the project, covering both development and production environments, with a strong emphasis on security.
 
 It's helpful to have the firebase cli installed. Use: `npm install -g firebase-tools`
 
@@ -195,7 +195,7 @@ The `package.json` file in the root of the project contains scripts for building
 
 - **`npm run build`**: Builds all the packages in the monorepo using TypeScript compilation and esbuild.
 - **`npm run dev`**: Starts the Firebase emulators with automatic webapp building and file watching.
-- **`npm run deploy:prod`**: Deploys the entire project to production (requires `firebase use splitifyd`).
+- **`npm run deploy:prod`**: Deploys the entire project to production (requires `firebase use <project-id>`).
 
 ## 11. Local Development Setup
 
@@ -211,4 +211,4 @@ To run the project locally using Firebase Emulators:
     ```
     This will start the Firebase emulators for Auth, Firestore, Functions, and Hosting. The web application will be served from `http://localhost:5002` (or the port specified in `firebase.json`).
 
-This comprehensive guide should help in understanding and managing the configuration and security of the Splitifyd project.
+This comprehensive guide should help in understanding and managing the configuration and security of the project.
