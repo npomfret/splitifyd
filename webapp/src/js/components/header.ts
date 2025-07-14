@@ -6,10 +6,27 @@ import { createElementSafe, appendChildren } from '../utils/safe-dom';
 
 interface ExtendedHeaderConfig extends Partial<HeaderConfig> {
   titleLink?: string;
+  totalOwed?: number;
+  totalOwe?: number;
+  showBalances?: boolean;
 }
 
 export class HeaderComponent extends BaseComponent<HTMLElement> {
   private config: ExtendedHeaderConfig;
+  
+  public updateBalances(totalOwed: number, totalOwe: number): void {
+    if (!this.element) return;
+    
+    const owedAmountEl = this.element.querySelector('.header-balance-item--positive .header-balance-amount');
+    const oweAmountEl = this.element.querySelector('.header-balance-item--negative .header-balance-amount');
+    
+    if (owedAmountEl) {
+      owedAmountEl.textContent = `$${totalOwed.toFixed(2)}`;
+    }
+    if (oweAmountEl) {
+      oweAmountEl.textContent = `$${totalOwe.toFixed(2)}`;
+    }
+  }
 
   constructor(config: ExtendedHeaderConfig = {}) {
     super();
@@ -20,7 +37,10 @@ export class HeaderComponent extends BaseComponent<HTMLElement> {
     const { 
       title = 'Dashboard',
       showLogout = true,
-      titleLink = '/dashboard.html'
+      titleLink = '/dashboard.html',
+      totalOwed = 0,
+      totalOwe = 0,
+      showBalances = false
     } = this.config;
 
     const header = createElementSafe('header', { className: 'dashboard-header' });
@@ -35,6 +55,23 @@ export class HeaderComponent extends BaseComponent<HTMLElement> {
     });
     headerTitle.appendChild(headerImg);
     container.appendChild(headerTitle);
+
+    if (showBalances) {
+      const balanceSummary = createElementSafe('div', { className: 'header-balance-summary' });
+      
+      const owedItem = createElementSafe('div', { className: 'header-balance-item header-balance-item--positive' });
+      const owedLabel = createElementSafe('span', { className: 'header-balance-label', textContent: 'Owed' });
+      const owedAmount = createElementSafe('span', { className: 'header-balance-amount', textContent: `$${totalOwed.toFixed(2)}` });
+      appendChildren(owedItem, [owedLabel, owedAmount]);
+      
+      const oweItem = createElementSafe('div', { className: 'header-balance-item header-balance-item--negative' });
+      const oweLabel = createElementSafe('span', { className: 'header-balance-label', textContent: 'Owe' });
+      const oweAmount = createElementSafe('span', { className: 'header-balance-amount', textContent: `$${totalOwe.toFixed(2)}` });
+      appendChildren(oweItem, [oweLabel, oweAmount]);
+      
+      appendChildren(balanceSummary, [owedItem, oweItem]);
+      container.appendChild(balanceSummary);
+    }
 
     if (showLogout) {
       const logoutBtn = createElementSafe('button', { 

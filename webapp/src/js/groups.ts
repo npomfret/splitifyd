@@ -3,6 +3,7 @@ import { createElementSafe, clearElement, appendChildren } from './utils/safe-do
 import { apiService, apiCall } from './api.js';
 import { ModalComponent } from './components/modal.js';
 import { ButtonComponent } from './components/button.js';
+import { HeaderComponent } from './components/header.js';
 import type {
   Group,
   CreateGroupRequest as CreateGroupRequestBL,
@@ -60,13 +61,15 @@ export class GroupsList {
   private groups: TransformedGroup[] = [];
   private filteredGroups: TransformedGroup[] = [];
   private isLoading: boolean = false;
+  private headerComponent: HeaderComponent | null = null;
 
-  constructor(containerId: string) {
+  constructor(containerId: string, headerComponent?: HeaderComponent) {
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Container element with ID '${containerId}' not found`);
     }
     this.container = element;
+    this.headerComponent = headerComponent || null;
   }
 
   async loadGroups(): Promise<void> {
@@ -306,25 +309,12 @@ export class GroupsList {
     const totalOwed = this.groups.reduce((sum, group) => sum + Math.max(0, group.yourBalance), 0);
     const totalOwe = this.groups.reduce((sum, group) => sum + Math.max(0, -group.yourBalance), 0);
 
+    // Update header with balance information
+    if (this.headerComponent) {
+      this.headerComponent.updateBalances(totalOwed, totalOwe);
+    }
+
     clearElement(this.container);
-    
-    // Add summary box
-    const dashboardSummary = createElementSafe('div', { className: 'dashboard-summary' });
-    const balancesContainer = createElementSafe('div', { className: 'dashboard-summary__balances' });
-    
-    const positiveBalance = createElementSafe('div', { className: 'balance-summary balance-summary--positive' });
-    const positiveLabel = createElementSafe('span', { className: 'balance-summary__label', textContent: 'You are owed' });
-    const positiveAmount = createElementSafe('span', { className: 'balance-summary__amount', textContent: `$${totalOwed.toFixed(2)}` });
-    appendChildren(positiveBalance, [positiveLabel, positiveAmount]);
-    
-    const negativeBalance = createElementSafe('div', { className: 'balance-summary balance-summary--negative' });
-    const negativeLabel = createElementSafe('span', { className: 'balance-summary__label', textContent: 'You owe' });
-    const negativeAmount = createElementSafe('span', { className: 'balance-summary__amount', textContent: `$${totalOwe.toFixed(2)}` });
-    appendChildren(negativeBalance, [negativeLabel, negativeAmount]);
-    
-    appendChildren(balancesContainer, [positiveBalance, negativeBalance]);
-    dashboardSummary.appendChild(balancesContainer);
-    this.container.appendChild(dashboardSummary);
     
     // Add groups header
     const groupsHeader = createElementSafe('div', { className: 'groups-header' });

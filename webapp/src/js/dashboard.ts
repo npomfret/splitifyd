@@ -7,6 +7,7 @@ import { firebaseAuthInstance } from './firebase-init.js';
 import { AUTH_TOKEN_KEY } from './constants.js';
 
 let groupsList: any | null = null;
+let headerComponent: HeaderComponent | null = null;
 
 export async function initializeDashboard(): Promise<void> {
   try {
@@ -27,15 +28,21 @@ export async function initializeDashboard(): Promise<void> {
       return;
     }
 
-    // Mount header component
-    const header = new HeaderComponent({ title: 'Split App 2', showLogout: true });
-    header.mount(headerContainer);
+    // Mount header component with balance display enabled
+    headerComponent = new HeaderComponent({ 
+      title: 'Split App 2', 
+      showLogout: true,
+      showBalances: true,
+      totalOwed: 0,
+      totalOwe: 0
+    });
+    headerComponent.mount(headerContainer);
 
     // Dynamically import GroupsList when needed
     const { GroupsList } = await import('./groups.js');
     
     // Initialize groups list using existing DOM structure
-    groupsList = new GroupsList('groupsContainer');
+    groupsList = new GroupsList('groupsContainer', headerComponent);
     await groupsList.loadGroups();
 
   } catch (error: any) {

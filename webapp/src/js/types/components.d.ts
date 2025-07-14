@@ -47,6 +47,9 @@ export interface NavigationConfig {
 export interface HeaderConfig {
   title: string;
   showLogout?: boolean;
+  totalOwed?: number;
+  totalOwe?: number;
+  showBalances?: boolean;
 }
 
 // Auth card types
