@@ -9,10 +9,10 @@ const FirebaseConfigSchema = z.object({
   messagingSenderId: z.string().min(1),
   appId: z.string().min(1),
   measurementId: z.string().optional(),
+  firebaseAuthUrl: z.string().optional(),
 });
 
 const ApiConfigSchema = z.object({
-  baseUrl: z.string().url().or(z.string().regex(/^\/api$/)),
   timeout: z.number().positive(),
   retryAttempts: z.number().int().positive(),
 });
@@ -32,7 +32,6 @@ const EmulatorPortsSchema = z.object({
 const EnvironmentConfigSchema = z.object({
   isDevelopment: z.boolean(),
   isProduction: z.boolean(),
-  isEmulator: z.boolean(),
   warningBanner: WarningBannerSchema.optional(),
   emulatorPorts: EmulatorPortsSchema.optional(),
 });

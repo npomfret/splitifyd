@@ -6,7 +6,6 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { CONFIG, APP_CONFIG } from '../config';
 
 const generateShareToken = (): string => {
   const bytes = randomBytes(12);
@@ -89,9 +88,9 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
       updatedAt: Timestamp.now(),
     });
 
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? APP_CONFIG.productionBaseUrl 
-      : `http://localhost:${CONFIG.emulatorPorts.hosting}`;
+    const protocol = req.get('x-forwarded-proto') || (req.secure ? 'https' : 'http');
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
     
     const shareableUrl = `${baseUrl}/join-group.html?linkId=${shareToken}`;
 

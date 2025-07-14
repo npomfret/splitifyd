@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { firebaseConfigManager } from './firebase-config-manager.js';
 import { authManager } from './auth.js';
 import { AUTH_TOKEN_KEY } from './constants.js';
 import type { ApiResponse } from './types/global.js';
@@ -20,30 +20,6 @@ import type {
 } from './types/api.js';
 
 class ApiService {
-    private _baseUrlPromise: Promise<string> | null = null;
-
-    private async _getBaseUrl(): Promise<string> {
-        if (!this._baseUrlPromise) {
-            this._baseUrlPromise = config.getApiUrl();
-        }
-        return this._baseUrlPromise;
-    }
-
-    private _getAuthToken(): string | null {
-        return localStorage.getItem(AUTH_TOKEN_KEY);
-    }
-
-    private _getAuthHeaders(): Record<string, string> {
-        const token = this._getAuthToken();
-        if (!token) {
-            throw new Error('Authentication required');
-        }
-        return {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-    }
-
     async getGroups(): Promise<TransformedGroup[]> {
         try {
             const data = await apiCall<ListDocumentsResponse>('/listDocuments', {
@@ -144,21 +120,6 @@ class ApiService {
         } catch (error) {
             throw error;
         }
-    }
-
-    private _transformGroupData(document: DocumentResponse): TransformedGroup {
-        return {
-            id: document.id,
-            name: document.data.name,
-            memberCount: document.data.members.length,
-            yourBalance: document.data.yourBalance,
-            lastActivity: this._formatLastActivity(document.data.updatedAt),
-            lastActivityRaw: document.data.updatedAt,
-            lastExpense: document.data.lastExpense,
-            members: document.data.members,
-            expenseCount: document.data.expenseCount || 0,
-            lastExpenseTime: document.data.lastExpenseTime || null
-        };
     }
 
 

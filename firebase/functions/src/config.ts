@@ -8,14 +8,18 @@ if (process.env.FUNCTIONS_EMULATOR === 'true') {
   require('dotenv').config();
 }
 
+interface AppConfig {
+  firebaseProjectId: string;
+}
+
 // Load app configuration from app-config.json
-let appConfig: any = {};
+let appConfig: AppConfig = {} as AppConfig;
 try {
   // Try to load from the root directory (3 levels up from src)
   const configPath = path.join(__dirname, '../../../app-config.json');
   if (fs.existsSync(configPath)) {
     const configContent = fs.readFileSync(configPath, 'utf-8');
-    appConfig = JSON.parse(configContent);
+    appConfig = JSON.parse(configContent) as AppConfig;
   } else {
     throw new Error('app-config.json not found. This file is required for the application to run.');
   }

@@ -1,43 +1,16 @@
 import { CONFIG } from '../config';
 import { Errors } from './errors';
 import { logger } from '../logger';
-import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, EmulatorPorts, WarningBanner } from '../types/config.types';
+import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, WarningBanner } from '../types/config.types';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
-export interface FirebaseConfigResponse {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-  formDefaults?: {
-    displayName?: string;
-    email?: string;
-    password?: string;
-  };
-  warningBanner?: string;
-}
-
-function getApiBaseUrl(): string {
+function getFirebaseAuthUrl(): string | undefined {
   if (CONFIG.isProduction) {
-    return '/api';
+    return undefined;
   }
   
-  const functionsPort = CONFIG.emulatorPorts?.functions || 5001;
-  return `http://localhost:${functionsPort}/${CONFIG.projectId}/us-central1/api`;
-}
-
-function getEmulatorPort(envVar: string): number | undefined {
-  const value = process.env[envVar];
-  if (!value) return undefined;
-  
-  const match = value.match(/:(\d+)$/);
-  if (match) {
-    return parseInt(match[1], 10);
-  }
-  
-  return undefined;
+  const authPort = CONFIG.emulatorPorts?.auth || 9099;
+  return `http://localhost:${authPort}`;
 }
 
 function getWarningBanner(): WarningBanner | undefined {
@@ -50,25 +23,6 @@ function getWarningBanner(): WarningBanner | undefined {
 }
 
 
-export const getFirebaseConfigResponse = (): FirebaseConfigResponse => {
-  const clientConfig = CONFIG.clientConfig;
-  
-  if (!clientConfig) {
-    logger.error('Client config is undefined. Environment variables:', {
-      CLIENT_API_KEY: process.env.CLIENT_API_KEY,
-      NODE_ENV: process.env.NODE_ENV,
-      FUNCTIONS_EMULATOR: process.env.FUNCTIONS_EMULATOR
-    });
-    throw Errors.INTERNAL_ERROR();
-  }
-  
-  return {
-    ...clientConfig,
-    projectId: CONFIG.projectId,
-    formDefaults: CONFIG.formDefaults,
-    warningBanner: CONFIG.warningBanner
-  } as FirebaseConfigResponse;
-};
 
 export const getEnhancedConfigResponse = (): AppConfiguration => {
   const clientConfig = CONFIG.clientConfig;
@@ -89,11 +43,11 @@ export const getEnhancedConfigResponse = (): AppConfiguration => {
     storageBucket: clientConfig.storageBucket,
     messagingSenderId: clientConfig.messagingSenderId,
     appId: clientConfig.appId,
-    measurementId: clientConfig.measurementId
+    measurementId: clientConfig.measurementId,
+    firebaseAuthUrl: getFirebaseAuthUrl()
   };
   
   const api: ApiConfig = {
-    baseUrl: getApiBaseUrl(),
     timeout: 30000,
     retryAttempts: 3
   };
@@ -101,19 +55,8 @@ export const getEnhancedConfigResponse = (): AppConfiguration => {
   const environment: EnvironmentConfig = {
     isDevelopment: Boolean(CONFIG.isDevelopment),
     isProduction: Boolean(CONFIG.isProduction),
-    isEmulator: process.env.FUNCTIONS_EMULATOR === 'true',
     warningBanner: getWarningBanner()
   };
-  
-  if (environment.isEmulator) {
-    const emulatorPorts: EmulatorPorts = {
-      auth: getEmulatorPort('FIREBASE_AUTH_EMULATOR_HOST'),
-      firestore: getEmulatorPort('FIRESTORE_EMULATOR_HOST'),
-      functions: getEmulatorPort('FIREBASE_FUNCTIONS_EMULATOR_HOST') || CONFIG.emulatorPorts?.functions,
-      hosting: getEmulatorPort('FIREBASE_HOSTING_EMULATOR_HOST')
-    };
-    environment.emulatorPorts = emulatorPorts;
-  }
   
   const appConfig: AppConfiguration = {
     firebase,

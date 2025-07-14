@@ -45,10 +45,10 @@ export interface FirebaseConfig {
   messagingSenderId: string;
   appId: string;
   measurementId?: string;
+  firebaseAuthUrl?: string;
 }
 
 export interface ApiConfig {
-  baseUrl: string;
   timeout: number;
   retryAttempts: number;
 }
@@ -60,9 +60,7 @@ export interface FeatureFlags {
 export interface EnvironmentConfig {
   isDevelopment: boolean;
   isProduction: boolean;
-  isEmulator: boolean;
   warningBanner?: WarningBanner;
-  emulatorPorts?: EmulatorPorts;
 }
 
 export interface WarningBanner {
@@ -70,12 +68,6 @@ export interface WarningBanner {
   message: string;
 }
 
-export interface EmulatorPorts {
-  auth?: number;
-  firestore?: number;
-  functions?: number;
-  hosting?: number;
-}
 
 export interface FormDefaults {
   displayName?: string;

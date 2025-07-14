@@ -1,4 +1,4 @@
-import { firebaseConfigManager } from './firebase-init.js';
+import { firebaseConfigManager } from './firebase-config-manager.js';
 import { showWarning, hideWarning } from './utils/ui-messages';
 import { logger } from './utils/logger.js';
 
@@ -16,9 +16,9 @@ export var warningBannerManager = {
     });
   },
   async displayWarningBanner() {
-    const bannerText = await firebaseConfigManager.getWarningBanner();
-    if (bannerText) {
-      showWarning(bannerText);
+    const warningBanner = await firebaseConfigManager.getWarningBanner();
+    if (warningBanner?.message) {
+      showWarning(warningBanner.message);
     } else {
       hideWarning();
     }

@@ -4,8 +4,8 @@ import type { FirebaseError } from './types/global';
 
 // Mock dependencies
 jest.mock('./utils/logger');
-jest.mock('./config');
 jest.mock('./firebase-init');
+jest.mock('./firebase-config-manager');
 jest.mock('./utils/ui-messages');
 jest.mock('./utils/event-utils');
 jest.mock('./utils/safe-dom');
@@ -32,19 +32,13 @@ const mockFirebaseConfigManager = {
     })
 };
 
-// Mock config
-const mockConfig = {
-    getConfig: jest.fn().mockResolvedValue({})
-};
-
 // Setup mocks
-import { config } from './config';
-import { firebaseConfigManager, firebaseAuthInstance } from './firebase-init';
+import { firebaseAuthInstance } from './firebase-init';
+import { firebaseConfigManager } from './firebase-config-manager';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages';
 import { debounce } from './utils/event-utils';
 import { validateInput } from './utils/safe-dom';
 
-(config as any) = mockConfig;
 (firebaseConfigManager as any) = mockFirebaseConfigManager;
 (firebaseAuthInstance as any) = mockFirebaseAuth;
 

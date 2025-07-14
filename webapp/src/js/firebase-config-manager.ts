@@ -22,7 +22,8 @@ class FirebaseConfigManager {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch('/api/config', {
+        const apiBaseUrl = (window as any).API_BASE_URL || '';
+        const response = await fetch(`${apiBaseUrl}/api/config`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -47,31 +48,7 @@ class FirebaseConfigManager {
     throw new Error(`Failed to fetch config after ${maxRetries} attempts: ${lastError?.message}`);
   }
 
-  clearCache(): void {
-    this.config = null;
-    this.configPromise = null;
-  }
-
-  isInitialized(): boolean {
-    return this.config !== null;
-  }
-
   // Convenience methods for common config access
-  async getFirebaseConfig() {
-    const config = await this.getConfig();
-    return config.firebase;
-  }
-
-  async getApiBaseUrl() {
-    const config = await this.getConfig();
-    return config.api.baseUrl;
-  }
-
-  async getEnvironment() {
-    const config = await this.getConfig();
-    return config.environment;
-  }
-
   async getFormDefaults() {
     const config = await this.getConfig();
     return config.formDefaults;
@@ -81,8 +58,6 @@ class FirebaseConfigManager {
     const config = await this.getConfig();
     return config.environment.warningBanner;
   }
-
-
 
 }
 

@@ -1,4 +1,4 @@
-import { getFirebaseConfigResponse, getEnhancedConfigResponse } from '../utils/config';
+import { getEnhancedConfigResponse } from '../utils/config';
 import { CONFIG } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
@@ -40,44 +40,6 @@ jest.mock('../logger', () => ({
 }));
 
 describe('Configuration Response Functions', () => {
-  describe('getFirebaseConfigResponse', () => {
-    it('should return legacy configuration format', () => {
-      const config = getFirebaseConfigResponse();
-      
-      expect(config).toHaveProperty('apiKey', 'test-api-key');
-      expect(config).toHaveProperty('authDomain', 'test.firebaseapp.com');
-      expect(config).toHaveProperty('projectId', 'test-project');
-      expect(config).toHaveProperty('storageBucket', 'test.firebasestorage.app');
-      expect(config).toHaveProperty('messagingSenderId', '123456789');
-      expect(config).toHaveProperty('appId', '1:123456789:web:abcdef');
-      expect(config).toHaveProperty('measurementId', 'G-TEST123');
-      expect(config).toHaveProperty('warningBanner', '⚠️ this is a demo - your data will be deleted without notice');
-    });
-
-    it('should include form defaults in development with emulator', () => {
-      // Mock development environment
-      (CONFIG as any).isDevelopment = true;
-      (CONFIG as any).formDefaults = {
-        displayName: 'test',
-        email: 'test@test.com',
-        password: 'rrRR44$$'
-      };
-
-      const config = getFirebaseConfigResponse();
-      
-      expect(config.formDefaults).toEqual({
-        displayName: 'test',
-        email: 'test@test.com',
-        password: 'rrRR44$$'
-      });
-    });
-
-    it('should throw error when client config is undefined', () => {
-      (CONFIG as any).clientConfig = undefined;
-      
-      expect(() => getFirebaseConfigResponse()).toThrow();
-    });
-  });
 
   describe('getEnhancedConfigResponse', () => {
     beforeEach(() => {
@@ -109,11 +71,11 @@ describe('Configuration Response Functions', () => {
         storageBucket: 'test.firebasestorage.app',
         messagingSenderId: '123456789',
         appId: '1:123456789:web:abcdef',
-        measurementId: 'G-TEST123'
+        measurementId: 'G-TEST123',
+        firebaseAuthUrl: undefined
       });
       
       expect(config.api).toEqual({
-        baseUrl: '/api',
         timeout: 30000,
         retryAttempts: 3
       });
@@ -121,7 +83,6 @@ describe('Configuration Response Functions', () => {
       expect(config.environment).toMatchObject({
         isDevelopment: false,
         isProduction: true,
-        isEmulator: false, // No emulator in production config
         warningBanner: {
           enabled: true,
           message: '⚠️ this is a demo - your data will be deleted without notice'
@@ -130,14 +91,6 @@ describe('Configuration Response Functions', () => {
     });
 
 
-    it('should use development API base URL when not in production', () => {
-      (CONFIG as any).isProduction = false;
-      (CONFIG as any).isDevelopment = true;
-      
-      const config = getEnhancedConfigResponse();
-      
-      expect(config.api.baseUrl).toBe('http://localhost:5001/test-project/us-central1/api');
-    });
 
     it('should validate configuration schema', () => {
       const config = getEnhancedConfigResponse();
@@ -190,15 +143,13 @@ describe('Configuration Response Functions', () => {
           appId: '1:123456:web:abc'
         },
         api: {
-          baseUrl: '/api',
           timeout: 30000,
           retryAttempts: 3
         },
         features: {},
         environment: {
           isDevelopment: false,
-          isProduction: true,
-          isEmulator: false
+          isProduction: true
         }
       };
       
@@ -216,15 +167,13 @@ describe('Configuration Response Functions', () => {
           appId: '1:123456:web:abc'
         },
         api: {
-          baseUrl: '/api',
           timeout: -1, // Negative timeout should fail
           retryAttempts: 3
         },
         features: {},
         environment: {
           isDevelopment: false,
-          isProduction: true,
-          isEmulator: false
+          isProduction: true
         }
       };
       

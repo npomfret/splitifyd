@@ -30,7 +30,8 @@ class ApiClient {
 
   async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const config = await this.getConfig();
-    const url = `${config.api.baseUrl}${endpoint}`;
+    const apiBaseUrl = (window as any).API_BASE_URL || '';
+    const url = `${apiBaseUrl}/api${endpoint}`;
     
     const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json'
