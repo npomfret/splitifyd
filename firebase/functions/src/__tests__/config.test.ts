@@ -1,4 +1,4 @@
-import { getEnhancedConfigResponse } from '../utils/config';
+import { getEnhancedConfigResponse } from '../utils/config-response';
 import { CONFIG } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 

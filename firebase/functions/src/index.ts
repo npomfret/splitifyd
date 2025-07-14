@@ -4,7 +4,7 @@ import { authenticate } from './auth/middleware';
 import { register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
-import { getEnhancedConfigResponse } from './utils/config';
+import { getEnhancedConfigResponse } from './utils/config-response';
 import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
