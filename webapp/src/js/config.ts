@@ -7,12 +7,6 @@ class Config {
     return await firebaseConfigManager.getApiBaseUrl();
   }
 
-  getApiUrlSync(): string {
-    // This method is problematic as it requires sync access to async data
-    // During migration, we'll need to update all callers to use async version
-    throw new Error('getApiUrlSync is deprecated. Use getApiUrl() instead.');
-  }
-
   async isLocalEnvironment(): Promise<boolean> {
     const env = await firebaseConfigManager.getEnvironment();
     return env.isDevelopment || env.isEmulator;
