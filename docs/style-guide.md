@@ -1,4 +1,4 @@
-# Splitifyd Style Guide
+# Style Guide
 
 *A modern, functional, and sexy approach to web development*
 
@@ -468,7 +468,7 @@ const config = {
         debug: true
     },
     production: {
-        apiUrl: 'https://api.splitifyd.com',
+        apiUrl: 'https://api.example.com',
         debug: false
     }
 };
