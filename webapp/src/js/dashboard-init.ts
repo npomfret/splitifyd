@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   });
   pageHeader.mount(document.body);
 
+  // Wait for stylesheets to load before showing spinner
+  const stylesheetLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')) as HTMLLinkElement[];
+  const stylesheetPromises = stylesheetLinks
+    .filter((link) => !link.sheet)
+    .map((link) => new Promise((resolve) => {
+      link.addEventListener('load', resolve);
+      link.addEventListener('error', resolve); // Resolve even on error to not block
+    }));
+  
+  await Promise.all(stylesheetPromises);
 
   const loadingSpinner = new LoadingSpinnerComponent({
     message: 'Loading your groups...',
