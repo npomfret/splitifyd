@@ -998,24 +998,16 @@ main section {
 }
 
 .group-card__balance-amount {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-bold);
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .group-card__balance-amount.balance--positive {
     color: var(--color-success);
-    background: rgba(76, 175, 80, 0.1);
-    border-color: rgba(76, 175, 80, 0.2);
 }
 
 .group-card__balance-amount.balance--negative {
     color: var(--color-error);
-    background: rgba(229, 62, 62, 0.1);
-    border-color: rgba(229, 62, 62, 0.2);
 }
 
 .group-card__settled {
@@ -1558,15 +1550,11 @@ main section {
 }
 
 .balance--positive {
-    background: #f0fff4;
     color: var(--color-success);
-    border: 1px solid #c6f6d5;
 }
 
 .balance--negative {
-    background: #fef5e7;
     color: var(--color-error);
-    border: 1px solid #fed7d7;
 }
 
 .balance-item {
