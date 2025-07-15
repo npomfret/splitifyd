@@ -60,9 +60,11 @@
 - automated testing is valuable - do it, lots. But...
 - Tests should be easy to read and maintain
 - Tests should be less complex than the code they are testing
-- Avoid complex DOM mocking setups (consider using the builder pattern instead of mocks)
+- Avoid complex mocking setups (also, consider using the builder pattern instead of mocks for data)
+- Don't write pedantic tests
 - Avoid high maintenance tests with low benefit
 - Avoid testing implementation details rather than behavior
+- Don't test features that don't exist yet
 
 # Architecture Rules
 - Fail fast: validate early, throw on invalid state
