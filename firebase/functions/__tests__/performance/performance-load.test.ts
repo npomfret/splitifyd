@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User, Group } from '../support/ApiDriver';
-import { PerformanceTestWorkers } from '../support/PerformanceTestWorkers';
+import { PerformanceTestWorkers } from './PerformanceTestWorkers';
 
 describe('Performance and Load Testing', () => {
     let driver: ApiDriver;

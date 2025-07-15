@@ -1,4 +1,4 @@
-import { ApiDriver, User, Group, Expense } from './ApiDriver';
+import { ApiDriver, User, Group, Expense } from '../support/ApiDriver';
 
 export class PerformanceTestWorkers {
     constructor(private driver: ApiDriver) {}

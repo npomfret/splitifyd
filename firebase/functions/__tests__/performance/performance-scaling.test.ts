@@ -3,8 +3,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../support/ApiDriver';
-import { PerformanceTestWorkers } from '../support/PerformanceTestWorkers';
+import { ApiDriver } from '../support/ApiDriver';
+import { PerformanceTestWorkers } from './PerformanceTestWorkers';
 
 describe('Performance - Group Membership Scaling', () => {
     let driver: ApiDriver;

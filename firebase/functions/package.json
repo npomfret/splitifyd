@@ -7,8 +7,9 @@
     "watch": "tsc --watch",
     "clean": "rm -rf lib",
     "test": "jest",
-    "test:unit": "jest --testPathIgnorePatterns=__tests__/integration/",
+    "test:unit": "jest --testPathIgnorePatterns=__tests__/integration/ --testPathIgnorePatterns=__tests__/performance/",
     "test:integration": "jest __tests__/integration/",
+    "test:performance": "jest __tests__/performance/",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "validate-cors": "node scripts/validate-cors.js"
