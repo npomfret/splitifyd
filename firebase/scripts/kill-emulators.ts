@@ -1,27 +1,25 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 console.log('🔥 Killing Firebase emulators...');
 
-// Only kill processes on specific ports (instance-specific)
 console.log('🎯 Killing only processes on this instance\'s ports...');
 
-// Read ports from firebase.json
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
   console.error('❌ firebase.json not found. Run the build process first to generate it.');
   process.exit(1);
 }
 
-let ports = [];
+let ports: number[] = [];
 try {
   const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
   
   if (firebaseConfig.emulators) {
-    Object.values(firebaseConfig.emulators).forEach(emulator => {
+    Object.values(firebaseConfig.emulators).forEach((emulator: any) => {
       if (emulator.port) {
         ports.push(parseInt(emulator.port));
       }
@@ -34,12 +32,11 @@ try {
   }
   
   console.log(`📍 Using ports from firebase.json: ${ports.join(', ')}`);
-} catch (error) {
+} catch (error: any) {
   console.error('❌ Could not read firebase.json:', error.message);
   process.exit(1);
 }
 
-// Kill processes on Firebase emulator ports
 ports.forEach(port => {
   try {
     const result = execSync(`lsof -ti:${port}`, { stdio: 'pipe', encoding: 'utf8' });
@@ -48,7 +45,6 @@ ports.forEach(port => {
       console.log(`✅ Killed process on port ${port}`);
     }
   } catch (error) {
-    // No process on this port, which is fine
   }
 });
 

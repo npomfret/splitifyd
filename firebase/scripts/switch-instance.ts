@@ -1,14 +1,16 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+import { execSync } from 'child_process';
 
 const instance = process.argv[2];
 
 if (!instance) {
-  console.log('Usage: node scripts/switch-instance.js <instance-number>');
-  console.log('Example: node scripts/switch-instance.js 1');
-  console.log('Example: node scripts/switch-instance.js 2');
+  console.log('Usage: ts-node scripts/switch-instance.ts <instance-number>');
+  console.log('Example: ts-node scripts/switch-instance.ts 1');
+  console.log('Example: ts-node scripts/switch-instance.ts 2');
   process.exit(1);
 }
 
@@ -20,7 +22,6 @@ if (!fs.existsSync(sourcePath)) {
   process.exit(1);
 }
 
-// Safety check: warn if .env exists and might be production config
 if (fs.existsSync(targetPath)) {
   console.log('⚠️  Existing .env file found - this will be overwritten');
   console.log('   If this is a production environment, ensure settings are backed up in .env.prod');
@@ -30,15 +31,15 @@ try {
   fs.copyFileSync(sourcePath, targetPath);
   console.log(`✅ Switched to instance ${instance} configuration`);
   
-  // Load the new config to show the ports
-  require('dotenv').config({ path: targetPath });
+  dotenv.config({ path: targetPath });
   
-  // Check if this is a production instance (no emulator ports needed)
   const isProduction = instance === 'prod';
   
   if (!isProduction) {
-    // Regenerate firebase.json with the new ports for development instances
-    require('./generate-firebase-config.js');
+    execSync('ts-node scripts/generate-firebase-config.ts', { 
+      cwd: path.join(__dirname, '..'),
+      stdio: 'inherit' 
+    });
     
     console.log('\n📍 Emulator ports for this instance:');
     console.log(`  - UI: ${process.env.EMULATOR_UI_PORT}`);
@@ -52,7 +53,7 @@ try {
     console.log('\n🚀 Production environment configured - ready for deployment');
   }
   
-} catch (error) {
+} catch (error: any) {
   console.error('❌ Failed to switch instance:', error.message);
   process.exit(1);
 }
