@@ -39,7 +39,6 @@ async function initializeAddExpensePage(): Promise<void> {
         }
         initializeEventListeners();
     } catch (error: any) {
-        logger.error('Failed to initialize add expense page:', error);
         showError('Failed to load expense form. Please try again.');
         
         setTimeout(() => {
@@ -66,7 +65,6 @@ async function loadExpenseForEditing(expenseId: string): Promise<void> {
         submitBtn.textContent = 'Update Expense';
         
     } catch (error) {
-        logger.error('Error loading expense for editing:', error);
         showMessage('Failed to load expense for editing', 'error');
     }
 }
@@ -79,7 +77,6 @@ async function loadGroupData(): Promise<void> {
         populatePaidByOptions();
         populateMembers();
     } catch (error) {
-        logger.error('Error loading group data:', error);
         showMessage('Failed to load group data', 'error');
     }
 }
@@ -100,7 +97,7 @@ async function loadUserPreferences(): Promise<void> {
             }
         }
     } catch (error) {
-        logger.error('Error loading user preferences:', error);
+        // User preferences are optional, silently continue
     }
 }
 
@@ -395,7 +392,6 @@ async function handleSubmit(event: Event): Promise<void> {
         }, 1000);
         
     } catch (error) {
-        logger.error('Error creating expense:', error);
         showMessage('Failed to add expense', 'error');
         
         const submitButton = document.getElementById('submitButton') as HTMLButtonElement;

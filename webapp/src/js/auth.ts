@@ -329,13 +329,10 @@ class AuthManager {
             this.setUserId(userCredential.user.uid);
             
             // Skip user document creation for now - can be done on first dashboard load
-            logger.log('Registration successful, redirecting to dashboard');
-            
             window.location.href = 'dashboard.html';
             
         } catch (error) {
             const firebaseError = error as FirebaseError;
-            logger.error('Registration error:', error);
             let errorMessage = 'Registration failed';
             if (firebaseError.code === 'auth/email-already-in-use') {
                 errorMessage = 'An account with this email already exists';

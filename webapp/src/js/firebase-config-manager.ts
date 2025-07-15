@@ -36,7 +36,6 @@ class FirebaseConfigManager {
         return config as AppConfiguration;
       } catch (error) {
         lastError = error as Error;
-        logger.error(`Config fetch attempt ${attempt} failed:`, error);
         
         if (attempt < maxRetries) {
           // Exponential backoff: 1s, 2s, 4s

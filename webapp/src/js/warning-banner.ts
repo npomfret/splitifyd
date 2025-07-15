@@ -12,7 +12,7 @@ export var warningBannerManager = {
     firebaseConfigManager.getConfig().then(() => {
       this.displayWarningBanner();
     }).catch((error) => {
-      logger.error('Error getting config in warningBannerManager:', error);
+      // Warning banner is optional, continue silently
     });
   },
   async displayWarningBanner() {
