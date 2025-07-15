@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { execSync } from 'child_process';
 
-const instance = process.argv[2];
+const instance: string | undefined = process.argv[2];
 
 if (!instance) {
   console.log('Usage: ts-node scripts/switch-instance.ts <instance-number>');
@@ -14,8 +14,8 @@ if (!instance) {
   process.exit(1);
 }
 
-const sourcePath = path.join(__dirname, `../functions/.env.instance${instance}`);
-const targetPath = path.join(__dirname, '../functions/.env');
+const sourcePath: string = path.join(__dirname, `../functions/.env.instance${instance}`);
+const targetPath: string = path.join(__dirname, '../functions/.env');
 
 if (!fs.existsSync(sourcePath)) {
   console.error(`❌ Instance ${instance} configuration not found: ${sourcePath}`);
@@ -33,7 +33,7 @@ try {
   
   dotenv.config({ path: targetPath });
   
-  const isProduction = instance === 'prod';
+  const isProduction: boolean = instance === 'prod';
   
   if (!isProduction) {
     execSync('ts-node scripts/generate-firebase-config.ts', { 

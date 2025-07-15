@@ -5,7 +5,7 @@ import * as http from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const { generateTestData } = require('../functions/scripts/generate-test-data');
+import { generateTestData } from '../functions/scripts/generate-test-data';
 
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
@@ -13,9 +13,9 @@ if (!fs.existsSync(firebaseConfigPath)) {
   process.exit(1);
 }
 
-const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-const UI_PORT = firebaseConfig.emulators.ui.port || '4000';
-const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port || '5001';
+const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+const UI_PORT: string = firebaseConfig.emulators.ui.port || '4000';
+const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port || '5001';
 
 console.log('🚀 Starting Firebase emulator with test data generation...\n');
 console.log(`📍 Emulator UI will be available at: http://localhost:${UI_PORT}`);
@@ -30,7 +30,7 @@ const emulatorProcess = spawn('firebase', [
 
 let emulatorsReady = false;
 
-emulatorProcess.stdout.on('data', (data) => {
+emulatorProcess.stdout.on('data', (data: Buffer) => {
   const output = data.toString();
   process.stdout.write(output);
   
@@ -39,7 +39,7 @@ emulatorProcess.stdout.on('data', (data) => {
   }
 });
 
-emulatorProcess.stderr.on('data', (data) => {
+emulatorProcess.stderr.on('data', (data: Buffer) => {
   process.stderr.write(data);
 });
 
@@ -171,7 +171,7 @@ process.on('SIGTERM', () => {
   }, 1000);
 });
 
-emulatorProcess.on('exit', (code) => {
+emulatorProcess.on('exit', (code: number | null) => {
   if (!isShuttingDown) {
     console.log(`\n🔥 Firebase emulator exited with code ${code}`);
     process.exit(code || 0);

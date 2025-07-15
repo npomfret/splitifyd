@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
-const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
+import * as admin from 'firebase-admin';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Read ports from generated firebase.json
 const firebaseConfigPath = path.join(__dirname, '../../firebase.json');
@@ -41,13 +41,45 @@ admin.initializeApp({
 
 const auth = admin.auth();
 
-const TEST_USERS = [
+interface TestUser {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
+interface TestExpense {
+  description: string;
+  amount: number;
+  category: string;
+}
+
+interface UserRecord extends admin.auth.UserRecord {
+  token: string;
+}
+
+interface GroupMember {
+  uid: string;
+  name: string;
+  email: string;
+  initials: string;
+}
+
+interface GroupData {
+  name: string;
+  members: GroupMember[];
+}
+
+interface Group extends GroupData {
+  id: string;
+}
+
+const TEST_USERS: TestUser[] = [
   { email: 'test1@test.com', password: 'rrRR44$$', displayName: 'Test User 1' },
   { email: 'test2@test.com', password: 'rrRR44$$', displayName: 'Test User 2' },
   { email: 'test3@test.com', password: 'rrRR44$$', displayName: 'Test User 3' }
 ];
 
-const EXAMPLE_EXPENSES = [
+const EXAMPLE_EXPENSES: TestExpense[] = [
   { description: 'expense-1', amount: 75.50, category: 'food' },
   { description: 'expense-2', amount: 25.00, category: 'transport' },
   { description: 'expense-3', amount: 45.80, category: 'food' },
@@ -60,9 +92,14 @@ const EXAMPLE_EXPENSES = [
   { description: 'expense-10', amount: 35.60, category: 'food' }
 ];
 
-async function apiRequest(endpoint, method = 'POST', body = null, token = null) {
+async function apiRequest(
+  endpoint: string, 
+  method: string = 'POST', 
+  body: any = null, 
+  token: string | null = null
+): Promise<any> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const options = {
+  const options: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -75,7 +112,7 @@ async function apiRequest(endpoint, method = 'POST', body = null, token = null) 
     const response = await fetch(url, options);
     
     // Try to parse response as JSON, but handle non-JSON responses
-    let data;
+    let data: any;
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
@@ -96,13 +133,13 @@ async function apiRequest(endpoint, method = 'POST', body = null, token = null) 
     }
     
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`✗ API request to ${endpoint} failed:`, error.message);
     throw error;
   }
 }
 
-async function exchangeCustomTokenForIdToken(customToken) {
+async function exchangeCustomTokenForIdToken(customToken: string): Promise<string> {
   const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
   const url = `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`;
   
@@ -129,7 +166,7 @@ async function exchangeCustomTokenForIdToken(customToken) {
   }
 }
 
-async function createTestUser(userInfo) {
+async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
   try {
     console.log(`Creating user: ${userInfo.email}`);
     
@@ -167,8 +204,8 @@ async function createTestUser(userInfo) {
     const userRecord = await auth.getUserByEmail(userInfo.email);
 
     console.log(`✓ Created user: ${userInfo.email} (${userRecord.uid})`);
-    return { ...userRecord, token: idToken };
-  } catch (error) {
+    return { ...userRecord, token: idToken } as UserRecord;
+  } catch (error: any) {
     if (error.message?.includes('already exists')) {
       console.log(`→ User already exists: ${userInfo.email}, logging in...`);
       
@@ -196,23 +233,23 @@ async function createTestUser(userInfo) {
       const idToken = authData.idToken;
       
       const userRecord = await auth.getUserByEmail(userInfo.email);
-      return { ...userRecord, token: idToken };
+      return { ...userRecord, token: idToken } as UserRecord;
     }
     throw error;
   }
 }
 
-async function createTestGroup(name, members, createdBy) {
+async function createTestGroup(name: string, members: UserRecord[], createdBy: UserRecord): Promise<Group> {
   try {
     console.log(`Creating group: ${name}`);
     
-    const groupData = {
+    const groupData: GroupData = {
       name,
       members: members.map(member => ({
         uid: member.uid,
-        name: member.displayName,
-        email: member.email,
-        initials: member.displayName.split(' ').map(n => n[0]).join('').toUpperCase()
+        name: member.displayName || '',
+        email: member.email || '',
+        initials: (member.displayName || '').split(' ').map(n => n[0]).join('').toUpperCase()
       }))
     };
 
@@ -229,7 +266,12 @@ async function createTestGroup(name, members, createdBy) {
   }
 }
 
-async function createTestExpense(groupId, expense, participants, createdBy) {
+async function createTestExpense(
+  groupId: string, 
+  expense: TestExpense, 
+  participants: UserRecord[], 
+  createdBy: UserRecord
+): Promise<any> {
   try {
     const expenseData = {
       groupId,
@@ -253,7 +295,7 @@ async function createTestExpense(groupId, expense, participants, createdBy) {
   }
 }
 
-async function waitForApiReady() {
+async function waitForApiReady(): Promise<void> {
   const maxAttempts = 10;
   let attempts = 0;
   
@@ -263,7 +305,7 @@ async function waitForApiReady() {
       console.log(`⏳ Checking API readiness... (${attempts}/${maxAttempts})`);
       await apiRequest('/health', 'GET');
       return;
-    } catch (error) {
+    } catch (error: any) {
       if (error.message.includes('Firebase Functions not ready yet')) {
         console.log('⏳ Functions not ready yet, waiting 3 seconds...');
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -284,7 +326,41 @@ async function waitForApiReady() {
   throw new Error('API functions failed to become ready within timeout');
 }
 
-async function generateTestData() {
+async function createCircularDebtScenario(users: UserRecord[]): Promise<void> {
+  const groupName = 'simplify-test-group';
+  const groupMembers = [users[0], users[1], users[2]];
+  const group = await createTestGroup(groupName, groupMembers, users[0]);
+
+  const expenseAmount = 100;
+
+  // User 1 pays for User 2
+  await createTestExpense(
+    group.id,
+    { description: 'U1 pays for U2', amount: expenseAmount, category: 'other' },
+    [users[0], users[1]],
+    users[0]
+  );
+
+  // User 2 pays for User 3
+  await createTestExpense(
+    group.id,
+    { description: 'U2 pays for U3', amount: expenseAmount, category: 'other' },
+    [users[1], users[2]],
+    users[1]
+  );
+
+  // User 3 pays for User 1
+  await createTestExpense(
+    group.id,
+    { description: 'U3 pays for U1', amount: expenseAmount, category: 'other' },
+    [users[2], users[0]],
+    users[2]
+  );
+
+  console.log(`✓ Created circular debt scenario in group: ${groupName}`);
+}
+
+export async function generateTestData(): Promise<void> {
   try {
     console.log('🚀 Starting test data generation...\n');
 
@@ -295,7 +371,7 @@ async function generateTestData() {
 
     // Create test users
     console.log('📝 Creating test users...');
-    const users = [];
+    const users: UserRecord[] = [];
     for (const userInfo of TEST_USERS) {
       const user = await createTestUser(userInfo);
       users.push(user);
@@ -363,40 +439,6 @@ async function generateTestData() {
   }
 }
 
-async function createCircularDebtScenario(users) {
-  const groupName = 'simplify-test-group';
-  const groupMembers = [users[0], users[1], users[2]];
-  const group = await createTestGroup(groupName, groupMembers, users[0]);
-
-  const expenseAmount = 100;
-
-  // User 1 pays for User 2
-  await createTestExpense(
-    group.id,
-    { description: 'U1 pays for U2', amount: expenseAmount, category: 'other' },
-    [users[0], users[1]],
-    users[0]
-  );
-
-  // User 2 pays for User 3
-  await createTestExpense(
-    group.id,
-    { description: 'U2 pays for U3', amount: expenseAmount, category: 'other' },
-    [users[1], users[2]],
-    users[1]
-  );
-
-  // User 3 pays for User 1
-  await createTestExpense(
-    group.id,
-    { description: 'U3 pays for U1', amount: expenseAmount, category: 'other' },
-    [users[2], users[0]],
-    users[2]
-  );
-
-  console.log(`✓ Created circular debt scenario in group: ${groupName}`);
-}
-
 // Run the script
 if (require.main === module) {
   generateTestData().then(() => {
@@ -407,5 +449,3 @@ if (require.main === module) {
     process.exit(1);
   });
 }
-
-module.exports = { generateTestData };

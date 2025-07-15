@@ -16,7 +16,7 @@ if (!fs.existsSync(firebaseConfigPath)) {
 
 let ports: number[] = [];
 try {
-  const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+  const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
   
   if (firebaseConfig.emulators) {
     Object.values(firebaseConfig.emulators).forEach((emulator: any) => {
@@ -39,7 +39,7 @@ try {
 
 ports.forEach(port => {
   try {
-    const result = execSync(`lsof -ti:${port}`, { stdio: 'pipe', encoding: 'utf8' });
+    const result: string = execSync(`lsof -ti:${port}`, { stdio: 'pipe', encoding: 'utf8' }) as string;
     if (result.trim()) {
       execSync(`kill -9 ${result.trim()}`, { stdio: 'ignore' });
       console.log(`✅ Killed process on port ${port}`);

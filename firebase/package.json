@@ -5,7 +5,7 @@
   "scripts": {
     "link-webapp": "ln -sf ../webapp/dist public",
     "start-emulators": "ts-node scripts/generate-firebase-config.ts && ts-node scripts/start-with-data.ts",
-    "generate-test-data": "cd functions && node scripts/generate-test-data.js",
+    "generate-test-data": "cd functions && ts-node scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
     "deploy:prod": "cd .. && npm run build && cd firebase && ts-node scripts/switch-instance.ts prod && firebase deploy && rm functions/.env",
