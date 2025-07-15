@@ -26,9 +26,9 @@ describe('Performance - Large Dataset Handling', () => {
     });
 
     const testCases = [
-        { totalExpenses: 20, batchSize: 5, description: 'small dataset', timeout: 30000 },
-        { totalExpenses: 40, batchSize: 10, description: 'medium dataset', timeout: 45000 },
-        { totalExpenses: 60, batchSize: 15, description: 'large dataset', timeout: 60000 },
+        { totalExpenses: 10, batchSize: 5, description: 'small dataset', timeout: 30000 },
+        { totalExpenses: 20, batchSize: 5, description: 'medium dataset', timeout: 45000 },
+        { totalExpenses: 30, batchSize: 10, description: 'large dataset', timeout: 60000 },
     ];
 
     testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {

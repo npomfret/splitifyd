@@ -15,7 +15,9 @@ describe('Performance - Balance Consistency Under Load', () => {
     });
 
     const testCases = [
-        { expensesPerUserPair: 1, description: 'small dataset' },
+        { expensesPerUserPair: 5, description: 'small dataset' },
+        { expensesPerUserPair: 10, description: 'medium dataset' },
+        { expensesPerUserPair: 15, description: 'large dataset' },
     ];
 
     testCases.forEach(({ expensesPerUserPair, description }) => {
@@ -35,21 +37,45 @@ describe('Performance - Balance Consistency Under Load', () => {
             
             const balanceGroup = await driver.createGroup(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
 
-            // Create just one expense to test basic functionality
-            await driver.createExpense({
-                groupId: balanceGroup.id,
-                description: `User1 pays`,
-                amount: 100,
-                paidBy: user1.uid,
-                category: 'food',
-                splitType: 'exact',
-                participants: [user1.uid, user2.uid],
-                splits: [
-                    { userId: user1.uid, amount: 20 },
-                    { userId: user2.uid, amount: 80 }
-                ],
-                date: new Date().toISOString()
-            }, user1.token);
+            // Create expenses concurrently in batches
+            const batchSize = 5;
+            for (let i = 0; i < expensesPerUserPair; i += batchSize) {
+                const promises = [];
+                for (let j = i; j < Math.min(i + batchSize, expensesPerUserPair); j++) {
+                    // User1 pays for User2
+                    promises.push(driver.createExpense({
+                        groupId: balanceGroup.id,
+                        description: `User1 pays ${j}`,
+                        amount: 100,
+                        paidBy: user1.uid,
+                        category: 'food',
+                        splitType: 'exact',
+                        participants: [user1.uid, user2.uid],
+                        splits: [
+                            { userId: user1.uid, amount: 20 },
+                            { userId: user2.uid, amount: 80 }
+                        ],
+                        date: new Date().toISOString()
+                    }, user1.token));
+                    
+                    // User2 pays for User1
+                    promises.push(driver.createExpense({
+                        groupId: balanceGroup.id,
+                        description: `User2 pays ${j}`,
+                        amount: 100,
+                        paidBy: user2.uid,
+                        category: 'food',
+                        splitType: 'exact',
+                        participants: [user1.uid, user2.uid],
+                        splits: [
+                            { userId: user1.uid, amount: 80 },
+                            { userId: user2.uid, amount: 20 }
+                        ],
+                        date: new Date().toISOString()
+                    }, user2.token));
+                }
+                await Promise.all(promises);
+            }
 
             // Wait for balance calculation trigger to complete
             const balances = await driver.waitForBalanceUpdate(balanceGroup.id, user1.token, 15000);
