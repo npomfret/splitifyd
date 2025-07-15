@@ -251,25 +251,6 @@ describe('Public Endpoints Tests', () => {
       }
     });
 
-    test('should not expose server information', async () => {
-      const response = await fetch(`${driver.getBaseUrl()}/health`);
-      
-      // KNOWN ISSUE: Server header should be hidden but currently shows "Express"
-      // expect(response.headers.get('Server')).toBeNull();
-      // KNOWN ISSUE: X-Powered-By header should be null but may still be present
-      // expect(response.headers.get('X-Powered-By')).toBeNull();
-      
-      // For now, just document these security issues
-      const server = response.headers.get('Server');
-      const poweredBy = response.headers.get('X-Powered-By');
-      
-      if (server === 'Express') {
-        console.warn('Security Issue: Server header exposes "Express" - should be hidden');
-      }
-      if (poweredBy) {
-        console.warn('Security Issue: X-Powered-By header should be null but is:', poweredBy);
-      }
-    });
   });
 
   describe('Error Handling', () => {

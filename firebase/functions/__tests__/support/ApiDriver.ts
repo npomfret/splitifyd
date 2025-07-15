@@ -245,8 +245,9 @@ export class ApiDriver {
     return await this.apiRequest(`/expenses?id=${expenseId}`, 'GET', null, token);
   }
 
-  async getGroupExpenses(groupId: string, token: string): Promise<{ expenses: Expense[] }> {
-    return await this.apiRequest(`/expenses/group?groupId=${groupId}`, 'GET', null, token);
+  async getGroupExpenses(groupId: string, token: string, limit?: number): Promise<{ expenses: Expense[] }> {
+    const limitParam = limit ? `&limit=${limit}` : '';
+    return await this.apiRequest(`/expenses/group?groupId=${groupId}${limitParam}`, 'GET', null, token);
   }
 
   async getGroupBalances(groupId: string, token: string): Promise<any> {

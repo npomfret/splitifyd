@@ -27,6 +27,13 @@
 - Check git status: `git status --porcelain`
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 
+# Testing Commands
+- Run all tests: `npm test` (from root or any package)
+- Run unit tests only: `npm run test:unit` (from root)
+- Run integration tests only: `npm run test:integration` (from root, requires emulator running)
+- Run specific test file: `npm test -- path/to/test.ts`
+- Run tests in watch mode: `npm run test:watch`
+
 # Firebase Local Development
 - Typically, the emulator is already running, via `npm run dev`, so do not try to start it again. If it is not running, ask the user to start it.
 - If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
