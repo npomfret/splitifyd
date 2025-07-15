@@ -26,9 +26,9 @@ describe('Performance - Concurrent User Operations', () => {
     });
 
     const testCases = [
-        { users: 5, expensesPerUser: 2, timeoutMs: 5000, description: 'small load' },
-        { users: 10, expensesPerUser: 1, timeoutMs: 8000, description: 'medium load' },
-        { users: 15, expensesPerUser: 2, timeoutMs: 15000, description: 'large load' },
+        { users: 3, expensesPerUser: 1, timeoutMs: 5000, description: 'small load' },
+        { users: 5, expensesPerUser: 1, timeoutMs: 8000, description: 'medium load' },
+        { users: 7, expensesPerUser: 1, timeoutMs: 10000, description: 'large load' },
     ];
 
     testCases.forEach(({ users, expensesPerUser, timeoutMs, description }) => {

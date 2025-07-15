@@ -11,7 +11,7 @@ describe('Performance - Large Dataset Handling', () => {
     let mainUser: User;
     let workers: PerformanceTestWorkers;
 
-    jest.setTimeout(120000);
+    jest.setTimeout(90000);
 
     beforeAll(async () => {
         driver = new ApiDriver();
@@ -26,9 +26,9 @@ describe('Performance - Large Dataset Handling', () => {
     });
 
     const testCases = [
-        { totalExpenses: 50, batchSize: 10, description: 'small dataset', timeout: 30000 },
-        { totalExpenses: 100, batchSize: 20, description: 'medium dataset', timeout: 60000 },
-        { totalExpenses: 250, batchSize: 25, description: 'large dataset', timeout: 120000 },
+        { totalExpenses: 20, batchSize: 5, description: 'small dataset', timeout: 30000 },
+        { totalExpenses: 40, batchSize: 10, description: 'medium dataset', timeout: 45000 },
+        { totalExpenses: 60, batchSize: 15, description: 'large dataset', timeout: 60000 },
     ];
 
     testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {

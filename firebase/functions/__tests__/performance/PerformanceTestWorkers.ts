@@ -99,10 +99,12 @@ export class PerformanceTestWorkers {
         }
 
         // Execute in smaller batches to avoid overwhelming the API
-        const batchSize = 5;
+        const batchSize = 2;
         for (let i = 0; i < expensePromises.length; i += batchSize) {
             const batch = expensePromises.slice(i, i + batchSize);
             await Promise.all(batch);
+            // Add small delay between batches to avoid overwhelming the emulator
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
 
