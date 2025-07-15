@@ -51,7 +51,7 @@ async function loadExpenseDetails(expenseId: string): Promise<void> {
         
         // Use real API to get expense details
         const expense = await ExpenseService.getExpense(expenseId);
-        const user: User = { uid: authManager.getUserId() || '' } as User;
+        const user: User = { uid: authManager.getUserId()! } as User;
 
         // Fetch group data to get member information for ID-to-name mapping
         const groupResponse = await apiService.getGroup(expense.groupId);
@@ -66,7 +66,7 @@ async function loadExpenseDetails(expenseId: string): Promise<void> {
         
     } catch (error: any) {
         logger.error('Error loading expense details:', error);
-        showError(`Failed to load expense details: ${error.message || 'Unknown error'}`);
+        showError(`Failed to load expense details: ${error.message}`);
     }
 }
 
@@ -255,7 +255,7 @@ async function deleteExpense(): Promise<void> {
         closeDeleteModal();
         
         const urlParams = new URLSearchParams(window.location.search);
-        const returnUrl = urlParams.get('return') || 'dashboard.html';
+        const returnUrl = urlParams.get('return') ?? 'dashboard.html';
         window.location.href = returnUrl;
         
     } catch (error: any) {

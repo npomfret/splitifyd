@@ -28,7 +28,7 @@ const authValidators: ValidatorMap = {
             throw new Error(result.error || 'Invalid email');
         }
         
-        return result.value?.toLowerCase() || '';
+        return result.value!.toLowerCase();
     },
     
     password: (value: string): string => {
@@ -47,7 +47,7 @@ const authValidators: ValidatorMap = {
             throw new Error(errorMsg);
         }
         
-        return result.value || '';
+        return result.value!;
     },
     
     displayName: (value: string): string => {
@@ -61,7 +61,7 @@ const authValidators: ValidatorMap = {
             throw new Error(result.error || 'Invalid display name');
         }
         
-        return result.value || '';
+        return result.value!;
     }
 };
 
@@ -165,23 +165,23 @@ class AuthManager {
                 return;
             }
 
-            const registerDefaults: Record<string, string> = {
-                displayName: formDefaults.displayName || '',
-                email: formDefaults.email || '',
-                password: formDefaults.password || '',
-                confirmPassword: formDefaults.password || ''
-            };
+            const registerDefaults: Record<string, string> = {};
+            if (formDefaults.displayName) registerDefaults.displayName = formDefaults.displayName;
+            if (formDefaults.email) registerDefaults.email = formDefaults.email;
+            if (formDefaults.password) {
+                registerDefaults.password = formDefaults.password;
+                registerDefaults.confirmPassword = formDefaults.password;
+            }
 
-            const loginDefaults: Record<string, string> = {
-                email: formDefaults.email || '',
-                password: formDefaults.password || ''
-            };
+            const loginDefaults: Record<string, string> = {};
+            if (formDefaults.email) loginDefaults.email = formDefaults.email;
+            if (formDefaults.password) loginDefaults.password = formDefaults.password;
 
             const defaults = form.id === 'registerForm' ? registerDefaults : loginDefaults;
 
             Object.entries(defaults).forEach(([fieldName, defaultValue]) => {
                 const input = form.querySelector<HTMLInputElement>(`[name="${fieldName}"]`);
-                if (input && !input.value && defaultValue) {
+                if (input && !input.value) {
                     input.value = defaultValue;
                 }
             });
@@ -245,7 +245,7 @@ class AuthManager {
     }
 
     private async submitLogin(credentials: LoginCredentials, button: HTMLButtonElement): Promise<void> {
-        const originalText = button.textContent || '';
+        const originalText = button.textContent!;
         
         try {
             this.setButtonLoading(button, 'Signing in...');
@@ -315,7 +315,7 @@ class AuthManager {
     }
 
     private async submitRegistration(userData: RegistrationData, button: HTMLButtonElement): Promise<void> {
-        const originalText = button.textContent || '';
+        const originalText = button.textContent!;
         
         try {
             this.setButtonLoading(button, 'Creating Account...');
@@ -407,7 +407,7 @@ class AuthManager {
     }
 
     private async submitPasswordReset(email: string, button: HTMLButtonElement): Promise<void> {
-        const originalText = button.textContent || '';
+        const originalText = button.textContent!;
         
         try {
             this.setButtonLoading(button, 'Sending...');
