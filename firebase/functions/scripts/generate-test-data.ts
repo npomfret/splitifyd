@@ -333,29 +333,30 @@ async function createCircularDebtScenario(users: UserRecord[]): Promise<void> {
 
   const expenseAmount = 100;
 
-  // User 1 pays for User 2
-  await createTestExpense(
-    group.id,
-    { description: 'U1 pays for U2', amount: expenseAmount, category: 'other' },
-    [users[0], users[1]],
-    users[0]
-  );
-
-  // User 2 pays for User 3
-  await createTestExpense(
-    group.id,
-    { description: 'U2 pays for U3', amount: expenseAmount, category: 'other' },
-    [users[1], users[2]],
-    users[1]
-  );
-
-  // User 3 pays for User 1
-  await createTestExpense(
-    group.id,
-    { description: 'U3 pays for U1', amount: expenseAmount, category: 'other' },
-    [users[2], users[0]],
-    users[2]
-  );
+  // Create all three expenses in parallel
+  await Promise.all([
+    // User 1 pays for User 2
+    createTestExpense(
+      group.id,
+      { description: 'U1 pays for U2', amount: expenseAmount, category: 'other' },
+      [users[0], users[1]],
+      users[0]
+    ),
+    // User 2 pays for User 3
+    createTestExpense(
+      group.id,
+      { description: 'U2 pays for U3', amount: expenseAmount, category: 'other' },
+      [users[1], users[2]],
+      users[1]
+    ),
+    // User 3 pays for User 1
+    createTestExpense(
+      group.id,
+      { description: 'U3 pays for U1', amount: expenseAmount, category: 'other' },
+      [users[2], users[0]],
+      users[2]
+    )
+  ]);
 
   console.log(`✓ Created circular debt scenario in group: ${groupName}`);
 }
@@ -371,50 +372,52 @@ export async function generateTestData(): Promise<void> {
 
     // Create test users
     console.log('📝 Creating test users...');
-    const users: UserRecord[] = [];
-    for (const userInfo of TEST_USERS) {
-      const user = await createTestUser(userInfo);
-      users.push(user);
-    }
+    const users = await Promise.all(
+      TEST_USERS.map(userInfo => createTestUser(userInfo))
+    );
     console.log(`✓ Created ${users.length} users\n`);
 
     // Create test groups
     console.log('👥 Creating test groups...');
     
-    // Group 1: All three users
+    // Group 1 needs to be created first, then groups 2 and 3 can be parallel
     const group1 = await createTestGroup('group-1', users, users[0]);
     
-    // Group 2: Test1 and Test2
-    const group2 = await createTestGroup('group-2', [users[0], users[1]], users[0]);
-    
-    // Group 3: Test2 and Test3
-    const group3 = await createTestGroup('group-3', [users[1], users[2]], users[1]);
+    const [group2, group3] = await Promise.all([
+      createTestGroup('group-2', [users[0], users[1]], users[0]),
+      createTestGroup('group-3', [users[1], users[2]], users[1])
+    ]);
     
     console.log(`✓ Created 3 groups\n`);
 
     // Create test expenses
     console.log('💰 Creating test expenses...');
     
+    // Create all expenses in parallel
+    const expensePromises = [];
+    
     // Expenses for group 1 (all users)
     const group1Expenses = EXAMPLE_EXPENSES.slice(0, 4);
-    for (const expense of group1Expenses) {
+    expensePromises.push(...group1Expenses.map(expense => {
       const randomPayer = users[Math.floor(Math.random() * users.length)];
-      await createTestExpense(group1.id, expense, users, randomPayer);
-    }
+      return createTestExpense(group1.id, expense, users, randomPayer);
+    }));
     
     // Expenses for group 2 (test1 and test2)
     const group2Expenses = EXAMPLE_EXPENSES.slice(4, 7);
-    for (const expense of group2Expenses) {
+    expensePromises.push(...group2Expenses.map(expense => {
       const randomPayer = [users[0], users[1]][Math.floor(Math.random() * 2)];
-      await createTestExpense(group2.id, expense, [users[0], users[1]], randomPayer);
-    }
+      return createTestExpense(group2.id, expense, [users[0], users[1]], randomPayer);
+    }));
     
     // Expenses for group 3 (test2 and test3)
     const group3Expenses = EXAMPLE_EXPENSES.slice(7, 10);
-    for (const expense of group3Expenses) {
+    expensePromises.push(...group3Expenses.map(expense => {
       const randomPayer = [users[1], users[2]][Math.floor(Math.random() * 2)];
-      await createTestExpense(group3.id, expense, [users[1], users[2]], randomPayer);
-    }
+      return createTestExpense(group3.id, expense, [users[1], users[2]], randomPayer);
+    }));
+    
+    await Promise.all(expensePromises);
     
     console.log(`✓ Created ${group1Expenses.length + group2Expenses.length + group3Expenses.length} expenses\n`);
 
