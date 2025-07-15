@@ -73,11 +73,46 @@ interface Group extends GroupData {
   id: string;
 }
 
-const TEST_USERS: TestUser[] = [
-  { email: 'test1@test.com', password: 'rrRR44$$', displayName: 'Test User 1' },
-  { email: 'test2@test.com', password: 'rrRR44$$', displayName: 'Test User 2' },
-  { email: 'test3@test.com', password: 'rrRR44$$', displayName: 'Test User 3' }
+const generateTestUsers = (): TestUser[] => {
+  const users: TestUser[] = [
+    // First user is always test1@test.com for consistency
+    { email: 'test1@test.com', password: 'rrRR44$$', displayName: 'Test User 1' }
+  ];
+  
+  // Add remaining 4 users
+  for (let i = 2; i <= 5; i++) {
+    users.push({
+      email: `user${i}@test.com`,
+      password: 'rrRR44$$',
+      displayName: `Test User ${i}`
+    });
+  }
+  return users;
+};
+
+const TEST_USERS: TestUser[] = generateTestUsers();
+
+const EXPENSE_CATEGORIES = ['food', 'transport', 'entertainment', 'accommodation', 'utilities', 'shopping', 'healthcare', 'other'];
+const EXPENSE_DESCRIPTIONS = [
+  'Dinner at restaurant', 'Grocery shopping', 'Gas for car', 'Movie tickets', 'Concert tickets',
+  'Hotel booking', 'Taxi ride', 'Coffee shop', 'Lunch', 'Breakfast', 'Snacks', 'Uber ride',
+  'Train ticket', 'Bus fare', 'Parking fee', 'Tolls', 'Rental car', 'Flight ticket',
+  'Room service', 'Minibar', 'Laundry', 'Spa treatment', 'Gym membership', 'Medical checkup',
+  'Pharmacy', 'Books', 'Clothes shopping', 'Electronics', 'Home supplies', 'Gifts'
 ];
+
+const generateRandomExpense = (): TestExpense => {
+  const description = EXPENSE_DESCRIPTIONS[Math.floor(Math.random() * EXPENSE_DESCRIPTIONS.length)];
+  const category = EXPENSE_CATEGORIES[Math.floor(Math.random() * EXPENSE_CATEGORIES.length)];
+  // More varied amounts: some small, some large, some in between
+  const amountTypes = [
+    () => Math.round((Math.random() * 20 + 5) * 100) / 100,   // Small: $5-$25
+    () => Math.round((Math.random() * 100 + 25) * 100) / 100, // Medium: $25-$125
+    () => Math.round((Math.random() * 300 + 100) * 100) / 100 // Large: $100-$400
+  ];
+  const amount = amountTypes[Math.floor(Math.random() * amountTypes.length)]();
+  return { description, amount, category };
+};
 
 const EXAMPLE_EXPENSES: TestExpense[] = [
   { description: 'expense-1', amount: 75.50, category: 'food' },
@@ -326,6 +361,104 @@ async function waitForApiReady(): Promise<void> {
   throw new Error('API functions failed to become ready within timeout');
 }
 
+function getRandomUsers(allUsers: UserRecord[], count: number): UserRecord[] {
+  const shuffled = [...allUsers].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+function generateRandomGroupName(): string {
+  const adjectives = ['Amazing', 'Awesome', 'Cool', 'Epic', 'Fun', 'Great', 'Happy', 'Super', 'Wild', 'Zen'];
+  const nouns = ['Adventures', 'Buddies', 'Crew', 'Friends', 'Gang', 'Group', 'Squad', 'Team', 'Travelers', 'Warriors'];
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  return `${adjective} ${noun}`;
+}
+
+async function createRandomGroupsForUser(user: UserRecord, allUsers: UserRecord[], groupCount: number): Promise<Group[]> {
+  const groups: Group[] = [];
+  
+  for (let i = 0; i < groupCount; i++) {
+    const groupSize = Math.min(Math.floor(Math.random() * 3) + 3, allUsers.length); // 3-5 users per group, max available
+    const otherUsers = allUsers.filter(u => u.uid !== user.uid);
+    const randomMembers = getRandomUsers(otherUsers, groupSize - 1);
+    const allMembers = [user, ...randomMembers];
+    
+    const groupName = generateRandomGroupName();
+    const group = await createTestGroup(groupName, allMembers, user);
+    groups.push(group);
+    
+    console.log(`  ✓ ${user.displayName} created group: ${groupName} (${allMembers.length} members)`);
+  }
+  
+  return groups;
+}
+
+async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[], expenseCount: number): Promise<void> {
+  const groupMembers = allUsers.filter(user => 
+    group.members.some(member => member.uid === user.uid)
+  );
+  
+  // Process expenses in small batches to avoid transaction timeouts
+  const EXPENSE_BATCH_SIZE = 3;
+  let createdCount = 0;
+  
+  for (let i = 0; i < expenseCount; i += EXPENSE_BATCH_SIZE) {
+    const batchSize = Math.min(EXPENSE_BATCH_SIZE, expenseCount - i);
+    const expensePromises = [];
+    
+    for (let j = 0; j < batchSize; j++) {
+      const expense = generateRandomExpense();
+      const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+      
+      // More varied participant patterns to create uneven balances
+      const participantPatterns = [
+        // Sometimes just 2 people (creates more imbalance)
+        () => 2,
+        // Sometimes just payer + 1 other (creates debt)
+        () => Math.min(2, groupMembers.length),
+        // Sometimes most of the group
+        () => Math.max(2, groupMembers.length - 1),
+        // Sometimes everyone
+        () => groupMembers.length,
+        // Random subset
+        () => Math.floor(Math.random() * (groupMembers.length - 1)) + 2
+      ];
+      
+      const participantCount = participantPatterns[Math.floor(Math.random() * participantPatterns.length)]();
+      const participants = getRandomUsers(groupMembers, Math.min(participantCount, groupMembers.length));
+      
+      // Sometimes payer doesn't participate (pays for others)
+      const payerParticipates = Math.random() > 0.2; // 80% chance payer participates
+      if (payerParticipates && !participants.some(p => p.uid === payer.uid)) {
+        participants[0] = payer;
+      } else if (!payerParticipates && participants.some(p => p.uid === payer.uid)) {
+        // Remove payer from participants
+        const payerIndex = participants.findIndex(p => p.uid === payer.uid);
+        participants.splice(payerIndex, 1);
+      }
+      
+      // Ensure we have at least one participant
+      if (participants.length === 0) {
+        participants.push(groupMembers[Math.floor(Math.random() * groupMembers.length)]);
+      }
+      
+      expensePromises.push(
+        createTestExpense(group.id, expense, participants, payer)
+      );
+    }
+    
+    await Promise.all(expensePromises);
+    createdCount += batchSize;
+    
+    // Small delay between batches to reduce database pressure
+    if (i + EXPENSE_BATCH_SIZE < expenseCount) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  console.log(`  ✓ Created ${createdCount} expenses for group: ${group.name}`);
+}
+
 async function createCircularDebtScenario(users: UserRecord[]): Promise<void> {
   const groupName = 'simplify-test-group';
   const groupMembers = [users[0], users[1], users[2]];
@@ -370,71 +503,78 @@ export async function generateTestData(): Promise<void> {
     await waitForApiReady();
     console.log('✓ API endpoints are ready\n');
 
-    // Create test users
-    console.log('📝 Creating test users...');
+    // Create all 5 test users in parallel
+    console.log('📝 Creating 5 test users...');
     const users = await Promise.all(
       TEST_USERS.map(userInfo => createTestUser(userInfo))
     );
     console.log(`✓ Created ${users.length} users\n`);
 
-    // Create test groups
-    console.log('👥 Creating test groups...');
+    // Create groups for each user (5 users × 2 groups each = 10 groups total)
+    console.log('👥 Creating groups (2 per user)...');
+    const allGroups: Group[] = [];
     
-    // Group 1 needs to be created first, then groups 2 and 3 can be parallel
-    const group1 = await createTestGroup('group-1', users, users[0]);
+    // Process users in small batches to avoid overwhelming the API
+    const BATCH_SIZE = 2; // Reduced from 5 to 2
+    for (let i = 0; i < users.length; i += BATCH_SIZE) {
+      const userBatch = users.slice(i, i + BATCH_SIZE);
+      const batchPromises = userBatch.map(user => 
+        createRandomGroupsForUser(user, users, 2)
+      );
+      
+      const batchGroups = await Promise.all(batchPromises);
+      allGroups.push(...batchGroups.flat());
+      
+      console.log(`  User batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(users.length/BATCH_SIZE)} completed`);
+      
+      // Add delay between user batches
+      if (i + BATCH_SIZE < users.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
     
-    const [group2, group3] = await Promise.all([
-      createTestGroup('group-2', [users[0], users[1]], users[0]),
-      createTestGroup('group-3', [users[1], users[2]], users[1])
-    ]);
-    
-    console.log(`✓ Created 3 groups\n`);
+    console.log(`✓ Created ${allGroups.length} groups total\n`);
 
-    // Create test expenses
-    console.log('💰 Creating test expenses...');
+    // Create expenses for all groups (10-20 per group)
+    console.log('💰 Creating expenses for all groups...');
     
-    // Create all expenses in parallel
-    const expensePromises = [];
+    // Process groups sequentially to avoid transaction timeouts
+    let totalExpenses = 0;
     
-    // Expenses for group 1 (all users)
-    const group1Expenses = EXAMPLE_EXPENSES.slice(0, 4);
-    expensePromises.push(...group1Expenses.map(expense => {
-      const randomPayer = users[Math.floor(Math.random() * users.length)];
-      return createTestExpense(group1.id, expense, users, randomPayer);
-    }));
+    for (let i = 0; i < allGroups.length; i++) {
+      const group = allGroups[i];
+      const expenseCount = Math.floor(Math.random() * 3) + 3; // 3-5 expenses
+      totalExpenses += expenseCount;
+      
+      await createRandomExpensesForGroup(group, users, expenseCount);
+      
+      // Progress update every 10 groups
+      if ((i + 1) % 10 === 0) {
+        console.log(`  Progress: ${i + 1}/${allGroups.length} groups completed`);
+      }
+      
+      // Small delay between groups
+      if (i < allGroups.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
     
-    // Expenses for group 2 (test1 and test2)
-    const group2Expenses = EXAMPLE_EXPENSES.slice(4, 7);
-    expensePromises.push(...group2Expenses.map(expense => {
-      const randomPayer = [users[0], users[1]][Math.floor(Math.random() * 2)];
-      return createTestExpense(group2.id, expense, [users[0], users[1]], randomPayer);
-    }));
-    
-    // Expenses for group 3 (test2 and test3)
-    const group3Expenses = EXAMPLE_EXPENSES.slice(7, 10);
-    expensePromises.push(...group3Expenses.map(expense => {
-      const randomPayer = [users[1], users[2]][Math.floor(Math.random() * 2)];
-      return createTestExpense(group3.id, expense, [users[1], users[2]], randomPayer);
-    }));
-    
-    await Promise.all(expensePromises);
-    
-    console.log(`✓ Created ${group1Expenses.length + group2Expenses.length + group3Expenses.length} expenses\n`);
+    console.log(`✓ Created approximately ${totalExpenses} expenses total\n`);
 
-    console.log('🎉 Test data generation completed successfully!');
+    console.log('🔬 Creating special settled circular debt scenario...');
+    await createCircularDebtScenario(users.slice(0, 3)); // Use first 3 users
+
+    console.log('\n🎉 Test data generation completed successfully!');
     console.log('\n📊 Summary:');
     console.log(`• Users: ${users.length}`);
-    console.log(`• Groups: 3`);
-    console.log(`• Expenses: ${group1Expenses.length + group2Expenses.length + group3Expenses.length}`);
+    console.log(`• Groups: ${allGroups.length} (${users.length} users × 2 groups each)`);
+    console.log(`• Expenses: ~${totalExpenses} (3-5 per group)`);
+    console.log(`• Special scenarios: 1 (circular debt for balance testing)`);
     
     console.log('\n🔑 Test Users:');
     TEST_USERS.forEach(user => {
       console.log(`• ${user.email} (${user.displayName}) - Password: ${user.password}`);
     });
-
-    console.log('\n🔬 Creating circular debt scenario for debugging...');
-    await createCircularDebtScenario(users);
-
 
   } catch (error) {
     console.error('❌ Test data generation failed:', error);
