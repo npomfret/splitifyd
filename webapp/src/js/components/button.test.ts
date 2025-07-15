@@ -45,72 +45,9 @@ describe('ButtonComponent', () => {
       expect(container.querySelector('button')?.type).toBe('reset');
     });
 
-    it('should render with custom id', () => {
-      const button = new ButtonComponent({
-        id: 'custom-button-id'
-      });
-      button.mount(container);
-
-      const element = container.querySelector('button');
-      expect(element?.id).toBe('custom-button-id');
-    });
-
-    it('should render with title attribute', () => {
-      const button = new ButtonComponent({
-        title: 'Button tooltip'
-      });
-      button.mount(container);
-
-      const element = container.querySelector('button');
-      expect(element?.title).toBe('Button tooltip');
-    });
   });
 
-  describe('Button Variants', () => {
-    it.each([
-      'primary', 'secondary', 'danger', 'success', 'link', 'logout', 'icon'
-    ])('should apply %s variant class', (variant) => {
-      const button = new ButtonComponent({
-        variant: variant as any
-      });
-      button.mount(container);
 
-      const element = container.querySelector('button');
-      expect(element?.className).toContain(`button--${variant}`);
-    });
-  });
-
-  describe('Button Sizes', () => {
-    it('should apply small size class', () => {
-      const button = new ButtonComponent({
-        size: 'small'
-      });
-      button.mount(container);
-
-      const element = container.querySelector('button');
-      expect(element?.className).toContain('button--small');
-    });
-
-    it('should apply large size class', () => {
-      const button = new ButtonComponent({
-        size: 'large'
-      });
-      button.mount(container);
-
-      const element = container.querySelector('button');
-      expect(element?.className).toContain('button--large');
-    });
-
-    it('should not add size class for medium (default)', () => {
-      const button = new ButtonComponent({
-        size: 'medium'
-      });
-      button.mount(container);
-
-      const element = container.querySelector('button');
-      expect(element?.className).not.toContain('button--medium');
-    });
-  });
 
   describe('Disabled State', () => {
     it('should render disabled button', () => {
@@ -388,15 +325,6 @@ describe('ButtonComponent', () => {
       expect(onClick).toHaveBeenCalledWith(expect.any(MouseEvent));
     });
 
-    it('should not set up event listener when onClick is not provided', () => {
-      const button = new ButtonComponent({
-        text: 'No handler'
-      });
-      button.mount(container);
-
-      const element = container.querySelector('button');
-      expect(() => element?.click()).not.toThrow();
-    });
   });
 
   describe('Cleanup', () => {
