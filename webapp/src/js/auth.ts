@@ -160,28 +160,22 @@ class AuthManager {
         try {
             await firebaseConfigManager.getConfig();
             const formDefaults = await firebaseConfigManager.getFormDefaults();
-            
-            if (!formDefaults || Object.keys(formDefaults).length === 0) {
-                return;
-            }
 
-            const registerDefaults: Record<string, string> = {};
-            if (formDefaults.displayName) registerDefaults.displayName = formDefaults.displayName;
-            if (formDefaults.email) registerDefaults.email = formDefaults.email;
-            if (formDefaults.password) {
-                registerDefaults.password = formDefaults.password;
-                registerDefaults.confirmPassword = formDefaults.password;
-            }
-
-            const loginDefaults: Record<string, string> = {};
-            if (formDefaults.email) loginDefaults.email = formDefaults.email;
-            if (formDefaults.password) loginDefaults.password = formDefaults.password;
-
-            const defaults = form.id === 'registerForm' ? registerDefaults : loginDefaults;
+            const defaults = form.id === 'registerForm' 
+                ? {
+                    displayName: formDefaults.displayName,
+                    email: formDefaults.email,
+                    password: formDefaults.password,
+                    confirmPassword: formDefaults.password
+                  }
+                : {
+                    email: formDefaults.email,
+                    password: formDefaults.password
+                  };
 
             Object.entries(defaults).forEach(([fieldName, defaultValue]) => {
                 const input = form.querySelector<HTMLInputElement>(`[name="${fieldName}"]`);
-                if (input && !input.value) {
+                if (input && !input.value && defaultValue !== undefined) {
                     input.value = defaultValue;
                 }
             });

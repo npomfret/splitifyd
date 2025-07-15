@@ -95,7 +95,7 @@ async function loadUserPreferences(): Promise<void> {
                 lastExpenseData = lastExpense;
                 const categoryEl = document.getElementById('category') as HTMLSelectElement;
                 const descriptionEl = document.getElementById('description') as HTMLInputElement;
-                categoryEl.value = lastExpense.category || '';
+                categoryEl.value = lastExpense.category;
                 descriptionEl.value = lastExpense.description;
             }
         }
@@ -121,7 +121,7 @@ function populatePaidByOptions(): void {
         paidBySelect.appendChild(option);
     });
     
-    paidBySelect.value = currentUserId || '';
+    paidBySelect.value = currentUserId!;
 }
 
 function populateMembers(): void {

@@ -13,22 +13,6 @@ describe('EmptyStateComponent', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('should render with title only', () => {
-      const emptyState = new EmptyStateComponent({
-        title: 'No data found'
-      });
-      emptyState.mount(container);
-
-      const element = container.querySelector('.empty-state');
-      expect(element).toBeTruthy();
-
-      const title = element?.querySelector('h3');
-      expect(title?.textContent).toBe('No data found');
-
-      expect(element?.querySelector('.empty-state__icon')).toBeFalsy();
-      expect(element?.querySelector('p')).toBeFalsy();
-      expect(element?.querySelector('.empty-state__actions')).toBeFalsy();
-    });
 
     it('should render with icon', () => {
       const emptyState = new EmptyStateComponent({

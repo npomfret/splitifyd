@@ -22,7 +22,7 @@ class FirebaseConfigManager {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const apiBaseUrl = (window as any).API_BASE_URL || '';
+        const apiBaseUrl = (window as any).API_BASE_URL;
         const response = await fetch(`${apiBaseUrl}/api/config`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
