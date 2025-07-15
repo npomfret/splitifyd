@@ -80,7 +80,6 @@ export class GroupsList {
       this.filteredGroups = [...this.groups];
       this.render();
     } catch (error) {
-      logger.error('Error loading groups:', error);
       this.renderError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       this.setLoading(false);
@@ -102,9 +101,6 @@ export class GroupsList {
   }
 
   private renderError(message: string): void {
-    // Log error details to console
-    logger.error('Failed to load groups:', message);
-    
     clearElement(this.container);
     
     const errorState = createElementSafe('div', { className: 'error-state' });

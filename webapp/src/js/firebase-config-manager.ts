@@ -22,7 +22,7 @@ class FirebaseConfigManager {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const apiBaseUrl = (window as any).API_BASE_URL || '';
+        const apiBaseUrl = (window as any).API_BASE_URL;
         const response = await fetch(`${apiBaseUrl}/api/config`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -36,7 +36,6 @@ class FirebaseConfigManager {
         return config as AppConfiguration;
       } catch (error) {
         lastError = error as Error;
-        logger.error(`Config fetch attempt ${attempt} failed:`, error);
         
         if (attempt < maxRetries) {
           // Exponential backoff: 1s, 2s, 4s

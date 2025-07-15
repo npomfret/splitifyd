@@ -39,7 +39,8 @@ async function initializeExpenseDetailPage(): Promise<void> {
             header.mount(headerContainer);
         }
     } catch (error) {
-        window.location.href = 'index.html';
+        showError('Failed to initialize expense details page');
+        throw error;
     }
 }
 

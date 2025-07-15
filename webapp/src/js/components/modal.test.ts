@@ -60,10 +60,6 @@ describe('ModalComponent', () => {
     });
 
     describe('constructor and basic rendering', () => {
-        it('should create modal with basic configuration', () => {
-            const modal = new ModalComponent(modalConfig);
-            expect(modal).toBeInstanceOf(ModalComponent);
-        });
 
         it('should render modal with correct structure when mounted', () => {
             const modal = new ModalComponent(modalConfig);

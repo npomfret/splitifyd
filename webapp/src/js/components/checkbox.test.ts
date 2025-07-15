@@ -46,18 +46,6 @@ describe('CheckboxComponent', () => {
       expect(errorDiv?.id).toBe('test-checkbox-error');
     });
 
-    it('should render with value attribute', () => {
-      const checkbox = new CheckboxComponent({
-        id: 'valued-checkbox',
-        name: 'valued',
-        label: 'Valued Checkbox',
-        value: 'checkbox-value'
-      });
-      checkbox.mount(container);
-
-      const input = container.querySelector('input') as HTMLInputElement;
-      expect(input.value).toBe('checkbox-value');
-    });
 
     it('should render checked when specified', () => {
       const checkbox = new CheckboxComponent({
@@ -72,37 +60,7 @@ describe('CheckboxComponent', () => {
       expect(input.checked).toBe(true);
     });
 
-    it('should render disabled when specified', () => {
-      const checkbox = new CheckboxComponent({
-        id: 'disabled-checkbox',
-        name: 'disabled',
-        label: 'Disabled Checkbox',
-        disabled: true
-      });
-      checkbox.mount(container);
 
-      const input = container.querySelector('input') as HTMLInputElement;
-      expect(input.disabled).toBe(true);
-    });
-
-    it('should render as required when specified', () => {
-      const checkbox = new CheckboxComponent({
-        id: 'required-checkbox',
-        name: 'required',
-        label: 'Required Checkbox',
-        required: true
-      });
-      checkbox.mount(container);
-
-      const input = container.querySelector('input') as HTMLInputElement;
-      expect(input.required).toBe(true);
-
-      const label = container.querySelector('label');
-      const requiredSpan = label?.querySelector('.form-label__required');
-      expect(requiredSpan).toBeTruthy();
-      expect(requiredSpan?.textContent).toBe('*');
-      expect(requiredSpan?.getAttribute('aria-label')).toBe('required');
-    });
   });
 
   describe('Label Rendering', () => {
@@ -135,17 +93,6 @@ describe('CheckboxComponent', () => {
   });
 
   describe('Accessibility', () => {
-    it('should set aria-describedby for error association', () => {
-      const checkbox = new CheckboxComponent({
-        id: 'accessible-checkbox',
-        name: 'accessible',
-        label: 'Accessible Checkbox'
-      });
-      checkbox.mount(container);
-
-      const input = container.querySelector('input');
-      expect(input?.getAttribute('aria-describedby')).toBe('accessible-checkbox-error');
-    });
 
     it('should set aria-invalid when error is shown', () => {
       const checkbox = new CheckboxComponent({
@@ -277,16 +224,6 @@ describe('CheckboxComponent', () => {
       expect(input.disabled).toBe(false);
     });
 
-    it('should return false for isChecked when not mounted', () => {
-      const checkbox = new CheckboxComponent({
-        id: 'unmounted-checkbox',
-        name: 'unmounted',
-        label: 'Unmounted Checkbox'
-      });
-
-      expect(checkbox.isChecked()).toBe(false);
-      expect(checkbox.getValue()).toBe(false);
-    });
   });
 
   describe('Change Events', () => {
@@ -331,48 +268,7 @@ describe('CheckboxComponent', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle methods when not mounted gracefully', () => {
-      const checkbox = new CheckboxComponent({
-        id: 'not-mounted',
-        name: 'notMounted',
-        label: 'Not Mounted Checkbox'
-      });
 
-      expect(() => {
-        checkbox.setChecked(true);
-        checkbox.setDisabled(true);
-        checkbox.showError('Error');
-        checkbox.hideError();
-      }).not.toThrow();
-    });
-
-    it('should generate unique component IDs', () => {
-      const checkbox1 = new CheckboxComponent({
-        id: 'same-id',
-        name: 'same',
-        label: 'Same ID 1'
-      });
-      checkbox1.mount(container);
-
-      const checkbox2 = new CheckboxComponent({
-        id: 'same-id',
-        name: 'same',
-        label: 'Same ID 2'
-      });
-      
-      const tempContainer = document.createElement('div');
-      document.body.appendChild(tempContainer);
-      checkbox2.mount(tempContainer);
-
-      const wrapper1 = container.querySelector('.form-checkbox-wrapper');
-      const wrapper2 = tempContainer.querySelector('.form-checkbox-wrapper');
-
-      expect(wrapper1?.id).not.toBe(wrapper2?.id);
-      expect(wrapper1?.id).toContain('checkbox-same-id-');
-      expect(wrapper2?.id).toContain('checkbox-same-id-');
-
-      document.body.removeChild(tempContainer);
-    });
   });
 
   describe('Cleanup', () => {

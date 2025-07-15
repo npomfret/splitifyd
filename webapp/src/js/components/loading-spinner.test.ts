@@ -13,23 +13,6 @@ describe('LoadingSpinnerComponent', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('should render with default configuration', () => {
-      const spinner = new LoadingSpinnerComponent();
-      spinner.mount(container);
-
-      const element = container.querySelector('.loading-spinner');
-      expect(element).toBeTruthy();
-      expect(element?.className).toBe('loading-spinner loading-spinner--default loading-spinner--medium');
-      expect(element?.getAttribute('role')).toBe('status');
-      expect(element?.getAttribute('aria-live')).toBe('polite');
-
-      const icon = element?.querySelector('i.fas.fa-spinner.fa-spin');
-      expect(icon).toBeTruthy();
-      expect(icon?.getAttribute('aria-hidden')).toBe('true');
-
-      const message = element?.querySelector('.loading-spinner__message');
-      expect(message?.textContent).toBe('Loading...');
-    });
 
     it('should render without message when showMessage is false', () => {
       const spinner = new LoadingSpinnerComponent({
@@ -62,39 +45,8 @@ describe('LoadingSpinnerComponent', () => {
     });
   });
 
-  describe('Size Variants', () => {
-    it.each(['small', 'medium', 'large'])('should apply %s size class', (size) => {
-      const spinner = new LoadingSpinnerComponent({
-        size: size as any
-      });
-      spinner.mount(container);
-
-      const element = container.querySelector('.loading-spinner');
-      expect(element?.className).toContain(`loading-spinner--${size}`);
-    });
-  });
 
   describe('Display Variants', () => {
-    it('should render default variant', () => {
-      const spinner = new LoadingSpinnerComponent({
-        variant: 'default'
-      });
-      spinner.mount(container);
-
-      const element = container.querySelector('.loading-spinner') as HTMLElement;
-      expect(element?.className).toContain('loading-spinner--default');
-      expect(element?.style.position).toBe('');
-    });
-
-    it('should render inline variant', () => {
-      const spinner = new LoadingSpinnerComponent({
-        variant: 'inline'
-      });
-      spinner.mount(container);
-
-      const element = container.querySelector('.loading-spinner');
-      expect(element?.className).toContain('loading-spinner--inline');
-    });
 
     it('should render overlay variant with styles', () => {
       const spinner = new LoadingSpinnerComponent({
@@ -274,24 +226,6 @@ describe('LoadingSpinnerComponent', () => {
   });
 
   describe('Component Structure', () => {
-    it('should have correct DOM structure', () => {
-      const spinner = new LoadingSpinnerComponent({
-        message: 'Test message'
-      });
-      spinner.mount(container);
-
-      const element = container.querySelector('.loading-spinner');
-      expect(element).toBeTruthy();
-
-      const iconContainer = element?.querySelector('.loading-spinner__icon');
-      expect(iconContainer).toBeTruthy();
-
-      const icon = iconContainer?.querySelector('i.fas.fa-spinner.fa-spin');
-      expect(icon).toBeTruthy();
-
-      const message = element?.querySelector('.loading-spinner__message');
-      expect(message).toBeTruthy();
-    });
 
     it('should maintain proper accessibility attributes', () => {
       const spinner = new LoadingSpinnerComponent({

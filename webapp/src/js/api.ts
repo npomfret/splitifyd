@@ -21,15 +21,10 @@ import type {
 
 class ApiService {
     async getGroups(): Promise<TransformedGroup[]> {
-        try {
-            const data = await apiCall<ListDocumentsResponse>('/listDocuments', {
-                method: 'GET'
-            });
-            return this._transformGroupsData(data.documents);
-            
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<ListDocumentsResponse>('/listDocuments', {
+            method: 'GET'
+        });
+        return this._transformGroupsData(data.documents);
     }
 
     private _transformGroupsData(documents: DocumentResponse[]): TransformedGroup[] {
@@ -87,39 +82,34 @@ class ApiService {
             throw new Error('Group name is required');
         }
 
-        try {
-            const groupDoc = {
-                data: {
-                    name: groupData.name.trim(),
-                    description: groupData.description?.trim() || '',
-                    memberEmails: groupData.memberEmails || [],
-                    members: [{ uid: authManager.getUserId(), name: 'You', initials: 'YO' }],
-                    yourBalance: 0
-                }
-            };
-
-            const data = await apiCall<{ id: string }>('/createDocument', {
-                method: 'POST',
-                body: JSON.stringify(groupDoc)
-            });
-            
-            // Server only returns id, construct the full group object
-            return {
-                id: data.id,
+        const groupDoc = {
+            data: {
                 name: groupData.name.trim(),
-                memberCount: 1 + (groupData.memberEmails?.length || 0),
-                yourBalance: 0,
-                lastActivity: 'Just now',
-                lastActivityRaw: new Date().toISOString(),
-                lastExpense: null,
-                members: [{ uid: authManager.getUserId() || '', name: 'You', initials: 'YO' }],
-                expenseCount: 0,
-                lastExpenseTime: null
-            };
-            
-        } catch (error) {
-            throw error;
-        }
+                description: groupData.description?.trim() || '',
+                memberEmails: groupData.memberEmails || [],
+                members: [{ uid: authManager.getUserId(), name: 'You', initials: 'YO' }],
+                yourBalance: 0
+            }
+        };
+
+        const data = await apiCall<{ id: string }>('/createDocument', {
+            method: 'POST',
+            body: JSON.stringify(groupDoc)
+        });
+        
+        // Server only returns id, construct the full group object
+        return {
+            id: data.id,
+            name: groupData.name.trim(),
+            memberCount: 1 + (groupData.memberEmails?.length || 0),
+            yourBalance: 0,
+            lastActivity: 'Just now',
+            lastActivityRaw: new Date().toISOString(),
+            lastExpense: null,
+            members: [{ uid: authManager.getUserId() || '', name: 'You', initials: 'YO' }],
+            expenseCount: 0,
+            lastExpenseTime: null
+        };
     }
 
 
@@ -128,14 +118,10 @@ class ApiService {
             throw new Error('Group ID is required');
         }
 
-        try {
-            const data = await apiCall<GroupDocument>(`/getDocument?id=${groupId}`, {
-                method: 'GET'
-            });
-            return { data: this._transformGroupDetail(data) };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<GroupDocument>(`/getDocument?id=${groupId}`, {
+            method: 'GET'
+        });
+        return { data: this._transformGroupDetail(data) };
     }
 
     private _transformGroupDetail(document: GroupDocument): GroupDetail {
@@ -153,64 +139,44 @@ class ApiService {
 
 
     async getGroupBalances(groupId: string): Promise<{ data: GroupBalances }> {
-        try {
-            const data = await apiCall<GroupBalances>(`/groups/balances?groupId=${groupId}`, {
-                method: 'GET'
-            });
-            return { data: data };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<GroupBalances>(`/groups/balances?groupId=${groupId}`, {
+            method: 'GET'
+        });
+        return { data: data };
     }
 
 
     async getGroupExpenses(groupId: string, limit: number = 20, offset: number = 0): Promise<{ data: ExpenseData[] }> {
-        try {
-            const data = await apiCall<{ expenses: ExpenseData[] }>(`/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
-                method: 'GET'
-            });
-            return { data: data.expenses };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<{ expenses: ExpenseData[] }>(`/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
+            method: 'GET'
+        });
+        return { data: data.expenses };
     }
 
 
     async updateGroup(groupId: string, updates: Partial<GroupDetail>): Promise<any> {
-        try {
-            const data = await apiCall(`/updateDocument?id=${groupId}`, {
-                method: 'PUT',
-                body: JSON.stringify({ data: updates })
-            });
-            return data;
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall(`/updateDocument?id=${groupId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ data: updates })
+        });
+        return data;
     }
 
     async deleteGroup(groupId: string): Promise<{ success: boolean }> {
-        try {
-            await apiCall(`/deleteDocument?id=${groupId}`, {
-                method: 'DELETE'
-            });
-            return { success: true };
-        } catch (error) {
-            throw error;
-        }
+        await apiCall(`/deleteDocument?id=${groupId}`, {
+            method: 'DELETE'
+        });
+        return { success: true };
     }
 
 
 
     async createExpense(expenseData: CreateExpenseRequest): Promise<{ success: boolean; data: ExpenseData }> {
-        try {
-            const data = await apiCall<ExpenseData>('/expenses', {
-                method: 'POST',
-                body: JSON.stringify(expenseData)
-            });
-            return { success: true, data: data };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<ExpenseData>('/expenses', {
+            method: 'POST',
+            body: JSON.stringify(expenseData)
+        });
+        return { success: true, data: data };
     }
 
     async getExpense(expenseId: string): Promise<{ data: ExpenseData }> {
@@ -218,14 +184,10 @@ class ApiService {
             throw new Error('Expense ID is required');
         }
 
-        try {
-            const data = await apiCall<ExpenseData>(`/expenses?id=${expenseId}`, {
-                method: 'GET'
-            });
-            return { data: data };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<ExpenseData>(`/expenses?id=${expenseId}`, {
+            method: 'GET'
+        });
+        return { data: data };
     }
 
     async updateExpense(expenseId: string, updateData: UpdateExpenseRequest): Promise<{ success: boolean; data: ExpenseData }> {
@@ -233,15 +195,11 @@ class ApiService {
             throw new Error('Expense ID is required');
         }
 
-        try {
-            const data = await apiCall<ExpenseData>(`/expenses?id=${expenseId}`, {
-                method: 'PUT',
-                body: JSON.stringify(updateData)
-            });
-            return { success: true, data: data };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<ExpenseData>(`/expenses?id=${expenseId}`, {
+            method: 'PUT',
+            body: JSON.stringify(updateData)
+        });
+        return { success: true, data: data };
     }
 
     async generateShareableLink(groupId: string): Promise<{ success: boolean; data: ShareableLinkResponse }> {
@@ -249,15 +207,11 @@ class ApiService {
             throw new Error('Group ID is required');
         }
 
-        try {
-            const data = await apiCall<ShareableLinkResponse>('/groups/share', {
-                method: 'POST',
-                body: JSON.stringify({ groupId })
-            });
-            return { success: true, data: data };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<ShareableLinkResponse>('/groups/share', {
+            method: 'POST',
+            body: JSON.stringify({ groupId })
+        });
+        return { success: true, data: data };
     }
 
     async joinGroupByLink(linkId: string): Promise<{ success: boolean; data: JoinGroupResponse }> {
@@ -265,15 +219,11 @@ class ApiService {
             throw new Error('Link ID is required');
         }
 
-        try {
-            const data = await apiCall<JoinGroupResponse>('/groups/join', {
-                method: 'POST',
-                body: JSON.stringify({ linkId })
-            });
-            return { success: true, data: data };
-        } catch (error) {
-            throw error;
-        }
+        const data = await apiCall<JoinGroupResponse>('/groups/join', {
+            method: 'POST',
+            body: JSON.stringify({ linkId })
+        });
+        return { success: true, data: data };
     }
 
 }

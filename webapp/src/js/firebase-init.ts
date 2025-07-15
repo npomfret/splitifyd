@@ -86,7 +86,6 @@ class FirebaseInitializer {
             // Firebase initialized successfully
             
         } catch (error) {
-            logger.error('Failed to initialize Firebase:', error);
             this.initialized = false;
             throw new Error(`Firebase initialization failed: ${(error as Error).message}`);
         }

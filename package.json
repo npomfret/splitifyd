@@ -15,7 +15,8 @@
     "clean": "npm run clean -ws --if-present",
     "test": "npm test -ws --if-present",
     "test:unit": "cd firebase/functions && npm run test:unit && cd ../../webapp && npm run test:unit",
-    "test:integration": "cd firebase/functions && npm run test:integration && cd ../../webapp && npm run test:integration"
+    "test:integration": "cd firebase/functions && npm run test:integration && cd ../../webapp && npm run test:integration",
+    "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
