@@ -25,7 +25,7 @@ The backend uses a middleware (`firebase/functions/src/auth/middleware.ts`) to v
 
 ## 3. API Endpoints
 
-### 3.1. Configuration
+### 3.1. Configuration and System
 
 -   **Endpoint:** `GET /config`
 -   **Description:** Provides the client with the necessary Firebase configuration for initialization. This is the first call the web application makes.
@@ -42,6 +42,22 @@ The backend uses a middleware (`firebase/functions/src/auth/middleware.ts`) to v
       "measurementId": "..."
     }
     ```
+
+-   **Endpoint:** `GET /env`
+-   **Description:** Returns all environment variables for debugging purposes. Useful for verifying deployment configuration.
+-   **Authentication:** None
+-   **Response:**
+    ```json
+    {
+      "env": {
+        "NODE_ENV": "production",
+        "PROJECT_ID": "splitifyd",
+        "FOO": "BAR",
+        ...
+      }
+    }
+    ```
+-   **Warning:** This endpoint exposes sensitive information and should only be used for debugging. Consider adding authentication or removing in production.
 
 ### 3.2. Documents (Groups)
 

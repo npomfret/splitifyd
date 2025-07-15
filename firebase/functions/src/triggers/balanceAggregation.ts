@@ -1,17 +1,23 @@
-import * as functions from 'firebase-functions/v1';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { updateGroupBalances } from '../services/balanceCalculator';
 import { logger } from '../logger';
 import { db } from '../firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 
-export const onExpenseWrite = functions
-    .region('us-central1')
-    .runWith({ memory: '256MB' })
-    .firestore
-    .document('expenses/{expenseId}')
-    .onWrite(async (change, context) => {
-        const expenseId = context.params.expenseId;
-        const eventId = context.eventId;
+export const onExpenseWriteV6 = onDocumentWritten({
+    document: 'expenses/{expenseId}',
+    region: 'us-central1',
+    memory: '256MiB',
+    maxInstances: 100,
+}, async (event) => {
+    const expenseId = event.params.expenseId;
+    const eventId = event.id;
+    const change = event.data;
+    
+    if (!change) {
+        logger.error('No change data in event', { expenseId, eventId });
+        return;
+    }
         
         let groupId: string | null = null;
         

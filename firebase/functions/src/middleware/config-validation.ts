@@ -9,7 +9,6 @@ const FirebaseConfigSchema = z.object({
   messagingSenderId: z.string().min(1),
   appId: z.string().min(1),
   measurementId: z.string().optional(),
-  firebaseAuthUrl: z.string().optional(),
 });
 
 const ApiConfigSchema = z.object({
@@ -22,32 +21,22 @@ const WarningBannerSchema = z.object({
   message: z.string(),
 });
 
-const EmulatorPortsSchema = z.object({
-  auth: z.number().int().positive().optional(),
-  firestore: z.number().int().positive().optional(),
-  functions: z.number().int().positive().optional(),
-  hosting: z.number().int().positive().optional(),
-});
-
 const EnvironmentConfigSchema = z.object({
-  isDevelopment: z.boolean(),
-  isProduction: z.boolean(),
   warningBanner: WarningBannerSchema.optional(),
-  emulatorPorts: EmulatorPortsSchema.optional(),
 });
 
 const FormDefaultsSchema = z.object({
-  displayName: z.string().optional(),
-  email: z.string().email().optional(),
-  password: z.string().optional(),
+  displayName: z.string(),
+  email: z.string(),
+  password: z.string(),
 });
 
 const AppConfigurationSchema = z.object({
   firebase: FirebaseConfigSchema,
   api: ApiConfigSchema,
-  features: z.record(z.string(), z.boolean()),
   environment: EnvironmentConfigSchema,
-  formDefaults: FormDefaultsSchema.optional(),
+  formDefaults: FormDefaultsSchema,
+  firebaseAuthUrl: z.string().optional(),
 });
 
 export function validateAppConfiguration(config: unknown): AppConfiguration {

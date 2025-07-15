@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/inject-build-info.js",
     "watch": "tsc --watch",
     "clean": "rm -rf lib",
     "test": "jest",

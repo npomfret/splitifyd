@@ -1,9 +1,7 @@
 import express from 'express';
-import cors from 'cors';
 import { CONFIG } from '../config';
 import { addCorrelationId, logger } from '../logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
-import { getCorsOptions } from '../middleware/cors';
 import { applySecurityHeaders } from '../middleware/security-headers';
 
 export interface MiddlewareOptions {
@@ -19,9 +17,6 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
 
   // Apply security headers first
   app.use(applySecurityHeaders);
-
-  // CORS configuration with simplified options
-  app.use(cors(getCorsOptions()));
 
   // Add correlation ID to all requests for tracing
   app.use(addCorrelationId);

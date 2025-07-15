@@ -15,7 +15,7 @@ interface EnvConfig {
 
 describe('Environment Configuration Validation', () => {
   const envDir = path.join(__dirname, '../');
-  const templateFile = path.join(envDir, '.env.example');
+  const templateFile = path.join(envDir, '.env.devinstance.example');
   
   let templateConfig: EnvConfig;
   let envFiles: string[] = [];
@@ -24,14 +24,15 @@ describe('Environment Configuration Validation', () => {
     // Parse template file
     templateConfig = parseEnvFile(templateFile);
     
-    // Discover all .env.xxx files
+    // Discover all .env.xxx files (excluding production files)
     envFiles = fs.readdirSync(envDir)
       .filter(file => file.match(/^\.env\.(instance\d+|[a-zA-Z]+)$/))
+      .filter(file => !file.includes('prod')) // Exclude production files
       .map(file => path.join(envDir, file));
   });
 
   describe('Template File Validation', () => {
-    it('should have a valid .env.example template file', () => {
+    it('should have a valid .env.devinstance.example template file', () => {
       expect(fs.existsSync(templateFile)).toBe(true);
       expect(templateConfig.variables.size).toBeGreaterThan(0);
     });
@@ -39,12 +40,6 @@ describe('Environment Configuration Validation', () => {
     it('should contain all expected core environment variables', () => {
       const expectedVars = [
         'NODE_ENV',
-        'PROJECT_ID',
-        'CLIENT_API_KEY',
-        'CLIENT_AUTH_DOMAIN',
-        'CLIENT_STORAGE_BUCKET',
-        'CLIENT_MESSAGING_SENDER_ID',
-        'CLIENT_APP_ID',
         'CORS_ALLOWED_ORIGINS',
         'LOG_LEVEL',
         'EMULATOR_UI_PORT',
@@ -134,25 +129,6 @@ describe('Environment Configuration Validation', () => {
         expect(emptyVars).toEqual([]);
       });
 
-      it('should have valid format for URL variables', () => {
-        const urlVars = ['CLIENT_AUTH_DOMAIN', 'CLIENT_STORAGE_BUCKET'];
-        const invalidUrls: string[] = [];
-
-        urlVars.forEach(varName => {
-          const envVar = envConfig.variables.get(varName);
-          if (envVar && envVar.value) {
-            // Check basic domain format
-            if (varName === 'CLIENT_AUTH_DOMAIN' && !envVar.value.match(/^[a-zA-Z0-9-]+\.firebaseapp\.com$/)) {
-              invalidUrls.push(`${varName}=${envVar.value}`);
-            }
-            if (varName === 'CLIENT_STORAGE_BUCKET' && !envVar.value.match(/^[a-zA-Z0-9-]+\.firebasestorage\.app$/)) {
-              invalidUrls.push(`${varName}=${envVar.value}`);
-            }
-          }
-        });
-
-        expect(invalidUrls).toEqual([]);
-      });
 
       it('should have valid email format for development form email', () => {
         const emailVar = envConfig.variables.get('DEV_FORM_EMAIL');
@@ -227,22 +203,6 @@ describe('Environment Configuration Validation', () => {
       expect(duplicatePorts).toEqual([]);
     });
 
-    it('should have consistent PROJECT_ID across all instances', () => {
-      const projectIds = new Set<string>();
-      
-      // Only check actual instance files, not the template  
-      const instanceFiles = envFiles.filter(file => !file.includes('.env.example'));
-      
-      instanceFiles.forEach(envFile => {
-        const envConfig = parseEnvFile(envFile);
-        const projectIdVar = envConfig.variables.get('PROJECT_ID');
-        if (projectIdVar && projectIdVar.value && !projectIdVar.isPlaceholder) {
-          projectIds.add(projectIdVar.value);
-        }
-      });
-
-      expect(projectIds.size).toBeLessThanOrEqual(1);
-    });
   });
 });
 

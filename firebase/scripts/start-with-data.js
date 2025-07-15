@@ -23,8 +23,7 @@ console.log(`📍 Functions will be available at: http://localhost:${FUNCTIONS_P
 
 // Start Firebase emulators (fresh start - no import)
 const emulatorProcess = spawn('firebase', [
-  'emulators:start',
-  '--export-on-exit=./emulator-data'
+  'emulators:start'
 ], {
   stdio: 'pipe', // Changed to pipe so we can read stdout
   env: { ...process.env, NODE_ENV: 'development' }

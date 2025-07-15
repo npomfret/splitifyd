@@ -20,6 +20,12 @@ if (!fs.existsSync(sourcePath)) {
   process.exit(1);
 }
 
+// Safety check: warn if .env exists and might be production config
+if (fs.existsSync(targetPath)) {
+  console.log('⚠️  Existing .env file found - this will be overwritten');
+  console.log('   If this is a production environment, ensure settings are backed up in .env.prod');
+}
+
 try {
   fs.copyFileSync(sourcePath, targetPath);
   console.log(`✅ Switched to instance ${instance} configuration`);
@@ -27,17 +33,24 @@ try {
   // Load the new config to show the ports
   require('dotenv').config({ path: targetPath });
   
-  // Regenerate firebase.json with the new ports
-  require('./generate-firebase-config.js');
+  // Check if this is a production instance (no emulator ports needed)
+  const isProduction = instance === 'prod';
   
-  console.log('\n📍 Emulator ports for this instance:');
-  console.log(`  - UI: ${process.env.EMULATOR_UI_PORT}`);
-  console.log(`  - Auth: ${process.env.EMULATOR_AUTH_PORT}`);
-  console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT}`);
-  console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT}`);
-  console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT}`);
+  if (!isProduction) {
+    // Regenerate firebase.json with the new ports for development instances
+    require('./generate-firebase-config.js');
+    
+    console.log('\n📍 Emulator ports for this instance:');
+    console.log(`  - UI: ${process.env.EMULATOR_UI_PORT}`);
+    console.log(`  - Auth: ${process.env.EMULATOR_AUTH_PORT}`);
+    console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT}`);
+    console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT}`);
+    console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT}`);
 
-  console.log('\n🚀 You can now run: npm run dev:with-data');
+    console.log('\n🚀 You can now run: npm run dev:with-data');
+  } else {
+    console.log('\n🚀 Production environment configured - ready for deployment');
+  }
   
 } catch (error) {
   console.error('❌ Failed to switch instance:', error.message);

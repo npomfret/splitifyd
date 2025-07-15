@@ -25,10 +25,13 @@ import {
   listUserExpenses,
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
-import { onExpenseWrite } from './triggers/balanceAggregation';
+import { onExpenseWriteV6 } from './triggers/balanceAggregation';
 import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
 import { admin } from './firebase';
+import { BUILD_INFO } from './utils/build-info';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Test emulator connections when running locally
 if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
@@ -101,8 +104,96 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
 
 // Environment variables endpoint (for debugging)
 app.get('/env', (req: express.Request, res: express.Response) => {
+  // IMPORTANT: DO NOT DELETE - Ensure this endpoint is never cached
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  
+  const uptimeSeconds = process.uptime();
+  const memUsage = process.memoryUsage();
+  
+  // Format uptime as human readable
+  const days = Math.floor(uptimeSeconds / 86400);
+  const hours = Math.floor((uptimeSeconds % 86400) / 3600);
+  const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+  const seconds = Math.floor(uptimeSeconds % 60);
+  
+  let uptimeText = '';
+  if (days > 0) uptimeText += `${days}d `;
+  if (hours > 0) uptimeText += `${hours}h `;
+  if (minutes > 0) uptimeText += `${minutes}m `;
+  uptimeText += `${seconds}s`;
+  
+  // Format bytes to human readable
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  };
+  
+  // List files in current directory
+  const currentDir = process.cwd();
+  let files: any[] = [];
+  
+  try {
+    const entries = fs.readdirSync(currentDir);
+    files = entries.map(name => {
+      try {
+        const fullPath = path.join(currentDir, name);
+        const stats = fs.statSync(fullPath);
+        return {
+          name,
+          type: stats.isDirectory() ? 'dir' : 'file',
+          size: stats.isDirectory() ? null : formatBytes(stats.size),
+          modified: stats.mtime.toISOString(),
+          mode: stats.mode.toString(8),
+          isSymbolicLink: stats.isSymbolicLink()
+        };
+      } catch (err) {
+        return {
+          name,
+          error: err instanceof Error ? err.message : 'Unable to stat'
+        };
+      }
+    }).sort((a, b) => {
+      // Sort directories first, then by name
+      if (a.type === 'dir' && b.type !== 'dir') return -1;
+      if (a.type !== 'dir' && b.type === 'dir') return 1;
+      return a.name.localeCompare(b.name);
+    });
+  } catch (err) {
+    files = [{
+      error: err instanceof Error ? err.message : 'Unable to read directory'
+    }];
+  }
+  
   res.json({
-    env: process.env
+    env: process.env,
+    build: {
+      timestamp: BUILD_INFO.timestamp,
+      date: BUILD_INFO.date,
+      version: APP_VERSION
+    },
+    runtime: {
+      startTime: new Date(Date.now() - uptimeSeconds * 1000).toISOString(),
+      uptime: uptimeSeconds,
+      uptimeHuman: uptimeText.trim()
+    },
+    memory: {
+      rss: formatBytes(memUsage.rss),
+      heapTotal: formatBytes(memUsage.heapTotal),
+      heapUsed: formatBytes(memUsage.heapUsed),
+      external: formatBytes(memUsage.external),
+      arrayBuffers: formatBytes(memUsage.arrayBuffers),
+      heapAvailable: formatBytes(memUsage.heapTotal - memUsage.heapUsed)
+    },
+    filesystem: {
+      currentDirectory: currentDir,
+      files
+    }
   });
 });
 
@@ -233,4 +324,4 @@ export const api = onRequest({
 }, app);
 
 // Export Firestore triggers
-export { onExpenseWrite };
+export { onExpenseWriteV6 };

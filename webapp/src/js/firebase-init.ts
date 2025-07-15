@@ -58,9 +58,9 @@ class FirebaseInitializer {
             this.auth = getAuth(this.app);
             
             // Connect to emulator if auth URL is provided
-            if (config.firebase.firebaseAuthUrl) {
+            if (config.firebaseAuthUrl) {
                 try {
-                    connectAuthEmulator(this.auth, config.firebase.firebaseAuthUrl, { disableWarnings: true });
+                    connectAuthEmulator(this.auth, config.firebaseAuthUrl, { disableWarnings: true });
                 } catch (error) {
                     const firebaseError = error as FirebaseError;
                     if (firebaseError.code !== 'auth/emulator-config-failed') {

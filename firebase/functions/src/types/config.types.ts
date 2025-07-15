@@ -32,11 +32,24 @@
 export interface AppConfiguration {
   firebase: FirebaseConfig;
   api: ApiConfig;
-  features: FeatureFlags;
   environment: EnvironmentConfig;
-  formDefaults?: FormDefaults;
+  formDefaults: FormDefaults;
+  /**
+   * URL for Firebase Auth emulator - only populated in development.
+   * Used by the client to connect to the local auth emulator instead of production Firebase Auth.
+   * Format: http://localhost:9099 (or whatever port the auth emulator is running on)
+   */
+  firebaseAuthUrl?: string;
 }
 
+/**
+ * Firebase client SDK configuration.
+ * These values are used by the Firebase JavaScript SDK in the client application.
+ * 
+ * NOTE: In development/emulator mode, these values are not actually used by Firebase
+ * since the emulator provides its own auth and storage services. We populate them
+ * with dummy values to satisfy the SDK initialization requirements.
+ */
 export interface FirebaseConfig {
   apiKey: string;
   authDomain: string;
@@ -45,7 +58,6 @@ export interface FirebaseConfig {
   messagingSenderId: string;
   appId: string;
   measurementId?: string;
-  firebaseAuthUrl?: string;
 }
 
 export interface ApiConfig {
@@ -53,13 +65,7 @@ export interface ApiConfig {
   retryAttempts: number;
 }
 
-export interface FeatureFlags {
-  [key: string]: boolean;
-}
-
 export interface EnvironmentConfig {
-  isDevelopment: boolean;
-  isProduction: boolean;
   warningBanner?: WarningBanner;
 }
 

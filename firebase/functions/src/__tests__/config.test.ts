@@ -1,8 +1,8 @@
 import { getEnhancedConfigResponse } from '../utils/config-response';
-import { CONFIG } from '../config';
+import { APP_CONFIG } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
-// Mock the CONFIG object
+// Mock the CONFIG object and APP_CONFIG
 jest.mock('../config', () => ({
   CONFIG: {
     isDevelopment: false,
@@ -20,7 +20,33 @@ jest.mock('../config', () => ({
     warningBanner: '⚠️ this is a demo - your data will be deleted without notice',
     emulatorPorts: {}
   },
-  PROJECT_ID: 'test-project'
+  APP_CONFIG: {
+    firebase: {
+      apiKey: 'test-api-key',
+      authDomain: 'test.firebaseapp.com',
+      projectId: 'test-project',
+      storageBucket: 'test.firebasestorage.app',
+      messagingSenderId: '123456789',
+      appId: '1:123456789:web:abcdef',
+      measurementId: 'G-TEST123'
+    },
+    api: {
+      timeout: 30000,
+      retryAttempts: 3
+    },
+    environment: {
+      warningBanner: {
+        enabled: true,
+        message: '⚠️ this is a demo - your data will be deleted without notice'
+      }
+    },
+    formDefaults: {
+      displayName: '',
+      email: '',
+      password: ''
+    },
+    firebaseAuthUrl: undefined
+  }
 }));
 
 // Mock logger
@@ -35,27 +61,15 @@ jest.mock('../logger', () => ({
 describe('Configuration Response Functions', () => {
 
   describe('getEnhancedConfigResponse', () => {
-    beforeEach(() => {
-      // Reset CONFIG for each test
-      (CONFIG as any).clientConfig = {
-        apiKey: 'test-api-key',
-        authDomain: 'test.firebaseapp.com',
-        storageBucket: 'test.firebasestorage.app',
-        messagingSenderId: '123456789',
-        appId: '1:123456789:web:abcdef',
-        measurementId: 'G-TEST123',
-      };
-      (CONFIG as any).isProduction = true;
-      (CONFIG as any).isDevelopment = false;
-    });
 
     it('should return enhanced configuration format', () => {
       const config = getEnhancedConfigResponse();
       
       expect(config).toHaveProperty('firebase');
       expect(config).toHaveProperty('api');
-      expect(config).toHaveProperty('features');
       expect(config).toHaveProperty('environment');
+      expect(config).toHaveProperty('formDefaults');
+      expect(config).toHaveProperty('firebaseAuthUrl');
       
       expect(config.firebase).toEqual({
         apiKey: 'test-api-key',
@@ -64,8 +78,7 @@ describe('Configuration Response Functions', () => {
         storageBucket: 'test.firebasestorage.app',
         messagingSenderId: '123456789',
         appId: '1:123456789:web:abcdef',
-        measurementId: 'G-TEST123',
-        firebaseAuthUrl: undefined
+        measurementId: 'G-TEST123'
       });
       
       expect(config.api).toEqual({
@@ -74,8 +87,6 @@ describe('Configuration Response Functions', () => {
       });
       
       expect(config.environment).toMatchObject({
-        isDevelopment: false,
-        isProduction: true,
         warningBanner: {
           enabled: true,
           message: '⚠️ this is a demo - your data will be deleted without notice'
@@ -91,35 +102,31 @@ describe('Configuration Response Functions', () => {
       expect(() => validateAppConfiguration(config)).not.toThrow();
     });
 
-    it('should throw error when client config is undefined', () => {
-      (CONFIG as any).clientConfig = undefined;
-      
-      expect(() => getEnhancedConfigResponse()).toThrow();
-    });
-
-    it('should not include warning banner when not set', () => {
-      (CONFIG as any).warningBanner = '';
-      
+    it('should return pre-built configuration', () => {
+      // Since APP_CONFIG is built at startup, getEnhancedConfigResponse just returns it
       const config = getEnhancedConfigResponse();
       
-      expect(config.environment.warningBanner).toBeUndefined();
+      expect(config).toBe((APP_CONFIG as any));
     });
 
-    it('should include form defaults when available', () => {
-      (CONFIG as any).formDefaults = {
-        displayName: 'test',
-        email: 'test@test.com',
-        password: 'rrRR44$$'
-      };
-      
+    it('should include warning banner when configured', () => {
       const config = getEnhancedConfigResponse();
       
-      // Form defaults now include password for development convenience
-      // Credentials come from environment variables, not hardcoded values
+      // Warning banner is configured in the mock
+      expect(config.environment.warningBanner).toEqual({
+        enabled: true,
+        message: '⚠️ this is a demo - your data will be deleted without notice'
+      });
+    });
+
+    it('should include form defaults as empty strings in production', () => {
+      const config = getEnhancedConfigResponse();
+      
+      // Form defaults are empty strings in production
       expect(config.formDefaults).toEqual({
-        displayName: 'test',
-        email: 'test@test.com',
-        password: 'rrRR44$$'
+        displayName: '',
+        email: '',
+        password: ''
       });
     });
   });
@@ -139,10 +146,11 @@ describe('Configuration Response Functions', () => {
           timeout: 30000,
           retryAttempts: 3
         },
-        features: {},
-        environment: {
-          isDevelopment: false,
-          isProduction: true
+        environment: {},
+        formDefaults: {
+          displayName: '',
+          email: '',
+          password: ''
         }
       };
       
@@ -163,10 +171,11 @@ describe('Configuration Response Functions', () => {
           timeout: -1, // Negative timeout should fail
           retryAttempts: 3
         },
-        features: {},
-        environment: {
-          isDevelopment: false,
-          isProduction: true
+        environment: {},
+        formDefaults: {
+          displayName: '',
+          email: '',
+          password: ''
         }
       };
       
