@@ -35,13 +35,9 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   await scriptLoader.loadScripts();
   
   // Initialize warning banner
-  try {
-    const { warningBannerManager } = await import('./warning-banner.js');
-    if (warningBannerManager && warningBannerManager.displayWarningBanner) {
-      await warningBannerManager.displayWarningBanner();
-    }
-  } catch (error) {
-    console.warn('Warning banner initialization failed:', error);
+  const { warningBannerManager } = await import('./warning-banner.js');
+  if (warningBannerManager && warningBannerManager.displayWarningBanner) {
+    await warningBannerManager.displayWarningBanner();
   }
 
   // Import and initialize dashboard after all scripts are loaded
