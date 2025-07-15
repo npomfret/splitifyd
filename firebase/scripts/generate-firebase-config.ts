@@ -1,10 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
-const fs = require('fs');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../functions/.env') });
+import * as fs from 'fs';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
 
-// Read template and substitute environment variables
+dotenv.config({ path: path.join(__dirname, '../functions/.env') });
+
 const templatePath = path.join(__dirname, '../firebase.template.json');
 const configPath = path.join(__dirname, '../firebase.json');
 
@@ -13,19 +14,17 @@ if (!fs.existsSync(templatePath)) {
   process.exit(1);
 }
 
-let configContent = fs.readFileSync(templatePath, 'utf8');
+let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-// Required environment variables
-const requiredVars = [
+const requiredVars: readonly string[] = [
   'EMULATOR_AUTH_PORT',
   'EMULATOR_FUNCTIONS_PORT', 
   'EMULATOR_FIRESTORE_PORT',
   'EMULATOR_HOSTING_PORT',
   'EMULATOR_UI_PORT'
-];
+] as const;
 
-// Check all required variables are set
-const missingVars = requiredVars.filter(varName => !process.env[varName]);
+const missingVars: string[] = requiredVars.filter(varName => !process.env[varName]);
 if (missingVars.length > 0) {
   console.error('❌ Missing required environment variables:');
   missingVars.forEach(varName => console.error(`  - ${varName}`));
@@ -33,11 +32,10 @@ if (missingVars.length > 0) {
   process.exit(1);
 }
 
-// Substitute placeholders with actual values
 requiredVars.forEach(varName => {
-  const placeholder = `{{${varName}}}`;
-  const value = parseInt(process.env[varName]);
-  configContent = configContent.replace(new RegExp(placeholder, 'g'), value);
+  const placeholder: string = `{{${varName}}}`;
+  const value: number = parseInt(process.env[varName]!);
+  configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
 });
 
 fs.writeFileSync(configPath, configContent);

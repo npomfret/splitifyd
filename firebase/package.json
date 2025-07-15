@@ -4,25 +4,28 @@
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
     "link-webapp": "ln -sf ../webapp/dist public",
-    "start-emulators": "node scripts/generate-firebase-config.js && node scripts/start-with-data.js",
-    "generate-test-data": "cd functions && node scripts/generate-test-data.js",
+    "start-emulators": "ts-node scripts/generate-firebase-config.ts && ts-node scripts/start-with-data.ts",
+    "generate-test-data": "cd functions && ts-node scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
-    "deploy:prod": "cd .. && npm run build && cd firebase && node scripts/switch-instance.js prod && firebase deploy && rm functions/.env",
-    "deploy:functions": "node scripts/switch-instance.js prod && firebase deploy --only functions && rm functions/.env",
+    "deploy:prod": "cd .. && npm run build && cd firebase && ts-node scripts/switch-instance.ts prod && firebase deploy && rm functions/.env",
+    "deploy:functions": "ts-node scripts/switch-instance.ts prod && firebase deploy --only functions && rm functions/.env",
     "deploy:hosting": "cd .. && npm run build && cd firebase && firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "logs": "firebase functions:log",
-    "clean": "node scripts/kill-emulators.js && rm -rf firebase-export-* *.log functions/*.log ../*.log",
-    "kill-emulators": "node scripts/kill-emulators.js",
-    "switch-instance": "node scripts/switch-instance.js"
+    "clean": "ts-node scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log",
+    "kill-emulators": "ts-node scripts/kill-emulators.ts",
+    "switch-instance": "ts-node scripts/switch-instance.ts"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^24.0.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "xss": "^1.0.15",
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "xss": "^1.0.15"
   }
 }
