@@ -61,11 +61,7 @@ class Store {
 
   private notifyHandlers(property: keyof AppState, newValue: any, oldValue: any): void {
     this.handlers.forEach(handler => {
-      try {
-        handler(property, newValue, oldValue);
-      } catch (error) {
-        console.error('Error in state change handler:', error);
-      }
+      handler(property, newValue, oldValue);
     });
   }
 
@@ -90,6 +86,10 @@ class Store {
       authToken: null
     });
   }
+
+  clearSubscribers(): void {
+    this.handlers.clear();
+  }
 }
 
 const storeInstance = new Store();
@@ -98,3 +98,4 @@ export const store = storeInstance.getState();
 export const subscribe = storeInstance.subscribe.bind(storeInstance);
 export const updateStore = storeInstance.updateState.bind(storeInstance);
 export const resetStore = storeInstance.reset.bind(storeInstance);
+export const clearSubscribers = storeInstance.clearSubscribers.bind(storeInstance);

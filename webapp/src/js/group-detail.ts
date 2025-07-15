@@ -42,7 +42,8 @@ async function initializeGroupDetailPage(): Promise<void> {
             header.mount(headerContainer);
         }
     } catch (error) {
-        window.location.href = 'index.html';
+        logger.error('Failed to initialize group detail page:', error);
+        throw error;
     }
 }
 

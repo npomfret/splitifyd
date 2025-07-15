@@ -76,19 +76,15 @@ class AuthManager {
     }
 
     private async initializeAsync(): Promise<void> {
-        try {
-            // Ensure Firebase is initialized before setting up event listeners
-            await firebaseConfigManager.getConfig();
-            
-            // Initialize Firebase if not already initialized
-            if (!isFirebaseInitialized()) {
-                await firebaseInitializer.initialize();
-            }
-            
-            this.initializeEventListeners();
-        } catch (error) {
-            logger.error('Failed to initialize AuthManager:', error);
+        // Ensure Firebase is initialized before setting up event listeners
+        await firebaseConfigManager.getConfig();
+        
+        // Initialize Firebase if not already initialized
+        if (!isFirebaseInitialized()) {
+            await firebaseInitializer.initialize();
         }
+        
+        this.initializeEventListeners();
     }
 
     private initializeEventListeners(): void {

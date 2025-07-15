@@ -1,7 +1,8 @@
-import { store, subscribe, updateStore, resetStore } from './store';
+import { store, subscribe, updateStore, resetStore, clearSubscribers } from './store';
 
 beforeEach(() => {
   localStorage.clear();
+  clearSubscribers();
   resetStore();
 });
 
@@ -111,17 +112,14 @@ describe('Store', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it('should handle errors in subscribers gracefully', () => {
+    it('should propagate errors from subscribers', () => {
       const errorHandler = jest.fn(() => {
         throw new Error('Handler error');
       });
-      const normalHandler = jest.fn();
       
       subscribe(errorHandler);
-      subscribe(normalHandler);
       
-      expect(() => updateStore({ authToken: 'test' })).not.toThrow();
-      expect(normalHandler).toHaveBeenCalled();
+      expect(() => updateStore({ authToken: 'test' })).toThrow('Handler error');
     });
   });
 
