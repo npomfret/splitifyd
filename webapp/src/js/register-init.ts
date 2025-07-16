@@ -3,9 +3,13 @@ import { WarningBannerComponent } from './components/warning-banner.js';
 import { ButtonComponent } from './components/button.js';
 import { ScriptLoaderComponent } from './components/script-loader.js';
 import { updatePageTitle } from './utils/page-title.js';
+import { AppInit } from './app-init.js';
 
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
+  // Set up API base URL before loading auth scripts
+  AppInit.setupApiBaseUrl();
+  
   // Update page title from configuration
   await updatePageTitle('Register');
   

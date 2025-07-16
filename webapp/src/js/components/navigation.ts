@@ -30,7 +30,7 @@ export class NavigationComponent extends BaseComponent<HTMLElement> {
     if (backUrl) {
       const backLink = createElementSafe('a', {
         href: backUrl,
-        className: 'back-link'
+        className: 'back-button'
       });
       const backIcon = createElementSafe('i', { className: 'fas fa-arrow-left' });
       backLink.appendChild(backIcon);

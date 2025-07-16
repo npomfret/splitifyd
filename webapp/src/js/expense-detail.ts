@@ -50,7 +50,9 @@ async function initializeExpenseDetailPage(): Promise<void> {
                 title: 'Expense Details',
                 backUrl: `${ROUTES.GROUP_DETAIL}?id=${groupId}`
             });
-            const navElement = navigation.render();
+            const tempContainer = document.createElement('div');
+            navigation.mount(tempContainer);
+            const navElement = tempContainer.firstChild as HTMLElement;
             navContainer.replaceWith(navElement);
         }
     } catch (error) {
