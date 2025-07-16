@@ -1,6 +1,6 @@
 # Lack of Input Validation in switch-instance.ts
 
-## Status: ANALYZED AND PLANNED
+## Status: READY TO IMPLEMENT
 
 ## Problem
 - **Location**: `firebase/scripts/switch-instance.ts` (Note: The file is TypeScript, not JavaScript)
@@ -39,19 +39,32 @@
 
 ## Implementation Plan
 
-### Step 1: Add numeric validation (single commit)
-1. Add the regex validation check after the initial instance check
-2. Include support for 'prod' as a special case (since line 36 checks `instance === 'prod'`)
-3. Provide clear error messages with examples
+### Single Commit Implementation
+1. Add input validation after line 15 in `switch-instance.ts`
+2. Use regex `/^[1-9][0-9]*$/` to validate positive integers
+3. Include special case for 'prod' (used in line 36)
+4. Provide clear error messages with examples
 
-### Step 2: Test the changes
-1. Test with valid numeric instances: 1, 2, 10
-2. Test with 'prod' special case
-3. Test with invalid inputs: 'abc', '1abc', '0', '-1', '' 
-4. Verify error messages are helpful
+### Testing Plan
+- Valid inputs: `1`, `2`, `10`, `100`, `prod`
+- Invalid inputs: `abc`, `1abc`, `0`, `-1`, `1.5`, `""`, `null`
+- Verify helpful error messages appear for invalid inputs
+- Confirm script still works correctly for valid inputs
+
+### Code Location
+Insert validation between lines 15-17 in the current file:
+```typescript
+// After the !instance check (line 15)
+// Before const sourcePath (line 17)
+if (!/^[1-9][0-9]*$/.test(instance) && instance !== 'prod') {
+  console.error('❌ Please provide a valid instance number (positive integer) or "prod".');
+  console.error('   Examples: 1, 2, 3, prod');
+  process.exit(1);
+}
+```
 
 ### Notes
-- The script already handles file existence validation well (line 20-23)
-- The regex `/^[1-9][0-9]*$/` ensures positive integers (no leading zeros, no negative numbers)
-- Special handling for 'prod' is needed since it's used in the script (line 36)
-- This is a simple, low-risk improvement that makes the tool more user-friendly
+- Minimal change with maximum benefit
+- No breaking changes to existing behavior
+- Improves user experience with clear error messages
+- Follows project standards: fail fast with clear messages
