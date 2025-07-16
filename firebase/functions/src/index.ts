@@ -35,16 +35,34 @@ import * as path from 'path';
 
 // Test emulator connections when running locally
 if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
-  // Test Auth emulator connection after initialization
-  setTimeout(async () => {
-    try {
-      logger.info('Testing Auth emulator connection');
-      await admin.auth().listUsers(1);
-      logger.info('Auth emulator connection successful');
-    } catch (error: any) {
-      logger.errorWithContext('Auth emulator connection failed', error as Error);
+  // Helper function to wait for emulator with exponential backoff
+  async function waitForEmulator(
+    testFn: () => Promise<any>, 
+    maxRetries = 5, 
+    initialDelay = 1000
+  ): Promise<void> {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        await testFn();
+        logger.info('Auth emulator connection successful');
+        return;
+      } catch (error: any) {
+        if (i === maxRetries - 1) {
+          throw error;
+        }
+        const delay = initialDelay * Math.pow(2, i);
+        logger.info(`Auth emulator not ready, retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-  }, 1000);
+  }
+
+  // Test Auth emulator connection without blocking startup
+  logger.info('Testing Auth emulator connection');
+  waitForEmulator(() => admin.auth().listUsers(1))
+    .catch((error: any) => {
+      logger.errorWithContext('Auth emulator connection failed after multiple retries', error as Error);
+    });
 }
 
 const app = express();
