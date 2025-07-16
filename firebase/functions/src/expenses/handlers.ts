@@ -67,25 +67,24 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
 
   const expense = doc.data() as Expense;
 
-  await verifyGroupMembership(expense.groupId, userId);
-
-  // SECURITY FIX: Check if user is a participant in this specific expense or group admin
+  // Single authorization check: fetch group once and verify access
   const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
+  
+  if (!groupDoc.exists) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+  }
+
   const groupData = groupDoc.data();
   
-  // Check if user is group owner (creator)
-  if (groupData?.userId === userId) {
-    return { docRef, expense };
+  // Check if this is a group document (has data.name)
+  if (!groupData || !groupData.data || !groupData.data.name) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
   }
   
-  // Check if user is a group admin (role-based admin check temporarily removed - basic security still enforced)
-  // const groupDataTyped = groupData?.data as GroupData;
-  // if (groupDataTyped?.members && Array.isArray(groupDataTyped.members)) {
-  //   const userMember = groupDataTyped.members.find((member: GroupMember) => member.uid === userId);
-  //   if (userMember?.role === 'admin') {
-  //     return { docRef, expense };
-  //   }
-  // }
+  // Check if user is group owner (creator)
+  if (groupData.userId === userId) {
+    return { docRef, expense };
+  }
   
   // Check if user is a participant in this expense
   if (!expense.participants || !expense.participants.includes(userId)) {
