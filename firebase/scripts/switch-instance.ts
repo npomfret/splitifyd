@@ -14,6 +14,12 @@ if (!instance) {
   process.exit(1);
 }
 
+if (!/^[1-9][0-9]*$/.test(instance) && instance !== 'prod') {
+  console.error('❌ Please provide a valid instance number (positive integer) or "prod".');
+  console.error('   Examples: 1, 2, 3, prod');
+  process.exit(1);
+}
+
 const sourcePath: string = path.join(__dirname, `../functions/.env.instance${instance}`);
 const targetPath: string = path.join(__dirname, '../functions/.env');
 
