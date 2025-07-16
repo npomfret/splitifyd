@@ -427,14 +427,9 @@ async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[]
       const participantCount = participantPatterns[Math.floor(Math.random() * participantPatterns.length)]();
       const participants = getRandomUsers(groupMembers, Math.min(participantCount, groupMembers.length));
       
-      // Sometimes payer doesn't participate (pays for others)
-      const payerParticipates = Math.random() > 0.2; // 80% chance payer participates
-      if (payerParticipates && !participants.some(p => p.uid === payer.uid)) {
+      // Ensure payer is always a participant
+      if (!participants.some(p => p.uid === payer.uid)) {
         participants[0] = payer;
-      } else if (!payerParticipates && participants.some(p => p.uid === payer.uid)) {
-        // Remove payer from participants
-        const payerIndex = participants.findIndex(p => p.uid === payer.uid);
-        participants.splice(payerIndex, 1);
       }
       
       // Ensure we have at least one participant
