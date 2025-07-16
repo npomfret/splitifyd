@@ -18,6 +18,7 @@ export class AppInit {
       onReady = null
     } = config;
 
+    this.setupApiBaseUrl();
     this.setupGlobalErrorHandlers();
     
     // Initialize Firebase if not already initialized
@@ -74,6 +75,12 @@ export class AppInit {
     if (!navigator.onLine) {
       showWarning('You are currently offline. Some features may not work properly.');
     }
+  }
+
+  static setupApiBaseUrl(): void {
+    const isEmulator = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiBaseUrl = isEmulator ? 'http://127.0.0.1:6002' : '';
+    (window as any).API_BASE_URL = apiBaseUrl;
   }
 
   static setupGlobalErrorHandlers(): void {
