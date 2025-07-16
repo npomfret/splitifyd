@@ -5,6 +5,7 @@ import { showError } from './utils/ui-messages.js';
 import { apiCall } from './api.js';
 import { firebaseAuthInstance } from './firebase-init.js';
 import { AUTH_TOKEN_KEY } from './constants.js';
+import { ROUTES } from './routes.js';
 
 let groupsList: any | null = null;
 let headerComponent: HeaderComponent | null = null;
@@ -14,7 +15,7 @@ export async function initializeDashboard(): Promise<void> {
     // Check authentication first
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!token) {
-      window.location.href = '/login.html';
+      window.location.href = ROUTES.LOGIN;
       return;
     }
 

@@ -6,6 +6,7 @@ import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { HeaderComponent } from './components/header.js';
+import { ROUTES } from './routes.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -29,7 +30,7 @@ async function initializeGroupDetailPage(): Promise<void> {
         currentGroupId = urlParams.get('id');
         
         if (!currentGroupId) {
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
             return;
         }
         

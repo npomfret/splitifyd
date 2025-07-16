@@ -5,6 +5,7 @@ import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldE
 import { debounce } from './utils/event-utils.js';
 import { validateInput } from './utils/safe-dom.js';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from './constants.js';
+import { ROUTES } from './routes.js';
 import type { FirebaseUser, FirebaseError } from './types/global.js';
 import type { 
     LoginCredentials, 
@@ -253,7 +254,7 @@ class AuthManager {
             // Store user ID for client-side operations
             this.setUserId(userCredential.user.uid);
             
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
             
         } catch (error) {
             const firebaseError = error as FirebaseError;
@@ -329,7 +330,7 @@ class AuthManager {
             this.setUserId(userCredential.user.uid);
             
             // Skip user document creation for now - can be done on first dashboard load
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
             
         } catch (error) {
             const firebaseError = error as FirebaseError;

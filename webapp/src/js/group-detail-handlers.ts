@@ -1,10 +1,12 @@
+import { ROUTES } from './routes.js';
+
 // Event handlers for group-detail.html
 export function initializeGroupDetailHandlers(): void {
     // Back button handler
     const backButton = document.querySelector('.back-button') as HTMLButtonElement;
     if (backButton) {
         backButton.addEventListener('click', () => {
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
         });
     }
     

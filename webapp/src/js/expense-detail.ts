@@ -6,6 +6,7 @@ import { ExpenseService } from './expenses.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { HeaderComponent } from './components/header.js';
 import { showError as showUIError } from './utils/ui-messages.js';
+import { ROUTES } from './routes.js';
 import type { User } from './types/global';
 import type { Member, GroupDetail } from './types/api';
 import type { ExpenseData } from './types/business-logic';
@@ -256,7 +257,7 @@ async function deleteExpense(): Promise<void> {
         closeDeleteModal();
         
         const urlParams = new URLSearchParams(window.location.search);
-        const returnUrl = urlParams.get('return') ?? 'dashboard.html';
+        const returnUrl = urlParams.get('return') ?? ROUTES.DASHBOARD;
         window.location.href = returnUrl;
         
     } catch (error: any) {

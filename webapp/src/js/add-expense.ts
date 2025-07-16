@@ -6,6 +6,7 @@ import { waitForAuthManager } from './utils/auth-utils.js';
 import { debounce } from './utils/event-utils.js';
 import { HeaderComponent } from './components/header.js';
 import { clearElement, createElementSafe, appendChildren } from './utils/safe-dom.js';
+import { ROUTES } from './routes.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;
@@ -27,7 +28,7 @@ async function initializeAddExpensePage(): Promise<void> {
         const isEdit = urlParams.get('edit') === 'true';
         
         if (!currentGroupId && !editExpenseId) {
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
             return;
         }
         
@@ -42,7 +43,7 @@ async function initializeAddExpensePage(): Promise<void> {
         showError('Failed to load expense form. Please try again.');
         
         setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
         }, 3000);
     }
 }
@@ -171,11 +172,11 @@ function initializeEventListeners(): void {
     const amountInput = document.getElementById('amount') as HTMLInputElement;
     
     backBtn.addEventListener('click', () => {
-        window.location.href = `group-detail.html?id=${currentGroupId}`;
+        window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentGroupId}`;
     });
     
     cancelBtn.addEventListener('click', () => {
-        window.location.href = `group-detail.html?id=${currentGroupId}`;
+        window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentGroupId}`;
     });
     
     form.addEventListener('submit', handleSubmit);
@@ -388,7 +389,7 @@ async function handleSubmit(event: Event): Promise<void> {
         showMessage('Expense added successfully!', 'success');
         
         setTimeout(() => {
-            window.location.href = `group-detail.html?id=${currentGroupId}`;
+            window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentGroupId}`;
         }, 1000);
         
     } catch (error) {

@@ -1,4 +1,5 @@
 import { authManager } from './auth.js';
+import { ROUTES } from './routes.js';
 
 // Authentication redirect logic for index.html
 window.addEventListener('DOMContentLoaded', () => {
@@ -10,10 +11,10 @@ window.addEventListener('DOMContentLoaded', () => {
         
         if (joinLinkId) {
             // Redirect to join group page
-            window.location.href = `join-group.html?linkId=${joinLinkId}`;
+            window.location.href = `${ROUTES.JOIN_GROUP}?linkId=${joinLinkId}`;
         } else {
             // Otherwise redirect to dashboard
-            window.location.href = 'dashboard.html';
+            window.location.href = ROUTES.DASHBOARD;
         }
         return;
     }

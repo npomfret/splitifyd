@@ -4,6 +4,7 @@ import { apiService, apiCall } from './api.js';
 import { ModalComponent } from './components/modal.js';
 import { ButtonComponent } from './components/button.js';
 import { HeaderComponent } from './components/header.js';
+import { ROUTES } from './routes.js';
 import type {
   Group,
   CreateGroupRequest as CreateGroupRequestBL,
@@ -534,7 +535,7 @@ export class GroupsList {
   }
 
   private openGroupDetail(groupId: string): void {
-    window.location.href = `group-detail.html?id=${groupId}`;
+    window.location.href = `${ROUTES.GROUP_DETAIL}?id=${groupId}`;
   }
 
   private async openAddExpenseModal(groupId: string): Promise<void> {

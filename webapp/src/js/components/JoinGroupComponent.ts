@@ -3,6 +3,7 @@ import { logger } from '../utils/logger.js';
 import { AppInit } from '../app-init.js';
 import { apiService } from '../api.js';
 import { showMessage } from '../utils/ui-messages.js';
+import { ROUTES } from '../routes.js';
 
 export class JoinGroupComponent extends BaseComponent<HTMLDivElement> {
     private linkId: string | null = null;
@@ -47,7 +48,7 @@ export class JoinGroupComponent extends BaseComponent<HTMLDivElement> {
             this.linkId = urlParams.get('linkId');
             
             if (!this.linkId) {
-                window.location.href = 'dashboard.html';
+                window.location.href = ROUTES.DASHBOARD;
                 return;
             }
             
@@ -86,7 +87,7 @@ export class JoinGroupComponent extends BaseComponent<HTMLDivElement> {
                 showMessage(`Successfully joined ${response.data.groupName}!`, 'success');
                 
                 setTimeout(() => {
-                    window.location.href = `group-detail.html?id=${response.data.groupId}`;
+                    window.location.href = `${ROUTES.GROUP_DETAIL}?id=${response.data.groupId}`;
                 }, 1500);
             }
         } catch (error: any) {
@@ -95,17 +96,17 @@ export class JoinGroupComponent extends BaseComponent<HTMLDivElement> {
             if (error.message && error.message.includes('already a member')) {
                 this.showErrorState('You are already a member of this group');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = ROUTES.DASHBOARD;
                 }, 2000);
             } else if (error.message && error.message.includes('Invalid or expired')) {
                 this.showErrorState('This invite link is invalid or has expired');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = ROUTES.DASHBOARD;
                 }, 3000);
             } else {
                 this.showErrorState('Failed to join group. Please try again.');
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    window.location.href = ROUTES.DASHBOARD;
                 }, 3000);
             }
         }

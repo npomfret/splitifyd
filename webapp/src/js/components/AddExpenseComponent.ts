@@ -8,6 +8,7 @@ import { apiService } from '../api.js';
 import { showMessage, showFieldError, clearErrors } from '../utils/ui-messages.js';
 import { logger } from '../utils/logger.js';
 import { waitForAuthManager } from '../utils/auth-utils.js';
+import { ROUTES } from '../routes.js';
 import type { GroupDetail, Member, ExpenseData } from '@bill-splitter/shared-types';
 
 export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
@@ -65,7 +66,7 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
             this.isEditMode = urlParams.get('edit') === 'true';
             
             if (!this.currentGroupId && !this.editExpenseId) {
-                window.location.href = 'dashboard.html';
+                window.location.href = ROUTES.DASHBOARD;
                 return;
             }
             
@@ -79,7 +80,7 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
             showMessage('Failed to load expense form. Please try again.', 'error');
             
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = ROUTES.DASHBOARD;
             }, 3000);
         }
     }
