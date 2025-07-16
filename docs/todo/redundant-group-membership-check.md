@@ -42,5 +42,31 @@
 - **Complexity**: Simple
 - **Benefit**: Quick win (improves code clarity and efficiency)
 
-## Implementation Notes
-This change will make the authorization logic more concise and easier to understand.
+## Implementation Plan
+
+### Current Analysis
+The `fetchExpense` function (lines 60-96) has clear redundancy:
+1. **Line 70**: Calls `verifyGroupMembership(expense.groupId, userId)` - fetches group doc and checks membership
+2. **Lines 73-88**: Fetches the SAME group document again and performs overlapping authorization checks
+
+### Solution Steps
+1. **Single Step**: Replace the `verifyGroupMembership` call and subsequent group fetch with a single, comprehensive authorization function that:
+   - Fetches the group document once
+   - Verifies the user is a group owner OR a participant in the specific expense
+   - Returns the group data for any further use
+
+### Implementation Details
+- The current `verifyGroupMembership` function checks if user is group owner OR group member
+- The additional check verifies if user is group owner OR expense participant  
+- **Combined logic**: User must be group owner OR expense participant (group membership alone isn't sufficient for expense access)
+- **Result**: Simpler, more efficient, and more secure (expense-specific authorization)
+
+### Code Changes Required
+- **File**: `firebase/functions/src/expenses/handlers.ts`
+- **Function**: `fetchExpense` (lines 60-96)
+- **Change**: Replace lines 70-78 with a single authorization check that fetches group once
+- **No breaking changes**: Same authorization logic, just more efficient
+
+### Testing Impact
+- **Existing tests**: Should continue to pass (same authorization behavior)
+- **Performance**: Slightly better (one less Firestore read per expense fetch)
