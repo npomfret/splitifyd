@@ -26,52 +26,58 @@ The `listDocuments` function (lines 188-301) contains three main areas of comple
 2. **Balance calculation logic** (lines 250-272) - fetches/calculates group balances using existing `balanceCalculator` service
 3. **Pagination logic** (lines 210-224, 278-288) - handles cursor encoding/decoding
 
-### Detailed Implementation Steps
+### Validated Implementation Plan
 
-#### Step 1: Extract Document Transformation Logic
-- Create `transformDocumentForApi` function that handles:
-  - Timestamp conversion to ISO strings
-  - Basic document structure mapping
-  - Validation of Firestore Timestamp fields
-- Location: New file `src/documents/transformers.ts`
+After analyzing the codebase, this refactoring is valid and worthwhile. The current implementation mixes multiple concerns:
+- Document data transformation
+- Balance fetching/calculation/caching
+- Pagination cursor management
 
-#### Step 2: Extract Balance Integration Logic  
-- Create `addGroupBalanceToDocument` function that handles:
-  - Checking if document is a group document
-  - Fetching cached balance from group-balances collection
-  - Falling back to `calculateGroupBalances` if no cache exists
-  - Caching calculated results
-- Location: `src/documents/transformers.ts` (works with existing `balanceCalculator.ts`)
+The proposed extraction will improve maintainability and testability.
 
-#### Step 3: Extract Pagination Logic
-- Create `decodeCursor` and `encodeCursor` functions
-- Create `buildPaginatedQuery` function
-- Location: New file `src/utils/pagination.ts`
+### Implementation Approach - Small Commits
 
-#### Step 4: Refactor listDocuments
-- Simplify main function to orchestrate the extracted functions
-- Maintain same API contract
-- Improve readability and maintainability
+This task can be broken into independent commits:
 
-#### Step 5: Add Tests
-- Unit tests for transformer functions
-- Unit tests for pagination utilities
-- Integration tests for listDocuments behavior
+#### Commit 1: Extract Pagination Utilities
+- Create `src/utils/pagination.ts` with:
+  - `decodeCursor(cursor: string): CursorData`
+  - `encodeCursor(data: CursorData): string`
+  - `buildPaginatedQuery(baseQuery, cursor, order, limit)`
+- Add unit tests in `src/utils/pagination.test.ts`
+- Update `listDocuments` to use these utilities
 
-### Files to Create/Modify
-- **New**: `src/documents/transformers.ts` - document transformation logic
-- **New**: `src/utils/pagination.ts` - pagination utilities  
-- **Modify**: `src/documents/handlers.ts` - simplified listDocuments function
-- **New**: `src/documents/transformers.test.ts` - unit tests
-- **New**: `src/utils/pagination.test.ts` - unit tests
+#### Commit 2: Extract Document Transformation
+- Create `src/documents/transformers.ts` with:
+  - `transformDocumentForApi(doc: FirestoreDocument): ApiDocument`
+  - Move timestamp validation and conversion logic
+- Add unit tests in `src/documents/transformers.test.ts`
+- Update `listDocuments` to use transformer
 
-### Approach
-This refactoring will:
-- Extract reusable functions without changing external API
-- Maintain compatibility with existing `balanceCalculator` service
-- Make code more testable and maintainable
-- Follow single responsibility principle
-- Enable easier future enhancements
+#### Commit 3: Extract Balance Integration Logic
+- Add to `src/documents/transformers.ts`:
+  - `addGroupBalanceToDocument(document, userId): Promise<Document>`
+  - Encapsulate balance fetching, calculation, and caching
+- Add tests for balance integration
+- Update `listDocuments` to use this function
+
+#### Commit 4: Final Refactor of listDocuments
+- Simplify the handler to orchestrate extracted functions
+- Ensure all tests pass
+- Verify no behavior changes
+
+### Key Considerations
+
+1. **Type Safety**: Ensure all extracted functions have proper TypeScript types
+2. **Error Handling**: Maintain existing error handling behavior (e.g., defaulting balance to 0 on error)
+3. **Performance**: Keep the parallel processing with `Promise.all`
+4. **Testing**: Each extracted function should have focused unit tests
+
+### Risk Assessment
+
+- **Risk**: Low - This is pure refactoring with no behavior changes
+- **Complexity**: Moderate - Multiple functions to extract but clear boundaries
+- **Testing Strategy**: Run existing integration tests after each commit to ensure no regression
 
 ## Implementation Notes
 This change will make the code more modular and easier to test. It will also reduce code duplication and make it easier to reason about the application's data transformation logic.
