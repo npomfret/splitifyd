@@ -36,3 +36,41 @@
 
 ## Implementation Notes
 This change will make the application more resilient to configuration errors and provide clear, actionable error messages when environment variables are missing or invalid. It also serves as a form of documentation for the required environment variables.
+
+## Detailed Implementation Plan (2025-07-17)
+
+After analyzing the current `firebase/functions/src/config.ts` file, I can see that:
+
+1. **Current state**: The file has basic validation but no schema-based validation
+2. **Environment detection**: Uses `FUNCTIONS_EMULATOR` to detect emulator vs production
+3. **Required env vars**: Different variables are required for production vs development
+
+### Step 1: Add zod dependency
+- Check if zod is already installed in `firebase/functions/package.json`
+- If not, add it as a dependency
+
+### Step 2: Create environment schema
+Create a zod schema that validates:
+- **Production required**: `GCLOUD_PROJECT`, `CLIENT_API_KEY`, `CLIENT_AUTH_DOMAIN`, `CLIENT_STORAGE_BUCKET`, `CLIENT_MESSAGING_SENDER_ID`, `CLIENT_APP_ID`
+- **Production optional**: `CLIENT_MEASUREMENT_ID`
+- **Development required**: `FIREBASE_AUTH_EMULATOR_HOST` (when in emulator)
+- **Development optional**: `DEV_FORM_EMAIL`, `DEV_FORM_PASSWORD`
+- **Always available**: `FUNCTIONS_EMULATOR` (provided by Firebase)
+
+### Step 3: Implement validation
+- Replace the current ad-hoc validation with zod schema validation
+- Maintain the same fail-fast behavior for invalid configuration
+- Keep the same error messages for consistency
+
+### Step 4: Update exports
+- Ensure the validated environment variables are properly typed
+- Remove any direct `process.env` access after validation
+
+### Benefits of this approach:
+1. **Type safety**: Zod provides compile-time and runtime type checking
+2. **Clear errors**: Better error messages when validation fails
+3. **Documentation**: Schema serves as documentation for required variables
+4. **Consistency**: Single source of truth for environment validation
+
+### Minimal implementation:
+This can be completed in a single commit since it's a focused refactoring of existing validation logic.
