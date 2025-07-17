@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "chokidar-cli": "^3.0.0",
-    "gsap": "^3.12.5",
+    "gsap": "^3.13.0",
     "scrollreveal": "^4.0.9",
-    "three": "^0.162.0"
+    "three": "^0.178.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
