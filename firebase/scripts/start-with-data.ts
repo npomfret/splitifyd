@@ -6,10 +6,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import { generateTestData } from '../functions/scripts/generate-test-data';
+import { logger } from './logger';
 
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
-  console.error('❌ firebase.json not found. Run the build process first to generate it.');
+  logger.error('❌ firebase.json not found. Run the build process first to generate it.');
   process.exit(1);
 }
 
@@ -17,9 +18,10 @@ const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8
 const UI_PORT: string = firebaseConfig.emulators.ui.port || '4000';
 const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port || '5001';
 
-console.log('🚀 Starting Firebase emulator with test data generation...\n');
-console.log(`📍 Emulator UI will be available at: http://localhost:${UI_PORT}`);
-console.log(`📍 Functions will be available at: http://localhost:${FUNCTIONS_PORT}\n`);
+logger.info('🚀 Starting Firebase emulator with test data generation...', {
+  uiPort: UI_PORT,
+  functionsPort: FUNCTIONS_PORT
+});
 
 const emulatorProcess = spawn('firebase', [
   'emulators:start'
@@ -93,32 +95,27 @@ function checkApiReady(): Promise<boolean> {
 
 setTimeout((() => {
   const startupProcess = async () => {
-    console.log('\n⏳ Waiting for Firebase emulator to be ready...');
-    
     let attempts = 0;
     const maxAttempts = 60;
     
     while (attempts < maxAttempts && !emulatorsReady) {
       attempts++;
-      console.log(`⏳ Waiting for all emulators to start... (${attempts}/${maxAttempts})`);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     
     if (!emulatorsReady) {
-      console.error('❌ Firebase emulators failed to start within timeout');
+      logger.error('❌ Firebase emulators failed to start within timeout', { attempts, maxAttempts });
       return;
     }
     
-    console.log('\n🎯 All emulators are ready!');
+    logger.info('🎯 All emulators are ready!');
     
-    console.log('\n⏳ Waiting for API functions to be ready...');
     let apiAttempts = 0;
     const maxApiAttempts = 30;
     let apiReady = false;
     
     while (apiAttempts < maxApiAttempts && !apiReady) {
       apiAttempts++;
-      console.log(`⏳ Checking API functions... (${apiAttempts}/${maxApiAttempts})`);
       apiReady = await checkApiReady();
       if (!apiReady) {
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -126,24 +123,27 @@ setTimeout((() => {
     }
     
     if (!apiReady) {
-      console.error('❌ API functions failed to become ready within timeout');
-      console.error('This may indicate an issue with function deployment or configuration');
+      logger.error('❌ API functions failed to become ready within timeout', {
+        apiAttempts,
+        maxApiAttempts,
+        note: 'This may indicate an issue with function deployment or configuration'
+      });
       return;
     }
     
-    console.log('\n🎯 API functions are ready!');
+    logger.info('🎯 API functions are ready!');
     
     try {
-      console.log('\n🎲 Generating test data...');
+      logger.info('🎲 Generating test data...');
       await generateTestData();
-      console.log('\n✅ Test data generation completed!\n');
+      logger.info('✅ Test data generation completed!');
     } catch (error) {
-      console.error('❌ Test data generation failed:', error);
+      logger.error('❌ Test data generation failed', { error });
     }
   };
 
   startupProcess().catch(error => {
-    console.error('❌ An unexpected error occurred during emulator startup:', error);
+    logger.error('❌ An unexpected error occurred during emulator startup', { error });
     process.exit(1);
   });
 }), 5000);
@@ -154,7 +154,7 @@ process.on('SIGINT', () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
   
-  console.log('\n🛑 Shutting down...');
+  logger.info('🛑 Shutting down...');
   
   if (emulatorProcess && !emulatorProcess.killed) {
     emulatorProcess.kill('SIGINT');
@@ -180,7 +180,7 @@ process.on('SIGTERM', () => {
 
 emulatorProcess.on('exit', (code: number | null) => {
   if (!isShuttingDown) {
-    console.log(`\n🔥 Firebase emulator exited with code ${code}`);
+    logger.info(`🔥 Firebase emulator exited`, { code });
     process.exit(code || 0);
   }
 });
@@ -189,6 +189,6 @@ process.on('uncaughtException', (error: any) => {
   if (error.code === 'EIO') {
     return;
   }
-  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception', { error });
   process.exit(1);
 });

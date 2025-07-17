@@ -3,14 +3,12 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from './logger';
 
-console.log('🔥 Killing Firebase emulators...');
-
-console.log('🎯 Killing only processes on this instance\'s ports...');
 
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
-  console.error('❌ firebase.json not found. Run the build process first to generate it.');
+  logger.error('❌ firebase.json not found. Run the build process first to generate it.');
   process.exit(1);
 }
 
@@ -27,13 +25,15 @@ try {
   }
   
   if (ports.length === 0) {
-    console.error('❌ No emulator ports found in firebase.json. Configuration may be invalid.');
+    logger.error('❌ No emulator ports found in firebase.json', {
+      note: 'Configuration may be invalid'
+    });
     process.exit(1);
   }
   
-  console.log(`📍 Using ports from firebase.json: ${ports.join(', ')}`);
+  logger.debug('Using ports from firebase.json', { ports });
 } catch (error: any) {
-  console.error('❌ Could not read firebase.json:', error.message);
+  logger.error('❌ Could not read firebase.json', { error: error.message });
   process.exit(1);
 }
 
@@ -42,10 +42,10 @@ ports.forEach(port => {
     const result: string = execSync(`lsof -ti:${port}`, { stdio: 'pipe', encoding: 'utf8' }) as string;
     if (result.trim()) {
       execSync(`kill -9 ${result.trim()}`, { stdio: 'ignore' });
-      console.log(`✅ Killed process on port ${port}`);
+      logger.info(`✅ Killed process on port ${port}`);
     }
   } catch (error) {
   }
 });
 
-console.log('🎯 Firebase emulators should now be stopped');
+logger.info('🎯 Firebase emulators stopped');

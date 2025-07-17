@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { execSync } from 'child_process';
+import { logger } from './logger';
 
 const instance: string | undefined = process.argv[2];
 
@@ -15,8 +16,9 @@ if (!instance) {
 }
 
 if (!/^[1-9][0-9]*$/.test(instance) && instance !== 'prod') {
-  console.error('❌ Please provide a valid instance number (positive integer) or "prod".');
-  console.error('   Examples: 1, 2, 3, prod');
+  logger.error('❌ Please provide a valid instance number (positive integer) or "prod".', {
+    examples: '1, 2, 3, prod'
+  });
   process.exit(1);
 }
 
@@ -24,18 +26,19 @@ const sourcePath: string = path.join(__dirname, `../functions/.env.instance${ins
 const targetPath: string = path.join(__dirname, '../functions/.env');
 
 if (!fs.existsSync(sourcePath)) {
-  console.error(`❌ Instance ${instance} configuration not found: ${sourcePath}`);
+  logger.error(`❌ Instance ${instance} configuration not found`, { path: sourcePath });
   process.exit(1);
 }
 
 if (fs.existsSync(targetPath)) {
-  console.log('⚠️  Existing .env file found - this will be overwritten');
-  console.log('   If this is a production environment, ensure settings are backed up in .env.prod');
+  logger.warn('⚠️  Existing .env file found - this will be overwritten', {
+    note: 'If this is a production environment, ensure settings are backed up in .env.prod'
+  });
 }
 
 try {
   fs.copyFileSync(sourcePath, targetPath);
-  console.log(`✅ Switched to instance ${instance} configuration`);
+  logger.info(`✅ Switched to instance ${instance} configuration`);
   
   dotenv.config({ path: targetPath });
   
@@ -47,19 +50,19 @@ try {
       stdio: 'inherit' 
     });
     
-    console.log('\n📍 Emulator ports for this instance:');
-    console.log(`  - UI: ${process.env.EMULATOR_UI_PORT}`);
-    console.log(`  - Auth: ${process.env.EMULATOR_AUTH_PORT}`);
-    console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT}`);
-    console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT}`);
-    console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT}`);
-
-    console.log('\n🚀 You can now run: npm run dev:with-data');
+    logger.info('📍 Emulator ports configured', {
+      ui: process.env.EMULATOR_UI_PORT,
+      auth: process.env.EMULATOR_AUTH_PORT,
+      functions: process.env.EMULATOR_FUNCTIONS_PORT,
+      firestore: process.env.EMULATOR_FIRESTORE_PORT,
+      hosting: process.env.EMULATOR_HOSTING_PORT,
+      nextStep: 'npm run dev:with-data'
+    });
   } else {
-    console.log('\n🚀 Production environment configured - ready for deployment');
+    logger.info('🚀 Production environment configured - ready for deployment');
   }
   
 } catch (error: any) {
-  console.error('❌ Failed to switch instance:', error.message);
+  logger.error('❌ Failed to switch instance', { error: error.message });
   process.exit(1);
 }

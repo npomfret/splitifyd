@@ -3,6 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { logger } from './logger';
 
 dotenv.config({ path: path.join(__dirname, '../functions/.env') });
 
@@ -10,7 +11,7 @@ const templatePath = path.join(__dirname, '../firebase.template.json');
 const configPath = path.join(__dirname, '../firebase.json');
 
 if (!fs.existsSync(templatePath)) {
-  console.error('❌ firebase.template.json not found');
+  logger.error('❌ firebase.template.json not found');
   process.exit(1);
 }
 
@@ -26,9 +27,10 @@ const requiredVars: readonly string[] = [
 
 const missingVars: string[] = requiredVars.filter(varName => !process.env[varName]);
 if (missingVars.length > 0) {
-  console.error('❌ Missing required environment variables:');
-  missingVars.forEach(varName => console.error(`  - ${varName}`));
-  console.error('Ensure .env file is properly configured.');
+  logger.error('❌ Missing required environment variables', {
+    missing: missingVars,
+    note: 'Ensure .env file is properly configured'
+  });
   process.exit(1);
 }
 
@@ -40,9 +42,12 @@ requiredVars.forEach(varName => {
 
 fs.writeFileSync(configPath, configContent);
 
-console.log('🔥 Firebase configuration generated with ports:');
-console.log(`  - UI: ${process.env.EMULATOR_UI_PORT || '4000'}`);
-console.log(`  - Auth: ${process.env.EMULATOR_AUTH_PORT || '9099'}`);
-console.log(`  - Functions: ${process.env.EMULATOR_FUNCTIONS_PORT || '5001'}`);
-console.log(`  - Firestore: ${process.env.EMULATOR_FIRESTORE_PORT || '8080'}`);
-console.log(`  - Hosting: ${process.env.EMULATOR_HOSTING_PORT || '5002'}`);
+logger.info('🔥 Firebase configuration generated', {
+  ports: {
+    ui: process.env.EMULATOR_UI_PORT || '4000',
+    auth: process.env.EMULATOR_AUTH_PORT || '9099',
+    functions: process.env.EMULATOR_FUNCTIONS_PORT || '5001',
+    firestore: process.env.EMULATOR_FIRESTORE_PORT || '8080',
+    hosting: process.env.EMULATOR_HOSTING_PORT || '5002'
+  }
+});
