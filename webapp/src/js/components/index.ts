@@ -2,7 +2,6 @@ export { BaseComponent } from './base-component.js';
 export { AuthCardComponent } from './auth-card.js';
 export { FormComponents } from './form-components.js';
 export { HeaderComponent } from './header.js';
-export { ListComponents } from './list-components.js';
 export { ModalComponent } from './modal.js';
 export { NavigationComponent } from './navigation.js';
 export { PageHeaderComponent } from './page-header.js';
