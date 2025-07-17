@@ -106,3 +106,42 @@ The task should be marked as "partially complete" after each phase, allowing for
 - Phase 1: Create/enhance webapp logger
 - Phase 4: Review test files
 - Phase 5: Update validation scripts
+
+## Phase 5 Implementation Plan (2025-07-17)
+
+### Scope
+Update the validation script `/scripts/validate-app-config.js` to use structured logging instead of console methods.
+
+### Analysis
+- The script currently uses:
+  - `console.log('✓ app-config.json is valid');` on success
+  - `console.error('✗ app-config.json validation failed:', error.message);` on failure
+- This is a root-level script (not in firebase/ or webapp/) so it needs its own logger
+
+### Implementation approach:
+1. **Create a simple logger for root scripts** (`/scripts/logger.js`):
+   - Similar to the Firebase scripts logger but for the root scripts directory
+   - Should support info() and error() methods
+   - Use the same structured format as other loggers for consistency
+   - Keep it simple since this is just for build/validation scripts
+
+2. **Update validate-app-config.js**:
+   - Import the new logger
+   - Replace console.log with logger.info
+   - Replace console.error with logger.error
+   - Maintain the same user-friendly output with checkmarks
+
+3. **Testing**:
+   - Run the validation script to ensure it still works
+   - Verify both success and failure cases produce appropriate output
+
+### Benefits:
+- Consistent logging across all build/validation scripts
+- Easier to grep/search logs in CI/CD pipelines
+- Maintains the visual feedback (✓/✗) that developers expect
+
+### Risk:
+- Low risk - this is a simple refactoring of 2 log statements
+- The script runs at build time, not in production
+
+This is a perfect small, isolated task that can be completed and committed independently.
