@@ -91,55 +91,62 @@ function checkApiReady(): Promise<boolean> {
   });
 }
 
-setTimeout(async () => {
-  console.log('\n⏳ Waiting for Firebase emulator to be ready...');
-  
-  let attempts = 0;
-  const maxAttempts = 60;
-  
-  while (attempts < maxAttempts && !emulatorsReady) {
-    attempts++;
-    console.log(`⏳ Waiting for all emulators to start... (${attempts}/${maxAttempts})`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-  
-  if (!emulatorsReady) {
-    console.error('❌ Firebase emulators failed to start within timeout');
-    return;
-  }
-  
-  console.log('\n🎯 All emulators are ready!');
-  
-  console.log('\n⏳ Waiting for API functions to be ready...');
-  let apiAttempts = 0;
-  const maxApiAttempts = 30;
-  let apiReady = false;
-  
-  while (apiAttempts < maxApiAttempts && !apiReady) {
-    apiAttempts++;
-    console.log(`⏳ Checking API functions... (${apiAttempts}/${maxApiAttempts})`);
-    apiReady = await checkApiReady();
-    if (!apiReady) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+setTimeout((() => {
+  const startupProcess = async () => {
+    console.log('\n⏳ Waiting for Firebase emulator to be ready...');
+    
+    let attempts = 0;
+    const maxAttempts = 60;
+    
+    while (attempts < maxAttempts && !emulatorsReady) {
+      attempts++;
+      console.log(`⏳ Waiting for all emulators to start... (${attempts}/${maxAttempts})`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-  }
-  
-  if (!apiReady) {
-    console.error('❌ API functions failed to become ready within timeout');
-    console.error('This may indicate an issue with function deployment or configuration');
-    return;
-  }
-  
-  console.log('\n🎯 API functions are ready!');
-  
-  try {
-    console.log('\n🎲 Generating test data...');
-    await generateTestData();
-    console.log('\n✅ Test data generation completed!\n');
-  } catch (error) {
-    console.error('❌ Test data generation failed:', error);
-  }
-}, 5000);
+    
+    if (!emulatorsReady) {
+      console.error('❌ Firebase emulators failed to start within timeout');
+      return;
+    }
+    
+    console.log('\n🎯 All emulators are ready!');
+    
+    console.log('\n⏳ Waiting for API functions to be ready...');
+    let apiAttempts = 0;
+    const maxApiAttempts = 30;
+    let apiReady = false;
+    
+    while (apiAttempts < maxApiAttempts && !apiReady) {
+      apiAttempts++;
+      console.log(`⏳ Checking API functions... (${apiAttempts}/${maxApiAttempts})`);
+      apiReady = await checkApiReady();
+      if (!apiReady) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
+    if (!apiReady) {
+      console.error('❌ API functions failed to become ready within timeout');
+      console.error('This may indicate an issue with function deployment or configuration');
+      return;
+    }
+    
+    console.log('\n🎯 API functions are ready!');
+    
+    try {
+      console.log('\n🎲 Generating test data...');
+      await generateTestData();
+      console.log('\n✅ Test data generation completed!\n');
+    } catch (error) {
+      console.error('❌ Test data generation failed:', error);
+    }
+  };
+
+  startupProcess().catch(error => {
+    console.error('❌ An unexpected error occurred during emulator startup:', error);
+    process.exit(1);
+  });
+}), 5000);
 
 let isShuttingDown = false;
 
