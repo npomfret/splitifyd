@@ -10,7 +10,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
   let users: User[] = [];
   let testGroup: any;
 
-  jest.setTimeout(60000); // Longer timeout for concurrent operations
+  jest.setTimeout(25000); // Timeout for concurrent operations
 
   beforeAll(async () => {
     driver = new ApiDriver();

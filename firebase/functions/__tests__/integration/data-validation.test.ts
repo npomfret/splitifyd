@@ -10,7 +10,7 @@ describe('Enhanced Data Validation Tests', () => {
   let users: User[] = [];
   let testGroup: any;
 
-  jest.setTimeout(30000);
+  jest.setTimeout(10000);
 
   beforeAll(async () => {
     driver = new ApiDriver();

@@ -11,7 +11,7 @@ describe('User Management Tests', () => {
   let driver: ApiDriver;
   let testUser: User;
 
-  jest.setTimeout(30000);
+  jest.setTimeout(10000);
 
   beforeAll(async () => {
     driver = new ApiDriver();

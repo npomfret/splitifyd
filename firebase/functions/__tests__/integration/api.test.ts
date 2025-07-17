@@ -18,7 +18,7 @@ describe('Comprehensive API Test Suite', () => {
   let users: User[] = [];
 
   // Set a longer timeout for these integration tests
-  jest.setTimeout(30000);
+  jest.setTimeout(10000);
 
   beforeAll(async () => {
     driver = new ApiDriver();

@@ -10,7 +10,7 @@ describe('Error Handling and Recovery Testing', () => {
     let mainUser: User;
     let testGroup: Group;
 
-    jest.setTimeout(90000); // Extended timeout for error handling tests
+    jest.setTimeout(10000); // Timeout for error handling tests
 
     beforeAll(async () => {
         driver = new ApiDriver();

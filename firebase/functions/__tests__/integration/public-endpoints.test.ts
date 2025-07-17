@@ -9,7 +9,7 @@ import { ApiDriver } from '../support/ApiDriver';
 describe('Public Endpoints Tests', () => {
   let driver: ApiDriver;
 
-  jest.setTimeout(15000);
+  jest.setTimeout(10000);
 
   beforeAll(async () => {
     driver = new ApiDriver();
