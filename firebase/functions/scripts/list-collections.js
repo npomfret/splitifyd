@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const { loadAppConfig } = require('./load-app-config');
+const { logger } = require('../lib/logger');
 
 // Set emulator environment variables
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
@@ -59,7 +60,7 @@ async function listAllCollections() {
     return { actualCollections, missing, notFound };
     
   } catch (error) {
-    console.error('❌ Error listing collections:', error);
+    logger.error('❌ Error listing collections', { error });
     throw error;
   }
 }
@@ -71,7 +72,7 @@ if (require.main === module) {
       process.exit(0);
     })
     .catch(error => {
-      console.error('❌ Collection listing failed:', error);
+      logger.error('❌ Collection listing failed', { error });
       process.exit(1);
     });
 }

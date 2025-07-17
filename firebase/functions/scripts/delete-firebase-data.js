@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const { loadAppConfig } = require('./load-app-config');
+const { logger } = require('../lib/logger');
 
 // Load app configuration
 const appConfig = loadAppConfig();
@@ -28,7 +29,6 @@ async function deleteCollection(collectionName) {
   const collectionRef = db.collection(collectionName);
   const batchSize = 100;
   
-  console.log(`Starting deletion of collection: ${collectionName}`);
   
   let totalDeleted = 0;
   let hasMore = true;
@@ -49,22 +49,22 @@ async function deleteCollection(collectionName) {
     await batch.commit();
     totalDeleted += snapshot.size;
     
-    console.log(`Deleted ${snapshot.size} documents from ${collectionName} (total: ${totalDeleted})`);
     
     if (snapshot.size < batchSize) {
       hasMore = false;
     }
   }
   
-  console.log(`✅ Completed deletion of ${collectionName}: ${totalDeleted} documents deleted`);
+  logger.info(`✅ Deleted ${totalDeleted} documents from ${collectionName}`);
   return totalDeleted;
 }
 
 async function deleteAllTestData() {
-  console.log('🗑️  Starting deletion of test data from DEPLOYED Firebase...');
-  console.log('⚠️  This will delete all data except users collection');
-  console.log(`🌐 Connected to project: ${appConfig.firebaseProjectId} (deployed instance)`);
-  console.log('Collections to delete:', COLLECTIONS_TO_DELETE);
+  logger.warn('🗑️  Starting deletion of test data from DEPLOYED Firebase', {
+    project: appConfig.firebaseProjectId,
+    collections: COLLECTIONS_TO_DELETE,
+    note: 'This will delete all data except users collection'
+  });
   
   try {
     let grandTotal = 0;
@@ -74,11 +74,12 @@ async function deleteAllTestData() {
       grandTotal += deleted;
     }
     
-    console.log(`\n✅ Successfully deleted ${grandTotal} documents across ${COLLECTIONS_TO_DELETE.length} collections`);
-    console.log('👥 Users collection preserved');
+    logger.info(`✅ Successfully deleted ${grandTotal} documents across ${COLLECTIONS_TO_DELETE.length} collections`, {
+      usersPreserved: true
+    });
     
   } catch (error) {
-    console.error('❌ Error during deletion:', error);
+    logger.error('❌ Error during deletion', { error });
     process.exit(1);
   }
 }
@@ -86,11 +87,10 @@ async function deleteAllTestData() {
 if (require.main === module) {
   deleteAllTestData()
     .then(() => {
-      console.log('🎉 Data deletion completed successfully');
       process.exit(0);
     })
     .catch(error => {
-      console.error('💥 Data deletion failed:', error);
+      logger.error('💥 Data deletion failed', { error });
       process.exit(1);
     });
 }

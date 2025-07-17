@@ -3,12 +3,13 @@
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '../src/logger';
 
 // Read ports from generated firebase.json
 const firebaseConfigPath = path.join(__dirname, '../../firebase.json');
 
 if (!fs.existsSync(firebaseConfigPath)) {
-  console.error('❌ firebase.json not found. Run the build process first to generate it.');
+  logger.error('❌ firebase.json not found. Run the build process first to generate it.');
   process.exit(1);
 }
 
@@ -18,7 +19,7 @@ const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
 const AUTH_PORT = firebaseConfig.emulators.auth.port;
 
 if (!FUNCTIONS_PORT || !FIRESTORE_PORT || !AUTH_PORT) {
-  console.error('❌ Invalid firebase.json configuration - missing emulator ports');
+  logger.error('❌ Invalid firebase.json configuration - missing emulator ports');
   process.exit(1);
 }
 
@@ -197,7 +198,7 @@ async function apiRequest(
       data = await response.json();
     } else {
       const text = await response.text();
-      console.error(`Non-JSON response from ${endpoint}:`, text);
+      logger.error(`Non-JSON response from ${endpoint}`, { response: text });
       
       // If it's the "Function does not exist" error, it means Firebase isn't ready yet
       if (text.includes('Function us-central1-api does not exist')) {
@@ -213,7 +214,7 @@ async function apiRequest(
     
     return data;
   } catch (error: any) {
-    console.error(`✗ API request to ${endpoint} failed:`, error.message);
+    logger.error(`✗ API request to ${endpoint} failed`, { error: error.message });
     throw error;
   }
 }
@@ -240,14 +241,13 @@ async function exchangeCustomTokenForIdToken(customToken: string): Promise<strin
     
     return data.idToken;
   } catch (error) {
-    console.error('Failed to exchange custom token:', error);
+    logger.error('Failed to exchange custom token', { error });
     throw error;
   }
 }
 
 async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
   try {
-    console.log(`Creating user: ${userInfo.email}`);
     
     // Register user via API
     const registerResponse = await apiRequest('/register', 'POST', {
@@ -282,11 +282,9 @@ async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
     // Get user record from Firebase Auth to get the UID
     const userRecord = await auth.getUserByEmail(userInfo.email);
 
-    console.log(`✓ Created user: ${userInfo.email} (${userRecord.uid})`);
     return { ...userRecord, token: idToken } as UserRecord;
   } catch (error: any) {
     if (error.message?.includes('already exists')) {
-      console.log(`→ User already exists: ${userInfo.email}, logging in...`);
       
       // Use Firebase Auth REST API to sign in
       const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
@@ -320,7 +318,6 @@ async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
 
 async function createTestGroup(name: string, members: UserRecord[], createdBy: UserRecord): Promise<Group> {
   try {
-    console.log(`Creating group: ${name}`);
     
     const groupData: GroupData = {
       name,
@@ -337,10 +334,9 @@ async function createTestGroup(name: string, members: UserRecord[], createdBy: U
       data: groupData 
     }, createdBy.token);
 
-    console.log(`✓ Created group: ${name} (${response.id})`);
     return { id: response.id, ...groupData };
   } catch (error) {
-    console.error(`✗ Failed to create group ${name}:`, error);
+    logger.error(`✗ Failed to create group ${name}`, { error });
     throw error;
   }
 }
@@ -366,10 +362,9 @@ async function createTestExpense(
     // Create expense via API
     const response = await apiRequest('/expenses', 'POST', expenseData, createdBy.token);
 
-    console.log(`✓ Created expense: ${expense.description} - $${expense.amount} (${response.id})`);
     return response;
   } catch (error) {
-    console.error(`✗ Failed to create expense ${expense.description}:`, error);
+    logger.error(`✗ Failed to create expense ${expense.description}`, { error });
     throw error;
   }
 }
@@ -381,12 +376,10 @@ async function waitForApiReady(): Promise<void> {
   while (attempts < maxAttempts) {
     attempts++;
     try {
-      console.log(`⏳ Checking API readiness... (${attempts}/${maxAttempts})`);
       await apiRequest('/health', 'GET');
       return;
     } catch (error: any) {
       if (error.message.includes('Firebase Functions not ready yet')) {
-        console.log('⏳ Functions not ready yet, waiting 3 seconds...');
         await new Promise(resolve => setTimeout(resolve, 3000));
         continue;
       }
@@ -397,7 +390,6 @@ async function waitForApiReady(): Promise<void> {
         return;
       }
       
-      console.log('⏳ Functions not ready yet, waiting 3 seconds...');
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
@@ -451,7 +443,6 @@ async function createRandomGroupsForUser(user: UserRecord, allUsers: UserRecord[
     const group = await createTestGroup(groupName, allMembers, user);
     groups.push(group);
     
-    console.log(`  ✓ ${user.displayName} created group: ${groupName} (${allMembers.length} members)`);
   }
   
   return groups;
@@ -504,7 +495,6 @@ async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[]
   // Execute all expenses in parallel
   await Promise.all(expensePromises);
   
-  console.log(`  ✓ Created ${expenseCount} expenses for group: ${group.name}`);
 }
 
 async function createCircularDebtScenario(users: UserRecord[]): Promise<void> {
@@ -539,27 +529,21 @@ async function createCircularDebtScenario(users: UserRecord[]): Promise<void> {
     )
   ]);
 
-  console.log(`✓ Created circular debt scenario in group: ${groupName}`);
 }
 
 export async function generateTestData(): Promise<void> {
   try {
-    console.log('🚀 Starting test data generation...\n');
+    logger.info('🚀 Starting test data generation');
 
     // Wait for API to be ready before proceeding
-    console.log('⏳ Verifying API endpoints are ready...');
     await waitForApiReady();
-    console.log('✓ API endpoints are ready\n');
 
     // Create all 5 test users in parallel
-    console.log('📝 Creating 5 test users...');
     const users = await Promise.all(
       TEST_USERS.map(userInfo => createTestUser(userInfo))
     );
-    console.log(`✓ Created ${users.length} users\n`);
 
     // Create groups for each user (5 users × 1 group each = 5 groups total)
-    console.log('👥 Creating groups (1 per user)...');
     // Process all users in parallel - no batching needed for just 5 users
     const groupPromises = users.map(user => 
       createRandomGroupsForUser(user, users, 1)
@@ -568,13 +552,8 @@ export async function generateTestData(): Promise<void> {
     const allGroupsNested = await Promise.all(groupPromises);
     const allGroups = allGroupsNested.flat();
     
-    console.log(`  All groups created in parallel`);
-    
-    console.log(`✓ Created ${allGroups.length} groups total\n`);
 
     // Create expenses for all groups (10-20 per group)
-    console.log('💰 Creating expenses for all groups...');
-    
     // Process all groups in parallel - with 5 groups this is very manageable
     const expensePromises = allGroups.map(async (group) => {
       const expenseCount = Math.floor(Math.random() * 3) + 2; // 2-4 expenses per group
@@ -585,27 +564,17 @@ export async function generateTestData(): Promise<void> {
     const expenseCounts = await Promise.all(expensePromises);
     const totalExpenses = expenseCounts.reduce((sum, count) => sum + count, 0);
     
-    console.log(`  All expenses created in parallel`);
-    
-    console.log(`✓ Created approximately ${totalExpenses} expenses total\n`);
-
-    console.log('🔬 Creating special settled circular debt scenario...');
     await createCircularDebtScenario(users.slice(0, 3)); // Use first 3 users
 
-    console.log('\n🎉 Test data generation completed successfully!');
-    console.log('\n📊 Summary:');
-    console.log(`• Users: ${users.length}`);
-    console.log(`• Groups: ${allGroups.length} (${users.length} users × 1 group each)`);
-    console.log(`• Expenses: ~${totalExpenses} (2-4 per group)`);
-    console.log(`• Special scenarios: 1 (circular debt for balance testing)`);
-    
-    console.log('\n🔑 Test Users:');
-    TEST_USERS.forEach(user => {
-      console.log(`• ${user.email} (${user.displayName}) - Password: ${user.password}`);
+    logger.info('🎉 Test data generation completed', {
+      users: users.length,
+      groups: allGroups.length,
+      expenses: totalExpenses,
+      testCredentials: TEST_USERS.map(u => ({ email: u.email, password: u.password }))
     });
 
   } catch (error) {
-    console.error('❌ Test data generation failed:', error);
+    logger.error('❌ Test data generation failed', { error });
     process.exit(1);
   }
 }
@@ -613,10 +582,9 @@ export async function generateTestData(): Promise<void> {
 // Run the script
 if (require.main === module) {
   generateTestData().then(() => {
-    console.log('\n✅ Script completed successfully');
     process.exit(0);
   }).catch(error => {
-    console.error('❌ Script failed:', error);
+    logger.error('❌ Script failed', { error });
     process.exit(1);
   });
 }

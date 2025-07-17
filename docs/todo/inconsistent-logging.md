@@ -80,3 +80,29 @@ This task is more complex than initially described. The "easy" approach would be
 3. Focus on files that are actively used in the development workflow
 
 The task should be marked as "partially complete" after each phase, allowing for incremental progress.
+
+## Progress (2025-07-17)
+
+### Completed:
+- ✅ **Phase 2**: Firebase scripts (4 files)
+  - firebase/scripts/start-with-data.ts
+  - firebase/scripts/switch-instance.ts
+  - firebase/scripts/generate-firebase-config.ts
+  - firebase/scripts/kill-emulators.ts
+  
+- ✅ **Phase 3**: Firebase functions scripts (4 files)
+  - firebase/functions/scripts/generate-test-data.ts
+  - firebase/functions/scripts/debug-group-membership.js (skipped - diagnostic script)
+  - firebase/functions/scripts/delete-firebase-data.js
+  - firebase/functions/scripts/list-collections.js
+
+### Approach taken:
+- Created simple loggers for scripts (firebase/scripts/logger.ts and firebase/functions/scripts/logger.js)
+- Focused on removing repetitive progress logging while keeping important state changes
+- Preserved diagnostic output in debug scripts
+- Used structured logging with context objects for better searchability
+
+### Remaining phases:
+- Phase 1: Create/enhance webapp logger
+- Phase 4: Review test files
+- Phase 5: Update validation scripts
