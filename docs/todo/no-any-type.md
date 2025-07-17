@@ -100,3 +100,52 @@ Focus on the main application logic files mentioned in the original task:
 
 ## Next Steps:
 Phase 1 complete! Ready to proceed with Phase 2 (Webapp Core) or Phase 3 (Business Logic Services) depending on priority.
+
+## Phase 2 Implementation Plan (2025-07-17):
+
+### Analysis:
+I've analyzed the Phase 2 files and found:
+
+1. **webapp/src/js/store.ts** - 3 instances of `any` in state management:
+   - StateChangeHandler callback parameters
+   - Proxy setter value parameter
+   - notifyHandlers method parameters
+
+2. **webapp/src/js/api-client.ts** - 4 instances of `any`:
+   - Generic return type defaults in post() and put() methods
+   - Request body parameters in post() and put() methods
+
+3. **webapp/src/js/components/** - 4 files with `any` types:
+   - JoinGroupComponent.ts
+   - AddExpenseComponent.ts
+   - ResetPasswordComponent.ts
+   - navigation.test.ts (test file - lower priority)
+
+### Implementation Strategy:
+
+#### File 1: webapp/src/js/store.ts
+- Replace `any` in StateChangeHandler with a generic type that uses AppState values
+- Use a discriminated union or mapped type to ensure type safety for property/value pairs
+- This will improve type safety for all state change listeners
+
+#### File 2: webapp/src/js/api-client.ts
+- Remove default `any` generic type - force explicit typing
+- Replace body parameter `any` with `unknown` or a generic constraint
+- This ensures consumers must specify response types and validate request bodies
+
+#### File 3: webapp/src/js/components/*.ts (excluding tests)
+- Review each component's `any` usage
+- Replace with specific event types, element types, or data interfaces
+- Focus on the 3 non-test component files first
+
+### Commit Plan:
+1. Commit 1: Fix store.ts state management types
+2. Commit 2: Fix api-client.ts request/response types
+3. Commit 3: Fix JoinGroupComponent.ts types
+4. Commit 4: Fix AddExpenseComponent.ts types
+5. Commit 5: Fix ResetPasswordComponent.ts types
+
+### Testing:
+- Run `npm run build` after each file change
+- Verify no runtime errors in development environment
+- Check that TypeScript provides proper intellisense
