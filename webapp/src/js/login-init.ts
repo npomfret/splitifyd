@@ -1,7 +1,6 @@
 import { PageHeaderComponent } from './components/page-header.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
 import { ButtonComponent } from './components/button.js';
-import { ScriptLoaderComponent } from './components/script-loader.js';
 import { updatePageTitle } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
 
@@ -47,6 +46,10 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     submitButton.mount(buttonContainer);
   }
 
-  const scriptLoader = ScriptLoaderComponent.createAuthPageLoader();
-  await scriptLoader.loadScripts();
+  await Promise.all([
+    import('./firebase-init.js'),
+    import('./api.js'),
+    import('./auth.js'),
+    import('./logout-handler.js')
+  ]);
 });

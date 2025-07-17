@@ -1,7 +1,6 @@
 import { PageHeaderComponent } from './components/page-header.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
 import { LoadingSpinnerComponent } from './components/loading-spinner.js';
-import { ScriptLoaderComponent } from './components/script-loader.js';
 import { AppInit } from './app-init.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
@@ -34,8 +33,15 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     loadingSpinner.show();
   }
 
-  const scriptLoader = ScriptLoaderComponent.createDashboardLoader();
-  await scriptLoader.loadScripts();
+  await Promise.all([
+    import('./firebase-init.js'),
+    import('./api.js'),
+    import('./auth.js'),
+    import('./logout-handler.js'),
+    import('./expenses.js'),
+    import('./groups.js'),
+    import('./dashboard.js')
+  ]);
   
   // Initialize warning banner
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');

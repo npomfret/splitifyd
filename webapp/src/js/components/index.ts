@@ -8,7 +8,6 @@ export { PageHeaderComponent } from './page-header.js';
 export { WarningBannerComponent } from './warning-banner.js';
 export { ButtonComponent } from './button.js';
 export { LoadingSpinnerComponent } from './loading-spinner.js';
-export { ScriptLoaderComponent } from './script-loader.js';
 export { CheckboxComponent } from './checkbox.js';
 export { FormHelpTextComponent } from './form-help-text.js';
 export { ErrorStateComponent } from './error-state.js';
