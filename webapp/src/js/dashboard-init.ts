@@ -38,9 +38,19 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   await scriptLoader.loadScripts();
   
   // Initialize warning banner
-  const { warningBannerManager } = await import('./warning-banner.js');
-  if (warningBannerManager && warningBannerManager.displayWarningBanner) {
-    await warningBannerManager.displayWarningBanner();
+  const { firebaseConfigManager } = await import('./firebase-config-manager.js');
+  try {
+    const warningBanner = await firebaseConfigManager.getWarningBanner();
+    if (warningBanner?.message) {
+      const banner = WarningBannerComponent.createGlobalBanner({
+        message: warningBanner.message,
+        type: 'warning',
+        dismissible: true
+      });
+      banner.show();
+    }
+  } catch (error) {
+    // Warning banner is optional, continue silently
   }
 
   // Import and initialize dashboard after all scripts are loaded

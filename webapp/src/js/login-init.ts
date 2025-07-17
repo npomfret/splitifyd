@@ -19,16 +19,21 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   });
   pageHeader.mount(document.body);
 
-  const warningBanner = new WarningBannerComponent({
-    message: 'System maintenance in progress',
-    type: 'warning'
-  });
-  const existingBanner = document.getElementById('warningBanner');
-  if (existingBanner) {
-    existingBanner.remove();
+  // Initialize warning banner from config
+  const { firebaseConfigManager } = await import('./firebase-config-manager.js');
+  try {
+    const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
+    if (warningBannerConfig?.message) {
+      const banner = WarningBannerComponent.createGlobalBanner({
+        message: warningBannerConfig.message,
+        type: 'warning',
+        dismissible: true
+      });
+      banner.show();
+    }
+  } catch (error) {
+    // Warning banner is optional, continue silently
   }
-  warningBanner.mount(document.body);
-  warningBanner.hide();
 
   const submitButton = new ButtonComponent({
     text: 'Sign In',
