@@ -1,8 +1,34 @@
 // Business Logic Type Definitions
 import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
+import { GroupBalance, TransformedGroup, Member } from './group-types';
+import { User } from './global';
 
-// Re-export expense types for backward compatibility
 export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
+export type { GroupBalance, TransformedGroup, Member as GroupMember } from './group-types';
+export type { User } from './global';
+
+// Additional types needed by business logic
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
+  members: string[];
+  memberCount: number;
+}
+
+export interface CreateGroupRequest {
+  name: string;
+  description?: string;
+  memberEmails?: string[];
+}
+
+export interface UpdateGroupRequest {
+  name?: string;
+  description?: string;
+}
 
 export interface ExpenseListResponse {
   expenses: ExpenseData[];
@@ -15,70 +41,6 @@ export interface ExpenseCategory {
   value: string;
   label: string;
   icon: string;
-}
-
-
-
-// Group Management Types
-export interface GroupMember {
-  id: string;
-  email: string;
-  displayName?: string;
-  joinedAt: string;
-}
-
-export interface GroupBalance {
-  userId: string;
-  userName: string;
-  amount: number; // positive = owed to user, negative = user owes
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  description?: string;
-  createdBy: string;
-  createdAt: string;
-  updatedAt?: string;
-  members: string[]; // User IDs
-  memberCount: number;
-}
-
-export interface GroupDetail extends Group {
-  memberDetails: GroupMember[];
-  userBalance: number;
-  balances: GroupBalance[];
-  expenseCount: number;
-  totalExpenses: number;
-  lastActivity?: string;
-}
-
-export interface TransformedGroup extends Group {
-  members: Array<{
-    id: string;
-    name: string;
-    email?: string;
-    initials: string;
-  }>;
-  yourBalance: number;
-  lastExpense?: {
-    description: string;
-    amount: number;
-  };
-  lastActivity: string;
-  lastActivityRaw?: string;
-  expenseCount?: number;
-}
-
-export interface CreateGroupRequest {
-  name: string;
-  description?: string;
-  memberEmails?: string[];
-}
-
-export interface UpdateGroupRequest {
-  name?: string;
-  description?: string;
 }
 
 // Form Component Types
@@ -104,24 +66,6 @@ export interface FormActionButton {
 }
 
 // List Component Types
-export interface GroupCardConfig {
-  group: TransformedGroup;
-}
-
-export interface ExpenseItemConfig {
-  expense: ExpenseData;
-  currentUserId: string;
-}
-
-export interface MemberItemConfig {
-  member: GroupMember | { displayName?: string; email?: string };
-  balance?: number | null;
-}
-
-export interface BalanceItemConfig {
-  balance: GroupBalance;
-}
-
 export interface EmptyStateConfig {
   icon?: string;
   title: string;
@@ -135,54 +79,9 @@ export interface PaginationConfig {
   onPageChange?: (page: number) => void;
 }
 
-// Navigation Header Types
-export interface NavHeaderConfig {
-  title: string;
-  backUrl?: string | null;
-  actions?: string | null;
-}
-
-// State Management Types
-export interface ExpensePageState {
-  expenses: ExpenseData[];
-  loading: boolean;
-  error?: string;
-  currentPage: number;
-  totalPages: number;
-  cursor?: string;
-  hasMore: boolean;
-}
-
-export interface GroupPageState {
-  groups: TransformedGroup[];
-  currentGroup?: GroupDetail;
-  balances?: GroupBalance[];
-  loading: boolean;
-  error?: string;
-}
-
-export interface DashboardState {
-  user: User | null;
-  currentView: 'groups' | 'group-detail' | 'expenses' | 'add-expense';
-  groupId?: string;
-  expenseId?: string;
-}
-
-// Service Response Types
-export interface ServiceResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
 // Event Handler Types
 export type ClickHandler = (event: MouseEvent) => void;
-export type SubmitHandler = (event: SubmitEvent) => void;
-export type ChangeHandler = (event: Event) => void;
 
 // Utility Types
 export type CurrencyFormatter = (amount: number) => string;
 export type DateFormatter = (date: string | Date) => string;
-
-// Re-export types that are used from other files
-export type { User } from './global';

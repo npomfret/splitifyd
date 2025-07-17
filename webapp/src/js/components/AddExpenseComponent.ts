@@ -9,7 +9,8 @@ import { showMessage, showFieldError, clearErrors } from '../utils/ui-messages.j
 import { logger } from '../utils/logger.js';
 import { waitForAuthManager } from '../utils/auth-utils.js';
 import { ROUTES } from '../routes.js';
-import type { GroupDetail, Member, ExpenseData, CreateExpenseRequest, UpdateExpenseRequest } from '@bill-splitter/shared-types';
+import type { GroupDetail, Member } from '../types/group-types.js';
+import type { ExpenseData, CreateExpenseRequest, UpdateExpenseRequest } from '../types/expense-types.js';
 
 export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
     private pageLayout: PageLayoutComponent | null = null;

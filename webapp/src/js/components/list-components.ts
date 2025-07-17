@@ -79,7 +79,7 @@ export class ListComponents {
   }
 
   static renderBalanceItem(balance: GroupBalance): string {
-    const isOwed = balance.amount >= 0;
+    const isOwed = balance.balance >= 0;
     return `
       <div class="balance-item">
         <div class="balance-user">
@@ -90,7 +90,7 @@ export class ListComponents {
         </div>
         <div class="balance-amount ${isOwed ? 'positive' : 'negative'}">
           ${isOwed ? 'owes you' : 'you owe'}
-          <strong>$${Math.abs(balance.amount).toFixed(2)}</strong>
+          <strong>$${Math.abs(balance.balance).toFixed(2)}</strong>
         </div>
       </div>
     `;

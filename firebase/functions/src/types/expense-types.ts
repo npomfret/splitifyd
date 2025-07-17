@@ -5,6 +5,24 @@ export interface ExpenseSplit {
   userName?: string;
 }
 
+export interface ExpenseData {
+  id: string;
+  groupId: string;
+  description: string;
+  amount: number;
+  paidBy: string;
+  paidByName?: string;
+  splits: ExpenseSplit[];
+  createdAt: string;
+  createdBy: string;
+  category: string;
+  date: string;
+  updatedAt?: string;
+  splitType: 'equal' | 'exact' | 'percentage';
+  participants: string[];
+  receiptUrl?: string;
+}
+
 export interface CreateExpenseRequest {
   groupId: string;
   description: string;
@@ -42,12 +60,4 @@ export const EXPENSE_CATEGORIES = [
   'other'
 ] as const;
 
-export interface Member {
-  uid: string;
-  name: string;
-  initials: string;
-  email?: string;
-  displayName?: string;
-  joinedAt?: string;
-}
 

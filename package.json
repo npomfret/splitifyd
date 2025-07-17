@@ -2,7 +2,6 @@
   "name": "bill-splitter-monorepo",
   "private": true,
   "workspaces": [
-    "shared-types",
     "firebase/functions",
     "webapp"
   ],

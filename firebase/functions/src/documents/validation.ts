@@ -4,7 +4,7 @@ import { Errors } from '../utils/errors';
 import { CONFIG } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
-import { Member } from '../types/expense-types';
+import { Member } from '../types/group-types';
 
 /**
  * Document structure
