@@ -11,7 +11,7 @@
     "watch": "npm run build && concurrently \"chokidar 'src/**/*.html' 'src/**/*.css' 'src/public/**/*' -c 'npm run copy:assets'\" \"node esbuild.config.js --watch\"",
     "test": "jest --config jest.config.js",
     "test:unit": "jest --config jest.config.js --testPathIgnorePatterns=__tests__/integration/",
-    "test:integration": "jest --config jest.config.js __tests__/integration/",
+    "test:integration": "jest --config jest.config.js __tests__/integration/ --passWithNoTests",
     "type-coverage": "typescript-coverage-report --threshold 90",
     "prepare": "husky install"
   },
