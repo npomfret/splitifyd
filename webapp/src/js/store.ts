@@ -1,10 +1,5 @@
 import { AUTH_TOKEN_KEY } from './constants.js';
-
-interface User {
-  id: string;
-  email: string;
-  displayName?: string;
-}
+import { User } from './types/global.js';
 
 interface AppState {
   user: User | null;

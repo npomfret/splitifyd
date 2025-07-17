@@ -2,10 +2,12 @@
 import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
 import { GroupBalance, TransformedGroup, Member } from './group-types';
 import { User } from './global';
+import { FormFieldConfig, PaginationConfig } from './components';
 
 export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
 export type { GroupBalance, TransformedGroup, Member as GroupMember } from './group-types';
 export type { User } from './global';
+export type { FormFieldConfig, PaginationConfig } from './components';
 
 // Additional types needed by business logic
 export interface Group {
@@ -43,19 +45,6 @@ export interface ExpenseCategory {
   icon: string;
 }
 
-// Form Component Types
-export interface FormFieldConfig {
-  label: string;
-  id?: string;
-  type?: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'checkbox';
-  value?: string | number | boolean;
-  required?: boolean;
-  placeholder?: string;
-  options?: Array<string | { value: string; label: string }>;
-  step?: number | string;
-  readonly?: boolean;
-  errorId?: string;
-}
 
 export interface FormActionButton {
   text: string;
@@ -73,11 +62,6 @@ export interface EmptyStateConfig {
   actionButton?: string;
 }
 
-export interface PaginationConfig {
-  currentPage: number;
-  totalPages: number;
-  onPageChange?: (page: number) => void;
-}
 
 // Event Handler Types
 export type ClickHandler = (event: MouseEvent) => void;
