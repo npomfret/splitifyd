@@ -118,11 +118,31 @@ export class WarningBannerComponent extends BaseComponent<HTMLDivElement> {
     const banner = new WarningBannerComponent(config);
     const existingBanner = document.getElementById('warningBanner');
     
-    if (existingBanner) {
+    if (existingBanner && existingBanner.parentElement) {
+      // Create a temporary container where the existing banner was
+      const tempContainer = document.createElement('div');
+      existingBanner.parentElement.insertBefore(tempContainer, existingBanner);
       existingBanner.remove();
+      
+      // Mount the new banner in the temporary container
+      banner.mount(tempContainer);
+      
+      // Move the banner element to replace the temporary container
+      if (banner.element && tempContainer.parentElement) {
+        tempContainer.parentElement.replaceChild(banner.element, tempContainer);
+      }
+    } else {
+      // If no existing banner, insert at the beginning of body
+      const tempContainer = document.createElement('div');
+      document.body.insertBefore(tempContainer, document.body.firstChild);
+      banner.mount(tempContainer);
+      
+      // Move the banner element to replace the temporary container
+      if (banner.element && tempContainer.parentElement) {
+        tempContainer.parentElement.replaceChild(banner.element, tempContainer);
+      }
     }
     
-    banner.mount(document.body);
     return banner;
   }
 }

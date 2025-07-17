@@ -95,7 +95,7 @@ body {
 .warning-banner {
     background-color: #dc2626;
     color: #fef3c7;
-    padding: 2px var(--space-md);
+    padding: 4px var(--space-md);
     text-align: center;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
@@ -104,9 +104,41 @@ body {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-height: 24px;
+    min-height: 28px;
     box-sizing: border-box;
-    display: block; /* Ensure it's displayed as a block element */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.warning-banner__content {
+    flex: 1;
+}
+
+.warning-banner__close-container {
+    position: absolute;
+    right: var(--space-md);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.warning-banner__close {
+    background: none;
+    border: none;
+    color: #fef3c7;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 14px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.warning-banner__close:hover {
+    opacity: 1;
+}
+
+.warning-banner.hidden {
+    display: none;
 }
 
 /* Screen reader only content */
