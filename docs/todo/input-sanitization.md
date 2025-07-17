@@ -1,42 +1,48 @@
 # Lack of Input Sanitation
 
 ## Problem
-- **Location**: `firebase/functions/src/documents/handlers.ts`, `firebase/functions/src/expenses/handlers.ts`
-- **Description**: Some of the API handlers do not properly sanitize user input before storing it in the database. For example, in `createDocument`, the `data` object from the request body is sanitized, but the sanitization is not comprehensive enough. This could allow malicious users to inject harmful data into the database, leading to Cross-Site Scripting (XSS) or other vulnerabilities.
-- **Current vs Expected**: Currently, input sanitation is inconsistent and incomplete. All user-provided input should be rigorously sanitized before being stored or used in the application.
+- **Location**: `firebase/functions/src/expenses/handlers.ts`
+- **Description**: The expense handlers do not sanitize user input before storing it in the database. While document handlers already have comprehensive sanitization via `sanitizeDocumentData`, expense handlers only use Joi validation without sanitization. Text fields like `description` and `category` are stored directly without XSS protection.
+- **Current vs Expected**: Document handlers have good sanitization, but expense handlers lack it entirely. All user-provided input should be rigorously sanitized before being stored or used in the application.
 
 ## Solution
-- **Approach**: Use a library like `xss` or `DOMPurify` on the backend to sanitize all user-provided strings before they are stored in the database. This should be done in a centralized place, such as a middleware or a validation layer, to ensure that all input is sanitized consistently.
-- **Code Sample**:
-  ```typescript
-  import xss from 'xss';
+- **Approach**: Add input sanitization to expense handlers using the existing `sanitizeString` function from `utils/security.ts`. The `xss` library is already included and configured. Create a centralized sanitization function for expense data similar to the existing `sanitizeDocumentData`.
 
-  // In a validation or middleware layer
-  function sanitizeObject(obj: any): any {
-    if (typeof obj !== 'object' || obj === null) {
-      return obj;
-    }
+## Current State Analysis
+- **Document handlers**: Already have comprehensive sanitization via `sanitizeDocumentData`
+- **Expense handlers**: Only use Joi validation, no sanitization
+- **Security utilities**: Well-implemented with `sanitizeString`, `isDangerousProperty`, and XSS configuration
+- **XSS library**: Already installed and configured with strict options
 
-    for (const key in obj) {
-      if (typeof obj[key] === 'string') {
-        obj[key] = xss(obj[key]);
-      } else if (typeof obj[key] === 'object') {
-        obj[key] = sanitizeObject(obj[key]);
-      }
-    }
-    return obj;
-  }
+## Detailed Implementation Plan
 
-  // In the handlers
-  const sanitizedData = sanitizeObject(req.body.data);
-  // ... proceed with sanitizedData
-  ```
+### Step 1: Create expense sanitization function
+- Location: `firebase/functions/src/expenses/validation.ts`
+- Create `sanitizeExpenseData` function that sanitizes:
+  - `description` field (string)
+  - `category` field (string) 
+  - `receiptUrl` field (string, optional)
+- Use existing `sanitizeString` from `utils/security.ts`
+
+### Step 2: Update expense validation functions
+- Modify `validateCreateExpense` to call sanitization after Joi validation
+- Modify `validateUpdateExpense` to call sanitization after Joi validation
+- Ensure sanitization happens before returning validated data
+
+### Step 3: Add unit tests
+- Test sanitization of malicious input in expense fields
+- Test that legitimate content is preserved
+- Test edge cases (empty strings, nulls, etc.)
+
+### Step 4: Integration testing
+- Test complete flow from API request to database storage
+- Verify no XSS vulnerabilities in stored expense data
 
 ## Impact
 - **Type**: Behavior change
-- **Risk**: Medium (improperly configured sanitization can break legitimate functionality)
-- **Complexity**: Moderate
+- **Risk**: Low (existing security utilities are well-tested)
+- **Complexity**: Low (leverages existing sanitization infrastructure)
 - **Benefit**: High value (improves security and prevents XSS vulnerabilities)
 
 ## Implementation Notes
-This is a critical security issue that should be addressed with high priority. It's important to carefully configure the sanitization library to allow for legitimate HTML tags and attributes if they are needed, while still preventing malicious code from being executed.
+This builds on the existing, well-tested security utilities. The XSS library is already configured with strict options that strip all HTML tags, making it safe for expense data. The implementation should be straightforward since it follows the pattern already used in document handlers.
