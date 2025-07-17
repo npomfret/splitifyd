@@ -85,15 +85,17 @@ async function loadGroupData(): Promise<void> {
 async function loadUserPreferences(): Promise<void> {
     try {
         const currentUserId = authManager.getUserId();
-        const response = await apiService.getGroupExpenses(currentGroupId!, 1, 0);
+        const response = await apiService.getGroupExpenses(currentGroupId!, 1, null);
         
-        if (response.data && response.data.length > 0) {
-            const lastExpense = response.data.find((expense: ExpenseData) => expense.paidBy === currentUserId);
+        if (response.expenses && response.expenses.length > 0) {
+            const lastExpense = response.expenses.find((expense: ExpenseData) => expense.paidBy === currentUserId);
             if (lastExpense) {
                 lastExpenseData = lastExpense;
                 const categoryEl = document.getElementById('category') as HTMLSelectElement;
                 const descriptionEl = document.getElementById('description') as HTMLInputElement;
-                categoryEl.value = lastExpense.category;
+                if (lastExpense.category) {
+                    categoryEl.value = lastExpense.category;
+                }
                 descriptionEl.value = lastExpense.description;
             }
         }

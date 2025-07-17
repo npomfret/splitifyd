@@ -12,7 +12,7 @@ import type { GroupDetailState } from './types/pages';
 
 let currentGroup: GroupDetail | null = null;
 let currentGroupId: string | null = null;
-let expensesOffset: number = 0;
+let expensesCursor: string | null = null;
 const expensesLimit: number = 20;
 let isLoadingExpenses: boolean = false;
 let hasMoreExpenses: boolean = true;
@@ -101,6 +101,7 @@ function switchTab(tabName: string): void {
     const expensesList = document.getElementById('expensesList') as HTMLElement;
     
     if (tabName === 'expenses' && expensesList.children.length === 1) {
+        expensesCursor = null;
         loadGroupExpenses();
     }
 }
@@ -280,7 +281,7 @@ async function loadGroupExpenses(): Promise<void> {
         return;
     }
     
-    if (expensesOffset === 0) {
+    if (expensesCursor === null) {
         // Clean up existing expense items before clearing
         Array.from(expensesList.children).forEach(child => {
             const cleanupFn = expenseItemCleanups.get(child as HTMLElement);
@@ -303,14 +304,14 @@ async function loadGroupExpenses(): Promise<void> {
             logger.error('currentGroupId is null');
             return;
         }
-        const response = await apiService.getGroupExpenses(currentGroupId, expensesLimit, expensesOffset);
-        const expenses = response.data;
+        const response = await apiService.getGroupExpenses(currentGroupId, expensesLimit, expensesCursor);
+        const expenses = response.expenses;
         
-        if (expensesOffset === 0) {
+        if (expensesCursor === null) {
             clearElement(expensesList);
         }
         
-        if (expenses.length === 0 && expensesOffset === 0) {
+        if (expenses.length === 0 && expensesCursor === null) {
             const noDataMsg = createElementSafe('p', { 
                 className: 'no-data',
                 textContent: 'No expenses yet'
@@ -323,13 +324,28 @@ async function loadGroupExpenses(): Promise<void> {
             });
         }
         
-        hasMoreExpenses = expenses.length === expensesLimit;
+        hasMoreExpenses = response.hasMore;
+        expensesCursor = response.cursor || null;
+        
+        // Debug logging
+        console.log('Pagination debug:', {
+            expensesLoaded: expenses.length,
+            hasMoreExpenses,
+            expensesCursor,
+            totalExpensesInList: document.querySelectorAll('.expense-item').length
+        });
+        
         const loadMoreContainer = document.getElementById('loadMoreContainer');
         if (loadMoreContainer) {
-            loadMoreContainer.style.display = hasMoreExpenses ? 'block' : 'none';
+            if (hasMoreExpenses) {
+                loadMoreContainer.classList.remove('hidden');
+            } else {
+                loadMoreContainer.classList.add('hidden');
+            }
+            console.log('Load more container visible:', !loadMoreContainer.classList.contains('hidden'));
+        } else {
+            console.log('Load more container not found!');
         }
-        
-        expensesOffset += expenses.length;
     } catch (error) {
         logger.error('Error loading expenses:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -345,8 +361,6 @@ async function loadGroupExpenses(): Promise<void> {
 }
 
 function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanup: () => void } {
-    logger.log('Creating expense item for:', expense);
-    
     const expenseItem = document.createElement('div');
     expenseItem.className = 'expense-item';
     expenseItem.setAttribute('data-id', expense.id);

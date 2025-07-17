@@ -464,8 +464,9 @@ async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[]
     group.members.some(member => member.uid === user.uid)
   );
   
-  // Create all expenses for the group in parallel
-  const expensePromises = [];
+  // Create expenses in smaller batches to avoid transaction lock timeouts
+  const BATCH_SIZE = 5;
+  const expenses = [];
   
   for (let i = 0; i < expenseCount; i++) {
     const expense = generateRandomExpense();
@@ -498,13 +499,26 @@ async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[]
       participants.push(groupMembers[Math.floor(Math.random() * groupMembers.length)]);
     }
     
-    expensePromises.push(
-      createTestExpense(group.id, expense, participants, payer)
-    );
+    expenses.push({
+      expense,
+      participants,
+      payer
+    });
   }
   
-  // Execute all expenses in parallel
-  await Promise.all(expensePromises);
+  // Execute expenses in batches
+  for (let i = 0; i < expenses.length; i += BATCH_SIZE) {
+    const batch = expenses.slice(i, i + BATCH_SIZE);
+    const batchPromises = batch.map(({ expense, participants, payer }) =>
+      createTestExpense(group.id, expense, participants, payer)
+    );
+    await Promise.all(batchPromises);
+    
+    // Small delay between batches to allow database to process
+    if (i + BATCH_SIZE < expenses.length) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
   
 }
 
@@ -564,15 +578,16 @@ export async function generateTestData(): Promise<void> {
     const allGroups = allGroupsNested.flat();
     
 
-    // Create expenses for all groups (10-20 per group)
-    // Process all groups in parallel - with 5 groups this is very manageable
-    const expensePromises = allGroups.map(async (group) => {
-      const expenseCount = Math.floor(Math.random() * 3) + 2; // 2-4 expenses per group
-      await createRandomExpensesForGroup(group, users, expenseCount);
-      return expenseCount;
-    });
+    // Create expenses for all groups in sequence to avoid transaction lock timeouts
+    const expenseCounts = [];
     
-    const expenseCounts = await Promise.all(expensePromises);
+    for (let index = 0; index < allGroups.length; index++) {
+      const group = allGroups[index];
+      // First group gets many expenses for pagination testing, others get minimal
+      const expenseCount = index === 0 ? 50 : 1; // 50 expenses for first group, 1 for others
+      await createRandomExpensesForGroup(group, users, expenseCount);
+      expenseCounts.push(expenseCount);
+    }
     const totalExpenses = expenseCounts.reduce((sum, count) => sum + count, 0);
     
     await createCircularDebtScenario(users.slice(0, 3)); // Use first 3 users

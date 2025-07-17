@@ -235,27 +235,33 @@ describe('ApiService', () => {
             const mockExpenses = {
                 expenses: [
                     { id: 'expense-1', description: 'Test expense', amount: 100 }
-                ]
+                ],
+                hasMore: false
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockExpenses);
 
             const result = await apiService.getGroupExpenses('group-1');
 
-            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/expenses/group?groupId=group-1&limit=20&offset=0', {
+            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/expenses/group?groupId=group-1&limit=20', {
                 method: 'GET'
             });
 
-            expect(result.data).toEqual(mockExpenses.expenses);
+            expect(result.expenses).toEqual(mockExpenses.expenses);
+            expect(result.hasMore).toBe(false);
         });
 
         it('should fetch group expenses with custom pagination', async () => {
-            const mockExpenses = { expenses: [] };
+            const mockExpenses = { 
+                expenses: [], 
+                hasMore: true, 
+                cursor: 'next-cursor' 
+            };
             (apiClient.request as jest.Mock).mockResolvedValue(mockExpenses);
 
-            await apiService.getGroupExpenses('group-1', 10, 5);
+            await apiService.getGroupExpenses('group-1', 10, 'some-cursor');
 
-            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/expenses/group?groupId=group-1&limit=10&offset=5', {
+            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/expenses/group?groupId=group-1&limit=10&cursor=some-cursor', {
                 method: 'GET'
             });
         });

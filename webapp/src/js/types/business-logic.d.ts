@@ -21,10 +21,14 @@ export interface ExpenseData {
   paidBy: string;
   paidByName?: string;
   splits: ExpenseSplit[];
-  category?: string;
-  date: string;
   createdAt: string;
+  createdBy: string;
+  category: string;
+  date: string;
   updatedAt?: string;
+  splitType: 'equal' | 'exact' | 'percentage';
+  participants: string[];
+  receiptUrl?: string;
 }
 
 export interface CreateExpenseRequest {

@@ -18,6 +18,7 @@ import type {
     JoinGroupResponse,
     FirestoreTimestamp
 } from './types/api.js';
+import type { ExpenseListResponse } from './types/business-logic.js';
 
 class ApiService {
     async getGroups(): Promise<TransformedGroup[]> {
@@ -146,11 +147,25 @@ class ApiService {
     }
 
 
-    async getGroupExpenses(groupId: string, limit: number = 20, offset: number = 0): Promise<{ data: ExpenseData[] }> {
-        const data = await apiCall<{ expenses: ExpenseData[] }>(`/expenses/group?groupId=${groupId}&limit=${limit}&offset=${offset}`, {
+    async getGroupExpenses(groupId: string, limit: number = 20, cursor: string | null = null): Promise<ExpenseListResponse> {
+        const params = new URLSearchParams({
+            groupId,
+            limit: limit.toString()
+        });
+        
+        if (cursor) {
+            params.append('cursor', cursor);
+        }
+
+        const response = await apiCall<{ expenses: ExpenseData[], count: number, hasMore: boolean, nextCursor?: string }>(`/expenses/group?${params.toString()}`, {
             method: 'GET'
         });
-        return { data: data.expenses };
+        
+        return {
+            expenses: response.expenses,
+            hasMore: response.hasMore,
+            cursor: response.nextCursor
+        };
     }
 
 
