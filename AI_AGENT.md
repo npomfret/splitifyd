@@ -55,6 +55,8 @@
 - Inline single-use private functions
 - Minimize class state
 - TypeScript strict mode
+- Remove unhelpful or incorrect comments
+- In general, do not comment unless it's for something weird or unusually confusing
 - NO HACKS
 
 # Testing
