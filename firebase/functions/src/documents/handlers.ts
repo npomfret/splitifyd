@@ -38,7 +38,7 @@ const fetchUserDocument = async (documentId: string, userId: string): Promise<{ 
 
   // For group documents, check if user is a member
   if (document.data?.members && Array.isArray(document.data.members)) {
-    const isMember = document.data.members.some((member: any) => 
+    const isMember = document.data.members.some((member: { uid: string }) => 
       member.uid === userId
     );
     if (isMember) {
@@ -69,7 +69,7 @@ export const createDocument = async (
   if (sanitizedData.name) {
     sanitizedData.memberIds = [userId];
     if (sanitizedData.members && Array.isArray(sanitizedData.members)) {
-      sanitizedData.members.forEach((member: any) => {
+      sanitizedData.members.forEach((member: { uid: string }) => {
         if (member.uid && !sanitizedData.memberIds.includes(member.uid)) {
           sanitizedData.memberIds.push(member.uid);
         }
@@ -111,8 +111,8 @@ export const getDocument = async (
   // Fetch and verify document ownership
   const { docRef, document } = await fetchUserDocument(documentId, userId);
 
-  const createdAt = (document.createdAt as any).toDate().toISOString();
-  const updatedAt = (document.updatedAt as any).toDate().toISOString();
+  const createdAt = (document.createdAt as admin.firestore.Timestamp).toDate().toISOString();
+  const updatedAt = (document.updatedAt as admin.firestore.Timestamp).toDate().toISOString();
 
   res.json({
     id: docRef.id,
@@ -243,8 +243,8 @@ export const listDocuments = async (
         const documentData = {
           id: doc.id,
           data: data.data,
-          createdAt: (data.createdAt as any).toDate().toISOString(),
-          updatedAt: (data.updatedAt as any).toDate().toISOString(),
+          createdAt: (data.createdAt as admin.firestore.Timestamp).toDate().toISOString(),
+          updatedAt: (data.updatedAt as admin.firestore.Timestamp).toDate().toISOString(),
         };
 
         // For group documents, fetch balance information
@@ -281,7 +281,7 @@ export const listDocuments = async (
     const lastDoc = snapshot.docs[limit - 1];
     const lastDocData = lastDoc.data() as Document;
     const cursorData = {
-      updatedAt: (lastDocData.updatedAt as any).toDate().toISOString(),
+      updatedAt: (lastDocData.updatedAt as admin.firestore.Timestamp).toDate().toISOString(),
       id: lastDoc.id,
     };
     nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');

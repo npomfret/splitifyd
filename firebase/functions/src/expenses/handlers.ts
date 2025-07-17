@@ -125,7 +125,7 @@ export const createExpense = async (
     expenseData.splits
   );
 
-  const expense: any = {
+  const expense: Expense = {
     id: docRef.id,
     groupId: expenseData.groupId,
     createdBy: userId,
@@ -243,6 +243,8 @@ export const updateExpense = async (
     throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_CREATOR', 'Only the expense creator can edit it');
   }
 
+  // Type note: This is intentionally `any` because we're building a dynamic update object
+  // that gets transformed before being passed to Firestore
   const updates: any = {
     ...updateData,
     updatedAt: Timestamp.now(),

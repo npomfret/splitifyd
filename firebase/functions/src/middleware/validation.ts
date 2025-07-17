@@ -18,7 +18,7 @@ export const validateRequestStructure = (
   const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.validation;
 
   // Single recursive validation function
-  const validateObject = (obj: any, depth = 0): void => {
+  const validateObject = (obj: unknown, depth = 0): void => {
     if (depth > maxObjectDepth) {
       throw Errors.INVALID_INPUT(`Request structure too deep (max ${maxObjectDepth} levels)`);
     }
@@ -48,7 +48,8 @@ export const validateRequestStructure = (
         if (key.length > maxPropertyNameLength) {
           throw Errors.INVALID_INPUT(`Property name too long (max ${maxPropertyNameLength} characters)`);
         }
-        validateObject(obj[key], depth + 1);
+        const value = (obj as Record<string, unknown>)[key];
+        validateObject(value, depth + 1);
       }
     }
   };

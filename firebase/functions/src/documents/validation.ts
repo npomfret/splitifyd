@@ -55,7 +55,7 @@ export interface UpdateDocumentRequest {
 /**
  * Calculate size of JSON object in bytes
  */
-const getJsonSize = (obj: any): number => {
+const getJsonSize = (obj: unknown): number => {
   return Buffer.byteLength(JSON.stringify(obj), 'utf8');
 };
 
@@ -108,7 +108,7 @@ const updateDocumentSchema = Joi.object({
   data: documentDataSchema,
 }).required();
 
-const validateDocumentRequest = (body: any, schema: Joi.ObjectSchema): { data: any } => {
+const validateDocumentRequest = (body: unknown, schema: Joi.ObjectSchema): { data: any } => {
   const { error, value } = schema.validate(body);
   
   if (error) {
@@ -122,18 +122,18 @@ const validateDocumentRequest = (body: any, schema: Joi.ObjectSchema): { data: a
   return value;
 };
 
-export const validateCreateDocument = (body: any): CreateDocumentRequest => {
+export const validateCreateDocument = (body: unknown): CreateDocumentRequest => {
   return validateDocumentRequest(body, createDocumentSchema) as CreateDocumentRequest;
 };
 
-export const validateUpdateDocument = (body: any): UpdateDocumentRequest => {
+export const validateUpdateDocument = (body: unknown): UpdateDocumentRequest => {
   return validateDocumentRequest(body, updateDocumentSchema) as UpdateDocumentRequest;
 };
 
 /**
  * Validate document ID
  */
-export const validateDocumentId = (id: any): string => {
+export const validateDocumentId = (id: unknown): string => {
   if (!id || typeof id !== 'string' || id.trim().length === 0) {
     throw Errors.MISSING_FIELD('document ID');
   }
@@ -145,17 +145,18 @@ export const validateDocumentId = (id: any): string => {
  * Sanitize document data for safe storage
  * Removes dangerous properties and validates structure depth
  */
-export const sanitizeDocumentData = (data: any): any => {
+export const sanitizeDocumentData = (data: unknown): any => {
   // Validate maximum depth to prevent stack overflow
-  const validateDepth = (obj: any, depth = 0, maxDepth = VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH): void => {
+  const validateDepth = (obj: unknown, depth = 0, maxDepth = VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH): void => {
     if (depth > maxDepth) {
       throw Errors.INVALID_INPUT(`Document structure too deep (max ${VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH} levels)`);
     }
     
     if (obj && typeof obj === 'object') {
-      for (const key in obj) {
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          validateDepth(obj[key], depth + 1, maxDepth);
+      const record = obj as Record<string, unknown>;
+      for (const key in record) {
+        if (typeof record[key] === 'object' && record[key] !== null) {
+          validateDepth(record[key], depth + 1, maxDepth);
         }
       }
     }
@@ -167,23 +168,25 @@ export const sanitizeDocumentData = (data: any): any => {
   const sanitized = JSON.parse(JSON.stringify(data));
   
   // Remove dangerous properties and patterns
-  const sanitizeObject = (obj: any): void => {
+  const sanitizeObject = (obj: unknown): void => {
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-      for (const key in obj) {
+      const record = obj as Record<string, unknown>;
+      for (const key in record) {
         if (isDangerousProperty(key)) {
-          delete obj[key];
-        } else if (typeof obj[key] === 'string') {
-          obj[key] = sanitizeString(obj[key]);
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          sanitizeObject(obj[key]);
+          delete record[key];
+        } else if (typeof record[key] === 'string') {
+          record[key] = sanitizeString(record[key] as string);
+        } else if (typeof record[key] === 'object' && record[key] !== null) {
+          sanitizeObject(record[key]);
         }
       }
     } else if (Array.isArray(obj)) {
-      obj.forEach((item, index) => {
+      const array = obj as unknown[];
+      array.forEach((item, index) => {
         if (typeof item === 'object' && item !== null) {
           sanitizeObject(item);
         } else if (typeof item === 'string') {
-          obj[index] = sanitizeString(item);
+          array[index] = sanitizeString(item);
         }
       });
     }
