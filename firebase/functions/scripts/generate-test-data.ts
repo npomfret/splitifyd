@@ -184,9 +184,12 @@ async function apiRequest(
     headers: {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
-    },
-    ...(body && { body: JSON.stringify(body) })
+    }
   };
+  
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
 
   try {
     const response = await fetch(url, options);
@@ -220,7 +223,7 @@ async function apiRequest(
     return data;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`✗ API request to ${endpoint} failed`, { error: errorMessage });
+    logger.error(`✗ API request to ${endpoint} failed`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
 }
@@ -341,7 +344,7 @@ async function createTestGroup(name: string, members: UserRecord[], createdBy: U
       data: groupData 
     }, createdBy.token);
 
-    return { id: response.id, ...groupData };
+    return { id: (response as any).id, ...groupData };
   } catch (error) {
     logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
