@@ -6,10 +6,11 @@ import { validateRegisterRequest } from './validation';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const { email, password, displayName } = validateRegisterRequest(req.body);
+  let userRecord: admin.auth.UserRecord | null = null;
 
   try {
     // Create the user
-    const userRecord = await admin.auth().createUser({
+    userRecord = await admin.auth().createUser({
       email,
       password,
       displayName,
@@ -39,6 +40,26 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       }
     });
   } catch (error: any) {
+    // If user was created but firestore failed, clean up the orphaned auth record
+    if (userRecord) {
+      logger.error('Registration failed after auth user created, cleaning up', { 
+        userId: userRecord.uid,
+        error: error.message 
+      });
+      
+      try {
+        await admin.auth().deleteUser(userRecord.uid);
+        logger.info('Successfully cleaned up orphaned auth user', { userId: userRecord.uid });
+      } catch (cleanupError) {
+        // Log the cleanup failure but throw the original error
+        logger.error('Failed to cleanup orphaned auth user', { 
+          userId: userRecord.uid,
+          cleanupError: cleanupError
+        });
+      }
+    }
+
+    // Handle specific auth errors
     if (error.code === 'auth/email-already-exists') {
       res.status(HTTP_STATUS.CONFLICT).json({
         error: {
@@ -49,7 +70,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     
-    // Let other errors bubble up to global error handler
+    // Let all other errors bubble up to global error handler
     throw error;
   }
 };
