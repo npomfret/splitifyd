@@ -689,13 +689,6 @@ async function sendInvite(): Promise<void> {
         showMessage('Invite functionality not implemented', 'error');
         return;
         
-        // TODO: Uncomment when API is available
-        // successDiv.textContent = `Invitation sent to ${email}`;
-        // successDiv.style.display = 'block';
-        // (document.getElementById('inviteEmail') as HTMLInputElement).value = '';
-        // setTimeout(() => {
-        //     closeInviteMembersModal();
-        // }, 2000);
     } catch (error) {
         logger.error('Error sending invite:', error);
         const errorMessage = error instanceof Error ? error.message : 'Failed to send invitation';

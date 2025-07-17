@@ -226,22 +226,16 @@ export class GroupsList {
     groupCard.appendChild(header);
     groupCard.appendChild(membersSection);
 
-    // TODO: Fix lastExpense type mismatch - api.d.ts has it as string | null
-    // if (group.lastExpense) {
-    //   const lastExpenseSection = createElementSafe('div', { className: 'group-card__last-expense' });
-    //   const description = createElementSafe('span', {
-    //     className: 'last-expense__description',
-    //     textContent: group.lastExpense.description
-    //   });
-    //   const amount = createElementSafe('span', {
-    //     className: 'last-expense__amount',
-    //     textContent: `$${group.lastExpense.amount.toFixed(2)}`
-    //   });
-    //   
-    //   lastExpenseSection.appendChild(description);
-    //   lastExpenseSection.appendChild(amount);
-    //   groupCard.appendChild(lastExpenseSection);
-    // }
+    if (group.lastExpense) {
+      const lastExpenseSection = createElementSafe('div', { className: 'group-card__last-expense' });
+      const description = createElementSafe('span', {
+        className: 'last-expense__description',
+        textContent: group.lastExpense
+      });
+      
+      lastExpenseSection.appendChild(description);
+      groupCard.appendChild(lastExpenseSection);
+    }
 
     const footer = createElementSafe('div', { className: 'group-card__footer' });
     
