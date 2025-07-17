@@ -12,7 +12,7 @@ import { Member } from '../types/shared';
 export interface Document {
   id?: string;
   userId: string;
-  data: any;
+  data: any; // Intentional: Flexible storage for various document types (groups, expenses, etc.)
   createdAt: admin.firestore.Timestamp;
   updatedAt: admin.firestore.Timestamp;
 }
@@ -41,14 +41,14 @@ export interface GroupData {
  * Create document request body
  */
 export interface CreateDocumentRequest {
-  data: any;
+  data: any; // Intentional: Accepts any valid JSON data structure for flexible document creation
 }
 
 /**
  * Update document request body
  */
 export interface UpdateDocumentRequest {
-  data: any;
+  data: any; // Intentional: Accepts any valid JSON data structure for flexible document updates
 }
 
 
@@ -108,7 +108,7 @@ const updateDocumentSchema = Joi.object({
   data: documentDataSchema,
 }).required();
 
-const validateDocumentRequest = (body: unknown, schema: Joi.ObjectSchema): { data: any } => {
+const validateDocumentRequest = (body: unknown, schema: Joi.ObjectSchema): { data: any } => { // Intentional: Returns validated data of any shape
   const { error, value } = schema.validate(body);
   
   if (error) {
@@ -144,8 +144,10 @@ export const validateDocumentId = (id: unknown): string => {
 /**
  * Sanitize document data for safe storage
  * Removes dangerous properties and validates structure depth
+ * @param data - Input data to sanitize
+ * @returns Sanitized data with dangerous properties removed (any type for flexible storage)
  */
-export const sanitizeDocumentData = (data: unknown): any => {
+export const sanitizeDocumentData = (data: unknown): any => { // Intentional: Returns sanitized data of any shape for flexible document storage
   // Validate maximum depth to prevent stack overflow
   const validateDepth = (obj: unknown, depth = 0, maxDepth = VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH): void => {
     if (depth > maxDepth) {

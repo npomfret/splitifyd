@@ -175,9 +175,9 @@ const EXAMPLE_EXPENSES: TestExpense[] = [
 async function apiRequest(
   endpoint: string, 
   method: string = 'POST', 
-  body: any = null, 
+  body: unknown = null, 
   token: string | null = null
-): Promise<any> {
+): Promise<unknown> {
   const url = `${API_BASE_URL}${endpoint}`;
   const options: RequestInit = {
     method,
@@ -192,7 +192,7 @@ async function apiRequest(
     const response = await fetch(url, options);
     
     // Try to parse response as JSON, but handle non-JSON responses
-    let data: any;
+    let data: unknown;
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
@@ -209,12 +209,18 @@ async function apiRequest(
     }
     
     if (!response.ok) {
-      throw new Error(data.error?.message || `API request failed: ${response.status}`);
+      const errorMessage = (data && typeof data === 'object' && 'error' in data && 
+                           data.error && typeof data.error === 'object' && 'message' in data.error && 
+                           typeof data.error.message === 'string') 
+                           ? data.error.message 
+                           : `API request failed: ${response.status}`;
+      throw new Error(errorMessage);
     }
     
     return data;
-  } catch (error: any) {
-    logger.error(`✗ API request to ${endpoint} failed`, { error: error.message });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`✗ API request to ${endpoint} failed`, { error: errorMessage });
     throw error;
   }
 }
@@ -283,8 +289,9 @@ async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
     const userRecord = await auth.getUserByEmail(userInfo.email);
 
     return { ...userRecord, token: idToken } as UserRecord;
-  } catch (error: any) {
-    if (error.message?.includes('already exists')) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('already exists')) {
       
       // Use Firebase Auth REST API to sign in
       const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
@@ -378,15 +385,16 @@ async function waitForApiReady(): Promise<void> {
     try {
       await apiRequest('/health', 'GET');
       return;
-    } catch (error: any) {
-      if (error.message.includes('Firebase Functions not ready yet')) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Firebase Functions not ready yet')) {
         await new Promise(resolve => setTimeout(resolve, 3000));
         continue;
       }
       
       // For other errors (like 404 on /health), the API is ready but endpoint doesn't exist
       // This means functions are loaded
-      if (!error.message.includes('Function us-central1-api does not exist')) {
+      if (!errorMessage.includes('Function us-central1-api does not exist')) {
         return;
       }
       
