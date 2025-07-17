@@ -155,43 +155,60 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     }
 
     const groupDoc = groupsQuery.docs[0];
-    const groupData = groupDoc.data();
     const groupId = groupDoc.id;
 
-    const members = groupData.data?.members || [];
-    const isAlreadyMember = members.some((member: any) => member.uid === userId);
-    
-    if (isAlreadyMember || groupData.userId === userId) {
-      throw new ApiError(
-        HTTP_STATUS.CONFLICT,
-        'ALREADY_MEMBER',
-        'You are already a member of this group'
-      );
-    }
-
-    const newMember = {
-      uid: userId,
-      name: userName,
-      initials: userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
-      role: 'member',
-      joinedAt: new Date().toISOString(),
-    };
-
-    const currentMembers = groupData.data?.members || [];
-    const currentEmails = groupData.data?.memberEmails || [];
-    
-    const allMemberIds = [groupData.userId];
-    [...currentMembers, newMember].forEach((member: any) => {
-      if (!allMemberIds.includes(member.uid)) {
-        allMemberIds.push(member.uid);
+    const result = await admin.firestore().runTransaction(async (transaction) => {
+      const groupRef = admin.firestore().collection('documents').doc(groupId);
+      const groupSnapshot = await transaction.get(groupRef);
+      
+      if (!groupSnapshot.exists) {
+        throw new ApiError(
+          HTTP_STATUS.NOT_FOUND,
+          'GROUP_NOT_FOUND',
+          'Group not found'
+        );
       }
-    });
-    
-    await groupDoc.ref.update({
-      'data.members': [...currentMembers, newMember],
-      'data.memberEmails': [...currentEmails, userEmail],
-      'data.memberIds': allMemberIds,
-      updatedAt: Timestamp.now(),
+
+      const groupData = groupSnapshot.data()!;
+      const members = groupData.data?.members || [];
+      const isAlreadyMember = members.some((member: any) => member.uid === userId);
+      
+      if (isAlreadyMember || groupData.userId === userId) {
+        throw new ApiError(
+          HTTP_STATUS.CONFLICT,
+          'ALREADY_MEMBER',
+          'You are already a member of this group'
+        );
+      }
+
+      const newMember = {
+        uid: userId,
+        name: userName,
+        initials: userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
+        role: 'member',
+        joinedAt: new Date().toISOString(),
+      };
+
+      const currentMembers = groupData.data?.members || [];
+      const currentEmails = groupData.data?.memberEmails || [];
+      
+      const allMemberIds = [groupData.userId];
+      [...currentMembers, newMember].forEach((member: any) => {
+        if (!allMemberIds.includes(member.uid)) {
+          allMemberIds.push(member.uid);
+        }
+      });
+      
+      transaction.update(groupRef, {
+        'data.members': [...currentMembers, newMember],
+        'data.memberEmails': [...currentEmails, userEmail],
+        'data.memberIds': allMemberIds,
+        updatedAt: Timestamp.now(),
+      });
+
+      return {
+        groupName: groupData.data?.name || 'Unknown Group'
+      };
     });
 
     logger.info('User joined group via share link', {
@@ -203,7 +220,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
 
     res.status(HTTP_STATUS.OK).json({
       groupId,
-      groupName: groupData.data?.name || 'Unknown Group',
+      groupName: result.groupName,
       message: 'Successfully joined group',
     });
   } catch (error) {
