@@ -9,7 +9,7 @@ import { showMessage, showFieldError, clearErrors } from '../utils/ui-messages.j
 import { logger } from '../utils/logger.js';
 import { waitForAuthManager } from '../utils/auth-utils.js';
 import { ROUTES } from '../routes.js';
-import type { GroupDetail, Member, ExpenseData } from '@bill-splitter/shared-types';
+import type { GroupDetail, Member, ExpenseData, CreateExpenseRequest, UpdateExpenseRequest } from '@bill-splitter/shared-types';
 
 export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
     private pageLayout: PageLayoutComponent | null = null;
@@ -75,7 +75,7 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
             } else {
                 await this.loadGroupData();
             }
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Failed to initialize add expense page:', error);
             showMessage('Failed to load expense form. Please try again.', 'error');
             
@@ -511,16 +511,18 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
         const paidBySelect = this.element.querySelector('#paidBy') as HTMLSelectElement;
         const splitMethodRadio = this.element.querySelector('input[name="splitMethod"]:checked') as HTMLInputElement;
 
-        const expenseData: any = {
+        const baseExpenseData = {
             description: descriptionInput.value.trim(),
             amount: parseFloat(amountInput.value),
             category: categorySelect.value,
             paidBy: paidBySelect.value,
-            splitType: splitMethodRadio.value === 'equal' ? 'equal' : 'exact',
-            groupId: this.currentGroupId,
+            splitType: splitMethodRadio.value === 'equal' ? 'equal' : 'exact' as 'equal' | 'exact',
+            groupId: this.currentGroupId!,
             participants: Array.from(this.selectedMembers),
             date: new Date().toISOString()
         };
+        
+        const expenseData: CreateExpenseRequest | UpdateExpenseRequest = baseExpenseData;
 
         if (splitMethodRadio.value === 'custom') {
             const splits: Array<{userId: string, amount: number}> = [];
@@ -536,24 +538,24 @@ export class AddExpenseComponent extends BaseComponent<HTMLDivElement> {
                 }
             });
             
-            expenseData.splits = splits;
+            (expenseData as CreateExpenseRequest).splits = splits;
         }
 
         try {
             this.submitButton.setLoading(true);
             
             if (this.isEditMode && this.editExpenseId) {
-                await apiService.updateExpense(this.editExpenseId, expenseData);
+                await apiService.updateExpense(this.editExpenseId, expenseData as UpdateExpenseRequest);
                 showMessage('Expense updated successfully!', 'success');
             } else {
-                await apiService.createExpense(expenseData);
+                await apiService.createExpense(expenseData as CreateExpenseRequest);
                 showMessage('Expense added successfully!', 'success');
             }
 
             setTimeout(() => {
                 window.location.href = `group-detail.html?id=${this.currentGroupId}`;
             }, 1000);
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Error saving expense:', error);
             showMessage('Failed to save expense. Please try again.', 'error');
         } finally {

@@ -102,10 +102,11 @@ export class ResetPasswordComponent extends BaseComponent<HTMLDivElement> {
             await authManager.sendPasswordResetEmail(email);
             showSuccess('Reset link sent!', this.submitButton.getElement()!);
             this.emailInput.value = '';
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Password reset error:', error);
             
-            switch (error.code) {
+            const errorCode = error instanceof Error && 'code' in error ? (error as any).code : '';
+            switch (errorCode) {
                 case 'auth/user-not-found':
                     showFieldError('email', 'No account found with this email address');
                     break;

@@ -28,9 +28,9 @@ class ApiClient {
     };
   }
 
-  async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const config = await this.getConfig();
-    const apiBaseUrl = (window as any).API_BASE_URL;
+    const apiBaseUrl = (window as Window & { API_BASE_URL?: string }).API_BASE_URL;
     const url = `${apiBaseUrl}/api${endpoint}`;
     
     const defaultHeaders: Record<string, string> = {
@@ -78,11 +78,11 @@ class ApiClient {
   }
 
   // Convenience methods
-  async get<T = any>(endpoint: string, options?: RequestInit): Promise<T> {
+  async get<T>(endpoint: string, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  async post<T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
+  async post<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -90,7 +90,7 @@ class ApiClient {
     });
   }
 
-  async put<T = any>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
+  async put<T>(endpoint: string, body?: unknown, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -98,12 +98,12 @@ class ApiClient {
     });
   }
 
-  async delete<T = any>(endpoint: string, options?: RequestInit): Promise<T> {
+  async delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 
   // Retry logic for failed requests
-  async requestWithRetry<T = any>(
+  async requestWithRetry<T>(
     endpoint: string, 
     options: RequestInit = {},
     maxRetries?: number

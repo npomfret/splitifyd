@@ -90,15 +90,16 @@ export class JoinGroupComponent extends BaseComponent<HTMLDivElement> {
                     window.location.href = `${ROUTES.GROUP_DETAIL}?id=${response.data.groupId}`;
                 }, 1500);
             }
-        } catch (error: any) {
+        } catch (error) {
             logger.error('Error joining group:', error);
             
-            if (error.message && error.message.includes('already a member')) {
+            const errorMessage = error instanceof Error ? error.message : '';
+            if (errorMessage.includes('already a member')) {
                 this.showErrorState('You are already a member of this group');
                 setTimeout(() => {
                     window.location.href = ROUTES.DASHBOARD;
                 }, 2000);
-            } else if (error.message && error.message.includes('Invalid or expired')) {
+            } else if (errorMessage.includes('Invalid or expired')) {
                 this.showErrorState('This invite link is invalid or has expired');
                 setTimeout(() => {
                     window.location.href = ROUTES.DASHBOARD;

@@ -85,7 +85,7 @@ Focus on the main application logic files mentioned in the original task:
 
 ## Progress Tracking:
 - [x] Phase 1: Core Firebase Functions (4 files) - **COMPLETED**
-- [ ] Phase 2: Webapp Core (3 files)  
+- [x] Phase 2: Webapp Core (5 files) - **COMPLETED**  
 - [ ] Phase 3: Business Logic Services (3 files)
 - [ ] Phase 4: Support and Utility Files (remaining files)
 
@@ -98,8 +98,19 @@ Focus on the main application logic files mentioned in the original task:
 
 ✅ **firebase/functions/src/documents/validation.ts** - Replaced `any` with `unknown` for input validation functions, added proper type guards for object and array access, kept `any` for flexible document storage fields
 
+## Phase 2 Results (2025-07-17):
+✅ **webapp/src/js/store.ts** - Replaced `any` in StateChangeHandler and proxy setter with proper AppState type unions. Used type assertions for complex assignments.
+
+✅ **webapp/src/js/api-client.ts** - Removed default `any` generic types, replaced body parameters with `unknown`, and properly typed window.API_BASE_URL access.
+
+✅ **webapp/src/js/components/JoinGroupComponent.ts** - Replaced `any` type in catch block with proper error type checking.
+
+✅ **webapp/src/js/components/AddExpenseComponent.ts** - Added proper CreateExpenseRequest/UpdateExpenseRequest types and replaced `any` in catch blocks.
+
+✅ **webapp/src/js/components/ResetPasswordComponent.ts** - Fixed error handling with proper type checking for Firebase auth error codes.
+
 ## Next Steps:
-Phase 1 complete! Ready to proceed with Phase 2 (Webapp Core) or Phase 3 (Business Logic Services) depending on priority.
+Phase 2 complete! Ready to proceed with Phase 3 (Business Logic Services) or Phase 4 (Support and Utility Files) depending on priority.
 
 ## Phase 2 Implementation Plan (2025-07-17):
 

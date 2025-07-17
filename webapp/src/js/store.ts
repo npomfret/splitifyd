@@ -11,7 +11,11 @@ interface AppState {
   authToken: string | null;
 }
 
-type StateChangeHandler = (property: keyof AppState, newValue: any, oldValue: any) => void;
+type StateChangeHandler = (
+  property: keyof AppState,
+  newValue: AppState[keyof AppState],
+  oldValue: AppState[keyof AppState]
+) => void;
 
 class Store {
   private state: AppState;
@@ -28,21 +32,27 @@ class Store {
     };
 
     this.proxiedState = new Proxy(this.state, {
-      set: (target: AppState, property: keyof AppState, value: any) => {
+      set: (
+        target: AppState,
+        property: keyof AppState,
+        value: AppState[keyof AppState]
+      ) => {
         const oldValue = target[property];
         if (oldValue === value) return true;
         
-        (target as any)[property] = value;
+        target[property] = value as never;
         
-        if (property === 'authToken') {
+        if (property === 'authToken' && typeof value === 'string') {
           if (value) {
             localStorage.setItem(AUTH_TOKEN_KEY, value);
           } else {
             localStorage.removeItem(AUTH_TOKEN_KEY);
           }
+        } else if (property === 'authToken' && value === null) {
+          localStorage.removeItem(AUTH_TOKEN_KEY);
         }
         
-        if (property === 'user') {
+        if (property === 'user' && (value === null || typeof value === 'object')) {
           if (value?.id) {
             localStorage.setItem('userId', value.id);
           } else {
@@ -59,7 +69,11 @@ class Store {
     });
   }
 
-  private notifyHandlers(property: keyof AppState, newValue: any, oldValue: any): void {
+  private notifyHandlers(
+    property: keyof AppState,
+    newValue: AppState[keyof AppState],
+    oldValue: AppState[keyof AppState]
+  ): void {
     this.handlers.forEach(handler => {
       handler(property, newValue, oldValue);
     });
@@ -75,8 +89,11 @@ class Store {
   }
 
   updateState(updates: Partial<AppState>): void {
-    Object.entries(updates).forEach(([key, value]) => {
-      (this.proxiedState as any)[key] = value;
+    (Object.keys(updates) as Array<keyof AppState>).forEach(key => {
+      const value = updates[key];
+      if (value !== undefined) {
+        this.proxiedState[key] = value as never;
+      }
     });
   }
 
