@@ -118,7 +118,7 @@ describe('NavigationComponent', () => {
 
             expect(mockCreateElement).toHaveBeenCalledWith('a', {
                 href: '/dashboard.html',
-                className: 'back-link'
+                className: 'back-button'
             });
             expect(mockCreateElement).toHaveBeenCalledWith('i', { className: 'fas fa-arrow-left' });
         });
