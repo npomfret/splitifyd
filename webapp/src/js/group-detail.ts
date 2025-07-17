@@ -327,13 +327,6 @@ async function loadGroupExpenses(): Promise<void> {
         hasMoreExpenses = response.hasMore;
         expensesCursor = response.cursor || null;
         
-        // Debug logging
-        console.log('Pagination debug:', {
-            expensesLoaded: expenses.length,
-            hasMoreExpenses,
-            expensesCursor,
-            totalExpensesInList: document.querySelectorAll('.expense-item').length
-        });
         
         const loadMoreContainer = document.getElementById('loadMoreContainer');
         if (loadMoreContainer) {
@@ -342,9 +335,7 @@ async function loadGroupExpenses(): Promise<void> {
             } else {
                 loadMoreContainer.classList.add('hidden');
             }
-            console.log('Load more container visible:', !loadMoreContainer.classList.contains('hidden'));
         } else {
-            console.log('Load more container not found!');
         }
     } catch (error) {
         logger.error('Error loading expenses:', error);
