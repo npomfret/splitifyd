@@ -7,7 +7,7 @@ import {
   CreateExpenseRequest, 
   UpdateExpenseRequest, 
   EXPENSE_CATEGORIES 
-} from '../types/shared';
+} from '../types/expense-types';
 
 export interface Expense {
   id: string;

@@ -4,7 +4,7 @@ import { GroupBalance } from '../models/groupBalance';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
-import { Member } from '../types/shared';
+import { Member } from '../types/expense-types';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.uid;
