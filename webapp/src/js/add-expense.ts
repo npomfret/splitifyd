@@ -3,7 +3,6 @@ import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage, showFieldError, showError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
-import { debounce } from './utils/event-utils.js';
 import { HeaderComponent } from './components/header.js';
 import { clearElement, createElementSafe, appendChildren } from './utils/safe-dom.js';
 import { ROUTES } from './routes.js';
@@ -13,6 +12,8 @@ let currentGroup: GroupDetail | null = null;
 let currentGroupId: string | null = null;
 let selectedMembers = new Set<string>();
 let lastExpenseData: ExpenseData | null = null;
+let updateCustomSplitInputsTimeout: ReturnType<typeof setTimeout> | null = null;
+let updateSplitTotalTimeout: ReturnType<typeof setTimeout> | null = null;
 
 async function initializeAddExpensePage(): Promise<void> {
     try {
@@ -187,7 +188,12 @@ function initializeEventListeners(): void {
         radio.addEventListener('change', handleSplitMethodChange);
     });
     
-    amountInput.addEventListener('input', debounce(updateCustomSplitInputs, 300));
+    amountInput.addEventListener('input', () => {
+        if (updateCustomSplitInputsTimeout) {
+            clearTimeout(updateCustomSplitInputsTimeout);
+        }
+        updateCustomSplitInputsTimeout = setTimeout(updateCustomSplitInputs, 300);
+    });
 }
 
 function handleMemberToggle(event: Event): void {
@@ -251,7 +257,12 @@ function updateCustomSplitInputs(): void {
         input.min = '0';
         input.value = equalSplit.toFixed(2);
         input.dataset.memberId = memberId;
-        input.addEventListener('input', debounce(updateSplitTotal, 300));
+        input.addEventListener('input', () => {
+            if (updateSplitTotalTimeout) {
+                clearTimeout(updateSplitTotalTimeout);
+            }
+            updateSplitTotalTimeout = setTimeout(updateSplitTotal, 300);
+        });
         
         inputGroup.appendChild(label);
         inputGroup.appendChild(input);

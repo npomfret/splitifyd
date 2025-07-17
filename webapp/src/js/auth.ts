@@ -2,7 +2,6 @@ import { logger } from './utils/logger.js';
 import { firebaseAuthInstance, isFirebaseInitialized, firebaseInitializer } from './firebase-init.js';
 import { firebaseConfigManager } from './firebase-config-manager.js';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
-import { debounce } from './utils/event-utils.js';
 import { validateInput } from './utils/safe-dom.js';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from './constants.js';
 import { ROUTES } from './routes.js';
@@ -12,8 +11,7 @@ import type {
     RegistrationData, 
     ValidatorMap, 
     EventListenerInfo,
-    UserCredential,
-    DebouncedFunction 
+    UserCredential
 } from './types/auth.js';
 
 const authValidators: ValidatorMap = {
@@ -70,6 +68,7 @@ const authValidators: ValidatorMap = {
 class AuthManager {
     private token: string | null = null;
     private eventListeners: Map<Element, EventListenerInfo[]> = new Map();
+    private validationTimeouts: Map<HTMLInputElement, ReturnType<typeof setTimeout>> = new Map();
 
     constructor() {
         this.token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -146,7 +145,14 @@ class AuthManager {
         const inputs = form.querySelectorAll<HTMLInputElement>('.form-input');
         
         inputs.forEach(input => {
-            const debouncedValidation = debounce(() => this.validateField(input), 300);
+            const debouncedValidation = () => {
+                const existingTimeout = this.validationTimeouts.get(input);
+                if (existingTimeout) {
+                    clearTimeout(existingTimeout);
+                }
+                const timeout = setTimeout(() => this.validateField(input), 300);
+                this.validationTimeouts.set(input, timeout);
+            };
             
             this.addEventListenerWithCleanup(input, 'blur', () => this.validateField(input));
             this.addEventListenerWithCleanup(input, 'input', debouncedValidation as EventListener);
@@ -495,6 +501,10 @@ class AuthManager {
             });
         });
         this.eventListeners.clear();
+        
+        // Clear validation timeouts
+        this.validationTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.validationTimeouts.clear();
     }
 }
 

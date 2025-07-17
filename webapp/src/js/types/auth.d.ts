@@ -34,5 +34,3 @@ export interface EventListenerInfo {
   event: string;
   handler: EventListener;
 }
-
-export type DebouncedFunction<T extends (...args: any[]) => any> = (...args: Parameters<T>) => void;

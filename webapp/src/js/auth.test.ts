@@ -7,7 +7,6 @@ jest.mock('./utils/logger');
 jest.mock('./firebase-init');
 jest.mock('./firebase-config-manager');
 jest.mock('./utils/ui-messages');
-jest.mock('./utils/event-utils');
 jest.mock('./utils/safe-dom');
 jest.mock('./constants', () => ({
     AUTH_TOKEN_KEY: 'auth_token',
@@ -36,7 +35,6 @@ const mockFirebaseConfigManager = {
 import { firebaseAuthInstance } from './firebase-init';
 import { firebaseConfigManager } from './firebase-config-manager';
 import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages';
-import { debounce } from './utils/event-utils';
 import { validateInput } from './utils/safe-dom';
 
 (firebaseConfigManager as any) = mockFirebaseConfigManager;
@@ -86,8 +84,6 @@ const createMockElement = () => ({
     closest: jest.fn()
 });
 
-// Mock debounce to return the original function
-(debounce as jest.Mock).mockImplementation((fn) => fn);
 
 // Mock validateInput
 (validateInput as jest.Mock).mockImplementation((value, options) => {
