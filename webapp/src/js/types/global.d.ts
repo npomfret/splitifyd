@@ -52,23 +52,14 @@ interface ApiResponse<T> {
 // Domain types
 interface User {
   id: string;
-  uid: string;
+  uid?: string;
   email: string;
-  displayName: string;
+  displayName?: string;
   groups?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-interface Group {
-  id: string;
-  name: string;
-  members: string[];
-  createdBy: string;
-  createdAt: string;
-  updatedAt?: string;
-  description?: string;
-}
 
 interface Expense {
   id: string;
@@ -147,7 +138,6 @@ export {
   ConfigData,
   ApiResponse,
   User,
-  Group,
   Expense,
   ExpenseSplit,
   Settlement,

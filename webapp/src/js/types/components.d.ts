@@ -62,20 +62,23 @@ export interface AuthCardConfig {
 
 // Form component types (for future migration)
 export interface FormFieldConfig {
-  id: string;
   label: string;
-  type?: 'text' | 'email' | 'password' | 'select' | 'textarea' | 'number';
-  placeholder?: string;
-  value?: string;
-  error?: string;
+  id?: string;
+  type?: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'checkbox' | 'password';
+  value?: string | number | boolean;
   required?: boolean;
-  options?: Array<{value: string; text: string}>;
+  placeholder?: string;
+  options?: Array<string | { value: string; label: string }>;
+  step?: number | string;
+  readonly?: boolean;
+  errorId?: string;
   autocomplete?: string;
   maxLength?: number;
   minLength?: number;
   min?: number;
   max?: number;
   rows?: number;
+  error?: string;
 }
 
 // List component types (for future migration)
