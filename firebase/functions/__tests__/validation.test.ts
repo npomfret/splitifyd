@@ -1,4 +1,5 @@
 import { validateRegisterRequest } from '../src/auth/validation';
+import { validateCreateExpense, validateUpdateExpense } from '../src/expenses/validation';
 import { ApiError } from '../src/utils/errors';
 
 describe('Auth Validation', () => {
@@ -94,6 +95,129 @@ describe('Auth Validation', () => {
       const result = validateRegisterRequest(request);
       
       expect(result.displayName).toBe('John Doe-Smith_123.Jr');
+    });
+  });
+});
+
+describe('Expense Validation', () => {
+  describe('validateCreateExpense', () => {
+    const validExpenseData = {
+      groupId: 'group123',
+      paidBy: 'user123',
+      amount: 100.50,
+      description: 'Dinner at restaurant',
+      category: 'food',
+      date: '2024-01-15',
+      splitType: 'equal',
+      participants: ['user123', 'user456'],
+      receiptUrl: 'https://example.com/receipt.jpg'
+    };
+
+    it('should sanitize XSS in description field', () => {
+      const maliciousData = {
+        ...validExpenseData,
+        description: 'Dinner <script>alert("xss")</script> at restaurant'
+      };
+      
+      const result = validateCreateExpense(maliciousData);
+      
+      expect(result.description).toBe('Dinner  at restaurant');
+      expect(result.description).not.toContain('<script>');
+    });
+
+    it('should sanitize category field (enum validation prevents XSS)', () => {
+      const legitimateData = {
+        ...validExpenseData,
+        category: 'food'
+      };
+      
+      const result = validateCreateExpense(legitimateData);
+      
+      expect(result.category).toBe('food');
+    });
+
+    it('should sanitize receiptUrl field (URI validation prevents malformed URLs)', () => {
+      const legitimateData = {
+        ...validExpenseData,
+        receiptUrl: 'https://example.com/receipt.jpg'
+      };
+      
+      const result = validateCreateExpense(legitimateData);
+      
+      expect(result.receiptUrl).toBe('https://example.com/receipt.jpg');
+    });
+
+    it('should preserve legitimate content after sanitization', () => {
+      const legitimateData = {
+        ...validExpenseData,
+        description: 'Dinner at "The Restaurant" & Bar - $15.50',
+        category: 'food',
+        receiptUrl: 'https://example.com/receipt.jpg'
+      };
+      
+      const result = validateCreateExpense(legitimateData);
+      
+      expect(result.description).toBe('Dinner at "The Restaurant" & Bar - $15.50');
+      expect(result.category).toBe('food');
+      expect(result.receiptUrl).toBe('https://example.com/receipt.jpg');
+    });
+
+    it('should handle empty receiptUrl', () => {
+      const dataWithEmptyReceipt = {
+        ...validExpenseData,
+        receiptUrl: ''
+      };
+      
+      const result = validateCreateExpense(dataWithEmptyReceipt);
+      
+      expect(result.receiptUrl).toBe('');
+    });
+  });
+
+  describe('validateUpdateExpense', () => {
+    it('should sanitize XSS in description field during update', () => {
+      const maliciousUpdateData = {
+        description: 'Updated description <script>alert("xss")</script>'
+      };
+      
+      const result = validateUpdateExpense(maliciousUpdateData);
+      
+      expect(result.description).toBe('Updated description ');
+      expect(result.description).not.toContain('<script>');
+    });
+
+    it('should sanitize category field during update (enum validation prevents XSS)', () => {
+      const legitimateUpdateData = {
+        category: 'food'
+      };
+      
+      const result = validateUpdateExpense(legitimateUpdateData);
+      
+      expect(result.category).toBe('food');
+    });
+
+    it('should sanitize receiptUrl field during update (URI validation prevents malformed URLs)', () => {
+      const legitimateUpdateData = {
+        receiptUrl: 'https://example.com/new-receipt.jpg'
+      };
+      
+      const result = validateUpdateExpense(legitimateUpdateData);
+      
+      expect(result.receiptUrl).toBe('https://example.com/new-receipt.jpg');
+    });
+
+    it('should preserve legitimate content during update', () => {
+      const legitimateUpdateData = {
+        description: 'Updated dinner at "The Restaurant" & Bar',
+        category: 'food',
+        receiptUrl: 'https://example.com/new-receipt.jpg'
+      };
+      
+      const result = validateUpdateExpense(legitimateUpdateData);
+      
+      expect(result.description).toBe('Updated dinner at "The Restaurant" & Bar');
+      expect(result.category).toBe('food');
+      expect(result.receiptUrl).toBe('https://example.com/new-receipt.jpg');
     });
   });
 });

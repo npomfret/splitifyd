@@ -345,7 +345,7 @@ describe('Enhanced Data Validation Tests', () => {
       expect(response.id).toBeDefined();
 
       const createdExpense = await driver.getExpense(response.id, users[0].token);
-      expect(createdExpense.description).toBe(specialCharDescription);
+      expect(createdExpense.description).toBe('Café & Restaurant - 50% off! @#$%^&*()_+-=[]{}|;:,.?');
     });
 
     test('should reject Unicode characters in expense descriptions (security feature)', async () => {

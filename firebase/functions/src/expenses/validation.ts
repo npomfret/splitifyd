@@ -2,6 +2,7 @@ import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as admin from 'firebase-admin';
+import { sanitizeString } from '../utils/security';
 import { 
   ExpenseSplit, 
   CreateExpenseRequest, 
@@ -56,6 +57,24 @@ const updateExpenseSchema = Joi.object({
   splits: Joi.array().items(expenseSplitSchema).optional(),
   receiptUrl: Joi.string().uri().optional().allow('')
 }).min(1);
+
+const sanitizeExpenseData = (data: CreateExpenseRequest | UpdateExpenseRequest): CreateExpenseRequest | UpdateExpenseRequest => {
+  const sanitized = { ...data };
+  
+  if ('description' in sanitized && typeof sanitized.description === 'string') {
+    sanitized.description = sanitizeString(sanitized.description);
+  }
+  
+  if ('category' in sanitized && typeof sanitized.category === 'string') {
+    sanitized.category = sanitizeString(sanitized.category);
+  }
+  
+  if ('receiptUrl' in sanitized && typeof sanitized.receiptUrl === 'string') {
+    sanitized.receiptUrl = sanitizeString(sanitized.receiptUrl);
+  }
+  
+  return sanitized;
+};
 
 export const validateExpenseId = (id: any): string => {
   if (typeof id !== 'string' || !id.trim()) {
@@ -141,7 +160,7 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
     }
   }
 
-  return {
+  const expenseData = {
     groupId: value.groupId.trim(),
     paidBy: value.paidBy.trim(),
     amount: value.amount,
@@ -153,6 +172,8 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
     splits: value.splits,
     receiptUrl: value.receiptUrl?.trim()
   };
+
+  return sanitizeExpenseData(expenseData) as CreateExpenseRequest;
 };
 
 export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
@@ -231,7 +252,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
     update.receiptUrl = value.receiptUrl?.trim();
   }
 
-  return update;
+  return sanitizeExpenseData(update) as UpdateExpenseRequest;
 };
 
 export const calculateSplits = (amount: number, splitType: string, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] => {
