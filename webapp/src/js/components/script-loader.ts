@@ -129,7 +129,6 @@ export class ScriptLoaderComponent extends BaseComponent<HTMLDivElement> {
     return new ScriptLoaderComponent({
       scripts: [
         { src: '/js/firebase-init.js', type: 'module' },
-        { src: '/js/warning-banner.js', type: 'module' },
         { src: '/js/api.js', type: 'module' },
         { src: '/js/auth.js', type: 'module' },
         { src: '/js/logout-handler.js', type: 'module' }
