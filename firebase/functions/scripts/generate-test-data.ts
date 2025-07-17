@@ -241,7 +241,7 @@ async function exchangeCustomTokenForIdToken(customToken: string): Promise<strin
     
     return data.idToken;
   } catch (error) {
-    logger.error('Failed to exchange custom token', { error });
+    logger.error('Failed to exchange custom token', { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
 }
@@ -336,7 +336,7 @@ async function createTestGroup(name: string, members: UserRecord[], createdBy: U
 
     return { id: response.id, ...groupData };
   } catch (error) {
-    logger.error(`✗ Failed to create group ${name}`, { error });
+    logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
 }
@@ -364,7 +364,7 @@ async function createTestExpense(
 
     return response;
   } catch (error) {
-    logger.error(`✗ Failed to create expense ${expense.description}`, { error });
+    logger.error(`✗ Failed to create expense ${expense.description}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
 }
@@ -574,7 +574,7 @@ export async function generateTestData(): Promise<void> {
     });
 
   } catch (error) {
-    logger.error('❌ Test data generation failed', { error });
+    logger.error('❌ Test data generation failed', { error: error instanceof Error ? error : new Error(String(error)) });
     process.exit(1);
   }
 }
@@ -584,7 +584,7 @@ if (require.main === module) {
   generateTestData().then(() => {
     process.exit(0);
   }).catch(error => {
-    logger.error('❌ Script failed', { error });
+    logger.error('❌ Script failed', { error: error instanceof Error ? error : new Error(String(error)) });
     process.exit(1);
   });
 }
