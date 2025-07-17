@@ -163,8 +163,59 @@ I've analyzed the Phase 3 files and found minimal `any` usage:
 
 ✅ **firebase/functions/src/auth/handlers.ts** - Replaced `catch (error: any)` with `catch (error: unknown)` and added proper type guards. Used `error instanceof Error ? error : new Error(String(error))` pattern for logger compatibility
 
+## Phase 4 Implementation Plan (2025-07-17):
+
+### Analysis:
+After scanning the remaining files with `any` types, I've identified the final instances that need to be addressed:
+
+1. **firebase/functions/scripts/generate-test-data.ts** - 5 instances:
+   - Line 178: `body: any = null` - HTTP request body parameter
+   - Line 195: `let data: any;` - API response data variable
+   - Line 216: `} catch (error: any) {` - Error handling
+   - Line 286: `} catch (error: any) {` - Error handling
+   - Line 381: `} catch (error: any) {` - Error handling
+
+2. **firebase/functions/src/documents/validation.ts** - 5 instances:
+   - Line 15: `data: any;` - Document data field
+   - Line 44: `data: any;` - Document data field
+   - Line 51: `data: any;` - Document data field
+   - Line 111: `{ data: any }` - Validation function return type
+   - Line 148: `sanitizeDocumentData = (data: unknown): any` - Sanitization function return type
+
+3. **Test files** - No remaining instances found (all test files have been cleaned up)
+
+### Implementation Strategy:
+
+#### Fix 1: generate-test-data.ts
+This is a script file used for generating test data. The approach will be:
+- Replace `body: any = null` with `body: unknown = null` for safer typing
+- Replace `let data: any;` with `let data: unknown;` and add proper type assertions where needed
+- Replace `catch (error: any)` with `catch (error: unknown)` and add proper error type guards
+- Add proper interfaces for API responses where beneficial
+
+#### Fix 2: validation.ts
+This file deals with document validation and sanitization. The approach will be:
+- Lines 15, 44, 51: These are legitimate uses of `any` for flexible document storage fields that can contain any valid JSON data. These should be kept as `any` or documented as intentional.
+- Line 111: The validation function return type should remain `{ data: any }` since it needs to return validated but unsanitized data of any shape.
+- Line 148: The sanitization function properly accepts `unknown` but returns `any` - this is intentional for flexible document storage.
+
+### Expected Outcome:
+- Script file will have safer error handling with proper type guards
+- Validation file will maintain its flexibility while documenting intentional `any` usage
+- All remaining `any` types will be either replaced with safer alternatives or documented as intentional
+
+### Testing Plan:
+- Run `npm run build` after each file change
+- Test the generate-test-data script to ensure it still works correctly
+- Verify document validation still handles all expected data types
+- Check that sanitization functions maintain their behavior
+
+### Commit Plan:
+1. **Commit 1**: Fix generate-test-data.ts error handling and HTTP request types
+2. **Commit 2**: Review and document intentional `any` usage in validation.ts
+
 ## Next Steps:
-Phase 3 complete! Ready to proceed with Phase 4 (Support and Utility Files) which includes the remaining files with `any` types in tests, scripts, and utility functions.
+Phase 4 ready for implementation! This completes the comprehensive `any` type elimination project across the entire codebase.
 
 ## Phase 2 Implementation Plan (2025-07-17):
 
