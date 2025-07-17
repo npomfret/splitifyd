@@ -39,12 +39,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         displayName: userRecord.displayName
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If user was created but firestore failed, clean up the orphaned auth record
     if (userRecord) {
       logger.error('Registration failed after auth user created, cleaning up', { 
         userId: userRecord.uid,
-        error: error.message 
+        error: error instanceof Error ? error : new Error(String(error)) 
       });
       
       try {
@@ -60,7 +60,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Handle specific auth errors
-    if (error.code === 'auth/email-already-exists') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/email-already-exists') {
       res.status(HTTP_STATUS.CONFLICT).json({
         error: {
           code: 'EMAIL_EXISTS',
