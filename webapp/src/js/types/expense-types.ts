@@ -1,0 +1,1 @@
+../../../../firebase/functions/src/types/expense-types.ts

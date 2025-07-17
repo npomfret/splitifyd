@@ -1,4 +1,14 @@
 // Business Logic Type Definitions
+import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
+
+// Re-export expense types for backward compatibility
+export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
+
+export interface ExpenseListResponse {
+  expenses: ExpenseData[];
+  cursor?: string;
+  hasMore: boolean;
+}
 
 // Expense Management Types
 export interface ExpenseCategory {
@@ -7,54 +17,7 @@ export interface ExpenseCategory {
   icon: string;
 }
 
-export interface ExpenseSplit {
-  userId: string;
-  amount: number;
-  percentage?: number;
-}
 
-export interface ExpenseData {
-  id: string;
-  groupId: string;
-  description: string;
-  amount: number;
-  paidBy: string;
-  paidByName?: string;
-  splits: ExpenseSplit[];
-  createdAt: string;
-  createdBy: string;
-  category: string;
-  date: string;
-  updatedAt?: string;
-  splitType: 'equal' | 'exact' | 'percentage';
-  participants: string[];
-  receiptUrl?: string;
-}
-
-export interface CreateExpenseRequest {
-  groupId: string;
-  description: string;
-  amount: number;
-  paidBy: string;
-  splits: ExpenseSplit[];
-  category?: string;
-  date?: string;
-}
-
-export interface UpdateExpenseRequest {
-  description?: string;
-  amount?: number;
-  paidBy?: string;
-  splits?: ExpenseSplit[];
-  category?: string;
-  date?: string;
-}
-
-export interface ExpenseListResponse {
-  expenses: ExpenseData[];
-  cursor?: string;
-  hasMore: boolean;
-}
 
 // Group Management Types
 export interface GroupMember {

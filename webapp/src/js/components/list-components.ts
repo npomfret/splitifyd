@@ -1,6 +1,7 @@
 import type {
   TransformedGroup,
   ExpenseData,
+  ExpenseSplit,
   GroupMember,
   GroupBalance,
   EmptyStateConfig,
@@ -27,7 +28,7 @@ export class ListComponents {
 
   static renderExpenseItem(expense: ExpenseData, currentUserId: string): string {
     const isCurrentUserPayer = expense.paidBy === currentUserId;
-    const userShare = expense.splits?.find(s => s.userId === currentUserId)?.amount || 0;
+    const userShare = expense.splits?.find((s: ExpenseSplit) => s.userId === currentUserId)?.amount || 0;
     
     return `
       <div class="expense-item" data-expense-id="${expense.id}">
