@@ -112,6 +112,50 @@ Focus on the main application logic files mentioned in the original task:
 ## Next Steps:
 Phase 2 complete! Ready to proceed with Phase 3 (Business Logic Services) or Phase 4 (Support and Utility Files) depending on priority.
 
+## Phase 3 Implementation Plan (2025-07-17):
+
+### Analysis:
+I've analyzed the Phase 3 files and found minimal `any` usage:
+
+1. **firebase/functions/src/services/balanceCalculator.ts** - 1 instance:
+   - Line 44: `members.map((m: any) => ({ uid: m.uid, name: m.name }))`
+   - Should use the existing `Member` interface from shared types
+
+2. **firebase/functions/src/groups/balanceHandlers.ts** - 1 instance:
+   - Line 31: `members.map((m: any) => m.uid)`
+   - Should use the existing `Member` interface from shared types
+
+3. **firebase/functions/src/auth/handlers.ts** - 1 instance:
+   - Line 42: `catch (error: any)`
+   - Should use proper error type checking with `unknown`
+
+### Implementation Strategy:
+
+#### Fix 1: balanceCalculator.ts
+- Import `Member` type from '../types/shared'
+- Replace `(m: any)` with `(m: Member)`
+- This ensures type safety for member object access
+
+#### Fix 2: balanceHandlers.ts  
+- Import `Member` type from '../types/shared'
+- Replace `(m: any)` with `(m: Member)`
+- Maintains consistency with the Member interface
+
+#### Fix 3: auth/handlers.ts
+- Replace `catch (error: any)` with `catch (error: unknown)`
+- Add proper type guards when accessing error properties
+- Follow the pattern used in Phase 1 & 2 for error handling
+
+### Expected Benefits:
+- All member arrays will have proper type checking
+- Error handling will be more robust with explicit type guards
+- Consistent use of the Member interface across the codebase
+
+### Testing Plan:
+- Run `npm run build` after each file change
+- Verify TypeScript compilation succeeds
+- Check that all member property accesses are type-safe
+
 ## Phase 2 Implementation Plan (2025-07-17):
 
 ### Analysis:
