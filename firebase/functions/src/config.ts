@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, WarningBanner } from './types/config.types';
 import { validateAppConfiguration } from './middleware/config-validation';
@@ -12,11 +13,38 @@ if (isEmulator) {
   require('dotenv').config();
 }
 
-// Get project ID (only needed in production)
-const projectId = isProduction ? process.env.GCLOUD_PROJECT! : 'emulator-project-id';
-if (isProduction && !projectId) {
-  throw new Error('GCLOUD_PROJECT environment variable must be set. Firebase provides this automatically.');
+// Define environment variable schema
+const envSchema = z.object({
+  FUNCTIONS_EMULATOR: z.string().optional(),
+  GCLOUD_PROJECT: isProduction ? z.string().min(1) : z.string().optional(),
+  CLIENT_API_KEY: isProduction ? z.string().min(1) : z.string().optional(),
+  CLIENT_AUTH_DOMAIN: isProduction ? z.string().min(1) : z.string().optional(),
+  CLIENT_STORAGE_BUCKET: isProduction ? z.string().min(1) : z.string().optional(),
+  CLIENT_MESSAGING_SENDER_ID: isProduction ? z.string().min(1) : z.string().optional(),
+  CLIENT_APP_ID: isProduction ? z.string().min(1) : z.string().optional(),
+  CLIENT_MEASUREMENT_ID: z.string().optional(),
+  FIREBASE_AUTH_EMULATOR_HOST: isEmulator ? z.string().min(1) : z.string().optional(),
+  DEV_FORM_EMAIL: z.string().optional(),
+  DEV_FORM_PASSWORD: z.string().optional(),
+});
+
+// Validate environment variables
+let env: z.infer<typeof envSchema>;
+try {
+  env = envSchema.parse(process.env);
+} catch (error) {
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  logger.error('Invalid environment variables:', { error: errorObj });
+  
+  if (error instanceof z.ZodError) {
+    const errorMessages = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
+    throw new Error(`Environment variable validation failed: ${errorMessages}`);
+  }
+  throw new Error(`Environment variable validation failed: ${errorObj.message}`);
 }
+
+// Get project ID (only needed in production)
+const projectId = isProduction ? env.GCLOUD_PROJECT! : 'emulator-project-id';
 
 // Direct configuration values
 export const CONFIG = {
@@ -49,8 +77,8 @@ export const CONFIG = {
   // Form defaults - from environment variables (empty in production)
   formDefaults: {
     displayName: isEmulator ? 'test' : '',
-    email: process.env.DEV_FORM_EMAIL || '',
-    password: process.env.DEV_FORM_PASSWORD || '',
+    email: env.DEV_FORM_EMAIL || '',
+    password: env.DEV_FORM_PASSWORD || '',
   },
   
   warningBanner: isProduction 
@@ -69,7 +97,7 @@ function getFirebaseAuthUrl(): string | undefined {
   }
   
   // Get auth URL from Firebase environment variable - required in development
-  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  const authHost = env.FIREBASE_AUTH_EMULATOR_HOST;
   if (!authHost) {
     throw new Error('FIREBASE_AUTH_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
   }
@@ -90,13 +118,13 @@ function getWarningBanner(): WarningBanner | undefined {
 function buildAppConfiguration(): AppConfiguration {
   // Build firebase config based on environment
   const firebase: FirebaseConfig = isProduction ? {
-    apiKey: process.env.CLIENT_API_KEY!,
-    authDomain: process.env.CLIENT_AUTH_DOMAIN!,
+    apiKey: env.CLIENT_API_KEY!,
+    authDomain: env.CLIENT_AUTH_DOMAIN!,
     projectId: projectId,
-    storageBucket: process.env.CLIENT_STORAGE_BUCKET!,
-    messagingSenderId: process.env.CLIENT_MESSAGING_SENDER_ID!,
-    appId: process.env.CLIENT_APP_ID!,
-    measurementId: process.env.CLIENT_MEASUREMENT_ID,
+    storageBucket: env.CLIENT_STORAGE_BUCKET!,
+    messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
+    appId: env.CLIENT_APP_ID!,
+    measurementId: env.CLIENT_MEASUREMENT_ID,
   } : {
     // Minimal config for development - these values are not used by the emulator
     apiKey: 'emulator-api-key',
@@ -111,10 +139,10 @@ function buildAppConfiguration(): AppConfiguration {
   // Validate required fields in production
   if (CONFIG.isProduction && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
     logger.error('Firebase config is incomplete in production. Environment variables:', {
-      CLIENT_API_KEY: process.env.CLIENT_API_KEY,
-      CLIENT_AUTH_DOMAIN: process.env.CLIENT_AUTH_DOMAIN,
+      CLIENT_API_KEY: env.CLIENT_API_KEY,
+      CLIENT_AUTH_DOMAIN: env.CLIENT_AUTH_DOMAIN,
       NODE_ENV: process.env.NODE_ENV,
-      FUNCTIONS_EMULATOR: process.env.FUNCTIONS_EMULATOR
+      FUNCTIONS_EMULATOR: env.FUNCTIONS_EMULATOR
     });
     throw new Error('Firebase configuration is incomplete in production');
   }
