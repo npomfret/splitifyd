@@ -2,18 +2,14 @@ import { logger } from './utils/logger.js';
 import type { AppConfiguration } from './types/config.types.js';
 
 class FirebaseConfigManager {
-  private config: AppConfiguration | null = null;
   private configPromise: Promise<AppConfiguration> | null = null;
 
   async getConfig(): Promise<AppConfiguration> {
-    if (this.config) return this.config;
-    
     if (!this.configPromise) {
       this.configPromise = this.fetchConfig();
     }
     
-    this.config = await this.configPromise;
-    return this.config;
+    return this.configPromise;
   }
 
   private async fetchConfig(): Promise<AppConfiguration> {
