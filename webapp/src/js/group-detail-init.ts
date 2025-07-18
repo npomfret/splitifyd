@@ -1,6 +1,7 @@
 import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
+import { GroupDetailComponent } from './components/GroupDetailComponent.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Set up API base URL before loading auth scripts
@@ -18,9 +19,7 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     import('./firebase-config-manager.js'),
     import('./api.js'),
     import('./auth.js'),
-    import('./logout-handler.js'),
-    import('./group-detail.js'),
-    import('./group-detail-handlers.js')
+    import('./logout-handler.js')
   ]);
   
   // Initialize warning banner
@@ -39,7 +38,10 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     // Warning banner is optional, continue silently
   }
   
-  // Initialize group detail page
-  const { initializeGroupDetailPage } = await import('./group-detail.js');
-  await initializeGroupDetailPage();
+  // Mount the GroupDetailComponent
+  const appRoot = document.getElementById('app-root');
+  if (appRoot) {
+    const groupDetailComponent = new GroupDetailComponent();
+    await groupDetailComponent.mount(appRoot);
+  }
 });
