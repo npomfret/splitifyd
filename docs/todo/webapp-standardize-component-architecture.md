@@ -60,9 +60,9 @@ The webapp has a solid component foundation:
 3. ✅ `add-expense.html` - Converted to use AddExpenseComponent with FormComponents
 4. ✅ `join-group.html` - Converted to JoinGroupComponent with component-based architecture
 
-**Phase 3: Data Display Pages (Next Phase - Ready for Implementation)**
-5. `expense-detail.html` - Convert to programmatic rendering
-6. `group-detail.html` - Convert to programmatic rendering
+**Phase 3: Data Display Pages (In Progress)**
+5. ✅ `expense-detail.html` - Converted to ExpenseDetailComponent with programmatic rendering
+6. `group-detail.html` - Convert to programmatic rendering (Next)
 
 **Phase 4: Content Pages (Small commit)**
 7. `index.html` - Landing page conversion (mostly static content)
@@ -272,4 +272,19 @@ Both pages are currently hybrid implementations:
 - Consistent component architecture with other converted pages
 - Proper cleanup and lifecycle management
 
-*Phase 3 is ready for implementation. This will complete the core data display page conversions.*
+### Phase 3 Progress Update
+
+#### Commit 1: ✅ COMPLETED - expense-detail.html conversion
+- Created ExpenseDetailComponent.ts with full functionality
+- Updated expense-detail-init.ts to mount the component
+- Converted expense-detail.html to minimal skeleton (app-root only)
+- Preserved all functionality: expense display, payer info, split breakdown, edit/delete permissions
+- Implemented modal-based delete confirmation with proper lifecycle
+- Successfully built and tested
+
+**Additional work completed:** Removed all app-specific branding (Split App 2, Splitify, splitifyd) from the codebase as requested.
+
+#### Commit 2: NEXT - group-detail.html conversion
+Ready to implement GroupDetailComponent following the same pattern.
+
+*Phase 3 Commit 1 is complete. Ready to proceed with Commit 2 when instructed.*
