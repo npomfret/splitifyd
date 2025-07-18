@@ -1,6 +1,5 @@
-import { PageHeaderComponent } from './components/page-header.js';
+import { RegisterComponent } from './components/RegisterComponent.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
-import { ButtonComponent } from './components/button.js';
 import { updatePageTitle } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
 
@@ -12,11 +11,12 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Update page title from configuration
   await updatePageTitle('Register');
   
-  
-  const pageHeader = new PageHeaderComponent({
-    title: 'Register' // Will be overridden by updatePageTitle
-  });
-  pageHeader.mount(document.body);
+  // Mount the register component
+  const appRoot = document.getElementById('app-root');
+  if (appRoot) {
+    const registerComponent = new RegisterComponent();
+    registerComponent.mount(appRoot);
+  }
 
   // Initialize warning banner from config
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');
@@ -32,18 +32,6 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     }
   } catch (error) {
     // Warning banner is optional, continue silently
-  }
-
-  const submitButton = new ButtonComponent({
-    text: 'Create Account',
-    type: 'submit',
-    variant: 'primary',
-    size: 'large',
-    ariaDescribedBy: 'submit-help'
-  });
-  const buttonContainer = document.getElementById('submit-button-container');
-  if (buttonContainer) {
-    submitButton.mount(buttonContainer);
   }
 
   await Promise.all([

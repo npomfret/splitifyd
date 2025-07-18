@@ -23,66 +23,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div id="warningBanner" class="warning-banner hidden"></div>
-    <div class="main-content">
-        <main class="auth-container">
-        <article class="auth-card auth-card--login">
-            <header class="auth-card__header">
-                <h1 class="auth-card__title"><a href="/index.html" class="auth-card__title-link"><img src="/images/logo.svg" alt="Logo" class="auth-card__logo"></a></h1>
-                <p class="auth-card__subtitle">Split bills with friends</p>
-            </header>
-            
-            <form class="auth-form" id="loginForm" novalidate>
-                <div class="form-group">
-                    <label for="email" class="form-label">
-                        Email Address
-                        <span class="form-label__required" aria-label="required">*</span>
-                    </label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        class="form-input"
-                        required
-                        autocomplete="email"
-                        aria-describedby="email-error"
-                    >
-                    <div id="email-error" class="form-error" role="alert"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        Password
-                        <span class="form-label__required" aria-label="required">*</span>
-                    </label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-input"
-                        required
-                        autocomplete="current-password"
-                        aria-describedby="password-error"
-                    >
-                    <div id="password-error" class="form-error" role="alert"></div>
-                </div>
-                
-                <div id="submit-button-container"></div>
-                <div id="submit-help" class="sr-only">
-                    This will sign you into your account
-                </div>
-            </form>
-            
-            <footer class="auth-card__footer">
-                <nav class="auth-nav" aria-label="Authentication navigation">
-                    <p><a href="reset-password.html" id="forgotPassword" class="auth-link">Forgot password?</a></p>
-                    <p>Don't have an account? <a href="register.html" id="signUpLink" class="auth-link auth-link--primary">Sign up</a></p>
-                </nav>
-            </footer>
-        </article>
-        </main>
-    </div>
-    
+    <div id="app-root"></div>
     <script type="module" src="/js/login-init.js"></script>
 </body>
 </html>
