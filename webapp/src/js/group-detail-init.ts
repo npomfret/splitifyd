@@ -40,4 +40,8 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Initialize group detail page
   const { initializeGroupDetailPage } = await import('./group-detail.js');
   await initializeGroupDetailPage();
+  
+  // Initialize event handlers
+  const { initializeGroupDetailHandlers } = await import('./group-detail-handlers.js');
+  initializeGroupDetailHandlers();
 });

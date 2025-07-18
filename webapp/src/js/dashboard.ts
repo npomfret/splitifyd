@@ -23,9 +23,43 @@ export async function initializeDashboard(): Promise<void> {
     return;
   }
 
-  // TODO: Implement header without component
+  // Render dashboard header
   if (headerContainer) {
-    headerContainer.innerHTML = '<h1>Dashboard</h1><div class="balance-display">Balance: $0.00</div>';
+    headerContainer.innerHTML = `
+      <header class="dashboard-header">
+        <div class="header-container">
+          <h1 class="dashboard-title">
+            <a href="/dashboard.html" class="dashboard-title-link">
+              <img src="/images/logo.svg" alt="Bill Splitter" class="dashboard-logo">
+            </a>
+          </h1>
+          <div class="header-balance-summary">
+            <div class="header-balance-item header-balance-item--negative">
+              <span class="header-balance-label">You Owe</span>
+              <span class="header-balance-amount">$0.00</span>
+            </div>
+            <div class="header-balance-item header-balance-item--positive">
+              <span class="header-balance-label">Owed to You</span>
+              <span class="header-balance-amount">$0.00</span>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="button button--secondary" id="logout-button">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </header>
+    `;
+    
+    // Initialize logout button
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+      logoutButton.addEventListener('click', () => {
+        authManager.logout();
+      });
+    }
   }
 
   // Dynamically import GroupsList when needed

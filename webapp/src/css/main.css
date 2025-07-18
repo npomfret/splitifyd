@@ -1602,6 +1602,98 @@ main section {
 }
 
 /* ===== EXPENSE COMPONENTS ===== */
+.expense-icon-large {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #8B2DC9 100%);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    box-shadow: 0 8px 24px rgba(106, 13, 173, 0.3);
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.expense-icon-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(106, 13, 173, 0.4);
+}
+
+.expense-icon-large i {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.expense-info-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.expense-amount-display {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+}
+
+.expense-amount-display .currency-symbol {
+    font-size: var(--font-size-base);
+    opacity: 0.8;
+}
+
+.expense-meta-separator {
+    color: var(--color-border);
+}
+
+.expense-meta-item {
+    color: var(--color-text-muted);
+}
+
+.expense-group-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: white;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: 50px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
+    transition: all 0.2s ease;
+}
+
+.expense-group-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+    .expense-icon-large {
+        width: 64px;
+        height: 64px;
+        font-size: var(--font-size-2xl);
+    }
+    
+    .expense-info-row {
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+    }
+    
+    .expense-meta-separator {
+        display: none;
+    }
+    
+    .expense-group-badge {
+        margin-top: var(--space-md);
+    }
+}
+
 .expense-form-container {
     max-width: 600px;
     margin: 0 auto;

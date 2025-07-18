@@ -18,32 +18,77 @@
     <div id="warningBanner" class="warning-banner hidden"></div>
     
     <header class="dashboard-header">
-        <div class="dashboard-container">
-            <h1 class="dashboard-title"><a href="dashboard.html" class="dashboard-title-link"><img src="/images/logo.svg" alt="Logo" class="dashboard-logo"></a></h1>
-            <button type="button" class="button button--logout" id="logoutButton">
-                Logout
-            </button>
+        <div class="header-container">
+            <h1 class="dashboard-title">
+                <a href="/dashboard.html" class="dashboard-title-link">
+                    <img src="/images/logo.svg" alt="Bill Splitter" class="dashboard-logo">
+                </a>
+            </h1>
+            <div class="header-balance-summary">
+                <div class="header-balance-item header-balance-item--negative">
+                    <span class="header-balance-label">You Owe</span>
+                    <span class="header-balance-amount">$0.00</span>
+                </div>
+                <div class="header-balance-item header-balance-item--positive">
+                    <span class="header-balance-label">Owed to You</span>
+                    <span class="header-balance-amount">$0.00</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="button button--secondary" id="logoutButton">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
         </div>
     </header>
     
     <main class="dashboard-main">
         <div class="dashboard-container">
             <div class="expense-detail-container">
-                <nav class="nav-header">
-                    <button class="button button--secondary back-button" id="backButton">
-                        <i class="fas fa-arrow-left"></i>
-                        <span>Back</span>
-                    </button>
-                    <h1 class="page-title">Expense Details</h1>
-                    <div class="header-actions">
-                        <button id="edit-expense-btn" class="button button--secondary button--icon hidden">
-                            <i class="fas fa-edit"></i>
+                <div class="group-header">
+                    <div class="group-header-top">
+                        <button class="back-button" id="backButton">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back</span>
                         </button>
-                        <button id="delete-expense-btn" class="button button--danger button--icon hidden">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="header-actions">
+                            <button id="edit-expense-btn" class="settings-button hidden">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button id="delete-expense-btn" class="settings-button hidden">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                </nav>
+                    <div class="group-info">
+                        <div class="group-info-left">
+                            <div class="group-icon-large">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="group-details">
+                                <h2 id="expense-description-header" class="group-name">Loading...</h2>
+                                <div class="group-members-preview">
+                                    <div class="expense-amount-display">
+                                        <span class="currency-symbol">$</span>
+                                        <span id="expense-amount-header">0.00</span>
+                                    </div>
+                                    <span class="members-count">
+                                        <span id="expense-date-header">Loading...</span>
+                                        <span class="expense-meta-separator">•</span>
+                                        <span id="expense-category-header">Loading...</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <div class="expense-group-badge">
+                                <i class="fas fa-users"></i>
+                                <span id="expense-group-header">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="loading" id="loading">
                     <div class="loading-spinner">
@@ -53,21 +98,6 @@
                 </div>
 
                 <div class="expense-detail-content" id="expense-detail-container" hidden>
-                    <div class="expense-header">
-                        <div class="expense-amount">
-                            <span class="currency-symbol">$</span>
-                            <span id="expense-amount">0.00</span>
-                        </div>
-                        <div class="expense-info">
-                            <h2 id="expense-description">Loading...</h2>
-                            <div class="expense-meta">
-                                <span class="expense-date" id="expense-date">Loading...</span>
-                                <span class="expense-category" id="expense-category">Loading...</span>
-                                <span class="expense-group" id="expense-group">Loading...</span>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="expense-details-section">
                         <div class="detail-card">
                             <h3>Paid By</h3>

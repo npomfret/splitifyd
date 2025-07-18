@@ -107,13 +107,13 @@ export class GroupsList {
     
     // TODO: Replace with simple button
     const tryAgainBtn = document.createElement('button');
-    tryAgainBtn.className = 'btn btn-secondary';
+    tryAgainBtn.className = 'button button--secondary';
     tryAgainBtn.textContent = 'Try Again';
     tryAgainBtn.onclick = () => this.loadGroups();
     
     // TODO: Replace with simple button
     const createGroupBtn = document.createElement('button');
-    createGroupBtn.className = 'btn btn-primary';
+    createGroupBtn.className = 'button button--primary';
     createGroupBtn.id = 'createGroupBtn';
     createGroupBtn.textContent = 'Create Group';
     createGroupBtn.onclick = () => this.openCreateGroupModal();
@@ -134,7 +134,7 @@ export class GroupsList {
     
     // TODO: Replace with simple button
     const createGroupBtn = document.createElement('button');
-    createGroupBtn.className = 'btn btn-primary';
+    createGroupBtn.className = 'button button--primary';
     createGroupBtn.id = 'createGroupBtn';
     createGroupBtn.textContent = 'Create Your First Group';
     createGroupBtn.onclick = () => this.openCreateGroupModal();
@@ -309,7 +309,7 @@ export class GroupsList {
     const headerTitle = createElementSafe('h2', { className: 'groups-header__title', textContent: 'Your Groups' });
     // TODO: Replace with simple button
     const createGroupBtn = document.createElement('button');
-    createGroupBtn.className = 'btn btn-primary';
+    createGroupBtn.className = 'button button--primary';
     createGroupBtn.id = 'createGroupBtn';
     createGroupBtn.textContent = '+ Create Group';
     createGroupBtn.onclick = () => this.openCreateGroupModal();
@@ -473,7 +473,7 @@ export class GroupsList {
       modal.unmount();
     };
     const createButton = document.createElement('button');
-    createButton.className = 'btn btn-primary';
+    createButton.className = 'button button--primary';
     createButton.textContent = 'Create Group';
     createButton.onclick = async () => {
         const formData = new FormData(form);

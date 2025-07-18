@@ -97,15 +97,34 @@ function displayExpenseDetails(expense: ExpenseData): void {
     const loadingEl = document.getElementById('loading') as HTMLElement;
     const containerEl = document.getElementById('expense-detail-container') as HTMLElement;
 
-    amountEl.textContent = expense.amount.toFixed(2);
-    descriptionEl.textContent = expense.description;
-    dateEl.textContent = formatDate(expense.date || expense.createdAt);
-    categoryEl.textContent = 'General';
+    // Update header elements
+    const amountHeaderEl = document.getElementById('expense-amount-header') as HTMLElement;
+    const descriptionHeaderEl = document.getElementById('expense-description-header') as HTMLElement;
+    const dateHeaderEl = document.getElementById('expense-date-header') as HTMLElement;
+    const categoryHeaderEl = document.getElementById('expense-category-header') as HTMLElement;
+    const groupHeaderEl = document.getElementById('expense-group-header') as HTMLElement;
+
+    // Set values for both old elements (if they exist) and new header elements
+    if (amountEl) amountEl.textContent = expense.amount.toFixed(2);
+    if (amountHeaderEl) amountHeaderEl.textContent = expense.amount.toFixed(2);
+    
+    if (descriptionEl) descriptionEl.textContent = expense.description;
+    if (descriptionHeaderEl) descriptionHeaderEl.textContent = expense.description;
+    
+    const formattedDate = formatDate(expense.date || expense.createdAt);
+    if (dateEl) dateEl.textContent = formattedDate;
+    if (dateHeaderEl) dateHeaderEl.textContent = formattedDate;
+    
+    if (categoryEl) categoryEl.textContent = 'General';
+    if (categoryHeaderEl) categoryHeaderEl.textContent = 'General';
     
     // Display group info in header
     const groupEl = document.getElementById('expense-group') as HTMLElement;
     if (groupEl && currentGroup) {
         groupEl.textContent = currentGroup.name;
+    }
+    if (groupHeaderEl && currentGroup) {
+        groupHeaderEl.textContent = currentGroup.name;
     }
 
     displayPayerInfo(expense.paidBy, expense.splits);
@@ -194,12 +213,27 @@ function setupEventListeners(): void {
     const editBtn = document.getElementById('edit-expense-btn') as HTMLButtonElement;
     const deleteBtn = document.getElementById('delete-expense-btn') as HTMLButtonElement;
     const confirmBtn = document.getElementById('confirm-delete-btn') as HTMLButtonElement;
+    const backBtn = document.getElementById('backButton') as HTMLButtonElement;
     
-    editBtn.addEventListener('click', editExpense);
-    deleteBtn.addEventListener('click', showDeleteModal);
-    confirmBtn.addEventListener('click', deleteExpense);
+    if (editBtn) editBtn.addEventListener('click', editExpense);
+    if (deleteBtn) deleteBtn.addEventListener('click', showDeleteModal);
+    if (confirmBtn) confirmBtn.addEventListener('click', deleteExpense);
     
-    // Back button is now handled by simple navigation
+    // Back button handler
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnUrl = urlParams.get('return');
+            
+            if (returnUrl) {
+                window.location.href = returnUrl;
+            } else if (currentExpense) {
+                window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentExpense.groupId}`;
+            } else {
+                window.location.href = ROUTES.DASHBOARD;
+            }
+        });
+    }
     
     // Retry button handler
     const retryButton = document.querySelector('.button.button--secondary') as HTMLButtonElement;
