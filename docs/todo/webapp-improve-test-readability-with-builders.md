@@ -104,10 +104,47 @@ The following test files would benefit most from this refactoring:
 
 ## Implementation Plan
 
-1.  **Create a `builders` directory** within `firebase/functions/__tests__/support` to house our new builder classes.
-2.  **Implement `UserBuilder`, `GroupBuilder`, and `ExpenseBuilder`**. These will be the core builders.
-3.  **Refactor one test file at a time**, starting with `business-logic.test.ts`, to use the new builders.
-4.  **Submit a pull request** for each refactored file to ensure a gradual and reviewable transition.
+### Phase 1: Infrastructure Setup
+1. **Create a `builders` directory** within `firebase/functions/__tests__/support` to house our new builder classes.
+2. **Create index.ts** for clean imports from the builders directory.
+
+### Phase 2: Builder Implementation
+3. **Implement `UserBuilder`** - Provides fluent interface for test user creation with sensible defaults.
+4. **Implement `GroupBuilder`** - Provides fluent interface for test group creation with default members.
+5. **Implement `ExpenseBuilder`** - Provides fluent interface for test expense creation with configurable splits.
+
+### Phase 3: Test Refactoring (Small Commits)
+6. **Refactor business-logic.test.ts** - Start with the most complex test file to validate builder patterns.
+7. **Submit pull request** for the builders infrastructure and first refactored test file.
+
+### Detailed Implementation Analysis
+
+After examining the codebase, I've identified the following patterns and requirements:
+
+**Current Test Structure:**
+- Tests use `ApiDriver` class for HTTP operations
+- User objects: `{ uid, email, token, displayName }`
+- Group objects: `{ id, name, members[] }`
+- Expense objects: `{ id, groupId, description, amount, paidBy, splitType, participants[], splits[], date, category, receiptUrl? }`
+
+**Builder Design Decisions:**
+- Builders will integrate with existing `ApiDriver` for actual API calls
+- Default values will be realistic test data (not production-like)
+- Fluent interface with method chaining
+- Each builder will have a `build()` method that returns the constructed object
+- For API-dependent builders (Group, Expense), provide both object creation and API integration
+
+**Implementation Approach:**
+- Keep builders simple and focused on test readability
+- Use TypeScript interfaces from existing code
+- Provide factory methods for common test scenarios
+- Ensure builders work with existing test patterns
+
+**Benefits Expected:**
+- Reduced boilerplate in test files from ~10 lines to ~3 lines per object
+- Clearer test intent by highlighting only relevant properties
+- Easier maintenance when object structures change
+- Consistent test data across all test files
 
 ## Benefits
 
