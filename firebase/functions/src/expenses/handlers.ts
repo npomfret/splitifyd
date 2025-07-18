@@ -24,6 +24,15 @@ const getGroupsCollection = () => {
   return admin.firestore().collection('documents');
 };
 
+const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {
+  const groupDoc = await getGroupsCollection().doc(groupId).get();
+  if (!groupDoc.exists) {
+    return false;
+  }
+  const groupData = groupDoc.data();
+  return groupData?.userId === userId;
+};
+
 
 
 const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
@@ -239,8 +248,10 @@ export const updateExpense = async (
 
   const { docRef, expense } = await fetchExpense(expenseId, userId);
 
-  if (expense.createdBy !== userId) {
-    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_CREATOR', 'Only the expense creator can edit it');
+  // Check if user is either the expense creator or the group owner
+  const isOwner = await isGroupOwner(expense.groupId, userId);
+  if (expense.createdBy !== userId && !isOwner) {
+    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'Only the expense creator or group owner can edit this expense');
   }
 
   // Type note: This is intentionally `any` because we're building a dynamic update object
@@ -338,8 +349,10 @@ export const deleteExpense = async (
 
   const { docRef, expense } = await fetchExpense(expenseId, userId);
 
-  if (expense.createdBy !== userId) {
-    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_CREATOR', 'Only the expense creator can delete it');
+  // Check if user is either the expense creator or the group owner
+  const isOwner = await isGroupOwner(expense.groupId, userId);
+  if (expense.createdBy !== userId && !isOwner) {
+    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'Only the expense creator or group owner can delete this expense');
   }
 
   try {

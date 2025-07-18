@@ -23,7 +23,11 @@ const getDocumentsCollection = () => {
 };
 
 
-const fetchUserDocument = async (documentId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference, document: Document }> => {
+const fetchUserDocument = async (
+  documentId: string, 
+  userId: string,
+  requireWriteAccess: boolean = false
+): Promise<{ docRef: admin.firestore.DocumentReference, document: Document }> => {
   const docRef = getDocumentsCollection().doc(documentId);
   const doc = await docRef.get();
 
@@ -38,7 +42,12 @@ const fetchUserDocument = async (documentId: string, userId: string): Promise<{ 
     return { docRef, document };
   }
 
-  // For group documents, check if user is a member
+  // For write operations, only the owner is allowed
+  if (requireWriteAccess) {
+    throw Errors.FORBIDDEN();
+  }
+
+  // For read operations on group documents, check if user is a member
   if (document.data?.members && Array.isArray(document.data.members)) {
     const isMember = document.data.members.some((member: { uid: string }) => 
       member.uid === userId
@@ -147,8 +156,8 @@ export const updateDocument = async (
     throw Errors.INVALID_INPUT('Group membership cannot be modified through updateDocument. Use proper group management endpoints instead.');
   }
 
-  // Fetch and verify document ownership
-  const { docRef } = await fetchUserDocument(documentId, userId);
+  // Fetch and verify document ownership with write access required
+  const { docRef } = await fetchUserDocument(documentId, userId, true);
 
   // Update document
   await docRef.update({
@@ -173,8 +182,8 @@ export const deleteDocument = async (
   // Validate document ID
   const documentId = validateDocumentId(req.query.id);
 
-  // Fetch and verify document ownership
-  const { docRef } = await fetchUserDocument(documentId, userId);
+  // Fetch and verify document ownership with write access required
+  const { docRef } = await fetchUserDocument(documentId, userId, true);
 
   // Delete document
   await docRef.delete();

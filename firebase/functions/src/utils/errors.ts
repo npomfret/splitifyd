@@ -84,6 +84,7 @@ export const Errors = {
   // Authentication errors
   UNAUTHORIZED: () => new ApiError(HTTP_STATUS.UNAUTHORIZED, 'UNAUTHORIZED', 'Authentication required'),
   INVALID_TOKEN: () => new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_TOKEN', 'Invalid authentication token'),
+  FORBIDDEN: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'FORBIDDEN', 'Access denied'),
   
   // Validation errors
   INVALID_INPUT: (details?: any) => new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'Invalid input data', details),
