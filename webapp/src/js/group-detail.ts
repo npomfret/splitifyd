@@ -48,7 +48,16 @@ async function initializeGroupDetailPage(): Promise<void> {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initializeGroupDetailPage);
+// Export for initialization from group-detail-init.ts
+export { initializeGroupDetailPage };
+
+// For backward compatibility when loaded directly
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeGroupDetailPage);
+} else {
+    // DOM is already loaded
+    initializeGroupDetailPage();
+}
 
 function initializeEventListeners(): void {
     document.querySelectorAll<HTMLButtonElement>('.tab-button').forEach(button => {

@@ -3,8 +3,17 @@ import { WarningBannerComponent } from './components/warning-banner.js';
 import { AppInit } from './app-init.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Set up API base URL before loading components that use auth
+    // Set up API base URL before loading any other scripts
     AppInit.setupApiBaseUrl();
+    
+    // Load all required modules in parallel
+    await Promise.all([
+        import('./firebase-init.js'),
+        import('./firebase-config-manager.js'),
+        import('./api.js'),
+        import('./auth.js'),
+        import('./logout-handler.js')
+    ]);
     
     // Initialize warning banner from config
     const { firebaseConfigManager } = await import('./firebase-config-manager.js');

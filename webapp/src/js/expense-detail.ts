@@ -61,7 +61,16 @@ async function initializeExpenseDetailPage(): Promise<void> {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initializeExpenseDetailPage);
+// Export for initialization from expense-detail-init.ts
+export { initializeExpenseDetailPage };
+
+// For backward compatibility when loaded directly
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeExpenseDetailPage);
+} else {
+    // DOM is already loaded
+    initializeExpenseDetailPage();
+}
 
 async function loadExpenseDetails(expenseId: string): Promise<void> {
     try {
