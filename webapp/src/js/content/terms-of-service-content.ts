@@ -1,0 +1,55 @@
+export const termsOfServiceContent = `
+<section>
+    <h2>Acceptance of Terms</h2>
+    <p>These Terms of Service ("Terms") constitute a legally binding agreement between you ("User," "you," or "your") and our service ("we," "us," or "our"). By accessing or using our application, you acknowledge that you have read, understood, and agree to be bound by these Terms and our Privacy Policy. If you disagree with any part of these Terms, you may not access or use our service.</p>
+</section>
+
+<section>
+    <h2>Description of Service</h2>
+    <p>Our service is a proprietary software application designed to facilitate expense sharing and financial management among users. We provide the service subject to these Terms, which we may update from time to time without notice to you. Your continued use of the service following any such changes constitutes your acceptance of the new Terms.</p>
+</section>
+
+<section>
+    <h2>User Accounts and Registration</h2>
+    <p>To access certain features of our service, you may be required to create an account. You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate, current, and complete. You are responsible for safeguarding the password and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.</p>
+</section>
+
+<section>
+    <h2>User Conduct and Prohibited Activities</h2>
+    <p>You agree not to use the service for any unlawful purpose or in any way that could damage, disable, overburden, or impair our servers or networks. Prohibited activities include, but are not limited to: violating any applicable laws or regulations; infringing upon intellectual property rights; transmitting malicious code or conducting security attacks; engaging in fraudulent activities; harassing or abusing other users; or interfering with the proper functioning of the service. We reserve the right to terminate or suspend access to users who violate these provisions.</p>
+</section>
+
+<section>
+    <h2>Intellectual Property Rights</h2>
+    <p>The service and its original content, features, and functionality are and will remain our exclusive property and that of our licensors. The service is protected by copyright, trademark, and other laws. You may not reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, republish, download, store, or transmit any of the material on our service, except as generally authorized by these Terms or with our prior written consent.</p>
+</section>
+
+<section>
+    <h2>Disclaimers and Limitation of Liability</h2>
+    <p>THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. WE EXPRESSLY DISCLAIM ALL WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL WE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR USE OF THE SERVICE.</p>
+</section>
+
+<section>
+    <h2>Indemnification</h2>
+    <p>You agree to defend, indemnify, and hold us harmless from and against any and all claims, damages, obligations, losses, liabilities, costs, or debt, and expenses (including but not limited to attorney's fees) arising from: (i) your use of and access to the service; (ii) your violation of any term of these Terms; (iii) your violation of any third-party right, including without limitation any copyright, property, or privacy right; or (iv) any claim that your use of the service caused damage to a third party.</p>
+</section>
+
+<section>
+    <h2>Termination</h2>
+    <p>We may terminate or suspend your account and bar access to the service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever, including without limitation if you breach these Terms. Upon termination, your right to use the service will cease immediately. If you wish to terminate your account, you may simply discontinue using the service.</p>
+</section>
+
+<section>
+    <h2>Modifications to Service and Terms</h2>
+    <p>We reserve the right to withdraw or amend our service, and any service or material we provide, in our sole discretion without notice. We may also modify these Terms at any time by posting the revised Terms on our service. Your continued use of the service after such modifications constitutes your acceptance of the updated Terms.</p>
+</section>
+
+<section>
+    <h2>Governing Law and Dispute Resolution</h2>
+    <p>These Terms shall be interpreted and governed by the laws of the jurisdiction in which we operate, without regard to conflict of law principles. Any disputes arising out of or relating to these Terms or the service shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association, except that either party may seek injunctive relief in any court of competent jurisdiction.</p>
+</section>
+
+<section>
+    <h2>Miscellaneous</h2>
+    <p>These Terms constitute the entire agreement between us regarding our service and supersede any prior agreements. If any provision of these Terms is held to be invalid or unenforceable, the remaining provisions will remain in full force and effect. Our failure to enforce any right or provision of these Terms will not constitute a waiver of such right or provision.</p>
+</section>`;

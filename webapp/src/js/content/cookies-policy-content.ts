@@ -1,0 +1,94 @@
+export const cookiesPolicyContent = `
+<section>
+    <h2>Introduction</h2>
+    <p>This Cookie Policy explains how we ("we," "us," or "our") use cookies and similar technologies when you visit our website and use our services. By using our website, you consent to the use of cookies as described in this policy.</p>
+    <p><strong>Last updated:</strong> January 2025</p>
+</section>
+
+<section>
+    <h2>What Are Cookies?</h2>
+    <p>Cookies are small text files that are placed on your device (computer, smartphone, or tablet) when you visit our website. They help us provide you with a better experience by remembering your preferences and enabling essential functionality.</p>
+</section>
+
+<section>
+    <h2>Types of Cookies We Use</h2>
+    
+    <h3>Essential Cookies</h3>
+    <p>These cookies are necessary for the website to function properly and cannot be disabled. They enable core functionality such as:</p>
+    <ul>
+        <li>User authentication and session management</li>
+        <li>Security and fraud prevention</li>
+        <li>Load balancing and server performance</li>
+        <li>Remembering your login state</li>
+    </ul>
+
+    <h3>Functional Cookies</h3>
+    <p>These cookies enhance your experience by remembering your preferences and settings, such as:</p>
+    <ul>
+        <li>Language and region preferences</li>
+        <li>Display preferences and themes</li>
+        <li>Form data to prevent data loss</li>
+    </ul>
+
+    <h3>Analytics and Performance Cookies</h3>
+    <p>We may use these cookies to understand how visitors interact with our website, helping us improve our services:</p>
+    <ul>
+        <li>Page views and user navigation patterns</li>
+        <li>Error tracking and performance monitoring</li>
+        <li>Feature usage statistics</li>
+    </ul>
+    <p><em>Currently, we do not use analytics cookies, but we reserve the right to implement them in the future.</em></p>
+
+    <h3>Advertising and Marketing Cookies</h3>
+    <p>We may use these cookies to deliver relevant advertisements and measure their effectiveness:</p>
+    <ul>
+        <li>Targeted advertising based on your interests</li>
+        <li>Conversion tracking and campaign measurement</li>
+        <li>Cross-site tracking for advertising purposes</li>
+    </ul>
+    <p><em>Currently, we do not use advertising cookies, but we reserve the right to implement them in the future with appropriate notice.</em></p>
+</section>
+
+<section>
+    <h2>Third-Party Cookies</h2>
+    <p>We may allow trusted third-party services to set cookies on our website for the following purposes:</p>
+    <ul>
+        <li>Authentication services (e.g., Firebase Auth)</li>
+        <li>Analytics and performance monitoring</li>
+        <li>Content delivery and optimization</li>
+        <li>Security and fraud prevention</li>
+    </ul>
+    <p>These third parties have their own privacy policies and cookie practices, which we encourage you to review.</p>
+</section>
+
+<section>
+    <h2>Managing Your Cookie Preferences</h2>
+    <p>You can control cookie settings through your browser preferences. Most browsers allow you to:</p>
+    <ul>
+        <li>View and delete existing cookies</li>
+        <li>Block cookies from specific websites</li>
+        <li>Block third-party cookies</li>
+        <li>Receive notifications when cookies are set</li>
+    </ul>
+    <p><strong>Please note:</strong> Disabling essential cookies may affect the functionality of our website and services.</p>
+</section>
+
+<section>
+    <h2>Cookie Retention</h2>
+    <p>We retain cookies for different periods depending on their purpose:</p>
+    <ul>
+        <li><strong>Session cookies:</strong> Deleted when you close your browser</li>
+        <li><strong>Persistent cookies:</strong> Remain on your device for a specified period or until manually deleted</li>
+        <li><strong>Authentication cookies:</strong> Typically expire after 30 days of inactivity</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Updates to This Policy</h2>
+    <p>We may update this Cookie Policy from time to time to reflect changes in our practices or applicable laws. We will notify you of significant changes by updating the "Last updated" date at the top of this policy.</p>
+</section>
+
+<section>
+    <h2>Contact Us</h2>
+    <p>If you have questions about our use of cookies or this Cookie Policy, please contact us through our website or support channels.</p>
+</section>`;
