@@ -349,8 +349,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Main API export - using Firebase Functions v2 for better performance
 export const api = onRequest({
   invoker: 'public', // Allow unauthenticated access for CORS and public endpoints
-  maxInstances: 100,
-  timeoutSeconds: 540, // 9 minutes
+  maxInstances: 10,
+  timeoutSeconds: 10,
   region: 'us-central1',
   memory: '512MiB' // Optimized for API workload with authentication and database operations
 }, (req, res) => {
