@@ -1,6 +1,7 @@
 import { BaseComponent } from './base-component.js';
 import { createElementSafe } from '../utils/safe-dom.js';
 import { updatePageTitle } from '../utils/page-title.js';
+import { WarningBannerComponent } from './warning-banner.js';
 
 export interface PolicyPageConfig {
   title: string;
@@ -18,11 +19,15 @@ export class PolicyPageComponent extends BaseComponent<HTMLDivElement> {
   }
 
   protected render(): HTMLDivElement {
-    const container = document.createElement('div');
-    container.className = 'main-content';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'policy-page-wrapper';
+    
+    const mainContent = createElementSafe('div', {
+      className: 'main-content'
+    });
 
-    const main = createElementSafe('main', {
-      className: 'container'
+    const container = createElementSafe('div', {
+      className: 'policy-container'
     });
 
     const header = createElementSafe('header', {
@@ -49,10 +54,9 @@ export class PolicyPageComponent extends BaseComponent<HTMLDivElement> {
     header.appendChild(logoLink);
     header.appendChild(h1);
 
-    const contentDiv = createElementSafe('div', {
-      className: 'static-page-content',
-      innerHTML: this.config.content
-    });
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'static-page-content';
+    contentDiv.innerHTML = this.config.content;
 
     const footer = createElementSafe('footer', {
       className: 'static-page-footer'
@@ -64,11 +68,14 @@ export class PolicyPageComponent extends BaseComponent<HTMLDivElement> {
 
     footer.appendChild(footerText);
 
-    main.appendChild(header);
-    main.appendChild(contentDiv);
-    main.appendChild(footer);
-    container.appendChild(main);
+    // Structure with proper containers
+    container.appendChild(header);
+    container.appendChild(contentDiv);
+    
+    mainContent.appendChild(container);
+    wrapper.appendChild(mainContent);
+    wrapper.appendChild(footer);
 
-    return container;
+    return wrapper;
   }
 }

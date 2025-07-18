@@ -2837,6 +2837,31 @@ main section {
 }
 
 /* ===== STATIC PAGE STYLES ===== */
+.policy-page-wrapper {
+    min-height: 100vh;
+    background: var(--color-background);
+    display: flex;
+    flex-direction: column;
+}
+
+.policy-page-wrapper .main-content {
+    flex: 1;
+    padding: var(--space-xl) 0;
+}
+
+.policy-page-wrapper .policy-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    width: 100%;
+    display: block;
+}
+
+.policy-page-wrapper .static-page-footer {
+    margin-top: auto;
+    width: 100%;
+}
+
 .static-page-header {
     text-align: center;
     margin-bottom: var(--space-xl);
