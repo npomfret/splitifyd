@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config';
+import { getConfig } from '../config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 
@@ -23,12 +23,13 @@ class InMemoryRateLimiter {
   private readonly maxRequests: number;
   private readonly requests = new Map<string, number[]>();
 
-  constructor(windowMs: number = CONFIG.rateLimiting.windowMs, maxRequests: number = CONFIG.rateLimiting.maxRequests) {
-    this.windowMs = windowMs;
-    this.maxRequests = maxRequests;
+  constructor(windowMs?: number, maxRequests?: number) {
+    const config = getConfig();
+    this.windowMs = windowMs ?? config.rateLimiting.windowMs;
+    this.maxRequests = maxRequests ?? config.rateLimiting.maxRequests;
     
     // Periodic cleanup
-    setInterval(() => this.cleanup(), CONFIG.rateLimiting.cleanupIntervalMs);
+    setInterval(() => this.cleanup(), config.rateLimiting.cleanupIntervalMs);
   }
 
   isAllowed(userId: string): boolean {
@@ -70,8 +71,15 @@ class InMemoryRateLimiter {
   }
 }
 
-// Initialize in-memory rate limiter
-const rateLimiter = new InMemoryRateLimiter();
+// Lazy-initialize rate limiter
+let rateLimiter: InMemoryRateLimiter | null = null;
+
+function getRateLimiter(): InMemoryRateLimiter {
+  if (!rateLimiter) {
+    rateLimiter = new InMemoryRateLimiter();
+  }
+  return rateLimiter;
+}
 
 /**
  * Verify Firebase Auth token and attach user to request
@@ -107,7 +115,7 @@ export const authenticate = async (
     };
 
     // Check rate limit
-    const isAllowed = rateLimiter.isAllowed(decodedToken.uid);
+    const isAllowed = getRateLimiter().isAllowed(decodedToken.uid);
     if (!isAllowed) {
       return sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
     }

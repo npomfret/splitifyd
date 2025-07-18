@@ -10,7 +10,6 @@
         "firebase-debug.*.log"
       ],
       "predeploy": [
-        "cp ../../app-config.json \"$RESOURCE_DIR\"/../app-config.json",
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }

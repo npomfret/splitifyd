@@ -4,7 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { Errors } from '../utils/errors';
-import { CONFIG } from '../config';
+import { getConfig } from '../config';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import {
   validateCreateDocument,
@@ -194,9 +194,10 @@ export const listDocuments = async (
   const userId = validateUserAuth(req);
 
   // Parse pagination parameters
+  const config = getConfig();
   const limit = Math.min(
-    parseInt(req.query.limit as string) || CONFIG.document.listLimit,
-    CONFIG.document.listLimit
+    parseInt(req.query.limit as string) || config.document.listLimit,
+    config.document.listLimit
   );
   const cursor = req.query.cursor as string;
   const order = (req.query.order as string) === 'asc' ? 'asc' : 'desc';

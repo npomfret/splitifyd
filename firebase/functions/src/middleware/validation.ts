@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import { CONFIG } from '../config';
+import { getConfig } from '../config';
 import { checkForDangerousPatterns } from '../utils/security';
 
 /**
@@ -15,7 +15,8 @@ export const validateRequestStructure = (
     return next();
   }
 
-  const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = CONFIG.validation;
+  const config = getConfig();
+  const { maxObjectDepth, maxPropertyCount, maxStringLength, maxPropertyNameLength } = config.validation;
 
   // Single recursive validation function
   const validateObject = (obj: unknown, depth = 0): void => {
@@ -117,8 +118,12 @@ export const rateLimitByIP = (
 ): void => {
   const ip = req.ip || req.connection.remoteAddress || 'unknown';
   const now = Date.now();
-  const windowMs = CONFIG.rateLimiting.windowMs;
-  const maxRequests = CONFIG.rateLimiting.maxRequests;
+  const config = getConfig();
+  const windowMs = config.rateLimiting.windowMs;
+  const maxRequests = config.rateLimiting.maxRequests;
+  
+  // Initialize cleanup on first request
+  initializeCleanup();
   
   // Store the IP for logging purposes
   req.headers['x-client-ip'] = ip;
@@ -161,12 +166,18 @@ export const rateLimitByIP = (
   next();
 };
 
-// Cleanup old entries periodically to prevent memory leaks
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(ip);
-    }
+// Lazy-initialize cleanup interval
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+function initializeCleanup(): void {
+  if (!cleanupInterval) {
+    cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      for (const [ip, entry] of rateLimitStore.entries()) {
+        if (now > entry.resetTime) {
+          rateLimitStore.delete(ip);
+        }
+      }
+    }, getConfig().rateLimiting.cleanupIntervalMs);
   }
-}, CONFIG.rateLimiting.cleanupIntervalMs);
+}

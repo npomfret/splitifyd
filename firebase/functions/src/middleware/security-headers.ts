@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { CONFIG } from '../config';
+import { getConfig } from '../config';
 
 export function applySecurityHeaders(req: Request, res: Response, next: NextFunction): void {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -8,7 +8,8 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   
-  if (CONFIG.isProduction) {
+  const config = getConfig();
+  if (config.isProduction) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     res.setHeader(
       'Content-Security-Policy',

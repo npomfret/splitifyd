@@ -1,5 +1,5 @@
 import express from 'express';
-import { CONFIG } from '../config';
+import { getConfig } from '../config';
 import { addCorrelationId, logger } from '../logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
@@ -28,7 +28,7 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
   app.use(validateContentType);
 
   // Parse JSON with size limit
-  app.use(express.json({ limit: CONFIG.requestBodyLimit }));
+  app.use(express.json({ limit: getConfig().requestBodyLimit }));
 
   // Validate request structure and prevent malicious payloads
   app.use(validateRequestStructure);

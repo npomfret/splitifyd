@@ -1,26 +1,37 @@
 import { getEnhancedConfigResponse } from '../utils/config-response';
-import { APP_CONFIG } from '../config';
+import { getAppConfig, getConfig } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
-// Mock the CONFIG object and APP_CONFIG
+// Mock the getConfig and getAppConfig functions
 jest.mock('../config', () => ({
-  CONFIG: {
+  getConfig: () => ({
     isDevelopment: false,
     isProduction: true,
-    projectId: 'test-project',
-    clientConfig: {
-      apiKey: 'test-api-key',
-      authDomain: 'test.firebaseapp.com',
-      storageBucket: 'test.firebasestorage.app',
-      messagingSenderId: '123456789',
-      appId: '1:123456789:web:abcdef',
-      measurementId: 'G-TEST123',
+    requestBodyLimit: '1mb',
+    rateLimiting: {
+      windowMs: 60000,
+      maxRequests: 100,
+      cleanupIntervalMs: 300000
     },
-    formDefaults: undefined,
-    warningBanner: '⚠️ this is a demo - your data will be deleted without notice',
-    emulatorPorts: {}
-  },
-  APP_CONFIG: {
+    validation: {
+      maxRequestSizeBytes: 1048576,
+      maxObjectDepth: 10,
+      maxStringLength: 10000,
+      maxPropertyCount: 100,
+      maxPropertyNameLength: 100
+    },
+    document: {
+      listLimit: 50,
+      previewLength: 100
+    },
+    formDefaults: {
+      displayName: '',
+      email: '',
+      password: ''
+    },
+    warningBanner: '⚠️ this is a demo - your data will be deleted without notice'
+  }),
+  getAppConfig: () => ({
     firebase: {
       apiKey: 'test-api-key',
       authDomain: 'test.firebaseapp.com',
@@ -46,7 +57,7 @@ jest.mock('../config', () => ({
       password: ''
     },
     firebaseAuthUrl: undefined
-  }
+  })
 }));
 
 // Mock logger

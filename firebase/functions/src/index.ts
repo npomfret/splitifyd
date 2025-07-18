@@ -8,7 +8,7 @@ import { getEnhancedConfigResponse } from './utils/config-response';
 import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
-import { CONFIG } from './config';
+import { getConfig } from './config';
 import {
   createDocument,
   getDocument,
@@ -34,7 +34,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Test emulator connections when running locally
-if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
+if (process.env.FUNCTIONS_EMULATOR === 'true') {
   // Helper function to wait for emulator with exponential backoff
   async function waitForEmulator(
     testFn: () => Promise<any>, 
@@ -65,21 +65,33 @@ if (!CONFIG.isProduction && process.env.FUNCTIONS_EMULATOR === 'true') {
     });
 }
 
-const app = express();
+// Lazy-initialize Express app
+let app: express.Application | null = null;
 
-// Strip /api prefix for hosting rewrites
-app.use((req, res, next) => {
-  if (req.url.startsWith('/api/')) {
-    req.url = req.url.substring(4);
+function getApp(): express.Application {
+  if (!app) {
+    app = express();
+    
+    // Strip /api prefix for hosting rewrites
+    app.use((req, res, next) => {
+      if (req.url.startsWith('/api/')) {
+        req.url = req.url.substring(4);
+      }
+      next();
+    });
+    
+    // Apply standard middleware stack (includes CORS)
+    applyStandardMiddleware(app, { logMessage: 'Incoming request' });
+    
+    setupRoutes(app);
   }
-  next();
-});
+  return app;
+}
 
-// Apply standard middleware stack (includes CORS)
-applyStandardMiddleware(app, { logMessage: 'Incoming request' });
+function setupRoutes(app: express.Application): void {
 
-// Enhanced health check endpoint (no auth required)
-app.get('/health', async (req: express.Request, res: express.Response) => {
+  // Enhanced health check endpoint (no auth required)
+  app.get('/health', async (req: express.Request, res: express.Response) => {
   const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }> = {};
 
   const firestoreStart = Date.now();
@@ -101,8 +113,8 @@ app.get('/health', async (req: express.Request, res: express.Response) => {
   sendHealthCheckResponse(res, checks);
 });
 
-// Detailed status endpoint for monitoring systems
-app.get('/status', async (req: express.Request, res: express.Response) => {
+  // Detailed status endpoint for monitoring systems
+  app.get('/status', async (req: express.Request, res: express.Response) => {
   const memUsage = process.memoryUsage();
   
   res.json({
@@ -120,8 +132,8 @@ app.get('/status', async (req: express.Request, res: express.Response) => {
   });
 });
 
-// Environment variables endpoint (for debugging)
-app.get('/env', (req: express.Request, res: express.Response) => {
+  // Environment variables endpoint (for debugging)
+  app.get('/env', (req: express.Request, res: express.Response) => {
   // IMPORTANT: DO NOT DELETE - Ensure this endpoint is never cached
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -226,7 +238,8 @@ app.get('/config', asyncHandler((req: express.Request, res: express.Response) =>
   const config = getEnhancedConfigResponse();
   
   // Cache for 5 minutes in development, 1 hour in production
-  const maxAge = CONFIG.isDevelopment ? 300 : 3600;
+  const cfg = getConfig();
+  const maxAge = cfg.isDevelopment ? 300 : 3600;
   res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
   
   res.json(config);
@@ -330,7 +343,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
       correlationId,
     },
   });
-});
+  });
+}
 
 // Main API export - using Firebase Functions v2 for better performance
 export const api = onRequest({
@@ -339,7 +353,7 @@ export const api = onRequest({
   timeoutSeconds: 540, // 9 minutes
   region: 'us-central1',
   memory: '512MiB' // Optimized for API workload with authentication and database operations
-}, app);
+}, getApp());
 
 // Export Firestore triggers
 export { onExpenseWriteV6 };

@@ -1,7 +1,7 @@
 import * as Joi from 'joi';
 import * as admin from 'firebase-admin';
 import { Errors } from '../utils/errors';
-import { CONFIG } from '../config';
+import { getConfig } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
 import { Member } from '../types/group-types';
@@ -115,7 +115,7 @@ const validateDocumentRequest = (body: unknown, schema: Joi.ObjectSchema): { dat
     throw Errors.INVALID_INPUT(error.details);
   }
   
-  if (getJsonSize(value.data) > CONFIG.validation.maxRequestSizeBytes) {
+  if (getJsonSize(value.data) > getConfig().validation.maxRequestSizeBytes) {
     throw Errors.DOCUMENT_TOO_LARGE();
   }
   

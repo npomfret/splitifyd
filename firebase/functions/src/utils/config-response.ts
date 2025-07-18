@@ -1,7 +1,7 @@
-import { APP_CONFIG } from '../config';
+import { getAppConfig } from '../config';
 import { AppConfiguration } from '../types/config.types';
 
 export const getEnhancedConfigResponse = (): AppConfiguration => {
-  // Return the pre-built, validated configuration
-  return APP_CONFIG;
+  // Return the lazily-loaded, validated configuration
+  return getAppConfig();
 };
