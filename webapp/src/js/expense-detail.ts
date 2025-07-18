@@ -4,8 +4,6 @@ import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import { ExpenseService } from './expenses.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
-import { HeaderComponent } from './components/header.js';
-import { NavigationComponent } from './components/navigation.js';
 import { showError as showUIError } from './utils/ui-messages.js';
 import { ROUTES } from './routes.js';
 import type { User } from './types/global';
@@ -36,24 +34,17 @@ async function initializeExpenseDetailPage(): Promise<void> {
 
         await loadExpenseDetails(expenseId);
 
+        // TODO: Implement header without component
         const headerContainer = document.getElementById('header-container');
         if (headerContainer) {
-            const header = new HeaderComponent({ title: 'Expense Details', showLogout: true });
-            header.mount(headerContainer);
+            headerContainer.innerHTML = '<h1>Expense Details</h1>';
         }
 
         // Set up navigation with proper back button
         const navContainer = document.querySelector('.nav-header');
         if (navContainer && currentExpense) {
             const groupId = currentExpense.groupId;
-            const navigation = new NavigationComponent({
-                title: 'Expense Details',
-                backUrl: `${ROUTES.GROUP_DETAIL}?id=${groupId}`
-            });
-            const tempContainer = document.createElement('div');
-            navigation.mount(tempContainer);
-            const navElement = tempContainer.firstChild as HTMLElement;
-            navContainer.replaceWith(navElement);
+            navContainer.innerHTML = `<nav><a href="${ROUTES.GROUP_DETAIL}?id=${groupId}" class="back-button">← Back to Group</a><h2>Expense Details</h2></nav>`;
         }
     } catch (error) {
         showError('Failed to initialize expense details page');
@@ -208,7 +199,7 @@ function setupEventListeners(): void {
     deleteBtn.addEventListener('click', showDeleteModal);
     confirmBtn.addEventListener('click', deleteExpense);
     
-    // Back button is now handled by NavigationComponent
+    // Back button is now handled by simple navigation
     
     // Retry button handler
     const retryButton = document.querySelector('.button.button--secondary') as HTMLButtonElement;

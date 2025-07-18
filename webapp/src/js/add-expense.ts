@@ -3,7 +3,6 @@ import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage, showFieldError, showError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
-import { HeaderComponent } from './components/header.js';
 import { clearElement, createElementSafe, appendChildren } from './utils/safe-dom.js';
 import { ROUTES } from './routes.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';

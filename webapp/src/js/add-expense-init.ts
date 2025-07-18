@@ -1,5 +1,3 @@
-import { AddExpenseComponent } from './components/AddExpenseComponent.js';
-import { WarningBannerComponent } from './components/warning-banner.js';
 import { AppInit } from './app-init.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -20,22 +18,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
         if (warningBannerConfig?.message) {
-            const banner = WarningBannerComponent.createGlobalBanner({
-                message: warningBannerConfig.message,
-                type: 'warning',
-                dismissible: true
-            });
-            banner.show();
+            const warningBanner = document.getElementById('warningBanner');
+            if (warningBanner) {
+                warningBanner.textContent = warningBannerConfig.message;
+                warningBanner.classList.remove('hidden');
+            }
         }
     } catch (error) {
         // Warning banner is optional, continue silently
     }
     
-    const appRoot = document.getElementById('app-root');
-    if (!appRoot) {
-        throw new Error('app-root element not found');
-    }
-
-    const addExpenseComponent = new AddExpenseComponent();
-    addExpenseComponent.mount(appRoot);
+    // TODO: Convert add-expense page to functional approach
+    console.info('Add expense page needs to be converted to functional approach');
 });

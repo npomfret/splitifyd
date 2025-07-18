@@ -1,7 +1,5 @@
 import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
-import { WarningBannerComponent } from './components/warning-banner.js';
-import { GroupDetailComponent } from './components/GroupDetailComponent.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Set up API base URL before loading auth scripts
@@ -19,29 +17,27 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     import('./firebase-config-manager.js'),
     import('./api.js'),
     import('./auth.js'),
-    import('./logout-handler.js')
+    import('./logout-handler.js'),
+    import('./group-detail.js'),
+    import('./group-detail-handlers.js')
   ]);
   
   // Initialize warning banner
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');
   try {
-    const warningBanner = await firebaseConfigManager.getWarningBanner();
-    if (warningBanner?.message) {
-      const banner = WarningBannerComponent.createGlobalBanner({
-        message: warningBanner.message,
-        type: 'warning',
-        dismissible: true
-      });
-      banner.show();
+    const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
+    if (warningBannerConfig?.message) {
+      const warningBanner = document.getElementById('warningBanner');
+      if (warningBanner) {
+        warningBanner.textContent = warningBannerConfig.message;
+        warningBanner.classList.remove('hidden');
+      }
     }
   } catch (error) {
     // Warning banner is optional, continue silently
   }
   
-  // Mount the GroupDetailComponent
-  const appRoot = document.getElementById('app-root');
-  if (appRoot) {
-    const groupDetailComponent = new GroupDetailComponent();
-    await groupDetailComponent.mount(appRoot);
-  }
+  // Initialize group detail page
+  const { initializeGroupDetailPage } = await import('./group-detail.js');
+  await initializeGroupDetailPage();
 });

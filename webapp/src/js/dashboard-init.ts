@@ -1,5 +1,3 @@
-import { DashboardComponent } from './components/DashboardComponent.js';
-import { WarningBannerComponent } from './components/warning-banner.js';
 import { AppInit } from './app-init.js';
 import { updatePageTitle } from './utils/page-title.js';
 
@@ -21,36 +19,43 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   
   await Promise.all(stylesheetPromises);
 
-  // Load required modules before mounting component
+  // Show loading message
+  const spinnerContainer = document.getElementById('loading-spinner-container');
+  if (spinnerContainer) {
+    spinnerContainer.innerHTML = '<div class="loading-message">Loading your groups...</div>';
+    spinnerContainer.style.display = 'block';
+  }
+
   await Promise.all([
     import('./firebase-init.js'),
     import('./api.js'),
     import('./auth.js'),
     import('./logout-handler.js'),
     import('./expenses.js'),
-    import('./groups.js')
+    import('./groups.js'),
+    import('./dashboard.js')
   ]);
-
-  // Mount the dashboard component
-  const appRoot = document.getElementById('app-root');
-  if (appRoot) {
-    const dashboardComponent = new DashboardComponent();
-    dashboardComponent.mount(appRoot);
-  }
   
   // Initialize warning banner
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');
   try {
-    const warningBanner = await firebaseConfigManager.getWarningBanner();
-    if (warningBanner?.message) {
-      const banner = WarningBannerComponent.createGlobalBanner({
-        message: warningBanner.message,
-        type: 'warning',
-        dismissible: true
-      });
-      banner.show();
+    const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
+    if (warningBannerConfig?.message) {
+      const warningBanner = document.getElementById('warningBanner');
+      if (warningBanner) {
+        warningBanner.textContent = warningBannerConfig.message;
+        warningBanner.classList.remove('hidden');
+      }
     }
   } catch (error) {
     // Warning banner is optional, continue silently
+  }
+
+  // Import and initialize dashboard after all scripts are loaded
+  const { initializeDashboard } = await import('./dashboard.js');
+  await initializeDashboard();
+  
+  if (spinnerContainer) {
+    spinnerContainer.style.display = 'none';
   }
 });

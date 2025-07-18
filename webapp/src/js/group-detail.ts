@@ -1,11 +1,9 @@
 import { logger } from './utils/logger.js';
-import { ButtonComponent } from './components/button.js';
 import { createElementSafe, clearElement } from './utils/safe-dom.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
-import { HeaderComponent } from './components/header.js';
 import { ROUTES } from './routes.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
@@ -37,10 +35,10 @@ async function initializeGroupDetailPage(): Promise<void> {
         await loadGroupDetails();
         initializeEventListeners();
 
+        // TODO: Implement header without component
         const headerContainer = document.getElementById('header-container');
         if (headerContainer) {
-            const header = new HeaderComponent({ title: 'Group Details', showLogout: true });
-            header.mount(headerContainer);
+            headerContainer.innerHTML = '<h1>Group Details</h1>';
         }
     } catch (error) {
         logger.error('Failed to initialize group detail page:', error);
@@ -560,20 +558,18 @@ function openGroupSettingsModal(): void {
         memberName.className = 'member-name';
         memberName.textContent = member.name;
         
-        const removeButtonComponent = new ButtonComponent({
-            variant: 'danger',
-            iconOnly: true,
-            icon: 'fas fa-times',
-            ariaLabel: 'Remove member',
-            disabled: member.uid === currentGroup?.createdBy,
-            onClick: () => removeMember(member.uid)
-        });
-        
+        // Create remove button without component
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'remove-button-container';
-        removeButtonComponent.mount(buttonContainer);
         
-        const removeButton = buttonContainer.querySelector('button');
+        const removeButton = document.createElement('button');
+        removeButton.className = 'button button--danger button--icon';
+        removeButton.innerHTML = '<i class="fas fa-times"></i>';
+        removeButton.setAttribute('aria-label', 'Remove member');
+        removeButton.disabled = member.uid === currentGroup?.createdBy;
+        removeButton.onclick = () => removeMember(member.uid);
+        
+        buttonContainer.appendChild(removeButton);
         if (removeButton) {
             removeButton.className = 'button--icon button--danger';
         }
@@ -748,23 +744,21 @@ async function showShareGroupModal(): Promise<void> {
         const p1 = createElementSafe('p', { textContent: 'Share this link with others to invite them to join the group:' });
         const shareLinkContainer = createElementSafe('div', { className: 'share-link-container' });
         const input = createElementSafe('input', { type: 'text', id: 'shareLink', className: 'form-control', value: shareUrl, readOnly: 'true' }) as HTMLInputElement;
-        const copyButtonComponent = new ButtonComponent({
-            variant: 'primary',
-            text: 'Copy',
-            icon: 'fas fa-copy',
-            iconPosition: 'left',
-            onClick: async () => {
-                await copyShareLink(input);
-            }
-        });
-        
+        // Create copy button without component
         const copyButtonContainer = document.createElement('div');
         copyButtonContainer.className = 'copy-button-container';
-        copyButtonComponent.mount(copyButtonContainer);
         
-        const copyButton = copyButtonContainer;
+        const copyButton = document.createElement('button');
+        copyButton.className = 'button button--primary';
+        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        copyButton.onclick = async () => {
+            await copyShareLink(input);
+        };
+        
+        copyButtonContainer.appendChild(copyButton);
+        const copyButtonContainerRef = copyButtonContainer;
         shareLinkContainer.appendChild(input);
-        shareLinkContainer.appendChild(copyButton);
+        shareLinkContainer.appendChild(copyButtonContainerRef);
         const p2 = createElementSafe('p', { className: 'share-info', textContent: 'Anyone with this link can join the group after logging in.' });
         bodyContainer.appendChild(p1);
         bodyContainer.appendChild(shareLinkContainer);
@@ -772,33 +766,69 @@ async function showShareGroupModal(): Promise<void> {
 
         // Create Footer
         const footerContainer = createElementSafe('div');
-        const closeButtonComponent = new ButtonComponent({
-            variant: 'secondary',
-            text: 'Close',
-            onClick: () => {
-                modal.hide();
-                modal.unmount();
-            }
-        });
-        
+        // Create close button without component
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'close-button-container';
-        closeButtonComponent.mount(closeButtonContainer);
         
-        const closeButton = closeButtonContainer;
-        footerContainer.appendChild(closeButton);
-
-        // Dynamically import ModalComponent when needed
-        const { ModalComponent } = await import('./components/modal.js');
+        const closeButton = document.createElement('button');
+        closeButton.className = 'button button--secondary';
+        closeButton.textContent = 'Close';
         
-        const modal = new ModalComponent({
-            id: modalId,
-            title: 'Share Group',
-            body: bodyContainer,
-            footer: footerContainer
-        });
+        closeButtonContainer.appendChild(closeButton);
+        footerContainer.appendChild(closeButtonContainer);
 
-        modal.mount(document.body);
+        // Create modal without component - use simple modal implementation
+        const modal = {
+            element: null as HTMLElement | null,
+            show: () => {
+                if (modal.element) {
+                    modal.element.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                }
+            },
+            hide: () => {
+                if (modal.element) {
+                    modal.element.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            },
+            unmount: () => {
+                if (modal.element) {
+                    modal.element.remove();
+                    modal.element = null;
+                }
+            }
+        };
+        
+        // Create modal element
+        const modalElement = document.createElement('div');
+        modalElement.className = 'modal';
+        modalElement.style.display = 'none';
+        modalElement.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Share Group</h2>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer"></div>
+            </div>
+        `;
+        
+        const modalBody = modalElement.querySelector('.modal-body');
+        const modalFooter = modalElement.querySelector('.modal-footer');
+        
+        if (modalBody) modalBody.appendChild(bodyContainer);
+        if (modalFooter) modalFooter.appendChild(footerContainer);
+        
+        modal.element = modalElement;
+        document.body.appendChild(modalElement);
+        
+        // Update close button to work with simple modal
+        closeButton.onclick = () => {
+            modal.hide();
+            modal.unmount();
+        };
+
         modal.show();
 
         input.select();

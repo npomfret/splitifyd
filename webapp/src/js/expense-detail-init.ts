@@ -1,7 +1,5 @@
 import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
-import { WarningBannerComponent } from './components/warning-banner.js';
-import { ExpenseDetailComponent } from './components/ExpenseDetailComponent.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Set up API base URL before loading auth scripts
@@ -20,29 +18,26 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     import('./api.js'),
     import('./auth.js'),
     import('./logout-handler.js'),
-    import('./expenses.js')
+    import('./expenses.js'),
+    import('./expense-detail.js')
   ]);
   
   // Initialize warning banner
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');
   try {
-    const warningBanner = await firebaseConfigManager.getWarningBanner();
-    if (warningBanner?.message) {
-      const banner = WarningBannerComponent.createGlobalBanner({
-        message: warningBanner.message,
-        type: 'warning',
-        dismissible: true
-      });
-      banner.show();
+    const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
+    if (warningBannerConfig?.message) {
+      const warningBanner = document.getElementById('warningBanner');
+      if (warningBanner) {
+        warningBanner.textContent = warningBannerConfig.message;
+        warningBanner.classList.remove('hidden');
+      }
     }
   } catch (error) {
     // Warning banner is optional, continue silently
   }
   
-  // Initialize expense detail page with component
-  const appRoot = document.getElementById('app-root');
-  if (appRoot) {
-    const expenseDetailComponent = new ExpenseDetailComponent();
-    expenseDetailComponent.mount(appRoot);
-  }
+  // Initialize expense detail page
+  const { initializeExpenseDetailPage } = await import('./expense-detail.js');
+  await initializeExpenseDetailPage();
 });

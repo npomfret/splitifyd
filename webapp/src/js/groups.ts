@@ -1,9 +1,6 @@
 import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 import { apiService, apiCall } from './api.js';
-import { ModalComponent } from './components/modal.js';
-import { ButtonComponent } from './components/button.js';
-import { HeaderComponent } from './components/header.js';
 import { ROUTES } from './routes.js';
 import type {
   Group,
@@ -62,9 +59,9 @@ export class GroupsList {
   private groups: TransformedGroup[] = [];
   private filteredGroups: TransformedGroup[] = [];
   private isLoading: boolean = false;
-  private headerComponent: HeaderComponent | null = null;
+  private headerComponent: any = null;
 
-  constructor(containerId: string, headerComponent?: HeaderComponent) {
+  constructor(containerId: string, headerComponent?: any) {
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Container element with ID '${containerId}' not found`);
@@ -108,21 +105,21 @@ export class GroupsList {
     const title = createElementSafe('h3', { textContent: 'Unable to load groups' });
     const actions = createElementSafe('div', { className: 'error-state__actions' });
     
-    const tryAgainBtn = new ButtonComponent({
-      text: 'Try Again',
-      variant: 'secondary',
-      onClick: () => this.loadGroups()
-    });
+    // TODO: Replace with simple button
+    const tryAgainBtn = document.createElement('button');
+    tryAgainBtn.className = 'btn btn-secondary';
+    tryAgainBtn.textContent = 'Try Again';
+    tryAgainBtn.onclick = () => this.loadGroups();
     
-    const createGroupBtn = new ButtonComponent({
-      text: 'Create Group',
-      variant: 'primary',
-      id: 'createGroupBtn',
-      onClick: () => this.openCreateGroupModal()
-    });
+    // TODO: Replace with simple button
+    const createGroupBtn = document.createElement('button');
+    createGroupBtn.className = 'btn btn-primary';
+    createGroupBtn.id = 'createGroupBtn';
+    createGroupBtn.textContent = 'Create Group';
+    createGroupBtn.onclick = () => this.openCreateGroupModal();
     
-    tryAgainBtn.mount(actions);
-    createGroupBtn.mount(actions);
+    actions.appendChild(tryAgainBtn);
+    actions.appendChild(createGroupBtn);
     appendChildren(errorState, [title, actions]);
     this.container.appendChild(errorState);
   }
@@ -135,14 +132,14 @@ export class GroupsList {
     const title = createElementSafe('h3', { textContent: 'No groups yet' });
     const description = createElementSafe('p', { textContent: 'Create your first group to start splitting expenses with friends' });
     
-    const createGroupBtn = new ButtonComponent({
-      text: 'Create Your First Group',
-      variant: 'primary',
-      id: 'createGroupBtn',
-      onClick: () => this.openCreateGroupModal()
-    });
+    // TODO: Replace with simple button
+    const createGroupBtn = document.createElement('button');
+    createGroupBtn.className = 'btn btn-primary';
+    createGroupBtn.id = 'createGroupBtn';
+    createGroupBtn.textContent = 'Create Your First Group';
+    createGroupBtn.onclick = () => this.openCreateGroupModal();
     
-    createGroupBtn.mount(emptyState);
+    emptyState.appendChild(createGroupBtn);
     appendChildren(emptyState, [icon, title, description]);
     this.container.appendChild(emptyState);
   }
@@ -310,14 +307,14 @@ export class GroupsList {
     // Add groups header
     const groupsHeader = createElementSafe('div', { className: 'groups-header' });
     const headerTitle = createElementSafe('h2', { className: 'groups-header__title', textContent: 'Your Groups' });
-    const createGroupBtn = new ButtonComponent({
-      text: '+ Create Group',
-      variant: 'primary',
-      id: 'createGroupBtn',
-      onClick: () => this.openCreateGroupModal()
-    });
+    // TODO: Replace with simple button
+    const createGroupBtn = document.createElement('button');
+    createGroupBtn.className = 'btn btn-primary';
+    createGroupBtn.id = 'createGroupBtn';
+    createGroupBtn.textContent = '+ Create Group';
+    createGroupBtn.onclick = () => this.openCreateGroupModal();
     
-    createGroupBtn.mount(groupsHeader);
+    groupsHeader.appendChild(createGroupBtn);
     appendChildren(groupsHeader, [headerTitle]);
     this.container.appendChild(groupsHeader);
     
@@ -426,33 +423,32 @@ export class GroupsList {
     const membersGroup = createElementSafe('div', { className: 'form-group' });
     const membersLabel = createElementSafe('label', { textContent: 'Initial Members (Optional)' });
     const membersContainer = createElementSafe('div', { className: 'members-input-container', id: 'membersContainer' });
-    const addMemberButton = new ButtonComponent({
-      text: '+ Add Another Member',
-      size: 'small',
-      id: 'addMemberBtn',
-      onClick: () => {
-        membersContainer.appendChild(createMemberInputRow());
-        const removeButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-        removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
-      }
-    });
+    // TODO: Replace with simple button
+    const addMemberButton = document.createElement('button');
+    addMemberButton.className = 'button button--small';
+    addMemberButton.id = 'addMemberBtn';
+    addMemberButton.textContent = '+ Add Another Member';
+    addMemberButton.onclick = () => {
+      membersContainer.appendChild(createMemberInputRow());
+      const removeButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
+      removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
+    };
 
     const createMemberInputRow = () => {
         const row = createElementSafe('div', { className: 'member-input-row' });
         const emailInput = createElementSafe('input', { type: 'email', placeholder: 'Enter email address', className: 'form-input member-email', name: 'memberEmail[]' });
-        const removeButton = new ButtonComponent({
-          text: '×',
-          variant: 'icon',
-          iconOnly: true,
-          ariaLabel: 'Remove member',
-          onClick: () => {
-            row.remove();
-            const remainingButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-            remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
-          }
-        });
+        // TODO: Replace with simple button
+        const removeButton = document.createElement('button');
+        removeButton.className = 'btn btn-icon';
+        removeButton.textContent = '×';
+        removeButton.setAttribute('aria-label', 'Remove member');
+        removeButton.onclick = () => {
+          row.remove();
+          const remainingButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
+          remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
+        };
         row.appendChild(emailInput);
-        removeButton.mount(row);
+        row.appendChild(removeButton);
         return row;
     };
 
@@ -460,7 +456,7 @@ export class GroupsList {
 
     membersGroup.appendChild(membersLabel);
     membersGroup.appendChild(membersContainer);
-    addMemberButton.mount(membersGroup);
+    membersGroup.appendChild(addMemberButton);
 
     form.appendChild(groupNameGroup);
     form.appendChild(descriptionGroup);
@@ -468,18 +464,18 @@ export class GroupsList {
 
     // Create Footer
     const footerContainer = createElementSafe('div');
-    const cancelButton = new ButtonComponent({
-      text: 'Cancel',
-      variant: 'secondary',
-      onClick: () => {
-        modal.hide();
-        modal.unmount();
-      }
-    });
-    const createButton = new ButtonComponent({
-      text: 'Create Group',
-      variant: 'primary',
-      onClick: async () => {
+    // TODO: Replace with simple buttons
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'btn btn-secondary';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.onclick = () => {
+      modal.hide();
+      modal.unmount();
+    };
+    const createButton = document.createElement('button');
+    createButton.className = 'btn btn-primary';
+    createButton.textContent = 'Create Group';
+    createButton.onclick = async () => {
         const formData = new FormData(form);
         const memberEmails = Array.from(form.querySelectorAll('.member-email') as NodeListOf<HTMLInputElement>)
             .map(input => input.value.trim())
@@ -511,20 +507,55 @@ export class GroupsList {
             logger.error('Failed to create group:', error);
             alert('Failed to create group. Please try again.');
         }
-      }
-    });
+      };
     
-    cancelButton.mount(footerContainer);
-    createButton.mount(footerContainer);
+    footerContainer.appendChild(cancelButton);
+    footerContainer.appendChild(createButton);
 
-    const modal = new ModalComponent({
-        id: modalId,
-        title: 'Create New Group',
-        body: form,
-        footer: footerContainer
-    });
-
-    modal.mount(document.body);
+    // TODO: Replace with simple modal
+    const modal = {
+      element: null as HTMLElement | null,
+      show: () => {
+        if (modal.element) {
+          modal.element.style.display = 'block';
+          document.body.style.overflow = 'hidden';
+        }
+      },
+      hide: () => {
+        if (modal.element) {
+          modal.element.style.display = 'none';
+          document.body.style.overflow = 'auto';
+        }
+      },
+      unmount: () => {
+        if (modal.element) {
+          modal.element.remove();
+          modal.element = null;
+        }
+      }
+    };
+    
+    const modalElement = document.createElement('div');
+    modalElement.className = 'modal';
+    modalElement.style.display = 'none';
+    modalElement.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create New Group</h2>
+        </div>
+        <div class="modal-body"></div>
+        <div class="modal-footer"></div>
+      </div>
+    `;
+    
+    const modalBody = modalElement.querySelector('.modal-body');
+    const modalFooter = modalElement.querySelector('.modal-footer');
+    
+    if (modalBody) modalBody.appendChild(form);
+    if (modalFooter) modalFooter.appendChild(footerContainer);
+    
+    modal.element = modalElement;
+    document.body.appendChild(modalElement);
     modal.show();
   }
 

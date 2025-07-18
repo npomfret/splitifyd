@@ -79,7 +79,7 @@ export class AppInit {
 
   static setupApiBaseUrl(): void {
     const isEmulator = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiBaseUrl = isEmulator ? 'http://127.0.0.1:6002' : '';
+    const apiBaseUrl = isEmulator ? 'http://127.0.0.1:6001/splitifyd/us-central1' : '';
     (window as any).API_BASE_URL = apiBaseUrl;
   }
 

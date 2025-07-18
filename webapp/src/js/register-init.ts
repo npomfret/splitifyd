@@ -1,5 +1,3 @@
-import { RegisterComponent } from './components/RegisterComponent.js';
-import { WarningBannerComponent } from './components/warning-banner.js';
 import { updatePageTitle } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
 
@@ -11,24 +9,28 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Update page title from configuration
   await updatePageTitle('Register');
   
-  // Mount the register component
-  const appRoot = document.getElementById('app-root');
-  if (appRoot) {
-    const registerComponent = new RegisterComponent();
-    registerComponent.mount(appRoot);
+  
+  // Create submit button
+  const submitButtonContainer = document.getElementById('submit-button-container');
+  if (submitButtonContainer) {
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.className = 'button button--primary button--large';
+    submitButton.textContent = 'Create Account';
+    submitButton.setAttribute('aria-describedby', 'submit-help');
+    submitButtonContainer.appendChild(submitButton);
   }
-
+  
   // Initialize warning banner from config
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');
   try {
     const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
     if (warningBannerConfig?.message) {
-      const banner = WarningBannerComponent.createGlobalBanner({
-        message: warningBannerConfig.message,
-        type: 'warning',
-        dismissible: true
-      });
-      banner.show();
+      const warningBanner = document.getElementById('warningBanner');
+      if (warningBanner) {
+        warningBanner.textContent = warningBannerConfig.message;
+        warningBanner.classList.remove('hidden');
+      }
     }
   } catch (error) {
     // Warning banner is optional, continue silently

@@ -19,8 +19,8 @@ const getEntryPoints = (dir) => {
 };
 
 const templateHtmlFiles = () => {
-  const isDev = process.env.NODE_ENV === 'development';
-  const apiBaseUrl = isDev ? 'http://localhost:5001' : '';
+  const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined;
+  const apiBaseUrl = isDev ? 'http://127.0.0.1:6001/splitifyd/us-central1' : '';
   
   // Calculate script hash
   const scriptContent = `window.API_BASE_URL = '${apiBaseUrl}';`;

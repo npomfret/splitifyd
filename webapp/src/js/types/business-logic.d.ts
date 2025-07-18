@@ -2,12 +2,10 @@
 import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
 import { GroupBalance, TransformedGroup, Member } from './group-types';
 import { User } from './global';
-import { FormFieldConfig, PaginationConfig } from './components';
 
 export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
 export type { GroupBalance, TransformedGroup, Member as GroupMember } from './group-types';
 export type { User } from './global';
-export type { FormFieldConfig, PaginationConfig } from './components';
 
 // Additional types needed by business logic
 export interface Group {

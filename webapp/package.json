@@ -33,9 +33,14 @@
     "@types/scrollreveal": "^0.0.11",
     "@types/three": "^0.178.1",
     "babel-jest": "^30.0.4",
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.24.0",
     "husky": "^9.1.7",
+    "jest": "^30.0.4",
     "jest-environment-jsdom": "^30.0.4",
     "lint-staged": "^16.1.2",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.2",
     "typescript-coverage-report": "^1.1.1"
   },
   "lint-staged": {

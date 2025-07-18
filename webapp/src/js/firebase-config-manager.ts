@@ -19,7 +19,20 @@ class FirebaseConfigManager {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const apiBaseUrl = (window as any).API_BASE_URL;
-        const response = await fetch(`${apiBaseUrl}/api/config`, {
+        
+        // Assert that API_BASE_URL is properly set
+        if (apiBaseUrl === undefined) {
+          throw new Error('API_BASE_URL is undefined - AppInit.setupApiBaseUrl() must be called first');
+        }
+        
+        const configUrl = `${apiBaseUrl}/api/config`;
+        
+        // Assert that we don't have "undefined" in the URL
+        if (configUrl.includes('undefined')) {
+          throw new Error(`Invalid config URL: "${configUrl}" contains "undefined"`);
+        }
+        
+        const response = await fetch(configUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
