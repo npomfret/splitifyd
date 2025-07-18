@@ -13,6 +13,8 @@ import {
   sanitizeDocumentData,
   Document,
 } from './validation';
+import { buildPaginatedQuery, encodeCursor, CursorData } from '../utils/pagination';
+import { transformDocumentForApi, addGroupBalanceToDocument } from './transformers';
 
 
 // Direct Firestore access - no global state
@@ -202,26 +204,15 @@ export const listDocuments = async (
   // Build base query
   const baseQuery = getDocumentsCollection()
     .where('data.memberIds', 'array-contains', userId)
-    .select('data', 'createdAt', 'updatedAt')
-    .orderBy('updatedAt', order)
-    .limit(limit + DOCUMENT_CONFIG.PAGINATION_EXTRA_ITEM); // Get one extra to check if there are more pages
+    .select('data', 'createdAt', 'updatedAt');
 
-  // Apply cursor if provided
-  const query = cursor ? (() => {
-    try {
-      // Decode cursor (base64 encoded timestamp)
-      const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-      const cursorData = JSON.parse(decodedCursor);
-      
-      if (cursorData.updatedAt) {
-        const cursorTimestamp = new Date(cursorData.updatedAt);
-        return baseQuery.startAfter(cursorTimestamp);
-      }
-      return baseQuery;
-    } catch (error) {
-      throw Errors.INVALID_INPUT('Invalid cursor format');
-    }
-  })() : baseQuery;
+  // Apply pagination
+  const query = buildPaginatedQuery(
+    baseQuery,
+    cursor,
+    order,
+    limit + DOCUMENT_CONFIG.PAGINATION_EXTRA_ITEM // Get one extra to check if there are more pages
+  );
 
   const snapshot = await query.get();
   
@@ -232,45 +223,11 @@ export const listDocuments = async (
       .slice(0, limit) // Remove the extra document used for pagination check
       .map(async (doc) => {
         const data = doc.data() as Document;
-        // Ensure timestamps are Firestore Timestamps
-        if (!data.createdAt || typeof data.createdAt !== 'object' || !('_seconds' in data.createdAt)) {
-          throw new Error(`Expected createdAt to be Firestore Timestamp, got ${typeof data.createdAt} with value: ${JSON.stringify(data.createdAt)}`);
-        }
-        if (!data.updatedAt || typeof data.updatedAt !== 'object' || !('_seconds' in data.updatedAt)) {
-          throw new Error(`Expected updatedAt to be Firestore Timestamp, got ${typeof data.updatedAt} with value: ${JSON.stringify(data.updatedAt)}`);
-        }
-
-        const documentData = {
-          id: doc.id,
-          data: data.data,
-          createdAt: (data.createdAt as admin.firestore.Timestamp).toDate().toISOString(),
-          updatedAt: (data.updatedAt as admin.firestore.Timestamp).toDate().toISOString(),
-        };
-
-        // For group documents, fetch balance information
-        if (data.data?.name && data.data?.members) {
-          const balanceDoc = await admin.firestore().collection('group-balances').doc(doc.id).get();
-          if (balanceDoc.exists) {
-            const balanceData = balanceDoc.data()!;
-            const userBalanceData = balanceData.userBalances?.[userId];
-            documentData.data.yourBalance = userBalanceData?.netBalance || 0;
-          } else {
-            // If no cached balance exists, try to calculate it
-            try {
-              const { calculateGroupBalances } = await import('../services/balanceCalculator');
-              const balances = await calculateGroupBalances(doc.id);
-              const userBalanceData = balances.userBalances[userId];
-              documentData.data.yourBalance = userBalanceData?.netBalance || 0;
-              
-              // Cache the calculated balance for future requests
-              await admin.firestore().collection('group-balances').doc(doc.id).set(balances);
-            } catch (error) {
-              // If balance calculation fails (e.g., no members), default to 0
-              documentData.data.yourBalance = 0;
-            }
-          }
-        }
-
+        let documentData = transformDocumentForApi(doc, data);
+        
+        // Add balance information for group documents
+        documentData = await addGroupBalanceToDocument(documentData, data, userId);
+        
         return documentData;
       })
   );
@@ -280,11 +237,11 @@ export const listDocuments = async (
   if (hasMore && documents.length > 0) {
     const lastDoc = snapshot.docs[limit - 1];
     const lastDocData = lastDoc.data() as Document;
-    const cursorData = {
+    const cursorData: CursorData = {
       updatedAt: (lastDocData.updatedAt as admin.firestore.Timestamp).toDate().toISOString(),
       id: lastDoc.id,
     };
-    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+    nextCursor = encodeCursor(cursorData);
   }
 
   res.json({
