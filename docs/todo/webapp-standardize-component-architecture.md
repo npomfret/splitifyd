@@ -60,7 +60,7 @@ The webapp has a solid component foundation:
 3. ✅ `add-expense.html` - Converted to use AddExpenseComponent with FormComponents
 4. ✅ `join-group.html` - Converted to JoinGroupComponent with component-based architecture
 
-**Phase 3: Data Display Pages (Small commit)**
+**Phase 3: Data Display Pages (Next Phase - Ready for Implementation)**
 5. `expense-detail.html` - Convert to programmatic rendering
 6. `group-detail.html` - Convert to programmatic rendering
 
@@ -149,4 +149,127 @@ The migration will be executed in phases to ensure a stable, incremental transit
 
 ---
 
-*Phase 2 has been completed. Phase 3 (join-group.html) is next.*
+### Phase 3: Data Display Pages - Detailed Implementation Plan
+
+**Goal:** Convert `expense-detail.html` and `group-detail.html` to programmatic component-based rendering.
+
+#### **Assessment**
+Both pages are currently hybrid implementations:
+- Static HTML templates with TypeScript logic
+- Mix of component usage and direct DOM manipulation
+- Complex functionality that needs to be preserved
+
+#### **Commit 1: Convert `expense-detail.html`**
+
+**Analysis:** Currently uses `initializeExpenseDetailPage()` with direct DOM manipulation. Has expense display, payer info, split breakdown, and edit/delete functionality.
+
+**Steps:**
+1. **Create `expense-detail-init.ts`:**
+   - Entry point that mounts ExpenseDetailComponent
+   - Include warning-banner.js import for consistency
+
+2. **Create `ExpenseDetailComponent.ts`:**
+   - Extend BaseComponent with lifecycle management
+   - Use PageLayoutComponent for consistent layout
+   - Use HeaderComponent for navigation
+   - Create programmatic expense display (amount, description, date, category)
+   - Create programmatic payer info with avatar
+   - Create programmatic split breakdown table
+   - Implement edit/delete permissions logic
+   - Handle loading states and error handling
+   - Integrate with ExpenseService and apiService
+   - Use ModalComponent for delete confirmation
+
+3. **Refactor `expense-detail.html`:**
+   - Strip to minimal HTML skeleton
+   - Body contains only app-root div and script tag
+   - Remove all hardcoded HTML structure
+
+4. **Preserve Key Features:**
+   - Full expense data display
+   - Payer information with avatar
+   - Split breakdown showing participant shares
+   - Edit/delete functionality for expense creator
+   - Receipt display structure (even if not fully implemented)
+   - Loading states and error handling
+   - Delete confirmation modal
+
+**Validation:** Run `npm run build` and `npm test`. Manual testing of expense detail page functionality.
+
+#### **Commit 2: Convert `group-detail.html`**
+
+**Analysis:** Currently uses `initializeGroupDetailPage()` with complex state management. Has group header, tab navigation, balance summary, expense list with pagination, and group settings.
+
+**Steps:**
+1. **Create `group-detail-init.ts`:**
+   - Entry point that mounts GroupDetailComponent
+   - Include warning-banner.js import for consistency
+
+2. **Create `GroupDetailComponent.ts`:**
+   - Extend BaseComponent with lifecycle management
+   - Use PageLayoutComponent for consistent layout
+   - Use HeaderComponent for navigation
+   - Create programmatic group header with member avatars
+   - Create programmatic tab navigation (Balances/Expenses)
+   - Create programmatic balance summary display
+   - Create programmatic expense list with pagination
+   - Use ModalComponent for group settings and member invitation
+   - Use ButtonComponent for action buttons
+   - Implement proper state management for tab switching
+   - Handle "Load More" pagination functionality
+   - Integrate with group services and balance calculations
+
+3. **Extract Sub-Components (if needed):**
+   - `TabNavigationComponent` for tab switching
+   - `BalanceSummaryComponent` for balance display
+   - `ExpenseListComponent` for paginated expense list
+   - `GroupHeaderComponent` for group info and actions
+
+4. **Refactor `group-detail.html`:**
+   - Strip to minimal HTML skeleton
+   - Body contains only app-root div and script tag
+   - Remove all hardcoded HTML structure
+
+5. **Preserve Key Features:**
+   - Group header with name and member avatars
+   - Tab navigation between Balances and Expenses
+   - Balance summary with user balances and simplified debts
+   - Expense list with pagination and "Load More"
+   - Group settings modal (edit name, manage members, delete)
+   - Member invitation modal with shareable link generation
+   - Add expense and invite members actions
+
+**Validation:** Run `npm run build` and `npm test`. Manual testing of all group detail page functionality including tab navigation and modals.
+
+#### **Key Implementation Guidelines**
+
+1. **Component Architecture:**
+   - Follow existing patterns from AddExpenseComponent
+   - Use BaseComponent lifecycle management
+   - Implement proper cleanup for event listeners
+   - Use PageLayoutComponent for consistent layout
+
+2. **State Management:**
+   - Convert global variables to component instance properties
+   - Implement proper cleanup for timers and event listeners
+   - Handle component communication properly
+
+3. **Avoid Common Mistakes:**
+   - No inline event handlers (use addEventListener)
+   - Let errors bubble up - avoid unnecessary try/catch
+   - Run build and fix all TypeScript errors immediately
+   - Test both emulator and production environments
+
+4. **Testing Strategy:**
+   - Run existing integration tests after each commit
+   - Manual testing of all page functionality
+   - Verify no regression in user experience
+
+**Success Criteria:**
+- Both pages render identically to current implementation
+- All functionality preserved (editing, deleting, navigation, modals)
+- No TypeScript errors or build failures
+- Consistent component architecture with other converted pages
+- Proper cleanup and lifecycle management
+
+*Phase 3 is ready for implementation. This will complete the core data display page conversions.*
