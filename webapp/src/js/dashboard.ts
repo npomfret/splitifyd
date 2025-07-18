@@ -31,7 +31,7 @@ export async function initializeDashboard(): Promise<void> {
 
     // Mount header component with balance display enabled
     headerComponent = new HeaderComponent({ 
-      title: 'Split App 2', 
+      title: 'Dashboard', 
       showLogout: true,
       showBalances: true,
       totalOwed: 0,

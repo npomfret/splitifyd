@@ -41,7 +41,7 @@ export class ResetPasswordComponent extends BaseComponent<HTMLDivElement> {
         `;
 
         const authCardHtml = AuthCardComponent.render({
-            title: 'Split App',
+            title: 'Bill Splitter',
             subtitleTitle: 'Reset Password',
             subtitle: 'Enter your email to receive reset instructions',
             content: formContent,

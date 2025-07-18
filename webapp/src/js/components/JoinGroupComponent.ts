@@ -21,7 +21,7 @@ export class JoinGroupComponent extends BaseComponent<HTMLDivElement> {
                     <article class="auth-card">
                         <header class="auth-card__header">
                             <h1 class="auth-card__title">
-                                <a href="/index.html" class="auth-card__title-link">Split App</a>
+                                <a href="/index.html" class="auth-card__title-link">Bill Splitter</a>
                             </h1>
                             <p class="auth-card__subtitle">Joining group...</p>
                         </header>

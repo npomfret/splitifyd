@@ -10,7 +10,7 @@ interface ExtendedAuthCardConfig extends AuthCardConfig {
 export const AuthCardComponent = {
     render: (config: ExtendedAuthCardConfig): string => {
         const { 
-            title = 'Split App', 
+            title = 'Bill Splitter', 
             subtitle = 'Split bills with friends',
             subtitleTitle = null,
             formContent = '',

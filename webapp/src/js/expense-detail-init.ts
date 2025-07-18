@@ -1,6 +1,7 @@
 import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
 import { WarningBannerComponent } from './components/warning-banner.js';
+import { ExpenseDetailComponent } from './components/ExpenseDetailComponent.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Set up API base URL before loading auth scripts
@@ -19,8 +20,7 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     import('./api.js'),
     import('./auth.js'),
     import('./logout-handler.js'),
-    import('./expenses.js'),
-    import('./expense-detail.js')
+    import('./expenses.js')
   ]);
   
   // Initialize warning banner
@@ -39,7 +39,10 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     // Warning banner is optional, continue silently
   }
   
-  // Initialize expense detail page
-  const { initializeExpenseDetailPage } = await import('./expense-detail.js');
-  await initializeExpenseDetailPage();
+  // Initialize expense detail page with component
+  const appRoot = document.getElementById('app-root');
+  if (appRoot) {
+    const expenseDetailComponent = new ExpenseDetailComponent();
+    expenseDetailComponent.mount(appRoot);
+  }
 });

@@ -68,7 +68,7 @@ function checkApiReady(): Promise<boolean> {
     const req = http.request({
       hostname: 'localhost',
       port: Number(FUNCTIONS_PORT),
-      path: '/splitifyd/us-central1/api',
+      path: '/demo/us-central1/api',
       method: 'GET',
       timeout: 1000
     }, (res) => {

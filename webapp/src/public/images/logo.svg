@@ -47,7 +47,7 @@
         font-size="20" 
         font-weight="700" 
         fill="url(#brandGradient)" 
-        letter-spacing="-0.5px">Splitify</text>
+        letter-spacing="-0.5px">Bill Splitter</text>
   
   <!-- Tagline -->
   <text x="55" y="43" 

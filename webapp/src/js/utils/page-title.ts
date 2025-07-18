@@ -4,7 +4,7 @@
  * @param pageTitle - The specific page title (e.g., "Dashboard", "Login")
  */
 export function updatePageTitle(pageTitle: string): void {
-  document.title = `${pageTitle} - Split App 2`;
+  document.title = pageTitle;
 }
 
 /**
