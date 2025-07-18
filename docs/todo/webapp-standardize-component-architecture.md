@@ -69,9 +69,10 @@ The webapp has a solid component foundation:
 8. Policy pages (`privacy-policy.html`, `terms-of-service.html`, `cookies-policy.html`)
 
 **Phase 5: Verification (Small commit)**
-9. Audit all modal usage to ensure ModalComponent usage
-10. Test all converted pages
-11. Remove any unused static HTML patterns
+9. Complete conversion of login.html and register.html to full component architecture
+10. Audit all modal usage to ensure ModalComponent usage
+11. Test all converted pages
+12. Remove any unused static HTML patterns
 
 ## Implementation Plan
 
@@ -320,3 +321,110 @@ Both pages are currently hybrid implementations:
    - Successfully preserved all content including complex HTML structure (sections, lists, subheadings)
 
 **Phase 4 is now complete.** All content pages have been successfully converted to component-based architecture.
+
+### Phase 5: Verification - Detailed Implementation Plan
+
+**Goal:** Complete the conversion of authentication pages and verify all pages use consistent component architecture.
+
+#### Current State Analysis
+
+The `login.html` and `register.html` pages are currently in a hybrid state:
+- They have static HTML forms and structure
+- They use `login-init.ts` and `register-init.ts` which add some components (PageHeaderComponent, ButtonComponent)
+- The forms themselves are still hardcoded HTML, not using FormComponents
+
+#### Implementation Steps
+
+##### Commit 1: Convert login.html to full component architecture
+
+1. **Create `LoginComponent.ts`:**
+   - Extend BaseComponent with lifecycle management
+   - Use PageLayoutComponent for consistent layout structure
+   - Use AuthCardComponent for the authentication card
+   - Use FormComponents to generate all form fields programmatically
+   - Use ButtonComponent for the submit button
+   - Implement form validation and error handling
+   - Handle form submission with proper authentication flow
+   - Include "Forgot password?" and "Sign up" navigation links
+
+2. **Update `login-init.ts`:**
+   - Remove PageHeaderComponent creation (will be handled by LoginComponent)
+   - Mount LoginComponent to app-root
+   - Keep warning banner initialization
+   - Keep Firebase and auth imports
+
+3. **Refactor `login.html`:**
+   - Strip down to minimal skeleton with only app-root
+   - Remove all static form HTML
+   - Keep necessary meta tags and CSS imports
+
+##### Commit 2: Convert register.html to full component architecture
+
+1. **Create `RegisterComponent.ts`:**
+   - Extend BaseComponent with lifecycle management
+   - Use PageLayoutComponent for consistent layout
+   - Use AuthCardComponent for the authentication card
+   - Use FormComponents for all form fields (display name, email, password, confirm password)
+   - Use ButtonComponent for the submit button
+   - Implement password matching validation
+   - Handle registration flow with proper error handling
+   - Include "Sign in" navigation link
+
+2. **Update `register-init.ts`:**
+   - Remove PageHeaderComponent creation
+   - Mount RegisterComponent to app-root
+   - Keep warning banner initialization
+   - Keep Firebase and auth imports
+
+3. **Refactor `register.html`:**
+   - Strip down to minimal skeleton
+   - Remove all static form HTML
+   - Keep necessary meta tags and CSS imports
+
+##### Commit 3: Audit and cleanup
+
+1. **Modal Usage Audit:**
+   - Search for any hardcoded modals in the codebase
+   - Verify all modals use ModalComponent
+   - Update any legacy modal implementations
+
+2. **Remove Unused Files:**
+   - Delete any deprecated static HTML templates
+   - Remove unused JavaScript/TypeScript files
+   - Clean up any legacy form handling code
+
+3. **Testing:**
+   - Run `npm run build` and fix any TypeScript errors
+   - Run `npm test` to ensure all tests pass
+   - Manual testing of all authentication flows
+   - Verify all pages work in both emulator and production
+
+#### Key Considerations
+
+1. **Preserve Existing Functionality:**
+   - Form validation (email format, password requirements)
+   - Error message display
+   - Loading states during authentication
+   - Navigation between auth pages
+   - Remember me functionality (if exists)
+
+2. **Component Patterns to Follow:**
+   - Use the same patterns as ResetPasswordComponent
+   - Consistent error handling with showFieldError
+   - Proper cleanup in component lifecycle
+   - Use FormComponents.formGroup for consistent field rendering
+
+3. **Avoid Common Mistakes:**
+   - No inline event handlers
+   - Let errors bubble up (minimal try/catch)
+   - Run build immediately after changes
+   - Test in emulator environment
+
+#### Success Criteria
+
+- All authentication pages fully component-based with no static HTML forms
+- Consistent look and feel across all auth pages
+- All existing functionality preserved
+- No TypeScript or build errors
+- All tests passing
+- Clean codebase with no unused files
