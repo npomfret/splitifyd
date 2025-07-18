@@ -353,7 +353,11 @@ export const api = onRequest({
   timeoutSeconds: 540, // 9 minutes
   region: 'us-central1',
   memory: '512MiB' // Optimized for API workload with authentication and database operations
-}, getApp());
+}, (req, res) => {
+  // Initialize app lazily on first request to avoid loading config at deploy time
+  const app = getApp();
+  app(req, res);
+});
 
 // Export Firestore triggers
 export { onExpenseWriteV6 };
