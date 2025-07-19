@@ -2,9 +2,9 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User, Group } from '../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Performance and Load Testing', () => {
     let driver: ApiDriver;
@@ -16,14 +16,7 @@ describe('Performance and Load Testing', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        const userSuffix = uuidv4().slice(0, 8);
-
-        mainUser = await driver.createTestUser({
-            email: `performance-main-${userSuffix}@example.com`,
-            password: 'Password123!',
-            displayName: 'Perf Test User'
-        });
-
+        mainUser = await driver.createTestUser(new UserBuilder().build());
         await driver.createGroup('Performance Test Group', [mainUser], mainUser.token);
     });
 
@@ -36,15 +29,9 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ users, expensesPerUser, timeoutMs, description }) => {
             it(`should handle ${users} users creating ${expensesPerUser} expenses each (${description})`, async () => {
-                const userSuffix = uuidv4().slice(0, 8);
-                
                 const testUsers: User[] = [];
                 for (let i = 0; i < users; i++) {
-                    const user = await driver.createTestUser({
-                        email: `perf-concurrent-${userSuffix}-${i}@example.com`,
-                        password: 'Password123!',
-                        displayName: `User ${i}`
-                    });
+                    const user = await driver.createTestUser(new UserBuilder().build());
                     testUsers.push(user);
                 }
 
@@ -77,18 +64,8 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ expensesPerUserPair, description }) => {
             it(`should maintain data consistency with ${expensesPerUserPair * 2} concurrent balance updates (${description})`, async () => {
-                const userSuffix = uuidv4().slice(0, 8);
-                
-                const user1 = await driver.createTestUser({
-                    email: `perf-balance-1-${userSuffix}@example.com`,
-                    password: 'Password123!',
-                    displayName: 'Balance User 1'
-                });
-                const user2 = await driver.createTestUser({
-                    email: `perf-balance-2-${userSuffix}@example.com`,
-                    password: 'Password123!',
-                    displayName: 'Balance User 2'
-                });
+                const user1 = await driver.createTestUser(new UserBuilder().build());
+                const user2 = await driver.createTestUser(new UserBuilder().build());
                 
                 const balanceGroup = await driver.createGroup(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
 
@@ -127,14 +104,8 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
             it(`should handle groups with ${totalExpenses} expenses efficiently (${description})`, async () => {
-                const userSuffix = uuidv4().slice(0, 8);
-                
                 const largeGroupUser1 = mainUser;
-                const largeGroupUser2 = await driver.createTestUser({
-                    email: `perf-large-${userSuffix}@example.com`,
-                    password: 'Password123!',
-                    displayName: 'Large Dataset User'
-                });
+                const largeGroupUser2 = await driver.createTestUser(new UserBuilder().build());
                 
                 const largeGroup = await driver.createGroup(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
 
@@ -166,15 +137,9 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ users, expensesPerUser, description }) => {
             it(`should efficiently calculate balances in complex debt graphs with ${users} users (${description})`, async () => {
-                const userSuffix = uuidv4().slice(0, 8);
-                
                 const complexUsers: User[] = [mainUser];
                 for (let i = 1; i < users; i++) {
-                    const user = await driver.createTestUser({
-                        email: `perf-complex-${userSuffix}-${i}@example.com`,
-                        password: 'Password123!',
-                        displayName: `Complex User ${i}`
-                    });
+                    const user = await driver.createTestUser(new UserBuilder().build());
                     complexUsers.push(user);
                 }
 
@@ -208,19 +173,13 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ groupCount, expensesPerGroup, description }) => {
             it(`should handle users with ${groupCount} group memberships (${description})`, async () => {
-                const userSuffix = uuidv4().slice(0, 8);
-                
-                const busyUser = await driver.createTestUser({
-                    email: `perf-busy-${userSuffix}@example.com`,
-                    password: 'Password123!',
-                    displayName: 'Busy User'
-                });
+                const busyUser = await driver.createTestUser(new UserBuilder().build());
                 
                 const { responseTime } = await workers.handleGroupMemberships({
                     busyUser,
                     groupCount,
                     expensesPerGroup,
-                    userSuffix
+                    userSuffix: 'test'
                 });
 
                 expect(responseTime).toBeLessThan(groupCount * 250);
@@ -238,17 +197,15 @@ describe('Performance and Load Testing', () => {
             benchmarkGroup = await driver.createGroup('Benchmark Group', [mainUser], mainUser.token);
             
             for (let i = 0; i < 20; i++) {
-                const expense = await driver.createExpense({
-                    groupId: benchmarkGroup.id,
-                    description: `Benchmark expense ${i}`,
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    category: 'food',
-                    splitType: 'exact',
-                    participants: [mainUser.uid],
-                    splits: [{ userId: mainUser.uid, amount: 100 }],
-                    date: new Date().toISOString()
-                }, mainUser.token);
+                const expense = await driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(benchmarkGroup.id)
+                    .withDescription(`Benchmark expense ${i}`)
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withSplitType('exact')
+                    .withParticipants([mainUser.uid])
+                    .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                    .build(), mainUser.token);
                 benchmarkExpenses.push(expense);
             }
         });
@@ -275,17 +232,15 @@ describe('Performance and Load Testing', () => {
             const writeOperations = [
                 { 
                     name: 'Create expense',
-                    fn: () => driver.createExpense({
-                        groupId: benchmarkGroup.id,
-                        description: 'Write benchmark expense',
-                        amount: 100,
-                        paidBy: mainUser.uid,
-                        category: 'food',
-                        splitType: 'exact',
-                        participants: [mainUser.uid],
-                        splits: [{ userId: mainUser.uid, amount: 100 }],
-                        date: new Date().toISOString()
-                    }, mainUser.token),
+                    fn: () => driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(benchmarkGroup.id)
+                        .withDescription('Write benchmark expense')
+                        .withAmount(100)
+                        .withPaidBy(mainUser.uid)
+                        .withSplitType('exact')
+                        .withParticipants([mainUser.uid])
+                        .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                        .build(), mainUser.token),
                     target: 2000
                 },
                 {

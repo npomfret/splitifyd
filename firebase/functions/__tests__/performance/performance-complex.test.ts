@@ -2,9 +2,9 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { UserBuilder } from '../support/builders';
 
 describe('Performance - Complex Debt Graphs', () => {
     let driver: ApiDriver;
@@ -16,13 +16,7 @@ describe('Performance - Complex Debt Graphs', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        const userSuffix = uuidv4().slice(0, 8);
-
-        mainUser = await driver.createTestUser({
-            email: `performance-complex-${userSuffix}@example.com`,
-            password: 'Password123!',
-            displayName: 'Complex Test User'
-        });
+        mainUser = await driver.createTestUser(new UserBuilder().build());
     });
 
     const testCases = [
@@ -33,15 +27,9 @@ describe('Performance - Complex Debt Graphs', () => {
 
     testCases.forEach(({ users, expensesPerUser, description }) => {
         it(`should efficiently calculate balances in complex debt graphs with ${users} users (${description})`, async () => {
-            const userSuffix = uuidv4().slice(0, 8);
-            
             const complexUsers: User[] = [mainUser];
             for (let i = 1; i < users; i++) {
-                const user = await driver.createTestUser({
-                    email: `perf-complex-${userSuffix}-${i}@example.com`,
-                    password: 'Password123!',
-                    displayName: `Complex User ${i}`
-                });
+                const user = await driver.createTestUser(new UserBuilder().build());
                 complexUsers.push(user);
             }
 

@@ -4,6 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Concurrent Operations and Transaction Integrity', () => {
   let driver: ApiDriver;
@@ -14,35 +15,14 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
   beforeAll(async () => {
     driver = new ApiDriver();
-    const userSuffix = uuidv4().slice(0, 8);
     
     // Create more users for concurrent testing
     users = await Promise.all([
-      driver.createTestUser({ 
-        email: `testuser1-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 1' 
-      }),
-      driver.createTestUser({ 
-        email: `testuser2-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 2' 
-      }),
-      driver.createTestUser({ 
-        email: `testuser3-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 3' 
-      }),
-      driver.createTestUser({ 
-        email: `testuser4-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 4' 
-      }),
-      driver.createTestUser({ 
-        email: `testuser5-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 5' 
-      }),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
     ]);
   });
 
@@ -58,16 +38,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       // Create multiple expenses concurrently from different users
       for (let i = 0; i < concurrentExpenses; i++) {
         const userIndex = i % users.length;
-        const expenseData = {
-          groupId: testGroup.id,
-          description: `Concurrent Expense ${i}`,
-          amount: 50 + i,
-          paidBy: users[userIndex].uid,
-          splitType: 'equal',
-          participants: users.map(u => u.uid),
-          date: new Date().toISOString(),
-          category: 'food',
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription(`Concurrent Expense ${i}`)
+          .withAmount(50 + i)
+          .withPaidBy(users[userIndex].uid)
+          .withParticipants(users.map(u => u.uid))
+          .build();
 
         expensePromises.push(
           driver.createExpense(expenseData, users[userIndex].token)
@@ -107,16 +84,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       ];
 
       for (const expense of initialExpenses) {
-        await driver.createExpense({
-          groupId: testGroup.id,
-          description: `Initial Expense ${expense.amount}`,
-          amount: expense.amount,
-          paidBy: expense.paidBy,
-          splitType: 'equal',
-          participants: users.slice(0, 3).map(u => u.uid),
-          date: new Date().toISOString(),
-          category: 'food',
-        }, users[0].token);
+        await driver.createExpense(new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription(`Initial Expense ${expense.amount}`)
+          .withAmount(expense.amount)
+          .withPaidBy(expense.paidBy)
+          .withParticipants(users.slice(0, 3).map(u => u.uid))
+          .build(), users[0].token);
       }
 
       // Wait for initial balance calculations
@@ -127,16 +101,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       const updatePromises = [];
 
       for (let i = 0; i < concurrentUpdates; i++) {
-        const expenseData = {
-          groupId: testGroup.id,
-          description: `Concurrent Balance Update ${i}`,
-          amount: 20,
-          paidBy: users[i % 3].uid,
-          splitType: 'equal',
-          participants: users.slice(0, 3).map(u => u.uid),
-          date: new Date().toISOString(),
-          category: 'food',
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription(`Concurrent Balance Update ${i}`)
+          .withAmount(20)
+          .withPaidBy(users[i % 3].uid)
+          .withParticipants(users.slice(0, 3).map(u => u.uid))
+          .build();
 
         updatePromises.push(
           driver.createExpense(expenseData, users[i % 3].token)
@@ -167,21 +138,9 @@ describe('Concurrent Operations and Transaction Integrity', () => {
     test('should handle concurrent group membership changes', async () => {
       // Create additional users for membership testing
       const newUsers = await Promise.all([
-        driver.createTestUser({
-          email: `newuser1-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'New User 1'
-        }),
-        driver.createTestUser({
-          email: `newuser2-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'New User 2'
-        }),
-        driver.createTestUser({
-          email: `newuser3-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'New User 3'
-        }),
+        driver.createTestUser(new UserBuilder().build()),
+        driver.createTestUser(new UserBuilder().build()),
+        driver.createTestUser(new UserBuilder().build()),
       ]);
 
       // Generate share link
@@ -216,11 +175,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
     test('should prevent duplicate concurrent joins by same user', async () => {
       // Create a new user for this test
-      const duplicateUser = await driver.createTestUser({
-        email: `duplicate-${uuidv4()}@test.com`,
-        password: 'Password123!',
-        displayName: 'Duplicate User'
-      });
+      const duplicateUser = await driver.createTestUser(new UserBuilder().build());
 
       // Generate share link
       const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
@@ -251,16 +206,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
     test('should handle concurrent expense updates on same expense', async () => {
       // Create an expense to update
-      const initialExpenseData = {
-        groupId: testGroup.id,
-        description: 'Concurrent Update Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: users.map(u => u.uid),
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const initialExpenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription('Concurrent Update Test')
+        .withAmount(100)
+        .withPaidBy(users[0].uid)
+        .withParticipants(users.map(u => u.uid))
+        .build();
 
       const createdExpense = await driver.createExpense(initialExpenseData, users[0].token);
 
@@ -298,20 +250,18 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       
       // Create multiple invalid expenses concurrently
       for (let i = 0; i < 3; i++) {
-        const expenseData = {
-          groupId: testGroup.id,
-          description: `Invalid Split Total ${i}`,
-          amount: 100,
-          paidBy: users[0].uid, // Use consistent payer who is a participant
-          splitType: 'exact',
-          participants: [users[0].uid, users[1].uid],
-          splits: [
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription(`Invalid Split Total ${i}`)
+          .withAmount(100)
+          .withPaidBy(users[0].uid)
+          .withSplitType('exact')
+          .withParticipants([users[0].uid, users[1].uid])
+          .withSplits([
             { userId: users[0].uid, amount: 30 },
             { userId: users[1].uid, amount: 30 } // Total is 60, not 100
-          ],
-          date: new Date().toISOString(),
-          category: 'food',
-        };
+          ])
+          .build();
 
         invalidExpensePromises.push(
           driver.createExpense(expenseData, users[0].token)
@@ -342,49 +292,38 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       // Create a mix of valid and invalid expenses
       const mixedExpenses = [
         // Valid expense
-        {
-          groupId: testGroup.id,
-          description: 'Valid Expense 1',
-          amount: 50,
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: [users[0].uid, users[1].uid],
-          date: new Date().toISOString(),
-          category: 'food',
-        },
+        new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Valid Expense 1')
+          .withAmount(50)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
         // Invalid: negative amount
-        {
-          groupId: testGroup.id,
-          description: 'Invalid Expense - Negative',
-          amount: -50,
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: [users[0].uid, users[1].uid],
-          date: new Date().toISOString(),
-          category: 'food',
-        },
+        new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Invalid Expense - Negative')
+          .withAmount(-50)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
         // Valid expense
-        {
-          groupId: testGroup.id,
-          description: 'Valid Expense 2',
-          amount: 75,
-          paidBy: users[1].uid,
-          splitType: 'equal',
-          participants: [users[0].uid, users[1].uid],
-          date: new Date().toISOString(),
-          category: 'food',
-        },
+        new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Valid Expense 2')
+          .withAmount(75)
+          .withPaidBy(users[1].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
         // Invalid: bad category
-        {
-          groupId: testGroup.id,
-          description: 'Invalid Expense - Bad Category',
-          amount: 100,
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: [users[0].uid, users[1].uid],
-          date: new Date().toISOString(),
-          category: 'invalid-category',
-        },
+        new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Invalid Expense - Bad Category')
+          .withAmount(100)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .withCategory('invalid-category')
+          .build(),
       ];
 
       // Execute all operations and track results
@@ -416,16 +355,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
     test('should maintain balance consistency after failed operations', async () => {
       // Create initial expense for baseline
-      await driver.createExpense({
-        groupId: testGroup.id,
-        description: 'Baseline Expense',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      }, users[0].token);
+      await driver.createExpense(new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription('Baseline Expense')
+        .withAmount(100)
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build(), users[0].token);
 
       // Get initial balances
       const initialBalances = await driver.waitForBalanceUpdate(testGroup.id, users[0].token);
@@ -433,16 +369,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
       // Attempt to create an invalid expense
       try {
-        await driver.createExpense({
-          groupId: testGroup.id,
-          description: 'Failed Expense',
-          amount: 0, // Invalid: zero amount
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: [users[0].uid, users[1].uid],
-          date: new Date().toISOString(),
-          category: 'food',
-        }, users[0].token);
+        await driver.createExpense(new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Failed Expense')
+          .withAmount(0) // Invalid: zero amount
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(), users[0].token);
       } catch (error) {
         // Expected to fail
       }
@@ -473,16 +406,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
     test('should handle concurrent deletes of same expense gracefully', async () => {
       // Create an expense to delete
-      const expenseToDelete = await driver.createExpense({
-        groupId: testGroup.id,
-        description: 'To Be Deleted Concurrently',
-        amount: 50,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      }, users[0].token);
+      const expenseToDelete = await driver.createExpense(new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription('To Be Deleted Concurrently')
+        .withAmount(50)
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build(), users[0].token);
 
       // Attempt to delete the same expense from multiple users concurrently
       const deletePromises = users.slice(0, 3).map(user =>

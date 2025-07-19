@@ -2,9 +2,9 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { UserBuilder } from '../support/builders';
 
 describe('Performance - Large Dataset Handling', () => {
     let driver: ApiDriver;
@@ -16,13 +16,8 @@ describe('Performance - Large Dataset Handling', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        const userSuffix = uuidv4().slice(0, 8);
 
-        mainUser = await driver.createTestUser({
-            email: `performance-dataset-${userSuffix}@example.com`,
-            password: 'Password123!',
-            displayName: 'Dataset Test User'
-        });
+        mainUser = await driver.createTestUser(new UserBuilder().build());
     });
 
     const testCases = [
@@ -33,14 +28,8 @@ describe('Performance - Large Dataset Handling', () => {
 
     testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
         it(`should handle groups with ${totalExpenses} expenses efficiently (${description})`, async () => {
-            const userSuffix = uuidv4().slice(0, 8);
-            
             const largeGroupUser1 = mainUser;
-            const largeGroupUser2 = await driver.createTestUser({
-                email: `perf-large-${userSuffix}@example.com`,
-                password: 'Password123!',
-                displayName: 'Large Dataset User'
-            });
+            const largeGroupUser2 = await driver.createTestUser(new UserBuilder().build());
             
             const largeGroup = await driver.createGroup(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
 

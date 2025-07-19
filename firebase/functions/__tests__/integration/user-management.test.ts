@@ -6,6 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('User Management Tests', () => {
   let driver: ApiDriver;
@@ -15,22 +16,12 @@ describe('User Management Tests', () => {
 
   beforeAll(async () => {
     driver = new ApiDriver();
-    const userSuffix = uuidv4().slice(0, 8);
-    testUser = await driver.createTestUser({
-      email: `usertest-${userSuffix}@test.com`,
-      password: 'Password123!',
-      displayName: 'User Management Test User'
-    });
+    testUser = await driver.createTestUser(new UserBuilder().build());
   });
 
   describe('User Registration', () => {
     test('should register a new user successfully', async () => {
-      const userSuffix = uuidv4().slice(0, 8);
-      const userData = {
-        email: `newuser-${userSuffix}@test.com`,
-        password: 'Password123!',
-        displayName: 'New Test User'
-      };
+      const userData = new UserBuilder().build();
 
       const response = await driver.register(userData);
       
@@ -52,11 +43,9 @@ describe('User Management Tests', () => {
 
       for (const email of invalidEmails) {
         try {
-          await driver.register({
-            email,
-            password: 'Password123!',
-            displayName: 'Test User'
-          });
+          await driver.register(new UserBuilder()
+            .withEmail(email)
+            .build());
           // If registration succeeds, the email validation is too permissive
           throw new Error(`Email validation is too permissive: "${email}" was accepted`);
         } catch (error) {
@@ -82,13 +71,10 @@ describe('User Management Tests', () => {
       ];
 
       for (const password of weakPasswords) {
-        const userSuffix = uuidv4().slice(0, 8);
         await expect(
-          driver.register({
-            email: `weak-${userSuffix}@test.com`,
-            password,
-            displayName: 'Test User'
-          })
+          driver.register(new UserBuilder()
+            .withPassword(password)
+            .build())
         ).rejects.toThrow(/400|weak.*password|password.*requirements|validation/i);
       }
     });
@@ -110,61 +96,43 @@ describe('User Management Tests', () => {
 
     test('should reject registration with duplicate email', async () => {
       // Create a user first to ensure it exists
-      const userSuffix = uuidv4().slice(0, 8);
-      const uniqueEmail = `duplicate-test-${userSuffix}@test.com`;
+      const firstUser = new UserBuilder().build();
       
       // First registration should succeed
-      await driver.register({
-        email: uniqueEmail,
-        password: 'Password123!',
-        displayName: 'First User'
-      });
+      await driver.register(firstUser);
       
       // Second registration with same email should fail
       await expect(
-        driver.register({
-          email: uniqueEmail,
-          password: 'Password123!',
-          displayName: 'Duplicate User'
-        })
+        driver.register(new UserBuilder()
+          .withEmail(firstUser.email)
+          .build())
       ).rejects.toThrow(/400|409|email.*exists|already.*registered/i);
     });
 
     test('should sanitize display name', async () => {
-      const userSuffix = uuidv4().slice(0, 8);
       const maliciousDisplayName = '<script>alert("xss")</script>';
       
       await expect(
-        driver.register({
-          email: `sanitize-${userSuffix}@test.com`,
-          password: 'Password123!',
-          displayName: maliciousDisplayName
-        })
+        driver.register(new UserBuilder()
+          .withDisplayName(maliciousDisplayName)
+          .build())
       ).rejects.toThrow(/400|invalid.*input|dangerous.*content/i);
     });
 
     test('should reject excessively long display names', async () => {
-      const userSuffix = uuidv4().slice(0, 8);
       const longDisplayName = 'A'.repeat(256); // Very long name
       
       await expect(
-        driver.register({
-          email: `longname-${userSuffix}@test.com`,
-          password: 'Password123!',
-          displayName: longDisplayName
-        })
+        driver.register(new UserBuilder()
+          .withDisplayName(longDisplayName)
+          .build())
       ).rejects.toThrow(/400|too.*long|exceeds.*limit|validation/i);
     });
   });
 
   describe('User Document Creation', () => {
     test('should create user document after registration', async () => {
-      const userSuffix = uuidv4().slice(0, 8);
-      const newUser = await driver.createTestUser({
-        email: `userdoc-${userSuffix}@test.com`,
-        password: 'Password123!',
-        displayName: 'User Doc Test'
-      });
+      const newUser = await driver.createTestUser(new UserBuilder().build());
 
       const response = await driver.createUserDocument({
         displayName: newUser.displayName
@@ -232,12 +200,7 @@ describe('User Management Tests', () => {
 
     beforeAll(async () => {
       // Create a test group and some expenses for the user
-      const userSuffix = uuidv4().slice(0, 8);
-      const secondUser = await driver.createTestUser({
-        email: `second-${userSuffix}@test.com`,
-        password: 'Password123!',
-        displayName: 'Second User'
-      });
+      const secondUser = await driver.createTestUser(new UserBuilder().build());
 
       testGroup = await driver.createGroup(
         `User Expenses Test Group ${uuidv4()}`,
@@ -246,20 +209,29 @@ describe('User Management Tests', () => {
       );
 
       // Create multiple expenses
-      await driver.createExpense({
-        ...driver.createTestExpense(testGroup.id, testUser.uid, [testUser.uid, secondUser.uid], 100),
-        description: 'User Expense 1'
-      }, testUser.token);
+      await driver.createExpense(new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withAmount(100)
+        .withPaidBy(testUser.uid)
+        .withParticipants([testUser.uid, secondUser.uid])
+        .withDescription('User Expense 1')
+        .build(), testUser.token);
 
-      await driver.createExpense({
-        ...driver.createTestExpense(testGroup.id, testUser.uid, [testUser.uid, secondUser.uid], 50),
-        description: 'User Expense 2'
-      }, testUser.token);
+      await driver.createExpense(new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withAmount(50)
+        .withPaidBy(testUser.uid)
+        .withParticipants([testUser.uid, secondUser.uid])
+        .withDescription('User Expense 2')
+        .build(), testUser.token);
 
-      await driver.createExpense({
-        ...driver.createTestExpense(testGroup.id, secondUser.uid, [testUser.uid, secondUser.uid], 75),
-        description: 'Other User Expense'
-      }, secondUser.token);
+      await driver.createExpense(new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withAmount(75)
+        .withPaidBy(secondUser.uid)
+        .withParticipants([testUser.uid, secondUser.uid])
+        .withDescription('Other User Expense')
+        .build(), secondUser.token);
 
       // userExpenses = [expense1, expense2, expense3]; // Not used currently
     });
@@ -328,12 +300,7 @@ describe('User Management Tests', () => {
     });
 
     test('should return empty array for user with no expenses', async () => {
-      const userSuffix = uuidv4().slice(0, 8);
-      const newUser = await driver.createTestUser({
-        email: `noexpenses-${userSuffix}@test.com`,
-        password: 'Password123!',
-        displayName: 'No Expenses User'
-      });
+      const newUser = await driver.createTestUser(new UserBuilder().build());
 
       const response = await driver.listUserExpenses(newUser.token);
 
@@ -408,12 +375,7 @@ describe('User Management Tests', () => {
     });
 
     test('should prevent users from updating other users profiles', async () => {
-      const userSuffix = uuidv4().slice(0, 8);
-      const otherUser = await driver.createTestUser({
-        email: `other-${userSuffix}@test.com`,
-        password: 'Password123!',
-        displayName: 'Other User'
-      });
+      const otherUser = await driver.createTestUser(new UserBuilder().build());
 
       const otherUserDoc = await driver.createDocument({
         displayName: otherUser.displayName,

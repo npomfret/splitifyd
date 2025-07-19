@@ -7,6 +7,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Comprehensive Security Test Suite', () => {
   let driver: ApiDriver;
@@ -17,19 +18,9 @@ describe('Comprehensive Security Test Suite', () => {
 
   beforeAll(async () => {
     driver = new ApiDriver();
-    // Create unique users for this test run to avoid collisions
-    const userSuffix = uuidv4().slice(0, 8);
     users = await Promise.all([
-      driver.createTestUser({ 
-        email: `sectest1-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Security Test User 1' 
-      }),
-      driver.createTestUser({ 
-        email: `sectest2-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Security Test User 2' 
-      }),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
     ]);
   });
 
@@ -140,12 +131,11 @@ describe('Comprehensive Security Test Suite', () => {
 
       test('should prevent users from accessing other users expenses', async () => {
         // Create an expense in the shared test group
-        const expenseData = driver.createTestExpense(
-          testGroup.id, 
-          users[0].uid, 
-          [users[0].uid], // Only user 0 is participant
-          100
-        );
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid]) // Only user 0 is participant - this is what the test is about
+          .build();
         const expense = await driver.createExpense(expenseData, users[0].token);
 
         // SECURITY FIX: User 2 should NOT be able to access the expense since they're not a participant
@@ -157,12 +147,11 @@ describe('Comprehensive Security Test Suite', () => {
 
       test('should prevent users from modifying other users expenses', async () => {
         // Create an expense paid by user 1
-        const expenseData = driver.createTestExpense(
-          testGroup.id, 
-          users[0].uid, 
-          users.map(u => u.uid), 
-          100
-        );
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .build();
         const expense = await driver.createExpense(expenseData, users[0].token);
 
         // User 2 should not be able to modify user 1's expense
@@ -233,10 +222,12 @@ describe('Comprehensive Security Test Suite', () => {
         ];
 
         for (const payload of xssPayloads) {
-          const expenseData = {
-            ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
-            description: payload
-          };
+          const expenseData = new ExpenseBuilder()
+            .withGroupId(testGroup.id)
+            .withPaidBy(users[0].uid)
+            .withParticipants(users.map(u => u.uid))
+            .withDescription(payload) // XSS payload - this is what the test is about
+            .build();
 
           // SECURITY ISSUE: Some XSS payloads are rejected (good), others may pass through
           try {
@@ -258,20 +249,10 @@ describe('Comprehensive Security Test Suite', () => {
 
       test('should sanitize XSS attempts in group names', async () => {
         const xssPayload = '<script>alert("group-xss")</script>';
-        
-        const groupData = {
-          name: xssPayload,
-          members: [{ 
-            uid: users[0].uid, 
-            name: users[0].displayName, 
-            email: users[0].email, 
-            initials: 'TU' 
-          }]
-        };
 
         // GOOD: API correctly rejects dangerous content in group names
         await expect(
-          driver.createDocument(groupData, users[0].token)
+          driver.createGroup(xssPayload, [users[0]], users[0].token)
         ).rejects.toThrow(/400|invalid|dangerous/i);
       });
 
@@ -332,8 +313,12 @@ describe('Comprehensive Security Test Suite', () => {
 
         for (const payload of pollutionPayloads) {
           const expenseData = {
-            ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
-            ...payload
+            ...new ExpenseBuilder()
+              .withGroupId(testGroup.id)
+              .withPaidBy(users[0].uid)
+              .withParticipants(users.map(u => u.uid))
+              .build(),
+            ...payload // Prototype pollution attempt - this is what the test is about
           };
 
           // The request should either be rejected or the dangerous properties should be filtered
@@ -367,8 +352,12 @@ describe('Comprehensive Security Test Suite', () => {
 
         for (const invalidData of invalidPayloads) {
           const expenseData = {
-            ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
-            ...invalidData
+            ...new ExpenseBuilder()
+              .withGroupId(testGroup.id)
+              .withPaidBy(users[0].uid)
+              .withParticipants(users.map(u => u.uid))
+              .build(),
+            ...invalidData // Invalid data type - this is what the test is about
           };
 
           await expect(
@@ -378,9 +367,12 @@ describe('Comprehensive Security Test Suite', () => {
       });
 
       test('should reject extremely large values', async () => {
-        const expenseData = {
-          ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), Number.MAX_SAFE_INTEGER + 1),
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .withAmount(Number.MAX_SAFE_INTEGER + 1) // Extremely large value - this is what the test is about
+          .build();
 
         await expect(
           driver.createExpense(expenseData, users[0].token)
@@ -388,9 +380,12 @@ describe('Comprehensive Security Test Suite', () => {
       });
 
       test('should reject negative amounts', async () => {
-        const expenseData = {
-          ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), -100),
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .withAmount(-100) // Negative amount - this is what the test is about
+          .build();
 
         await expect(
           driver.createExpense(expenseData, users[0].token)
@@ -400,10 +395,12 @@ describe('Comprehensive Security Test Suite', () => {
       test('should reject excessively long strings', async () => {
         const veryLongString = 'A'.repeat(10000); // 10KB string
         
-        const expenseData = {
-          ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
-          description: veryLongString
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .withDescription(veryLongString) // Very long string - this is what the test is about
+          .build();
 
         await expect(
           driver.createExpense(expenseData, users[0].token)
@@ -411,10 +408,12 @@ describe('Comprehensive Security Test Suite', () => {
       });
 
       test('should reject empty required strings', async () => {
-        const expenseData = {
-          ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
-          description: ""
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .withDescription("") // Empty description - this is what the test is about
+          .build();
 
         await expect(
           driver.createExpense(expenseData, users[0].token)
@@ -446,10 +445,12 @@ describe('Comprehensive Security Test Suite', () => {
       // Create a test group first for this test
       const testGroup = await driver.createGroup(`DoS Test Group ${uuidv4()}`, users, users[0].token);
       
-      const enormousPayload = {
-        ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 50),
-        description: 'A'.repeat(1000000), // 1MB string - override after spread
-      };
+      const enormousPayload = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withPaidBy(users[0].uid)
+        .withParticipants(users.map(u => u.uid))
+        .withDescription('A'.repeat(1000000)) // 1MB string - this is what the test is about
+        .build();
 
       // SECURITY FIX: API should reject enormous payloads due to validation limits
       await expect(

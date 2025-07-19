@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver } from '../support/ApiDriver';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Performance - Balance Consistency Under Load', () => {
     let driver: ApiDriver;
@@ -22,18 +22,8 @@ describe('Performance - Balance Consistency Under Load', () => {
 
     testCases.forEach(({ expensesPerUserPair, description }) => {
         it(`should maintain data consistency with ${expensesPerUserPair * 2} concurrent balance updates (${description})`, async () => {
-            const userSuffix = uuidv4().slice(0, 8);
-            
-            const user1 = await driver.createTestUser({
-                email: `perf-balance-1-${userSuffix}@example.com`,
-                password: 'Password123!',
-                displayName: 'Balance User 1'
-            });
-            const user2 = await driver.createTestUser({
-                email: `perf-balance-2-${userSuffix}@example.com`,
-                password: 'Password123!',
-                displayName: 'Balance User 2'
-            });
+            const user1 = await driver.createTestUser(new UserBuilder().build());
+            const user2 = await driver.createTestUser(new UserBuilder().build());
             
             const balanceGroup = await driver.createGroup(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
 
@@ -43,36 +33,32 @@ describe('Performance - Balance Consistency Under Load', () => {
                 const promises = [];
                 for (let j = i; j < Math.min(i + batchSize, expensesPerUserPair); j++) {
                     // User1 pays for User2
-                    promises.push(driver.createExpense({
-                        groupId: balanceGroup.id,
-                        description: `User1 pays ${j}`,
-                        amount: 100,
-                        paidBy: user1.uid,
-                        category: 'food',
-                        splitType: 'exact',
-                        participants: [user1.uid, user2.uid],
-                        splits: [
+                    promises.push(driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(balanceGroup.id)
+                        .withDescription(`User1 pays ${j}`)
+                        .withAmount(100)
+                        .withPaidBy(user1.uid)
+                        .withSplitType('exact')
+                        .withParticipants([user1.uid, user2.uid])
+                        .withSplits([
                             { userId: user1.uid, amount: 20 },
                             { userId: user2.uid, amount: 80 }
-                        ],
-                        date: new Date().toISOString()
-                    }, user1.token));
+                        ])
+                        .build(), user1.token));
                     
                     // User2 pays for User1
-                    promises.push(driver.createExpense({
-                        groupId: balanceGroup.id,
-                        description: `User2 pays ${j}`,
-                        amount: 100,
-                        paidBy: user2.uid,
-                        category: 'food',
-                        splitType: 'exact',
-                        participants: [user1.uid, user2.uid],
-                        splits: [
+                    promises.push(driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(balanceGroup.id)
+                        .withDescription(`User2 pays ${j}`)
+                        .withAmount(100)
+                        .withPaidBy(user2.uid)
+                        .withSplitType('exact')
+                        .withParticipants([user1.uid, user2.uid])
+                        .withSplits([
                             { userId: user1.uid, amount: 80 },
                             { userId: user2.uid, amount: 20 }
-                        ],
-                        date: new Date().toISOString()
-                    }, user2.token));
+                        ])
+                        .build(), user2.token));
                 }
                 await Promise.all(promises);
             }

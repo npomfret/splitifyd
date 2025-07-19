@@ -4,6 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Enhanced Data Validation Tests', () => {
   let driver: ApiDriver;
@@ -14,18 +15,9 @@ describe('Enhanced Data Validation Tests', () => {
 
   beforeAll(async () => {
     driver = new ApiDriver();
-    const userSuffix = uuidv4().slice(0, 8);
     users = await Promise.all([
-      driver.createTestUser({ 
-        email: `testuser1-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 1' 
-      }),
-      driver.createTestUser({ 
-        email: `testuser2-${userSuffix}@test.com`, 
-        password: 'Password123!', 
-        displayName: 'Test User 2' 
-      }),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
     ]);
   });
 
@@ -38,16 +30,12 @@ describe('Enhanced Data Validation Tests', () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 30); // 30 days in the future
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Future Date Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: futureDate.toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDate(futureDate.toISOString()) // Future date - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       // NOTE: API currently accepts future dates - this might be a validation gap
       const response = await driver.createExpense(expenseData, users[0].token);
@@ -61,16 +49,12 @@ describe('Enhanced Data Validation Tests', () => {
       const nearFutureDate = new Date();
       nearFutureDate.setHours(nearFutureDate.getHours() + 12); // 12 hours in the future
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Near Future Date Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: nearFutureDate.toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDate(nearFutureDate.toISOString()) // Near future date - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       const response = await driver.createExpense(expenseData, users[0].token);
       expect(response.id).toBeDefined();
@@ -83,16 +67,12 @@ describe('Enhanced Data Validation Tests', () => {
       const veryOldDate = new Date();
       veryOldDate.setFullYear(veryOldDate.getFullYear() - 6); // 6 years ago
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Very Old Date Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: veryOldDate.toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDate(veryOldDate.toISOString()) // Very old date - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       // NOTE: API currently accepts very old dates - this might be a validation gap
       const response = await driver.createExpense(expenseData, users[0].token);
@@ -106,16 +86,12 @@ describe('Enhanced Data Validation Tests', () => {
       const validOldDate = new Date();
       validOldDate.setFullYear(validOldDate.getFullYear() - 2); // 2 years ago
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Valid Old Date Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: validOldDate.toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDate(validOldDate.toISOString()) // Valid old date - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       const response = await driver.createExpense(expenseData, users[0].token);
       expect(response.id).toBeDefined();
@@ -126,14 +102,12 @@ describe('Enhanced Data Validation Tests', () => {
 
     test('should reject expenses with invalid date formats', async () => {
       const expenseData = {
-        groupId: testGroup.id,
-        description: 'Invalid Date Format Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: 'not-a-valid-date',
-        category: 'food',
+        ...new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
+        date: 'not-a-valid-date' // Invalid date format - this is what the test is about
       };
 
       await expect(
@@ -143,14 +117,12 @@ describe('Enhanced Data Validation Tests', () => {
 
     test('should reject expenses with malformed ISO date strings', async () => {
       const expenseData = {
-        groupId: testGroup.id,
-        description: 'Malformed ISO Date Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: '2023-13-45T25:99:99.999Z', // Invalid month, day, hour, minute, second
-        category: 'food',
+        ...new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
+        date: '2023-13-45T25:99:99.999Z' // Malformed ISO date - this is what the test is about
       };
 
       await expect(
@@ -162,16 +134,12 @@ describe('Enhanced Data Validation Tests', () => {
       const dateWithTimezone = new Date();
       dateWithTimezone.setDate(dateWithTimezone.getDate() - 1);
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: 'Timezone Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: dateWithTimezone.toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDate(dateWithTimezone.toISOString()) // Date with timezone - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       const response = await driver.createExpense(expenseData, users[0].token);
       expect(response.id).toBeDefined();
@@ -185,14 +153,12 @@ describe('Enhanced Data Validation Tests', () => {
   describe('Category Validation', () => {
     test('should reject expenses with invalid categories', async () => {
       const expenseData = {
-        groupId: testGroup.id,
-        description: 'Invalid Category Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'invalid-category-name',
+        ...new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
+        category: 'invalid-category-name' // Invalid category - this is what the test is about
       };
 
       await expect(
@@ -214,16 +180,12 @@ describe('Enhanced Data Validation Tests', () => {
       ];
 
       for (const category of validCategories) {
-        const expenseData = {
-          groupId: testGroup.id,
-          description: `Valid Category Test - ${category}`,
-          amount: 10,
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: [users[0].uid, users[1].uid],
-          date: new Date().toISOString(),
-          category: category,
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withCategory(category) // Valid category - this is what the test is about
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build();
 
         const response = await driver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
@@ -235,14 +197,12 @@ describe('Enhanced Data Validation Tests', () => {
 
     test('should reject expenses with null or undefined categories', async () => {
       const expenseData = {
-        groupId: testGroup.id,
-        description: 'Null Category Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: null as any,
+        ...new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
+        category: null as any // Null category - this is what the test is about
       };
 
       await expect(
@@ -252,14 +212,12 @@ describe('Enhanced Data Validation Tests', () => {
 
     test('should reject expenses with empty string categories', async () => {
       const expenseData = {
-        groupId: testGroup.id,
-        description: 'Empty Category Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: '',
+        ...new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
+        category: '' // Empty category - this is what the test is about
       };
 
       await expect(
@@ -269,14 +227,12 @@ describe('Enhanced Data Validation Tests', () => {
 
     test('should enforce case sensitivity in category validation', async () => {
       const expenseData = {
-        groupId: testGroup.id,
-        description: 'Case Sensitive Category Test',
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'FOOD', // Uppercase version of valid category
+        ...new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants([users[0].uid, users[1].uid])
+          .build(),
+        category: 'FOOD' // Uppercase category - this is what the test is about
       };
 
       await expect(
@@ -289,16 +245,12 @@ describe('Enhanced Data Validation Tests', () => {
     test('should reject expense descriptions that exceed maximum length', async () => {
       const longDescription = 'A'.repeat(501); // Assuming 500 char limit
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: longDescription,
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription(longDescription) // Long description - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       await expect(
         driver.createExpense(expenseData, users[0].token)
@@ -308,16 +260,12 @@ describe('Enhanced Data Validation Tests', () => {
     test('should accept expense descriptions within length limits', async () => {
       const validDescription = 'A'.repeat(200); // Well within typical limits
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: validDescription,
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription(validDescription) // Valid description length - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       const response = await driver.createExpense(expenseData, users[0].token);
       expect(response.id).toBeDefined();
@@ -330,16 +278,12 @@ describe('Enhanced Data Validation Tests', () => {
     test('should handle special characters in expense descriptions', async () => {
       const specialCharDescription = 'Café & Restaurant - 50% off! @#$%^&*()_+-=[]{}|;:,.<>?';
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: specialCharDescription,
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription(specialCharDescription) // Special characters - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       const response = await driver.createExpense(expenseData, users[0].token);
       expect(response.id).toBeDefined();
@@ -351,16 +295,12 @@ describe('Enhanced Data Validation Tests', () => {
     test('should reject Unicode characters in expense descriptions (security feature)', async () => {
       const unicodeDescription = '🍕 Pizza & 🍺 Beer - Français 中文 العربية русский 🎉';
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: unicodeDescription,
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription(unicodeDescription) // Unicode characters - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       // NOTE: API currently rejects Unicode as "potentially dangerous content"
       await expect(
@@ -431,16 +371,12 @@ describe('Enhanced Data Validation Tests', () => {
     });
 
     test('should reject empty or whitespace-only input fields', async () => {
-      const expenseData = {
-        groupId: testGroup.id,
-        description: '   ', // Only whitespace
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription('   ') // Only whitespace - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       await expect(
         driver.createExpense(expenseData, users[0].token)
@@ -450,16 +386,12 @@ describe('Enhanced Data Validation Tests', () => {
     test('should handle SQL injection attempts in text fields', async () => {
       const sqlInjectionAttempt = "'; DROP TABLE expenses; --";
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: sqlInjectionAttempt,
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription(sqlInjectionAttempt) // SQL injection attempt - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       // Should either safely handle the input or reject it
       try {
@@ -482,16 +414,12 @@ describe('Enhanced Data Validation Tests', () => {
     test('should handle XSS attempts in text fields', async () => {
       const xssAttempt = '<script>alert("XSS")</script>';
 
-      const expenseData = {
-        groupId: testGroup.id,
-        description: xssAttempt,
-        amount: 100,
-        paidBy: users[0].uid,
-        splitType: 'equal',
-        participants: [users[0].uid, users[1].uid],
-        date: new Date().toISOString(),
-        category: 'food',
-      };
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(testGroup.id)
+        .withDescription(xssAttempt) // XSS attempt - this is what the test is about
+        .withPaidBy(users[0].uid)
+        .withParticipants([users[0].uid, users[1].uid])
+        .build();
 
       // Should either safely handle the input or reject it
       try {

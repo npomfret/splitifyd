@@ -10,6 +10,7 @@
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
+import { ExpenseBuilder, GroupBuilder, UserBuilder } from '../support/builders';
 
 
 
@@ -22,11 +23,9 @@ describe('Comprehensive API Test Suite', () => {
 
   beforeAll(async () => {
     driver = new ApiDriver();
-    // Create unique users for this test run to avoid collisions
-    const userSuffix = uuidv4().slice(0, 8);
     users = await Promise.all([
-      driver.createTestUser({ email: `testuser1-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Test User 1' }),
-      driver.createTestUser({ email: `testuser2-${userSuffix}@test.com`, password: 'Password123!', displayName: 'Test User 2' }),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
     ]);
   });
 
@@ -44,11 +43,9 @@ describe('Comprehensive API Test Suite', () => {
   describe('Group Management', () => {
     describe('Group Creation', () => {
       test('should create a new group', async () => {
-        const groupName = `Test Group ${uuidv4()}`;
-        const groupData = {
-          name: groupName,
-          members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') }))
-        };
+        const groupData = new GroupBuilder()
+          .withMembers(users)
+          .build();
 
         const response = await driver.createDocument(groupData, users[0].token);
 
@@ -57,7 +54,7 @@ describe('Comprehensive API Test Suite', () => {
 
         // Verify the group was created
         const fetchedGroup = await driver.getDocument(createdGroup.id, users[0].token);
-        expect(fetchedGroup.data.name).toBe(groupName);
+        expect(fetchedGroup.data.name).toBe(groupData.name);
         expect(fetchedGroup.data.members.length).toBe(2);
       });
 
@@ -69,11 +66,7 @@ describe('Comprehensive API Test Suite', () => {
         const testGroup = await driver.createGroup(`Members Only Group ${uuidv4()}`, users, users[0].token);
         
         // Create a third user who is not part of the group
-        const outsiderUser = await driver.createTestUser({
-          email: `outsider-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'Outsider User'
-        });
+        const outsiderUser = await driver.createTestUser(new UserBuilder().build());
         
         // Try to access balances as non-member
         await expect(
@@ -97,11 +90,10 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should not allow non-admin to generate shareable link', async () => {
         // Create a new group where user[1] is not the admin
-        const nonAdminGroupData = {
-          name: `Non-Admin Test Group ${uuidv4()}`,
-          members: users.map(u => ({ uid: u.uid, name: u.displayName, email: u.email, initials: u.displayName.split(' ').map(n => n[0]).join('') })),
-          createdBy: users[0].uid
-        };
+        const nonAdminGroupData: any = new GroupBuilder()
+          .withMembers(users)
+          .build();
+        nonAdminGroupData.createdBy = users[0].uid;
         
         const nonAdminGroup = await driver.createDocument(nonAdminGroupData, users[0].token);
         
@@ -113,10 +105,9 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should allow new users to join group via share link', async () => {
         // First, create a new group and generate a share link
-        const shareableGroupData = {
-          name: `Shareable Group ${uuidv4()}`,
-          members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
-        };
+        const shareableGroupData = new GroupBuilder()
+          .withMember(users[0])
+          .build();
         
         const shareableGroup = await driver.createDocument(shareableGroupData, users[0].token);
         
@@ -124,11 +115,7 @@ describe('Comprehensive API Test Suite', () => {
         const shareResponse = await driver.generateShareLink(shareableGroup.id, users[0].token);
         
         // Create a new user who will join via the link
-        const newUser = await driver.createTestUser({
-          email: `newuser-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'New User'
-        });
+        const newUser = await driver.createTestUser(new UserBuilder().build());
         
         // Join the group using the share token
         const joinResponse = await driver.joinGroupViaShareLink(shareResponse.linkId, newUser.token);
@@ -146,10 +133,9 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should not allow duplicate joining via share link', async () => {
         // Create a group with a share link
-        const dupTestGroupData = {
-          name: `Duplicate Test Group ${uuidv4()}`,
-          members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
-        };
+        const dupTestGroupData = new GroupBuilder()
+          .withMember(users[0])
+          .build();
         
         const dupTestGroup = await driver.createDocument(dupTestGroupData, users[0].token);
         const shareResponse = await driver.generateShareLink(dupTestGroup.id, users[0].token);
@@ -164,11 +150,7 @@ describe('Comprehensive API Test Suite', () => {
       });
 
       test('should reject invalid share tokens', async () => {
-        const invalidUser = await driver.createTestUser({
-          email: `invalid-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'Invalid User'
-        });
+        const invalidUser = await driver.createTestUser(new UserBuilder().build());
         
         // Try to join with an invalid token
         await expect(
@@ -178,10 +160,9 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should allow multiple users to join group using the same share link', async () => {
         // Create a new group with only one member
-        const multiJoinGroupData = {
-          name: `Multi-Join Group ${uuidv4()}`,
-          members: [{ uid: users[0].uid, name: users[0].displayName, email: users[0].email, initials: users[0].displayName.split(' ').map(n => n[0]).join('') }]
-        };
+        const multiJoinGroupData = new GroupBuilder()
+          .withMember(users[0])
+          .build();
         
         const multiJoinGroup = await driver.createDocument(multiJoinGroupData, users[0].token);
         
@@ -190,21 +171,9 @@ describe('Comprehensive API Test Suite', () => {
         
         // Create multiple new users who will join via the same link
         const newUsers = await Promise.all([
-          driver.createTestUser({
-            email: `multiuser1-${uuidv4()}@test.com`,
-            password: 'Password123!',
-            displayName: 'Multi User 1'
-          }),
-          driver.createTestUser({
-            email: `multiuser2-${uuidv4()}@test.com`,
-            password: 'Password123!',
-            displayName: 'Multi User 2'
-          }),
-          driver.createTestUser({
-            email: `multiuser3-${uuidv4()}@test.com`,
-            password: 'Password123!',
-            displayName: 'Multi User 3'
-          })
+          driver.createTestUser(new UserBuilder().build()),
+          driver.createTestUser(new UserBuilder().build()),
+          driver.createTestUser(new UserBuilder().build())
         ]);
         
         // All users should be able to join using the same link
@@ -239,16 +208,11 @@ describe('Comprehensive API Test Suite', () => {
 
     describe('Expense Creation', () => {
       test('should add an expense to the group', async () => {
-        const expenseData = {
-          groupId: testGroup.id,
-          description: 'Test Expense',
-          amount: 100,
-          category: 'other',
-          date: new Date().toISOString(),
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: users.map(u => u.uid)
-        };
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .build();
 
         const response = await driver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
@@ -256,26 +220,24 @@ describe('Comprehensive API Test Suite', () => {
 
         // Verify the expense was created by fetching it
         const fetchedExpense = await driver.getExpense(createdExpense.id, users[0].token);
-        expect(fetchedExpense.description).toBe('Test Expense');
-        expect(fetchedExpense.amount).toBe(100);
+        expect(fetchedExpense.description).toBe(expenseData.description);
+        expect(fetchedExpense.amount).toBe(expenseData.amount);
         expect(fetchedExpense.paidBy).toBe(users[0].uid);
       });
 
       test('should add an expense with an unequal split', async () => {
-        const expenseData = {
-          groupId: testGroup.id,
-          description: 'Unequal Split Expense',
-          amount: 100,
-          paidBy: users[0].uid,
-          splitType: 'exact',
-          participants: users.map(u => u.uid),
-          splits: [
+        const expenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Unequal Split Expense')
+          .withPaidBy(users[0].uid)
+          .withSplitType('exact')
+          .withParticipants(users.map(u => u.uid))
+          .withSplits([
             { userId: users[0].uid, amount: 80 },
             { userId: users[1].uid, amount: 20 }
-          ],
-          date: new Date().toISOString(),
-          category: 'utilities',
-        };
+          ])
+          .withCategory('utilities')
+          .build();
 
         const response = await driver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
@@ -295,15 +257,21 @@ describe('Comprehensive API Test Suite', () => {
 
       test("should list all of a group's expenses", async () => {
         // Add multiple expenses
-        await driver.createExpense({
-          ...driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100),
-          description: 'First Test Expense'
-        }, users[0].token);
+        await driver.createExpense(new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withAmount(100)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .withDescription('First Test Expense')
+          .build(), users[0].token);
         
-        await driver.createExpense({
-          ...driver.createTestExpense(testGroup.id, users[1].uid, users.map(u => u.uid), 50),
-          description: 'Second Test Expense'
-        }, users[1].token);
+        await driver.createExpense(new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withAmount(50)
+          .withPaidBy(users[1].uid)
+          .withParticipants(users.map(u => u.uid))
+          .withDescription('Second Test Expense')
+          .build(), users[1].token);
         
         const response = await driver.getGroupExpenses(testGroup.id, users[0].token);
         expect(response).toHaveProperty('expenses');
@@ -317,7 +285,12 @@ describe('Comprehensive API Test Suite', () => {
 
     describe('Expense Updates', () => {
       test('should update an expense', async () => {
-        const initialExpenseData = driver.createTestExpense(testGroup.id, users[0].uid, users.map(u => u.uid), 100);
+        const initialExpenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withAmount(100)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .build();
         const createdExpense = await driver.createExpense(initialExpenseData, users[0].token);
         
         const updatedData = {
@@ -338,16 +311,13 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should recalculate splits when amount is updated with exact split type', async () => {
         // Create a new expense specifically for this test
-        const testExpenseData = {
-          groupId: testGroup.id,
-          description: 'Split Recalculation Test',
-          amount: 100,
-          category: 'other',
-          date: new Date().toISOString(),
-          paidBy: users[0].uid,
-          splitType: 'equal',
-          participants: users.map(u => u.uid)
-        };
+        const testExpenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Split Recalculation Test')
+          .withAmount(100)
+          .withPaidBy(users[0].uid)
+          .withParticipants(users.map(u => u.uid))
+          .build();
 
         const createResponse = await driver.createExpense(testExpenseData, users[0].token);
         expect(createResponse.id).toBeDefined();
@@ -381,20 +351,18 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should recalculate splits when amount is updated with exact split type', async () => {
         // Create an expense with exact splits
-        const testExpenseData = {
-          groupId: testGroup.id,
-          description: 'Exact Split Test',
-          amount: 100,
-          category: 'other',
-          date: new Date().toISOString(),
-          paidBy: users[0].uid,
-          splitType: 'exact',
-          participants: users.map(u => u.uid),
-          splits: [
+        const testExpenseData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('Exact Split Test')
+          .withAmount(100)
+          .withPaidBy(users[0].uid)
+          .withSplitType('exact')
+          .withParticipants(users.map(u => u.uid))
+          .withSplits([
             { userId: users[0].uid, amount: 60 },
             { userId: users[1].uid, amount: 40 }
-          ]
-        };
+          ])
+          .build();
 
         const createResponse = await driver.createExpense(testExpenseData, users[0].token);
         expect(createResponse.id).toBeDefined();
@@ -430,16 +398,13 @@ describe('Comprehensive API Test Suite', () => {
     describe('Expense Deletion', () => {
       test('should delete an expense', async () => {
         // First, create an expense to be deleted
-        const expenseToDeleteData = {
-          groupId: testGroup.id,
-          description: 'To be deleted',
-          amount: 50,
-          paidBy: users[1].uid,
-          splitType: 'equal',
-          participants: users.map(u => u.uid),
-          date: new Date().toISOString(),
-          category: 'other',
-        };
+        const expenseToDeleteData = new ExpenseBuilder()
+          .withGroupId(testGroup.id)
+          .withDescription('To be deleted')
+          .withAmount(50)
+          .withPaidBy(users[1].uid)
+          .withParticipants(users.map(u => u.uid))
+          .build();
         const createdExpense = await driver.createExpense(expenseToDeleteData, users[1].token);
         expect(createdExpense.id).toBeDefined();
 
@@ -463,7 +428,12 @@ describe('Comprehensive API Test Suite', () => {
 
     test('should calculate group balances correctly', async () => {
       // Create an expense: User 0 pays 100, split equally between 2 users
-      const expenseData = driver.createTestExpense(balanceTestGroup.id, users[0].uid, users.map(u => u.uid), 100);
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(balanceTestGroup.id)
+        .withAmount(100)
+        .withPaidBy(users[0].uid)
+        .withParticipants(users.map(u => u.uid))
+        .build();
       await driver.createExpense(expenseData, users[0].token);
       
       // Wait for Firebase triggers to update balances
@@ -495,7 +465,12 @@ describe('Comprehensive API Test Suite', () => {
 
     test('should include balance data in listDocuments response', async () => {
       // Add an expense: User 0 pays 100, split equally between 2 users
-      const expenseData = driver.createTestExpense(balanceTestGroup.id, users[0].uid, users.map(u => u.uid), 100);
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(balanceTestGroup.id)
+        .withAmount(100)
+        .withPaidBy(users[0].uid)
+        .withParticipants(users.map(u => u.uid))
+        .build();
       await driver.createExpense(expenseData, users[0].token);
       
       // Wait for balance calculations to complete
@@ -531,7 +506,12 @@ describe('Comprehensive API Test Suite', () => {
       expect(initialGroupInList!.data.lastExpenseTime).toBeUndefined();
       
       // Add an expense
-      const expenseData = driver.createTestExpense(balanceTestGroup.id, users[0].uid, users.map(u => u.uid), 75);
+      const expenseData = new ExpenseBuilder()
+        .withGroupId(balanceTestGroup.id)
+        .withAmount(75)
+        .withPaidBy(users[0].uid)
+        .withParticipants(users.map(u => u.uid))
+        .build();
       await driver.createExpense(expenseData, users[0].token);
       
       // Check immediately after creating expense (should be synchronous now)
@@ -552,7 +532,12 @@ describe('Comprehensive API Test Suite', () => {
       expect(new Date(updatedGroupInList!.data.lastExpenseTime).getTime()).not.toBeNaN();
       
       // Add another expense to test count increment
-      const secondExpenseData = driver.createTestExpense(balanceTestGroup.id, users[1].uid, users.map(u => u.uid), 25);
+      const secondExpenseData = new ExpenseBuilder()
+        .withGroupId(balanceTestGroup.id)
+        .withAmount(25)
+        .withPaidBy(users[1].uid)
+        .withParticipants(users.map(u => u.uid))
+        .build();
       await driver.createExpense(secondExpenseData, users[1].token);
       
       // Check immediately after second expense

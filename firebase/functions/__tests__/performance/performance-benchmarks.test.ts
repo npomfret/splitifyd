@@ -2,9 +2,9 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User, Group } from '../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Performance - Response Time Benchmarks', () => {
     let driver: ApiDriver;
@@ -18,28 +18,21 @@ describe('Performance - Response Time Benchmarks', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        const userSuffix = uuidv4().slice(0, 8);
 
-        mainUser = await driver.createTestUser({
-            email: `performance-benchmark-${userSuffix}@example.com`,
-            password: 'Password123!',
-            displayName: 'Benchmark Test User'
-        });
+        mainUser = await driver.createTestUser(new UserBuilder().build());
 
         benchmarkGroup = await driver.createGroup('Benchmark Group', [mainUser], mainUser.token);
         
         for (let i = 0; i < 20; i++) {
-            const expense = await driver.createExpense({
-                groupId: benchmarkGroup.id,
-                description: `Benchmark expense ${i}`,
-                amount: 100,
-                paidBy: mainUser.uid,
-                category: 'food',
-                splitType: 'exact',
-                participants: [mainUser.uid],
-                splits: [{ userId: mainUser.uid, amount: 100 }],
-                date: new Date().toISOString()
-            }, mainUser.token);
+            const expense = await driver.createExpense(new ExpenseBuilder()
+                .withGroupId(benchmarkGroup.id)
+                .withDescription(`Benchmark expense ${i}`)
+                .withAmount(100)
+                .withPaidBy(mainUser.uid)
+                .withSplitType('exact')
+                .withParticipants([mainUser.uid])
+                .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                .build(), mainUser.token);
             benchmarkExpenses.push(expense);
         }
     });
@@ -66,17 +59,15 @@ describe('Performance - Response Time Benchmarks', () => {
         const writeOperations = [
             { 
                 name: 'Create expense',
-                fn: () => driver.createExpense({
-                    groupId: benchmarkGroup.id,
-                    description: 'Write benchmark expense',
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    category: 'food',
-                    splitType: 'exact',
-                    participants: [mainUser.uid],
-                    splits: [{ userId: mainUser.uid, amount: 100 }],
-                    date: new Date().toISOString()
-                }, mainUser.token),
+                fn: () => driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(benchmarkGroup.id)
+                    .withDescription('Write benchmark expense')
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withSplitType('exact')
+                    .withParticipants([mainUser.uid])
+                    .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                    .build(), mainUser.token),
                 target: 2000
             },
             {

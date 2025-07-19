@@ -4,6 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User, Group } from '../support/ApiDriver';
+import { ExpenseBuilder, UserBuilder } from '../support/builders';
 
 describe('Error Handling and Recovery Testing', () => {
     let driver: ApiDriver;
@@ -14,14 +15,9 @@ describe('Error Handling and Recovery Testing', () => {
 
     beforeAll(async () => {
         driver = new ApiDriver();
-        const userSuffix = uuidv4().slice(0, 8);
 
         // Create main test user
-        mainUser = await driver.createTestUser({
-            email: `error-handling-main-${userSuffix}@example.com`,
-            password: 'Password123!',
-            displayName: 'Error Handling Test User'
-        });
+        mainUser = await driver.createTestUser(new UserBuilder().build());
 
         // Create a test group
         testGroup = await driver.createGroup('Error Handling Test Group', [mainUser], mainUser.token);
@@ -34,16 +30,13 @@ describe('Error Handling and Recovery Testing', () => {
                 const invalidToken = 'invalid-token-12345';
                 
                 await expect(
-                    driver.createExpense({
-                        groupId: testGroup.id,
-                        description: 'Test with invalid token',
-                        amount: 100,
-                        paidBy: mainUser.uid,
-                        splitType: 'equal',
-                        participants: [mainUser.uid],
-                        date: new Date().toISOString(),
-                        category: 'food'
-                    }, invalidToken)
+                    driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription('Test with invalid token')
+                        .withAmount(100)
+                        .withPaidBy(mainUser.uid)
+                        .withParticipants([mainUser.uid])
+                        .build(), invalidToken)
                 ).rejects.toThrow(/401|unauthorized|token|auth/i);
             });
 
@@ -52,16 +45,13 @@ describe('Error Handling and Recovery Testing', () => {
                 const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
                 
                 await expect(
-                    driver.createExpense({
-                        groupId: testGroup.id,
-                        description: 'Test with expired token',
-                        amount: 100,
-                        paidBy: mainUser.uid,
-                        splitType: 'equal',
-                        participants: [mainUser.uid],
-                        date: new Date().toISOString(),
-                        category: 'food'
-                    }, expiredToken)
+                    driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription('Test with expired token')
+                        .withAmount(100)
+                        .withPaidBy(mainUser.uid)
+                        .withParticipants([mainUser.uid])
+                        .build(), expiredToken)
                 ).rejects.toThrow(/401|unauthorized|token|auth|invalid/i);
             });
 
@@ -70,32 +60,26 @@ describe('Error Handling and Recovery Testing', () => {
                 const nonExistentGroupId = 'non-existent-group-' + uuidv4();
                 
                 await expect(
-                    driver.createExpense({
-                        groupId: nonExistentGroupId,
-                        description: 'Test with invalid group',
-                        amount: 100,
-                        paidBy: mainUser.uid,
-                        splitType: 'equal',
-                        participants: [mainUser.uid],
-                        date: new Date().toISOString(),
-                        category: 'food'
-                    }, mainUser.token)
+                    driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(nonExistentGroupId)
+                        .withDescription('Test with invalid group')
+                        .withAmount(100)
+                        .withPaidBy(mainUser.uid)
+                        .withParticipants([mainUser.uid])
+                        .build(), mainUser.token)
                 ).rejects.toThrow(/not found|404|group.*not.*exist|DOCUMENT_NOT_FOUND/i);
             });
 
             it('should handle partial service degradation gracefully', async () => {
                 // Test operations that depend on multiple services
                 // Create valid expense first
-                const validExpense = await driver.createExpense({
-                    groupId: testGroup.id,
-                    description: 'Valid expense for degradation test',
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    splitType: 'equal',
-                    participants: [mainUser.uid],
-                    date: new Date().toISOString(),
-                    category: 'food'
-                }, mainUser.token);
+                const validExpense = await driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Valid expense for degradation test')
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withParticipants([mainUser.uid])
+                    .build(), mainUser.token);
 
                 // Test that read operations still work even if writes might fail
                 const retrievedExpense = await driver.getExpense(validExpense.id, mainUser.token);
@@ -110,11 +94,7 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle database permission errors gracefully', async () => {
                 // Test accessing resources user doesn't have permission for
-                const unauthorizedUser = await driver.createTestUser({
-                    email: `unauthorized-${uuidv4()}@example.com`,
-                    password: 'Password123!',
-                    displayName: 'Unauthorized User'
-                });
+                const unauthorizedUser = await driver.createTestUser(new UserBuilder().build());
 
                 // Try to access group expenses with user not in group
                 await expect(
@@ -123,16 +103,13 @@ describe('Error Handling and Recovery Testing', () => {
 
                 // Try to create expense in group user doesn't belong to
                 await expect(
-                    driver.createExpense({
-                        groupId: testGroup.id,
-                        description: 'Unauthorized expense',
-                        amount: 100,
-                        paidBy: unauthorizedUser.uid,
-                        splitType: 'equal',
-                        participants: [unauthorizedUser.uid],
-                        date: new Date().toISOString(),
-                        category: 'food'
-                    }, unauthorizedUser.token)
+                    driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription('Unauthorized expense')
+                        .withAmount(100)
+                        .withPaidBy(unauthorizedUser.uid)
+                        .withParticipants([unauthorizedUser.uid])
+                        .build(), unauthorizedUser.token)
                 ).rejects.toThrow(/403|forbidden|permission|access.*denied|not.*member/i);
             });
         });
@@ -154,16 +131,13 @@ describe('Error Handling and Recovery Testing', () => {
                 const oversizedDescription = 'x'.repeat(10000); // 10KB description
                 
                 await expect(
-                    driver.createExpense({
-                        groupId: testGroup.id,
-                        description: oversizedDescription,
-                        amount: 100,
-                        paidBy: mainUser.uid,
-                        splitType: 'equal',
-                        participants: [mainUser.uid],
-                        date: new Date().toISOString(),
-                        category: 'food'
-                    }, mainUser.token)
+                    driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription(oversizedDescription)
+                        .withAmount(100)
+                        .withPaidBy(mainUser.uid)
+                        .withParticipants([mainUser.uid])
+                        .build(), mainUser.token)
                 ).rejects.toThrow(/400|payload.*large|request.*size|validation|description.*long/i);
             });
 
@@ -192,16 +166,13 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle concurrent operations with conflicting data gracefully', async () => {
                 // Create an expense
-                const baseExpense = await driver.createExpense({
-                    groupId: testGroup.id,
-                    description: 'Conflict test expense',
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    splitType: 'equal',
-                    participants: [mainUser.uid],
-                    date: new Date().toISOString(),
-                    category: 'food'
-                }, mainUser.token);
+                const baseExpense = await driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Conflict test expense')
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withParticipants([mainUser.uid])
+                    .build(), mainUser.token);
 
                 // Try to update and delete the same expense simultaneously
                 const updatePromise = driver.updateExpense(baseExpense.id, {
@@ -264,16 +235,13 @@ describe('Error Handling and Recovery Testing', () => {
         describe('Backup and Recovery', () => {
             it('should handle data export functionality gracefully', async () => {
                 // Create some test data first
-                const exportTestExpense = await driver.createExpense({
-                    groupId: testGroup.id,
-                    description: 'Export test expense',
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    splitType: 'equal',
-                    participants: [mainUser.uid],
-                    date: new Date().toISOString(),
-                    category: 'food'
-                }, mainUser.token);
+                const exportTestExpense = await driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Export test expense')
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withParticipants([mainUser.uid])
+                    .build(), mainUser.token);
 
                 // Test getting all user's data (simulate export)
                 const groupData = await driver.getDocument(testGroup.id, mainUser.token);
@@ -314,16 +282,13 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle orphaned data cleanup scenarios', async () => {
                 // Create expense, then simulate orphaned state by checking references
-                const cleanupTestExpense = await driver.createExpense({
-                    groupId: testGroup.id,
-                    description: 'Cleanup test expense',
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    splitType: 'equal',
-                    participants: [mainUser.uid],
-                    date: new Date().toISOString(),
-                    category: 'food'
-                }, mainUser.token);
+                const cleanupTestExpense = await driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Cleanup test expense')
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withParticipants([mainUser.uid])
+                    .build(), mainUser.token);
 
                 // Verify expense exists and is properly linked
                 const expense = await driver.getExpense(cleanupTestExpense.id, mainUser.token);
@@ -358,16 +323,13 @@ describe('Error Handling and Recovery Testing', () => {
 
                 // Attempt invalid operation that should fail
                 try {
-                    await driver.createExpense({
-                        groupId: testGroup.id,
-                        description: 'Invalid expense - negative amount',
-                        amount: -100, // Invalid
-                        paidBy: mainUser.uid,
-                        splitType: 'equal',
-                        participants: [mainUser.uid],
-                        date: new Date().toISOString(),
-                        category: 'food'
-                    }, mainUser.token);
+                    await driver.createExpense(new ExpenseBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription('Invalid expense - negative amount')
+                        .withAmount(-100) // Invalid
+                        .withPaidBy(mainUser.uid)
+                        .withParticipants([mainUser.uid])
+                        .build(), mainUser.token);
                 } catch (error) {
                     // Expected to fail
                 }
@@ -387,27 +349,20 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle database transaction consistency', async () => {
                 // Test that complex operations maintain consistency
-                const user2 = await driver.createTestUser({
-                    email: `consistency-user-${uuidv4()}@example.com`,
-                    password: 'Password123!',
-                    displayName: 'Consistency Test User 2'
-                });
+                const user2 = await driver.createTestUser(new UserBuilder().build());
 
                 // Add user to group
                 const shareLink = await driver.generateShareLink(testGroup.id, mainUser.token);
                 await driver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
                 // Create expense involving both users
-                const consistencyExpense = await driver.createExpense({
-                    groupId: testGroup.id,
-                    description: 'Consistency test expense',
-                    amount: 100,
-                    paidBy: mainUser.uid,
-                    splitType: 'equal',
-                    participants: [mainUser.uid, user2.uid],
-                    date: new Date().toISOString(),
-                    category: 'food'
-                }, mainUser.token);
+                const consistencyExpense = await driver.createExpense(new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Consistency test expense')
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withParticipants([mainUser.uid, user2.uid])
+                    .build(), mainUser.token);
 
                 // Wait for balance calculations
                 await driver.waitForBalanceUpdate(testGroup.id, mainUser.token, 15000);

@@ -2,9 +2,9 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver } from '../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { UserBuilder } from '../support/builders';
 
 describe('Performance - Group Membership Scaling', () => {
     let driver: ApiDriver;
@@ -25,19 +25,13 @@ describe('Performance - Group Membership Scaling', () => {
 
     testCases.forEach(({ groupCount, expensesPerGroup, description }) => {
         it(`should handle users with ${groupCount} group memberships (${description})`, async () => {
-            const userSuffix = uuidv4().slice(0, 8);
-            
-            const busyUser = await driver.createTestUser({
-                email: `perf-busy-${userSuffix}@example.com`,
-                password: 'Password123!',
-                displayName: 'Busy User'
-            });
+            const busyUser = await driver.createTestUser(new UserBuilder().build());
             
             const { responseTime } = await workers.handleGroupMemberships({
                 busyUser,
                 groupCount,
                 expensesPerGroup,
-                userSuffix
+                userSuffix: 'test'
             });
 
             expect(responseTime).toBeLessThan(groupCount * 250);

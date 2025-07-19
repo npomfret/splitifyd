@@ -104,18 +104,87 @@ The following test files would benefit most from this refactoring:
 
 ## Implementation Plan
 
-### Phase 1: Infrastructure Setup
-1. **Create a `builders` directory** within `firebase/functions/__tests__/support` to house our new builder classes.
-2. **Create index.ts** for clean imports from the builders directory.
+### Phase 1: Infrastructure Setup ✅
+1. **Create a `builders` directory** within `firebase/functions/__tests__/support` to house our new builder classes. ✅
+2. **Create index.ts** for clean imports from the builders directory. ✅
 
-### Phase 2: Builder Implementation
-3. **Implement `UserBuilder`** - Provides fluent interface for test user creation with sensible defaults.
-4. **Implement `GroupBuilder`** - Provides fluent interface for test group creation with default members.
-5. **Implement `ExpenseBuilder`** - Provides fluent interface for test expense creation with configurable splits.
+### Phase 2: Builder Implementation ✅
+3. **Implement `UserBuilder`** - Provides fluent interface for test user creation with sensible defaults. ✅
+   - Generates unique emails and display names using UUID
+   - Default password: 'Password123!'
+4. **Implement `GroupBuilder`** - Provides fluent interface for test group creation with default members. ✅
+   - Supports withName() and withMembers()
+   - Generates unique group names
+5. **Implement `ExpenseBuilder`** - Provides fluent interface for test expense creation with configurable splits. ✅
+   - Supports all expense properties
+   - Sensible defaults for all fields
+   - Handles percentage splits
 
-### Phase 3: Test Refactoring (Small Commits)
-6. **Refactor business-logic.test.ts** - Start with the most complex test file to validate builder patterns.
-7. **Submit pull request** for the builders infrastructure and first refactored test file.
+### Phase 3: Test Refactoring (In Progress)
+6. **Refactor business-logic.test.ts** - Start with the most complex test file to validate builder patterns. ✅
+   - All 30 tests refactored and passing
+   - Only test-relevant fields specified
+   - Fixed failing "multiple expenses with same participants" test
+7. **Refactor data-validation.test.ts** ✅
+   - All 22 tests refactored and passing
+   - Date validation tests only specify dates
+   - Category validation tests only specify categories
+   - Used spread operator for invalid data tests
+8. **Refactor security.test.ts** ✅
+   - All 25 tests refactored and passing
+   - Replaced all driver.createTestExpense() calls
+   - Simplified XSS group name test
+9. **Refactor user-management.test.ts** ✅
+   - All 24 tests refactored and passing
+   - Replaced all manual user creation with UserBuilder
+   - Replaced expense creation with ExpenseBuilder
+   - Followed principle of only specifying test-relevant fields
+10. **Refactor api.test.ts** ✅
+    - All 21 tests refactored and passing
+    - Replaced all manual user/group/expense creation with builders
+    - Used withMember() for single member groups
+    - Followed principle of only specifying test-relevant fields
+11. **Refactor performance-balance.test.ts** ✅
+    - All 3 tests refactored and passing
+    - Replaced manual user creation with UserBuilder
+    - Removed unused uuidv4 import
+12. **Refactor performance-complex.test.ts** ✅
+    - All 3 tests refactored and passing
+    - Replaced manual user creation with UserBuilder
+    - Removed unused uuidv4 import
+13. **Refactor performance-load.test.ts** ✅
+    - All 18 tests refactored
+    - Replaced all manual user and expense creation with builders
+    - Verified with sample test due to long runtime
+14. **Refactor debtSimplifier.test.ts** ✅
+    - No refactoring needed - unit tests for utility function
+    - All 8 tests passing
+    - Does not use ApiDriver or create test entities
+15. **Additional test files discovered**
+    - concurrent-operations.test.ts ✅
+      - All 10 tests refactored and passing
+      - Replaced all manual user and expense creation with builders
+    - error-handling-recovery.test.ts ✅
+      - All 15 tests refactored and passing
+      - Replaced all manual user and expense creation with builders
+    - performance-benchmarks.test.ts ✅
+      - All 3 tests refactored and passing
+      - Replaced manual user and expense creation with builders
+    - performance-concurrent.test.ts ✅
+      - All 3 tests refactored and passing
+      - Replaced manual user creation with UserBuilder
+    - performance-dataset.test.ts ✅
+      - All 3 tests refactored and passing
+      - Replaced manual user creation with UserBuilder
+    - performance-scaling.test.ts ✅
+      - All 3 tests refactored and passing
+      - Replaced manual user creation with UserBuilder
+16. **All test files refactored!** ✅
+    - Total of 15 test files successfully refactored
+    - Over 150 tests now using the Builder pattern
+    - Significant improvement in test readability and maintainability
+17. **Submit pull request** ⏳
+10. **Submit pull request** for the builders infrastructure and refactored test files.
 
 ### Detailed Implementation Analysis
 

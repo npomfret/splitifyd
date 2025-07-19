@@ -2,9 +2,9 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { UserBuilder } from '../support/builders';
 
 describe('Performance - Concurrent User Operations', () => {
     let driver: ApiDriver;
@@ -16,13 +16,8 @@ describe('Performance - Concurrent User Operations', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        const userSuffix = uuidv4().slice(0, 8);
 
-        mainUser = await driver.createTestUser({
-            email: `performance-concurrent-${userSuffix}@example.com`,
-            password: 'Password123!',
-            displayName: 'Concurrent Test User'
-        });
+        mainUser = await driver.createTestUser(new UserBuilder().build());
     });
 
     const testCases = [
@@ -33,15 +28,9 @@ describe('Performance - Concurrent User Operations', () => {
 
     testCases.forEach(({ users, expensesPerUser, timeoutMs, description }) => {
         it(`should handle ${users} users creating ${expensesPerUser} expenses each (${description})`, async () => {
-            const userSuffix = uuidv4().slice(0, 8);
-            
             const testUsers: User[] = [];
             for (let i = 0; i < users; i++) {
-                const user = await driver.createTestUser({
-                    email: `perf-concurrent-${userSuffix}-${i}@example.com`,
-                    password: 'Password123!',
-                    displayName: `User ${i}`
-                });
+                const user = await driver.createTestUser(new UserBuilder().build());
                 testUsers.push(user);
             }
 
