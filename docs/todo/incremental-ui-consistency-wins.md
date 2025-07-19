@@ -123,3 +123,54 @@ This approach can be extended to create builders for modals, form fields, loadin
     - **Benefit:** Removes the repetitive `try/catch/finally` blocks and loading state management from `dashboard.ts`, `group-detail.ts`, etc.
 
 By following these incremental steps, we can significantly improve the codebase's consistency and maintainability without the risk and complexity of a large-scale refactor.
+
+## Implementation Plan
+
+### Analysis Complete
+- ✅ Confirmed button styles already exist with BEM convention (.button, .button--primary, etc.)
+- ✅ Verified phase2-components.css exists but no ui-builders.ts yet
+- ✅ Found significant code duplication in manual button creation across multiple files
+- ✅ Task is valid and worthwhile to implement
+
+### Phase 1: CSS Audit (Skip - Already Complete)
+The CSS is already well-organized with:
+- Standardized button classes using BEM convention
+- CSS custom properties for consistent spacing/colors
+- phase2-components.css for newer component styles
+
+### Phase 2: Create UI Builder Module
+1. **Create ui-builders.ts** in webapp/src/js/
+2. **Implement createButton function** with:
+   - TypeScript interface for button options
+   - Support for all existing button variants (primary, secondary, danger, large, small, icon)
+   - Proper event listener attachment
+   - Return type of HTMLButtonElement
+3. **Add additional builders**:
+   - createLoadingSpinner()
+   - createErrorMessage()
+   - createModal()
+   - createFormField()
+
+### Phase 3: Incremental Refactoring
+1. **Start with groups.ts** - Has the most button creation code
+2. **Refactor one file at a time**:
+   - Import ui-builders
+   - Replace manual button creation with createButton()
+   - Test thoroughly after each file
+3. **Priority files for refactoring**:
+   - groups.ts (10+ button creations)
+   - group-detail.ts
+   - expense-detail.ts
+   - dashboard.ts
+
+### Testing Strategy
+- Run `npm run dev` and test each refactored component
+- Ensure buttons maintain all existing functionality
+- Verify event listeners work correctly
+- Check all button variants render properly
+
+### Success Criteria
+- Reduce button creation from 5-6 lines to 1 line
+- Maintain 100% backward compatibility
+- No visual or functional changes
+- All tests continue to pass
