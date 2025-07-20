@@ -14,7 +14,164 @@ let lastExpenseData: ExpenseData | null = null;
 let updateCustomSplitInputsTimeout: ReturnType<typeof setTimeout> | null = null;
 let updateSplitTotalTimeout: ReturnType<typeof setTimeout> | null = null;
 
-async function initializeAddExpensePage(): Promise<void> {
+function renderAddExpensePage(): void {
+    const appRoot = document.getElementById('app-root');
+    if (!appRoot) {
+        logger.error('app-root element not found');
+        return;
+    }
+    
+    appRoot.innerHTML = `
+        <div id="warningBanner" class="warning-banner hidden"></div>
+        
+        <header class="dashboard-header">
+            <div class="header-container">
+                <h1 class="dashboard-title">
+                    <a href="/dashboard.html" class="dashboard-title-link">
+                        <img src="/images/logo.svg" alt="Bill Splitter" class="dashboard-logo">
+                    </a>
+                </h1>
+                <div class="header-balance-summary">
+                    <div class="header-balance-item header-balance-item--negative">
+                        <span class="header-balance-label">You Owe</span>
+                        <span class="header-balance-amount">$0.00</span>
+                    </div>
+                    <div class="header-balance-item header-balance-item--positive">
+                        <span class="header-balance-label">Owed to You</span>
+                        <span class="header-balance-amount">$0.00</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="button button--secondary" id="logoutButton">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <main class="dashboard-main">
+            <div class="dashboard-container">
+                <div class="expense-form-container">
+                    <nav class="nav-header">
+                        <button class="back-button" id="backButton">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back</span>
+                        </button>
+                        <h1 class="page-title">Add Expense</h1>
+                    </nav>
+
+                    <form class="expense-form" id="expenseForm" novalidate>
+                        <div class="form-group">
+                            <label for="description" class="form-label">
+                                Description
+                                <span class="form-label__required" aria-label="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="description" 
+                                name="description" 
+                                class="form-input"
+                                required
+                                placeholder="What was this expense for?"
+                                aria-describedby="description-error"
+                                maxlength="100"
+                            >
+                            <div id="description-error" class="form-error" role="alert"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount" class="form-label">
+                                Amount
+                                <span class="form-label__required" aria-label="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input 
+                                    type="number" 
+                                    id="amount" 
+                                    name="amount" 
+                                    class="form-input"
+                                    required
+                                    placeholder="0.00"
+                                    step="0.01"
+                                    min="0.01"
+                                    aria-describedby="amount-error"
+                                >
+                            </div>
+                            <div id="amount-error" class="form-error" role="alert"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category" class="form-label">Category</label>
+                            <select id="category" name="category" class="form-select">
+                                <option value="">Select a category</option>
+                                <option value="food">🍽️ Food & Dining</option>
+                                <option value="transport">🚗 Transportation</option>
+                                <option value="utilities">💡 Utilities</option>
+                                <option value="entertainment">🎮 Entertainment</option>
+                                <option value="shopping">🛍️ Shopping</option>
+                                <option value="accommodation">🏠 Accommodation</option>
+                                <option value="healthcare">🏥 Healthcare</option>
+                                <option value="education">📚 Education</option>
+                                <option value="other">📌 Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="paidBy" class="form-label">
+                                Paid by
+                                <span class="form-label__required" aria-label="required">*</span>
+                            </label>
+                            <select id="paidBy" name="paidBy" class="form-select" required aria-describedby="paidBy-error">
+                                <option value="">Select who paid</option>
+                            </select>
+                            <div id="paidBy-error" class="form-error" role="alert"></div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="form-section-title">Split between</h3>
+                            <div id="members-error" class="form-error" role="alert"></div>
+                            <div class="members-list" id="membersList"></div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="form-section-title">Split method</h3>
+                            <div class="split-options">
+                                <label class="radio-label">
+                                    <input type="radio" name="splitMethod" value="equal" checked>
+                                    <span class="radio-text">Split equally</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="splitMethod" value="custom">
+                                    <span class="radio-text">Custom split</span>
+                                </label>
+                            </div>
+                            
+                            <div id="customSplitSection" class="custom-split-section" style="display: none;">
+                                <div id="customSplitInputs" class="custom-split-inputs"></div>
+                                <div class="split-total">
+                                    Total: $<span id="splitTotal">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="button button--secondary" id="cancelButton">
+                                Cancel
+                            </button>
+                            <button type="submit" class="button button--primary" id="submitButton">
+                                Add Expense
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    `;
+}
+
+export async function initializeAddExpensePage(): Promise<void> {
     await waitForAuthManager();
     
     if (!authManager.getUserId()) {
@@ -31,6 +188,9 @@ async function initializeAddExpensePage(): Promise<void> {
         return;
     }
     
+    // Render the page HTML
+    renderAddExpensePage();
+    
     if (isEdit && editExpenseId) {
         await loadExpenseForEditing(editExpenseId);
     } else {
@@ -39,8 +199,6 @@ async function initializeAddExpensePage(): Promise<void> {
     }
     initializeEventListeners();
 }
-
-document.addEventListener('DOMContentLoaded', initializeAddExpensePage);
 
 async function loadExpenseForEditing(expenseId: string): Promise<void> {
     const response = await apiService.getExpense(expenseId);

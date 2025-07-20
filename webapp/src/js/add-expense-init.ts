@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         import('./firebase-config-manager.js'),
         import('./api.js'),
         import('./auth.js'),
-        import('./logout-handler.js')
+        import('./logout-handler.js'),
+        import('./add-expense.js')
     ]);
     
     // Initialize warning banner from config
@@ -24,6 +25,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     
-    // TODO: Convert add-expense page to functional approach
-    console.info('Add expense page needs to be converted to functional approach');
+    // Import and initialize add expense page after all scripts are loaded
+    const { initializeAddExpensePage } = await import('./add-expense.js');
+    await initializeAddExpensePage();
+    
+    // Initialize logout button
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            const { authManager } = await import('./auth.js');
+            authManager.logout();
+        });
+    }
 });
