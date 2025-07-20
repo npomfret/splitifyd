@@ -1,5 +1,6 @@
 import { AppInit } from './app-init.js';
 import { updatePageTitle } from './utils/page-title.js';
+import { createLoadingSpinner } from './ui-builders.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Set up API base URL before loading auth scripts
@@ -22,7 +23,10 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Show loading message
   const spinnerContainer = document.getElementById('loading-spinner-container');
   if (spinnerContainer) {
-    spinnerContainer.innerHTML = '<div class="loading-message">Loading your groups...</div>';
+    const loadingSpinner = createLoadingSpinner({
+      text: 'Loading your groups...'
+    });
+    spinnerContainer.appendChild(loadingSpinner);
     spinnerContainer.style.display = 'block';
   }
 
