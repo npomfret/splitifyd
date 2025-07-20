@@ -116,8 +116,8 @@ function displayExpenseDetails(expense: ExpenseData): void {
         groupHeaderEl.textContent = currentGroup.name;
     }
 
-    displayPayerInfo(expense.paidBy, expense.splits);
-    displaySplitBreakdown(expense.splits, expense.amount);
+    displayPayerInfo(expense.paidBy);
+    displaySplitBreakdown(expense.splits);
     
     // Receipt URL not available in ExpenseData type
     // if (expense.receiptUrl) {
@@ -128,7 +128,7 @@ function displayExpenseDetails(expense: ExpenseData): void {
     containerEl.style.display = 'block';
 }
 
-function displayPayerInfo(paidBy: string, splits: Array<{userId: string; amount: number}>): void {
+function displayPayerInfo(paidBy: string): void {
     const payerName = getUserDisplayName(paidBy);
     const initials = getInitials(payerName);
     const initialsEl = document.getElementById('payer-initials') as HTMLElement;
@@ -141,7 +141,7 @@ function displayPayerInfo(paidBy: string, splits: Array<{userId: string; amount:
     emailEl.style.display = 'none';
 }
 
-function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>, totalAmount: number): void {
+function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>): void {
     const splitBreakdown = document.getElementById('split-breakdown') as HTMLElement;
     clearElement(splitBreakdown);
 
@@ -175,15 +175,6 @@ function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>, 
         
         splitBreakdown.appendChild(participantRow);
     });
-}
-
-
-function displayReceipt(receiptUrl: string): void {
-    const receiptSection = document.getElementById('receipt-section') as HTMLElement;
-    const receiptImage = document.getElementById('receipt-image') as HTMLImageElement;
-    
-    receiptImage.src = receiptUrl;
-    receiptSection.style.display = 'block';
 }
 
 function setupPermissions(expense: ExpenseData, user: User): void {

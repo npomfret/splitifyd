@@ -5,10 +5,6 @@ declare global {
   }
 }
 
-// Global functions (from warning-banner.js)
-declare function showWarning(message: string): void;
-declare function hideWarning(): void;
-
 // Validation types (for safe-dom.ts)
 interface ValidationOptions {
   required?: boolean;

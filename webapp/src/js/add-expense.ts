@@ -210,7 +210,6 @@ function updateCustomSplitInputs(): void {
     const amountEl = document.getElementById('amount') as HTMLInputElement;
     const amount = parseFloat(amountEl.value) || 0;
     const customInputs = document.getElementById('customSplitInputs') as HTMLElement;
-    const splitTotal = document.getElementById('splitTotal') as HTMLElement;
     
     clearElement(customInputs);
     

@@ -45,26 +45,9 @@ emulatorProcess.stderr.on('data', (data: Buffer) => {
   process.stderr.write(data);
 });
 
-function checkEmulatorReady(): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    const req = http.request({
-      hostname: 'localhost',
-      port: Number(UI_PORT),
-      path: '/',
-      method: 'GET',
-      timeout: 1000
-    }, (res) => {
-      resolve(res.statusCode === 200);
-    });
-
-    req.on('error', () => resolve(false));
-    req.on('timeout', () => resolve(false));
-    req.end();
-  });
-}
 
 function checkApiReady(): Promise<boolean> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const req = http.request({
       hostname: 'localhost',
       port: Number(FUNCTIONS_PORT),

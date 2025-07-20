@@ -159,18 +159,6 @@ const generateRandomExpense = (): TestExpense => {
   return { description, amount, category };
 };
 
-const EXAMPLE_EXPENSES: TestExpense[] = [
-  { description: 'expense-1', amount: 75.50, category: 'food' },
-  { description: 'expense-2', amount: 25.00, category: 'transport' },
-  { description: 'expense-3', amount: 45.80, category: 'food' },
-  { description: 'expense-4', amount: 32.00, category: 'entertainment' },
-  { description: 'expense-5', amount: 15.75, category: 'food' },
-  { description: 'expense-6', amount: 40.00, category: 'transport' },
-  { description: 'expense-7', amount: 28.50, category: 'food' },
-  { description: 'expense-8', amount: 120.00, category: 'entertainment' },
-  { description: 'expense-9', amount: 18.25, category: 'transport' },
-  { description: 'expense-10', amount: 35.60, category: 'food' }
-];
 
 async function apiRequest(
   endpoint: string, 
@@ -212,12 +200,12 @@ async function apiRequest(
     }
     
     if (!response.ok) {
-      const errorMessage = (data && typeof data === 'object' && 'error' in data && 
+      const msg = (data && typeof data === 'object' && 'error' in data && 
                            data.error && typeof data.error === 'object' && 'message' in data.error && 
                            typeof data.error.message === 'string') 
                            ? data.error.message 
                            : `API request failed: ${response.status}`;
-      throw new Error(errorMessage);
+      throw new Error(msg);
     }
     
     return data;
@@ -228,38 +216,12 @@ async function apiRequest(
   }
 }
 
-async function exchangeCustomTokenForIdToken(customToken: string): Promise<string> {
-  const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
-  const url = `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`;
-  
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: customToken,
-        returnSecureToken: true
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Failed to exchange custom token');
-    }
-    
-    return data.idToken;
-  } catch (error) {
-    logger.error('Failed to exchange custom token', { error: error instanceof Error ? error : new Error(String(error)) });
-    throw error;
-  }
-}
 
 async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
   try {
     
     // Register user via API
-    const registerResponse = await apiRequest('/register', 'POST', {
+    await apiRequest('/register', 'POST', {
       email: userInfo.email,
       password: userInfo.password,
       displayName: userInfo.displayName

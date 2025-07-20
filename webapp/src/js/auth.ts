@@ -240,8 +240,6 @@ class AuthManager {
     }
 
     private async submitLogin(credentials: LoginCredentials, button: HTMLButtonElement): Promise<void> {
-        const originalText = button.textContent!;
-        
         this.setButtonLoading(button, 'Signing in...');
         
         // Use Firebase Auth directly for login
@@ -288,8 +286,6 @@ class AuthManager {
     }
 
     private async submitRegistration(userData: RegistrationData, button: HTMLButtonElement): Promise<void> {
-        const originalText = button.textContent!;
-        
         this.setButtonLoading(button, 'Creating Account...');
 
         // Use Firebase Auth directly for registration
@@ -325,10 +321,6 @@ class AuthManager {
         button.textContent = originalText;
         button.disabled = false;
         button.removeAttribute('aria-busy');
-    }
-
-    private showFormError(form: HTMLFormElement, message: string): void {
-        showFormError(form, message);
     }
 
     private showSuccessMessage(form: HTMLFormElement, message: string): void {

@@ -149,7 +149,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       // Attempt to join group concurrently with multiple users
       const joinPromises = newUsers.map((user, index) => 
         driver.joinGroupViaShareLink(shareResponse.linkId, user.token)
-          .then(response => ({ success: true, userId: user.uid, index }))
+          .then(_ => ({ success: true, userId: user.uid, index }))
           .catch(error => ({ success: false, error: error.message, userId: user.uid, index }))
       );
 
@@ -184,7 +184,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       const joinAttempts = 5;
       const joinPromises = Array(joinAttempts).fill(null).map((_, index) =>
         driver.joinGroupViaShareLink(shareResponse.linkId, duplicateUser.token)
-          .then(response => ({ success: true, attempt: index }))
+          .then(_ => ({ success: true, attempt: index }))
           .catch(error => ({ success: false, error: error.message, attempt: index }))
       );
 

@@ -93,32 +93,6 @@ export class GroupsList {
     }
   }
 
-  private renderError(message: string): void {
-    clearElement(this.container);
-    
-    const errorState = createElementSafe('div', { className: 'error-state' });
-    const title = createElementSafe('h3', { textContent: 'Unable to load groups' });
-    const actions = createElementSafe('div', { className: 'error-state__actions' });
-    
-    // TODO: Replace with simple button
-    const tryAgainBtn = document.createElement('button');
-    tryAgainBtn.className = 'button button--secondary';
-    tryAgainBtn.textContent = 'Try Again';
-    tryAgainBtn.onclick = () => this.loadGroups();
-    
-    // TODO: Replace with simple button
-    const createGroupBtn = document.createElement('button');
-    createGroupBtn.className = 'button button--primary';
-    createGroupBtn.id = 'createGroupBtn';
-    createGroupBtn.textContent = 'Create Group';
-    createGroupBtn.onclick = () => this.openCreateGroupModal();
-    
-    actions.appendChild(tryAgainBtn);
-    actions.appendChild(createGroupBtn);
-    appendChildren(errorState, [title, actions]);
-    this.container.appendChild(errorState);
-  }
-
   private renderEmpty(): void {
     clearElement(this.container);
     
@@ -257,26 +231,6 @@ export class GroupsList {
     return groupCard;
   }
 
-  private _formatLastActivity(timestamp?: string): string {
-    if (!timestamp) return 'Recently';
-    
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMinutes < 1) return 'just now';
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 0) return 'today';
-    if (diffDays === 1) return 'yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-    return `${Math.floor(diffDays / 30)}mo ago`;
-  }
-
   private render(): void {
     if (this.groups.length === 0) {
       this.renderEmpty();
@@ -337,28 +291,6 @@ export class GroupsList {
     this.attachGroupCardEventListeners(newGroupCard);
   }
 
-  private updateGroupInList(updatedGroup: TransformedGroup): void {
-    const existingCard = this.container.querySelector(`[data-id="${updatedGroup.id}"]`);
-    if (!existingCard) {
-      logger.error(`Group card with id ${updatedGroup.id} not found for update`);
-      return;
-    }
-    
-    const newGroupCard = this.renderGroupCard(updatedGroup);
-    existingCard.replaceWith(newGroupCard);
-    this.attachGroupCardEventListeners(newGroupCard);
-  }
-
-  private removeGroupFromList(groupId: string): void {
-    const existingCard = this.container.querySelector(`[data-id="${groupId}"]`);
-    if (!existingCard) {
-      logger.error(`Group card with id ${groupId} not found for removal`);
-      return;
-    }
-    
-    existingCard.remove();
-  }
-
   private attachEventListeners(): void {
     const createGroupBtn = document.getElementById('createGroupBtn');
     if (createGroupBtn) {
@@ -399,7 +331,6 @@ export class GroupsList {
   }
 
   private async openCreateGroupModal(): Promise<void> {
-    const modalId = 'createGroupModal';
 
     // Create Body
     const form = createElementSafe('form', { id: 'createGroupForm' }) as HTMLFormElement;

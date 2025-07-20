@@ -17,17 +17,6 @@ class ApiClient {
     return localStorage.getItem(AUTH_TOKEN_KEY);
   }
 
-  private getAuthHeaders(): Record<string, string> {
-    const token = this.getAuthToken();
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    };
-  }
-
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const config = await this.getConfig();
     const apiBaseUrl = (window as Window & { API_BASE_URL?: string }).API_BASE_URL;
