@@ -34,5 +34,3 @@ export const ROUTES = {
   TERMS_OF_SERVICE: '/terms-of-service.html',
   COOKIES_POLICY: '/cookies-policy.html'
 } as const;
-
-export type RoutePath = typeof ROUTES[keyof typeof ROUTES];

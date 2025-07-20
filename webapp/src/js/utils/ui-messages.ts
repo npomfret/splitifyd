@@ -25,26 +25,12 @@ export function showError(message: string, duration: number = 5000): void {
     showMessage(message, 'error', duration);
 }
 
-export function hideError(): void {
-    const bannerElement = document.getElementById('warningBanner');
-    if (bannerElement) {
-        bannerElement.classList.add('hidden');
-    }
-}
-
 export function showWarning(message: string): void {
     const bannerElement = document.getElementById('warningBanner');
     if (bannerElement) {
         bannerElement.textContent = message;
         bannerElement.classList.remove('hidden');
         bannerElement.style.display = 'block'; // Force display for debugging
-    }
-}
-
-export function hideWarning(): void {
-    const bannerElement = document.getElementById('warningBanner');
-    if (bannerElement) {
-        bannerElement.classList.add('hidden');
     }
 }
 
@@ -68,61 +54,6 @@ export function clearFieldErrors(formElement: HTMLFormElement): void {
         input.classList.remove('form-input--error');
     });
 }
-
-export function showFormError(form: HTMLFormElement, message: string): void {
-    let errorContainer = form.querySelector<HTMLDivElement>('.form-error--general');
-    
-    if (!errorContainer) {
-        errorContainer = document.createElement('div');
-        errorContainer.className = 'form-error form-error--general';
-        errorContainer.setAttribute('role', 'alert');
-        
-        // Find the submit button or submit button container
-        const submitButton = form.querySelector('button[type="submit"]');
-        const submitContainer = form.querySelector('#submit-button-container');
-        const insertBeforeElement = submitButton || submitContainer;
-        
-        if (insertBeforeElement && insertBeforeElement.parentNode === form) {
-            form.insertBefore(errorContainer, insertBeforeElement);
-        } else {
-            // If no suitable element found, append to form
-            form.appendChild(errorContainer);
-        }
-    }
-
-    errorContainer.textContent = message;
-    errorContainer.setAttribute('aria-live', 'assertive');
-}
-
-export function showSuccessMessage(form: HTMLFormElement, message: string): void {
-    let successContainer = form.querySelector<HTMLDivElement>('.form-success--general');
-    
-    if (!successContainer) {
-        successContainer = document.createElement('div');
-        successContainer.className = 'form-success form-success--general';
-        successContainer.setAttribute('role', 'alert');
-        
-        // Find the submit button or submit button container
-        const submitButton = form.querySelector('button[type="submit"]');
-        const submitContainer = form.querySelector('#submit-button-container');
-        const insertBeforeElement = submitButton || submitContainer;
-        
-        if (insertBeforeElement && insertBeforeElement.parentNode === form) {
-            form.insertBefore(successContainer, insertBeforeElement);
-        } else {
-            // If no suitable element found, append to form
-            form.appendChild(successContainer);
-        }
-    }
-
-    successContainer.textContent = message;
-    successContainer.setAttribute('aria-live', 'polite');
-
-    setTimeout(() => {
-        successContainer?.remove();
-    }, 3000);
-}
-
 export function clearErrors(): void {
     document.querySelectorAll('.form-error').forEach(error => {
         error.textContent = '';
