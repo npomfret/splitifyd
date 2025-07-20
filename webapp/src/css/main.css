@@ -176,8 +176,7 @@ body {
 }
 
 .auth-card--login,
-.auth-card--register,
-.auth-card--reset {
+.auth-card--register {
     /* Variant styles can be added here */
 }
 
@@ -2851,36 +2850,6 @@ main section {
 
 .info-box {
     /* Info box specific styles */
-}
-
-/* ===== TEST-SPECIFIC CLASSES ===== */
-.test-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--space-lg);
-}
-
-.test-section {
-    margin-bottom: var(--space-xl);
-    padding: var(--space-lg);
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.test-title {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-text);
-    margin-bottom: var(--space-md);
-}
-
-.test-result {
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
-    margin-top: var(--space-md);
-    font-family: 'Courier New', monospace;
-    background: var(--color-background);
 }
 
 /* ===== ANIMATIONS ===== */
