@@ -60,27 +60,6 @@ export class ExpenseService {
     return apiCall<ExpenseListResponse>(`/expenses/user?${params.toString()}`);
   }
 
-  static calculateEqualSplit(amount: number, participantCount: number): number {
-    const splitAmount = amount / participantCount;
-    return Math.round(splitAmount * 100) / 100;
-  }
-
-  static validateSplitAmounts(amount: number, splits: ExpenseSplit[]): boolean {
-    const total = splits.reduce((sum, split) => sum + split.amount, 0);
-    return Math.abs(total - amount) < 0.01;
-  }
-
-  static validateSplitPercentages(splits: ExpenseSplit[]): boolean {
-    const total = splits.reduce((sum, split) => sum + (split.percentage || 0), 0);
-    return Math.abs(total - 100) < 0.01;
-  }
-
-  static formatAmount: CurrencyFormatter = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  }
 
   static formatDate: DateFormatter = (date: string | Date): string => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -110,9 +89,4 @@ export class ExpenseService {
     return cat ? cat.icon : '📌';
   }
 
-  static getCategoryLabel(category: string): string {
-    const categories = this.getExpenseCategories();
-    const cat = categories.find(c => c.value === category);
-    return cat ? cat.label : 'Other';
-  }
 }

@@ -12,11 +12,6 @@ export interface RegistrationData {
   confirmPassword: string;
 }
 
-export interface FormDefaults {
-  displayName?: string;
-  email?: string;
-  password?: string;
-}
 
 export interface UserCredential {
   user: FirebaseUser;

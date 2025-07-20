@@ -29,14 +29,6 @@ interface FirebaseConfig {
   appId: string;
 }
 
-interface ConfigData {
-  firebaseConfig: FirebaseConfig;
-  apiUrl: string;
-  isLocal: boolean;
-  formDefaults?: any;
-  warningBanner?: any;
-}
-
 // API Response types
 interface ApiResponse<T> {
   success: boolean;
@@ -74,16 +66,6 @@ interface ExpenseSplit {
   amount: number;
 }
 
-interface Settlement {
-  id: string;
-  groupId: string;
-  paidBy: string;
-  paidTo: string;
-  amount: number;
-  createdAt: string;
-  createdBy: string;
-}
-
 // Logger types (for logger.ts)
 interface Logger {
   log(...args: any[]): void;
@@ -118,29 +100,17 @@ interface FirebaseError extends Error {
   customData?: any;
 }
 
-// Firebase Config Manager types
-interface FirebaseConfigManagerConfig {
-  firebaseConfig: FirebaseConfig;
-  apiUrl: string;
-  isLocal: boolean;
-  formDefaults?: any;
-  warningBanner?: string;
-}
-
 export {
   ValidationOptions,
   ValidationResult,
   FirebaseConfig,
-  ConfigData,
   ApiResponse,
   User,
   Expense,
   ExpenseSplit,
-  Settlement,
   Logger,
   FirebaseApp,
   FirebaseAuth,
   FirebaseUser,
-  FirebaseError,
-  FirebaseConfigManagerConfig
+  FirebaseError
 };

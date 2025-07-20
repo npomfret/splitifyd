@@ -43,6 +43,3 @@ export function validateAppConfiguration(config: unknown): AppConfiguration {
   return AppConfigurationSchema.parse(config);
 }
 
-export function validatePartialAppConfiguration(config: unknown): Partial<AppConfiguration> {
-  return AppConfigurationSchema.partial().parse(config);
-}

@@ -12,14 +12,6 @@ export const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
 } as const;
 
-// Network Ports  
-export const PORTS = {
-  LOCAL_3000: 3000,
-  LOCAL_5000: 5000,
-  LOCAL_5001: 5001,
-  LOCAL_5002: 5002,
-} as const;
-
 // Validation Limits
 export const VALIDATION_LIMITS = {
   MAX_PROPERTY_NAME_LENGTH: 200,
@@ -71,10 +63,4 @@ export const AUTH = {
 export const SYSTEM = {
   BYTES_PER_KB: 1024,
   AUTH_LIST_LIMIT: 1,
-} as const;
-
-// Test Configuration
-export const TEST_CONFIG = {
-  SETUP_TIMEOUT_MS: 10000,
-  JEST_TIMEOUT_MS: 30000,
 } as const;
