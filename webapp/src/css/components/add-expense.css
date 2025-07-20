@@ -1,0 +1,292 @@
+/* ===== ADD EXPENSE PAGE STYLES ===== */
+
+/* Add gradient background to main container */
+.dashboard-main {
+    background: linear-gradient(135deg, rgba(106, 13, 173, 0.03) 0%, rgba(139, 45, 201, 0.05) 100%);
+    min-height: calc(100vh - 80px);
+}
+
+/* Navigation Header */
+.nav-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+}
+
+.page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* Form Container */
+.expense-form-container {
+    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(106, 13, 173, 0.05) 100%);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: var(--space-lg);
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.add-expense-form {
+    /* Remove extra styling since container already has it */
+}
+
+/* Form Sections */
+.add-expense-form .form-group {
+    margin-bottom: var(--space-md);
+}
+
+.add-expense-form .form-section {
+    margin-bottom: var(--space-md);
+}
+
+.add-expense-form .form-section:last-child {
+    margin-bottom: 0;
+}
+
+.add-expense-form .form-section-title {
+    margin-bottom: var(--space-sm);
+}
+
+/* Amount Input Group */
+.amount-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.amount-input-group .currency-symbol {
+    position: absolute;
+    left: var(--space-md);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+.amount-input-group .form-input {
+    padding-left: 2.5rem;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Member Selection */
+.member-select-list {
+    display: grid;
+    gap: var(--space-sm);
+}
+
+.member-select-item {
+    background: rgba(106, 13, 173, 0.05);
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.member-select-item:hover {
+    background: rgba(106, 13, 173, 0.1);
+    transform: translateY(-1px);
+}
+
+.member-select-item.selected {
+    background: rgba(106, 13, 173, 0.15);
+    border-color: var(--color-primary);
+}
+
+.member-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    cursor: pointer;
+}
+
+.member-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.member-checkbox-visual {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    background: var(--color-surface);
+}
+
+.member-checkbox:checked ~ .member-label .member-checkbox-visual {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.member-checkbox:checked ~ .member-label .member-checkbox-visual::after {
+    content: '✓';
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+}
+
+/* Split Method */
+.split-method-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.split-method-option {
+    position: relative;
+}
+
+.split-method-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.split-method-label {
+    display: block;
+    padding: var(--space-md);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-medium);
+}
+
+.split-method-label:hover {
+    border-color: var(--color-primary);
+    background: rgba(106, 13, 173, 0.05);
+}
+
+.split-method-radio:checked ~ .split-method-label {
+    border-color: var(--color-primary);
+    background: rgba(106, 13, 173, 0.1);
+    color: var(--color-primary);
+}
+
+/* Custom Split Section */
+.custom-split-section {
+    background: rgba(106, 13, 173, 0.05);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    margin-top: var(--space-sm);
+}
+
+.custom-split-inputs {
+    display: grid;
+    gap: var(--space-sm);
+}
+
+.custom-split-input-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.custom-split-member {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+}
+
+.custom-split-amount {
+    width: 120px;
+}
+
+.custom-split-amount .form-input {
+    text-align: right;
+}
+
+.split-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-md);
+    border-top: 2px solid var(--color-border);
+    margin-top: var(--space-md);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-lg);
+}
+
+.split-total-amount {
+    color: var(--color-primary);
+}
+
+/* Form Actions */
+.add-expense-actions {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.add-expense-actions .button {
+    flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .add-expense-header {
+        padding: var(--space-lg);
+        margin-bottom: var(--space-lg);
+        border-radius: 0;
+    }
+    
+    .add-expense-form {
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+    }
+    
+    .split-method-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .custom-split-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .custom-split-amount {
+        width: 100%;
+    }
+    
+    .add-expense-actions {
+        flex-direction: column-reverse;
+    }
+    
+    .add-expense-actions .button {
+        width: 100%;
+    }
+}
+
+/* Member Avatar Override for Add Expense */
+.add-expense-form .member-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #8B2DC9 100%);
+    border: 3px solid var(--color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(106, 13, 173, 0.3);
+}
