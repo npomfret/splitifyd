@@ -65,3 +65,7 @@ Do NOT proceed with any code changes until you receive explicit permission to do
 - async/await over promises
 - ES modules: `import { foo } from 'bar'`
 - TypeScript strict mode
+
+
+# ⚠️ FINAL REMINDER
+NO CODE CHANGES until explicitly instructed to proceed. You MUST wait for permission after creating your plan.
