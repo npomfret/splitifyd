@@ -2,10 +2,11 @@
 .idea/workspace.xml
 .idea/shelf
 
-# Claude CLI history
+# Claude stuff
 .claude/commands/analyse.md
 .claude/commands/changes.md
 .claude/commands/next-task.md
+directives
 
 # Logs
 logs
