@@ -91,18 +91,6 @@ export class ApiDriver {
     process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
   }
 
-  async checkEmulatorStatus(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/health`, { 
-        method: 'GET',
-        signal: AbortSignal.timeout(5000)
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
-
 
   async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
@@ -283,30 +271,6 @@ export class ApiDriver {
   }
 
   // Type-safe endpoint polling methods
-  async pollGetDocumentUntil(
-    documentId: string,
-    token: string,
-    matcher: Matcher<any>,
-    options?: PollOptions
-  ): Promise<any> {
-    return this.pollUntil(
-      () => this.getDocument(documentId, token),
-      matcher,
-      { errorMsg: `Document ${documentId} condition not met`, ...options }
-    );
-  }
-
-  async pollListDocumentsUntil(
-    token: string,
-    matcher: Matcher<ListDocumentsResponse>,
-    options?: PollOptions
-  ): Promise<ListDocumentsResponse> {
-    return this.pollUntil(
-      () => this.apiRequest('/listDocuments', 'GET', {}, token) as Promise<ListDocumentsResponse>,
-      matcher,
-      { errorMsg: 'List documents condition not met', ...options }
-    );
-  }
 
   async pollGroupBalancesUntil(
     groupId: string,
@@ -324,13 +288,6 @@ export class ApiDriver {
   // Common matchers
   static readonly matchers = {
     // List documents matchers
-    
-    listDocumentHasExpenseMetadata: (docId: string, expectedCount?: number) => (response: ListDocumentsResponse) => {
-      const doc = response.documents.find(d => d.id === docId);
-      if (!doc) return false;
-      if (doc.data.expenseCount === undefined || doc.data.lastExpenseTime === undefined) return false;
-      return expectedCount === undefined || doc.data.expenseCount === expectedCount;
-    },
     
     // Balance matchers
     

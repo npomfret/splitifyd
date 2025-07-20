@@ -19,13 +19,6 @@ export interface Group {
   memberCount: number;
 }
 
-export interface CreateGroupRequest {
-  name: string;
-  description?: string;
-  memberEmails?: string[];
-}
-
-
 export interface ExpenseListResponse {
   expenses: ExpenseData[];
   cursor?: string;
