@@ -445,53 +445,6 @@ function addExpenseToList(expense: ExpenseData): void {
     expenseItemCleanups.set(element, cleanup);
 }
 
-function updateExpenseInList(updatedExpense: ExpenseData): void {
-    const expensesList = document.getElementById('expensesList');
-    if (!expensesList) {
-        logger.error('expensesList element not found');
-        return;
-    }
-
-    const existingItem = expensesList.querySelector(`[data-id="${updatedExpense.id}"]`) as HTMLElement;
-    if (!existingItem) {
-        logger.error(`Expense item with id ${updatedExpense.id} not found for update`);
-        return;
-    }
-    
-    // Clean up existing item
-    const existingCleanup = expenseItemCleanups.get(existingItem);
-    if (existingCleanup) {
-        existingCleanup();
-        expenseItemCleanups.delete(existingItem);
-    }
-
-    // Create and replace with updated item
-    const { element, cleanup } = createExpenseItem(updatedExpense);
-    existingItem.replaceWith(element);
-    expenseItemCleanups.set(element, cleanup);
-}
-
-function removeExpenseFromList(expenseId: string): void {
-    const expensesList = document.getElementById('expensesList');
-    if (!expensesList) {
-        logger.error('expensesList element not found');
-        return;
-    }
-
-    const existingItem = expensesList.querySelector(`[data-id="${expenseId}"]`) as HTMLElement;
-    if (!existingItem) {
-        logger.error(`Expense item with id ${expenseId} not found for removal`);
-        return;
-    }
-    
-    // Clean up existing item
-    const existingCleanup = expenseItemCleanups.get(existingItem);
-    if (existingCleanup) {
-        existingCleanup();
-        expenseItemCleanups.delete(existingItem);
-    }
-    existingItem.remove();
-}
 
 function getCategoryIcon(category: string): string {
     const icons = {
@@ -506,7 +459,7 @@ function getCategoryIcon(category: string): string {
 }
 
 function loadMoreExpenses(): void {
-    loadGroupExpenses();
+    void loadGroupExpenses();
 }
 
 
@@ -567,7 +520,7 @@ function openGroupSettingsModal(): void {
         removeButton.innerHTML = '<i class="fas fa-times"></i>';
         removeButton.setAttribute('aria-label', 'Remove member');
         removeButton.disabled = member.uid === currentGroup?.createdBy;
-        removeButton.onclick = () => removeMember(member.uid);
+        removeButton.onclick = () => removeMember();
         
         buttonContainer.appendChild(removeButton);
         if (removeButton) {
@@ -585,34 +538,6 @@ function openGroupSettingsModal(): void {
     modal.classList.add('show');
 }
 
-function closeGroupSettingsModal(): void {
-    const modal = document.getElementById('groupSettingsModal');
-    if (modal) {
-        modal.classList.remove('show');
-    }
-}
-
-function closeInviteMembersModal(): void {
-    const modal = document.getElementById('inviteMembersModal');
-    if (modal) {
-        modal.classList.remove('show');
-    }
-    
-    const inviteEmail = document.getElementById('inviteEmail') as HTMLInputElement;
-    if (inviteEmail) {
-        inviteEmail.value = '';
-    }
-    
-    const inviteError = document.getElementById('inviteError');
-    if (inviteError) {
-        inviteError.style.display = 'none';
-    }
-    
-    const inviteSuccess = document.getElementById('inviteSuccess');
-    if (inviteSuccess) {
-        inviteSuccess.style.display = 'none';
-    }
-}
 
 async function saveGroupSettings(): Promise<void> {
     const editGroupNameEl = document.getElementById('editGroupName') as HTMLInputElement;
@@ -642,7 +567,10 @@ async function saveGroupSettings(): Promise<void> {
         await apiService.updateGroup(currentGroupId, { name: newName });
         currentGroup.name = newName;
         updateGroupHeader();
-        closeGroupSettingsModal();
+        const modal = document.getElementById('groupSettingsModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
         showMessage('Group settings updated successfully', 'success');
     } catch (error) {
         logger.error('Error updating group:', error);
@@ -696,29 +624,17 @@ async function sendInvite(): Promise<void> {
         
     } catch (error) {
         logger.error('Error sending invite:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Failed to send invitation';
-        errorDiv.textContent = errorMessage;
+        errorDiv.textContent = error instanceof Error ? error.message : 'Failed to send invitation';
         errorDiv.style.display = 'block';
     }
 }
 
-async function removeMember(userId: string): Promise<void> {
+async function removeMember(): Promise<void> {
     if (!confirm('Are you sure you want to remove this member?')) {
         return;
     }
     
-    try {
-        // API doesn't have removeGroupMember method
-        // await apiService.removeGroupMember(currentGroupId, userId);
-        showMessage('Remove member functionality not implemented', 'error');
-        return;
-        await loadGroupDetails();
-        openGroupSettingsModal();
-        showMessage('Member removed successfully', 'success');
-    } catch (error) {
-        logger.error('Error removing member:', error);
-        showMessage('Failed to remove member', 'error');
-    }
+    showMessage('Remove member functionality not implemented', 'error');
 }
 
 function showExpenseDetails(expense: ExpenseData): void {
@@ -737,7 +653,6 @@ async function showShareGroupModal(): Promise<void> {
         const response = await apiService.generateShareableLink(currentGroupId);
         const shareUrl = response.data!.shareableUrl;
 
-        const modalId = 'shareGroupModal';
 
         // Create Body
         const bodyContainer = createElementSafe('div');
