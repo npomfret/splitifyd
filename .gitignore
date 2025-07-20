@@ -2,10 +2,11 @@
 .idea/workspace.xml
 .idea/shelf
 
-# Claude CLI history
+# Claude stuff
 .claude/commands/analyse.md
 .claude/commands/changes.md
 .claude/commands/next-task.md
+directives
 
 # Logs
 logs
@@ -51,10 +52,3 @@ firebase/functions/*service-account-key.json
 # Build outputs
 webapp/dist/
 firebase/public
-shared-types/dist/
-
-# JavaScript build artifacts in source directories
-shared-types/src/**/*.js
-shared-types/src/**/*.js.map
-firebase/functions/src/**/*.js
-firebase/functions/src/**/*.js.map
