@@ -1,5 +1,6 @@
 import { updatePageTitle } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
+import { createButton } from './ui-builders.js';
 
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
@@ -13,11 +14,13 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   // Create submit button
   const submitButtonContainer = document.getElementById('submit-button-container');
   if (submitButtonContainer) {
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.className = 'button button--primary button--large';
-    submitButton.textContent = 'Create Account';
-    submitButton.setAttribute('aria-describedby', 'submit-help');
+    const submitButton = createButton({
+      text: 'Create Account',
+      variant: 'primary',
+      size: 'large',
+      type: 'submit',
+      ariaDescribedBy: 'submit-help'
+    });
     submitButtonContainer.appendChild(submitButton);
   }
   

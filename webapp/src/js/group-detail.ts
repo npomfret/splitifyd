@@ -5,6 +5,7 @@ import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { ROUTES } from './routes.js';
+import { createButton } from './ui-builders.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -487,17 +488,17 @@ function openGroupSettingsModal(): void {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'remove-button-container';
         
-        const removeButton = document.createElement('button');
-        removeButton.className = 'button button--danger button--icon';
-        removeButton.innerHTML = '<i class="fas fa-times"></i>';
-        removeButton.setAttribute('aria-label', 'Remove member');
-        removeButton.disabled = member.uid === currentGroup?.createdBy;
-        removeButton.onclick = () => removeMember();
+        const removeButton = createButton({
+            html: '<i class="fas fa-times"></i>',
+            variant: 'danger',
+            size: undefined,
+            className: 'button--icon',
+            ariaLabel: 'Remove member',
+            disabled: member.uid === currentGroup?.createdBy,
+            onClick: () => removeMember()
+        });
         
         buttonContainer.appendChild(removeButton);
-        if (removeButton) {
-            removeButton.className = 'button--icon button--danger';
-        }
         
         memberInfo.appendChild(memberAvatar);
         memberInfo.appendChild(memberName);
@@ -617,12 +618,13 @@ async function showShareGroupModal(): Promise<void> {
         const copyButtonContainer = document.createElement('div');
         copyButtonContainer.className = 'copy-button-container';
         
-        const copyButton = document.createElement('button');
-        copyButton.className = 'button button--primary';
-        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
-        copyButton.onclick = async () => {
-            await copyShareLink(input);
-        };
+        const copyButton = createButton({
+            html: '<i class="fas fa-copy"></i> Copy',
+            variant: 'primary',
+            onClick: async () => {
+                await copyShareLink(input);
+            }
+        });
         
         copyButtonContainer.appendChild(copyButton);
         const copyButtonContainerRef = copyButtonContainer;
@@ -639,9 +641,10 @@ async function showShareGroupModal(): Promise<void> {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'close-button-container';
         
-        const closeButton = document.createElement('button');
-        closeButton.className = 'button button--secondary';
-        closeButton.textContent = 'Close';
+        const closeButton = createButton({
+            text: 'Close',
+            variant: 'secondary'
+        });
         
         closeButtonContainer.appendChild(closeButton);
         footerContainer.appendChild(closeButtonContainer);
