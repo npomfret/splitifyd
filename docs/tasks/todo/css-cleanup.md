@@ -1,8 +1,15 @@
 # CSS Cleanup: Unused Styles in main.css
 
-## Test-specific classes
+## Task Status: VALID ✅
 
-These classes seem to be related to testing and are not used in the application.
+### Analysis Results (2025-07-20)
+- **Test-specific classes**: Confirmed UNUSED - safe to remove
+- **auth-card--reset**: Confirmed UNUSED - safe to remove
+- **Form/button components**: Require individual verification
+
+## Test-specific classes - CONFIRMED UNUSED ✅
+
+These classes are not used anywhere in the application and can be safely removed.
 
 ```css
 /* ===== TEST-SPECIFIC CLASSES ===== */
@@ -36,19 +43,20 @@ These classes seem to be related to testing and are not used in the application.
 }
 ```
 
-## Unused Auth Card Variants - ANALYSIS NEEDED
-
-Some of these variant classes for auth cards may still be in use after component standardization.
+## Unused Auth Card Variants - ANALYSIS COMPLETE ✅
 
 ```css
-.auth-card--login,
-.auth-card--register,
-.auth-card--reset {
+.auth-card--login,     /* IN USE - keep */
+.auth-card--register,  /* IN USE - keep */
+.auth-card--reset {    /* UNUSED - safe to remove */
     /* Variant styles can be added here */
 }
 ```
 
-**Status:** auth-card--login and auth-card--register are currently in use in login.html and register.html. auth-card--reset needs verification.
+**Status:** 
+- ✅ auth-card--login: IN USE in login.html
+- ✅ auth-card--register: IN USE in register.html  
+- ✅ auth-card--reset: CONFIRMED UNUSED - safe to remove
 
 ## Unused Form and Button Components - ANALYSIS NEEDED
 
@@ -268,21 +276,50 @@ The following form and button components may or may not be used in the applicati
 }
 ```
 
-## Implementation Notes
+## Implementation Plan
 
-**Before proceeding with cleanup:**
+### Phase 1: Remove Confirmed Unused Classes ✅
+**Safe to remove immediately:**
+1. All test-specific classes (.test-container, .test-section, .test-title, .test-result)
+2. .auth-card--reset variant
 
-1. **Verify test classes:** Confirm .test-container, .test-section, .test-title, .test-result are not used anywhere
-2. **Auth card analysis:** Complete analysis of auth card variants after component standardization 
-3. **Form component audit:** Check which form and button classes are actually unused
-4. **Component scan:** Search entire codebase for class usage, not just HTML files
+**Steps:**
+1. Remove the entire `/* ===== TEST-SPECIFIC CLASSES ===== */` section from main.css
+2. Remove `.auth-card--reset` from the auth card variants
+3. Test login, register, and other auth pages to ensure no regression
+4. Commit changes
 
-**Safe to remove (confirmed unused):**
-- Test-specific classes (.test-*)
+### Phase 2: Audit Form and Button Components
+**Classes requiring individual verification:**
+- .form-select
+- .form-textarea
+- .form-control
+- .input-group and .input-group-text
+- .radio-group, .radio-label, .radio-custom
+- .button--danger, .button--large, .button--logout, .button--icon, .button--small
+- .auth-card__footer
+- .auth-nav, .auth-link, .auth-link--primary
 
-**Requires verification:**
-- Auth card variants (some confirmed in use)
-- Form and button components 
-- All the massive component and layout styles section
+**Verification method:**
+1. Search for each class in HTML files
+2. Search for each class in TypeScript files (both string literals and DOM manipulation)
+3. Check if classes are used in ui-builders.ts or other component builders
+4. Document findings for each class
 
-This task should be approached incrementally, removing only confirmed unused styles to avoid breaking functionality.
+### Phase 3: Progressive Removal
+1. Remove only confirmed unused classes
+2. Test thoroughly after each removal
+3. Run build and check for any issues
+4. Commit in small batches
+
+### Success Criteria
+- Reduce CSS file size by removing dead code
+- No visual or functional regressions
+- All builds pass
+- Improved maintainability
+
+### Risk Mitigation
+- Make small, incremental changes
+- Test each change thoroughly
+- Keep detailed notes of what was removed
+- Be prepared to revert if issues arise
