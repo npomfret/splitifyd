@@ -1,10 +1,13 @@
 # Important
 
 Before making **any** code changes, carefully read and analyse the guidance in:
+
 - [engineering.md](directives/engineering.md)
 - [code-style.md](directives/code-style.md)
 - [logging.md](directives/logging.md)
 - [testing.md](directives/testing.md)
+ 
+Do no deviate in any way from these instructions unless you have permission or have been instructed to do otherwise.
 
 # Tech Stack
 - Runtime: Node.js (latest)
