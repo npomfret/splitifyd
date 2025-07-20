@@ -126,11 +126,13 @@ By following these incremental steps, we can significantly improve the codebase'
 
 ## Implementation Plan
 
-### Analysis Complete
+### Analysis Complete ✅
 - ✅ Confirmed button styles already exist with BEM convention (.button, .button--primary, etc.)
 - ✅ Verified phase2-components.css exists but no ui-builders.ts yet
 - ✅ Found significant code duplication in manual button creation across multiple files
 - ✅ Task is valid and worthwhile to implement
+- ✅ Confirmed manual button creation in login-init.ts, register-init.ts, group-detail.ts
+- ✅ CSS cleanup task was outdated and deleted - auth card variants are actually in use
 
 ### Phase 1: CSS Audit (Skip - Already Complete)
 The CSS is already well-organized with:
@@ -139,15 +141,25 @@ The CSS is already well-organized with:
 - phase2-components.css for newer component styles
 
 ### Phase 2: Create UI Builder Module
+**Goal:** Create ui-builders.ts module with createButton function to standardize button creation
+
+**Implementation Steps:**
 1. **Create ui-builders.ts** in webapp/src/js/
-2. **Implement createButton function** with:
-   - TypeScript interface for button options
-   - Support for all existing button variants (primary, secondary, danger, large, small, icon)
-   - Proper event listener attachment
-   - Return type of HTMLButtonElement
-3. **Add additional builders**:
+   - Export interface ButtonOptions with text, variant, size, onClick properties
+   - Export createButton function that returns HTMLButtonElement
+   - Support all existing button variants: primary, secondary, danger, large, small, icon, logout
+   - Apply proper CSS classes using BEM convention (.button, .button--primary, etc.)
+   - Attach event listeners properly with addEventListener
+   - Include proper TypeScript typing
+
+2. **Minimum Viable Implementation:**
+   - Focus on createButton function first
+   - Support the most common button patterns found in codebase
+   - Ensure 100% backward compatibility with existing buttons
+
+3. **Future builders (Phase 3):**
    - createLoadingSpinner()
-   - createErrorMessage()
+   - createErrorMessage() 
    - createModal()
    - createFormField()
 
