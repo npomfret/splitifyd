@@ -53,28 +53,19 @@ class ApiClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), config.api.timeout);
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-        signal: controller.signal
-      });
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeoutId));
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
-        throw new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data as T;
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timeout');
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
+      throw new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
     }
+
+    const data = await response.json();
+    return data as T;
   }
 
   // Convenience methods
@@ -102,39 +93,6 @@ class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 
-  // Retry logic for failed requests
-  async requestWithRetry<T>(
-    endpoint: string, 
-    options: RequestInit = {},
-    maxRetries?: number
-  ): Promise<T> {
-    const config = await this.getConfig();
-    const retries = maxRetries ?? config.api.retryAttempts;
-    
-    let lastError: Error | null = null;
-    
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        return await this.request<T>(endpoint, options);
-      } catch (error) {
-        lastError = error as Error;
-        
-        // Don't retry on auth errors
-        if (lastError.message.includes('Authentication required') || 
-            lastError.message.includes('401') ||
-            lastError.message.includes('403')) {
-          throw lastError;
-        }
-        
-        if (attempt < retries) {
-          // Exponential backoff
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000));
-        }
-      }
-    }
-    
-    throw lastError || new Error('Request failed after retries');
-  }
 }
 
 export const apiClient = new ApiClient();

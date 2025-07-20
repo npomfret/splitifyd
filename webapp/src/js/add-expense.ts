@@ -15,92 +15,71 @@ let updateCustomSplitInputsTimeout: ReturnType<typeof setTimeout> | null = null;
 let updateSplitTotalTimeout: ReturnType<typeof setTimeout> | null = null;
 
 async function initializeAddExpensePage(): Promise<void> {
-    try {
-        await waitForAuthManager();
-        
-        if (!authManager.getUserId()) {
-            authManager.setUserId('user1');
-        }
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        currentGroupId = urlParams.get('groupId');
-        const editExpenseId = urlParams.get('id');
-        const isEdit = urlParams.get('edit') === 'true';
-        
-        if (!currentGroupId && !editExpenseId) {
-            window.location.href = ROUTES.DASHBOARD;
-            return;
-        }
-        
-        if (isEdit && editExpenseId) {
-            await loadExpenseForEditing(editExpenseId);
-        } else {
-            await loadGroupData();
-            await loadUserPreferences();
-        }
-        initializeEventListeners();
-    } catch (error: any) {
-        showError('Failed to load expense form. Please try again.');
-        
-        setTimeout(() => {
-            window.location.href = ROUTES.DASHBOARD;
-        }, 3000);
+    await waitForAuthManager();
+    
+    if (!authManager.getUserId()) {
+        authManager.setUserId('user1');
     }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    currentGroupId = urlParams.get('groupId');
+    const editExpenseId = urlParams.get('id');
+    const isEdit = urlParams.get('edit') === 'true';
+    
+    if (!currentGroupId && !editExpenseId) {
+        window.location.href = ROUTES.DASHBOARD;
+        return;
+    }
+    
+    if (isEdit && editExpenseId) {
+        await loadExpenseForEditing(editExpenseId);
+    } else {
+        await loadGroupData();
+        await loadUserPreferences();
+    }
+    initializeEventListeners();
 }
 
 document.addEventListener('DOMContentLoaded', initializeAddExpensePage);
 
 async function loadExpenseForEditing(expenseId: string): Promise<void> {
-    try {
-        const response = await apiService.getExpense(expenseId);
-        const expense = response.data!;
-        
-        currentGroupId = expense.groupId;
-        await loadGroupData();
-        
-        populateFormWithExpense(expense);
-        
-        const titleEl = document.querySelector('.page-title') as HTMLElement;
-        const submitBtn = document.getElementById('submitButton') as HTMLButtonElement;
-        titleEl.textContent = 'Edit Expense';
-        submitBtn.textContent = 'Update Expense';
-        
-    } catch (error) {
-        showMessage('Failed to load expense for editing', 'error');
-    }
+    const response = await apiService.getExpense(expenseId);
+    const expense = response.data!;
+    
+    currentGroupId = expense.groupId;
+    await loadGroupData();
+    
+    populateFormWithExpense(expense);
+    
+    const titleEl = document.querySelector('.page-title') as HTMLElement;
+    const submitBtn = document.getElementById('submitButton') as HTMLButtonElement;
+    titleEl.textContent = 'Edit Expense';
+    submitBtn.textContent = 'Update Expense';
 }
 
 async function loadGroupData(): Promise<void> {
-    try {
-        const response = await apiService.getGroup(currentGroupId!);
-        currentGroup = response.data!;
-        
-        populatePaidByOptions();
-        populateMembers();
-    } catch (error) {
-        showMessage('Failed to load group data', 'error');
-    }
+    const response = await apiService.getGroup(currentGroupId!);
+    currentGroup = response.data!;
+    
+    populatePaidByOptions();
+    populateMembers();
 }
 
 async function loadUserPreferences(): Promise<void> {
-    try {
-        const currentUserId = authManager.getUserId();
-        const response = await apiService.getGroupExpenses(currentGroupId!, 1, null);
-        
-        if (response.expenses && response.expenses.length > 0) {
-            const lastExpense = response.expenses.find((expense: ExpenseData) => expense.paidBy === currentUserId);
-            if (lastExpense) {
-                lastExpenseData = lastExpense;
-                const categoryEl = document.getElementById('category') as HTMLSelectElement;
-                const descriptionEl = document.getElementById('description') as HTMLInputElement;
-                if (lastExpense.category) {
-                    categoryEl.value = lastExpense.category;
-                }
-                descriptionEl.value = lastExpense.description;
+    const currentUserId = authManager.getUserId();
+    const response = await apiService.getGroupExpenses(currentGroupId!, 1, null);
+    
+    if (response.expenses && response.expenses.length > 0) {
+        const lastExpense = response.expenses.find((expense: ExpenseData) => expense.paidBy === currentUserId);
+        if (lastExpense) {
+            lastExpenseData = lastExpense;
+            const categoryEl = document.getElementById('category') as HTMLSelectElement;
+            const descriptionEl = document.getElementById('description') as HTMLInputElement;
+            if (lastExpense.category) {
+                categoryEl.value = lastExpense.category;
             }
+            descriptionEl.value = lastExpense.description;
         }
-    } catch (error) {
-        // User preferences are optional, silently continue
     }
 }
 
@@ -384,36 +363,24 @@ async function handleSubmit(event: Event): Promise<void> {
     const editExpenseId = urlParams.get('id');
     const isEdit = urlParams.get('edit') === 'true';
     
-    try {
-        const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
-        submitButton.disabled = true;
-        clearElement(submitButton);
-        const spinnerIcon = createElementSafe('i', { className: 'fas fa-spinner fa-spin' });
-        submitButton.appendChild(spinnerIcon);
-        submitButton.appendChild(document.createTextNode(' Saving...'));
-        
-        if (isEdit && editExpenseId) {
-            await apiService.updateExpense(editExpenseId, expenseData);
-        } else {
-            await apiService.createExpense(expenseData);
-        }
-        
-        showMessage('Expense added successfully!', 'success');
-        
-        setTimeout(() => {
-            window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentGroupId}`;
-        }, 1000);
-        
-    } catch (error) {
-        showMessage('Failed to add expense', 'error');
-        
-        const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
-        submitButton.disabled = false;
-        clearElement(submitButton);
-        const saveIcon = createElementSafe('i', { className: 'fas fa-save' });
-        submitButton.appendChild(saveIcon);
-        submitButton.appendChild(document.createTextNode(' Save'));
+    const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
+    submitButton.disabled = true;
+    clearElement(submitButton);
+    const spinnerIcon = createElementSafe('i', { className: 'fas fa-spinner fa-spin' });
+    submitButton.appendChild(spinnerIcon);
+    submitButton.appendChild(document.createTextNode(' Saving...'));
+    
+    if (isEdit && editExpenseId) {
+        await apiService.updateExpense(editExpenseId, expenseData);
+    } else {
+        await apiService.createExpense(expenseData);
     }
+    
+    showMessage('Expense added successfully!', 'success');
+    
+    setTimeout(() => {
+        window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentGroupId}`;
+    }, 1000);
 }
 
 import { validateRequired } from './utils/form-validation.js';

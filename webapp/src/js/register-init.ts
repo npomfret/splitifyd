@@ -23,17 +23,13 @@ document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
   
   // Initialize warning banner from config
   const { firebaseConfigManager } = await import('./firebase-config-manager.js');
-  try {
-    const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
-    if (warningBannerConfig?.message) {
-      const warningBanner = document.getElementById('warningBanner');
-      if (warningBanner) {
-        warningBanner.textContent = warningBannerConfig.message;
-        warningBanner.classList.remove('hidden');
-      }
+  const warningBannerConfig = await firebaseConfigManager.getWarningBanner();
+  if (warningBannerConfig?.message) {
+    const warningBanner = document.getElementById('warningBanner');
+    if (warningBanner) {
+      warningBanner.textContent = warningBannerConfig.message;
+      warningBanner.classList.remove('hidden');
     }
-  } catch (error) {
-    // Warning banner is optional, continue silently
   }
 
   await Promise.all([

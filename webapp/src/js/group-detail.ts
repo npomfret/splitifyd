@@ -17,32 +17,27 @@ let hasMoreExpenses: boolean = true;
 const expenseItemCleanups = new Map<HTMLElement, () => void>();
 
 async function initializeGroupDetailPage(): Promise<void> {
-    try {
-        await waitForAuthManager();
-        
-        if (!authManager.getUserId()) {
-            authManager.setUserId('user1');
-        }
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        currentGroupId = urlParams.get('id');
-        
-        if (!currentGroupId) {
-            window.location.href = ROUTES.DASHBOARD;
-            return;
-        }
-        
-        await loadGroupDetails();
-        initializeEventListeners();
+    await waitForAuthManager();
+    
+    if (!authManager.getUserId()) {
+        authManager.setUserId('user1');
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    currentGroupId = urlParams.get('id');
+    
+    if (!currentGroupId) {
+        window.location.href = ROUTES.DASHBOARD;
+        return;
+    }
+    
+    await loadGroupDetails();
+    initializeEventListeners();
 
-        // TODO: Implement header without component
-        const headerContainer = document.getElementById('header-container');
-        if (headerContainer) {
-            headerContainer.innerHTML = '<h1>Group Details</h1>';
-        }
-    } catch (error) {
-        logger.error('Failed to initialize group detail page:', error);
-        throw error;
+    // TODO: Implement header without component
+    const headerContainer = document.getElementById('header-container');
+    if (headerContainer) {
+        headerContainer.innerHTML = '<h1>Group Details</h1>';
     }
 }
 
@@ -114,16 +109,11 @@ function switchTab(tabName: string): void {
 }
 
 async function loadGroupDetails(): Promise<void> {
-    try {
-        const response = await apiService.getGroup(currentGroupId!);
-        currentGroup = response.data!;
-        
-        updateGroupHeader();
-        loadBalances();
-    } catch (error) {
-        logger.error('Error loading group details:', error);
-        showMessage('Failed to load group details', 'error');
-    }
+    const response = await apiService.getGroup(currentGroupId!);
+    currentGroup = response.data!;
+    
+    updateGroupHeader();
+    loadBalances();
 }
 
 function updateGroupHeader(): void {
@@ -161,34 +151,26 @@ async function loadBalances(): Promise<void> {
     const balanceSummary = document.getElementById('balanceSummary') as HTMLElement;
     const simplifiedDebts = document.getElementById('simplifiedDebts') as HTMLElement;
     
-    try {
-        const response = await apiService.getGroupBalances(currentGroupId!);
-        const balances = response.data!;
-        const userBalances = (balances as any).userBalances;
-        const serverSimplifiedDebts = (balances as any).simplifiedDebts;
-        
+    const response = await apiService.getGroupBalances(currentGroupId!);
+    const balances = response.data!;
+    const userBalances = (balances as any).userBalances;
+    const serverSimplifiedDebts = (balances as any).simplifiedDebts;
+    
+    clearElement(balanceSummary);
+    
+    if (!userBalances || Object.keys(userBalances).length === 0) {
         clearElement(balanceSummary);
+        const settledMsg = createElementSafe('p', { className: 'no-data', textContent: 'All settled up!' });
+        balanceSummary.appendChild(settledMsg);
         
-        if (!userBalances || Object.keys(userBalances).length === 0) {
-            clearElement(balanceSummary);
-            const settledMsg = createElementSafe('p', { className: 'no-data', textContent: 'All settled up!' });
-            balanceSummary.appendChild(settledMsg);
-            
-            clearElement(simplifiedDebts);
-            const noDebtsMsg = createElementSafe('p', { className: 'no-data', textContent: 'No outstanding debts' });
-            simplifiedDebts.appendChild(noDebtsMsg);
-            return;
-        }
-        
-        displayUserBalances(userBalances, balanceSummary);
-        displaySimplifiedDebts(serverSimplifiedDebts, simplifiedDebts);
-        
-    } catch (error) {
-        logger.error('Error loading balances:', error);
-        clearElement(balanceSummary);
-        const errorMsg = createElementSafe('p', { className: 'error', textContent: 'Failed to load balances' });
-        balanceSummary.appendChild(errorMsg);
+        clearElement(simplifiedDebts);
+        const noDebtsMsg = createElementSafe('p', { className: 'no-data', textContent: 'No outstanding debts' });
+        simplifiedDebts.appendChild(noDebtsMsg);
+        return;
     }
+    
+    displayUserBalances(userBalances, balanceSummary);
+    displaySimplifiedDebts(serverSimplifiedDebts, simplifiedDebts);
 }
 
 
@@ -306,56 +288,46 @@ async function loadGroupExpenses(): Promise<void> {
     
     isLoadingExpenses = true;
     
-    try {
-        if (!currentGroupId) {
-            logger.error('currentGroupId is null');
-            return;
-        }
-        const response = await apiService.getGroupExpenses(currentGroupId, expensesLimit, expensesCursor);
-        const expenses = response.expenses;
-        
-        if (expensesCursor === null) {
-            clearElement(expensesList);
-        }
-        
-        if (expenses.length === 0 && expensesCursor === null) {
-            const noDataMsg = createElementSafe('p', { 
-                className: 'no-data',
-                textContent: 'No expenses yet'
-            });
-            expensesList.appendChild(noDataMsg);
-        } else {
-            // Use granular DOM updates to add each expense
-            expenses.forEach(expense => {
-                addExpenseToList(expense);
-            });
-        }
-        
-        hasMoreExpenses = response.hasMore;
-        expensesCursor = response.cursor || null;
-        
-        
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-        if (loadMoreContainer) {
-            if (hasMoreExpenses) {
-                loadMoreContainer.classList.remove('hidden');
-            } else {
-                loadMoreContainer.classList.add('hidden');
-            }
-        } else {
-        }
-    } catch (error) {
-        logger.error('Error loading expenses:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        clearElement(expensesList);
-        const errorMsg = createElementSafe('p', { 
-            className: 'error',
-            textContent: `Failed to load expenses: ${errorMessage}`
-        });
-        expensesList.appendChild(errorMsg);
-    } finally {
+    if (!currentGroupId) {
+        logger.error('currentGroupId is null');
         isLoadingExpenses = false;
+        return;
     }
+    const response = await apiService.getGroupExpenses(currentGroupId, expensesLimit, expensesCursor);
+    const expenses = response.expenses;
+    
+    if (expensesCursor === null) {
+        clearElement(expensesList);
+    }
+    
+    if (expenses.length === 0 && expensesCursor === null) {
+        const noDataMsg = createElementSafe('p', { 
+            className: 'no-data',
+            textContent: 'No expenses yet'
+        });
+        expensesList.appendChild(noDataMsg);
+    } else {
+        // Use granular DOM updates to add each expense
+        expenses.forEach(expense => {
+            addExpenseToList(expense);
+        });
+    }
+    
+    hasMoreExpenses = response.hasMore;
+    expensesCursor = response.cursor || null;
+    
+    
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    if (loadMoreContainer) {
+        if (hasMoreExpenses) {
+            loadMoreContainer.classList.remove('hidden');
+        } else {
+            loadMoreContainer.classList.add('hidden');
+        }
+    } else {
+    }
+    
+    isLoadingExpenses = false;
 }
 
 function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanup: () => void } {
@@ -563,19 +535,14 @@ async function saveGroupSettings(): Promise<void> {
         return;
     }
     
-    try {
-        await apiService.updateGroup(currentGroupId, { name: newName });
-        currentGroup.name = newName;
-        updateGroupHeader();
-        const modal = document.getElementById('groupSettingsModal');
-        if (modal) {
-            modal.classList.remove('show');
-        }
-        showMessage('Group settings updated successfully', 'success');
-    } catch (error) {
-        logger.error('Error updating group:', error);
-        showMessage('Failed to update group settings', 'error');
+    await apiService.updateGroup(currentGroupId, { name: newName });
+    currentGroup.name = newName;
+    updateGroupHeader();
+    const modal = document.getElementById('groupSettingsModal');
+    if (modal) {
+        modal.classList.remove('show');
     }
+    showMessage('Group settings updated successfully', 'success');
 }
 
 async function deleteGroup(): Promise<void> {
@@ -588,13 +555,8 @@ async function deleteGroup(): Promise<void> {
         return;
     }
     
-    try {
-        await apiService.deleteGroup(currentGroupId);
-        window.location.href = 'dashboard.html';
-    } catch (error) {
-        logger.error('Error deleting group:', error);
-        showMessage('Failed to delete group', 'error');
-    }
+    await apiService.deleteGroup(currentGroupId);
+    window.location.href = 'dashboard.html';
 }
 
 async function sendInvite(): Promise<void> {
@@ -616,17 +578,10 @@ async function sendInvite(): Promise<void> {
         return;
     }
     
-    try {
-        // API doesn't have inviteToGroup method
-        // await apiService.inviteToGroup(currentGroupId, email);
-        showMessage('Invite functionality not implemented', 'error');
-        return;
-        
-    } catch (error) {
-        logger.error('Error sending invite:', error);
-        errorDiv.textContent = error instanceof Error ? error.message : 'Failed to send invitation';
-        errorDiv.style.display = 'block';
-    }
+    // API doesn't have inviteToGroup method
+    // await apiService.inviteToGroup(currentGroupId, email);
+    showMessage('Invite functionality not implemented', 'error');
+    return;
 }
 
 async function removeMember(): Promise<void> {
@@ -649,9 +604,8 @@ async function showShareGroupModal(): Promise<void> {
         return;
     }
 
-    try {
-        const response = await apiService.generateShareableLink(currentGroupId);
-        const shareUrl = response.data!.shareableUrl;
+    const response = await apiService.generateShareableLink(currentGroupId);
+    const shareUrl = response.data!.shareableUrl;
 
 
         // Create Body
@@ -748,10 +702,6 @@ async function showShareGroupModal(): Promise<void> {
 
         input.select();
 
-    } catch (error) {
-        logger.error('Error generating share link:', error);
-        showMessage('Failed to generate share link', 'error');
-    }
 }
 
 

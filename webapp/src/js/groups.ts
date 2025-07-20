@@ -73,15 +73,10 @@ export class GroupsList {
   async loadGroups(): Promise<void> {
     this.setLoading(true);
     
-    try {
-      this.groups = await apiService.getGroups();
-      this.filteredGroups = [...this.groups];
-      this.render();
-    } catch (error) {
-      this.renderError(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      this.setLoading(false);
-    }
+    this.groups = await apiService.getGroups();
+    this.filteredGroups = [...this.groups];
+    this.render();
+    this.setLoading(false);
   }
 
   private setLoading(loading: boolean): void {
@@ -481,32 +476,27 @@ export class GroupsList {
             .map(input => input.value.trim())
             .filter(email => email.length > 0);
 
-        try {
-            const groupData: CreateGroupRequest = {
-                name: formData.get('groupName') as string,
-                description: formData.get('groupDescription') as string,
-                memberEmails: memberEmails
-            };
+        const groupData: CreateGroupRequest = {
+            name: formData.get('groupName') as string,
+            description: formData.get('groupDescription') as string,
+            memberEmails: memberEmails
+        };
 
-            const newGroup = await apiService.createGroup(groupData);
-            this.groups.unshift(newGroup);
-            this.filteredGroups = [...this.groups];
-            
-            // Use granular DOM update instead of full re-render
-            if (this.groups.length === 1) {
-                // First group - need to replace empty state with full render
-                this.render();
-            } else {
-                // Add to existing list
-                this.addGroupToList(newGroup);
-            }
-
-            modal.hide();
-            modal.unmount();
-        } catch (error) {
-            logger.error('Failed to create group:', error);
-            alert('Failed to create group. Please try again.');
+        const newGroup = await apiService.createGroup(groupData);
+        this.groups.unshift(newGroup);
+        this.filteredGroups = [...this.groups];
+        
+        // Use granular DOM update instead of full re-render
+        if (this.groups.length === 1) {
+            // First group - need to replace empty state with full render
+            this.render();
+        } else {
+            // Add to existing list
+            this.addGroupToList(newGroup);
         }
+
+        modal.hide();
+        modal.unmount();
       };
     
     footerContainer.appendChild(cancelButton);

@@ -15,40 +15,35 @@ let currentUser: User | null = null;
 let currentGroup: GroupDetail | null = null;
 
 async function initializeExpenseDetailPage(): Promise<void> {
-    try {
-        setupEventListeners();
-        
-        await waitForAuthManager();
-        
-        if (!authManager.getUserId()) {
-            authManager.setUserId('user1');
-        }
+    setupEventListeners();
+    
+    await waitForAuthManager();
+    
+    if (!authManager.getUserId()) {
+        authManager.setUserId('user1');
+    }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const expenseId = urlParams.get('id');
-        
-        if (!expenseId) {
-            showError('No expense ID provided');
-            return;
-        }
+    const urlParams = new URLSearchParams(window.location.search);
+    const expenseId = urlParams.get('id');
+    
+    if (!expenseId) {
+        showError('No expense ID provided');
+        return;
+    }
 
-        await loadExpenseDetails(expenseId);
+    await loadExpenseDetails(expenseId);
 
-        // TODO: Implement header without component
-        const headerContainer = document.getElementById('header-container');
-        if (headerContainer) {
-            headerContainer.innerHTML = '<h1>Expense Details</h1>';
-        }
+    // TODO: Implement header without component
+    const headerContainer = document.getElementById('header-container');
+    if (headerContainer) {
+        headerContainer.innerHTML = '<h1>Expense Details</h1>';
+    }
 
-        // Set up navigation with proper back button
-        const navContainer = document.querySelector('.nav-header');
-        if (navContainer && currentExpense) {
-            const groupId = currentExpense.groupId;
-            navContainer.innerHTML = `<nav><a href="${ROUTES.GROUP_DETAIL}?id=${groupId}" class="back-button">← Back to Group</a><h2>Expense Details</h2></nav>`;
-        }
-    } catch (error) {
-        showError('Failed to initialize expense details page');
-        throw error;
+    // Set up navigation with proper back button
+    const navContainer = document.querySelector('.nav-header');
+    if (navContainer && currentExpense) {
+        const groupId = currentExpense.groupId;
+        navContainer.innerHTML = `<nav><a href="${ROUTES.GROUP_DETAIL}?id=${groupId}" class="back-button">← Back to Group</a><h2>Expense Details</h2></nav>`;
     }
 }
 
@@ -64,28 +59,22 @@ if (document.readyState === 'loading') {
 }
 
 async function loadExpenseDetails(expenseId: string): Promise<void> {
-    try {
-        showLoading();
-        
-        // Use real API to get expense details
-        const expense = await ExpenseService.getExpense(expenseId);
-        const user: User = { uid: authManager.getUserId()! } as User;
+    showLoading();
+    
+    // Use real API to get expense details
+    const expense = await ExpenseService.getExpense(expenseId);
+    const user: User = { uid: authManager.getUserId()! } as User;
 
-        // Fetch group data to get member information for ID-to-name mapping
-        const groupResponse = await apiService.getGroup(expense.groupId);
-        const group = groupResponse.data!;
+    // Fetch group data to get member information for ID-to-name mapping
+    const groupResponse = await apiService.getGroup(expense.groupId);
+    const group = groupResponse.data!;
 
-        currentExpense = expense;
-        currentUser = user;
-        currentGroup = group;
+    currentExpense = expense;
+    currentUser = user;
+    currentGroup = group;
 
-        displayExpenseDetails(expense);
-        setupPermissions(expense, user);
-        
-    } catch (error: any) {
-        logger.error('Error loading expense details:', error);
-        showError(`Failed to load expense details: ${error.message}`);
-    }
+    displayExpenseDetails(expense);
+    setupPermissions(expense, user);
 }
 
 
@@ -291,27 +280,17 @@ function closeDeleteModal(): void {
 async function deleteExpense(): Promise<void> {
     if (!currentExpense) return;
     
-    try {
-        const deleteBtn = document.getElementById('confirm-delete-btn') as HTMLButtonElement;
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = 'Deleting...';
+    const deleteBtn = document.getElementById('confirm-delete-btn') as HTMLButtonElement;
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting...';
 
-        await ExpenseService.deleteExpense(currentExpense.id);
-        
-        closeDeleteModal();
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const returnUrl = urlParams.get('return') ?? ROUTES.DASHBOARD;
-        window.location.href = returnUrl;
-        
-    } catch (error: any) {
-        logger.error('Error deleting expense:', error);
-        showUIError('Failed to delete expense. Please try again.');
-        
-        const deleteBtn = document.getElementById('confirm-delete-btn') as HTMLButtonElement;
-        deleteBtn.disabled = false;
-        deleteBtn.textContent = 'Delete Expense';
-    }
+    await ExpenseService.deleteExpense(currentExpense.id);
+    
+    closeDeleteModal();
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('return') ?? ROUTES.DASHBOARD;
+    window.location.href = returnUrl;
 }
 
 function getUserDisplayName(userId: string): string {

@@ -160,52 +160,54 @@ class AuthManager {
     }
 
     private async setDevelopmentDefaults(form: HTMLFormElement): Promise<void> {
-        try {
-            await firebaseConfigManager.getConfig();
-            const formDefaults = await firebaseConfigManager.getFormDefaults();
+        await firebaseConfigManager.getConfig();
+        const formDefaults = await firebaseConfigManager.getFormDefaults();
 
-            const defaults = form.id === 'registerForm' 
-                ? {
-                    displayName: formDefaults.displayName,
-                    email: formDefaults.email,
-                    password: formDefaults.password,
-                    confirmPassword: formDefaults.password
-                  }
-                : {
-                    email: formDefaults.email,
-                    password: formDefaults.password
-                  };
+        const defaults = form.id === 'registerForm' 
+            ? {
+                displayName: formDefaults.displayName,
+                email: formDefaults.email,
+                password: formDefaults.password,
+                confirmPassword: formDefaults.password
+              }
+            : {
+                email: formDefaults.email,
+                password: formDefaults.password
+              };
 
-            Object.entries(defaults).forEach(([fieldName, defaultValue]) => {
-                const input = form.querySelector<HTMLInputElement>(`[name="${fieldName}"]`);
-                if (input && !input.value && defaultValue !== undefined) {
-                    input.value = defaultValue;
-                }
-            });
-        } catch (error) {
-            throw error;
-        }
+        Object.entries(defaults).forEach(([fieldName, defaultValue]) => {
+            const input = form.querySelector<HTMLInputElement>(`[name="${fieldName}"]`);
+            if (input && !input.value && defaultValue !== undefined) {
+                input.value = defaultValue;
+            }
+        });
     }
 
     private validateField(input: HTMLInputElement): void {
         const errorElement = document.getElementById(`${input.id}-error`);
         if (!errorElement) return;
 
-        try {
-            const { name, value } = input;
-            
-            if (name === 'confirmPassword') {
-                const passwordInput = document.getElementById('password') as HTMLInputElement;
-                if (passwordInput && value !== passwordInput.value) {
-                    throw new Error('Passwords do not match');
-                }
-            } else if (name in authValidators) {
-                authValidators[name as keyof ValidatorMap](value);
+        const { name, value } = input;
+        
+        let errorMessage: string | null = null;
+        
+        if (name === 'confirmPassword') {
+            const passwordInput = document.getElementById('password') as HTMLInputElement;
+            if (passwordInput && value !== passwordInput.value) {
+                errorMessage = 'Passwords do not match';
             }
-            
+        } else if (name in authValidators) {
+            try {
+                authValidators[name as keyof ValidatorMap](value);
+            } catch (error) {
+                errorMessage = (error as Error).message;
+            }
+        }
+        
+        if (errorMessage) {
+            this.showFieldError(input, errorElement, errorMessage);
+        } else {
             this.clearFieldError(input, errorElement);
-        } catch (error) {
-            this.showFieldError(input, errorElement, (error as Error).message);
         }
     }
 
@@ -228,12 +230,8 @@ class AuthManager {
         
         const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
-        try {
-            this.validateCredentials(credentials);
-            await this.submitLogin(credentials, button!);
-        } catch (error) {
-            this.showFormError(event.target as HTMLFormElement, (error as Error).message);
-        }
+        this.validateCredentials(credentials);
+        await this.submitLogin(credentials, button!);
     }
 
     private validateCredentials(credentials: LoginCredentials): void {
@@ -244,40 +242,22 @@ class AuthManager {
     private async submitLogin(credentials: LoginCredentials, button: HTMLButtonElement): Promise<void> {
         const originalText = button.textContent!;
         
-        try {
-            this.setButtonLoading(button, 'Signing in...');
-            
-            // Use Firebase Auth directly for login
-            if (!firebaseAuthInstance) {
-                throw new Error('Firebase not initialized');
-            }
-            const userCredential = await firebaseAuthInstance.signInWithEmailAndPassword(credentials.email, credentials.password) as UserCredential;
-            
-            // Get ID token for API authentication
-            const idToken = await userCredential.user.getIdToken();
-            this.setToken(idToken);
-            
-            // Store user ID for client-side operations
-            this.setUserId(userCredential.user.uid);
-            
-            window.location.href = ROUTES.DASHBOARD;
-            
-        } catch (error) {
-            const firebaseError = error as FirebaseError;
-            let errorMessage = 'Login failed';
-            if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
-                errorMessage = 'Invalid email or password';
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid email format';
-            } else if (firebaseError.code === 'auth/user-disabled') {
-                errorMessage = 'Account has been disabled';
-            } else if (firebaseError.code === 'auth/too-many-requests') {
-                errorMessage = 'Too many failed attempts. Try again later';
-            }
-            throw new Error(errorMessage);
-        } finally {
-            this.resetButton(button, originalText);
+        this.setButtonLoading(button, 'Signing in...');
+        
+        // Use Firebase Auth directly for login
+        if (!firebaseAuthInstance) {
+            throw new Error('Firebase not initialized');
         }
+        const userCredential = await firebaseAuthInstance.signInWithEmailAndPassword(credentials.email, credentials.password) as UserCredential;
+        
+        // Get ID token for API authentication
+        const idToken = await userCredential.user.getIdToken();
+        this.setToken(idToken);
+        
+        // Store user ID for client-side operations
+        this.setUserId(userCredential.user.uid);
+        
+        window.location.href = ROUTES.DASHBOARD;
     }
 
     private async handleRegister(event: Event): Promise<void> {
@@ -293,12 +273,8 @@ class AuthManager {
         
         const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
-        try {
-            this.validateRegistrationData(userData);
-            await this.submitRegistration(userData, button!);
-        } catch (error) {
-            this.showFormError(event.target as HTMLFormElement, (error as Error).message);
-        }
+        this.validateRegistrationData(userData);
+        await this.submitRegistration(userData, button!);
     }
 
     private validateRegistrationData(userData: RegistrationData): void {
@@ -314,48 +290,28 @@ class AuthManager {
     private async submitRegistration(userData: RegistrationData, button: HTMLButtonElement): Promise<void> {
         const originalText = button.textContent!;
         
-        try {
-            this.setButtonLoading(button, 'Creating Account...');
+        this.setButtonLoading(button, 'Creating Account...');
 
-            // Use Firebase Auth directly for registration
-            if (!firebaseAuthInstance) {
-                throw new Error('Firebase not initialized');
-            }
-            const userCredential = await firebaseAuthInstance.createUserWithEmailAndPassword(userData.email, userData.password) as UserCredential;
-            
-            // Update display name using Firebase Auth updateProfile
-            await firebaseAuthInstance.updateProfile(userCredential.user, {
-                displayName: userData.displayName
-            });
-            
-            // Get ID token for API authentication
-            const idToken = await userCredential.user.getIdToken();
-            this.setToken(idToken);
-            
-            // Store user ID for client-side operations
-            this.setUserId(userCredential.user.uid);
-            
-            // Skip user document creation for now - can be done on first dashboard load
-            window.location.href = ROUTES.DASHBOARD;
-            
-        } catch (error) {
-            const firebaseError = error as FirebaseError;
-            let errorMessage = 'Registration failed';
-            if (firebaseError.code === 'auth/email-already-in-use') {
-                errorMessage = 'An account with this email already exists';
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid email format';
-            } else if (firebaseError.code === 'auth/weak-password') {
-                errorMessage = 'Password is too weak';
-            } else if (firebaseError.code === 'auth/operation-not-allowed') {
-                errorMessage = 'Registration is currently disabled';
-            } else {
-                errorMessage = `Registration failed: ${firebaseError.message}`;
-            }
-            throw new Error(errorMessage);
-        } finally {
-            this.resetButton(button, originalText);
+        // Use Firebase Auth directly for registration
+        if (!firebaseAuthInstance) {
+            throw new Error('Firebase not initialized');
         }
+        const userCredential = await firebaseAuthInstance.createUserWithEmailAndPassword(userData.email, userData.password) as UserCredential;
+        
+        // Update display name using Firebase Auth updateProfile
+        await firebaseAuthInstance.updateProfile(userCredential.user, {
+            displayName: userData.displayName
+        });
+        
+        // Get ID token for API authentication
+        const idToken = await userCredential.user.getIdToken();
+        this.setToken(idToken);
+        
+        // Store user ID for client-side operations
+        this.setUserId(userCredential.user.uid);
+        
+        // Skip user document creation for now - can be done on first dashboard load
+        window.location.href = ROUTES.DASHBOARD;
     }
 
 
@@ -392,42 +348,24 @@ class AuthManager {
         
         const button = (event.target as HTMLFormElement).querySelector<HTMLButtonElement>('button[type="submit"]');
         
-        try {
-            authValidators.email(email);
-            await this.submitPasswordReset(email, button!);
-        } catch (error) {
-            this.showFormError(event.target as HTMLFormElement, (error as Error).message);
-        }
+        authValidators.email(email);
+        await this.submitPasswordReset(email, button!);
     }
 
     private async submitPasswordReset(email: string, button: HTMLButtonElement): Promise<void> {
         const originalText = button.textContent!;
         
-        try {
-            this.setButtonLoading(button, 'Sending...');
-            
-            if (!firebaseAuthInstance) {
-                throw new Error('Firebase not initialized');
-            }
-            
-            await firebaseAuthInstance.sendPasswordResetEmail(email);
-            
-            this.showSuccessMessage(button.closest('form')!, 'Password reset email sent! Check your inbox.');
-            
-        } catch (error) {
-            const firebaseError = error as FirebaseError;
-            let errorMessage = 'Failed to send reset email';
-            if (firebaseError.code === 'auth/user-not-found') {
-                errorMessage = 'No account found with this email address';
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                errorMessage = 'Invalid email format';
-            } else if (firebaseError.code === 'auth/too-many-requests') {
-                errorMessage = 'Too many requests. Please try again later';
-            }
-            throw new Error(errorMessage);
-        } finally {
-            this.resetButton(button, originalText);
+        this.setButtonLoading(button, 'Sending...');
+        
+        if (!firebaseAuthInstance) {
+            throw new Error('Firebase not initialized');
         }
+        
+        await firebaseAuthInstance.sendPasswordResetEmail(email);
+        
+        this.showSuccessMessage(button.closest('form')!, 'Password reset email sent! Check your inbox.');
+        
+        this.resetButton(button, originalText);
     }
 
     private handleSignUp(event: Event): void {
