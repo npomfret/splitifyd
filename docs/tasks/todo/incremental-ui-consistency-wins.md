@@ -199,10 +199,12 @@ The CSS is already well-organized with:
 - ✅ groups.ts: Refactored loading spinner to use createLoadingSpinner()
 - ✅ group-detail.ts: Refactored loading spinner to use createLoadingSpinner()
 - ✅ Error handling already centralized in ui-messages.ts (no refactoring needed)
+- ✅ groups.ts: Refactored "Create New Group" modal to use createModal()
+- ✅ group-detail.ts: Refactored "Share Group" modal to use createModal()
 
 **Lines of code reduced:**
 - Loading spinner creation: ~5 lines → 1 function call (per instance)
-- Modal creation potential: ~20+ lines → 1 function call
+- Modal creation: ~40 lines → 1 function call (per modal)
 
 ### Phase 3: Incremental Refactoring - BUTTONS COMPLETED, UI BUILDERS ADDED
 
@@ -301,11 +303,13 @@ Since most remaining buttons are in HTML templates, the next logical steps are:
 **Files Refactored:** 6 files total
 - Button refactoring: login-init.ts, register-init.ts, group-detail.ts, groups.ts  
 - Loading spinner refactoring: groups.ts, group-detail.ts
+- Modal refactoring: groups.ts, group-detail.ts
 
 **Code Reduction Achieved:**
 - Button creation: ~65 lines → 13 function calls
 - Loading spinner creation: ~10 lines → 2 function calls
-- Total lines reduced: ~75 lines of manual DOM creation
+- Modal creation: ~80 lines → 2 function calls
+- Total lines reduced: ~155 lines of manual DOM creation
 
 **Consistency Improvements:**
 - All buttons use standardized BEM classes

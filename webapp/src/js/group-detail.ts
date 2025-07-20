@@ -5,7 +5,7 @@ import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { ROUTES } from './routes.js';
-import { createButton, createLoadingSpinner } from './ui-builders.js';
+import { createButton, createLoadingSpinner, createModal } from './ui-builders.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -637,71 +637,35 @@ async function showShareGroupModal(): Promise<void> {
 
         // Create Footer
         const footerContainer = createElementSafe('div');
-        // Create close button without component
-        const closeButtonContainer = document.createElement('div');
-        closeButtonContainer.className = 'close-button-container';
+        // Declare modal element variable for access in button handlers
+        let modalElement: HTMLDivElement;
         
         const closeButton = createButton({
             text: 'Close',
-            variant: 'secondary'
+            variant: 'secondary',
+            onClick: () => {
+                modalElement.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                modalElement.remove();
+            }
         });
         
-        closeButtonContainer.appendChild(closeButton);
-        footerContainer.appendChild(closeButtonContainer);
+        footerContainer.appendChild(closeButton);
 
-        // Create modal without component - use simple modal implementation
-        const modal = {
-            element: null as HTMLElement | null,
-            show: () => {
-                if (modal.element) {
-                    modal.element.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                }
-            },
-            hide: () => {
-                if (modal.element) {
-                    modal.element.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }
-            },
-            unmount: () => {
-                if (modal.element) {
-                    modal.element.remove();
-                    modal.element = null;
-                }
+        // Create modal using UI builder
+        modalElement = createModal({
+            title: 'Share Group',
+            body: bodyContainer,
+            footer: footerContainer,
+            onClose: () => {
+                modalElement.remove();
             }
-        };
+        });
         
-        // Create modal element
-        const modalElement = document.createElement('div');
-        modalElement.className = 'modal';
-        modalElement.style.display = 'none';
-        modalElement.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Share Group</h2>
-                </div>
-                <div class="modal-body"></div>
-                <div class="modal-footer"></div>
-            </div>
-        `;
-        
-        const modalBody = modalElement.querySelector('.modal-body');
-        const modalFooter = modalElement.querySelector('.modal-footer');
-        
-        if (modalBody) modalBody.appendChild(bodyContainer);
-        if (modalFooter) modalFooter.appendChild(footerContainer);
-        
-        modal.element = modalElement;
+        // Show modal
         document.body.appendChild(modalElement);
-        
-        // Update close button to work with simple modal
-        closeButton.onclick = () => {
-            modal.hide();
-            modal.unmount();
-        };
-
-        modal.show();
+        modalElement.style.display = 'block';
+        document.body.classList.add('modal-open');
 
         input.select();
 

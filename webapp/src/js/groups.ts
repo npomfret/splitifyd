@@ -2,7 +2,7 @@ import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 import { apiService } from './api.js';
 import { ROUTES } from './routes.js';
-import { createButton, createLoadingSpinner } from './ui-builders.js';
+import { createButton, createLoadingSpinner, createModal } from './ui-builders.js';
 import type {
   Group,
   ClickHandler
@@ -346,12 +346,16 @@ export class GroupsList {
 
     // Create Footer
     const footerContainer = createElementSafe('div');
+    // Declare modal element variable for access in button handlers
+    let modalElement: HTMLDivElement;
+    
     const cancelButton = createButton({
       text: 'Cancel',
       variant: 'secondary',
       onClick: () => {
-        modal.hide();
-        modal.unmount();
+        modalElement.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        modalElement.remove();
       }
     });
     const createGroupButton = createButton({
@@ -382,59 +386,29 @@ export class GroupsList {
             this.addGroupToList(newGroup);
         }
 
-        modal.hide();
-        modal.unmount();
+        modalElement.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        modalElement.remove();
       }
     });
     
     footerContainer.appendChild(cancelButton);
     footerContainer.appendChild(createGroupButton);
 
-    // TODO: Replace with simple modal
-    const modal = {
-      element: null as HTMLElement | null,
-      show: () => {
-        if (modal.element) {
-          modal.element.style.display = 'block';
-          document.body.style.overflow = 'hidden';
-        }
-      },
-      hide: () => {
-        if (modal.element) {
-          modal.element.style.display = 'none';
-          document.body.style.overflow = 'auto';
-        }
-      },
-      unmount: () => {
-        if (modal.element) {
-          modal.element.remove();
-          modal.element = null;
-        }
+    // Create modal using UI builder
+    modalElement = createModal({
+      title: 'Create New Group',
+      body: form,
+      footer: footerContainer,
+      onClose: () => {
+        modalElement.remove();
       }
-    };
+    });
     
-    const modalElement = document.createElement('div');
-    modalElement.className = 'modal';
-    modalElement.style.display = 'none';
-    modalElement.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Create New Group</h2>
-        </div>
-        <div class="modal-body"></div>
-        <div class="modal-footer"></div>
-      </div>
-    `;
-    
-    const modalBody = modalElement.querySelector('.modal-body');
-    const modalFooter = modalElement.querySelector('.modal-footer');
-    
-    if (modalBody) modalBody.appendChild(form);
-    if (modalFooter) modalFooter.appendChild(footerContainer);
-    
-    modal.element = modalElement;
+    // Show modal
     document.body.appendChild(modalElement);
-    modal.show();
+    modalElement.style.display = 'block';
+    document.body.classList.add('modal-open');
   }
 
   private openGroupDetail(groupId: string): void {
