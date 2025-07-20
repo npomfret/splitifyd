@@ -25,10 +25,6 @@ export interface CreateGroupRequest {
   memberEmails?: string[];
 }
 
-export interface UpdateGroupRequest {
-  name?: string;
-  description?: string;
-}
 
 export interface ExpenseListResponse {
   expenses: ExpenseData[];
@@ -51,4 +47,3 @@ export type ClickHandler = (event: MouseEvent) => void;
 
 // Utility Types
 export type CurrencyFormatter = (amount: number) => string;
-export type DateFormatter = (date: string | Date) => string;

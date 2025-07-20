@@ -53,38 +53,6 @@ export function showFieldError(fieldName: string, message: string): void {
     }
 }
 
-export function clearFieldErrors(formElement: HTMLFormElement): void {
-    formElement.querySelectorAll('.form-error').forEach(error => {
-        error.textContent = '';
-    });
-    formElement.querySelectorAll('.form-input--error').forEach(input => {
-        input.classList.remove('form-input--error');
-    });
-}
-export function clearErrors(): void {
-    document.querySelectorAll('.form-error').forEach(error => {
-        error.textContent = '';
-    });
-}
-
-export function showSuccess(message: string, targetElement?: HTMLElement): void {
-    if (targetElement) {
-        const originalText = targetElement.textContent || '';
-        targetElement.textContent = message;
-        if (targetElement instanceof HTMLButtonElement) {
-            targetElement.disabled = true;
-        }
-        
-        setTimeout(() => {
-            targetElement.textContent = originalText;
-            if (targetElement instanceof HTMLButtonElement) {
-                targetElement.disabled = false;
-            }
-        }, 3000);
-    } else {
-        showMessage(message, 'success');
-    }
-}
 
 export function showFieldErrorWithInput(input: HTMLInputElement, errorElement: HTMLElement, message: string): void {
     input.classList.add('form-input--error');

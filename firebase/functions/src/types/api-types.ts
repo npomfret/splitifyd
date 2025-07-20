@@ -4,14 +4,6 @@ export interface CreateGroupRequest {
   memberEmails?: string[];
 }
 
-export interface GenerateShareableLinkRequest {
-  groupId: string;
-}
-
-export interface JoinGroupRequest {
-  linkId: string;
-}
-
 export interface ListDocumentsResponse {
   documents: DocumentResponse[];
 }

@@ -103,20 +103,6 @@ export class ApiDriver {
     }
   }
 
-  async waitForEmulatorRestart(maxWaitMs: number = 30000): Promise<void> {
-    const startTime = Date.now();
-    
-    while (Date.now() - startTime < maxWaitMs) {
-      if (await this.checkEmulatorStatus()) {
-        // Wait an additional 2 seconds for emulator to fully initialize
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return;
-      }
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    
-    throw new Error(`Emulator failed to restart within ${maxWaitMs}ms`);
-  }
 
   async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
@@ -337,14 +323,7 @@ export class ApiDriver {
 
   // Common matchers
   static readonly matchers = {
-    // Document matchers
-    documentHasField: (field: string) => (doc: any) => doc?.data?.[field] !== undefined,
-    documentFieldEquals: (field: string, value: any) => (doc: any) => doc?.data?.[field] === value,
-    documentFieldGreaterThan: (field: string, value: number) => (doc: any) => doc?.data?.[field] > value,
-    
     // List documents matchers
-    listContainsDocumentWithId: (docId: string) => (response: ListDocumentsResponse) => 
-      response.documents.some(doc => doc.id === docId),
     
     listDocumentHasExpenseMetadata: (docId: string, expectedCount?: number) => (response: ListDocumentsResponse) => {
       const doc = response.documents.find(d => d.id === docId);
@@ -354,8 +333,6 @@ export class ApiDriver {
     },
     
     // Balance matchers
-    balanceIsNonZero: () => (balances: BalanceResponse) => 
-      balances.userBalances && Object.values(balances.userBalances).some((b: any) => b.netBalance !== 0),
     
     balanceHasUpdate: () => (balances: BalanceResponse) => 
       balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated
@@ -369,35 +346,6 @@ export class ApiDriver {
       ApiDriver.matchers.balanceHasUpdate(),
       { timeout: timeoutMs }
     );
-  }
-
-  async waitForGroupStats(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
-    const matcher = (doc: any) => {
-      if (doc?.data?.expenseCount === undefined) return false;
-      return expectedExpenseCount === undefined || doc.data.expenseCount === expectedExpenseCount;
-    };
-    
-    return this.pollGetDocumentUntil(
-      groupId,
-      token,
-      matcher,
-      { timeout: timeoutMs, errorMsg: 'Group stats update timeout' }
-    );
-  }
-
-  async waitForListDocumentsExpenseMetadata(groupId: string, token: string, expectedExpenseCount?: number, timeoutMs: number = 10000): Promise<any> {
-    const response = await this.pollListDocumentsUntil(
-      token,
-      ApiDriver.matchers.listDocumentHasExpenseMetadata(groupId, expectedExpenseCount),
-      { 
-        timeout: timeoutMs, 
-        interval: 1000, // Longer delay for emulator consistency
-        errorMsg: 'List documents expense metadata timeout'
-      }
-    );
-    
-    // Return just the group document for backward compatibility
-    return response.documents.find(doc => doc.id === groupId);
   }
 
 
@@ -449,37 +397,7 @@ export class ApiDriver {
     return await this.apiRequest('/register', 'POST', userData);
   }
 
-  async expectRequestToFail(endpoint: string, method: string, body: any, token: string, expectedStatus: number): Promise<void> {
-    try {
-      await this.apiRequest(endpoint, method, body, token);
-      throw new Error(`Expected request to fail with status ${expectedStatus}, but it succeeded`);
-    } catch (error) {
-      if (error instanceof Error && error.message.includes(`status ${expectedStatus}`)) {
-        return; // Expected failure
-      }
-      throw error;
-    }
-  }
-
-
-
-
-
   // Helper methods for creating test data
-  createTestUsers(): Promise<User[]> {
-    return Promise.all([
-      this.createTestUser({
-        email: `test-${uuidv4()}@example.com`,
-        password: 'Password123!',
-        displayName: 'Test User 1'
-      }),
-      this.createTestUser({
-        email: `test-${uuidv4()}@example.com`,
-        password: 'Password123!',
-        displayName: 'Test User 2'
-      })
-    ]);
-  }
 
   createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<Expense> {
     return {
@@ -494,19 +412,6 @@ export class ApiDriver {
     };
   }
 
-  createTestExpenseWithExactSplits(groupId: string, paidBy: string, splits: Array<{userId: string, amount: number}>): Partial<Expense> {
-    return {
-      groupId,
-      description: 'Exact Split Expense',
-      amount: splits.reduce((sum, split) => sum + split.amount, 0),
-      paidBy,
-      splitType: 'exact',
-      participants: splits.map(s => s.userId),
-      splits,
-      date: new Date().toISOString(),
-      category: 'utilities',
-    };
-  }
 
   getBaseUrl(): string {
     return this.baseUrl;

@@ -59,19 +59,4 @@ export class ExpenseService {
     return apiCall<ExpenseListResponse>(`/expenses/user?${params.toString()}`);
   }
 
-
-  static getExpenseCategories(): ExpenseCategory[] {
-    return [
-      { value: 'food', label: 'Food & Dining', icon: '🍽️' },
-      { value: 'transport', label: 'Transportation', icon: '🚗' },
-      { value: 'utilities', label: 'Utilities', icon: '💡' },
-      { value: 'entertainment', label: 'Entertainment', icon: '🎮' },
-      { value: 'shopping', label: 'Shopping', icon: '🛍️' },
-      { value: 'accommodation', label: 'Accommodation', icon: '🏠' },
-      { value: 'healthcare', label: 'Healthcare', icon: '🏥' },
-      { value: 'education', label: 'Education', icon: '📚' },
-      { value: 'other', label: 'Other', icon: '📌' }
-    ];
-  }
-
 }
