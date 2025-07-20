@@ -169,17 +169,49 @@ The CSS is already well-organized with:
    - createModal()
    - createFormField()
 
-### Phase 3: Incremental Refactoring
-1. **Start with groups.ts** - Has the most button creation code
-2. **Refactor one file at a time**:
-   - Import ui-builders
-   - Replace manual button creation with createButton()
-   - Test thoroughly after each file
-3. **Priority files for refactoring**:
-   - groups.ts (10+ button creations)
-   - group-detail.ts
-   - expense-detail.ts
-   - dashboard.ts
+### Phase 3: Incremental Refactoring - IN PROGRESS
+
+#### Groups.ts Refactoring Plan
+**File:** webapp/src/js/groups.ts  
+**Button Count:** 6 manual button creations identified  
+**Status:** Ready for refactoring
+
+**Buttons to refactor:**
+1. **Line 62-66:** "Create Your First Group" button in empty state
+   - Current: `button button--primary`
+   - Refactor to: `createButton({ text: 'Create Your First Group', variant: 'primary', onClick: () => this.openCreateGroupModal() })`
+
+2. **Line 217-221:** "+ Create Group" button in groups header
+   - Current: `button button--primary` 
+   - Refactor to: `createButton({ text: '+ Create Group', variant: 'primary', onClick: () => this.openCreateGroupModal() })`
+
+3. **Line 310-318:** "+ Add Another Member" button in create group modal
+   - Current: `button button--small`
+   - Refactor to: `createButton({ text: '+ Add Another Member', size: 'small', onClick: [handler] })`
+
+4. **Line 324-332:** Remove member "×" button (repeating element)
+   - Current: `btn btn-icon` (NOTE: inconsistent class naming!)
+   - Refactor to: `createButton({ html: '×', variant: 'icon', ariaLabel: 'Remove member', onClick: [handler] })`
+
+5. **Line 351-357:** "Cancel" button in modal footer
+   - Current: `btn btn-secondary` (NOTE: inconsistent class naming!)
+   - Refactor to: `createButton({ text: 'Cancel', variant: 'secondary', onClick: [handler] })`
+
+6. **Line 358-388:** "Create Group" button in modal footer
+   - Current: `button button--primary`
+   - Refactor to: `createButton({ text: 'Create Group', variant: 'primary', onClick: [handler] })`
+
+**Key findings:**
+- Inconsistent class naming: mix of `button` and `btn` prefixes
+- ui-builders already supports all needed variants
+- Need to import createButton from ui-builders module
+- All buttons have click handlers that need to be preserved
+
+**Next steps:**
+1. Import createButton from './ui-builders.js'
+2. Replace each manual button creation with createButton() call
+3. Fix inconsistent class names (btn vs button)
+4. Test each button after refactoring
 
 ### Testing Strategy
 - Run `npm run dev` and test each refactored component
