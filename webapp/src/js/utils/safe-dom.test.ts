@@ -12,6 +12,7 @@ import type { ValidationOptions } from '../types/global.js';
 // Mock DOM environment
 interface MockNode {
     textContent: string;
+    nodeType?: number;
 }
 
 interface MockElement extends MockNode {

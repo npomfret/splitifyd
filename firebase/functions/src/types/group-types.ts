@@ -46,13 +46,6 @@ export interface TransformedGroup {
   lastExpenseTime: string | null;
 }
 
-export interface GroupBalance {
-  userId: string;
-  userName: string;
-  balance: number;
-  netBalance: number;
-}
-
 export interface GroupBalances {
   balances: Record<string, number>;
   summary: BalanceSummary[];

@@ -34,6 +34,13 @@ export function showWarning(message: string): void {
     }
 }
 
+export function hideWarning(): void {
+    const bannerElement = document.getElementById('warningBanner');
+    if (bannerElement) {
+        bannerElement.classList.add('hidden');
+    }
+}
+
 export function showFieldError(fieldName: string, message: string): void {
     const errorElement = document.getElementById(`${fieldName}-error`);
     if (errorElement) {
@@ -89,4 +96,60 @@ export function clearFieldErrorWithInput(input: HTMLInputElement, errorElement: 
     input.classList.remove('form-input--error');
     errorElement.textContent = '';
     errorElement.removeAttribute('aria-live');
+}
+
+export function showFormError(form: HTMLFormElement, message: string): void {
+    let errorContainer = form.querySelector<HTMLDivElement>('.form-error--general');
+    
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.className = 'form-error form-error--general';
+        errorContainer.setAttribute('role', 'alert');
+        
+        const submitButton = form.querySelector('button[type="submit"]');
+        const submitContainer = form.querySelector('#submit-button-container');
+        
+        if (submitContainer) {
+            form.insertBefore(errorContainer, submitContainer);
+        } else if (submitButton && submitButton.parentElement) {
+            form.insertBefore(errorContainer, submitButton.parentElement);
+        } else {
+            form.appendChild(errorContainer);
+        }
+    }
+    
+    errorContainer.textContent = message;
+    errorContainer.style.display = 'block';
+    
+    setTimeout(() => {
+        errorContainer.style.display = 'none';
+    }, 5000);
+}
+
+export function showSuccessMessage(form: HTMLFormElement, message: string): void {
+    let successContainer = form.querySelector<HTMLDivElement>('.form-success--general');
+    
+    if (!successContainer) {
+        successContainer = document.createElement('div');
+        successContainer.className = 'form-success form-success--general';
+        successContainer.setAttribute('role', 'alert');
+        
+        const submitButton = form.querySelector('button[type="submit"]');
+        const submitContainer = form.querySelector('#submit-button-container');
+        
+        if (submitContainer) {
+            form.insertBefore(successContainer, submitContainer);
+        } else if (submitButton && submitButton.parentElement) {
+            form.insertBefore(successContainer, submitButton.parentElement);
+        } else {
+            form.appendChild(successContainer);
+        }
+    }
+    
+    successContainer.textContent = message;
+    successContainer.style.display = 'block';
+    
+    setTimeout(() => {
+        successContainer.style.display = 'none';
+    }, 3000);
 }

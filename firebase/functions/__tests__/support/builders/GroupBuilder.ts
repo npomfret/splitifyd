@@ -21,11 +21,6 @@ export class GroupBuilder {
     };
   }
 
-  withName(name: string): this {
-    this.group.name = name;
-    return this;
-  }
-
   withMembers(users: User[]): this {
     this.group.members = users.map(user => ({
       uid: user.uid,

@@ -6,8 +6,7 @@ import type {
   ExpenseListResponse,
   ExpenseCategory,
   ExpenseSplit,
-  CurrencyFormatter,
-  DateFormatter
+  CurrencyFormatter
 } from './types/business-logic.js';
 
 export class ExpenseService {
@@ -61,14 +60,6 @@ export class ExpenseService {
   }
 
 
-  static formatDate: DateFormatter = (date: string | Date): string => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
   static getExpenseCategories(): ExpenseCategory[] {
     return [
       { value: 'food', label: 'Food & Dining', icon: '🍽️' },
@@ -81,12 +72,6 @@ export class ExpenseService {
       { value: 'education', label: 'Education', icon: '📚' },
       { value: 'other', label: 'Other', icon: '📌' }
     ];
-  }
-
-  static getCategoryIcon(category: string): string {
-    const categories = this.getExpenseCategories();
-    const cat = categories.find(c => c.value === category);
-    return cat ? cat.icon : '📌';
   }
 
 }

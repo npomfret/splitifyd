@@ -19,16 +19,6 @@ interface ValidationResult {
   value?: string;
 }
 
-// Config types
-interface FirebaseConfig {
-  projectId: string;
-  apiKey: string;
-  authDomain: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-}
-
 // API Response types
 interface ApiResponse<T> {
   success: boolean;
@@ -103,7 +93,6 @@ interface FirebaseError extends Error {
 export {
   ValidationOptions,
   ValidationResult,
-  FirebaseConfig,
   ApiResponse,
   User,
   Expense,

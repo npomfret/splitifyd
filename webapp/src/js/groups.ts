@@ -1,58 +1,15 @@
 import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
-import { apiService, apiCall } from './api.js';
+import { apiService } from './api.js';
 import { ROUTES } from './routes.js';
 import type {
   Group,
-  CreateGroupRequest as CreateGroupRequestBL,
-  UpdateGroupRequest,
   ClickHandler
 } from './types/business-logic.js';
 import type {
   TransformedGroup,
-  CreateGroupRequest,
-  Member
+  CreateGroupRequest
 } from './types/api.js';
-
-export class GroupService {
-  static async getUserGroups(): Promise<TransformedGroup[]> {
-    // Using existing getGroups from apiService for now
-    return apiService.getGroups();
-  }
-
-  static async getGroup(groupId: string): Promise<TransformedGroup> {
-    // For now, get from the cached groups list
-    const groups = await this.getUserGroups();
-    const group = groups.find(g => g.id === groupId);
-    if (!group) {
-      throw new Error('Group not found');
-    }
-    return group;
-  }
-
-  static async getGroupMembers(groupId: string): Promise<Member[]> {
-    // For now, get members from the group data
-    const group = await this.getGroup(groupId);
-    return group.members;
-  }
-
-  static async createGroup(groupData: CreateGroupRequest | CreateGroupRequestBL): Promise<TransformedGroup> {
-    return apiService.createGroup(groupData);
-  }
-
-  static async updateGroup(groupId: string, updateData: UpdateGroupRequest): Promise<Group> {
-    return apiCall<Group>(`/updateDocument?id=${groupId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ data: updateData })
-    });
-  }
-
-  static async deleteGroup(groupId: string): Promise<{ success: boolean }> {
-    return apiCall<{ success: boolean }>(`/deleteDocument?id=${groupId}`, {
-      method: 'DELETE'
-    });
-  }
-}
 
 export class GroupsList {
   private container: HTMLElement;
