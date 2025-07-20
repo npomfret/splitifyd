@@ -176,12 +176,12 @@ export class GroupsList {
 
     footer.appendChild(activity);
 
-    const addExpenseButton = createElementSafe('button', {
-      className: 'group-card__add-expense',
-      title: `Add expense to ${group.name}`,
-      textContent: '+ Add Expense'
-    }) as HTMLButtonElement;
-    addExpenseButton.type = 'button';
+    const addExpenseButton = createButton({
+      text: '+ Add Expense',
+      onClick: () => {} // Event listener added later in attachGroupCardEventListeners
+    });
+    addExpenseButton.className = 'group-card__add-expense';
+    addExpenseButton.title = `Add expense to ${group.name}`;
 
     groupCard.appendChild(footer);
     groupCard.appendChild(addExpenseButton);

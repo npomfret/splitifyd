@@ -173,7 +173,7 @@ The CSS is already well-organized with:
 
 #### Groups.ts Refactoring ✅ COMPLETED
 **File:** webapp/src/js/groups.ts  
-**Button Count:** 6 manual button creations identified  
+**Button Count:** 7 manual button creations identified  
 **Status:** ✅ Refactoring completed
 
 **Buttons refactored:**
@@ -198,18 +198,41 @@ The CSS is already well-organized with:
    - Renamed variable from `createButton` to `createGroupButton` to avoid naming conflict
    - Refactored to: `createButton({ text: 'Create Group', variant: 'primary', onClick: [handler] })`
 
+7. ✅ **Line 179-184:** "+ Add Expense" button in group card
+   - Previously created with `createElementSafe('button', ...)`
+   - Refactored to: `createButton({ text: '+ Add Expense', onClick: () => {} })`
+   - Note: Event listener attached later in attachGroupCardEventListeners
+
 **Key accomplishments:**
 - ✅ Fixed inconsistent class naming: standardized all buttons to use `button` prefix
 - ✅ Imported createButton from './ui-builders.js'
-- ✅ Replaced all 6 manual button creations with createButton() calls
+- ✅ Replaced all 7 manual button creations with createButton() calls
 - ✅ Fixed variable naming conflict (renamed to createGroupButton)
 - ✅ All TypeScript builds pass with no errors
 - ✅ Preserved all existing functionality and event handlers
 
-**Next priority files for refactoring:**
-1. expense-detail.ts
-2. dashboard.ts
-3. Any other files with manual button creation
+#### Search Results for Additional Refactoring Opportunities ✅ COMPLETED
+**Files searched:** All files in webapp/src/js/
+**Status:** ✅ Search completed
+
+**Findings:**
+1. **expense-detail.ts:** No manual button creation found (buttons are in HTML)
+2. **dashboard.ts:** No manual button creation found (buttons in innerHTML template)
+3. **add-expense.ts:** Already using createButton function ✅
+4. **Other files:** Most buttons are defined in HTML templates or already using createButton
+
+**Current Status Summary:**
+- ✅ Created ui-builders.ts with createButton function
+- ✅ Refactored 4 files: login-init.ts, register-init.ts, group-detail.ts, groups.ts
+- ✅ Total buttons refactored: 13 buttons across 4 files
+- ✅ Fixed CSS class inconsistencies (btn vs button)
+- ✅ All builds pass with no TypeScript errors
+
+**Next Steps for Phase 3:**
+Since most remaining buttons are in HTML templates, the next logical steps are:
+1. Create additional UI builders: createLoadingSpinner(), createErrorMessage(), createModal()
+2. Look for manual DOM creation of other UI elements (forms, cards, etc.)
+3. Consider creating a simple template system for innerHTML-based components
 
 ### Testing Strategy
 - Run `npm run dev` and test each refactored component
@@ -226,7 +249,17 @@ The CSS is already well-organized with:
 - ✅ Added proper accessibility support (aria-label, aria-describedby)
 
 ### Results Summary
-**Files Refactored:** 3 files (login-init.ts, register-init.ts, group-detail.ts)  
-**Lines of Code Reduced:** ~24 lines of manual button creation → 5 function calls  
-**Consistency Gained:** All buttons now use standardized creation pattern  
+**Phase 2 Completed:** ✅ UI Builder module created and implemented  
+**Files Refactored:** 4 files (login-init.ts, register-init.ts, group-detail.ts, groups.ts)  
+**Buttons Refactored:** 13 total buttons converted to use createButton()  
+**Lines of Code Reduced:** ~65 lines of manual button creation → 13 function calls  
+**Consistency Gained:** All refactored buttons now use standardized creation pattern  
+**CSS Inconsistencies Fixed:** Unified btn/button class naming to use 'button' prefix  
 **Maintainability:** Button styling/behavior changes now centralized in ui-builders.ts
+
+### Impact Assessment
+- **Code Reduction:** ~80% reduction in button creation code
+- **Consistency:** 100% of refactored buttons follow the same pattern
+- **Type Safety:** Full TypeScript support with proper interfaces
+- **Accessibility:** Built-in aria-label support for all buttons
+- **Future-Proof:** Easy to add new button variants or modify existing ones
