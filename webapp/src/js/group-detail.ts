@@ -5,7 +5,7 @@ import { apiService } from './api.js';
 import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { ROUTES } from './routes.js';
-import { createButton } from './ui-builders.js';
+import { createButton, createLoadingSpinner } from './ui-builders.js';
 import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
@@ -281,9 +281,9 @@ async function loadGroupExpenses(): Promise<void> {
             }
         });
         clearElement(expensesList);
-        const spinner = createElementSafe('div', { className: 'loading-spinner' });
-        const icon = createElementSafe('i', { className: 'fas fa-spinner fa-spin' });
-        spinner.appendChild(icon);
+        const spinner = createLoadingSpinner({
+          size: 'md'
+        });
         expensesList.appendChild(spinner);
     }
     

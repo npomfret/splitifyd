@@ -54,6 +54,28 @@ export interface CardOptions {
   padding?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
+export interface LoadingSpinnerOptions {
+  text?: string;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+export interface ErrorMessageOptions {
+  message: string;
+  type?: 'inline' | 'form' | 'page';
+  className?: string;
+  duration?: number; // For auto-dismiss (milliseconds)
+}
+
+export interface ModalOptions {
+  title: string;
+  body: HTMLElement | HTMLElement[];
+  footer?: HTMLElement | HTMLElement[];
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  onClose?: () => void;
+}
+
 /**
  * Creates a standardized button element with consistent styling and behavior.
  * 
@@ -356,4 +378,239 @@ export function createMemberCheckbox(member: { uid: string; name: string }, isCu
   memberItem.appendChild(label);
 
   return memberItem;
+}
+
+/**
+ * Creates a standardized loading spinner element
+ * 
+ * @param options - Loading spinner configuration options
+ * @returns HTMLDivElement containing the loading spinner
+ * 
+ * @example
+ * ```typescript
+ * import { createLoadingSpinner } from './ui-builders.js';
+ * 
+ * const spinner = createLoadingSpinner({
+ *   text: 'Loading your groups...',
+ *   size: 'lg'
+ * });
+ * container.appendChild(spinner);
+ * ```
+ */
+export function createLoadingSpinner(options: LoadingSpinnerOptions = {}): HTMLDivElement {
+  const {
+    text,
+    size = 'md',
+    className
+  } = options;
+
+  const container = document.createElement('div');
+  container.className = `loading-state${className ? ' ' + className : ''}`;
+
+  const spinner = document.createElement('div');
+  spinner.className = `loading-spinner loading-spinner--${size}`;
+  
+  // Add Font Awesome spinner icon
+  const icon = document.createElement('i');
+  icon.className = 'fas fa-spinner fa-spin';
+  spinner.appendChild(icon);
+  
+  container.appendChild(spinner);
+
+  // Add loading text if provided
+  if (text) {
+    const loadingText = document.createElement('p');
+    loadingText.className = 'loading-text';
+    loadingText.textContent = text;
+    container.appendChild(loadingText);
+  }
+
+  return container;
+}
+
+/**
+ * Creates a standardized error message element
+ * 
+ * @param options - Error message configuration options
+ * @returns HTMLDivElement containing the error message
+ * 
+ * @example
+ * ```typescript
+ * import { createErrorMessage } from './ui-builders.js';
+ * 
+ * const error = createErrorMessage({
+ *   message: 'Failed to load data. Please try again.',
+ *   type: 'page'
+ * });
+ * container.appendChild(error);
+ * ```
+ */
+export function createErrorMessage(options: ErrorMessageOptions): HTMLDivElement {
+  const {
+    message,
+    type = 'inline',
+    className,
+    duration
+  } = options;
+
+  const errorContainer = document.createElement('div');
+  
+  // Build CSS classes based on type
+  const classes = [];
+  switch (type) {
+    case 'form':
+      classes.push('form-error', 'form-error--general');
+      break;
+    case 'page':
+      classes.push('error-state');
+      break;
+    case 'inline':
+    default:
+      classes.push('error-message');
+      break;
+  }
+  
+  if (className) {
+    classes.push(className);
+  }
+  
+  errorContainer.className = classes.join(' ');
+  errorContainer.setAttribute('role', 'alert');
+  
+  if (type === 'page') {
+    // For page-level errors, add icon and styling
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-exclamation-circle error-icon';
+    
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    
+    errorContainer.appendChild(icon);
+    errorContainer.appendChild(messageEl);
+  } else {
+    // For inline and form errors, just set text
+    errorContainer.textContent = message;
+  }
+  
+  // Auto-dismiss if duration is specified
+  if (duration && duration > 0) {
+    setTimeout(() => {
+      errorContainer.style.opacity = '0';
+      setTimeout(() => errorContainer.remove(), 300);
+    }, duration);
+  }
+  
+  return errorContainer;
+}
+
+/**
+ * Creates a standardized modal dialog
+ * 
+ * @param options - Modal configuration options
+ * @returns HTMLDivElement containing the modal
+ * 
+ * @example
+ * ```typescript
+ * import { createModal, createButton } from './ui-builders.js';
+ * 
+ * const modalBody = document.createElement('p');
+ * modalBody.textContent = 'Are you sure you want to proceed?';
+ * 
+ * const confirmBtn = createButton({
+ *   text: 'Confirm',
+ *   variant: 'primary',
+ *   onClick: handleConfirm
+ * });
+ * 
+ * const modal = createModal({
+ *   title: 'Confirm Action',
+ *   body: modalBody,
+ *   footer: confirmBtn,
+ *   onClose: handleClose
+ * });
+ * 
+ * document.body.appendChild(modal);
+ * modal.style.display = 'block';
+ * ```
+ */
+export function createModal(options: ModalOptions): HTMLDivElement {
+  const {
+    title,
+    body,
+    footer,
+    className,
+    size = 'md',
+    onClose
+  } = options;
+
+  const modal = document.createElement('div');
+  modal.className = `modal${className ? ' ' + className : ''}`;
+  modal.style.display = 'none';
+  
+  const modalContent = document.createElement('div');
+  modalContent.className = `modal-content modal-content--${size}`;
+  
+  // Create header
+  const modalHeader = document.createElement('div');
+  modalHeader.className = 'modal-header';
+  
+  const titleEl = document.createElement('h2');
+  titleEl.textContent = title;
+  modalHeader.appendChild(titleEl);
+  
+  // Create close button
+  const closeButton = document.createElement('button');
+  closeButton.className = 'modal-close';
+  closeButton.innerHTML = '&times;';
+  closeButton.setAttribute('aria-label', 'Close modal');
+  closeButton.onclick = () => {
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    if (onClose) onClose();
+  };
+  modalHeader.appendChild(closeButton);
+  
+  // Create body
+  const modalBody = document.createElement('div');
+  modalBody.className = 'modal-body';
+  
+  // Add body content
+  if (Array.isArray(body)) {
+    body.forEach(element => modalBody.appendChild(element));
+  } else {
+    modalBody.appendChild(body);
+  }
+  
+  // Create footer if provided
+  let modalFooter: HTMLDivElement | null = null;
+  if (footer) {
+    modalFooter = document.createElement('div');
+    modalFooter.className = 'modal-footer';
+    
+    if (Array.isArray(footer)) {
+      footer.forEach(element => modalFooter!.appendChild(element));
+    } else {
+      modalFooter.appendChild(footer);
+    }
+  }
+  
+  // Assemble modal
+  modalContent.appendChild(modalHeader);
+  modalContent.appendChild(modalBody);
+  if (modalFooter) {
+    modalContent.appendChild(modalFooter);
+  }
+  
+  modal.appendChild(modalContent);
+  
+  // Close modal when clicking outside
+  modal.onclick = (event) => {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+      document.body.classList.remove('modal-open');
+      if (onClose) onClose();
+    }
+  };
+  
+  return modal;
 }

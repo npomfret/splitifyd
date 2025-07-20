@@ -169,7 +169,42 @@ The CSS is already well-organized with:
    - createModal()
    - createFormField()
 
-### Phase 3: Incremental Refactoring - IN PROGRESS
+### Phase 3: Abstract Repeated Logic - IN PROGRESS
+
+#### Additional UI Builders Created ✅ COMPLETED
+**Date:** 2025-07-20  
+**Status:** ✅ Completed implementation of 3 additional UI builders
+
+**New functions added to ui-builders.ts:**
+1. ✅ **createLoadingSpinner(options)** - Standardized loading spinner with optional text
+   - Supports size variants: sm, md, lg
+   - Optional loading text display
+   - Uses Font Awesome spinner icon
+   - Returns complete loading state container
+
+2. ✅ **createErrorMessage(options)** - Standardized error message display
+   - Supports 3 types: inline, form, page
+   - Optional auto-dismiss with duration
+   - Proper ARIA role="alert" for accessibility
+   - Page errors include icon and styling
+
+3. ✅ **createModal(options)** - Standardized modal dialog
+   - Configurable title, body, and footer
+   - Size variants: sm, md, lg
+   - Built-in close button and click-outside-to-close
+   - onClose callback support
+   - Proper modal-open body class management
+
+**Refactoring completed:**
+- ✅ groups.ts: Refactored loading spinner to use createLoadingSpinner()
+- ✅ group-detail.ts: Refactored loading spinner to use createLoadingSpinner()
+- ✅ Error handling already centralized in ui-messages.ts (no refactoring needed)
+
+**Lines of code reduced:**
+- Loading spinner creation: ~5 lines → 1 function call (per instance)
+- Modal creation potential: ~20+ lines → 1 function call
+
+### Phase 3: Incremental Refactoring - BUTTONS COMPLETED, UI BUILDERS ADDED
 
 #### Groups.ts Refactoring ✅ COMPLETED
 **File:** webapp/src/js/groups.ts  
@@ -250,12 +285,33 @@ Since most remaining buttons are in HTML templates, the next logical steps are:
 
 ### Results Summary
 **Phase 2 Completed:** ✅ UI Builder module created and implemented  
-**Files Refactored:** 4 files (login-init.ts, register-init.ts, group-detail.ts, groups.ts)  
-**Buttons Refactored:** 13 total buttons converted to use createButton()  
-**Lines of Code Reduced:** ~65 lines of manual button creation → 13 function calls  
-**Consistency Gained:** All refactored buttons now use standardized creation pattern  
-**CSS Inconsistencies Fixed:** Unified btn/button class naming to use 'button' prefix  
-**Maintainability:** Button styling/behavior changes now centralized in ui-builders.ts
+**Phase 3 Progress:** ✅ Additional UI builders created (loading spinner, error message, modal)
+
+**UI Builders Created:**
+- ✅ createButton() - 13 buttons refactored across 4 files
+- ✅ createLoadingSpinner() - 2 instances refactored  
+- ✅ createErrorMessage() - Created, ready for use
+- ✅ createModal() - Created, ready for modal refactoring
+- ✅ createFormField() - Already existed
+- ✅ createSelectField() - Already existed
+- ✅ createCard() - Already existed
+- ✅ createFormSection() - Already existed
+- ✅ createMemberCheckbox() - Already existed
+
+**Files Refactored:** 6 files total
+- Button refactoring: login-init.ts, register-init.ts, group-detail.ts, groups.ts  
+- Loading spinner refactoring: groups.ts, group-detail.ts
+
+**Code Reduction Achieved:**
+- Button creation: ~65 lines → 13 function calls
+- Loading spinner creation: ~10 lines → 2 function calls
+- Total lines reduced: ~75 lines of manual DOM creation
+
+**Consistency Improvements:**
+- All buttons use standardized BEM classes
+- Loading spinners now consistent across pages
+- Error messages have standardized types and styling
+- Modal structure ready for standardization
 
 ### Impact Assessment
 - **Code Reduction:** ~80% reduction in button creation code

@@ -2,7 +2,7 @@ import { logger } from './utils/logger.js';
 import { createElementSafe, clearElement, appendChildren } from './utils/safe-dom.js';
 import { apiService } from './api.js';
 import { ROUTES } from './routes.js';
-import { createButton } from './ui-builders.js';
+import { createButton, createLoadingSpinner } from './ui-builders.js';
 import type {
   Group,
   ClickHandler
@@ -42,11 +42,9 @@ export class GroupsList {
     
     if (loading) {
       clearElement(this.container);
-      const loadingState = createElementSafe('div', { className: 'loading-state' });
-      const spinner = createElementSafe('div', { className: 'loading-spinner' });
-      const loadingText = createElementSafe('p', { textContent: 'Loading your groups...' });
-      
-      appendChildren(loadingState, [spinner, loadingText]);
+      const loadingState = createLoadingSpinner({
+        text: 'Loading your groups...'
+      });
       this.container.appendChild(loadingState);
     }
   }
