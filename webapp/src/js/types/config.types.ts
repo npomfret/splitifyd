@@ -1,1 +1,0 @@
-../../../../firebase/functions/src/types/config.types.ts

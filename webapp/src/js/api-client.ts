@@ -1,7 +1,7 @@
 import { firebaseConfigManager } from './firebase-config-manager.js';
 import { authManager } from './auth.js';
 import { AUTH_TOKEN_KEY } from './constants.js';
-import type { AppConfiguration } from './types/config.types.js';
+import type { AppConfiguration } from './types/webapp-shared-types.js';
 
 class ApiClient {
   private configPromise: Promise<AppConfiguration> | null = null;

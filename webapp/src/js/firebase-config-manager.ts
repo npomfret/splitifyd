@@ -1,5 +1,5 @@
 import { logger } from './utils/logger.js';
-import type { AppConfiguration } from './types/config.types.js';
+import type { AppConfiguration } from './types/webapp-shared-types.js';
 
 class FirebaseConfigManager {
   private configPromise: Promise<AppConfiguration> | null = null;

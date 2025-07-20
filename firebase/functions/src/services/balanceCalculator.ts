@@ -3,7 +3,7 @@ import { UserBalance, simplifyDebts } from '../utils/debtSimplifier';
 import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
 import { db } from '../firebase';
-import { Member } from '../types/group-types';
+import { Member } from '../types/webapp-shared-types';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });

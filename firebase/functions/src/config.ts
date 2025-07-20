@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, WarningBanner } from './types/config.types';
+import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, WarningBanner } from './types/webapp-shared-types';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
 

@@ -4,7 +4,7 @@ import { Errors } from '../utils/errors';
 import { getConfig } from '../config';
 import { sanitizeString, isDangerousProperty } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
-import { Member } from '../types/group-types';
+import { Member } from '../types/webapp-shared-types';
 
 /**
  * Document structure

@@ -6,7 +6,7 @@ import type {
     FirebaseUser,
     FirebaseError
 } from './types/global.js';
-import type { AppConfiguration } from './types/config.types.js';
+import type { AppConfiguration } from './types/webapp-shared-types.js';
 
 interface FirebaseAuthService {
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;

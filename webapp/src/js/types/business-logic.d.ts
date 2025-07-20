@@ -1,10 +1,8 @@
 // Business Logic Type Definitions
-import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
-import { TransformedGroup, Member } from './group-types';
+import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, TransformedGroup, Member } from './webapp-shared-types';
 import { User } from './global';
 
-export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest } from './expense-types';
-export type { TransformedGroup } from './group-types';
+export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, TransformedGroup } from './webapp-shared-types';
 export type { User } from './global';
 
 // Additional types needed by business logic

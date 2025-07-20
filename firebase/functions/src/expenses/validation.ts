@@ -6,9 +6,9 @@ import { sanitizeString } from '../utils/security';
 import { 
   ExpenseSplit, 
   CreateExpenseRequest, 
-  UpdateExpenseRequest, 
-  EXPENSE_CATEGORIES 
-} from '../types/expense-types';
+  UpdateExpenseRequest,
+  EXPENSE_CATEGORIES
+} from '../types/webapp-shared-types';
 
 export interface Expense {
   id: string;

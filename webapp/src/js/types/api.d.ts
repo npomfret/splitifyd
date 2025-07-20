@@ -3,20 +3,14 @@ export type {
   GroupDetail,
   GroupBalances,
   TransformedGroup,
-  GroupDocument
-} from './group-types';
-
-export type {
+  GroupDocument,
   ExpenseData,
   CreateExpenseRequest,
-  UpdateExpenseRequest
-} from './expense-types';
-
-export type {
+  UpdateExpenseRequest,
   CreateGroupRequest,
   ListDocumentsResponse,
   DocumentResponse,
   ShareableLinkResponse,
   JoinGroupResponse,
   FirestoreTimestamp
-} from './api-types';
+} from './webapp-shared-types';
