@@ -1,6 +1,6 @@
 # CSS Cleanup: Unused Styles in main.css
 
-## Task Status: PARTIALLY COMPLETE ✅
+## Task Status: COMPLETE ✅
 
 ### Phase 1 Completed (2025-07-20)
 - ✅ **Test-specific classes**: REMOVED - all 4 classes deleted from main.css
@@ -8,8 +8,20 @@
 - ✅ **Build verification**: All builds pass successfully
 - ✅ **Lines removed**: 30+ lines of dead CSS code
 
-### Remaining Work
-- **Form/button components**: Still require individual verification (Phase 2)
+### Phase 2 Completed (2025-07-20)
+- ✅ **Audit completed**: All form and button components verified
+- ✅ **Unused classes removed**: 6 unused classes identified and removed
+  - `.input-group-text`
+  - `.radio-group`, `.radio-label`, `.radio-custom` 
+  - `.button--large`
+  - `.button--logout`
+- ✅ **Build verification**: All builds pass successfully
+- ✅ **Lines removed**: Additional 60+ lines of dead CSS code
+
+### Total Impact
+- **Total lines removed**: ~90 lines of unused CSS
+- **Classes removed**: 11 unused classes
+- **Build status**: ✅ All tests pass
 
 ## Test-specific classes - REMOVED ✅
 
@@ -62,9 +74,32 @@ These classes were not used anywhere in the application and have been successful
 - ✅ auth-card--register: IN USE - kept in code
 - ✅ auth-card--reset: UNUSED - successfully removed
 
-## Unused Form and Button Components - ANALYSIS NEEDED
+## Unused Form and Button Components - ANALYSIS COMPLETE ✅
 
-The following form and button components may or may not be used in the application after component architecture changes.
+### Phase 2 Analysis Results (2025-07-20)
+
+**Classes confirmed UNUSED and safe to remove:**
+- ❌ `.input-group-text` - Not used anywhere
+- ❌ `.radio-group` - Not used anywhere  
+- ❌ `.radio-label` - Not used anywhere
+- ❌ `.radio-custom` - Not used anywhere
+- ❌ `.button--large` - Not used anywhere
+- ❌ `.button--logout` - Not used anywhere
+
+**Classes confirmed IN USE (must keep):**
+- ✅ `.form-select` - Used in ui-builders.ts:251
+- ✅ `.form-textarea` - Used in groups.ts:302
+- ✅ `.form-control` - Used in group-detail.ts:616 and group-detail.html
+- ✅ `.button--danger` - Used in expense-detail.html and group-detail.html
+- ✅ `.button--icon` - Used in group-detail.ts and groups.ts
+- ✅ `.button--small` - Used in groups.ts:311
+- ✅ `.auth-card__footer` - Used in register.html and login.html
+- ✅ `.auth-nav` - Used in register.html and login.html
+- ✅ `.auth-link` - Used in register.html and login.html
+- ✅ `.auth-link--primary` - Used in register.html and login.html
+
+**Special case:**
+- ⚠️ `.input-group` - Not used directly, but compound classes like `.amount-input-group` and `.custom-split-input-group` are used. Recommend keeping for now.
 
 ```css
 .form-select {
