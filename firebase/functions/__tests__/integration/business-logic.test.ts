@@ -445,22 +445,38 @@ describe('Business Logic Edge Cases', () => {
       // Add a small delay to ensure the group is fully propagated
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Should be able to get group balances (should be empty/zero)
-      const balances = await driver.getGroupBalances(emptyGroup.id, users[0].token);
+      // Should be able to get group details and verify no expenses
+      const groupDetails = await driver.getGroupNew(emptyGroup.id, users[0].token);
+      expect(groupDetails).toHaveProperty('id');
+      expect(groupDetails).toHaveProperty('members');
       
-      expect(balances).toHaveProperty('userBalances');
-      expect(balances).toHaveProperty('simplifiedDebts');
+      // Verify no expenses exist
+      const expenses = await driver.getGroupExpenses(emptyGroup.id, users[0].token);
+      expect(expenses.expenses).toHaveLength(0);
       
-      // Balance for the creator should be zero (no expenses)
-      if (balances.userBalances[users[0].uid]) {
-        expect(balances.userBalances[users[0].uid].netBalance).toBe(0);
+      // Check group list shows zero balance - may need to wait for propagation
+      let groupInList;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts) {
+        const groupsList = await driver.listGroupsNew(users[0].token);
+        groupInList = groupsList.groups.find((g: any) => g.id === emptyGroup.id);
+        if (groupInList) break;
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
       }
       
-      // Should have no simplified debts
-      expect(balances.simplifiedDebts).toHaveLength(0);
+      expect(groupInList).toBeDefined();
+      // Handle both possible balance structures
+      if (typeof groupInList.balance.userBalance === 'object') {
+        expect(groupInList.balance.userBalance.netBalance).toBe(0);
+      } else {
+        expect(groupInList.balance.userBalance).toBe(0);
+      }
     });
 
-    test.skip('should handle multiple expenses with same participants', async () => {
+    test('should handle multiple expenses with same participants', async () => {
       // Create a single test user for this isolated test
       const testUser = await driver.createTestUser(new UserBuilder().build());
 
@@ -502,16 +518,21 @@ describe('Business Logic Edge Cases', () => {
       expect(loadedExpenses[2].amount).toBe(20);
       expect(loadedExpenses[2].paidBy).toBe(testUser.uid);
 
-      // Get the balances directly
-      const balances = await driver.getGroupBalances(multiExpenseGroup.id, testUser.token);
+      // Verify all expenses are tracked
+      const groupExpenses = await driver.getGroupExpenses(multiExpenseGroup.id, testUser.token);
+      expect(groupExpenses.expenses).toHaveLength(3);
       
-      // Verify the balances reflect all expenses
-      expect(balances).toHaveProperty('userBalances');
-      expect(balances.userBalances[testUser.uid]).toBeDefined();
+      // Get group from list to check balance
+      const groupsList = await driver.listGroupsNew(testUser.token);
+      const groupInList = groupsList.groups.find((g: any) => g.id === multiExpenseGroup.id);
+      expect(groupInList).toBeDefined();
       
       // When a user pays for expenses only they participate in, net balance should be 0
-      const userBalance = balances.userBalances[testUser.uid];
-      expect(userBalance.netBalance).toBe(0);
+      if (typeof groupInList.balance.userBalance === 'object') {
+        expect(groupInList.balance.userBalance.netBalance).toBe(0);
+      } else {
+        expect(groupInList.balance.userBalance).toBe(0);
+      }
     });
 
     test('should handle deleting expenses successfully', async () => {
@@ -543,7 +564,7 @@ describe('Business Logic Edge Cases', () => {
       ).rejects.toThrow(/not found|deleted|404/i);
     });
 
-    test.skip('should handle complex split scenarios', async () => {
+    test('should handle complex split scenarios', async () => {
       // Create a fresh group for this test to ensure clean state
       const complexGroupData = new GroupBuilder()
         .withName(`Complex Split Group ${uuidv4()}`)
@@ -560,19 +581,22 @@ describe('Business Logic Edge Cases', () => {
 
       await driver.createExpense(expenseData1, users[0].token);
       
-      // Get the balances directly
-      const balances = await driver.getGroupBalances(complexGroup.id, users[0].token);
+      // Verify expense was created
+      const expenses = await driver.getGroupExpenses(complexGroup.id, users[0].token);
+      expect(expenses.expenses).toHaveLength(1);
+      expect(expenses.expenses[0].amount).toBe(90);
       
-      // Verify balance structure
-      expect(balances).toHaveProperty('userBalances');
-      expect(Object.keys(balances.userBalances).length).toBeGreaterThanOrEqual(1);
-      
-      // The creator should have a balance entry
-      expect(balances.userBalances).toHaveProperty(users[0].uid);
-      expect(balances.userBalances[users[0].uid]).toHaveProperty('netBalance');
+      // Get group from list to verify balance info
+      const groupsList = await driver.listGroupsNew(users[0].token);
+      const groupInList = groupsList.groups.find((g: any) => g.id === complexGroup.id);
+      expect(groupInList).toBeDefined();
       
       // When a single user pays for expenses they fully participate in, net balance is 0
-      expect(balances.userBalances[users[0].uid].netBalance).toBe(0);
+      if (typeof groupInList.balance.userBalance === 'object') {
+        expect(groupInList.balance.userBalance.netBalance).toBe(0);
+      } else {
+        expect(groupInList.balance.userBalance).toBe(0);
+      }
     });
 
     test('should handle expense updates successfully', async () => {
