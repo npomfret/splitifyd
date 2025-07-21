@@ -19,14 +19,6 @@ interface ValidationResult {
   value?: string;
 }
 
-// API Response types
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
 // Domain types
 interface User {
   id: string;

@@ -23,18 +23,5 @@ export interface ExpenseListResponse {
   hasMore: boolean;
 }
 
-// Expense Management Types
-export interface ExpenseCategory {
-  value: string;
-  label: string;
-  icon: string;
-}
-
-
-
-
 // Event Handler Types
 export type ClickHandler = (event: MouseEvent) => void;
-
-// Utility Types
-export type CurrencyFormatter = (amount: number) => string;
