@@ -430,7 +430,7 @@ describe('Business Logic Edge Cases', () => {
   });
 
   describe('Group Lifecycle Edge Cases', () => {
-    test.skip('should handle viewing group with no expenses', async () => {
+    test('should handle viewing group with no expenses', async () => {
       // Create a fresh group with no expenses using the builder
       // Note: Only the creator will be a member initially
       const groupData = new GroupBuilder()
@@ -442,9 +442,6 @@ describe('Business Logic Edge Cases', () => {
       const createdGroup = await driver.getGroupNew(emptyGroup.id, users[0].token);
       expect(createdGroup.id).toBe(emptyGroup.id);
       
-      // Add a small delay to ensure the group is fully propagated
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       // Should be able to get group details and verify no expenses
       const groupDetails = await driver.getGroupNew(emptyGroup.id, users[0].token);
       expect(groupDetails).toHaveProperty('id');
@@ -455,17 +452,8 @@ describe('Business Logic Edge Cases', () => {
       expect(expenses.expenses).toHaveLength(0);
       
       // Check group list shows zero balance - may need to wait for propagation
-      let groupInList;
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      while (attempts < maxAttempts) {
-        const groupsList = await driver.listGroupsNew(users[0].token);
-        groupInList = groupsList.groups.find((g: any) => g.id === emptyGroup.id);
-        if (groupInList) break;
-        await new Promise(resolve => setTimeout(resolve, 500));
-        attempts++;
-      }
+      const groupsList = await driver.listGroupsNew(users[0].token);
+      const groupInList = groupsList.groups.find((g: any) => g.id === emptyGroup.id);
       
       expect(groupInList).toBeDefined();
       // Handle both possible balance structures
