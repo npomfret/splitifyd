@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pwd-before-bash.sh"
+            "command": "pwd"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pwd-before-bash.sh"
+            "command": "pwd"
           }
         ]
       },
@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pwd-before-bash.sh"
+            "command": "pwd"
           }
         ]
       },
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pwd-before-bash.sh"
+            "command": "pwd"
           }
         ]
       }
