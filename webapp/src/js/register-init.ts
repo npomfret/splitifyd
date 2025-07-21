@@ -11,8 +11,6 @@ import {
 
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
-  // Set up API base URL before loading auth scripts
-  AppInit.setupApiBaseUrl();
   
   // Update page title from configuration
   await updatePageTitle('Register');

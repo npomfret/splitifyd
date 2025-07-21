@@ -2,8 +2,6 @@ import { updatePageTitle, updateDnsPrefetch } from './utils/page-title.js';
 import { AppInit } from './app-init.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
-  // Set up API base URL before loading auth scripts
-  AppInit.setupApiBaseUrl();
   
   // Update page title from configuration
   await updatePageTitle('Group Details');

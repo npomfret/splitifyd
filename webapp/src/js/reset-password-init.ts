@@ -1,8 +1,6 @@
 import { AppInit } from './app-init.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Set up API base URL before loading any other scripts
-    AppInit.setupApiBaseUrl();
     
     // Load all required modules in parallel
     await Promise.all([

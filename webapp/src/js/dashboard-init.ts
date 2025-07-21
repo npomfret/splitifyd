@@ -3,8 +3,6 @@ import { updatePageTitle } from './utils/page-title.js';
 import { createLoadingSpinner } from './ui-builders.js';
 
 document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
-  // Set up API base URL before loading auth scripts
-  AppInit.setupApiBaseUrl();
   
   // Update page title from configuration
   await updatePageTitle('Dashboard');

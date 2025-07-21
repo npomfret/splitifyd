@@ -18,7 +18,6 @@ export class AppInit {
       onReady = null
     } = config;
 
-    this.setupApiBaseUrl();
     this.setupGlobalErrorHandlers();
     
     // Initialize Firebase if not already initialized
@@ -77,11 +76,6 @@ export class AppInit {
     }
   }
 
-  static setupApiBaseUrl(): void {
-    const isEmulator = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiBaseUrl = isEmulator ? 'http://127.0.0.1:6001/splitifyd/us-central1' : '';
-    (window as any).API_BASE_URL = apiBaseUrl;
-  }
 
   static setupGlobalErrorHandlers(): void {
     window.addEventListener('error', (event: ErrorEvent) => {
