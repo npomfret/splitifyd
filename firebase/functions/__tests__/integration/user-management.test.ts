@@ -7,6 +7,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../support/builders';
+import { GroupBuilder } from '../support/builders/GroupBuilder';
 
 describe('User Management Tests', () => {
   let driver: ApiDriver;
@@ -134,11 +135,13 @@ describe('User Management Tests', () => {
     });
 
     test('should require authentication for user document creation', async () => {
+      const testUserData = new UserBuilder()
+        .withDisplayName('Test User')
+        .withEmail('test@example.com')
+        .build();
+        
       await expect(
-        driver.createUserDocument({
-          displayName: 'Test User',
-          email: 'test@example.com'
-        }, null as any)
+        driver.createUserDocument(testUserData, null as any)
       ).rejects.toThrow(/401|unauthorized|missing.*token/i);
     });
 
@@ -336,15 +339,12 @@ describe('User Management Tests', () => {
   describe('User Profile Management', () => {
     test('should allow users to update their own groups', async () => {
       // Test user can update groups they created
-      const userGroup = await driver.createGroupNew({
-        name: `User Profile Group ${testUser.displayName}`,
-        members: [{ 
-          uid: testUser.uid, 
-          name: testUser.displayName, 
-          email: testUser.email, 
-          initials: testUser.displayName.split(' ').map(n => n[0]).join('') 
-        }]
-      }, testUser.token);
+      const groupData = new GroupBuilder()
+        .withName(`User Profile Group ${testUser.displayName}`)
+        .withMemberEmails([testUser.email])
+        .build();
+      
+      const userGroup = await driver.createGroupNew(groupData, testUser.token);
 
       const updatedData = {
         name: `Updated Profile Group ${testUser.displayName}`,
@@ -360,15 +360,12 @@ describe('User Management Tests', () => {
     test('should prevent users from updating other users groups', async () => {
       const otherUser = await driver.createTestUser(new UserBuilder().build());
 
-      const otherUserGroup = await driver.createGroupNew({
-        name: `Other User Group ${otherUser.displayName}`,
-        members: [{ 
-          uid: otherUser.uid, 
-          name: otherUser.displayName, 
-          email: otherUser.email, 
-          initials: otherUser.displayName.split(' ').map(n => n[0]).join('') 
-        }]
-      }, otherUser.token);
+      const otherGroupData = new GroupBuilder()
+        .withName(`Other User Group ${otherUser.displayName}`)
+        .withMemberEmails([otherUser.email])
+        .build();
+      
+      const otherUserGroup = await driver.createGroupNew(otherGroupData, otherUser.token);
 
       // testUser should not be able to update otherUser's group
       await expect(
@@ -382,16 +379,12 @@ describe('User Management Tests', () => {
   describe('Data Validation and Security', () => {
 
     test('should handle concurrent user operations safely', async () => {
-      const userGroup = await driver.createGroupNew({
-        name: `Concurrent Test Group ${testUser.displayName}`,
-        counter: 0,
-        members: [{ 
-          uid: testUser.uid, 
-          name: testUser.displayName, 
-          email: testUser.email, 
-          initials: testUser.displayName.split(' ').map(n => n[0]).join('') 
-        }]
-      }, testUser.token);
+      const concurrentGroupData = new GroupBuilder()
+        .withName(`Concurrent Test Group ${testUser.displayName}`)
+        .withMemberEmails([testUser.email])
+        .build();
+      
+      const userGroup = await driver.createGroupNew(concurrentGroupData, testUser.token);
 
       // Perform multiple concurrent updates
       const promises = Array.from({ length: 5 }, (_, i) => 
