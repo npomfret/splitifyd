@@ -241,6 +241,17 @@ class ApiService {
         return { success: true, data: data };
     }
 
+    async getExpenseHistory(expenseId: string): Promise<{ history: any[] }> {
+        if (!expenseId) {
+            throw new Error('Expense ID is required');
+        }
+
+        const data = await apiCall<{ history: any[] }>(`/expenses/history?id=${expenseId}`, {
+            method: 'GET'
+        });
+        return data;
+    }
+
 }
 
 export const apiService = new ApiService();

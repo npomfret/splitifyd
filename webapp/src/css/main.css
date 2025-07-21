@@ -2945,3 +2945,81 @@ main section {
         order: 3;
     }
 }
+
+/* Expense History Styles */
+.toggle-history-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+    float: right;
+}
+
+.toggle-history-btn:hover {
+    color: var(--primary-color);
+}
+
+.toggle-history-btn i {
+    transition: transform 0.2s;
+}
+
+.toggle-history-btn.active i {
+    transform: rotate(180deg);
+}
+
+.expense-history-container {
+    margin-top: 16px;
+}
+
+.expense-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-entry {
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.history-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.history-entry-date {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.history-entry-user {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.history-entry-changes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.history-change-badge {
+    padding: 4px 8px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.no-history {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 24px;
+}

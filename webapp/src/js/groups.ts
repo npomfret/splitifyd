@@ -120,7 +120,7 @@ export class GroupsList {
     const membersSection = createElementSafe('div', { className: 'group-card__members' });
     const membersPreview = createElementSafe('div', { className: 'members-preview' });
     
-    group.members.slice(0, 4).forEach(member => {
+    group.members.slice(0, 4).forEach((member: {name: string; initials: string}) => {
       const memberAvatar = createElementSafe('div', {
         className: 'member-avatar',
         title: member.name,

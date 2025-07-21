@@ -23,6 +23,7 @@ import {
   deleteExpense,
   listGroupExpenses,
   listUserExpenses,
+  getExpenseHistory,
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
 import { onExpenseWriteV6 } from './triggers/balanceAggregation';
@@ -281,6 +282,7 @@ app.put('/expenses', authenticate, asyncHandler(updateExpense));
 app.delete('/expenses', authenticate, asyncHandler(deleteExpense));
 app.get('/expenses/group', authenticate, asyncHandler(listGroupExpenses));
 app.get('/expenses/user', authenticate, asyncHandler(listUserExpenses));
+app.get('/expenses/history', authenticate, asyncHandler(getExpenseHistory));
 
 // Group sharing endpoints (requires auth)
 app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));

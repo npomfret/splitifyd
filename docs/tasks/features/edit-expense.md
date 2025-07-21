@@ -34,18 +34,37 @@ This feature will allow users to edit an existing expense, provided they have th
 - Added null checks and logging for robustness
 - Both edit and delete buttons now respect the same permission rules
 
-### Step 2: Add Frontend Validation (Small commit)
+### Step 2: Add Frontend Validation (Small commit) ✅ COMPLETED
 - In `add-expense.ts`, enhance validation when in edit mode:
   - Ensure split amounts still total the expense amount
   - Validate that at least one participant is selected
   - Prevent removing the payer from participants
 
-### Step 3: Add Expense History (Medium commit)
-- Create new Firestore subcollection `expenses/{id}/history`
-- Update backend `updateExpense` handler to:
+**Implementation Details:**
+- Added validation to ensure payer is included in participants
+- Prevent unchecking the payer in member selection
+- Automatically add new payer to participants when payer changes
+- Enhanced amount validation to ensure positive values
+
+### Step 3: Add Expense History (Medium commit) ✅ COMPLETED
+- Create new Firestore subcollection `expenses/{id}/history` ✅ COMPLETED
+- Update backend `updateExpense` handler to: ✅ COMPLETED
   - Store a snapshot of the previous state before updating
   - Include timestamp and userId of who made the change
-- Add UI in expense detail page to view history (collapsible section)
+- Add UI in expense detail page to view history (collapsible section) ✅ COMPLETED
+
+**Implementation Details (Backend - COMPLETED):**
+- Modified `updateExpense` handler to create history entries in a transaction
+- History entry includes: previous state, modifiedAt, modifiedBy, changeType, and list of changed fields
+- Added new `getExpenseHistory` endpoint to retrieve history
+- Registered the new endpoint in index.ts
+
+**Implementation Details (Frontend - COMPLETED):**
+- Added collapsible "Edit History" section to expense detail page
+- Created UI components to display history entries with user, date, and changed fields
+- Added toggle functionality with animated chevron icon
+- Added CSS styles for history display with proper formatting
+- Integrated with API to fetch and display expense history
 
 ### Step 4: Real-time Updates (Large commit - optional/future)
 - Implement WebSocket connection for real-time updates

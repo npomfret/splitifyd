@@ -338,9 +338,9 @@ function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanu
     
     const currentUserId = authManager.getUserId();
     const paidByYou = expense.paidBy === currentUserId;
-    const yourSplit = expense.splits ? expense.splits.find(s => s.userId === currentUserId) : null;
+    const yourSplit = expense.splits ? expense.splits.find((s: {userId: string; amount: number}) => s.userId === currentUserId) : null;
     const yourShare = yourSplit ? yourSplit.amount : 0;
-    const payer = currentGroup?.members?.find(m => m.uid === expense.paidBy) || null;
+    const payer = currentGroup?.members?.find((m: Member) => m.uid === expense.paidBy) || null;
     
     const date = new Date(expense.createdAt);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -468,7 +468,7 @@ function openGroupSettingsModal(): void {
         return;
     }
     
-    currentGroup.members.forEach(member => {
+    currentGroup.members.forEach((member: Member) => {
         const memberItem = document.createElement('div');
         memberItem.className = 'member-item';
         

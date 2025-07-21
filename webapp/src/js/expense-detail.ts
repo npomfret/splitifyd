@@ -75,6 +75,7 @@ async function loadExpenseDetails(expenseId: string): Promise<void> {
 
     displayExpenseDetails(expense);
     setupPermissions(expense, user);
+    await loadExpenseHistory(expenseId);
 }
 
 
@@ -207,10 +208,16 @@ function setupEventListeners(): void {
     const deleteBtn = document.getElementById('delete-expense-btn') as HTMLButtonElement;
     const confirmBtn = document.getElementById('confirm-delete-btn') as HTMLButtonElement;
     const backBtn = document.getElementById('backButton') as HTMLButtonElement;
+    const toggleHistoryBtn = document.getElementById('toggle-history-btn') as HTMLButtonElement;
     
     if (editBtn) editBtn.addEventListener('click', editExpense);
     if (deleteBtn) deleteBtn.addEventListener('click', showDeleteModal);
     if (confirmBtn) confirmBtn.addEventListener('click', deleteExpense);
+    
+    // Toggle history button handler
+    if (toggleHistoryBtn) {
+        toggleHistoryBtn.addEventListener('click', toggleExpenseHistory);
+    }
     
     // Back button handler
     if (backBtn) {
@@ -345,6 +352,103 @@ function showError(message: string): void {
     containerEl.style.display = 'none';
     errorEl.style.display = 'block';
     errorTextEl.textContent = message;
+}
+
+async function loadExpenseHistory(expenseId: string): Promise<void> {
+    try {
+        const response = await apiService.getExpenseHistory(expenseId);
+        displayExpenseHistory(response.history);
+    } catch (error) {
+        logger.error('Failed to load expense history', error);
+        // Don't show error to user, just show no history
+        displayExpenseHistory([]);
+    }
+}
+
+function displayExpenseHistory(history: any[]): void {
+    const historyList = document.getElementById('expense-history-list') as HTMLElement;
+    const noHistory = document.getElementById('no-history') as HTMLElement;
+    const historyLoading = document.getElementById('history-loading') as HTMLElement;
+    
+    if (historyLoading) historyLoading.style.display = 'none';
+    
+    if (!history || history.length === 0) {
+        if (noHistory) noHistory.style.display = 'block';
+        if (historyList) historyList.style.display = 'none';
+        return;
+    }
+    
+    if (noHistory) noHistory.style.display = 'none';
+    if (historyList) {
+        historyList.style.display = 'block';
+        clearElement(historyList);
+        
+        history.forEach(entry => {
+            const historyEntry = createHistoryEntry(entry);
+            historyList.appendChild(historyEntry);
+        });
+    }
+}
+
+function createHistoryEntry(entry: any): HTMLElement {
+    const entryEl = createElementSafe('div', { className: 'history-entry' });
+    
+    // Header with date and user
+    const header = createElementSafe('div', { className: 'history-entry-header' });
+    const date = createElementSafe('div', { 
+        className: 'history-entry-date',
+        textContent: formatDate(entry.modifiedAt)
+    });
+    const user = createElementSafe('div', { 
+        className: 'history-entry-user',
+        textContent: getUserDisplayName(entry.modifiedBy)
+    });
+    
+    header.appendChild(date);
+    header.appendChild(user);
+    entryEl.appendChild(header);
+    
+    // Changes list
+    if (entry.changes && entry.changes.length > 0) {
+        const changesEl = createElementSafe('div', { className: 'history-entry-changes' });
+        
+        entry.changes.forEach((change: string) => {
+            const badge = createElementSafe('div', { 
+                className: 'history-change-badge',
+                textContent: formatChangeLabel(change)
+            });
+            changesEl.appendChild(badge);
+        });
+        
+        entryEl.appendChild(changesEl);
+    }
+    
+    return entryEl;
+}
+
+function formatChangeLabel(change: string): string {
+    const labels: Record<string, string> = {
+        'amount': 'Amount',
+        'description': 'Description',
+        'date': 'Date',
+        'category': 'Category',
+        'participants': 'Participants',
+        'splits': 'Split amounts',
+        'splitType': 'Split method'
+    };
+    
+    return labels[change] || change;
+}
+
+function toggleExpenseHistory(): void {
+    const container = document.getElementById('expense-history-container') as HTMLElement;
+    const toggleBtn = document.getElementById('toggle-history-btn') as HTMLButtonElement;
+    
+    if (!container || !toggleBtn) return;
+    
+    const isVisible = container.style.display !== 'none';
+    container.style.display = isVisible ? 'none' : 'block';
+    toggleBtn.classList.toggle('active', !isVisible);
 }
 
 (window as any).closeDeleteModal = closeDeleteModal;

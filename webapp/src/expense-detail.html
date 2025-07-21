@@ -126,6 +126,22 @@
                                 <img id="receipt-image" alt="Receipt" class="receipt-image">
                             </div>
                         </div>
+
+                        <div class="detail-card">
+                            <h3>
+                                Edit History
+                                <button class="toggle-history-btn" id="toggle-history-btn">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </h3>
+                            <div class="expense-history-container" id="expense-history-container" style="display: none;">
+                                <div class="loading-text" id="history-loading">Loading history...</div>
+                                <div class="expense-history-list" id="expense-history-list"></div>
+                                <div class="no-history" id="no-history" style="display: none;">
+                                    <p>No edit history available</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="error-message" id="error-message" hidden>

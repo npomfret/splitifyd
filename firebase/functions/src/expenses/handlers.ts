@@ -287,6 +287,15 @@ export const updateExpense = async (
   }
 
   try {
+    // Create a snapshot of the current expense state for history
+    const historyEntry = {
+      ...expense,
+      modifiedAt: Timestamp.now(),
+      modifiedBy: userId,
+      changeType: 'update' as const,
+      changes: Object.keys(updateData)
+    };
+
     // If date is being updated, we need to update group metadata too
     if (updateData.date) {
       await admin.firestore().runTransaction(async (transaction) => {
@@ -296,6 +305,10 @@ export const updateExpense = async (
         if (!groupDoc.exists) {
           throw new Error(`Group ${expense.groupId} not found`);
         }
+        
+        // Add history entry
+        const historyRef = docRef.collection('history').doc();
+        transaction.set(historyRef, historyEntry);
         
         // Update the expense
         transaction.update(docRef, updates);
@@ -308,18 +321,31 @@ export const updateExpense = async (
           'data.lastExpenseTime': lastExpenseTime
         });
         
-        logger.info('Transaction: Updating expense and group lastExpenseTime', {
+        logger.info('Transaction: Updating expense with history and group lastExpenseTime', {
           expenseId,
           groupId: expense.groupId,
-          newDate: lastExpenseTime
+          newDate: lastExpenseTime,
+          historyId: historyRef.id
         });
       });
     } else {
-      // No date change, just update the expense
-      await docRef.update(updates);
+      // No date change, update expense with history in transaction
+      await admin.firestore().runTransaction(async (transaction) => {
+        // Add history entry
+        const historyRef = docRef.collection('history').doc();
+        transaction.set(historyRef, historyEntry);
+        
+        // Update the expense
+        transaction.update(docRef, updates);
+        
+        logger.info('Transaction: Updating expense with history', {
+          expenseId,
+          historyId: historyRef.id
+        });
+      });
     }
 
-    logger.info('Expense updated', {
+    logger.info('Expense updated with history', {
       expenseId,
       userId,
       updates: Object.keys(updateData)
@@ -560,5 +586,44 @@ export const listUserExpenses = async (
     count: expenses.length,
     hasMore,
     nextCursor,
+  });
+};
+
+export const getExpenseHistory = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const userId = validateUserAuth(req);
+  const expenseId = validateExpenseId(req.query.id);
+
+  // Verify user has access to this expense
+  await fetchExpense(expenseId, userId);
+
+  const historySnapshot = await getExpensesCollection()
+    .doc(expenseId)
+    .collection('history')
+    .orderBy('modifiedAt', 'desc')
+    .limit(20)
+    .get();
+
+  const history = historySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      modifiedAt: toISOString(data.modifiedAt),
+      modifiedBy: data.modifiedBy,
+      changeType: data.changeType,
+      changes: data.changes,
+      previousAmount: data.amount,
+      previousDescription: data.description,
+      previousCategory: data.category,
+      previousDate: data.date ? toISOString(data.date) : undefined,
+      previousSplits: data.splits
+    };
+  });
+
+  res.json({
+    history,
+    count: history.length
   });
 };

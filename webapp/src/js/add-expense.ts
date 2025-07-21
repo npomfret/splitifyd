@@ -451,6 +451,7 @@ function initializeEventListeners(): void {
     const cancelBtn = document.getElementById('cancelButton') as HTMLButtonElement;
     const form = document.getElementById('expenseForm') as HTMLFormElement;
     const amountInput = document.getElementById('amount') as HTMLInputElement;
+    const paidBySelect = document.getElementById('paidBy') as HTMLSelectElement;
     
     backBtn.addEventListener('click', () => {
         window.location.href = `${ROUTES.GROUP_DETAIL}?id=${currentGroupId}`;
@@ -472,17 +473,40 @@ function initializeEventListeners(): void {
         }
         updateCustomSplitInputsTimeout = setTimeout(updateCustomSplitInputs, 300);
     });
+    
+    // When payer changes, ensure they're included in the split
+    paidBySelect.addEventListener('change', () => {
+        const payerId = paidBySelect.value;
+        if (payerId && !selectedMembers.has(payerId)) {
+            selectedMembers.add(payerId);
+            const checkbox = document.querySelector<HTMLInputElement>(`#member-${payerId}`);
+            if (checkbox) {
+                checkbox.checked = true;
+                const memberItem = checkbox.closest('.member-select-item');
+                memberItem?.classList.add('selected');
+            }
+            updateCustomSplitInputs();
+        }
+    });
 }
 
 function handleMemberToggle(event: Event): void {
     const target = event.target as HTMLInputElement;
     const memberId = target.value;
     const memberItem = target.closest('.member-select-item');
+    const paidByEl = document.getElementById('paidBy') as HTMLSelectElement;
+    const currentPayer = paidByEl?.value;
     
     if (target.checked) {
         selectedMembers.add(memberId);
         memberItem?.classList.add('selected');
     } else {
+        // Prevent unchecking the payer
+        if (memberId === currentPayer) {
+            target.checked = true;
+            showFieldError('members', 'The payer must be included in the split');
+            return;
+        }
         selectedMembers.delete(memberId);
         memberItem?.classList.remove('selected');
     }
@@ -584,7 +608,7 @@ function populateFormWithExpense(expense: ExpenseData): void {
     const splitMethodEl = document.querySelector<HTMLInputElement>(`input[name="splitMethod"][value="${splitMethod}"]`);
     if (splitMethodEl) splitMethodEl.checked = true;
     
-    splits.forEach(split => {
+    splits.forEach((split: {userId: string; amount: number}) => {
         selectedMembers.add(split.userId);
     });
     
@@ -598,11 +622,11 @@ function populateFormWithExpense(expense: ExpenseData): void {
 
 function determineSplitMethod(splits: Array<{userId: string; amount: number}>): string {
     
-    const amounts = splits.map(split => split.amount);
-    const totalAmount = amounts.reduce((sum, amount) => sum + amount, 0);
+    const amounts = splits.map((split: {userId: string; amount: number}) => split.amount);
+    const totalAmount = amounts.reduce((sum: number, amount: number) => sum + amount, 0);
     const equalAmount = totalAmount / amounts.length;
     
-    const isEqual = amounts.every(amount => 
+    const isEqual = amounts.every((amount: number) => 
         Math.abs(amount - equalAmount) < 0.01
     );
     
@@ -718,8 +742,20 @@ function validateForm(description: string, amount: number, paidBy: string): bool
     isValid = validateRequired(amount, 'amount', 'Amount must be greater than 0') && isValid;
     isValid = validateRequired(paidBy, 'paidBy', 'Please select who paid') && isValid;
     
+    // Additional amount validation
+    if (amount <= 0) {
+        showFieldError('amount', 'Amount must be greater than 0');
+        isValid = false;
+    }
+    
     if (selectedMembers.size === 0) {
         showFieldError('members', 'Please select at least one member');
+        isValid = false;
+    }
+    
+    // Check if payer is included in participants
+    if (paidBy && !selectedMembers.has(paidBy)) {
+        showFieldError('members', 'The payer must be included in the split');
         isValid = false;
     }
     
