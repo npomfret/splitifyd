@@ -366,6 +366,32 @@ export class ApiDriver {
     return await this.apiRequest(`/updateDocument?id=${documentId}`, 'PUT', data, token);
   }
 
+  // New RESTful group endpoint methods
+  async createGroupNew(groupData: any, token: string): Promise<any> {
+    return await this.apiRequest('/groups', 'POST', groupData, token);
+  }
+
+  async getGroupNew(groupId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/groups/${groupId}`, 'GET', null, token);
+  }
+
+  async updateGroupNew(groupId: string, data: any, token: string): Promise<void> {
+    return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
+  }
+
+  async deleteGroupNew(groupId: string, token: string): Promise<void> {
+    return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
+  }
+
+  async listGroupsNew(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc' }): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.cursor) queryParams.append('cursor', params.cursor);
+    if (params?.order) queryParams.append('order', params.order);
+    const queryString = queryParams.toString();
+    return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
+  }
+
   async register(userData: { email: string; password: string; displayName: string }): Promise<any> {
     return await this.apiRequest('/register', 'POST', userData);
   }

@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
@@ -97,22 +98,34 @@ export const createGroup = async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  const userId = req.user?.uid;
-  if (!userId) {
-    throw Errors.UNAUTHORIZED();
-  }
-  const user = req.user!;
-  const userEmail = user.email || '';
+  try {
+    logger.info('createGroup called', { body: req.body, user: req.user });
+    
+    const userId = req.user?.uid;
+    if (!userId) {
+      throw Errors.UNAUTHORIZED();
+    }
+    const user = req.user!;
+    const userEmail = user.email || '';
 
-  // Validate request body
-  const groupData = validateCreateGroup(req.body);
-  
-  // Sanitize group data
-  const sanitizedData = sanitizeGroupData(groupData);
+    // Validate request body
+    let groupData;
+    try {
+      groupData = validateCreateGroup(req.body);
+    } catch (error) {
+      logger.error('Validation failed', { 
+        error: error instanceof Error ? error : new Error(String(error)), 
+        body: req.body 
+      });
+      throw error;
+    }
+    
+    // Sanitize group data
+    const sanitizedData = sanitizeGroupData(groupData);
 
-  // Initialize group structure
-  const now = new Date();
-  const docRef = getGroupsCollection().doc();
+    // Initialize group structure
+    const now = new Date();
+    const docRef = getGroupsCollection().doc();
   
   const newGroup: GroupDocument = {
     id: docRef.id,
@@ -138,8 +151,8 @@ export const createGroup = async (
   await docRef.set({
     userId,
     data: newGroup,
-    createdAt: admin.firestore.Timestamp.fromDate(now),
-    updatedAt: admin.firestore.Timestamp.fromDate(now),
+    createdAt: Timestamp.fromDate(now),
+    updatedAt: Timestamp.fromDate(now),
   });
 
   logger.info('Group created successfully', {
@@ -148,7 +161,16 @@ export const createGroup = async (
     name: sanitizedData.name,
   });
 
-  res.status(HTTP_STATUS.CREATED).json(transformGroupDocument(await docRef.get()));
+    res.status(HTTP_STATUS.CREATED).json(transformGroupDocument(await docRef.get()));
+  } catch (error) {
+    logger.error('Error in createGroup', { 
+      error: error instanceof Error ? error : new Error(String(error)),
+      stack: error instanceof Error ? error.stack : undefined,
+      body: req.body,
+      user: req.user
+    });
+    throw error;
+  }
 };
 
 /**
@@ -233,7 +255,7 @@ export const updateGroup = async (
     'data.name': updatedData.name,
     'data.description': updatedData.description,
     'data.updatedAt': updatedData.updatedAt.toISOString(),
-    updatedAt: admin.firestore.Timestamp.fromDate(updatedData.updatedAt),
+    updatedAt: Timestamp.fromDate(updatedData.updatedAt),
   });
 
   logger.info('Group updated successfully', {

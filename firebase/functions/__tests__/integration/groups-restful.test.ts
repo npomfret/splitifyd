@@ -1,0 +1,450 @@
+/**
+ * @jest-environment node
+ */
+
+// NOTE: This test suite runs against the live Firebase emulator.
+// You must have the emulator running for these tests to pass.
+//
+// Run the emulator with: `firebase emulators:start`
+
+import { v4 as uuidv4 } from 'uuid';
+import { ApiDriver, User } from '../support/ApiDriver';
+import { UserBuilder, GroupBuilder } from '../support/builders';
+
+describe('RESTful Group Endpoints', () => {
+  let driver: ApiDriver;
+  let users: User[] = [];
+
+  // Set a longer timeout for these integration tests
+  jest.setTimeout(10000);
+
+  beforeAll(async () => {
+    driver = new ApiDriver();
+    users = await Promise.all([
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
+      driver.createTestUser(new UserBuilder().build()),
+    ]);
+  });
+
+  describe('POST /groups - Create Group', () => {
+    test('should create a new group with minimal data', async () => {
+      const groupData = {
+        name: `Test Group ${uuidv4()}`,
+        description: 'A test group for API testing',
+        memberEmails: []
+      };
+
+      const response = await driver.createGroupNew(groupData, users[0].token);
+
+      expect(response.id).toBeDefined();
+      expect(response.name).toBe(groupData.name);
+      expect(response.description).toBe(groupData.description);
+      expect(response.createdBy).toBe(users[0].uid);
+      expect(response.members).toHaveLength(1);
+      expect(response.members[0].uid).toBe(users[0].uid);
+      expect(response.memberIds).toContain(users[0].uid);
+      expect(response.expenseCount).toBe(0);
+    });
+
+    test('should create a group with member emails', async () => {
+      const groupData = {
+        name: `Group with Members ${uuidv4()}`,
+        description: 'Group with initial members',
+        memberEmails: ['test1@example.com', 'test2@example.com']
+      };
+
+      const response = await driver.createGroupNew(groupData, users[0].token);
+
+      expect(response.memberEmails).toHaveLength(3); // creator + 2 emails
+      expect(response.memberEmails).toContain(users[0].email);
+      expect(response.memberEmails).toContain('test1@example.com');
+      expect(response.memberEmails).toContain('test2@example.com');
+    });
+
+    test('should validate required fields', async () => {
+      // Missing name
+      await expect(
+        driver.createGroupNew({ description: 'No name' }, users[0].token)
+      ).rejects.toThrow(/name.*required/i);
+
+      // Empty name
+      await expect(
+        driver.createGroupNew({ name: '   ' }, users[0].token)
+      ).rejects.toThrow(/name.*required/i);
+    });
+
+    test('should validate field lengths', async () => {
+      const longName = 'a'.repeat(101);
+      const longDescription = 'b'.repeat(501);
+
+      await expect(
+        driver.createGroupNew({ name: longName }, users[0].token)
+      ).rejects.toThrow(/less than 100 characters/i);
+
+      await expect(
+        driver.createGroupNew({ name: 'Valid Name', description: longDescription }, users[0].token)
+      ).rejects.toThrow(/less than or equal to 500 characters/i);
+    });
+
+    test('should require authentication', async () => {
+      await expect(
+        driver.createGroupNew({ name: 'Test' }, '')
+      ).rejects.toThrow(/401|unauthorized/i);
+    });
+  });
+
+  describe('GET /groups/:id - Get Group', () => {
+    let testGroup: any;
+
+    beforeEach(async () => {
+      const groupData = {
+        name: `Get Test Group ${uuidv4()}`,
+        description: 'Group for GET testing'
+      };
+      testGroup = await driver.createGroupNew(groupData, users[0].token);
+    });
+
+    test('should retrieve a group by ID', async () => {
+      const response = await driver.getGroupNew(testGroup.id, users[0].token);
+
+      expect(response.id).toBe(testGroup.id);
+      expect(response.name).toBe(testGroup.name);
+      expect(response.description).toBe(testGroup.description);
+      expect(response.members).toHaveLength(1);
+      expect(response.balance).toBeDefined();
+      expect(response.balance.userBalance).toBe(0);
+    });
+
+    test('should include balance information', async () => {
+      // Create an expense to generate balance
+      const expenseData = {
+        groupId: testGroup.id,
+        description: 'Test expense',
+        amount: 100,
+        paidBy: users[0].uid,
+        participants: [users[0].uid],
+        splitType: 'equal',
+        date: new Date().toISOString(),
+        category: 'food'
+      };
+      await driver.createExpense(expenseData, users[0].token);
+
+      // Wait for balance update
+      await driver.waitForBalanceUpdate(testGroup.id, users[0].token);
+
+      // Get group with balance
+      const response = await driver.getGroupNew(testGroup.id, users[0].token);
+      expect(response.balance).toBeDefined();
+      expect(response.balance.userBalance).toBe(0); // Paid for self only
+    });
+
+    test('should return 404 for non-existent group', async () => {
+      await expect(
+        driver.getGroupNew('non-existent-id', users[0].token)
+      ).rejects.toThrow(/404|not found/i);
+    });
+
+    test('should restrict access to non-members', async () => {
+      await expect(
+        driver.getGroupNew(testGroup.id, users[1].token)
+      ).rejects.toThrow(/404|not found/i);
+    });
+
+    test('should require authentication', async () => {
+      await expect(
+        driver.getGroupNew(testGroup.id, '')
+      ).rejects.toThrow(/401|unauthorized/i);
+    });
+  });
+
+  describe('PUT /groups/:id - Update Group', () => {
+    let testGroup: any;
+
+    beforeEach(async () => {
+      const groupData = {
+        name: `Update Test Group ${uuidv4()}`,
+        description: 'Original description'
+      };
+      testGroup = await driver.createGroupNew(groupData, users[0].token);
+    });
+
+    test('should update group name', async () => {
+      const updates = {
+        name: 'Updated Group Name'
+      };
+
+      await driver.updateGroupNew(testGroup.id, updates, users[0].token);
+
+      // Verify update
+      const updated = await driver.getGroupNew(testGroup.id, users[0].token);
+      expect(updated.name).toBe(updates.name);
+      expect(updated.description).toBe(testGroup.description); // Unchanged
+    });
+
+    test('should update group description', async () => {
+      const updates = {
+        description: 'Updated description'
+      };
+
+      await driver.updateGroupNew(testGroup.id, updates, users[0].token);
+
+      // Verify update
+      const updated = await driver.getGroupNew(testGroup.id, users[0].token);
+      expect(updated.description).toBe(updates.description);
+      expect(updated.name).toBe(testGroup.name); // Unchanged
+    });
+
+    test('should update multiple fields', async () => {
+      const updates = {
+        name: 'New Name',
+        description: 'New description'
+      };
+
+      await driver.updateGroupNew(testGroup.id, updates, users[0].token);
+
+      // Verify updates
+      const updated = await driver.getGroupNew(testGroup.id, users[0].token);
+      expect(updated.name).toBe(updates.name);
+      expect(updated.description).toBe(updates.description);
+    });
+
+    test('should validate update fields', async () => {
+      const longName = 'a'.repeat(101);
+
+      await expect(
+        driver.updateGroupNew(testGroup.id, { name: longName }, users[0].token)
+      ).rejects.toThrow(/name.*length/i);
+    });
+
+    test('should only allow owner to update', async () => {
+      // Add user[1] as member first
+      await driver.joinGroupViaShareLink(
+        (await driver.generateShareLink(testGroup.id, users[0].token)).linkId,
+        users[1].token
+      );
+
+      // Member should not be able to update
+      await expect(
+        driver.updateGroupNew(testGroup.id, { name: 'Hacked' }, users[1].token)
+      ).rejects.toThrow(/403|forbidden/i);
+    });
+
+    test('should require authentication', async () => {
+      await expect(
+        driver.updateGroupNew(testGroup.id, { name: 'Test' }, '')
+      ).rejects.toThrow(/401|unauthorized/i);
+    });
+  });
+
+  describe('DELETE /groups/:id - Delete Group', () => {
+    test('should delete a group without expenses', async () => {
+      const groupData = {
+        name: `Delete Test Group ${uuidv4()}`
+      };
+      const testGroup = await driver.createGroupNew(groupData, users[0].token);
+
+      // Delete the group
+      await driver.deleteGroupNew(testGroup.id, users[0].token);
+
+      // Verify it's deleted
+      await expect(
+        driver.getGroupNew(testGroup.id, users[0].token)
+      ).rejects.toThrow(/404|not found/i);
+    });
+
+    test('should not delete group with expenses', async () => {
+      const groupData = {
+        name: `Group with Expenses ${uuidv4()}`
+      };
+      const testGroup = await driver.createGroupNew(groupData, users[0].token);
+
+      // Add an expense
+      const expenseData = {
+        groupId: testGroup.id,
+        description: 'Test expense',
+        amount: 50,
+        paidBy: users[0].uid,
+        participants: [users[0].uid],
+        splitType: 'equal',
+        date: new Date().toISOString(),
+        category: 'food'
+      };
+      await driver.createExpense(expenseData, users[0].token);
+
+      // Try to delete - should fail
+      await expect(
+        driver.deleteGroupNew(testGroup.id, users[0].token)
+      ).rejects.toThrow(/Cannot delete.*expenses/i);
+    });
+
+    test('should only allow owner to delete', async () => {
+      const groupData = {
+        name: `Owner Only Delete ${uuidv4()}`
+      };
+      const testGroup = await driver.createGroupNew(groupData, users[0].token);
+
+      // Add user[1] as member
+      await driver.joinGroupViaShareLink(
+        (await driver.generateShareLink(testGroup.id, users[0].token)).linkId,
+        users[1].token
+      );
+
+      // Member should not be able to delete
+      await expect(
+        driver.deleteGroupNew(testGroup.id, users[1].token)
+      ).rejects.toThrow(/403|forbidden/i);
+    });
+
+    test('should require authentication', async () => {
+      const groupData = {
+        name: `Auth Test Delete ${uuidv4()}`
+      };
+      const testGroup = await driver.createGroupNew(groupData, users[0].token);
+
+      await expect(
+        driver.deleteGroupNew(testGroup.id, '')
+      ).rejects.toThrow(/401|unauthorized/i);
+    });
+  });
+
+  describe('GET /groups - List Groups', () => {
+    beforeEach(async () => {
+      // Create multiple groups for testing
+      const groupPromises = [];
+      for (let i = 0; i < 5; i++) {
+        groupPromises.push(
+          driver.createGroupNew({
+            name: `List Test Group ${i} ${uuidv4()}`,
+            description: `Group ${i}`
+          }, users[0].token)
+        );
+      }
+      await Promise.all(groupPromises);
+    });
+
+    test('should list all user groups', async () => {
+      const response = await driver.listGroupsNew(users[0].token);
+
+      expect(response.groups).toBeDefined();
+      expect(Array.isArray(response.groups)).toBe(true);
+      expect(response.groups.length).toBeGreaterThanOrEqual(5);
+      expect(response.count).toBe(response.groups.length);
+      expect(response.hasMore).toBeDefined();
+    });
+
+    test('should include group summaries with balance', async () => {
+      const response = await driver.listGroupsNew(users[0].token);
+
+      const firstGroup = response.groups[0];
+      expect(firstGroup).toHaveProperty('id');
+      expect(firstGroup).toHaveProperty('name');
+      expect(firstGroup).toHaveProperty('memberCount');
+      expect(firstGroup).toHaveProperty('balance');
+      expect(firstGroup.balance).toHaveProperty('userBalance');
+      expect(firstGroup.balance).toHaveProperty('totalOwed');
+      expect(firstGroup.balance).toHaveProperty('totalOwing');
+      expect(firstGroup).toHaveProperty('lastActivity');
+      expect(firstGroup).toHaveProperty('expenseCount');
+    });
+
+    test('should support pagination', async () => {
+      // Get first page
+      const page1 = await driver.listGroupsNew(users[0].token, { limit: 2 });
+      expect(page1.groups).toHaveLength(2);
+      expect(page1.hasMore).toBe(true);
+      expect(page1.nextCursor).toBeDefined();
+
+      // Get second page
+      const page2 = await driver.listGroupsNew(users[0].token, { 
+        limit: 2, 
+        cursor: page1.nextCursor 
+      });
+      expect(page2.groups).toHaveLength(2);
+      
+      // Ensure no duplicate IDs
+      const page1Ids = page1.groups.map((g: any) => g.id);
+      const page2Ids = page2.groups.map((g: any) => g.id);
+      const intersection = page1Ids.filter((id: string) => page2Ids.includes(id));
+      expect(intersection).toHaveLength(0);
+    });
+
+    test('should support ordering', async () => {
+      const responseDesc = await driver.listGroupsNew(users[0].token, { order: 'desc' });
+      const responseAsc = await driver.listGroupsNew(users[0].token, { order: 'asc' });
+
+      // The most recently updated should be first in desc, last in asc
+      expect(responseDesc.groups[0].id).not.toBe(responseAsc.groups[0].id);
+    });
+
+    test('should only show groups where user is member', async () => {
+      // Create a group with only user[1]
+      const otherGroup = await driver.createGroupNew({
+        name: `Other User Group ${uuidv4()}`
+      }, users[1].token);
+
+      // user[0] should not see this group
+      const response = await driver.listGroupsNew(users[0].token);
+      const groupIds = response.groups.map((g: any) => g.id);
+      expect(groupIds).not.toContain(otherGroup.id);
+    });
+
+    test('should require authentication', async () => {
+      await expect(
+        driver.listGroupsNew('')
+      ).rejects.toThrow(/401|unauthorized/i);
+    });
+  });
+
+  describe('API Compatibility', () => {
+    test('both old and new endpoints should work with same data', async () => {
+      const groupName = `Compatibility Test ${uuidv4()}`;
+      const groupBuilder = new GroupBuilder();
+      groupBuilder.withMember(users[0]);
+      const groupData = groupBuilder.build();
+      
+      // Create with old endpoint
+      const oldResponse = await driver.createDocument({
+        ...groupData,
+        description: 'Test compatibility',
+        memberEmails: []
+      }, users[0].token);
+
+      // Fetch with new endpoint
+      const newGetResponse = await driver.getGroupNew(oldResponse.id, users[0].token);
+      expect(newGetResponse.name).toBe(groupName);
+      expect(newGetResponse.description).toBe('Test compatibility');
+
+      // Create with new endpoint
+      const newResponse = await driver.createGroupNew({
+        name: `${groupName} New`,
+        description: 'New API test'
+      }, users[0].token);
+
+      // Fetch with old endpoint
+      const oldGetResponse = await driver.getDocument(newResponse.id, users[0].token);
+      expect(oldGetResponse.data.name).toBe(`${groupName} New`);
+      expect(oldGetResponse.data.description).toBe('New API test');
+    });
+
+    test('list endpoints should show same groups', async () => {
+      // Create a unique group
+      const uniqueName = `Both APIs Group ${uuidv4()}`;
+      const group = await driver.createGroupNew({
+        name: uniqueName
+      }, users[2].token);
+
+      // List with old endpoint
+      const oldList = await driver.listDocuments(users[2].token);
+      const oldGroup = oldList.documents.find((d: any) => d.id === group.id);
+      expect(oldGroup).toBeDefined();
+      expect(oldGroup!.data.name).toBe(uniqueName);
+
+      // List with new endpoint
+      const newList = await driver.listGroupsNew(users[2].token);
+      const newGroup = newList.groups.find((g: any) => g.id === group.id);
+      expect(newGroup).toBeDefined();
+      expect(newGroup.name).toBe(uniqueName);
+    });
+  });
+});

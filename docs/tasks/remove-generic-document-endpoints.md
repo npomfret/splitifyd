@@ -27,11 +27,11 @@ This document outlines the plan to replace the generic document endpoints with s
 
 ### 🚧 Remaining Work
 
-1. Update integration tests for new endpoints
-2. Add deprecation warnings to old endpoints
-3. Monitor usage in development
-4. Enable feature flag in production
-5. Remove old endpoints after grace period
+1. ✅ Update integration tests for new endpoints
+2. Debug and fix 500 errors on new endpoints
+3. Remove old endpoints once new ones are working
+4. Update all references to use new endpoints directly
+5. Remove feature flag system
 
 ## Current State
 
@@ -174,10 +174,8 @@ If issues arise:
 
 - **Week 1**: ✅ Implement backend changes with backward compatibility
 - **Week 2**: ✅ Update frontend with feature flag
-- **Week 3**: 🚧 Testing and gradual rollout
-- **Week 4**: Monitor and fix issues
-- **Week 5**: Deprecate old endpoints
-- **Week 8**: Remove old endpoints
+- **Week 3**: 🚧 Fix 500 errors and complete switchover
+- **Week 4**: Remove old endpoints and feature flags
 
 ## Implementation Status
 
