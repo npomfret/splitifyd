@@ -51,6 +51,12 @@ export interface AppConfiguration {
    * Format: http://localhost:9099 (or whatever port the auth emulator is running on)
    */
   firebaseAuthUrl?: string;
+  /**
+   * Feature flags for gradual feature rollout
+   */
+  features?: {
+    useNewGroupApi?: boolean;
+  };
 }
 
 // Group Types - Actually used by webapp

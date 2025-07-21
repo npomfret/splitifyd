@@ -18,13 +18,52 @@ import type {
     FirestoreTimestamp
 } from './types/api.js';
 import type { ExpenseListResponse } from './types/business-logic.js';
+import type { AppConfiguration } from './types/webapp-shared-types.js';
 
 class ApiService {
+    private cachedConfig: AppConfiguration | null = null;
+
+    private async getConfig(): Promise<AppConfiguration> {
+        if (!this.cachedConfig) {
+            this.cachedConfig = await firebaseConfigManager.getConfig();
+        }
+        return this.cachedConfig;
+    }
+
+    private async useNewGroupApi(): Promise<boolean> {
+        const config = await this.getConfig();
+        return config.features?.useNewGroupApi || false;
+    }
+
     async getGroups(): Promise<TransformedGroup[]> {
-        const data = await apiCall<ListDocumentsResponse>('/listDocuments', {
-            method: 'GET'
-        });
-        return this._transformGroupsData(data.documents);
+        const useNewApi = await this.useNewGroupApi();
+        
+        if (useNewApi) {
+            const response = await apiCall<any>('/groups', {
+                method: 'GET'
+            });
+            return this._transformNewGroupsData(response.groups);
+        } else {
+            const data = await apiCall<ListDocumentsResponse>('/listDocuments', {
+                method: 'GET'
+            });
+            return this._transformGroupsData(data.documents);
+        }
+    }
+
+    private _transformNewGroupsData(groups: any[]): TransformedGroup[] {
+        return groups.map(group => ({
+            id: group.id,
+            name: group.name || 'Unnamed Group',
+            memberCount: group.memberCount || 0,
+            yourBalance: group.balance?.userBalance || 0,
+            lastActivity: group.lastActivity || 'Never',
+            lastActivityRaw: group.lastActivityRaw || group.updatedAt,
+            lastExpense: group.lastExpense || null,
+            members: group.members || [],
+            expenseCount: group.expenseCount || 0,
+            lastExpenseTime: group.lastExpenseTime || null
+        }));
     }
 
     private _transformGroupsData(documents: DocumentResponse[]): TransformedGroup[] {
@@ -82,34 +121,60 @@ class ApiService {
             throw new Error('Group name is required');
         }
 
-        const groupDoc = {
-            data: {
-                name: groupData.name.trim(),
-                description: groupData.description?.trim() || '',
-                memberEmails: groupData.memberEmails || [],
-                members: [{ uid: authManager.getUserId(), name: 'You', initials: 'YO' }],
-                yourBalance: 0
-            }
-        };
+        const useNewApi = await this.useNewGroupApi();
 
-        const data = await apiCall<{ id: string }>('/createDocument', {
-            method: 'POST',
-            body: JSON.stringify(groupDoc)
-        });
-        
-        // Server only returns id, construct the full group object
-        return {
-            id: data.id,
-            name: groupData.name.trim(),
-            memberCount: 1 + (groupData.memberEmails?.length || 0),
-            yourBalance: 0,
-            lastActivity: 'Just now',
-            lastActivityRaw: new Date().toISOString(),
-            lastExpense: null,
-            members: [{ uid: authManager.getUserId() || '', name: 'You', initials: 'YO' }],
-            expenseCount: 0,
-            lastExpenseTime: null
-        };
+        if (useNewApi) {
+            const data = await apiCall<any>('/groups', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: groupData.name.trim(),
+                    description: groupData.description?.trim() || '',
+                    memberEmails: groupData.memberEmails || []
+                })
+            });
+            
+            return {
+                id: data.id,
+                name: data.name,
+                memberCount: data.members?.length || 1,
+                yourBalance: data.balance?.userBalance || 0,
+                lastActivity: 'Just now',
+                lastActivityRaw: data.createdAt,
+                lastExpense: null,
+                members: data.members || [],
+                expenseCount: 0,
+                lastExpenseTime: null
+            };
+        } else {
+            const groupDoc = {
+                data: {
+                    name: groupData.name.trim(),
+                    description: groupData.description?.trim() || '',
+                    memberEmails: groupData.memberEmails || [],
+                    members: [{ uid: authManager.getUserId(), name: 'You', initials: 'YO' }],
+                    yourBalance: 0
+                }
+            };
+
+            const data = await apiCall<{ id: string }>('/createDocument', {
+                method: 'POST',
+                body: JSON.stringify(groupDoc)
+            });
+            
+            // Server only returns id, construct the full group object
+            return {
+                id: data.id,
+                name: groupData.name.trim(),
+                memberCount: 1 + (groupData.memberEmails?.length || 0),
+                yourBalance: 0,
+                lastActivity: 'Just now',
+                lastActivityRaw: new Date().toISOString(),
+                lastExpense: null,
+                members: [{ uid: authManager.getUserId() || '', name: 'You', initials: 'YO' }],
+                expenseCount: 0,
+                lastExpenseTime: null
+            };
+        }
     }
 
 
@@ -118,10 +183,29 @@ class ApiService {
             throw new Error('Group ID is required');
         }
 
-        const data = await apiCall<GroupDocument>(`/getDocument?id=${groupId}`, {
-            method: 'GET'
-        });
-        return { data: this._transformGroupDetail(data) };
+        const useNewApi = await this.useNewGroupApi();
+
+        if (useNewApi) {
+            const data = await apiCall<any>(`/groups/${groupId}`, {
+                method: 'GET'
+            });
+            return { 
+                data: {
+                    id: data.id,
+                    name: data.name,
+                    description: data.description || '',
+                    members: data.members || [],
+                    createdBy: data.createdBy,
+                    createdAt: data.createdAt,
+                    updatedAt: data.updatedAt
+                }
+            };
+        } else {
+            const data = await apiCall<GroupDocument>(`/getDocument?id=${groupId}`, {
+                method: 'GET'
+            });
+            return { data: this._transformGroupDetail(data) };
+        }
     }
 
     private _transformGroupDetail(document: GroupDocument): GroupDetail {
@@ -169,17 +253,35 @@ class ApiService {
 
 
     async updateGroup(groupId: string, updates: Partial<GroupDetail>): Promise<any> {
-        const data = await apiCall(`/updateDocument?id=${groupId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ data: updates })
-        });
-        return data;
+        const useNewApi = await this.useNewGroupApi();
+
+        if (useNewApi) {
+            const data = await apiCall(`/groups/${groupId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updates)
+            });
+            return data;
+        } else {
+            const data = await apiCall(`/updateDocument?id=${groupId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ data: updates })
+            });
+            return data;
+        }
     }
 
     async deleteGroup(groupId: string): Promise<{ success: boolean }> {
-        await apiCall(`/deleteDocument?id=${groupId}`, {
-            method: 'DELETE'
-        });
+        const useNewApi = await this.useNewGroupApi();
+
+        if (useNewApi) {
+            await apiCall(`/groups/${groupId}`, {
+                method: 'DELETE'
+            });
+        } else {
+            await apiCall(`/deleteDocument?id=${groupId}`, {
+                method: 'DELETE'
+            });
+        }
         return { success: true };
     }
 

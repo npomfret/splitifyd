@@ -29,6 +29,13 @@ import { createUserDocument } from './users/handlers';
 import { onExpenseWriteV6 } from './triggers/balanceAggregation';
 import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
+import {
+  createGroup,
+  getGroup,
+  updateGroup,
+  deleteGroup,
+  listGroups,
+} from './groups/handlers';
 import { admin } from './firebase';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
@@ -283,6 +290,13 @@ app.delete('/expenses', authenticate, asyncHandler(deleteExpense));
 app.get('/expenses/group', authenticate, asyncHandler(listGroupExpenses));
 app.get('/expenses/user', authenticate, asyncHandler(listUserExpenses));
 app.get('/expenses/history', authenticate, asyncHandler(getExpenseHistory));
+
+// NEW Group endpoints (requires auth) - RESTful API
+app.post('/groups', authenticate, asyncHandler(createGroup));
+app.get('/groups', authenticate, asyncHandler(listGroups));
+app.get('/groups/:id', authenticate, asyncHandler(getGroup));
+app.put('/groups/:id', authenticate, asyncHandler(updateGroup));
+app.delete('/groups/:id', authenticate, asyncHandler(deleteGroup));
 
 // Group sharing endpoints (requires auth)
 app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));

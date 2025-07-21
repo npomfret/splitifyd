@@ -4,6 +4,35 @@
 
 This document outlines the plan to replace the generic document endpoints with strongly typed group endpoints. The current implementation uses untyped `data: any` fields and generic endpoint names, violating our type safety and minimalism principles.
 
+## Progress Update (2025-07-21)
+
+### ✅ Completed
+
+1. **Backend Implementation**
+   - Created new group types in `firebase/functions/src/types/group-types.ts`
+   - Implemented new group handlers in `firebase/functions/src/groups/handlers.ts`
+   - Added RESTful routes while maintaining old endpoints for compatibility
+   - Fixed all TypeScript errors and achieved clean builds
+
+2. **Frontend Updates**
+   - Updated API client to support both old and new endpoints
+   - Added feature flag `useNewGroupApi` for gradual rollout
+   - Currently enabled in development only
+
+3. **Key Improvements Delivered**
+   - Full type safety with proper TypeScript interfaces
+   - RESTful API design (`/groups` instead of `/createDocument`)
+   - Simplified response structure (no `data` wrapper)
+   - Better error messages ("Group not found" vs "Document not found")
+
+### 🚧 Remaining Work
+
+1. Update integration tests for new endpoints
+2. Add deprecation warnings to old endpoints
+3. Monitor usage in development
+4. Enable feature flag in production
+5. Remove old endpoints after grace period
+
 ## Current State
 
 ### Generic Endpoints
@@ -143,12 +172,36 @@ If issues arise:
 
 ## Timeline
 
-- **Week 1**: Implement backend changes with backward compatibility
-- **Week 2**: Update frontend with feature flag
-- **Week 3**: Testing and gradual rollout
+- **Week 1**: ✅ Implement backend changes with backward compatibility
+- **Week 2**: ✅ Update frontend with feature flag
+- **Week 3**: 🚧 Testing and gradual rollout
 - **Week 4**: Monitor and fix issues
 - **Week 5**: Deprecate old endpoints
 - **Week 8**: Remove old endpoints
+
+## Implementation Status
+
+### Files Created/Modified
+
+**New Files:**
+- `firebase/functions/src/types/group-types.ts` - All group-related TypeScript interfaces
+- `firebase/functions/src/groups/handlers.ts` - RESTful group endpoint handlers
+- `firebase/functions/src/groups/validation.ts` - Input validation for group operations
+
+**Modified Files:**
+- `firebase/functions/src/index.ts` - Added new group routes
+- `firebase/functions/src/constants.ts` - Added group-specific validation limits
+- `firebase/functions/src/config.ts` - Added feature flag configuration
+- `firebase/functions/src/types/webapp-shared-types.ts` - Added feature flag type
+- `webapp/src/js/api.ts` - Updated to support both old and new endpoints
+- `webapp/src/js/types/webapp-shared-types.ts` - Added feature flag type
+
+### Current Behavior
+
+- **Development**: Uses new `/groups` endpoints (feature flag enabled)
+- **Production**: Uses old `/createDocument` endpoints (feature flag disabled)
+- **Compatibility**: Both endpoint sets are fully functional
+- **Data**: No migration needed - same Firestore structure
 
 ## Success Criteria
 
