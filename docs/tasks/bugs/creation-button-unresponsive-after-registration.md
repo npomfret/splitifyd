@@ -28,6 +28,37 @@ Nothing happens when the button is clicked. No network requests are made, and th
 -   **Browser:** All
 -   **URL:** /dashboard.html
 
-## Possible Cause
+## Root Cause Analysis
 
-The JavaScript event listener for the button may not be attached correctly after the initial page load and redirection from the registration page.
+The issue is in `webapp/src/js/groups.ts` in the `GroupsList` class:
+
+1. When a new user has no groups, the `renderEmpty()` method (lines 52-70) is called
+2. This method creates the "Create Your First Group" button with the correct onClick handler (line 63)
+3. However, there are two bugs:
+   - The button is appended to the container BEFORE other elements (line 67 before 68)
+   - More importantly, `renderEmpty()` doesn't call `attachEventListeners()`
+
+The `attachEventListeners()` method (lines 250-261) is only called from the main `render()` method, but not from `renderEmpty()`.
+
+## Implementation Plan
+
+### Step 1: Fix the event listener attachment
+- Ensure `attachEventListeners()` is called after `renderEmpty()` renders the empty state
+
+### Step 2: Fix the DOM order
+- Append the button after the other elements for proper visual hierarchy
+
+### Step 3: Test the fix
+- Verify the button works when a new user has no groups
+- Verify existing functionality still works when user has groups
+
+### Step 4: Add defensive programming
+- Ensure the button is properly accessible and has correct attributes
+
+## Files to modify
+- `webapp/src/js/groups.ts` - Fix the renderEmpty method and event listener attachment
+
+## Testing approach
+- Manual test: Create new user, verify button works
+- Check existing functionality: Users with groups should still work
+- Browser console: Ensure no JavaScript errors
