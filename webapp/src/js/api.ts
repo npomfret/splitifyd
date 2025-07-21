@@ -9,7 +9,6 @@ import type {
     ListDocumentsResponse,
     DocumentResponse,
     GroupDocument,
-    Member,
     TransformedGroup,
     GroupDetail,
     ExpenseData,

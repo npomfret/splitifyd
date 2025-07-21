@@ -1,5 +1,5 @@
 // Business Logic Type Definitions
-import { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, TransformedGroup, Member } from './webapp-shared-types';
+import { ExpenseData } from './webapp-shared-types';
 import { User } from './global';
 
 export type { ExpenseData, ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, TransformedGroup } from './webapp-shared-types';

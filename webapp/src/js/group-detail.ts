@@ -6,7 +6,7 @@ import { showMessage } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
 import { ROUTES } from './routes.js';
 import { createButton, createLoadingSpinner, createModal } from './ui-builders.js';
-import type { GroupDetail, Member, ExpenseData, GroupBalances } from './types/api';
+import type { GroupDetail, Member, ExpenseData } from './types/api';
 import type { GroupDetailState } from './types/pages';
 
 let currentGroup: GroupDetail | null = null;

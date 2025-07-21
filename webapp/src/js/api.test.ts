@@ -3,8 +3,6 @@ import type {
     CreateGroupRequest, 
     CreateExpenseRequest, 
     UpdateExpenseRequest,
-    TransformedGroup,
-    GroupDetail,
     ExpenseData,
     GroupBalances,
     ShareableLinkResponse,

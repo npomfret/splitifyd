@@ -3,7 +3,6 @@ import { firebaseConfigManager as configManager } from './firebase-config-manage
 import type { 
     FirebaseApp, 
     FirebaseAuth, 
-    FirebaseUser,
     FirebaseError
 } from './types/global.js';
 import type { AppConfiguration } from './types/webapp-shared-types.js';

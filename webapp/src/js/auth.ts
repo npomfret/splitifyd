@@ -1,7 +1,7 @@
 import { logger } from './utils/logger.js';
 import { firebaseAuthInstance, isFirebaseInitialized, firebaseInitializer } from './firebase-init.js';
 import { firebaseConfigManager } from './firebase-config-manager.js';
-import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
+import { showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages.js';
 import { validateInput } from './utils/safe-dom.js';
 import { AUTH_TOKEN_KEY, USER_ID_KEY } from './constants.js';
 import { ROUTES } from './routes.js';

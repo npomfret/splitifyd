@@ -3,10 +3,7 @@ import type {
   ExpenseData,
   CreateExpenseRequest,
   UpdateExpenseRequest,
-  ExpenseListResponse,
-  ExpenseCategory,
-  ExpenseSplit,
-  CurrencyFormatter
+  ExpenseListResponse
 } from './types/business-logic.js';
 
 export class ExpenseService {

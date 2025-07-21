@@ -1,5 +1,5 @@
 import { authManager } from './auth';
-import type { LoginCredentials, RegistrationData } from './types/auth';
+import type { LoginCredentials } from './types/auth';
 import type { FirebaseError } from './types/global';
 
 // Mock dependencies
@@ -34,7 +34,7 @@ const mockFirebaseConfigManager = {
 // Setup mocks
 import { firebaseAuthInstance } from './firebase-init';
 import { firebaseConfigManager } from './firebase-config-manager';
-import { showFormError, showSuccessMessage, showFieldErrorWithInput, clearFieldErrorWithInput } from './utils/ui-messages';
+import { showFormError, showSuccessMessage } from './utils/ui-messages';
 import { validateInput } from './utils/safe-dom';
 
 (firebaseConfigManager as any) = mockFirebaseConfigManager;

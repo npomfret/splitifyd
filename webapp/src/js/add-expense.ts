@@ -1,11 +1,11 @@
 import { logger } from './utils/logger.js';
 import { authManager } from './auth.js';
 import { apiService } from './api.js';
-import { showMessage, showFieldError, showError } from './utils/ui-messages.js';
+import { showMessage, showFieldError } from './utils/ui-messages.js';
 import { waitForAuthManager } from './utils/auth-utils.js';
-import { clearElement, createElementSafe, appendChildren } from './utils/safe-dom.js';
+import { clearElement, createElementSafe } from './utils/safe-dom.js';
 import { ROUTES } from './routes.js';
-import { createButton, createFormField, createSelectField, createCard, createFormSection, createMemberCheckbox } from './ui-builders.js';
+import { createButton, createFormField, createSelectField, createFormSection } from './ui-builders.js';
 import type { GroupDetail, Member, ExpenseData } from './types/api';
 
 let currentGroup: GroupDetail | null = null;
