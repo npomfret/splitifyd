@@ -178,14 +178,27 @@ function displaySplitBreakdown(splits: Array<{userId: string; amount: number}>):
 }
 
 function setupPermissions(expense: ExpenseData, user: User): void {
-    // ExpenseData from business-logic doesn't have createdBy, assume paidBy is creator
-    const isCreator = expense.paidBy === user.uid;
     const editBtn = document.getElementById('edit-expense-btn') as HTMLButtonElement;
     const deleteBtn = document.getElementById('delete-expense-btn') as HTMLButtonElement;
     
-    if (isCreator) {
-        editBtn.style.display = 'block';
-        deleteBtn.style.display = 'block';
+    if (!editBtn || !deleteBtn || !currentGroup) {
+        logger.warn('Required elements not found for permission setup');
+        return;
+    }
+    
+    // Check if user can edit/delete the expense:
+    // 1. User created the expense
+    // 2. User is the group admin (created the group)
+    const isExpenseCreator = expense.createdBy === user.uid;
+    const isGroupAdmin = currentGroup.createdBy === user.uid;
+    
+    if (isExpenseCreator || isGroupAdmin) {
+        editBtn.classList.remove('hidden');
+        deleteBtn.classList.remove('hidden');
+    } else {
+        // Ensure buttons remain hidden if user doesn't have permission
+        editBtn.classList.add('hidden');
+        deleteBtn.classList.add('hidden');
     }
 }
 

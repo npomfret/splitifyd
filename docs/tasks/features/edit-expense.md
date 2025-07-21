@@ -22,11 +22,17 @@ This feature will allow users to edit an existing expense, provided they have th
 
 ## Implementation Plan
 
-### Step 1: Fix Edit Button Visibility (Small commit)
+### Step 1: Fix Edit Button Visibility (Small commit) ✅ COMPLETED
 - In `expense-detail.ts`, add logic to show edit button when:
   - Current user created the expense OR
   - Current user is the group admin
 - Remove the "hidden" class from the button when conditions are met
+
+**Implementation Details:**
+- Updated `setupPermissions` function to check `expense.createdBy` and `currentGroup.createdBy`
+- Changed from `style.display` to `classList.remove/add('hidden')` for proper CSS handling
+- Added null checks and logging for robustness
+- Both edit and delete buttons now respect the same permission rules
 
 ### Step 2: Add Frontend Validation (Small commit)
 - In `add-expense.ts`, enhance validation when in edit mode:
