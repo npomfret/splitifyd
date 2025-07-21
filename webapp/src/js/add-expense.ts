@@ -694,12 +694,11 @@ async function handleSubmit(event: Event): Promise<void> {
     
     const splits = calculateSplits(amount, splitMethod);
     
-    const expenseData = {
+    // Build base expense data (fields that can be updated)
+    const baseExpenseData = {
         description,
         amount,
         category,
-        paidBy,
-        groupId: currentGroupId!,
         splitType: splitMethod === 'equal' ? 'equal' : (splitMethod === 'exact' ? 'exact' : 'percentage') as 'equal' | 'exact' | 'percentage',
         participants: Array.from(selectedMembers),
         splits: Object.entries(splits).map(([userId, amount]) => ({
@@ -721,9 +720,16 @@ async function handleSubmit(event: Event): Promise<void> {
     submitButton.appendChild(document.createTextNode(' Saving...'));
     
     if (isEdit && editExpenseId) {
-        await apiService.updateExpense(editExpenseId, expenseData);
+        // For updates, omit immutable fields (paidBy, groupId)
+        await apiService.updateExpense(editExpenseId, baseExpenseData);
     } else {
-        await apiService.createExpense(expenseData);
+        // For creation, include all fields including immutable ones
+        const createExpenseData = {
+            ...baseExpenseData,
+            paidBy,
+            groupId: currentGroupId!
+        };
+        await apiService.createExpense(createExpenseData);
     }
     
     showMessage('Expense added successfully!', 'success');
