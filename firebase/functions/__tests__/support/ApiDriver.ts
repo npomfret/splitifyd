@@ -1,5 +1,3 @@
-// Using native fetch from Node.js 18+
-import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -226,6 +224,24 @@ export class ApiDriver {
 
   async getGroupBalances(groupId: string, token: string): Promise<any> {
     return await this.apiRequest(`/groups/balances?groupId=${groupId}`, 'GET', null, token);
+  }
+
+  async getExpenseHistory(expenseId: string, token: string): Promise<{
+    history: Array<{
+      id: string;
+      modifiedAt: string;
+      modifiedBy: string;
+      changeType: string;
+      changes: string[];
+      previousAmount?: number;
+      previousDescription?: string;
+      previousCategory?: string;
+      previousDate?: string;
+      previousParticipants?: string[];
+    }>;
+    count: number;
+  }> {
+    return await this.apiRequest(`/expenses/history?id=${expenseId}`, 'GET', null, token);
   }
 
   // Generic polling method
