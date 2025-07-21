@@ -3,6 +3,7 @@
 .idea/shelf
 
 # Claude stuff
+.claude/commands/hello.md
 .claude/commands/analyse.md
 .claude/commands/changes.md
 .claude/commands/next-task.md
