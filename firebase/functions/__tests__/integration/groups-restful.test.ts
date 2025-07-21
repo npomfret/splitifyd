@@ -29,11 +29,10 @@ describe('RESTful Group Endpoints', () => {
 
   describe('POST /groups - Create Group', () => {
     test('should create a new group with minimal data', async () => {
-      const groupData = {
-        name: `Test Group ${uuidv4()}`,
-        description: 'A test group for API testing',
-        memberEmails: []
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Test Group ${uuidv4()}`)
+        .withDescription('A test group for API testing')
+        .build();
 
       const response = await driver.createGroupNew(groupData, users[0].token);
 
@@ -48,11 +47,10 @@ describe('RESTful Group Endpoints', () => {
     });
 
     test('should create a group with member emails', async () => {
-      const groupData = {
-        name: `Group with Members ${uuidv4()}`,
-        description: 'Group with initial members',
-        memberEmails: ['test1@example.com', 'test2@example.com']
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Group with Members ${uuidv4()}`)
+        .withMemberEmails(['test1@example.com', 'test2@example.com'])
+        .build();
 
       const response = await driver.createGroupNew(groupData, users[0].token);
 
@@ -98,10 +96,9 @@ describe('RESTful Group Endpoints', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-      const groupData = {
-        name: `Get Test Group ${uuidv4()}`,
-        description: 'Group for GET testing'
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Get Test Group ${uuidv4()}`)
+        .build();
       testGroup = await driver.createGroupNew(groupData, users[0].token);
     });
 
@@ -130,13 +127,16 @@ describe('RESTful Group Endpoints', () => {
       };
       await driver.createExpense(expenseData, users[0].token);
 
-      // Wait for balance update
-      await driver.waitForBalanceUpdate(testGroup.id, users[0].token);
+      // Poll until the balance is updated
+      const groupWithBalance = await driver.pollGroupUntilBalanceUpdated(
+        testGroup.id,
+        users[0].token,
+        (group) => group.balance && group.balance.userBalance !== undefined,
+        { timeout: 5000 }
+      );
 
-      // Get group with balance
-      const response = await driver.getGroupNew(testGroup.id, users[0].token);
-      expect(response.balance).toBeDefined();
-      expect(response.balance.userBalance).toBe(0); // Paid for self only
+      expect(groupWithBalance.balance).toBeDefined();
+      expect(groupWithBalance.balance.userBalance).toBe(0); // Paid for self only
     });
 
     test('should return 404 for non-existent group', async () => {
@@ -162,10 +162,10 @@ describe('RESTful Group Endpoints', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-      const groupData = {
-        name: `Update Test Group ${uuidv4()}`,
-        description: 'Original description'
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Update Test Group ${uuidv4()}`)
+        .withDescription('Original description')
+        .build();
       testGroup = await driver.createGroupNew(groupData, users[0].token);
     });
 
@@ -239,9 +239,9 @@ describe('RESTful Group Endpoints', () => {
 
   describe('DELETE /groups/:id - Delete Group', () => {
     test('should delete a group without expenses', async () => {
-      const groupData = {
-        name: `Delete Test Group ${uuidv4()}`
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Delete Test Group ${uuidv4()}`)
+        .build();
       const testGroup = await driver.createGroupNew(groupData, users[0].token);
 
       // Delete the group
@@ -254,9 +254,9 @@ describe('RESTful Group Endpoints', () => {
     });
 
     test('should not delete group with expenses', async () => {
-      const groupData = {
-        name: `Group with Expenses ${uuidv4()}`
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Group with Expenses ${uuidv4()}`)
+        .build();
       const testGroup = await driver.createGroupNew(groupData, users[0].token);
 
       // Add an expense
@@ -279,9 +279,9 @@ describe('RESTful Group Endpoints', () => {
     });
 
     test('should only allow owner to delete', async () => {
-      const groupData = {
-        name: `Owner Only Delete ${uuidv4()}`
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Owner Only Delete ${uuidv4()}`)
+        .build();
       const testGroup = await driver.createGroupNew(groupData, users[0].token);
 
       // Add user[1] as member
@@ -297,9 +297,9 @@ describe('RESTful Group Endpoints', () => {
     });
 
     test('should require authentication', async () => {
-      const groupData = {
-        name: `Auth Test Delete ${uuidv4()}`
-      };
+      const groupData = new GroupBuilder()
+        .withName(`Auth Test Delete ${uuidv4()}`)
+        .build();
       const testGroup = await driver.createGroupNew(groupData, users[0].token);
 
       await expect(
@@ -314,10 +314,9 @@ describe('RESTful Group Endpoints', () => {
       const groupPromises = [];
       for (let i = 0; i < 5; i++) {
         groupPromises.push(
-          driver.createGroupNew({
-            name: `List Test Group ${i} ${uuidv4()}`,
-            description: `Group ${i}`
-          }, users[0].token)
+          driver.createGroupNew(new GroupBuilder()
+            .withName(`List Test Group ${i} ${uuidv4()}`)
+            .build(), users[0].token)
         );
       }
       await Promise.all(groupPromises);
@@ -379,9 +378,9 @@ describe('RESTful Group Endpoints', () => {
 
     test('should only show groups where user is member', async () => {
       // Create a group with only user[1]
-      const otherGroup = await driver.createGroupNew({
-        name: `Other User Group ${uuidv4()}`
-      }, users[1].token);
+      const otherGroup = await driver.createGroupNew(new GroupBuilder()
+        .withName(`Other User Group ${uuidv4()}`)
+        .build(), users[1].token);
 
       // user[0] should not see this group
       const response = await driver.listGroupsNew(users[0].token);
@@ -399,13 +398,10 @@ describe('RESTful Group Endpoints', () => {
   describe('API Compatibility', () => {
     test('both old and new endpoints should work with same data', async () => {
       const groupName = `Compatibility Test ${uuidv4()}`;
-      const groupBuilder = new GroupBuilder();
-      groupBuilder.withMember(users[0]);
-      const groupData = groupBuilder.build();
       
       // Create with old endpoint
       const oldResponse = await driver.createDocument({
-        ...groupData,
+        name: groupName,
         description: 'Test compatibility',
         memberEmails: []
       }, users[0].token);
@@ -416,10 +412,10 @@ describe('RESTful Group Endpoints', () => {
       expect(newGetResponse.description).toBe('Test compatibility');
 
       // Create with new endpoint
-      const newResponse = await driver.createGroupNew({
-        name: `${groupName} New`,
-        description: 'New API test'
-      }, users[0].token);
+      const newResponse = await driver.createGroupNew(new GroupBuilder()
+        .withName(`${groupName} New`)
+        .withDescription('New API test')
+        .build(), users[0].token);
 
       // Fetch with old endpoint
       const oldGetResponse = await driver.getDocument(newResponse.id, users[0].token);
@@ -430,9 +426,9 @@ describe('RESTful Group Endpoints', () => {
     test('list endpoints should show same groups', async () => {
       // Create a unique group
       const uniqueName = `Both APIs Group ${uuidv4()}`;
-      const group = await driver.createGroupNew({
-        name: uniqueName
-      }, users[2].token);
+      const group = await driver.createGroupNew(new GroupBuilder()
+        .withName(uniqueName)
+        .build(), users[2].token);
 
       // List with old endpoint
       const oldList = await driver.listDocuments(users[2].token);

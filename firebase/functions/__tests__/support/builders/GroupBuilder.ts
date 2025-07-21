@@ -3,7 +3,9 @@ import { User } from '../ApiDriver';
 
 export interface TestGroup {
   name: string;
-  members: Array<{
+  description?: string;
+  memberEmails?: string[];
+  members?: Array<{
     uid: string;
     email: string;
     name: string;
@@ -16,12 +18,29 @@ export class GroupBuilder {
 
   constructor() {
     this.group = {
-      name: `Test Group ${uuidv4().slice(0, 8)}`,
-      members: []
+      name: `Test Group ${uuidv4().slice(0, 8)}`
     };
   }
 
+  withName(name: string): this {
+    this.group.name = name;
+    return this;
+  }
+
+  withDescription(description: string): this {
+    this.group.description = description;
+    return this;
+  }
+
+  withMemberEmails(emails: string[]): this {
+    this.group.memberEmails = emails;
+    return this;
+  }
+
   withMembers(users: User[]): this {
+    if (!this.group.members) {
+      this.group.members = [];
+    }
     this.group.members = users.map(user => ({
       uid: user.uid,
       email: user.email,
@@ -32,6 +51,9 @@ export class GroupBuilder {
   }
 
   withMember(user: User): this {
+    if (!this.group.members) {
+      this.group.members = [];
+    }
     const member = {
       uid: user.uid,
       email: user.email,
@@ -49,9 +71,22 @@ export class GroupBuilder {
   }
 
   build(): TestGroup {
-    return {
-      name: this.group.name,
-      members: [...this.group.members]
+    const result: TestGroup = {
+      name: this.group.name
     };
+    
+    if (this.group.description !== undefined) {
+      result.description = this.group.description;
+    }
+    
+    if (this.group.memberEmails !== undefined) {
+      result.memberEmails = this.group.memberEmails;
+    }
+    
+    if (this.group.members !== undefined) {
+      result.members = [...this.group.members];
+    }
+    
+    return result;
   }
 }

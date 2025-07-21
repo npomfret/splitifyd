@@ -321,6 +321,19 @@ export class ApiDriver {
     );
   }
 
+  async pollGroupUntilBalanceUpdated(
+    groupId: string,
+    token: string,
+    matcher: Matcher<any>,
+    options?: PollOptions
+  ): Promise<any> {
+    return this.pollUntil(
+      () => this.getGroupNew(groupId, token),
+      matcher,
+      { errorMsg: `Group ${groupId} balance condition not met`, ...options }
+    );
+  }
+
 
   async generateShareLink(groupId: string, token: string): Promise<{ shareableUrl: string; linkId: string }> {
     return await this.apiRequest('/groups/share', 'POST', { groupId }, token);

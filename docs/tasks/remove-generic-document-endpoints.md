@@ -28,7 +28,7 @@ This document outlines the plan to replace the generic document endpoints with s
 ### 🚧 Remaining Work
 
 1. ✅ Update integration tests for new endpoints
-2. Debug and fix 500 errors on new endpoints
+2. ✅ Debug and fix 500 errors on new endpoints (fixed undefined Firestore values)
 3. Remove old endpoints once new ones are working
 4. Update all references to use new endpoints directly
 5. Remove feature flag system

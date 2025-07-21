@@ -99,8 +99,6 @@ export const createGroup = async (
   res: Response
 ): Promise<void> => {
   try {
-    logger.info('createGroup called', { body: req.body, user: req.user });
-    
     const userId = req.user?.uid;
     if (!userId) {
       throw Errors.UNAUTHORIZED();
@@ -127,7 +125,7 @@ export const createGroup = async (
     const now = new Date();
     const docRef = getGroupsCollection().doc();
   
-  const newGroup: GroupDocument = {
+  const newGroup: Omit<GroupDocument, 'lastExpenseTime' | 'lastExpense'> = {
     id: docRef.id,
     name: sanitizedData.name,
     description: sanitizedData.description || '',
@@ -141,8 +139,6 @@ export const createGroup = async (
       email: userEmail,
     }],
     expenseCount: 0,
-    lastExpenseTime: undefined,
-    lastExpense: undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -164,10 +160,7 @@ export const createGroup = async (
     res.status(HTTP_STATUS.CREATED).json(transformGroupDocument(await docRef.get()));
   } catch (error) {
     logger.error('Error in createGroup', { 
-      error: error instanceof Error ? error : new Error(String(error)),
-      stack: error instanceof Error ? error.stack : undefined,
-      body: req.body,
-      user: req.user
+      error: error instanceof Error ? error : new Error(String(error))
     });
     throw error;
   }
