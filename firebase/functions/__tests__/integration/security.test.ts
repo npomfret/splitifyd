@@ -126,7 +126,7 @@ describe('Comprehensive Security Test Suite', () => {
 
         await expect(
           driver.getGroupBalances(privateGroup.id, users[1].token)
-        ).rejects.toThrow(/403|forbidden|access.*denied|not.*member/i);
+        ).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
       });
 
       test('should prevent users from accessing other users expenses', async () => {

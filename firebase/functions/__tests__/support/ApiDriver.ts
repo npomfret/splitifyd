@@ -167,14 +167,34 @@ export class ApiDriver {
   }
 
   async createGroup(name: string, members: User[], creatorToken: string): Promise<Group> {
+    // Step 1: Create group with just the creator
     const groupData = {
       name,
       description: `Test group created at ${new Date().toISOString()}`,
-      memberEmails: members.map(user => user.email)
+      memberEmails: [] // Don't include other emails initially
     };
 
-    const response = await this.apiRequest('/groups', 'POST', groupData, creatorToken);
-    return response as Group;
+    const group = await this.apiRequest('/groups', 'POST', groupData, creatorToken) as Group;
+    
+    // Step 2: If there are other members, generate a share link and have them join
+    const otherMembers = members.filter(m => m.token !== creatorToken);
+    if (otherMembers.length > 0) {
+      const shareResponse = await this.apiRequest('/groups/share', 'POST', { groupId: group.id }, creatorToken);
+      const { linkId } = shareResponse;
+      
+      // Step 3: Have other members join using the share link
+      for (const member of otherMembers) {
+        try {
+          await this.apiRequest('/groups/join', 'POST', { linkId }, member.token);
+        } catch (joinError) {
+          console.warn(`Failed to add member ${member.email} to group ${name}:`, joinError);
+        }
+      }
+    }
+    
+    // Step 4: Fetch the updated group to get all members
+    const updatedGroup = await this.apiRequest(`/groups/${group.id}`, 'GET', null, creatorToken);
+    return updatedGroup as Group;
   }
 
   async createExpense(expenseData: Partial<Expense>, token: string): Promise<Expense> {

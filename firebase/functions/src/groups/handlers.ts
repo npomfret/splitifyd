@@ -185,7 +185,7 @@ export const getGroup = async (
   let userBalance = 0;
   try {
     const balanceDoc = await admin.firestore()
-      .collection('groupBalances')
+      .collection('group-balances')
       .doc(groupId)
       .get();
     
@@ -348,7 +348,7 @@ export const listGroups = async (
       let userBalance = 0;
       try {
         const balanceDoc = await admin.firestore()
-          .collection('groupBalances')
+          .collection('group-balances')
           .doc(group.id)
           .get();
         

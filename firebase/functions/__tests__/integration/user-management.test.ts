@@ -311,7 +311,6 @@ describe('User Management Tests', () => {
           const response = await driver.apiRequest(`/expenses/user?${param}`, 'GET', null, testUser.token);
           // API currently allows invalid parameters and returns data anyway
           // TODO: Strengthen validation to reject invalid parameters
-          console.warn(`Query parameter validation is permissive: ${param} was accepted`);
           expect(response).toHaveProperty('expenses');
         } catch (error) {
           // API might return 400 for validation errors or 500 for internal errors
@@ -389,8 +388,7 @@ describe('User Management Tests', () => {
       // Perform multiple concurrent updates
       const promises = Array.from({ length: 5 }, (_, i) => 
         driver.updateGroupNew(userGroup.id, {
-          name: `Concurrent Update ${i + 1}`,
-          timestamp: new Date().toISOString()
+          name: `Concurrent Update ${i + 1}`
         }, testUser.token)
       );
 

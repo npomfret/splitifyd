@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../support/builders';
+import { GroupBuilder } from '../support/builders/GroupBuilder';
 
 describe('Enhanced Data Validation Tests', () => {
   let driver: ApiDriver;
@@ -308,61 +309,40 @@ describe('Enhanced Data Validation Tests', () => {
       ).rejects.toThrow(/dangerous.*content|INVALID_INPUT/i);
     });
 
-    test('should accept group names with very long length (current API behavior)', async () => {
-      const longGroupName = 'A'.repeat(201); // Testing 201 chars
+    test('should reject group names that exceed maximum length', async () => {
+      const longGroupName = 'A'.repeat(101); // Testing 101 chars (API limit is 100)
 
-      const groupData = {
-        name: longGroupName,
-        members: users.map(u => ({ 
-          uid: u.uid, 
-          name: u.displayName, 
-          email: u.email, 
-          initials: u.displayName.split(' ').map(n => n[0]).join('') 
-        }))
-      };
+      const groupData = new GroupBuilder()
+        .withName(longGroupName)
+        .build();
 
-      // NOTE: API currently accepts very long group names - this might be a validation gap
-      const response = await driver.createGroupNew(groupData, users[0].token);
-      expect(response.id).toBeDefined();
-
-      const createdGroup = await driver.getGroupNew(response.id, users[0].token);
-      expect(createdGroup.name).toBe(longGroupName);
-      expect(createdGroup.name.length).toBe(201);
+      // API enforces a 100 character limit on group names
+      await expect(
+        driver.createGroupNew(groupData, users[0].token)
+      ).rejects.toThrow(/name.*less than 100|TOO_LONG|length.*exceeded/i);
     });
 
-    test('should accept group names within length limits', async () => {
-      const validGroupName = 'A'.repeat(100); // Well within typical limits
+    test('should accept group names at the maximum length limit', async () => {
+      const validGroupName = 'A'.repeat(99); // At the limit (100 chars max)
 
-      const groupData = {
-        name: validGroupName,
-        members: users.map(u => ({ 
-          uid: u.uid, 
-          name: u.displayName, 
-          email: u.email, 
-          initials: u.displayName.split(' ').map(n => n[0]).join('') 
-        }))
-      };
+      const groupData = new GroupBuilder()
+        .withName(validGroupName)
+        .build();
 
       const response = await driver.createGroupNew(groupData, users[0].token);
       expect(response.id).toBeDefined();
 
       const createdGroup = await driver.getGroupNew(response.id, users[0].token);
       expect(createdGroup.name).toBe(validGroupName);
-      expect(createdGroup.name.length).toBe(100);
+      expect(createdGroup.name.length).toBe(99);
     });
 
     test('should reject Unicode characters in group names (security feature)', async () => {
       const unicodeGroupName = '🏠 Family Group - Français 中文 العربية';
 
-      const groupData = {
-        name: unicodeGroupName,
-        members: users.map(u => ({ 
-          uid: u.uid, 
-          name: u.displayName, 
-          email: u.email, 
-          initials: u.displayName.split(' ').map(n => n[0]).join('') 
-        }))
-      };
+      const groupData = new GroupBuilder()
+        .withName(unicodeGroupName)
+        .build();
 
       // NOTE: API currently rejects Unicode as "potentially dangerous content"
       await expect(

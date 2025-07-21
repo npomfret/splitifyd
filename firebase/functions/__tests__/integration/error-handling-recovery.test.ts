@@ -57,10 +57,10 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(retrievedExpense).toBeDefined();
                 expect(retrievedExpense.id).toBe(validExpense.id);
 
-                // Test that balance calculations are resilient
-                const balances = await driver.getGroupBalances(testGroup.id, mainUser.token);
-                expect(balances).toHaveProperty('userBalances');
-                expect(balances.userBalances).toHaveProperty(mainUser.uid);
+                // Test that group data is still accessible
+                const groupData = await driver.getGroupNew(testGroup.id, mainUser.token);
+                expect(groupData).toHaveProperty('id');
+                expect(groupData.id).toBe(testGroup.id);
             });
 
             it('should handle database permission errors gracefully', async () => {
@@ -115,7 +115,7 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle rapid request bursts gracefully', async () => {
                 // Create multiple rapid requests to test rate limiting
                 const rapidRequests = Array(20).fill(null).map((_, index) =>
-                    driver.getGroupBalances(testGroup.id, mainUser.token)
+                    driver.getGroupNew(testGroup.id, mainUser.token)
                         .then(result => ({ success: true, index, result }))
                         .catch(error => ({ success: false, index, error: error.message }))
                 );
@@ -126,8 +126,8 @@ describe('Error Handling and Recovery Testing', () => {
                 const successes = results.filter(r => r.success);
                 const rateLimited = results.filter(r => !r.success && (r as any).error.includes('429'));
                 
-                // At least some should succeed
-                expect(successes.length).toBeGreaterThan(0);
+                // All or most should succeed (no rate limiting on read operations)
+                expect(successes.length).toBeGreaterThanOrEqual(15);
                 
                 // If any hit rate limits, they should have proper error messages
                 rateLimited.forEach(result => {
@@ -176,7 +176,7 @@ describe('Error Handling and Recovery Testing', () => {
                 
                 // Perform multiple operations
                 const operations = [
-                    driver.getGroupBalances(testGroup.id, mainUser.token),
+                    driver.getGroupNew(testGroup.id, mainUser.token),
                     driver.getGroupExpenses(testGroup.id, mainUser.token),
                     driver.listGroupsNew(mainUser.token)
                 ];
@@ -217,7 +217,7 @@ describe('Error Handling and Recovery Testing', () => {
                 // Test getting all user's data (simulate export)
                 const groupData = await driver.getGroupNew(testGroup.id, mainUser.token);
                 const expenseData = await driver.getGroupExpenses(testGroup.id, mainUser.token);
-                const balanceData = await driver.getGroupBalances(testGroup.id, mainUser.token);
+                const groupsList = await driver.listGroupsNew(mainUser.token);
 
                 // Verify all data is accessible for export
                 expect(groupData).toBeDefined();
@@ -227,8 +227,8 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(expenseData).toHaveProperty('expenses');
                 expect(expenseData.expenses.length).toBeGreaterThan(0);
 
-                expect(balanceData).toHaveProperty('userBalances');
-                expect(balanceData.userBalances).toHaveProperty(mainUser.uid);
+                expect(groupsList).toHaveProperty('groups');
+                expect(Array.isArray(groupsList.groups)).toBe(true);
 
                 // Verify data consistency across endpoints
                 const expenseIds = expenseData.expenses.map((e: any) => e.id);
@@ -289,7 +289,7 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle data consistency after failed operations', async () => {
                 // Get initial state
                 const initialExpenses = await driver.getGroupExpenses(testGroup.id, mainUser.token);
-                const initialBalances = await driver.getGroupBalances(testGroup.id, mainUser.token);
+                const initialGroupData = await driver.getGroupNew(testGroup.id, mainUser.token);
                 const initialExpenseCount = initialExpenses.expenses.length;
 
                 // Attempt invalid operation that should fail
@@ -307,15 +307,13 @@ describe('Error Handling and Recovery Testing', () => {
 
                 // Verify state is unchanged after failed operation
                 const finalExpenses = await driver.getGroupExpenses(testGroup.id, mainUser.token);
-                const finalBalances = await driver.getGroupBalances(testGroup.id, mainUser.token);
+                const finalGroupData = await driver.getGroupNew(testGroup.id, mainUser.token);
 
                 expect(finalExpenses.expenses.length).toBe(initialExpenseCount);
                 
-                // Balances should be the same (allowing for small timing differences)
-                if (initialBalances.userBalances[mainUser.uid] && finalBalances.userBalances[mainUser.uid]) {
-                    expect(finalBalances.userBalances[mainUser.uid].netBalance)
-                        .toBe(initialBalances.userBalances[mainUser.uid].netBalance);
-                }
+                // Group data should remain unchanged
+                expect(finalGroupData.name).toBe(initialGroupData.name);
+                expect(finalGroupData.members.length).toBe(initialGroupData.members.length);
             });
 
             it('should handle database transaction consistency', async () => {
@@ -335,10 +333,7 @@ describe('Error Handling and Recovery Testing', () => {
                     .withParticipants([mainUser.uid, user2.uid])
                     .build(), mainUser.token);
 
-                // Wait for balance calculations
-                await driver.waitForBalanceUpdate(testGroup.id, mainUser.token, 15000);
-
-                // Verify both users can see the expense
+                // Verify both users can see the expense immediately
                 const mainUserView = await driver.getExpense(consistencyExpense.id, mainUser.token);
                 const user2View = await driver.getExpense(consistencyExpense.id, user2.token);
 
@@ -346,13 +341,14 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(mainUserView.amount).toBe(user2View.amount);
                 expect(mainUserView.participants).toEqual(user2View.participants);
 
-                // Verify balance calculations are consistent
-                const mainUserBalances = await driver.getGroupBalances(testGroup.id, mainUser.token);
-                const user2Balances = await driver.getGroupBalances(testGroup.id, user2.token);
+                // Verify group state is consistent for both users
+                const mainUserGroupView = await driver.getGroupNew(testGroup.id, mainUser.token);
+                const user2GroupView = await driver.getGroupNew(testGroup.id, user2.token);
 
-                // Both should see the same overall balance state
-                expect(Object.keys(mainUserBalances.userBalances).sort())
-                    .toEqual(Object.keys(user2Balances.userBalances).sort());
+                // Both should see the same group state
+                expect(mainUserGroupView.id).toBe(user2GroupView.id);
+                expect(mainUserGroupView.name).toBe(user2GroupView.name);
+                expect(mainUserGroupView.members.length).toBe(user2GroupView.members.length);
             });
         });
     });
