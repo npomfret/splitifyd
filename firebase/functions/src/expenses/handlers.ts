@@ -14,7 +14,7 @@ import {
   calculateSplits,
   Expense
 } from './validation';
-import { GroupData, GroupMember } from '../documents/validation';
+import { GroupData, GroupMember } from '../types/group-types';
 
 const getExpensesCollection = () => {
   return admin.firestore().collection('expenses');

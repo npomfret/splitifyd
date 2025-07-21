@@ -210,10 +210,7 @@ function buildAppConfiguration(): AppConfiguration {
     api,
     environment,
     formDefaults: config.formDefaults,
-    firebaseAuthUrl: getFirebaseAuthUrl(config, env),
-    features: {
-      useNewGroupApi: config.isDevelopment // Enable in development first
-    }
+    firebaseAuthUrl: getFirebaseAuthUrl(config, env)
   };
   
   return appConfig;

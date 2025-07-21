@@ -8,8 +8,6 @@ export type {
   CreateExpenseRequest,
   UpdateExpenseRequest,
   CreateGroupRequest,
-  ListDocumentsResponse,
-  DocumentResponse,
   ShareableLinkResponse,
   JoinGroupResponse,
   FirestoreTimestamp

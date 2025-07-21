@@ -47,15 +47,15 @@ describe('Comprehensive API Test Suite', () => {
           .withMembers(users)
           .build();
 
-        const response = await driver.createDocument(groupData, users[0].token);
+        const response = await driver.createGroupNew(groupData, users[0].token);
 
         expect(response.id).toBeDefined();
-        const createdGroup = { id: response.id, ...groupData };
+        const createdGroup = response;
 
         // Verify the group was created
-        const fetchedGroup = await driver.getDocument(createdGroup.id, users[0].token);
-        expect(fetchedGroup.data.name).toBe(groupData.name);
-        expect(fetchedGroup.data.members.length).toBe(2);
+        const fetchedGroup = await driver.getGroupNew(createdGroup.id, users[0].token);
+        expect(fetchedGroup.name).toBe(groupData.name);
+        expect(fetchedGroup.members.length).toBe(2);
       });
 
     });
@@ -95,7 +95,7 @@ describe('Comprehensive API Test Suite', () => {
           .build();
         nonAdminGroupData.createdBy = users[0].uid;
         
-        const nonAdminGroup = await driver.createDocument(nonAdminGroupData, users[0].token);
+        const nonAdminGroup = await driver.createGroupNew(nonAdminGroupData, users[0].token);
         
         // User[1] should not be able to generate a share link
         await expect(
@@ -109,7 +109,7 @@ describe('Comprehensive API Test Suite', () => {
           .withMember(users[0])
           .build();
         
-        const shareableGroup = await driver.createDocument(shareableGroupData, users[0].token);
+        const shareableGroup = await driver.createGroupNew(shareableGroupData, users[0].token);
         
         // Generate share link
         const shareResponse = await driver.generateShareLink(shareableGroup.id, users[0].token);
@@ -126,8 +126,8 @@ describe('Comprehensive API Test Suite', () => {
         expect(joinResponse).toHaveProperty('groupName');
         
         // Verify the user was added to the group
-        const updatedGroup = await driver.getDocument(shareableGroup.id, newUser.token);
-        const memberUids = updatedGroup.data.members.map((m: any) => m.uid);
+        const updatedGroup = await driver.getGroupNew(shareableGroup.id, newUser.token);
+        const memberUids = updatedGroup.members.map((m: any) => m.uid);
         expect(memberUids).toContain(newUser.uid);
       });
 
@@ -137,7 +137,7 @@ describe('Comprehensive API Test Suite', () => {
           .withMember(users[0])
           .build();
         
-        const dupTestGroup = await driver.createDocument(dupTestGroupData, users[0].token);
+        const dupTestGroup = await driver.createGroupNew(dupTestGroupData, users[0].token);
         const shareResponse = await driver.generateShareLink(dupTestGroup.id, users[0].token);
         
         // Add user[1] to the group via share link
@@ -164,7 +164,7 @@ describe('Comprehensive API Test Suite', () => {
           .withMember(users[0])
           .build();
         
-        const multiJoinGroup = await driver.createDocument(multiJoinGroupData, users[0].token);
+        const multiJoinGroup = await driver.createGroupNew(multiJoinGroupData, users[0].token);
         
         // Generate a share link
         const shareResponse = await driver.generateShareLink(multiJoinGroup.id, users[0].token);
@@ -186,8 +186,8 @@ describe('Comprehensive API Test Suite', () => {
         }
         
         // Verify all users were added to the group
-        const updatedGroup = await driver.getDocument(multiJoinGroup.id, users[0].token);
-        const memberUids = updatedGroup.data.members.map((m: any) => m.uid);
+        const updatedGroup = await driver.getGroupNew(multiJoinGroup.id, users[0].token);
+        const memberUids = updatedGroup.members.map((m: any) => m.uid);
         
         // Should have original member + 3 new members = 4 total
         expect(memberUids.length).toBe(4);
@@ -463,7 +463,7 @@ describe('Comprehensive API Test Suite', () => {
       expect(user1Balance.owes[users[0].uid]).toBe(50);
     });
 
-    test('should include balance data in listDocuments response', async () => {
+    test('should include balance data in listGroups response', async () => {
       // Add an expense: User 0 pays 100, split equally between 2 users
       const expenseData = new ExpenseBuilder()
         .withGroupId(balanceTestGroup.id)
@@ -476,34 +476,34 @@ describe('Comprehensive API Test Suite', () => {
       // Wait for balance calculations to complete
       await driver.waitForBalanceUpdate(balanceTestGroup.id, users[0].token);
       
-      // Test the listDocuments endpoint (which dashboard uses)
-      const listResponse = await driver.listDocuments(users[0].token);
+      // Test the listGroups endpoint (which dashboard uses)
+      const listResponse = await driver.listGroupsNew(users[0].token);
       
-      expect(listResponse).toHaveProperty('documents');
-      expect(Array.isArray(listResponse.documents)).toBe(true);
+      expect(listResponse).toHaveProperty('groups');
+      expect(Array.isArray(listResponse.groups)).toBe(true);
       
       // Find our test group in the list
-      const testGroupInList = listResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
+      const testGroupInList = listResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       expect(testGroupInList).toBeDefined();
       
       // Verify balance data is included
-      expect(testGroupInList!.data).toHaveProperty('yourBalance');
-      expect(typeof testGroupInList!.data.yourBalance).toBe('number');
+      expect(testGroupInList!.balance).toHaveProperty('userBalance');
+      expect(typeof testGroupInList!.balance.userBalance).toBe('number');
       
       // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
-      expect(testGroupInList!.data.yourBalance).toBe(50);
+      expect(testGroupInList!.balance.userBalance).toBe(50);
     });
 
     // NOTE: This test now uses synchronous metadata updates in expense handlers
     // instead of relying solely on triggers, ensuring consistency in both emulator and production
-    test('should include expense metadata in listDocuments response after creating expenses', async () => {
+    test('should include expense metadata in listGroups response after creating expenses', async () => {
       // First, verify the group starts with no expense metadata
-      const initialListResponse = await driver.listDocuments(users[0].token);
-      const initialGroupInList = initialListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
+      const initialListResponse = await driver.listGroupsNew(users[0].token);
+      const initialGroupInList = initialListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(initialGroupInList).toBeDefined();
-      expect(initialGroupInList!.data.expenseCount).toBeUndefined();
-      expect(initialGroupInList!.data.lastExpenseTime).toBeUndefined();
+      expect(initialGroupInList!.expenseCount).toBe(0);
+      expect(initialGroupInList!.lastExpenseTime).toBeNull();
       
       // Add an expense
       const expenseData = new ExpenseBuilder()
@@ -515,21 +515,21 @@ describe('Comprehensive API Test Suite', () => {
       await driver.createExpense(expenseData, users[0].token);
       
       // Check immediately after creating expense (should be synchronous now)
-      const updatedListResponse = await driver.listDocuments(users[0].token);
-      const updatedGroupInList = updatedListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
+      const updatedListResponse = await driver.listGroupsNew(users[0].token);
+      const updatedGroupInList = updatedListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(updatedGroupInList).toBeDefined();
       
       // Verify expense metadata is populated synchronously
-      expect(updatedGroupInList!.data).toHaveProperty('expenseCount');
-      expect(updatedGroupInList!.data.expenseCount).toBe(1);
+      expect(updatedGroupInList!).toHaveProperty('expenseCount');
+      expect(updatedGroupInList!.expenseCount).toBe(1);
       
-      expect(updatedGroupInList!.data).toHaveProperty('lastExpenseTime');
-      expect(updatedGroupInList!.data.lastExpenseTime).toBeDefined();
-      expect(typeof updatedGroupInList!.data.lastExpenseTime).toBe('string');
+      expect(updatedGroupInList!).toHaveProperty('lastExpenseTime');
+      expect(updatedGroupInList!.lastExpenseTime).toBeDefined();
+      expect(typeof updatedGroupInList!.lastExpenseTime).toBe('string');
       
       // Verify the lastExpenseTime is a valid ISO timestamp
-      expect(new Date(updatedGroupInList!.data.lastExpenseTime).getTime()).not.toBeNaN();
+      expect(new Date(updatedGroupInList!.lastExpenseTime).getTime()).not.toBeNaN();
       
       // Add another expense to test count increment
       const secondExpenseData = new ExpenseBuilder()
@@ -541,15 +541,15 @@ describe('Comprehensive API Test Suite', () => {
       await driver.createExpense(secondExpenseData, users[1].token);
       
       // Check immediately after second expense
-      const finalListResponse = await driver.listDocuments(users[0].token);
-      const finalGroupInList = finalListResponse.documents.find((doc: any) => doc.id === balanceTestGroup.id);
+      const finalListResponse = await driver.listGroupsNew(users[0].token);
+      const finalGroupInList = finalListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
-      expect(finalGroupInList!.data.expenseCount).toBe(2);
-      expect(finalGroupInList!.data.lastExpenseTime).toBeDefined();
+      expect(finalGroupInList!.expenseCount).toBe(2);
+      expect(finalGroupInList!.lastExpenseTime).toBeDefined();
       
       // The lastExpenseTime should be updated to the more recent expense
-      const lastExpenseTime = new Date(finalGroupInList!.data.lastExpenseTime);
-      const initialExpenseTime = new Date(updatedGroupInList!.data.lastExpenseTime);
+      const lastExpenseTime = new Date(finalGroupInList!.lastExpenseTime);
+      const initialExpenseTime = new Date(updatedGroupInList!.lastExpenseTime);
       expect(lastExpenseTime.getTime()).toBeGreaterThanOrEqual(initialExpenseTime.getTime());
     });
   });

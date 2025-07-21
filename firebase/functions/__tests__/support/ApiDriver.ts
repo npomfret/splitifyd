@@ -44,16 +44,6 @@ interface ApiResponse {
   [key: string]: any;
 }
 
-interface ListDocumentsResponse extends ApiResponse {
-  documents: Array<{
-    id: string;
-    data: any;
-    createdAt: string;
-    updatedAt: string;
-  }>;
-  count: number;
-  hasMore: boolean;
-}
 
 interface BalanceResponse extends ApiResponse {
   userBalances: Record<string, any>;
@@ -178,22 +168,20 @@ export class ApiDriver {
 
   async createGroup(name: string, members: User[], creatorToken: string): Promise<Group> {
     const groupData = {
-      data: {
-        name,
-        members: members.map(user => ({
-          uid: user.uid,
-          email: user.email,
-          name: user.displayName,
-          initials: user.displayName.split(' ').map(n => n[0]).join('')
-        })),
-      },
+      name,
+      members: members.map(user => ({
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName,
+        initials: user.displayName.split(' ').map(n => n[0]).join('')
+      })),
     };
 
-    const response = await this.apiRequest('/createDocument', 'POST', groupData, creatorToken);
+    const response = await this.apiRequest('/groups', 'POST', groupData, creatorToken);
     return {
       id: response.id,
       name,
-      members: groupData.data.members,
+      members: groupData.members,
     };
   }
 
@@ -343,17 +331,6 @@ export class ApiDriver {
     return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
   }
 
-  async createDocument(data: any, token: string): Promise<{ id: string }> {
-    return await this.apiRequest('/createDocument', 'POST', { data }, token);
-  }
-
-  async listDocuments(token: string): Promise<ListDocumentsResponse> {
-    return await this.apiRequest('/listDocuments', 'GET', {}, token);
-  }
-
-  async getDocument(documentId: string, token: string): Promise<any> {
-    return await this.apiRequest(`/getDocument?id=${documentId}`, 'GET', null, token);
-  }
 
   async createUserDocument(data: any, token: string): Promise<any> {
     return await this.apiRequest('/createUserDocument', 'POST', data, token);
@@ -375,9 +352,6 @@ export class ApiDriver {
     return await this.apiRequest(endpoint, 'GET', null, token);
   }
 
-  async updateDocument(documentId: string, data: any, token: string): Promise<void> {
-    return await this.apiRequest(`/updateDocument?id=${documentId}`, 'PUT', data, token);
-  }
 
   // New RESTful group endpoint methods
   async createGroupNew(groupData: any, token: string): Promise<any> {

@@ -188,10 +188,10 @@ describe('Edit Expense Integration Tests', () => {
       }, users[0].token);
 
       // Check group metadata was updated
-      const documents = await driver.listDocuments(users[0].token);
-      const updatedGroup = documents.documents.find((d: any) => d.id === testGroup.id);
+      const groupsResponse = await driver.listGroupsNew(users[0].token);
+      const updatedGroup = groupsResponse.groups.find((g: any) => g.id === testGroup.id);
       expect(updatedGroup).toBeDefined();
-      expect(new Date(updatedGroup!.data.lastExpenseTime).toDateString()).toBe(newDate.toDateString());
+      expect(new Date(updatedGroup!.lastExpenseTime).toDateString()).toBe(newDate.toDateString());
     });
 
     test('should handle concurrent updates gracefully', async () => {

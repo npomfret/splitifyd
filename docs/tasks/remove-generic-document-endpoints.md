@@ -25,13 +25,15 @@ This document outlines the plan to replace the generic document endpoints with s
    - Simplified response structure (no `data` wrapper)
    - Better error messages ("Group not found" vs "Document not found")
 
-### 🚧 Remaining Work
+### ✅ Completed Work
 
 1. ✅ Update integration tests for new endpoints
 2. ✅ Debug and fix 500 errors on new endpoints (fixed undefined Firestore values)
-3. Remove old endpoints once new ones are working
-4. Update all references to use new endpoints directly
-5. Remove feature flag system
+3. ✅ Remove old endpoints and document handlers
+4. ✅ Update all references to use new endpoints directly
+5. ✅ Remove feature flag system
+6. ✅ Update API client to always use new endpoints
+7. ✅ Remove documents directory and all related code
 
 ## Current State
 
@@ -174,8 +176,8 @@ If issues arise:
 
 - **Week 1**: ✅ Implement backend changes with backward compatibility
 - **Week 2**: ✅ Update frontend with feature flag
-- **Week 3**: 🚧 Fix 500 errors and complete switchover
-- **Week 4**: Remove old endpoints and feature flags
+- **Week 3**: ✅ Fix 500 errors and complete switchover
+- **Week 4**: ✅ Remove old endpoints and feature flags
 
 ## Implementation Status
 
@@ -196,10 +198,10 @@ If issues arise:
 
 ### Current Behavior
 
-- **Development**: Uses new `/groups` endpoints (feature flag enabled)
-- **Production**: Uses old `/createDocument` endpoints (feature flag disabled)
-- **Compatibility**: Both endpoint sets are fully functional
-- **Data**: No migration needed - same Firestore structure
+- **All environments**: Use new `/groups` endpoints exclusively
+- **Old endpoints**: Removed completely
+- **Feature flag**: Removed
+- **Data**: No migration was needed - same Firestore structure
 
 ## Success Criteria
 

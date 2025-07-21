@@ -109,3 +109,23 @@ export interface GroupDocument {
   createdAt: Date;
   updatedAt: Date;
 }
+
+/**
+ * Group member structure - alias for shared type
+ */
+export type GroupMember = Member;
+
+/**
+ * Group data structure (legacy support for expenses)
+ */
+export interface GroupData {
+  name: string;
+  description?: string;
+  memberEmails: string[];
+  members: GroupMember[];
+  yourBalance: number;
+  expenseCount: number;
+  lastExpenseTime: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

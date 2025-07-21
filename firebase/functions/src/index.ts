@@ -10,13 +10,6 @@ import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { getConfig } from './config';
 import {
-  createDocument,
-  getDocument,
-  updateDocument,
-  deleteDocument,
-  listDocuments,
-} from './documents/handlers';
-import {
   createExpense,
   getExpense,
   updateExpense,
@@ -275,12 +268,6 @@ app.post('/register', asyncHandler(register));
 
 // User document creation (requires auth)
 app.post('/createUserDocument', authenticate, asyncHandler(createUserDocument));
-
-app.post('/createDocument', authenticate, asyncHandler(createDocument));
-app.get('/getDocument', authenticate, asyncHandler(getDocument));
-app.put('/updateDocument', authenticate, asyncHandler(updateDocument));
-app.delete('/deleteDocument', authenticate, asyncHandler(deleteDocument));
-app.get('/listDocuments', authenticate, asyncHandler(listDocuments));
 
 // Expense endpoints (requires auth)
 app.post('/expenses', authenticate, asyncHandler(createExpense));
