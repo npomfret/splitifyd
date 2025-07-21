@@ -64,9 +64,10 @@ export class GroupsList {
     });
     createGroupBtn.id = 'createGroupBtn';
     
-    emptyState.appendChild(createGroupBtn);
-    appendChildren(emptyState, [icon, title, description]);
+    appendChildren(emptyState, [icon, title, description, createGroupBtn]);
     this.container.appendChild(emptyState);
+    
+    this.attachEventListeners();
   }
 
   private renderGroupCard(group: TransformedGroup): HTMLElement {
@@ -248,13 +249,9 @@ export class GroupsList {
   }
 
   private attachEventListeners(): void {
-    const createGroupBtn = document.getElementById('createGroupBtn');
-    if (createGroupBtn) {
-      createGroupBtn.addEventListener('click', () => {
-        this.openCreateGroupModal();
-      });
-    }
-
+    // Note: createGroupBtn already has onClick handler from createButton()
+    // No need to re-attach event listener
+    
     document.querySelectorAll('.group-card').forEach(card => {
       this.attachGroupCardEventListeners(card as HTMLElement);
     });
@@ -287,7 +284,6 @@ export class GroupsList {
   }
 
   private async openCreateGroupModal(): Promise<void> {
-
     // Create Body
     const form = createElementSafe('form', { id: 'createGroupForm' }) as HTMLFormElement;
     const groupNameGroup = createElementSafe('div', { className: 'form-group' });
@@ -407,7 +403,13 @@ export class GroupsList {
     
     // Show modal
     document.body.appendChild(modalElement);
-    modalElement.style.display = 'block';
+    // Override CSS defaults that hide the modal
+    modalElement.style.display = 'flex';
+    modalElement.style.alignItems = 'center';
+    modalElement.style.justifyContent = 'center';
+    modalElement.style.opacity = '1';
+    modalElement.style.visibility = 'visible';
+    modalElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     document.body.classList.add('modal-open');
   }
 
