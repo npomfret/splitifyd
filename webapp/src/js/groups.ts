@@ -298,47 +298,8 @@ export class GroupsList {
     descriptionGroup.appendChild(descriptionLabel);
     descriptionGroup.appendChild(descriptionTextarea);
 
-    const membersGroup = createElementSafe('div', { className: 'form-group' });
-    const membersLabel = createElementSafe('label', { textContent: 'Initial Members (Optional)' });
-    const membersContainer = createElementSafe('div', { className: 'members-input-container', id: 'membersContainer' });
-    const addMemberButton = createButton({
-      text: '+ Add Another Member',
-      size: 'small',
-      onClick: () => {
-        membersContainer.appendChild(createMemberInputRow());
-        const removeButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-        removeButtons.forEach(btn => btn.disabled = removeButtons.length <= 1);
-      }
-    });
-    addMemberButton.id = 'addMemberBtn';
-
-    const createMemberInputRow = () => {
-        const row = createElementSafe('div', { className: 'member-input-row' });
-        const emailInput = createElementSafe('input', { type: 'email', placeholder: 'Enter email address', className: 'form-input member-email', name: 'memberEmail[]' });
-        const removeButton = createButton({
-          html: '×',
-          variant: 'icon',
-          ariaLabel: 'Remove member',
-          onClick: () => {
-            row.remove();
-            const remainingButtons = membersContainer.querySelectorAll('.button--icon') as NodeListOf<HTMLButtonElement>;
-            remainingButtons.forEach(btn => btn.disabled = remainingButtons.length <= 1);
-          }
-        });
-        row.appendChild(emailInput);
-        row.appendChild(removeButton);
-        return row;
-    };
-
-    membersContainer.appendChild(createMemberInputRow());
-
-    membersGroup.appendChild(membersLabel);
-    membersGroup.appendChild(membersContainer);
-    membersGroup.appendChild(addMemberButton);
-
     form.appendChild(groupNameGroup);
     form.appendChild(descriptionGroup);
-    form.appendChild(membersGroup);
 
     // Create Footer
     const footerContainer = createElementSafe('div');
@@ -359,14 +320,11 @@ export class GroupsList {
       variant: 'primary',
       onClick: async () => {
         const formData = new FormData(form);
-        const memberEmails = Array.from(form.querySelectorAll('.member-email') as NodeListOf<HTMLInputElement>)
-            .map(input => input.value.trim())
-            .filter(email => email.length > 0);
 
         const groupData: CreateGroupRequest = {
             name: formData.get('groupName') as string,
             description: formData.get('groupDescription') as string,
-            memberEmails: memberEmails
+            memberEmails: []
         };
 
         const newGroup = await apiService.createGroup(groupData);
