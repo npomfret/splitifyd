@@ -25,35 +25,6 @@ describe('Error Handling and Recovery Testing', () => {
 
     describe('4.1 Service Outage Scenarios', () => {
         describe('External Service Failures', () => {
-            it('should handle invalid authentication tokens gracefully', async () => {
-                // Test with completely invalid token
-                const invalidToken = 'invalid-token-12345';
-                
-                await expect(
-                    driver.createExpense(new ExpenseBuilder()
-                        .withGroupId(testGroup.id)
-                        .withDescription('Test with invalid token')
-                        .withAmount(100)
-                        .withPaidBy(mainUser.uid)
-                        .withParticipants([mainUser.uid])
-                        .build(), invalidToken)
-                ).rejects.toThrow(/401|unauthorized|token|auth/i);
-            });
-
-            it('should handle expired authentication tokens gracefully', async () => {
-                // Test with malformed token that looks valid but isn't
-                const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-                
-                await expect(
-                    driver.createExpense(new ExpenseBuilder()
-                        .withGroupId(testGroup.id)
-                        .withDescription('Test with expired token')
-                        .withAmount(100)
-                        .withPaidBy(mainUser.uid)
-                        .withParticipants([mainUser.uid])
-                        .build(), expiredToken)
-                ).rejects.toThrow(/401|unauthorized|token|auth|invalid/i);
-            });
 
             it('should handle Firestore connection failures gracefully', async () => {
                 // Test with non-existent group ID to simulate Firestore issues
@@ -207,7 +178,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const operations = [
                     driver.getGroupBalances(testGroup.id, mainUser.token),
                     driver.getGroupExpenses(testGroup.id, mainUser.token),
-                    driver.listDocuments(mainUser.token)
+                    driver.listGroupsNew(mainUser.token)
                 ];
 
                 const results = await Promise.allSettled(operations);

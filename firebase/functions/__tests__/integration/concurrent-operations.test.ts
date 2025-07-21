@@ -160,8 +160,8 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       expect(successfulJoins.length).toBe(newUsers.length);
 
       // Verify final group membership
-      const finalGroup = await driver.getDocument(testGroup.id, users[0].token);
-      const memberUids = finalGroup.data.members.map((m: any) => m.uid);
+      const finalGroup = await driver.getGroupNew(testGroup.id, users[0].token);
+      const memberUids = finalGroup.members.map((m: any) => m.uid);
 
       // Should have original 5 users + at least some new users
       // Note: Some concurrent joins might fail due to race conditions
@@ -199,8 +199,8 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       expect(successfulJoins.length).toBeLessThanOrEqual(joinAttempts);
 
       // Verify user appears only once in group
-      const finalGroup = await driver.getDocument(testGroup.id, users[0].token);
-      const userOccurrences = finalGroup.data.members.filter((m: any) => m.uid === duplicateUser.uid);
+      const finalGroup = await driver.getGroupNew(testGroup.id, users[0].token);
+      const userOccurrences = finalGroup.members.filter((m: any) => m.uid === duplicateUser.uid);
       expect(userOccurrences.length).toBe(1);
     });
 

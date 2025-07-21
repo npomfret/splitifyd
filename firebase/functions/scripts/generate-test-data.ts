@@ -58,20 +58,11 @@ interface UserRecord extends admin.auth.UserRecord {
   token: string;
 }
 
-interface GroupMember {
-  uid: string;
-  name: string;
-  email: string;
-  initials: string;
-}
-
-interface GroupData {
-  name: string;
-  members: GroupMember[];
-}
-
-interface Group extends GroupData {
+interface Group {
   id: string;
+  name: string;
+  description?: string;
+  members: any[];
 }
 
 const generateTestUsers = (): TestUser[] => {
@@ -291,22 +282,16 @@ async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
 async function createTestGroup(name: string, members: UserRecord[], createdBy: UserRecord): Promise<Group> {
   try {
     
-    const groupData: GroupData = {
+    const groupData = {
       name,
-      members: members.map(member => ({
-        uid: member.uid,
-        name: member.displayName || '',
-        email: member.email || '',
-        initials: (member.displayName || '').split(' ').map(n => n[0]).join('').toUpperCase()
-      }))
+      description: `Generated test group: ${name}`,
+      memberEmails: members.map(member => member.email || '').filter(email => email)
     };
 
     // Create group via API
-    const response = await apiRequest('/createDocument', 'POST', { 
-      data: groupData 
-    }, createdBy.token);
+    const response = await apiRequest('/groups', 'POST', groupData, createdBy.token);
 
-    return { id: (response as any).id, ...groupData };
+    return response as Group;
   } catch (error) {
     logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;

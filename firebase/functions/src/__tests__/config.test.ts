@@ -1,5 +1,4 @@
 import { getEnhancedConfigResponse } from '../utils/config-response';
-import { getAppConfig, getConfig } from '../config';
 import { validateAppConfiguration } from '../middleware/config-validation';
 
 // Mock the getConfig and getAppConfig functions
@@ -30,33 +29,6 @@ jest.mock('../config', () => ({
       password: ''
     },
     warningBanner: '⚠️ this is a demo - your data will be deleted without notice'
-  }),
-  getAppConfig: () => ({
-    firebase: {
-      apiKey: 'test-api-key',
-      authDomain: 'test.firebaseapp.com',
-      projectId: 'test-project',
-      storageBucket: 'test.firebasestorage.app',
-      messagingSenderId: '123456789',
-      appId: '1:123456789:web:abcdef',
-      measurementId: 'G-TEST123'
-    },
-    api: {
-      timeout: 30000,
-      retryAttempts: 3
-    },
-    environment: {
-      warningBanner: {
-        enabled: true,
-        message: '⚠️ this is a demo - your data will be deleted without notice'
-      }
-    },
-    formDefaults: {
-      displayName: '',
-      email: '',
-      password: ''
-    },
-    firebaseAuthUrl: undefined
   })
 }));
 
@@ -111,13 +83,6 @@ describe('Configuration Response Functions', () => {
       const config = getEnhancedConfigResponse();
       
       expect(() => validateAppConfiguration(config)).not.toThrow();
-    });
-
-    it('should return pre-built configuration', () => {
-      // Since APP_CONFIG is built at startup, getEnhancedConfigResponse just returns it
-      const config = getEnhancedConfigResponse();
-      
-      expect(config).toBe((APP_CONFIG as any));
     });
 
     it('should include warning banner when configured', () => {

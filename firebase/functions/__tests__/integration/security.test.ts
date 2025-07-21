@@ -28,7 +28,7 @@ describe('Comprehensive Security Test Suite', () => {
     describe('Invalid Token Handling', () => {
       test('should reject requests with no authentication token', async () => {
         await expect(
-          driver.listDocuments(null as any)
+          driver.listGroupsNew(null as any)
         ).rejects.toThrow(/401|unauthorized|missing.*token/i);
       });
 
@@ -44,7 +44,7 @@ describe('Comprehensive Security Test Suite', () => {
 
         for (const token of malformedTokens) {
           await expect(
-            driver.listDocuments(token)
+            driver.listGroupsNew(token)
           ).rejects.toThrow(/401|unauthorized|invalid.*token/i);
         }
       });
@@ -54,7 +54,7 @@ describe('Comprehensive Security Test Suite', () => {
         const expiredToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
         
         await expect(
-          driver.listDocuments(expiredToken)
+          driver.listGroupsNew(expiredToken)
         ).rejects.toThrow(/401|unauthorized|expired|invalid/i);
       });
 
@@ -63,7 +63,7 @@ describe('Comprehensive Security Test Suite', () => {
         const wrongProjectToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
         
         await expect(
-          driver.listDocuments(wrongProjectToken)
+          driver.listGroupsNew(wrongProjectToken)
         ).rejects.toThrow(/401|unauthorized|invalid|audience/i);
       });
     });
@@ -79,7 +79,7 @@ describe('Comprehensive Security Test Suite', () => {
 
         for (const token of sqlInjectionTokens) {
           await expect(
-            driver.listDocuments(token)
+            driver.listGroupsNew(token)
           ).rejects.toThrow(/401|unauthorized|invalid/i);
         }
       });
@@ -94,7 +94,7 @@ describe('Comprehensive Security Test Suite', () => {
 
         for (const token of scriptInjectionTokens) {
           await expect(
-            driver.listDocuments(token)
+            driver.listGroupsNew(token)
           ).rejects.toThrow(/401|unauthorized|invalid/i);
         }
       });
@@ -426,7 +426,7 @@ describe('Comprehensive Security Test Suite', () => {
     test('should handle rapid successive requests gracefully', async () => {
       // Make many requests in quick succession
       const promises = Array.from({ length: 10 }, () => 
-        driver.listDocuments(users[0].token)
+        driver.listGroupsNew(users[0].token)
       );
 
       // All requests should either succeed or fail gracefully (no crashes)

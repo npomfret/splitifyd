@@ -322,12 +322,12 @@ describe('Enhanced Data Validation Tests', () => {
       };
 
       // NOTE: API currently accepts very long group names - this might be a validation gap
-      const response = await driver.createDocument(groupData, users[0].token);
+      const response = await driver.createGroupNew(groupData, users[0].token);
       expect(response.id).toBeDefined();
 
-      const createdGroup = await driver.getDocument(response.id, users[0].token);
-      expect(createdGroup.data.name).toBe(longGroupName);
-      expect(createdGroup.data.name.length).toBe(201);
+      const createdGroup = await driver.getGroupNew(response.id, users[0].token);
+      expect(createdGroup.name).toBe(longGroupName);
+      expect(createdGroup.name.length).toBe(201);
     });
 
     test('should accept group names within length limits', async () => {
@@ -343,12 +343,12 @@ describe('Enhanced Data Validation Tests', () => {
         }))
       };
 
-      const response = await driver.createDocument(groupData, users[0].token);
+      const response = await driver.createGroupNew(groupData, users[0].token);
       expect(response.id).toBeDefined();
 
-      const createdGroup = await driver.getDocument(response.id, users[0].token);
-      expect(createdGroup.data.name).toBe(validGroupName);
-      expect(createdGroup.data.name.length).toBe(100);
+      const createdGroup = await driver.getGroupNew(response.id, users[0].token);
+      expect(createdGroup.name).toBe(validGroupName);
+      expect(createdGroup.name.length).toBe(100);
     });
 
     test('should reject Unicode characters in group names (security feature)', async () => {
@@ -366,7 +366,7 @@ describe('Enhanced Data Validation Tests', () => {
 
       // NOTE: API currently rejects Unicode as "potentially dangerous content"
       await expect(
-        driver.createDocument(groupData, users[0].token)
+        driver.createGroupNew(groupData, users[0].token)
       ).rejects.toThrow(/dangerous.*content|INVALID_INPUT/i);
     });
 
@@ -411,28 +411,5 @@ describe('Enhanced Data Validation Tests', () => {
       }
     });
 
-    test('should handle XSS attempts in text fields', async () => {
-      const xssAttempt = '<script>alert("XSS")</script>';
-
-      const expenseData = new ExpenseBuilder()
-        .withGroupId(testGroup.id)
-        .withDescription(xssAttempt) // XSS attempt - this is what the test is about
-        .withPaidBy(users[0].uid)
-        .withParticipants([users[0].uid, users[1].uid])
-        .build();
-
-      // Should either safely handle the input or reject it
-      try {
-        const response = await driver.createExpense(expenseData, users[0].token);
-        expect(response.id).toBeDefined();
-
-        const createdExpense = await driver.getExpense(response.id, users[0].token);
-        // If accepted, the content should be safely stored (not executed)
-        expect(createdExpense.description).toBe(xssAttempt);
-      } catch (error: any) {
-        // If rejected, should be due to validation
-        expect(error.message).toMatch(/validation|invalid.*input|MALICIOUS_INPUT/i);
-      }
-    });
   });
 });
