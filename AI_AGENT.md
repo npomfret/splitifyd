@@ -37,6 +37,8 @@ Summarise what you have learned form them.
 - Run single test case: `TEST_NAME="<test description>" TEST_PATH="<test file path>" npm run test:single`
   Example: `TEST_NAME="should efficiently calculate balances in complex debt graphs" TEST_PATH="firebase/functions/__tests__/performance/performance-load.test.ts" npm run test:single`
 
+Note: assume the emulator is running and changes are automatically built and reflected in the running app.
+
 # Firebase Local Development
 - Typically, the emulator is already running, via `npm run dev`, so do not try to start it again. If it is not running, ask the user to start it.
 - If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
