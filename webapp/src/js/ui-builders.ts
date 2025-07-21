@@ -614,3 +614,203 @@ export function createModal(options: ModalOptions): HTMLDivElement {
   
   return modal;
 }
+
+export interface LinkOptions {
+  href: string;
+  text: string;
+  id?: string;
+  className?: string;
+  target?: '_blank' | '_self' | '_parent' | '_top';
+  ariaLabel?: string;
+}
+
+/**
+ * Creates a standardized link element
+ * 
+ * @param options - Link configuration options
+ * @returns HTMLAnchorElement
+ */
+export function createLink(options: LinkOptions): HTMLAnchorElement {
+  const { href, text, id, className, target, ariaLabel } = options;
+  
+  const link = document.createElement('a');
+  link.href = href;
+  link.textContent = text;
+  
+  if (id) link.id = id;
+  if (className) link.className = className;
+  if (target) link.target = target;
+  if (ariaLabel) link.setAttribute('aria-label', ariaLabel);
+  
+  return link;
+}
+
+export interface AuthHeaderOptions {
+  logoHref?: string;
+  logoSrc?: string;
+  logoAlt?: string;
+  subtitle?: string;
+}
+
+/**
+ * Creates an auth card header with logo and subtitle
+ * 
+ * @param options - Auth header configuration options
+ * @returns HTMLElement containing the auth header
+ */
+export function createAuthHeader(options: AuthHeaderOptions = {}): HTMLElement {
+  const {
+    logoHref = '/index.html',
+    logoSrc = '/images/logo.svg',
+    logoAlt = 'Logo',
+    subtitle = 'Split bills with friends'
+  } = options;
+  
+  const header = document.createElement('header');
+  header.className = 'auth-card__header';
+  
+  const title = document.createElement('h1');
+  title.className = 'auth-card__title';
+  
+  const logoLink = document.createElement('a');
+  logoLink.href = logoHref;
+  logoLink.className = 'auth-card__title-link';
+  
+  const logo = document.createElement('img');
+  logo.src = logoSrc;
+  logo.alt = logoAlt;
+  logo.className = 'auth-card__logo';
+  
+  logoLink.appendChild(logo);
+  title.appendChild(logoLink);
+  header.appendChild(title);
+  
+  if (subtitle) {
+    const subtitleEl = document.createElement('p');
+    subtitleEl.className = 'auth-card__subtitle';
+    subtitleEl.textContent = subtitle;
+    header.appendChild(subtitleEl);
+  }
+  
+  return header;
+}
+
+export interface AuthFooterLink {
+  href: string;
+  text: string;
+  id?: string;
+  variant?: 'primary' | 'secondary';
+}
+
+export interface AuthFooterOptions {
+  links: Array<{
+    text?: string;
+    link: AuthFooterLink;
+  }>;
+}
+
+/**
+ * Creates an auth card footer with navigation links
+ * 
+ * @param options - Auth footer configuration options
+ * @returns HTMLElement containing the auth footer
+ */
+export function createAuthFooter(options: AuthFooterOptions): HTMLElement {
+  const { links } = options;
+  
+  const footer = document.createElement('footer');
+  footer.className = 'auth-card__footer';
+  
+  const nav = document.createElement('nav');
+  nav.className = 'auth-nav';
+  nav.setAttribute('aria-label', 'Authentication navigation');
+  
+  links.forEach(({ text, link }) => {
+    const p = document.createElement('p');
+    
+    if (text) {
+      p.textContent = text + ' ';
+    }
+    
+    const anchor = createLink({
+      href: link.href,
+      text: link.text,
+      id: link.id,
+      className: `auth-link${link.variant ? ' auth-link--' + link.variant : ''}`
+    });
+    
+    p.appendChild(anchor);
+    nav.appendChild(p);
+  });
+  
+  footer.appendChild(nav);
+  return footer;
+}
+
+export interface AuthCardOptions {
+  variant: 'login' | 'register';
+  header: HTMLElement;
+  form: HTMLFormElement;
+  footer: HTMLElement;
+}
+
+/**
+ * Creates a complete auth card container
+ * 
+ * @param options - Auth card configuration options
+ * @returns HTMLElement containing the complete auth card
+ */
+export function createAuthCard(options: AuthCardOptions): HTMLElement {
+  const { variant, header, form, footer } = options;
+  
+  const article = document.createElement('article');
+  article.className = `auth-card auth-card--${variant}`;
+  
+  article.appendChild(header);
+  article.appendChild(form);
+  article.appendChild(footer);
+  
+  return article;
+}
+
+export interface WarningBannerOptions {
+  message: string;
+  isVisible?: boolean;
+  onClose?: () => void;
+}
+
+/**
+ * Creates a warning banner element
+ * 
+ * @param options - Warning banner configuration options
+ * @returns HTMLDivElement containing the warning banner
+ */
+export function createWarningBanner(options: WarningBannerOptions): HTMLDivElement {
+  const { message, isVisible = false, onClose } = options;
+  
+  const banner = document.createElement('div');
+  banner.id = 'warningBanner';
+  banner.className = `warning-banner${isVisible ? '' : ' hidden'}`;
+  
+  const content = document.createElement('span');
+  content.className = 'warning-banner__content';
+  content.textContent = message;
+  
+  const closeContainer = document.createElement('div');
+  closeContainer.className = 'warning-banner__close-container';
+  
+  const closeButton = document.createElement('button');
+  closeButton.className = 'warning-banner__close';
+  closeButton.innerHTML = '&times;';
+  closeButton.setAttribute('aria-label', 'Close warning');
+  closeButton.onclick = () => {
+    banner.classList.add('hidden');
+    if (onClose) onClose();
+  };
+  
+  closeContainer.appendChild(closeButton);
+  banner.appendChild(content);
+  banner.appendChild(closeContainer);
+  
+  return banner;
+}
