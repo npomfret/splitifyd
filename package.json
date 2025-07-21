@@ -16,7 +16,8 @@
     "test:unit": "cd firebase/functions && npm run test:unit && cd ../../webapp && npm run test:unit",
     "test:integration": "cd firebase/functions && npm run test:integration && cd ../../webapp && npm run test:integration",
     "test:performance": "cd firebase/functions && npm run test:performance",
-    "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH"
+    "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
+    "report": "repo-statter . -o reports"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
