@@ -281,17 +281,36 @@ async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
 
 async function createTestGroup(name: string, members: UserRecord[], createdBy: UserRecord): Promise<Group> {
   try {
-    
+    // Step 1: Create group with just the creator
     const groupData = {
       name,
       description: `Generated test group: ${name}`,
-      memberEmails: members.map(member => member.email || '').filter(email => email)
+      memberEmails: [] // Don't include other emails initially
     };
 
     // Create group via API
-    const response = await apiRequest('/groups', 'POST', groupData, createdBy.token);
+    const group = await apiRequest('/groups', 'POST', groupData, createdBy.token) as Group;
+    
+    // Step 2: Generate a shareable link
+    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: group.id }, createdBy.token) as any;
+    const { linkId } = shareResponse;
+    
+    // Step 3: Have other members join using the share link
+    const otherMembers = members.filter(m => m.uid !== createdBy.uid);
+    for (const member of otherMembers) {
+      try {
+        await apiRequest('/groups/join', 'POST', { linkId }, member.token);
+      } catch (joinError) {
+        logger.warn(`Failed to add member ${member.email} to group ${name}`, { 
+          error: joinError instanceof Error ? joinError : new Error(String(joinError))
+        });
+      }
+    }
+    
+    // Step 4: Fetch the updated group to get all members
+    const updatedGroup = await apiRequest(`/groups/${group.id}`, 'GET', null, createdBy.token);
 
-    return response as Group;
+    return updatedGroup as Group;
   } catch (error) {
     logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;

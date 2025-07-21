@@ -169,20 +169,12 @@ export class ApiDriver {
   async createGroup(name: string, members: User[], creatorToken: string): Promise<Group> {
     const groupData = {
       name,
-      members: members.map(user => ({
-        uid: user.uid,
-        email: user.email,
-        name: user.displayName,
-        initials: user.displayName.split(' ').map(n => n[0]).join('')
-      })),
+      description: `Test group created at ${new Date().toISOString()}`,
+      memberEmails: members.map(user => user.email)
     };
 
     const response = await this.apiRequest('/groups', 'POST', groupData, creatorToken);
-    return {
-      id: response.id,
-      name,
-      members: groupData.members,
-    };
+    return response as Group;
   }
 
   async createExpense(expenseData: Partial<Expense>, token: string): Promise<Expense> {

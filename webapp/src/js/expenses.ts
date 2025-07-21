@@ -31,29 +31,4 @@ export class ExpenseService {
     });
   }
 
-  static async listGroupExpenses(groupId: string, limit: number = 50, cursor: string | null = null): Promise<ExpenseListResponse> {
-    const params = new URLSearchParams({
-      groupId,
-      limit: limit.toString()
-    });
-    
-    if (cursor) {
-      params.append('cursor', cursor);
-    }
-
-    return apiCall<ExpenseListResponse>(`/expenses/group?${params.toString()}`);
-  }
-
-  static async listUserExpenses(limit: number = 50, cursor: string | null = null): Promise<ExpenseListResponse> {
-    const params = new URLSearchParams({
-      limit: limit.toString()
-    });
-    
-    if (cursor) {
-      params.append('cursor', cursor);
-    }
-
-    return apiCall<ExpenseListResponse>(`/expenses/user?${params.toString()}`);
-  }
-
 }

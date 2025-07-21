@@ -215,14 +215,14 @@ describe('Error Handling and Recovery Testing', () => {
                     .build(), mainUser.token);
 
                 // Test getting all user's data (simulate export)
-                const groupData = await driver.getDocument(testGroup.id, mainUser.token);
+                const groupData = await driver.getGroupNew(testGroup.id, mainUser.token);
                 const expenseData = await driver.getGroupExpenses(testGroup.id, mainUser.token);
                 const balanceData = await driver.getGroupBalances(testGroup.id, mainUser.token);
 
                 // Verify all data is accessible for export
                 expect(groupData).toBeDefined();
-                expect(groupData.data).toHaveProperty('name');
-                expect(groupData.data).toHaveProperty('members');
+                expect(groupData).toHaveProperty('name');
+                expect(groupData).toHaveProperty('members');
 
                 expect(expenseData).toHaveProperty('expenses');
                 expect(expenseData.expenses.length).toBeGreaterThan(0);

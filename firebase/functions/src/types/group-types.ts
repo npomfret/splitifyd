@@ -121,6 +121,7 @@ export type GroupMember = Member;
 export interface GroupData {
   name: string;
   description?: string;
+  memberIds?: string[];
   memberEmails: string[];
   members: GroupMember[];
   yourBalance: number;

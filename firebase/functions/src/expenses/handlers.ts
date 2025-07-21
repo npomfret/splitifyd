@@ -56,6 +56,15 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
   
   // Check if user is a member of the group
   const groupDataTyped = groupData.data as GroupData;
+  
+  // Check memberIds array (new structure)
+  if (groupDataTyped.memberIds && Array.isArray(groupDataTyped.memberIds)) {
+    if (groupDataTyped.memberIds.includes(userId)) {
+      return;
+    }
+  }
+  
+  // Check members array (for backward compatibility)
   if (groupDataTyped.members && Array.isArray(groupDataTyped.members)) {
     const isMember = groupDataTyped.members.some((member: GroupMember) => member.uid === userId);
     if (isMember) {

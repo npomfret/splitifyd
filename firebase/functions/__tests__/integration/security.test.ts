@@ -121,7 +121,7 @@ describe('Comprehensive Security Test Suite', () => {
         // User 2 should not be able to access this group
         // CURRENT BEHAVIOR: Returns 404 instead of 403 (security issue - should not reveal existence)
         await expect(
-          driver.getDocument(privateGroup.id, users[1].token)
+          driver.getGroupNew(privateGroup.id, users[1].token)
         ).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
         await expect(
@@ -197,7 +197,7 @@ describe('Comprehensive Security Test Suite', () => {
 
         // SECURITY FIX: API should now reject attempts to modify group membership directly
         await expect(
-          driver.updateDocument(testGroup.id, maliciousUpdate, users[1].token)
+          driver.updateGroupNew(testGroup.id, maliciousUpdate, users[1].token)
         ).rejects.toThrow(/400|403|forbidden|unauthorized|not.*allowed|validation|cannot.*be.*modified/i);
       });
     });
@@ -282,7 +282,7 @@ describe('Comprehensive Security Test Suite', () => {
           // Test various endpoints with SQL injection payloads
           // SECURITY ISSUE: Some SQL injection payloads cause 500 errors instead of proper validation
           await expect(
-            driver.getDocument(payload, users[0].token)
+            driver.getGroupNew(payload, users[0].token)
           ).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
 
           await expect(
