@@ -130,7 +130,7 @@ Both apps are served from the same origin (localhost:6002), so CORS issues shoul
 ## Next Steps
 
 1. Start building pages in webapp-v2
-2. Use MCP browser testing for verification
+2. Use browser testing for verification: `npm run test:browser-v2`
 3. Gradually migrate pages from old to new
 4. Update redirects as pages are completed
 
