@@ -211,11 +211,43 @@ For each step, test in browser:
    - Ensure content paths are correct
    - Check PostCSS configuration
 
+## Updated Implementation Plan (2025-07-22)
+
+### Simplifications Based on Codebase Analysis
+
+After analyzing the existing webapp, I'm recommending these changes to keep the initial setup minimal:
+
+1. **Reduced Dependencies**
+   - Remove `reactfire` - use Firebase SDK directly
+   - Remove `zustand` - add state management only when needed
+   - Focus on: preact, preact-router, vite, typescript, tailwind
+
+2. **Simplified Structure**
+   - Start with just HomePage and NotFoundPage
+   - Skip complex layouts initially
+   - No auth guards yet (add during auth migration)
+   - No Firebase setup in this phase
+
+3. **Path Strategy**
+   - Use TypeScript paths instead of symlinks
+   - Import utilities from existing webapp as needed
+   - Share types via build process
+
+4. **Phased Approach**
+   - Phase 1: Basic Vite + Preact setup (1 hour)
+   - Phase 2: TypeScript + Tailwind config (30 min)
+   - Phase 3: Minimal pages + router (1 hour)
+   - Phase 4: Dev script integration (30 min)
+   - Phase 5: Testing & documentation (30 min)
+
+Total: ~3.5 hours (reduced from 6-7)
+
 ## Timeline
 
 - Start Date: TBD
 - End Date: TBD
-- Duration: ~6-7 hours
+- Duration: ~3.5 hours
+- **Status**: Ready to implement
 
 ## Notes
 
@@ -223,3 +255,4 @@ For each step, test in browser:
 - Focus on developer experience and fast feedback
 - Document any deviations from plan
 - Test each phase before moving to next
+- Follow "YAGNI" principle - add complexity only when needed
