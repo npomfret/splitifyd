@@ -3,7 +3,9 @@ import type {
     CreateGroupRequest,
     CreateExpenseRequest,
     UpdateExpenseRequest,
-    TransformedGroup,
+    Group,
+    GroupSummary,
+    GroupListResponse,
     GroupDetail,
     ExpenseData,
     GroupBalances,
@@ -15,70 +17,22 @@ import type { ExpenseListResponse } from './types/business-logic.js';
 
 class ApiService {
 
-    async getGroups(): Promise<TransformedGroup[]> {
-        const response = await apiCall<any>('/groups', {
+    async getGroups(): Promise<GroupSummary[]> {
+        const response = await apiCall<GroupListResponse>('/groups', {
             method: 'GET'
         });
-        return this._transformNewGroupsData(response.groups);
-    }
-
-    private _transformNewGroupsData(groups: any[]): TransformedGroup[] {
-        return groups.map(group => ({
-            id: group.id,
-            name: group.name || 'Unnamed Group',
-            memberCount: group.memberCount || 0,
-             yourBalance: group.balance?.userBalance?.netBalance || 0,
-            lastActivity: group.lastActivity || 'Never',
-            lastActivityRaw: group.lastActivityRaw || group.updatedAt,
-            lastExpense: group.lastExpense || null,
-            members: group.members || [],
-            expenseCount: group.expenseCount || 0,
-            lastExpenseTime: group.lastExpenseTime || null
-        }));
+        return response.groups;
     }
 
 
-    private _formatLastActivity(timestamp: string | FirestoreTimestamp | undefined): string {
-        if (!timestamp) {
-            return 'Never';
-        }
-        
-        let date: Date;
-        if (timestamp && typeof timestamp === 'object' && '_seconds' in timestamp) {
-            // Handle Firestore Timestamp format
-            date = new Date(timestamp._seconds * 1000);
-        } else {
-            // Handle ISO string or regular timestamp
-            date = new Date(timestamp as string);
-        }
-        
-        if (isNaN(date.getTime())) {
-            return 'Never';
-        }
-        
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        
-        if (diffMinutes < 1) return 'Just now';
-        if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
-        if (diffHours < 24) return `${diffHours} hours ago`;
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-        return `${Math.floor(diffDays / 30)} months ago`;
-    }
 
 
-    async createGroup(groupData: CreateGroupRequest): Promise<TransformedGroup> {
+    async createGroup(groupData: CreateGroupRequest): Promise<Group> {
         if (!groupData.name?.trim()) {
             throw new Error('Group name is required');
         }
 
-        const data = await apiCall<any>('/groups', {
+        const data = await apiCall<Group>('/groups', {
             method: 'POST',
             body: JSON.stringify({
                 name: groupData.name.trim(),
@@ -87,18 +41,7 @@ class ApiService {
             })
         });
         
-        return {
-            id: data.id,
-            name: data.name,
-            memberCount: data.members?.length || 1,
-            yourBalance: data.balance?.userBalance?.netBalance || 0,
-            lastActivity: 'Just now',
-            lastActivityRaw: data.createdAt,
-            lastExpense: null,
-            members: data.members || [],
-            expenseCount: 0,
-            lastExpenseTime: null
-        };
+        return data;
     }
 
 
@@ -107,20 +50,10 @@ class ApiService {
             throw new Error('Group ID is required');
         }
 
-        const data = await apiCall<any>(`/groups/${groupId}`, {
+        const data = await apiCall<GroupDetail>(`/groups/${groupId}`, {
             method: 'GET'
         });
-        return { 
-            data: {
-                id: data.id,
-                name: data.name,
-                description: data.description || '',
-                members: data.members || [],
-                createdBy: data.createdBy,
-                createdAt: data.createdAt,
-                updatedAt: data.updatedAt
-            }
-        };
+        return { data };
     }
 
 

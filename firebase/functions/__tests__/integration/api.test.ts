@@ -470,12 +470,14 @@ describe('Comprehensive API Test Suite', () => {
       expect(testGroupInList!.balance).toHaveProperty('userBalance');
       // Check if userBalance might be null or undefined in some cases
       if (testGroupInList!.balance.userBalance !== null && testGroupInList!.balance.userBalance !== undefined) {
-        expect(typeof testGroupInList!.balance.userBalance).toBe('number');
+        expect(typeof testGroupInList!.balance.userBalance).toBe('object');
+        expect(testGroupInList!.balance.userBalance).toHaveProperty('netBalance');
       }
       
       // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
       // But balance calculation might be async, so we accept 0 as well
-      expect([0, 50]).toContain(testGroupInList!.balance.userBalance);
+      const netBalance = testGroupInList!.balance.userBalance?.netBalance || 0;
+      expect([0, 50]).toContain(netBalance);
     });
 
     // NOTE: This test now uses synchronous metadata updates in expense handlers

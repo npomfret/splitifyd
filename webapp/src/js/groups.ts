@@ -8,14 +8,14 @@ import type {
   ClickHandler
 } from './types/business-logic.js';
 import type {
-  TransformedGroup,
+  GroupSummary,
   CreateGroupRequest
 } from './types/api.js';
 
 export class GroupsList {
   private container: HTMLElement;
-  private groups: TransformedGroup[] = [];
-  private filteredGroups: TransformedGroup[] = [];
+  private groups: GroupSummary[] = [];
+  private filteredGroups: GroupSummary[] = [];
   private isLoading: boolean = false;
   private headerComponent: any = null;
 
@@ -70,8 +70,9 @@ export class GroupsList {
     this.attachEventListeners();
   }
 
-  private renderGroupCard(group: TransformedGroup): HTMLElement {
-    const balanceClass = group.yourBalance >= 0 ? 'balance--positive' : 'balance--negative';
+  private renderGroupCard(group: GroupSummary): HTMLElement {
+    const yourBalance = group.balance.userBalance.netBalance;
+    const balanceClass = yourBalance >= 0 ? 'balance--positive' : 'balance--negative';
     
     const groupCard = createElementSafe('div', {
       className: 'group-card',
@@ -94,17 +95,17 @@ export class GroupsList {
     header.appendChild(nameElement);
     
     // Balance status badge
-    if (group.yourBalance !== 0) {
+    if (yourBalance !== 0) {
       const balanceContainer = createElementSafe('div', { className: 'group-card__balance' });
       
       const balanceAmount = createElementSafe('span', {
         className: `group-card__balance-amount ${balanceClass}`,
-        textContent: `$${Math.abs(group.yourBalance).toFixed(2)}`
+        textContent: `$${Math.abs(yourBalance).toFixed(2)}`
       });
       
       const balanceLabel = createElementSafe('span', {
         className: 'group-card__balance-label',
-        textContent: group.yourBalance > 0 ? 'you are owed' : 'you owe'
+        textContent: yourBalance > 0 ? 'you are owed' : 'you owe'
       });
       
       balanceContainer.appendChild(balanceLabel);
@@ -121,14 +122,8 @@ export class GroupsList {
     const membersSection = createElementSafe('div', { className: 'group-card__members' });
     const membersPreview = createElementSafe('div', { className: 'members-preview' });
     
-    group.members.slice(0, 4).forEach((member: {name: string; initials: string}) => {
-      const memberAvatar = createElementSafe('div', {
-        className: 'member-avatar',
-        title: member.name,
-        textContent: member.initials
-      });
-      membersPreview.appendChild(memberAvatar);
-    });
+    // Members preview is not available in GroupSummary, so we'll skip it
+    // We could fetch full group details if needed
 
     if (group.memberCount > 4) {
       const extraMembers = createElementSafe('div', {
@@ -153,7 +148,7 @@ export class GroupsList {
       const lastExpenseSection = createElementSafe('div', { className: 'group-card__last-expense' });
       const description = createElementSafe('span', {
         className: 'last-expense__description',
-        textContent: group.lastExpense
+        textContent: group.lastExpense.description
       });
       
       lastExpenseSection.appendChild(description);
@@ -200,8 +195,8 @@ export class GroupsList {
       return bTime - aTime;
     });
     
-    const totalOwed = this.groups.reduce((sum, group) => sum + Math.max(0, group.yourBalance), 0);
-    const totalOwe = this.groups.reduce((sum, group) => sum + Math.max(0, -group.yourBalance), 0);
+    const totalOwed = this.groups.reduce((sum, group) => sum + Math.max(0, group.balance.userBalance.netBalance), 0);
+    const totalOwe = this.groups.reduce((sum, group) => sum + Math.max(0, -group.balance.userBalance.netBalance), 0);
 
     // Update header with balance information
     if (this.headerComponent) {
@@ -235,7 +230,7 @@ export class GroupsList {
     this.attachEventListeners();
   }
 
-  private addGroupToList(newGroup: TransformedGroup): void {
+  private addGroupToList(newGroup: GroupSummary): void {
     const groupsGrid = this.container.querySelector('.groups-grid');
     if (!groupsGrid) {
       logger.error('Groups grid not found, falling back to full render');
@@ -327,18 +322,9 @@ export class GroupsList {
             memberEmails: []
         };
 
-        const newGroup = await apiService.createGroup(groupData);
-        this.groups.unshift(newGroup);
-        this.filteredGroups = [...this.groups];
-        
-        // Use granular DOM update instead of full re-render
-        if (this.groups.length === 1) {
-            // First group - need to replace empty state with full render
-            this.render();
-        } else {
-            // Add to existing list
-            this.addGroupToList(newGroup);
-        }
+        await apiService.createGroup(groupData);
+        // Reload groups to get the new group with balance information
+        await this.loadGroups();
 
         modalElement.style.display = 'none';
         document.body.classList.remove('modal-open');

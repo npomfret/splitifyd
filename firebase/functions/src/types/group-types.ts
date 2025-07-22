@@ -1,4 +1,4 @@
-import { Member } from './webapp-shared-types';
+import { Member, UserBalance } from './webapp-shared-types';
 
 /**
  * Core group structure
@@ -33,7 +33,7 @@ export interface GroupWithBalance extends Group {
  * Balance information for a user in a group
  */
 export interface GroupBalance {
-  userBalance: number;
+  userBalance: UserBalance;
   totalOwed: number;
   totalOwing: number;
 }

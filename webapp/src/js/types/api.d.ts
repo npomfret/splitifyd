@@ -1,14 +1,21 @@
 export type {
   Member,
+  Group,
+  GroupSummary,
+  GroupListResponse,
   GroupDetail,
   GroupBalances,
   TransformedGroup,
   GroupDocument,
   ExpenseData,
+  ExpenseSplit,
   CreateExpenseRequest,
   UpdateExpenseRequest,
   CreateGroupRequest,
   ShareableLinkResponse,
   JoinGroupResponse,
-  FirestoreTimestamp
+  FirestoreTimestamp,
+  SimplifiedDebt,
+  UserBalance,
+  GroupBalance
 } from './webapp-shared-types';

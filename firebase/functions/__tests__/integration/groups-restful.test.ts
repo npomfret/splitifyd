@@ -110,7 +110,8 @@ describe('RESTful Group Endpoints', () => {
       expect(response.description).toBe(testGroup.description);
       expect(response.members).toHaveLength(1);
       expect(response.balance).toBeDefined();
-      expect(response.balance.userBalance).toBe(0);
+      expect(response.balance.userBalance).toBeDefined();
+      expect(response.balance.userBalance.netBalance).toBe(0);
     });
 
     test('should include balance information', async () => {
@@ -136,7 +137,8 @@ describe('RESTful Group Endpoints', () => {
       );
 
       expect(groupWithBalance.balance).toBeDefined();
-      expect(groupWithBalance.balance.userBalance).toBe(0); // Paid for self only
+      expect(groupWithBalance.balance.userBalance).toBeDefined();
+      expect(groupWithBalance.balance.userBalance.netBalance).toBe(0); // Paid for self only
     });
 
     test('should return 404 for non-existent group', async () => {
