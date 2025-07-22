@@ -451,7 +451,8 @@ describe('ApiService', () => {
             const mockResponse: ShareableLinkResponse = {
                 linkId: 'share-123',
                 groupId: 'group-1',
-                expiresAt: '2023-12-31T23:59:59Z'
+                expiresAt: '2023-12-31T23:59:59Z',
+                shareUrl: 'https://example.com/join/share-123'
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);
@@ -476,7 +477,8 @@ describe('ApiService', () => {
             const mockResponse: JoinGroupResponse = {
                 groupId: 'group-1',
                 success: true,
-                message: 'Successfully joined group'
+                message: 'Successfully joined group',
+                groupName: 'Test Group'
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);

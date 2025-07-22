@@ -9,7 +9,6 @@
  */
 
 import type {
-  Member,
   GroupDetail,
   GroupBalances,
   TransformedGroup,
@@ -19,11 +18,7 @@ import type {
   CreateGroupRequest,
   ShareableLinkResponse,
   JoinGroupResponse,
-  AppConfiguration,
-  FirebaseConfig,
-  ApiConfig,
-  EnvironmentConfig,
-  FormDefaults
+  AppConfiguration
 } from './apiTypes';
 
 /**

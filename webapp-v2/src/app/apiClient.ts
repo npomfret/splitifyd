@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import type { ApiContract, ApiErrorResponse } from '@shared/apiContract';
+import type { ApiContract } from '@shared/apiContract';
 import { responseSchemas, ApiErrorResponseSchema } from '@shared/apiSchemas';
 import { z } from 'zod';
 
@@ -20,7 +20,7 @@ const API_BASE_URL = import.meta.env.DEV
 export class ApiValidationError extends Error {
   constructor(
     message: string,
-    public errors: z.ZodError['errors']
+    public errors: z.ZodError['issues']
   ) {
     super(message);
     this.name = 'ApiValidationError';
@@ -169,10 +169,10 @@ export class ApiClient {
       // Validate response
       const result = validator.safeParse(data);
       if (!result.success) {
-        console.error('API validation error:', result.error.errors);
+        console.error('API validation error:', result.error.issues);
         throw new ApiValidationError(
           `Response from ${endpoint as string} does not match expected type`,
-          result.error.errors
+          result.error.issues
         );
       }
 
