@@ -6,6 +6,10 @@
 1. **Webapp Analysis** - Complete understanding of existing app
 2. **Preact Foundation** - Basic app with Vite, TypeScript, Tailwind
 3. **Type-Safe API** - Full contract types with runtime validation
+4. **Integrated Hosting** - Both apps running together on Firebase
+   - Old app at `/`, new app at `/v2/`
+   - Shared authentication via localStorage
+   - Single emulator, no CORS issues
 
 ### 🎯 What's Next
 **Browser Testing Setup** (recommended - 2 hours)
@@ -18,12 +22,17 @@
 - **Migration Plan**: `docs/migration-order.md` (detailed page-by-page plan)
 - **Task Files**: `docs/tasks/webapp-rebuild-*.md`
 - **New Tasks**: `docs/tasks/browser-testing-setup.md`
+- **Dev Workflow**: `docs/integrated-webapp-development.md`
 
 ### 🔧 Development
 ```bash
-# Start webapp-v2 dev server
-npm run webapp-v2:dev
+# Integrated development (recommended)
+npm run dev:integrated
+# Old app: http://localhost:6002/
+# New app: http://localhost:6002/v2/
 
+# Standalone webapp-v2 dev (for rapid iteration)
+npm run webapp-v2:dev
 # Visit http://localhost:3000
 ```
 
@@ -32,6 +41,7 @@ npm run webapp-v2:dev
 2. **Simplified approach** - no state management yet (YAGNI)
 3. **Manual types first** - can automate later
 4. **Focus on pages** - build content before infrastructure
+5. **Integrated hosting** - webapp-v2 at /v2/ path for gradual migration
 
 ### ℹ️ Notes
 - Firebase hosting is already configured and working
@@ -42,8 +52,9 @@ npm run webapp-v2:dev
 - Reconnaissance: 100% ✅
 - Foundation: 100% ✅
 - API Contract: 100% ✅
+- Integration: 100% ✅
 - Pages Built: 0% (next focus)
-- Migration Infrastructure: 0% (deferred)
+- Migration Infrastructure: N/A (simplified approach used)
 
 ## Core Principles
 
@@ -148,16 +159,26 @@ npm run webapp-v2:dev
   - ✅ Full TypeScript autocomplete
   - ✅ Zero `any` types
 
+#### Integration Phase
+- **Task 4: Firebase Hosting Integration** (2025-07-22)
+  - ✅ webapp-v2 builds to firebase/public/v2/
+  - ✅ Vite base path configured for /v2/
+  - ✅ Firebase routing rules added
+  - ✅ Auth bridge for shared authentication
+  - ✅ Integrated npm scripts (dev:integrated)
+  - ✅ Preact router handles /v2/ prefix
+  - ✅ Both apps running on same emulator
+
 ### In Progress Tasks 🚧
 
-None currently - evaluating next task.
+None currently - ready for next phase.
 
 ### Deferred Tasks ⏸️
 
 - **Task 3: Migration Infrastructure** 
-  - Deferred until we have pages to migrate
-  - Overly complex for current state
-  - Simplified plan created for future
+  - Original Strangler Fig pattern too complex
+  - Current integration approach is simpler
+  - May revisit for advanced migration needs
 
 ### Next Recommended Tasks 📋
 
@@ -181,4 +202,4 @@ None currently - evaluating next task.
 
 ---
 
-*Last Updated: 2025-07-22*
+*Last Updated: 2025-07-22 - Added Firebase hosting integration*
