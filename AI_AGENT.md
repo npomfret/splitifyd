@@ -54,3 +54,9 @@ Note: assume the emulator is running and changes are automatically built and ref
 Read these
 - docs/directives/type-safety.md
 - docs/directives/browser-testing.md
+
+# MCP Browser Automation
+Claude Code CLI now supports automated browser testing via MCP (Model Context Protocol).
+- Configuration is set up in `~/Library/Application Support/Claude/claude_desktop_config.json`
+- See `docs/mcp-browser-testing-guide.md` for usage instructions
+- Use MCP tools to automatically check console errors and take screenshots

@@ -1,5 +1,7 @@
 # Browser Testing Directive
 
+> **🎉 NEW: Automated Browser Testing with MCP** - Claude Code CLI can now automatically check console errors, take screenshots, and verify page state using MCP browser automation. See section 7 for details.
+
 ## Core Principle
 
 **IN-BROWSER TESTING IS MANDATORY AT EVERY STEP** - Not just unit tests, but real browser verification.
@@ -100,10 +102,37 @@ await testInFirefox();
 await testInSafari();
 ```
 
-### 7. Automated Browser Testing
-While manual testing is required during development:
+### 7. Automated Browser Testing with MCP
+
+#### MCP Integration (NEW - Preferred Method)
+Claude Code CLI now supports automated browser testing through MCP (Model Context Protocol):
+
+**Setup (One-time)**:
+1. MCP Playwright server is configured in `~/Library/Application Support/Claude/claude_desktop_config.json`
+2. Restart Claude Desktop to load the MCP server
+3. Use MCP tools for automated browser testing
+
+**Available MCP Browser Commands**:
+- `browser_console_messages` - Automatically captures all console logs/errors/warnings
+- Take screenshots programmatically
+- Execute JavaScript in browser context
+- Navigate and interact with pages
+- Monitor network requests
+
+**Example Usage**:
+```typescript
+// Instead of manual checking, Claude can now:
+// 1. Open your webapp automatically
+// 2. Check console for errors
+// 3. Take screenshots
+// 4. Verify page state
+// 5. Report issues directly
+```
+
+#### Traditional Playwright Testing
+While MCP is preferred for development, still use Playwright for CI/CD:
 - Use Playwright for E2E tests
-- Test critical user journeys
+- Test critical user journeys  
 - Run before every deployment
 - Take screenshots on test failures
 
@@ -118,6 +147,17 @@ While manual testing is required during development:
 
 ## Developer Workflow
 
+### With MCP Automation (Recommended)
+1. **Before Starting**: Ensure Claude Desktop has MCP configured
+2. **During Development**: 
+   - Let Claude automatically check console after changes
+   - Request: "Check the webapp console for errors"
+   - Request: "Take a screenshot of the current page"
+3. **Before Committing**: 
+   - Request: "Run full browser test of [feature]"
+   - Claude will automatically verify console, take screenshots, and report issues
+
+### Manual Testing (Fallback)
 1. **Before Starting**: Open DevTools Console and Network tabs
 2. **During Development**: Check console after every change
 3. **Before Committing**: Full browser test of affected features
