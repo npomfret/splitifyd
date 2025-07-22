@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "firebase/functions",
-    "webapp"
+    "webapp",
+    "webapp-v2"
   ],
   "scripts": {
     "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
@@ -17,7 +18,10 @@
     "test:integration": "cd firebase/functions && npm run test:integration && cd ../../webapp && npm run test:integration",
     "test:performance": "cd firebase/functions && npm run test:performance",
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
-    "report": "repo-statter . -o reports"
+    "report": "repo-statter . -o reports",
+    "webapp-v2:dev": "cd webapp-v2 && npm run dev",
+    "webapp-v2:build": "cd webapp-v2 && npm run build",
+    "webapp-v2:preview": "cd webapp-v2 && npm run preview"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
