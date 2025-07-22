@@ -1,20 +1,49 @@
 # Splitifyd Webapp – Rebuild Plan
 
-## Current Progress (2025-07-22)
+## Quick Status (2025-07-22)
 
-### ✅ Completed
-- **Task 0: Reconnaissance** - Full webapp analysis and documentation
-- **Task 1: Minimal Stack** - Preact + Vite + TypeScript + Tailwind setup  
-- **Task 2: API Contract** - Type-safe client with runtime validation
+### ✅ What's Done
+1. **Webapp Analysis** - Complete understanding of existing app
+2. **Preact Foundation** - Basic app with Vite, TypeScript, Tailwind
+3. **Type-Safe API** - Full contract types with runtime validation
 
-### 🚧 In Progress
-- Evaluating next task (Browser Testing Setup recommended)
+### 🎯 What's Next
+**Browser Testing Setup** (recommended - 2 hours)
+- Set up MCP browser automation
+- Enable screenshot capture
+- Console error detection
+- See: `docs/tasks/browser-testing-setup.md`
 
-### 📋 Key Decisions Made
-1. **Simplified approach** - No reactfire/zustand yet (YAGNI)
-2. **Manual API types** - Started simple, can automate later
-3. **Zod validation** - Ensures runtime type safety
-4. **Deferred migration infrastructure** - Build pages first
+### 📁 Key Files
+- **Migration Plan**: `docs/migration-order.md` (detailed page-by-page plan)
+- **Task Files**: `docs/tasks/webapp-rebuild-*.md`
+- **New Tasks**: `docs/tasks/browser-testing-setup.md`
+
+### 🔧 Development
+```bash
+# Start webapp-v2 dev server
+npm run webapp-v2:dev
+
+# Visit http://localhost:3000
+```
+
+### 💡 Key Decisions
+1. **Deferred Task 3** (Migration Infrastructure) - too complex for now
+2. **Simplified approach** - no state management yet (YAGNI)
+3. **Manual types first** - can automate later
+4. **Focus on pages** - build content before infrastructure
+
+### ℹ️ Notes
+- Firebase hosting is already configured and working
+- The webapp is served via Firebase hosting
+- Emulator runs on port 6002 for local development
+
+### 📊 Progress
+- Reconnaissance: 100% ✅
+- Foundation: 100% ✅
+- API Contract: 100% ✅
+- Pages Built: 0% (next focus)
+- Migration Infrastructure: 0% (deferred)
 
 ## Core Principles
 
@@ -91,3 +120,65 @@
 ---
 
 **One‑liner:** Fewer deps, single test runner, smaller bundles, cheaper Firebase bill.
+
+## Migration Progress Tracker
+
+### Completed Tasks ✅
+
+#### Reconnaissance Phase
+- **Task 0: Webapp Analysis** (2025-07-22) 
+  - ✅ User flows documented
+  - ✅ Dependencies analyzed  
+  - ✅ API endpoint inventory created
+  - ✅ Migration order established
+  - ✅ Risk assessment complete
+
+#### Foundation Phase
+- **Task 1: Preact Setup** (2025-07-22)
+  - ✅ Vite + Preact + TypeScript configured
+  - ✅ Tailwind CSS integrated
+  - ✅ Basic routing with home/404 pages
+  - ✅ Development server with HMR
+  - ✅ Monorepo integration
+
+- **Task 2: API Contract & Type Safety** (2025-07-22)
+  - ✅ Comprehensive API contract types
+  - ✅ Runtime validation with Zod
+  - ✅ Type-safe API client
+  - ✅ Full TypeScript autocomplete
+  - ✅ Zero `any` types
+
+### In Progress Tasks 🚧
+
+None currently - evaluating next task.
+
+### Deferred Tasks ⏸️
+
+- **Task 3: Migration Infrastructure** 
+  - Deferred until we have pages to migrate
+  - Overly complex for current state
+  - Simplified plan created for future
+
+### Next Recommended Tasks 📋
+
+1. **Browser Testing Setup** (~2 hours)
+   - MCP integration for automated testing
+   - Screenshot capture setup
+   - Console error detection
+   - Small, immediately useful
+
+2. **Common Components** (~4 hours)
+   - Button, Input, Card components
+   - Form validation helpers
+   - Loading/Error states
+   - Foundation for all pages
+
+3. **Auth Integration** (~6 hours)
+   - Firebase Auth setup
+   - Login/Register forms
+   - Protected routes
+   - Critical for app functionality
+
+---
+
+*Last Updated: 2025-07-22*
