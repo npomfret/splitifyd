@@ -1,5 +1,21 @@
 # Splitifyd Webapp – Rebuild Plan
 
+## Current Progress (2025-07-22)
+
+### ✅ Completed
+- **Task 0: Reconnaissance** - Full webapp analysis and documentation
+- **Task 1: Minimal Stack** - Preact + Vite + TypeScript + Tailwind setup  
+- **Task 2: API Contract** - Type-safe client with runtime validation
+
+### 🚧 In Progress
+- Evaluating next task (Browser Testing Setup recommended)
+
+### 📋 Key Decisions Made
+1. **Simplified approach** - No reactfire/zustand yet (YAGNI)
+2. **Manual API types** - Started simple, can automate later
+3. **Zod validation** - Ensures runtime type safety
+4. **Deferred migration infrastructure** - Build pages first
+
 ## Core Principles
 
 ### 1. STRICT TYPE SAFETY
