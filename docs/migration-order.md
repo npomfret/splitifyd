@@ -261,4 +261,4 @@ Before starting page migrations, ensure these are ready:
 
 ---
 
-*Last Updated: 2025-07-22*
+**Note:** Progress tracking has moved to `docs/UI-REBUILD.md`. This document now focuses on the detailed migration plan for each page.

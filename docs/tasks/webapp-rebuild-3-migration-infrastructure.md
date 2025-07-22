@@ -4,9 +4,9 @@
 Set up infrastructure to run legacy and new webapp side-by-side, allowing incremental page-by-page migration without disrupting users.
 
 ## Prerequisites
-- [ ] Complete webapp-rebuild-1-setup-preact.md
-- [ ] Have working Preact app at `/webapp-v2`
-- [ ] Firebase hosting configured
+- [x] Complete webapp-rebuild-1-setup-preact.md
+- [x] Have working Preact app at `/webapp-v2`
+- [x] Firebase hosting configured
 
 ## Current State
 - Legacy webapp served from root (`/`)
@@ -19,6 +19,40 @@ Set up infrastructure to run legacy and new webapp side-by-side, allowing increm
 - Seamless navigation between old and new pages
 - Shared authentication state
 - Gradual migration path
+
+## Task Analysis (2025-07-22)
+
+**This task is overly complex for the current state**. Following the minimalist engineering principles:
+- The Strangler Fig pattern is premature - we don't have pages to migrate yet
+- Complex routing and state bridges violate YAGNI principle
+- Should build pages first, then add migration infrastructure when needed
+
+**Recommendation**: Defer this task until we have 3-4 pages built in webapp-v2.
+
+## Simplified Plan for When Ready
+
+When we do implement this (after building pages), break it into small commits:
+
+### Commit 1: Basic Routing Setup (1 hour)
+- Update Firebase hosting to serve webapp-v2 at `/app/*`
+- Keep legacy app at root
+- Test both apps work independently
+
+### Commit 2: Shared Authentication (2 hours)
+- Share Firebase auth token via localStorage
+- Simple auth state sync
+- Test login/logout works across apps
+
+### Commit 3: Navigation Helper (1 hour)
+- Simple function to detect which app handles route
+- Basic link rewriting
+- Test navigation between apps
+
+### Commit 4: Development Setup (30 min)
+- Update npm scripts to run both apps
+- Documentation for developers
+
+Total: ~4.5 hours (reduced from 10 hours)
 
 ## Implementation Steps
 

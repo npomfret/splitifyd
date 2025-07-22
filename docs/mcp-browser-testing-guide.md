@@ -124,7 +124,7 @@ Use MCP for:
 await updateGroupsComponent();
 
 // 2. Request automated verification
-"Open localhost:3000/dashboard and check for console errors"
+"Open localhost:6002/v2/dashboard and check for console errors"
 
 // 3. If errors found, fix and re-test
 "Check the console again after my fix"

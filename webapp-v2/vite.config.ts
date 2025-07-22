@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/v2/' : '/',
   plugins: [preact()],
   resolve: {
     alias: {
@@ -14,10 +15,12 @@ export default defineConfig({
     }
   },
   server: {
-    port: 3000,
-    open: true
+    // Only used for temporary development
+    open: false
   },
   build: {
+    outDir: '../firebase/public/v2',
+    emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
       output: {
@@ -27,4 +30,4 @@ export default defineConfig({
       }
     }
   }
-});
+}));
