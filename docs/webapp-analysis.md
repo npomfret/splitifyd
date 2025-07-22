@@ -317,9 +317,15 @@ These utilities represent reusable business logic that can be adapted for Preact
 
 1. ✅ **Phase 1 Complete**: User flows documented and screenshots captured
 2. ✅ **Phase 2 Complete**: Dependencies analyzed and build system reviewed
-3. **Phase 3**: Extract API contracts and types
-4. **Phase 4**: Document pain points and performance metrics
-5. **Phase 5**: Create migration priority order
+3. ✅ **Phase 3 Complete**: API contracts extracted - see [endpoint-inventory.md](endpoint-inventory.md)
+4. ✅ **Phase 4 Complete**: Migration planning done - see [migration-order.md](migration-order.md)
+5. ✅ **Phase 5 Complete**: Risk assessment done - see [risk-register.md](risk-register.md)
+
+## Related Documents
+
+- [Endpoint Inventory](endpoint-inventory.md) - Complete API documentation
+- [Migration Order](migration-order.md) - Prioritized migration plan
+- [Risk Register](risk-register.md) - Identified risks and mitigations
 
 ---
 
