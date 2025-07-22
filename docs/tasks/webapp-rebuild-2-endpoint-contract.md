@@ -15,10 +15,13 @@ Extract TypeScript types from Firebase functions to create a strict contract bet
 
 ## Target State
 - Auto-generated TypeScript contract from function definitions
-- Shared types between frontend and backend
+- Shared types between frontend and backend (via symlink to `firebase/functions/src/shared`)
 - Build-time validation of API compatibility
 - CI fails on breaking changes
 - Full type safety for all API calls
+- **MANDATORY**: Runtime validation that server responses match expected types
+- **MANDATORY**: TypeScript strict mode with 100% type coverage
+- **MANDATORY**: No `any` types in API contracts
 
 ## Implementation Steps
 
@@ -100,30 +103,50 @@ Extract TypeScript types from Firebase functions to create a strict contract bet
    - [ ] Union types for multiple methods
    - [ ] Error response types
 
-### Phase 3: Type-Safe API Client (2 hours)
+### Phase 3: Type-Safe API Client with Runtime Validation (3 hours)
 
 1. **Create new typed API client** (`webapp-v2/src/app/api-client.ts`)
    - [ ] Generic fetch wrapper using contract types
    - [ ] Automatic URL parameter substitution
    - [ ] Request/response type inference
    - [ ] Error handling with typed errors
+   - [ ] **MANDATORY**: Runtime validation of all server responses
+   - [ ] **MANDATORY**: Type guards to verify response shape matches expected type
 
-2. **Example implementation**
+2. **Example implementation with runtime validation**
    ```typescript
    class ApiClient {
      async request<T extends keyof ApiContract>(
        endpoint: T,
        options: ApiRequestOptions<T>
      ): Promise<ApiContract[T]['response']> {
-       // Implementation
+       const response = await fetch(endpoint, options);
+       const data = await response.json();
+       
+       // MANDATORY: Runtime validation
+       const validator = getValidator(endpoint, options.method);
+       if (!validator(data)) {
+         throw new ApiValidationError(
+           `Response from ${endpoint} does not match expected type`,
+           validator.errors
+         );
+       }
+       
+       return data as ApiContract[T]['response'];
      }
    }
 
-   // Usage - fully typed!
+   // Usage - fully typed AND runtime validated!
    const groups = await api.request('/groups', { method: 'GET' });
    ```
 
-3. **Migration compatibility**
+3. **Runtime validation tools**
+   - [ ] Use `zod` or similar for runtime type checking
+   - [ ] Generate validators from TypeScript types
+   - [ ] Provide detailed error messages for validation failures
+   - [ ] Log validation errors for debugging
+
+4. **Migration compatibility**
    - [ ] Create adapter for old `api.ts` format
    - [ ] Ensure both can coexist during migration
    - [ ] Add deprecation warnings for old API
@@ -163,30 +186,50 @@ Extract TypeScript types from Firebase functions to create a strict contract bet
 
 ## In-Browser Testing Checklist
 
+**MANDATORY**: Follow the browser testing directive for ALL testing.
+
 1. **Test contract generation**
    - [ ] Run generation script
    - [ ] Verify output matches actual endpoints
    - [ ] Check types compile without errors
    - [ ] Test with TypeScript strict mode
+   - [ ] **NO console errors or warnings**
 
-2. **Test new API client**
+2. **Test new API client - IN BROWSER**
+   - [ ] Open DevTools Console and Network tabs
    - [ ] Make request to each endpoint type
    - [ ] Verify type inference works
-   - [ ] Check error handling
+   - [ ] Check error handling shows proper messages
    - [ ] Test parameter substitution
-   - [ ] Verify in browser DevTools network tab
+   - [ ] Verify in Network tab:
+     - [ ] Correct request URLs
+     - [ ] Proper request headers
+     - [ ] Expected response status codes
+     - [ ] Response payloads match types
+   - [ ] **Screenshot successful API calls**
+   - [ ] **Screenshot error states**
 
-3. **Test validation**
-   - [ ] Make breaking change to function
-   - [ ] Run validation script
-   - [ ] Verify it catches the change
-   - [ ] Test non-breaking changes pass
+3. **Test runtime validation - IN BROWSER**
+   - [ ] Intentionally break server response shape
+   - [ ] Verify validation catches the error
+   - [ ] Check console shows clear validation error
+   - [ ] Ensure app doesn't crash on invalid data
+   - [ ] Test validation for each endpoint type
+   - [ ] **Screenshot validation error messages**
 
-4. **Integration test**
+4. **Cross-browser integration test**
+   - [ ] Chrome: Full test suite
+   - [ ] Firefox: Full test suite  
+   - [ ] Safari: Full test suite
+   - [ ] Mobile viewport: Test responsive behavior
    - [ ] Use new client in sample Preact component
-   - [ ] Verify autocomplete works
+   - [ ] Verify autocomplete works in IDE
    - [ ] Check runtime behavior matches types
-   - [ ] Test error scenarios
+   - [ ] Test error scenarios:
+     - [ ] Network offline
+     - [ ] 500 server errors
+     - [ ] Malformed responses
+     - [ ] Timeout scenarios
 
 ## Deliverables
 

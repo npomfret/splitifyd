@@ -144,36 +144,49 @@ Create the new Preact-based webapp structure alongside the existing webapp, esta
 
 ## In-Browser Testing Checklist
 
-For each step, test in browser:
+**MANDATORY**: Follow the browser testing directive (directives/browser-testing.md) for ALL steps.
+
+For each step, test in browser with DevTools open:
 
 1. **After Vite setup**
    - [ ] Run `npm run webapp-v2:dev`
+   - [ ] Open Chrome DevTools Console - **ZERO errors/warnings allowed**
    - [ ] Verify HMR works (change text, see instant update)
-   - [ ] Check that page loads without errors
-   - [ ] Verify Vite dev tools are working
+   - [ ] Check Network tab - all assets load successfully
+   - [ ] Test responsive: 375px, 768px, 1440px
+   - [ ] **Take screenshot of initial working setup**
 
 2. **After router setup**
-   - [ ] Navigate between routes
-   - [ ] Verify 404 page works
+   - [ ] Navigate between routes - check console stays clean
+   - [ ] Verify 404 page works - **screenshot 404 page**
    - [ ] Check browser back/forward buttons
    - [ ] Test direct URL navigation
+   - [ ] Network tab: no failed requests on route changes
+   - [ ] Test in Chrome, Firefox, Safari
 
-3. **After Firebase setup**
-   - [ ] Verify connection to emulator
-   - [ ] Check auth state persistence
+3. **After Firebase setup** (when implemented)
+   - [ ] Verify connection to emulator - check Network tab
+   - [ ] Check auth state persistence - no console errors
    - [ ] Ensure no production data access
+   - [ ] Monitor console for Firebase warnings
+   - [ ] **Screenshot Firebase connection status**
 
 4. **After styling setup**
-   - [ ] Verify Tailwind classes work
-   - [ ] Check responsive design
-   - [ ] Ensure CSS variables are loaded
-   - [ ] Test dark mode (if applicable)
+   - [ ] Verify Tailwind classes work - inspect elements
+   - [ ] Check responsive design at all breakpoints
+   - [ ] Ensure CSS variables are loaded - check computed styles
+   - [ ] No missing styles or broken layouts
+   - [ ] **Screenshot mobile and desktop views**
 
 5. **Final integration test**
-   - [ ] Access webapp-v2 at `/app`
-   - [ ] Verify legacy app still works at `/`
-   - [ ] Check console for any errors
-   - [ ] Test on multiple browsers
+   - [ ] Chrome: Full test, console clean, no network errors
+   - [ ] Firefox: Full test, console clean, no network errors
+   - [ ] Safari: Full test, console clean, no network errors
+   - [ ] Mobile (375px): Layout correct, interactive elements work
+   - [ ] Tablet (768px): Layout correct, no overflow
+   - [ ] Desktop (1440px): Full layout visible
+   - [ ] Performance: No requests > 3 seconds
+   - [ ] **Document with screenshots of success**
 
 ## Deliverables
 

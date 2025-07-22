@@ -7,7 +7,7 @@ Before making **ANY** code changes, you MUST read these files:
 - directives/logging.md
 - directives/testing.md
 
-Summarise what you have learned form them.
+Summarise what you have learned from them.
 
 # Tech Stack
 - Runtime: Node.js (latest)
@@ -49,3 +49,8 @@ Note: assume the emulator is running and changes are automatically built and ref
 - async/await over promises
 - ES modules: `import { foo } from 'bar'`
 - TypeScript strict mode
+
+# Directives
+Read these
+- docs/directives/type-safety.md
+- docs/directives/browser-testing.md

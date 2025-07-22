@@ -1,5 +1,26 @@
 # Splitifyd Webapp – Rebuild Plan
 
+## Core Principles
+
+### 1. STRICT TYPE SAFETY
+
+**MANDATORY**: This rebuild MUST embrace strict type safety everywhere:
+- **Shared Types**: All client-server communication uses shared TypeScript types (defined in `firebase/functions/src/shared` and symlinked to webapp)
+- **Runtime Validation**: Client MUST verify server responses match expected types ("right shape")
+- **TypeScript Strict Mode**: Enabled everywhere with NO exceptions
+- **Type Coverage**: 100% type coverage enforced in CI
+- **No `any` Types**: Banned except for third-party library interop (with explicit justification)
+
+### 2. IN-BROWSER TESTING AT EVERY STEP
+
+**MANDATORY**: Every implementation step MUST include thorough in-browser testing:
+- **Console Monitoring**: Check for ANY console errors or warnings
+- **Visual Verification**: Ensure pages render correctly
+- **Network Inspection**: Verify API calls succeed with correct payloads
+- **Screenshot Documentation**: Take screenshots when implementing new features
+- **Cross-Browser Testing**: Test in Chrome, Firefox, and Safari
+- **Responsive Testing**: Verify mobile and desktop layouts
+
 ## 0  Recon
 
 1. Read everything in `docs/directives/**` and `firebase/functions/src/shared`.
