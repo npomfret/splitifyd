@@ -190,8 +190,8 @@ Updates an existing document.
 **Access Control:** Document owner only  
 **Security:** Cannot directly modify group membership arrays
 
-#### Delete Document
-Deletes a document.
+#### Delete Document (Deprecated)
+**Note:** This endpoint is deprecated. Use the RESTful delete endpoints instead (e.g., `DELETE /groups/:id`).
 
 **Endpoint:** `DELETE /deleteDocument`  
 **Authentication:** Required
@@ -229,9 +229,15 @@ Lists documents where the user is a member.
       "createdAt": "2024-01-15T10:30:00Z",
       "updatedAt": "2024-01-15T10:30:00Z",
       "balance": {
-        "userBalance": 25.50,
-        "totalOwed": 50.00,
-        "totalOwing": 24.50
+        "userBalance": {
+          "userId": "user-id",
+          "name": "John Doe",
+          "owes": {"user-2": 10.00},
+          "owedBy": {"user-3": 35.50},
+          "netBalance": 25.50
+        },
+        "totalOwed": 35.50,
+        "totalOwing": 10.00
       }
     }
   ],
@@ -269,7 +275,7 @@ Creates a new expense in a group.
   "date": "2024-01-15T20:00:00Z",
   "splitType": "equal",
   "participants": ["user-id-1", "user-id-2", "user-id-3"],
-  "splits": {},
+  "splits": [],
   "receiptUrl": "https://storage.example.com/receipt.jpg"
 }
 ```
@@ -312,11 +318,20 @@ Retrieves a single expense by ID.
   "date": "2024-01-15T20:00:00Z",
   "splitType": "equal",
   "participants": ["user-id-1", "user-id-2", "user-id-3"],
-  "splits": {
-    "user-id-1": 50.00,
-    "user-id-2": 50.00,
-    "user-id-3": 50.00
-  },
+  "splits": [
+    {
+      "userId": "user-id-1",
+      "amount": 50.00
+    },
+    {
+      "userId": "user-id-2",
+      "amount": 50.00
+    },
+    {
+      "userId": "user-id-3",
+      "amount": 50.00
+    }
+  ],
   "receiptUrl": "https://storage.example.com/receipt.jpg",
   "createdAt": "2024-01-15T20:30:00Z",
   "updatedAt": "2024-01-15T20:30:00Z"
@@ -457,7 +472,191 @@ Retrieves modification history for an expense.
 
 ---
 
-### Group Management
+### Group Management (RESTful)
+
+#### Create Group
+Creates a new group.
+
+**Endpoint:** `POST /groups`  
+**Authentication:** Required
+
+**Request Body:**
+```json
+{
+  "name": "Weekend Trip",
+  "description": "Expenses for beach trip",
+  "memberEmails": ["user1@example.com", "user2@example.com"]
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "id": "group-id",
+  "name": "Weekend Trip",
+  "description": "Expenses for beach trip",
+  "createdBy": "user-id",
+  "memberIds": ["user-id"],
+  "memberEmails": ["user1@example.com", "user2@example.com"],
+  "members": [
+    {
+      "uid": "user-id",
+      "name": "John Doe",
+      "initials": "JD"
+    }
+  ],
+  "expenseCount": 0,
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+#### List Groups
+Lists all groups where the user is a member.
+
+**Endpoint:** `GET /groups`  
+**Authentication:** Required
+
+**Query Parameters:**
+- `limit` (optional): Number of groups to return (default: 20, max: 100)
+- `cursor` (optional): Pagination cursor
+- `order` (optional): Sort order - `asc` or `desc` (default: `desc`)
+
+**Success Response (200):**
+```json
+{
+  "groups": [
+    {
+      "id": "group-id",
+      "name": "Weekend Trip",
+      "description": "Expenses for beach trip",
+      "memberCount": 3,
+      "balance": {
+        "userBalance": {
+          "userId": "user-id",
+          "name": "John Doe",
+          "owes": {"user-2": 10.00},
+          "owedBy": {"user-3": 35.50},
+          "netBalance": 25.50
+        },
+        "totalOwed": 35.50,
+        "totalOwing": 10.00
+      },
+      "lastActivity": "2 hours ago",
+      "lastActivityRaw": "2024-01-15T20:00:00Z",
+      "lastExpense": {
+        "description": "Dinner",
+        "amount": 150.00,
+        "date": "2024-01-15"
+      },
+      "expenseCount": 5
+    }
+  ],
+  "count": 1,
+  "hasMore": false,
+  "pagination": {
+    "limit": 20,
+    "order": "desc"
+  }
+}
+```
+
+#### Get Group
+Retrieves a single group by ID.
+
+**Endpoint:** `GET /groups/:id`  
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (required): Group ID
+
+**Success Response (200):**
+```json
+{
+  "id": "group-id",
+  "name": "Weekend Trip",
+  "description": "Expenses for beach trip",
+  "createdBy": "user-id",
+  "memberIds": ["user-id-1", "user-id-2"],
+  "memberEmails": ["user1@example.com", "user2@example.com"],
+  "members": [
+    {
+      "uid": "user-id-1",
+      "name": "John Doe",
+      "initials": "JD",
+      "role": "admin"
+    },
+    {
+      "uid": "user-id-2",
+      "name": "Jane Smith",
+      "initials": "JS",
+      "role": "member"
+    }
+  ],
+  "expenseCount": 5,
+  "lastExpenseTime": "2024-01-15T20:00:00Z",
+  "createdAt": "2024-01-10T10:00:00Z",
+  "updatedAt": "2024-01-15T20:00:00Z",
+  "balance": {
+    "userBalance": {
+      "userId": "user-id",
+      "name": "John Doe",
+      "owes": {},
+      "owedBy": {"user-id-2": 50.00},
+      "netBalance": 50.00
+    },
+    "totalOwed": 50.00,
+    "totalOwing": 0
+  }
+}
+```
+
+**Access Control:** User must be group member
+
+#### Update Group
+Updates group details.
+
+**Endpoint:** `PUT /groups/:id`  
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (required): Group ID
+
+**Request Body:**
+```json
+{
+  "name": "Updated Group Name",
+  "description": "Updated description"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Group updated successfully"
+}
+```
+
+**Access Control:** Group owner only
+
+#### Delete Group
+Deletes a group.
+
+**Endpoint:** `DELETE /groups/:id`  
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (required): Group ID
+
+**Success Response (200):**
+```json
+{
+  "message": "Group deleted successfully"
+}
+```
+
+**Access Control:** Group owner only  
+**Restrictions:** Cannot delete groups with existing expenses
 
 #### Get Group Balances
 Calculates and returns current balances for all group members.
@@ -473,19 +672,56 @@ Calculates and returns current balances for all group members.
 {
   "groupId": "group-id",
   "userBalances": {
-    "user-id-1": 25.50,
-    "user-id-2": -10.00,
-    "user-id-3": -15.50
+    "user-id-1": {
+      "userId": "user-id-1",
+      "name": "John Doe",
+      "owes": {},
+      "owedBy": {
+        "user-id-2": 10.00,
+        "user-id-3": 15.50
+      },
+      "netBalance": 25.50
+    },
+    "user-id-2": {
+      "userId": "user-id-2",
+      "name": "Jane Smith",
+      "owes": {
+        "user-id-1": 10.00
+      },
+      "owedBy": {},
+      "netBalance": -10.00
+    },
+    "user-id-3": {
+      "userId": "user-id-3",
+      "name": "Bob Wilson",
+      "owes": {
+        "user-id-1": 15.50
+      },
+      "owedBy": {},
+      "netBalance": -15.50
+    }
   },
   "simplifiedDebts": [
     {
-      "from": "user-id-2",
-      "to": "user-id-1",
+      "from": {
+        "userId": "user-id-2",
+        "name": "Jane Smith"
+      },
+      "to": {
+        "userId": "user-id-1",
+        "name": "John Doe"
+      },
       "amount": 10.00
     },
     {
-      "from": "user-id-3",
-      "to": "user-id-1",
+      "from": {
+        "userId": "user-id-3",
+        "name": "Bob Wilson"
+      },
+      "to": {
+        "userId": "user-id-1",
+        "name": "John Doe"
+      },
       "amount": 15.50
     }
   ],
@@ -512,10 +748,14 @@ Creates a shareable invitation link for a group.
 **Success Response (200):**
 ```json
 {
-  "shareableUrl": "https://app.example.com/join/AbCdEfGhIjKlMnOp",
-  "linkId": "AbCdEfGhIjKlMnOp"
+  "linkId": "AbCdEfGhIjKlMnOp",
+  "groupId": "group-id",
+  "shareUrl": "https://app.example.com/join-group.html?linkId=AbCdEfGhIjKlMnOp",
+  "expiresAt": "2024-12-31T23:59:59Z"
 }
 ```
+
+**Note:** The actual implementation currently returns `shareableUrl` instead of `shareUrl`. The frontend expects the format shown above.
 
 **Access Control:** Group owner or admin member  
 **Notes:** Generates 16-character secure token
@@ -536,6 +776,7 @@ Joins a group using a share link.
 **Success Response (200):**
 ```json
 {
+  "success": true,
   "groupId": "group-id",
   "groupName": "Weekend Trip",
   "message": "Successfully joined group"
