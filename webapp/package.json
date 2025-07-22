@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && mkdir -p dist/v2",
     "copy:assets": "mkdir -p dist/js && cp src/*.html dist/ && cp -r src/css dist/ && cp -r src/public/* dist/",
     "build:js": "node esbuild.config.js",
     "typecheck": "tsc --noEmit",
