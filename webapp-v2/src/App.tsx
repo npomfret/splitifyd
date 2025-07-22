@@ -1,5 +1,5 @@
 import Router, { Route } from 'preact-router';
-import { HomePage } from './pages/HomePage';
+import { LandingPage } from './pages/LandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -15,8 +15,8 @@ export function App() {
   
   return (
     <Router>
-      <Route path={`${prefix}/`} component={HomePage} />
-      <Route path="/" component={HomePage} />
+      <Route path={`${prefix}/`} component={LandingPage} />
+      <Route path="/" component={LandingPage} />
       
       {/* Auth Routes */}
       <Route path={`${prefix}/login`} component={LoginPage} />
@@ -29,12 +29,12 @@ export function App() {
       {/* Static Pages */}
       <Route path={`${prefix}/pricing`} component={PricingPage} />
       <Route path="/pricing" component={PricingPage} />
-      <Route path={`${prefix}/terms`} component={TermsOfServicePage} />
-      <Route path="/terms" component={TermsOfServicePage} />
-      <Route path={`${prefix}/privacy`} component={PrivacyPolicyPage} />
-      <Route path="/privacy" component={PrivacyPolicyPage} />
-      <Route path={`${prefix}/cookies`} component={CookiePolicyPage} />
-      <Route path="/cookies" component={CookiePolicyPage} />
+      <Route path={`${prefix}/terms-of-service`} component={TermsOfServicePage} />
+      <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path={`${prefix}/privacy-policy`} component={PrivacyPolicyPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path={`${prefix}/cookies-policy`} component={CookiePolicyPage} />
+      <Route path="/cookies-policy" component={CookiePolicyPage} />
       
       <Route default component={NotFoundPage} />
     </Router>

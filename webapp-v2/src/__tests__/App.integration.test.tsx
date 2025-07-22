@@ -12,7 +12,7 @@ describe('App Integration', () => {
   it('renders home page by default', () => {
     render(<App />);
     
-    expect(screen.getByRole('heading', { name: 'Welcome to Splitifyd v2' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Effortless Bill Splitting,Simplified & Smart.');
   });
 
   it('renders 404 page for invalid routes', () => {
@@ -46,7 +46,7 @@ describe('App Integration', () => {
   });
 
   it('handles terms of service route correctly', () => {
-    window.history.replaceState({}, '', '/terms');
+    window.history.replaceState({}, '', '/terms-of-service');
     
     render(<App />);
     
@@ -54,7 +54,7 @@ describe('App Integration', () => {
   });
 
   it('handles privacy policy route correctly', () => {
-    window.history.replaceState({}, '', '/privacy');
+    window.history.replaceState({}, '', '/privacy-policy');
     
     render(<App />);
     
@@ -62,7 +62,7 @@ describe('App Integration', () => {
   });
 
   it('handles cookie policy route correctly', () => {
-    window.history.replaceState({}, '', '/cookies');
+    window.history.replaceState({}, '', '/cookies-policy');
     
     render(<App />);
     
