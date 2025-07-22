@@ -8,8 +8,9 @@
   ],
   "scripts": {
     "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
-    "dev:prep": "cd firebase && npm run clean && cd .. && npm run build",
+    "dev:prep": "npm run clean:logs && cd firebase && npm run clean && cd .. && npm run build",
     "dev": "npm run dev:prep && concurrently \"cd webapp && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
+    "clean:logs": "rm -f firebase/*.log || true",
     "build": "npm run build -ws --if-present",
     "watch": "npm run watch -ws --if-present",
     "clean": "npm run clean -ws --if-present",
@@ -19,7 +20,7 @@
     "test:performance": "cd firebase/functions && npm run test:performance",
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
     "report": "repo-statter . -o reports",
-    "webapp-v2:dev": "cd webapp-v2 && npm run dev",
+    "webapp-v2:dev": "npm run clean:logs && cd webapp-v2 && npm run dev",
     "webapp-v2:build": "cd webapp-v2 && npm run build",
     "webapp-v2:preview": "cd webapp-v2 && npm run preview"
   },

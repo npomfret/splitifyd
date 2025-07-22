@@ -1,15 +1,13 @@
-// Single shared type file for webapp
-// This file contains all type definitions used by the webapp client
-
-// Configuration Types - Used by webapp for API client
 /**
- * Firebase client SDK configuration.
- * These values are used by the Firebase JavaScript SDK in the client application.
+ * Shared API Types
  * 
- * NOTE: In development/emulator mode, these values are not actually used by Firebase
- * since the emulator provides its own auth and storage services. We populate them
- * with dummy values to satisfy the SDK initialization requirements.
+ * This file contains all type definitions shared between the client and server.
+ * These types are used in the API contract and throughout the application.
+ * 
+ * IMPORTANT: This file should be the single source of truth for API types.
  */
+
+// Configuration Types
 export interface FirebaseConfig {
   apiKey: string;
   authDomain: string;
@@ -45,15 +43,10 @@ export interface AppConfiguration {
   api: ApiConfig;
   environment: EnvironmentConfig;
   formDefaults: FormDefaults;
-  /**
-   * URL for Firebase Auth emulator - only populated in development.
-   * Used by the client to connect to the local auth emulator instead of production Firebase Auth.
-   * Format: http://localhost:9099 (or whatever port the auth emulator is running on)
-   */
   firebaseAuthUrl?: string;
 }
 
-// Group Types - Actually used by webapp
+// User Types
 export interface Member {
   uid: string;
   name: string;
@@ -184,4 +177,3 @@ export interface FirestoreTimestamp {
   _seconds: number;
   _nanoseconds: number;
 }
-
