@@ -272,6 +272,55 @@ Extract TypeScript types from Firebase functions to create a strict contract bet
 - End Date: TBD
 - Duration: ~9 hours
 
+## Detailed Implementation Plan (2025-07-22)
+
+### Task Analysis
+After reviewing the codebase:
+- API endpoints are well-defined in `firebase/functions/src/index.ts`
+- Client API calls exist in `webapp/src/js/api.ts` with some types
+- Shared types already exist via symlink structure
+- Strong foundation for generating contracts
+
+### Simplified Approach
+Based on the "minimalist" and "YAGNI" principles from directives:
+
+1. **Phase 1: Manual Contract Definition (2 hours)**
+   - Manually create initial API contract types
+   - Use existing types from `webapp/src/js/types/api.ts`
+   - Focus on critical endpoints first
+   - Skip complex code generation initially
+
+2. **Phase 2: Runtime Validation (3 hours)**
+   - Implement zod schemas for API responses
+   - Create validation wrapper for fetch calls
+   - Add clear error messages for validation failures
+   - Test validation in browser with real API calls
+
+3. **Phase 3: Type-Safe Client (2 hours)**
+   - Build simple typed fetch wrapper
+   - Use contract types for full type safety
+   - Ensure autocomplete works in IDE
+   - Keep it minimal - no fancy abstractions
+
+4. **Phase 4: Integration & Testing (2 hours)**
+   - Test with real Firebase emulator
+   - Verify all endpoints work
+   - Document usage patterns
+   - Create migration guide from old api.ts
+
+### Small Commits Strategy
+1. **Commit 1**: Define core API contract types
+2. **Commit 2**: Add zod schemas and validation
+3. **Commit 3**: Implement type-safe client
+4. **Commit 4**: Add tests and documentation
+5. **Commit 5**: Integration with webapp-v2
+
+### Risk Mitigation
+- Start with manual types (can automate later)
+- Use existing shared types structure
+- Test incrementally with real API
+- Keep old API client during transition
+
 ## Notes
 
 - This is critical infrastructure - take time to get it right
