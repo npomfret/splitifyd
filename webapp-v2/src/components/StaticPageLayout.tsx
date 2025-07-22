@@ -5,11 +5,12 @@ interface StaticPageLayoutProps {
   title: string;
   description?: string;
   canonical?: string;
+  ogImage?: string;
   structuredData?: any;
   children: ComponentChildren;
 }
 
-export function StaticPageLayout({ title, description, canonical, structuredData, children }: StaticPageLayoutProps) {
+export function StaticPageLayout({ title, description, canonical, ogImage, structuredData, children }: StaticPageLayoutProps) {
 
   return (
     <div class="min-h-screen bg-gray-50">
@@ -17,6 +18,7 @@ export function StaticPageLayout({ title, description, canonical, structuredData
         title={title}
         description={description}
         canonical={canonical}
+        ogImage={ogImage}
         structuredData={structuredData}
       />
       {/* Header */}
