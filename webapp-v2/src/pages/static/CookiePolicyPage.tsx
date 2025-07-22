@@ -1,7 +1,7 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function CookiePolicyPage() {
-  const baseUrl = import.meta.env.PROD ? 'https://splitifyd.com' : 'http://localhost:6002';
+  const baseUrl = window.location.origin;
   const canonical = `${baseUrl}/v2/cookies`;
   
   const structuredData = {

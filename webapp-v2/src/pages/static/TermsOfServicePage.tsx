@@ -1,7 +1,7 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function TermsOfServicePage() {
-  const baseUrl = import.meta.env.PROD ? 'https://splitifyd.com' : 'http://localhost:6002';
+  const baseUrl = window.location.origin;
   const canonical = `${baseUrl}/v2/terms`;
   
   const structuredData = {

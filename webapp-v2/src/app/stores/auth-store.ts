@@ -36,7 +36,6 @@ class AuthStoreImpl implements AuthStore {
       });
       
     } catch (error) {
-      console.error('Auth initialization failed:', error);
       errorSignal.value = error instanceof Error ? error.message : 'Auth initialization failed';
       loadingSignal.value = false;
       initializedSignal.value = true;

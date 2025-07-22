@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom';
 
 // Global test setup
+// Set up window.API_BASE_URL for tests
+(window as any).API_BASE_URL = 'http://127.0.0.1:5001/splitifyd/us-central1';
 global.ResizeObserver = global.ResizeObserver || 
   class ResizeObserver {
     observe() {}

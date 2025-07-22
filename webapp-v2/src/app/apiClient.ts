@@ -9,12 +9,12 @@ import type { ApiContract } from '@shared/apiContract';
 import { responseSchemas, ApiErrorResponseSchema } from '@shared/apiSchemas';
 import { z } from 'zod';
 
-// API configuration
-// In development, use the environment variable (required)
-// In production, use relative URL
-const API_BASE_URL = import.meta.env.DEV 
-  ? import.meta.env.VITE_API_BASE_URL + '/api'
-  : '/api';
+// API configuration - use window.API_BASE_URL injected during build
+const apiBaseUrl = (window as any).API_BASE_URL;
+if (!apiBaseUrl) {
+  throw new Error('API_BASE_URL is not set - check build configuration');
+}
+const API_BASE_URL = apiBaseUrl + '/api';
 
 // Custom error class for API validation errors
 export class ApiValidationError extends Error {
@@ -169,7 +169,6 @@ export class ApiClient {
       // Validate response
       const result = validator.safeParse(data);
       if (!result.success) {
-        console.error('API validation error:', result.error.issues);
         throw new ApiValidationError(
           `Response from ${endpoint as string} does not match expected type`,
           result.error.issues

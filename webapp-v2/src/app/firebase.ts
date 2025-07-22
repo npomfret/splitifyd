@@ -24,32 +24,27 @@ class FirebaseService {
       return;
     }
 
-    try {
-      // Fetch configuration from API
-      const config = await firebaseConfigManager.getConfig();
-      
-      // Initialize Firebase with config from API
-      this.app = initializeApp(config.firebase);
-      this.auth = getAuth(this.app);
-      
-      // Connect to emulator if auth URL is provided (development only)
-      if (config.firebaseAuthUrl && import.meta.env.DEV) {
-        try {
-          connectAuthEmulator(this.auth, config.firebaseAuthUrl, { disableWarnings: true });
-        } catch (error) {
-          const authError = error as AuthError;
-          if (authError.code !== 'auth/emulator-config-failed') {
-            throw error;
-          }
-          // Emulator already connected, continue
+    // Fetch configuration from API
+    const config = await firebaseConfigManager.getConfig();
+    
+    // Initialize Firebase with config from API
+    this.app = initializeApp(config.firebase);
+    this.auth = getAuth(this.app);
+    
+    // Connect to auth emulator in development (server provides URL only in emulator mode)
+    if (config.firebaseAuthUrl) {
+      try {
+        connectAuthEmulator(this.auth, config.firebaseAuthUrl, { disableWarnings: true });
+      } catch (error) {
+        const authError = error as AuthError;
+        if (authError.code !== 'auth/emulator-config-failed') {
+          throw error;
         }
+        // Emulator already connected, continue
       }
-      
-      this.initialized = true;
-    } catch (error) {
-      console.error('Firebase initialization failed:', error);
-      throw error;
     }
+    
+    this.initialized = true;
   }
 
   getAuth(): Auth {

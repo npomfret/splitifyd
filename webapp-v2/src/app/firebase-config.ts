@@ -70,20 +70,13 @@ class FirebaseConfigManager {
 
 export const firebaseConfigManager = new FirebaseConfigManager();
 
-// Set up API base URL based on environment
+// Set up API base URL from window object (injected during build)
 const setupApiBaseUrl = () => {
-  if (import.meta.env.DEV) {
-    // Development - use local emulator
-    firebaseConfigManager.setApiBaseUrl('http://127.0.0.1:5001/splitifyd/us-central1');
-  } else {
-    // Production - will be set by deployment
-    const prodUrl = (window as any).API_BASE_URL;
-    if (prodUrl) {
-      firebaseConfigManager.setApiBaseUrl(prodUrl);
-    } else {
-      console.warn('API_BASE_URL not set in production');
-    }
+  const apiBaseUrl = (window as any).API_BASE_URL;
+  if (!apiBaseUrl) {
+    throw new Error('API_BASE_URL is not set - check build configuration');
   }
+  firebaseConfigManager.setApiBaseUrl(apiBaseUrl);
 };
 
 setupApiBaseUrl();

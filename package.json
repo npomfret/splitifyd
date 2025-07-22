@@ -9,7 +9,7 @@
   "scripts": {
     "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
     "dev:prep": "npm run clean:logs && cd firebase && npm run clean && cd .. && npm run build",
-    "dev": "npm run dev:prep && concurrently \"cd webapp && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
+    "dev": "npm run dev:prep && concurrently \"cd webapp && npm run watch\" \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
     "clean:logs": "rm -f firebase/*.log || true",
     "build": "npm run build -ws --if-present",
     "build:all": "npm run build -w webapp && npm run build -w webapp-v2",
