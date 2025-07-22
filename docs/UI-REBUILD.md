@@ -26,14 +26,10 @@
 
 ### 🔧 Development
 ```bash
-# Integrated development (recommended)
+# Start integrated development environment
 npm run dev:integrated
 # Old app: http://localhost:6002/
 # New app: http://localhost:6002/v2/
-
-# Standalone webapp-v2 dev (for rapid iteration)
-npm run webapp-v2:dev
-# Visit http://localhost:3000
 ```
 
 ### 💡 Key Decisions

@@ -15,8 +15,8 @@ export default defineConfig(({ mode }) => ({
     }
   },
   server: {
-    port: 3000,
-    open: true
+    // Only used for temporary development
+    open: false
   },
   build: {
     outDir: '../firebase/public/v2',

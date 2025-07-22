@@ -58,7 +58,7 @@ Total: ~2 hours
 
 ### Basic Test Scenarios
 1. **Homepage Load**
-   - [ ] Navigate to http://localhost:3000
+   - [ ] Navigate to http://localhost:6002/v2/
    - [ ] Check for console errors
    - [ ] Take desktop screenshot (1440px)
    - [ ] Take mobile screenshot (375px)

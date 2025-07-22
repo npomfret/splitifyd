@@ -21,9 +21,7 @@
     "test:performance": "cd firebase/functions && npm run test:performance",
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
     "report": "repo-statter . -o reports",
-    "webapp-v2:dev": "npm run clean:logs && cd webapp-v2 && npm run dev",
     "webapp-v2:build": "cd webapp-v2 && npm run build",
-    "webapp-v2:preview": "cd webapp-v2 && npm run preview",
     "dev:integrated": "npm run clean:logs && npm run build:all && cd firebase && npm run link-webapp && npm run start-emulators"
   },
   "devDependencies": {

@@ -11,9 +11,9 @@ The webapp-v2 (new Preact app) is now integrated with Firebase hosting, allowing
 - **Shared hosting**: Both apps run on the same Firebase emulator (port 6002)
 - **Shared auth**: Authentication state shared via localStorage
 
-## Development Workflows
+## Development Workflow
 
-### 1. Integrated Development (Recommended)
+### Integrated Development
 
 Run both apps together through Firebase hosting:
 
@@ -26,18 +26,7 @@ npm run dev:integrated
 # - New app: http://localhost:6002/v2/
 ```
 
-### 2. Standalone Development
-
-For rapid development of webapp-v2 only:
-
-```bash
-# Run webapp-v2 with Vite dev server (HMR enabled)
-npm run webapp-v2:dev
-
-# Access at: http://localhost:3000/
-```
-
-### 3. Build Commands
+### Build Commands
 
 ```bash
 # Build both apps
