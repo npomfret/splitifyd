@@ -50,6 +50,12 @@ Note: assume the emulator is running and changes are automatically built and ref
 - ES modules: `import { foo } from 'bar'`
 - TypeScript strict mode
 
+# TypeScript Execution
+- ❌ **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems
+- ✅ **Always use `tsx` instead** for TypeScript execution
+- ✅ Use `npx tsx script.ts` in npm scripts and bash commands
+- ✅ tsx is the reliable TypeScript runner for this project
+
 # Directives
 Read these
 - docs/directives/type-safety.md

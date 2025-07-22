@@ -129,32 +129,31 @@ Total: ~1.5 hours
 
 ## IMPLEMENTATION STATUS: COMPLETE ✅
 
-### What Was Built
-- ✅ `scripts/browser-test-v2.ts` - Webapp-v2 focused testing script
-- ✅ `npm run test:browser-v2` - Easy command to run browser tests
+### What Was Built (Now Replaced by MCP)
+- ❌ ~~`scripts/browser-test-v2.ts` - Webapp-v2 focused testing script~~ (REMOVED)
+- ❌ ~~`npm run test:browser-v2` - Easy command to run browser tests~~ (REMOVED)
 - ✅ Server connectivity verification (both routes return HTTP 200)
 - ✅ Comprehensive manual testing checklist
 - ✅ Viewport testing guidance for mobile/tablet/desktop
 - ✅ Preact-specific testing considerations
 
-### How to Use
-```bash
-# Run the browser testing script
-npm run test:browser-v2
-```
+### How to Use (MCP Browser Automation)
 
-The script will:
-1. ✅ Check server connectivity to both webapp-v2 routes
-2. 🔍 Provide detailed manual testing checklist
-3. 📋 Guide you through responsive testing
-4. 📊 Generate a summary report
+With MCP configured, Claude can now automatically:
+1. ✅ Navigate to webapp-v2 routes
+2. ✅ Take screenshots at multiple viewports
+3. ✅ Check for console errors via JavaScript evaluation  
+4. ✅ Verify page elements and functionality
 
-### Testing Results
-When you run `npm run test:browser-v2`, you should see:
-- ✅ Server connectivity verification (HTTP 200 responses)
-- 🔍 Detailed manual testing instructions for each route
-- 📋 Viewport-specific testing guidance
-- 📊 Summary report with pass/fail/manual counts
+Simply ask Claude to test webapp-v2 and it will use MCP tools automatically.
+
+### Testing Results (MCP Automation)
+With MCP browser testing, you get:
+- ✅ Automatic navigation and screenshot capture
+- ✅ Real-time console error detection
+- ✅ Multi-viewport testing (mobile/tablet/desktop)
+- ✅ Page content verification
+- ✅ Instant visual feedback
 
 ### Completed Tasks ✅
 

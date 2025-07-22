@@ -22,7 +22,7 @@
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
     "report": "repo-statter . -o reports",
     "webapp-v2:build": "cd webapp-v2 && npm run build",
-    "test:browser-v2": "npx tsx scripts/browser-test-v2.ts",
+    "test:webapp-v2": "npx tsx scripts/mcp-test-webapp-v2.ts",
     "dev:integrated": "npm run clean:logs && npm run build:all && cd firebase && npm run link-webapp && npm run start-emulators"
   },
   "devDependencies": {
