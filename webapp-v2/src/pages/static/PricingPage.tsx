@@ -1,10 +1,45 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function PricingPage() {
+  const baseUrl = import.meta.env.PROD ? 'https://splitifyd.com' : 'http://localhost:6002';
+  const canonical = `${baseUrl}/v2/pricing`;
+  
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Pricing - Splitifyd",
+    "description": "Simple, transparent pricing for Splitifyd. Split bills with friends for free.",
+    "url": canonical,
+    "mainEntity": {
+      "@type": "Product",
+      "name": "Splitifyd",
+      "description": "Split bills easily with friends and family. Track expenses and settle debts effortlessly.",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free Plan",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Perfect for personal use with unlimited friends and expense tracking"
+        },
+        {
+          "@type": "Offer", 
+          "name": "Premium Plan",
+          "price": "5",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/ComingSoon",
+          "description": "Advanced features including reporting and receipt scanning"
+        }
+      ]
+    }
+  };
+
   return (
     <StaticPageLayout 
       title="Pricing" 
       description="Simple, transparent pricing for Splitifyd. Split bills with friends for free."
+      canonical={canonical}
+      structuredData={structuredData}
     >
       <div class="space-y-8">
         {/* Pricing Hero */}

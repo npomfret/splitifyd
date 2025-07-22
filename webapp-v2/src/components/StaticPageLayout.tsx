@@ -1,25 +1,24 @@
 import { ComponentChildren } from 'preact';
+import { SEOHead } from './SEOHead';
 
 interface StaticPageLayoutProps {
   title: string;
   description?: string;
+  canonical?: string;
+  structuredData?: any;
   children: ComponentChildren;
 }
 
-export function StaticPageLayout({ title, description, children }: StaticPageLayoutProps) {
-  // Update document title for SEO
-  if (typeof document !== 'undefined') {
-    document.title = `${title} | Splitifyd`;
-    
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription && description) {
-      metaDescription.setAttribute('content', description);
-    }
-  }
+export function StaticPageLayout({ title, description, canonical, structuredData, children }: StaticPageLayoutProps) {
 
   return (
     <div class="min-h-screen bg-gray-50">
+      <SEOHead 
+        title={title}
+        description={description}
+        canonical={canonical}
+        structuredData={structuredData}
+      />
       {/* Header */}
       <header class="bg-white shadow-sm border-b">
         <div class="max-w-4xl mx-auto px-4 py-6">

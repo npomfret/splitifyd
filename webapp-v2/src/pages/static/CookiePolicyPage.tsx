@@ -1,10 +1,28 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function CookiePolicyPage() {
+  const baseUrl = import.meta.env.PROD ? 'https://splitifyd.com' : 'http://localhost:6002';
+  const canonical = `${baseUrl}/v2/cookies`;
+  
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Cookie Policy - Splitifyd",
+    "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies.",
+    "url": canonical,
+    "dateModified": "2025-01-22",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Splitifyd"
+    }
+  };
+
   return (
     <StaticPageLayout 
       title="Cookie Policy" 
       description="Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies."
+      canonical={canonical}
+      structuredData={structuredData}
     >
       <div class="space-y-6">
         <div class="text-sm text-gray-500 mb-8">

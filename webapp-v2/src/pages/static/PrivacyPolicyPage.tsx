@@ -1,10 +1,33 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function PrivacyPolicyPage() {
+  const baseUrl = import.meta.env.PROD ? 'https://splitifyd.com' : 'http://localhost:6002';
+  const canonical = `${baseUrl}/v2/privacy`;
+  
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Privacy Policy - Splitifyd",
+    "description": "Privacy Policy for Splitifyd - Learn how we collect, use, and protect your data.",
+    "url": canonical,
+    "dateModified": "2025-01-22",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Splitifyd"
+    },
+    "mainEntity": {
+      "@type": "PrivacyPolicy",
+      "name": "Splitifyd Privacy Policy",
+      "dateModified": "2025-01-22"
+    }
+  };
+
   return (
     <StaticPageLayout 
       title="Privacy Policy" 
       description="Privacy Policy for Splitifyd - Learn how we collect, use, and protect your data."
+      canonical={canonical}
+      structuredData={structuredData}
     >
       <div class="space-y-6">
         <div class="text-sm text-gray-500 mb-8">

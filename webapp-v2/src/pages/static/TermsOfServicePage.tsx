@@ -1,10 +1,28 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function TermsOfServicePage() {
+  const baseUrl = import.meta.env.PROD ? 'https://splitifyd.com' : 'http://localhost:6002';
+  const canonical = `${baseUrl}/v2/terms`;
+  
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Terms of Service - Splitifyd",
+    "description": "Terms of Service for Splitifyd - Read about our policies and user agreements.",
+    "url": canonical,
+    "dateModified": "2025-01-22",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Splitifyd"
+    }
+  };
+
   return (
     <StaticPageLayout 
       title="Terms of Service" 
       description="Terms of Service for Splitifyd - Read about our policies and user agreements."
+      canonical={canonical}
+      structuredData={structuredData}
     >
       <div class="space-y-6">
         <div class="text-sm text-gray-500 mb-8">
