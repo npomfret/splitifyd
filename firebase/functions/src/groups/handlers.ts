@@ -17,6 +17,7 @@ import {
   GroupListResponse,
   GroupDocument,
 } from '../types/group-types';
+import { UserBalance } from '../types/webapp-shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 
@@ -182,7 +183,7 @@ export const getGroup = async (
   const { group } = await fetchGroupWithAccess(groupId, userId);
 
   // Add balance information
-  let userBalance = 0;
+  let userBalance: UserBalance | null = null;
   try {
     const balanceDoc = await admin.firestore()
       .collection('group-balances')
@@ -191,15 +192,21 @@ export const getGroup = async (
     
     if (balanceDoc.exists) {
       const balanceData = balanceDoc.data();
-      userBalance = balanceData?.userBalances?.[userId] || 0;
+      userBalance = balanceData?.userBalances?.[userId] || null;
     }
     
     const groupWithBalance: GroupWithBalance = {
       ...group,
       balance: {
-        userBalance,
-        totalOwed: userBalance > 0 ? userBalance : 0,
-        totalOwing: userBalance < 0 ? Math.abs(userBalance) : 0,
+        userBalance: userBalance || {
+          userId,
+          name: '',
+          owes: {},
+          owedBy: {},
+          netBalance: 0
+        },
+        totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
+        totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
       },
     };
 
@@ -345,7 +352,7 @@ export const listGroups = async (
       const group = transformGroupDocument(doc);
       
       // Calculate balance for each group
-      let userBalance = 0;
+      let userBalance: UserBalance | null = null;
       try {
         const balanceDoc = await admin.firestore()
           .collection('group-balances')
@@ -354,7 +361,7 @@ export const listGroups = async (
         
         if (balanceDoc.exists) {
           const balanceData = balanceDoc.data();
-          userBalance = balanceData?.userBalances?.[userId] || 0;
+          userBalance = balanceData?.userBalances?.[userId] || null;
         }
       } catch (error) {
         logger.warn('Failed to fetch balance for group', { groupId: group.id });
@@ -370,9 +377,15 @@ export const listGroups = async (
         description: group.description,
         memberCount: group.members.length,
         balance: {
-          userBalance,
-          totalOwed: userBalance > 0 ? userBalance : 0,
-          totalOwing: userBalance < 0 ? Math.abs(userBalance) : 0,
+          userBalance: userBalance || {
+            userId,
+            name: '',
+            owes: {},
+            owedBy: {},
+            netBalance: 0
+          },
+          totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
+          totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
         },
         lastActivity,
         lastActivityRaw: lastActivityDate,

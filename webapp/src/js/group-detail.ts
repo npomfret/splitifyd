@@ -606,7 +606,8 @@ async function showShareGroupModal(): Promise<void> {
     }
 
     const response = await apiService.generateShareableLink(currentGroupId);
-    const shareUrl = response.data!.shareableUrl;
+    const linkId = response.data!.linkId;
+    const shareUrl = `${window.location.origin}/join?link=${linkId}`;
 
 
         // Create Body

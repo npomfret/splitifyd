@@ -63,38 +63,131 @@ export interface Member {
   joinedAt?: string;
 }
 
+// Balance Types
+export interface UserBalance {
+  userId: string;
+  name: string;
+  owes: Record<string, number>;
+  owedBy: Record<string, number>;
+  netBalance: number;
+}
+
+export interface GroupBalance {
+  userBalance: UserBalance;
+  totalOwed: number;
+  totalOwing: number;
+}
+
 // Group Types
-export interface GroupDetail {
+export interface Group {
   id: string;
   name: string;
   description?: string;
-  members: Member[];
   createdBy: string;
+  memberIds: string[];
+  memberEmails: string[];
+  members: Member[];
+  expenseCount: number;
+  lastExpenseTime?: string;
+  lastExpense?: {
+    description: string;
+    amount: number;
+    date: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
 
-export interface GroupDocument extends GroupDetail {
-  // Additional fields that might be in Firestore but not in API response
+export interface GroupSummary {
+  id: string;
+  name: string;
+  description?: string;
+  memberCount: number;
+  balance: GroupBalance;
+  lastActivity: string;
+  lastActivityRaw: string;
+  lastExpense?: {
+    description: string;
+    amount: number;
+    date: string;
+  };
+  expenseCount: number;
 }
 
+export interface GroupListResponse {
+  groups: GroupSummary[];
+  count: number;
+  hasMore: boolean;
+  nextCursor?: string;
+  pagination: {
+    limit: number;
+    order: 'asc' | 'desc';
+  };
+}
+
+// This is what the frontend currently expects
 export interface TransformedGroup {
   id: string;
   name: string;
   memberCount: number;
-  yourBalance: number;
+  yourBalance: number;  // This should be balance.userBalance.netBalance
   lastActivity: string;
   lastActivityRaw: string;
-  lastExpense: { description: string; amount: number; date: string } | null;
+  lastExpense: {
+    description: string;
+    amount: number;
+    date: string;
+  } | null;
   members: Member[];
   expenseCount: number;
   lastExpenseTime: string | null;
+  isSettledUp?: boolean;
 }
 
+// Group Detail for single group view
+export interface GroupDetail extends Group {
+  // Extends Group with no additional fields currently
+}
+
+// Firestore document structure
+export interface GroupDocument {
+  id: string;
+  name: string;
+  description?: string;
+  createdBy: string;
+  memberIds: string[];
+  memberEmails: string[];
+  members: Member[];
+  expenseCount: number;
+  lastExpenseTime?: Date;
+  lastExpense?: {
+    description: string;
+    amount: number;
+    date: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Request/Response types
 export interface CreateGroupRequest {
   name: string;
   description?: string;
   memberEmails?: string[];
+}
+
+export interface ShareableLinkResponse {
+  linkId: string;
+  groupId: string;
+  shareUrl: string;
+  expiresAt: string;
+}
+
+export interface JoinGroupResponse {
+  success: boolean;
+  groupId: string;
+  groupName: string;
+  message: string;
 }
 
 // Expense Types
@@ -108,19 +201,19 @@ export interface ExpenseSplit {
 export interface ExpenseData {
   id: string;
   groupId: string;
-  description: string;
-  amount: number;
+  createdBy: string;
   paidBy: string;
   paidByName?: string;
+  amount: number;
+  description: string;
   category: string;
-  date: string;
+  date: string;  // ISO string
   splitType: 'equal' | 'exact' | 'percentage';
   participants: string[];
   splits: ExpenseSplit[];
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
   receiptUrl?: string;
+  createdAt: string;  // ISO string
+  updatedAt: string;  // ISO string
 }
 
 export interface CreateExpenseRequest {
@@ -148,40 +241,28 @@ export interface UpdateExpenseRequest {
   receiptUrl?: string;
 }
 
-// Balance Types
-export interface GroupBalances {
-  balances: Array<{
-    userId: string;
-    userName: string;
-    balance: number;
-    owes: Array<{ userId: string; userName: string; amount: number }>;
-    owedBy: Array<{ userId: string; userName: string; amount: number }>;
-  }>;
-  simplifiedDebts: Array<{
-    fromUserId: string;
-    fromUserName: string;
-    toUserId: string;
-    toUserName: string;
-    amount: number;
-  }>;
-}
-
-// Share Types
-export interface ShareableLinkResponse {
-  linkId: string;
-  shareUrl: string;
-  expiresAt: string;
-}
-
-export interface JoinGroupResponse {
-  groupId: string;
-  groupName: string;
-  success: boolean;
-}
-
-// Firestore Types
+// Firestore Timestamp type (for frontend compatibility)
 export interface FirestoreTimestamp {
   _seconds: number;
   _nanoseconds: number;
 }
 
+// Balance calculation types
+export interface SimplifiedDebt {
+  from: {
+    userId: string;
+    name: string;
+  };
+  to: {
+    userId: string;
+    name: string;
+  };
+  amount: number;
+}
+
+export interface GroupBalances {
+  groupId: string;
+  userBalances: Record<string, UserBalance>;
+  simplifiedDebts: SimplifiedDebt[];
+  lastUpdated: string;  // ISO string
+}

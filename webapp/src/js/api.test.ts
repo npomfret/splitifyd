@@ -46,28 +46,48 @@ describe('ApiService', () => {
     });
 
     describe('getGroups', () => {
-        it('should fetch and transform groups data', async () => {
+        it('should fetch groups data', async () => {
             const mockResponse = {
-                documents: [
+                groups: [
                     {
                         id: 'group-1',
-                        data: {
-                            name: 'Test Group',
-                            members: [{ uid: 'user-1', name: 'User 1' }],
-                            yourBalance: 50,
-                            lastExpenseTime: '2023-01-01T00:00:00Z',
-                            lastExpense: 'Pizza',
-                            expenseCount: 5
-                        }
+                        name: 'Test Group',
+                        description: 'Test description',
+                        memberCount: 2,
+                        balance: {
+                            userBalance: {
+                                userId: 'user-1',
+                                name: 'User 1',
+                                owes: {},
+                                owedBy: { 'user-2': 50 },
+                                netBalance: 50
+                            },
+                            totalOwed: 50,
+                            totalOwing: 0
+                        },
+                        lastActivity: '2 hours ago',
+                        lastActivityRaw: '2023-01-01T00:00:00Z',
+                        lastExpense: {
+                            description: 'Pizza',
+                            amount: 100,
+                            date: '2023-01-01'
+                        },
+                        expenseCount: 5
                     }
-                ]
+                ],
+                count: 1,
+                hasMore: false,
+                pagination: {
+                    limit: 20,
+                    order: 'desc' as const
+                }
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);
 
             const result = await apiService.getGroups();
 
-            expect(apiClient.request).toHaveBeenCalledWith('/listDocuments', {
+            expect(apiClient.request).toHaveBeenCalledWith('/groups', {
                 method: 'GET'
             });
 
@@ -75,15 +95,23 @@ describe('ApiService', () => {
             expect(result[0]).toMatchObject({
                 id: 'group-1',
                 name: 'Test Group',
-                memberCount: 1,
-                yourBalance: 50,
-                lastExpense: 'Pizza',
+                memberCount: 2,
+                balance: {
+                    userBalance: {
+                        netBalance: 50
+                    }
+                },
                 expenseCount: 5
             });
         });
 
-        it('should handle empty documents array', async () => {
-            (apiClient.request as jest.Mock).mockResolvedValue({ documents: [] });
+        it('should handle empty groups array', async () => {
+            (apiClient.request as jest.Mock).mockResolvedValue({ 
+                groups: [],
+                count: 0,
+                hasMore: false,
+                pagination: { limit: 20, order: 'desc' }
+            });
 
             const result = await apiService.getGroups();
 
@@ -106,29 +134,35 @@ describe('ApiService', () => {
                 memberEmails: ['user@example.com']
             };
 
-            const mockResponse = { id: 'new-group-id' };
+            const mockResponse = {
+                id: 'new-group-id',
+                name: 'New Group',
+                description: 'Test description',
+                createdBy: 'user-1',
+                memberIds: ['user-1'],
+                memberEmails: ['user@example.com'],
+                members: [{ uid: 'user-1', name: 'User 1', initials: 'U1' }],
+                expenseCount: 0,
+                createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z'
+            };
             (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);
 
             const result = await apiService.createGroup(groupData);
 
-            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/createDocument', {
+            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/groups', {
                 method: 'POST',
                 body: JSON.stringify({
-                    data: {
-                        name: 'New Group',
-                        description: 'Test description',
-                        memberEmails: ['user@example.com'],
-                        members: [{ uid: 'mock-user-id', name: 'You', initials: 'YO' }],
-                        yourBalance: 0
-                    }
+                    name: 'New Group',
+                    description: 'Test description',
+                    memberEmails: ['user@example.com']
                 })
             });
 
             expect(result).toMatchObject({
                 id: 'new-group-id',
                 name: 'New Group',
-                memberCount: 2,
-                yourBalance: 0
+                description: 'Test description'
             });
         });
 
@@ -147,11 +181,31 @@ describe('ApiService', () => {
                 description: ''
             };
 
-            (apiClient.request as jest.Mock).mockResolvedValue({ id: 'test-id' });
+            const mockResponse = {
+                id: 'test-id',
+                name: 'Trimmed Group',
+                description: '',
+                createdBy: 'user-1',
+                memberIds: ['user-1'],
+                memberEmails: [],
+                members: [],
+                expenseCount: 0,
+                createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z'
+            };
 
-            const result = await apiService.createGroup(groupData);
+            (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);
 
-            expect(result.name).toBe('Trimmed Group');
+            await apiService.createGroup(groupData);
+
+            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/groups', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: 'Trimmed Group',
+                    description: '',
+                    memberEmails: []
+                })
+            });
         });
     });
 
@@ -159,21 +213,22 @@ describe('ApiService', () => {
         it('should fetch group details by ID', async () => {
             const mockResponse = {
                 id: 'group-1',
-                data: {
-                    name: 'Test Group',
-                    description: 'Test description',
-                    members: [],
-                    createdBy: 'user-1',
-                    createdAt: '2023-01-01T00:00:00Z',
-                    updatedAt: '2023-01-01T00:00:00Z'
-                }
+                name: 'Test Group',
+                description: 'Test description',
+                createdBy: 'user-1',
+                memberIds: ['user-1'],
+                memberEmails: [],
+                members: [],
+                expenseCount: 0,
+                createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z'
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);
 
             const result = await apiService.getGroup('group-1');
 
-            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/getDocument?id=group-1', {
+            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/groups/group-1', {
                 method: 'GET'
             });
 
@@ -195,7 +250,7 @@ describe('ApiService', () => {
 
             const result = await apiService.deleteGroup('group-1');
 
-            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/deleteDocument?id=group-1', {
+            expect((apiClient.request as jest.Mock)).toHaveBeenCalledWith('/groups/group-1', {
                 method: 'DELETE'
             });
 
@@ -206,14 +261,31 @@ describe('ApiService', () => {
     describe('getGroupBalances', () => {
         it('should fetch group balances', async () => {
             const mockBalances: GroupBalances = {
-                balances: {
-                    'user-1': 50,
-                    'user-2': -50
+                groupId: 'group-1',
+                userBalances: {
+                    'user-1': {
+                        userId: 'user-1',
+                        name: 'User 1',
+                        owes: {},
+                        owedBy: { 'user-2': 50 },
+                        netBalance: 50
+                    },
+                    'user-2': {
+                        userId: 'user-2',
+                        name: 'User 2',
+                        owes: { 'user-1': 50 },
+                        owedBy: {},
+                        netBalance: -50
+                    }
                 },
-                summary: [
-                    { userId: 'user-1', userName: 'User 1', balance: 50 },
-                    { userId: 'user-2', userName: 'User 2', balance: -50 }
-                ]
+                simplifiedDebts: [
+                    {
+                        from: { userId: 'user-2', name: 'User 2' },
+                        to: { userId: 'user-1', name: 'User 1' },
+                        amount: 50
+                    }
+                ],
+                lastUpdated: '2023-01-01T00:00:00Z'
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockBalances);
@@ -282,6 +354,7 @@ describe('ApiService', () => {
                 id: 'expense-1',
                 ...expenseData,
                 createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z',
                 createdBy: 'user-1',
                 splits: []
             };
@@ -313,6 +386,7 @@ describe('ApiService', () => {
                 participants: ['user-1', 'user-2'],
                 splits: [],
                 createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z',
                 createdBy: 'user-1'
             };
 
@@ -351,6 +425,7 @@ describe('ApiService', () => {
                 participants: ['user-1', 'user-2'],
                 splits: [],
                 createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: '2023-01-01T00:00:00Z',
                 createdBy: 'user-1'
             };
 
@@ -375,7 +450,7 @@ describe('ApiService', () => {
         it('should generate shareable link for group', async () => {
             const mockResponse: ShareableLinkResponse = {
                 linkId: 'share-123',
-                shareableUrl: 'https://example.com/join/share-123',
+                groupId: 'group-1',
                 expiresAt: '2023-12-31T23:59:59Z'
             };
 
@@ -400,8 +475,8 @@ describe('ApiService', () => {
         it('should join group using link', async () => {
             const mockResponse: JoinGroupResponse = {
                 groupId: 'group-1',
-                groupName: 'Test Group',
-                success: true
+                success: true,
+                message: 'Successfully joined group'
             };
 
             (apiClient.request as jest.Mock).mockResolvedValue(mockResponse);
