@@ -1,10 +1,31 @@
 # Browser Testing Setup with MCP
 
+> **🚨 ACTION REQUIRED**: MCP browser tools are still not available. See "What You Need To Do" section below.
+
 ## Overview
 Set up automated browser testing using MCP (Model Context Protocol) tools to enable screenshot capture and console error detection during development.
 
+## What You Need To Do
+
+**To enable automated browser testing, you need to:**
+
+1. **Configure MCP in Claude Desktop**
+   - Location: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Add Playwright MCP server configuration (see `docs/mcp-browser-testing-guide.md`)
+   
+2. **Restart Claude Desktop** 
+   - Close Claude Desktop completely
+   - Reopen to load new MCP configuration
+   
+3. **Start New Claude Code CLI Session**
+   - Current session doesn't have MCP browser tools
+   - New session should have access to automated browser testing
+
+4. **Verify MCP Tools Available**
+   - Check for: `mcp__browser__navigate`, `mcp__browser__screenshot`, `mcp__browser__get_console_logs`
+
 ## Prerequisites
-- [ ] MCP configured in Claude desktop config (NOT CURRENTLY AVAILABLE)
+- [ ] MCP configured in Claude desktop config (STILL NOT AVAILABLE - ACTION REQUIRED)
 - [x] webapp-v2 integrated with Firebase hosting at /v2/
 - [x] Understanding of docs/directives/browser-testing.md
 
@@ -106,7 +127,7 @@ Total: ~1.5 hours
 - [x] Phase 3 complete - Integration & documentation
 - [x] Phase 4 complete - Validation & cleanup
 
-## IMPLEMENTATION COMPLETE ✅
+## IMPLEMENTATION STATUS: PARTIALLY COMPLETE ⚠️
 
 ### What Was Built
 - ✅ `scripts/browser-test-v2.ts` - Webapp-v2 focused testing script
@@ -135,14 +156,24 @@ When you run `npm run test:browser-v2`, you should see:
 - 📋 Viewport-specific testing guidance
 - 📊 Summary report with pass/fail/manual counts
 
-### Next Steps & Enhancements
-Future improvements could include:
-- [ ] Add Playwright dependency for full automation
-- [ ] Implement screenshot capture programmatically
-- [ ] Add console error detection via headless browser
-- [ ] Create CI/CD integration for automated testing
-- [ ] Add visual regression testing capabilities
+### Outstanding Tasks & Next Steps
+
+**🚨 IMMEDIATE ACTION REQUIRED:**
+- [ ] **YOU NEED TO**: Configure MCP Playwright server in Claude Desktop
+- [ ] **YOU NEED TO**: Restart Claude Desktop to load MCP configuration  
+- [ ] **YOU NEED TO**: Start new Claude Code CLI session to get MCP tools
+
+**Once MCP is Available:**
+- [ ] Replace manual testing with automated browser navigation
+- [ ] Implement automated screenshot capture for all viewports
+- [ ] Add automated console error detection and reporting
+- [ ] Update `scripts/browser-test-v2.ts` to use MCP browser tools
+
+**Future Enhancements:**
+- [ ] Add Playwright dependency as fallback for CI/CD
+- [ ] Create visual regression testing capabilities
 - [ ] Extend to cover additional routes as webapp-v2 grows
+- [ ] Add performance testing metrics
 
 ### Integration with Development Workflow
 This testing setup integrates with the existing development process:
