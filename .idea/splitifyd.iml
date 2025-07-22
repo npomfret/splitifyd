@@ -10,6 +10,7 @@
       <excludeFolder url="file://$MODULE_DIR$/firebase/functions/coverage" />
       <excludeFolder url="file://$MODULE_DIR$/firebase/functions/lib" />
       <excludeFolder url="file://$MODULE_DIR$/reports" />
+      <excludeFolder url="file://$MODULE_DIR$/directives" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
