@@ -219,10 +219,104 @@ From Firebase logs:
 3. **Loading States** - Infinite spinners with no timeout or error display
 4. **Type Safety** - "$NaN" suggests type coercion issues with balance data
 
+## Dependencies Analysis
+
+### Runtime Dependencies
+1. **GSAP (v3.13.0)** - Animation library used on landing page
+   - Used for scroll-triggered animations
+   - ScrollTrigger plugin for parallax effects
+   - **Preact Compatibility**: ✅ Can work with Preact but may need refactoring
+
+2. **Three.js (v0.178.0)** - 3D graphics library
+   - Powers the interactive globe on landing page
+   - Heavy dependency (750KB+ minified)
+   - **Preact Compatibility**: ✅ Can be integrated but consider lazy loading
+
+3. **ScrollReveal (v4.0.9)** - Scroll animation library
+   - Reveal animations on landing page
+   - **Preact Compatibility**: ⚠️ DOM-based, will need Preact-specific approach
+
+4. **chokidar-cli (v3.0.0)** - File watcher
+   - Development dependency used in build process
+   - Not shipped to production
+
+### Build System
+- **esbuild (v0.24.0)** - Fast JavaScript bundler
+  - Custom configuration with entry point auto-discovery
+  - ESM output format
+  - No minification configured
+  - HTML templating with CSP hash injection
+
+### Development Tools
+- **TypeScript (v5.7.2)** - Strict mode enabled
+- **Jest (v30.0.4)** - Testing framework with jsdom
+- **Husky (v9.1.7)** - Git hooks for quality checks
+- **Lint-staged** - Run tests on commit
+
+### Build Process Analysis
+1. **Multi-step build**:
+   - Clean dist directory
+   - TypeScript type checking
+   - Copy static assets (HTML, CSS, images)
+   - Bundle JS with esbuild
+
+2. **HTML Templating**:
+   - Runtime API URL injection
+   - CSP hash calculation for inline scripts
+   - Manual file copying
+
+3. **Development Experience**:
+   - File watching with chokidar
+   - No Hot Module Replacement (HMR)
+   - Full page reloads on changes
+   - Concurrent watchers for different file types
+
+### Preact Migration Considerations
+
+#### Compatible Libraries
+- ✅ **GSAP** - Can be used with Preact hooks
+- ✅ **Three.js** - Works well in Preact components
+- ✅ **TypeScript** - Excellent Preact support
+
+#### Libraries Needing Replacement
+- ⚠️ **ScrollReveal** - Replace with Preact-friendly alternatives:
+  - Intersection Observer API
+  - Framer Motion
+  - React Spring
+
+#### Build System Changes Needed
+1. **Replace esbuild config** with Vite or similar
+2. **Add HMR support** for better DX
+3. **Component-based bundling** instead of entry points
+4. **Remove manual HTML templating**
+
+### Bundle Size Analysis
+Current production dependencies total:
+- Three.js: ~750KB
+- GSAP + ScrollTrigger: ~100KB
+- ScrollReveal: ~15KB
+- **Total**: ~865KB before app code
+
+Recommendation: Lazy load Three.js only on landing page
+
+### Shared Utilities to Preserve
+
+The webapp has several utility modules that should be preserved during migration:
+
+1. **Logger** (`utils/logger.ts`) - Structured logging system
+2. **Safe DOM** (`utils/safe-dom.ts`) - Type-safe DOM element selection
+3. **Auth Utils** (`utils/auth-utils.ts`) - Authentication helpers
+4. **Form Validation** (`utils/form-validation.ts`) - Input validation
+5. **UI Messages** (`utils/ui-messages.ts`) - User notifications
+6. **UI Visibility** (`utils/ui-visibility.ts`) - Show/hide helpers
+7. **Page Title** (`utils/page-title.ts`) - Dynamic title management
+
+These utilities represent reusable business logic that can be adapted for Preact.
+
 ## Next Steps
 
 1. ✅ **Phase 1 Complete**: User flows documented and screenshots captured
-2. **Phase 2**: Analyze dependencies and build system
+2. ✅ **Phase 2 Complete**: Dependencies analyzed and build system reviewed
 3. **Phase 3**: Extract API contracts and types
 4. **Phase 4**: Document pain points and performance metrics
 5. **Phase 5**: Create migration priority order
