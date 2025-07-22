@@ -219,15 +219,63 @@ Migrate all static content pages (pricing, terms of service, privacy policy, coo
    - Implement structured data
    - Plan content updates
 
+## Detailed Implementation Plan
+
+### 🎯 Commit 1: Base Static Page Layout (45 min)
+**Goal**: Create reusable layout component for all static pages
+- [ ] Create `components/StaticPageLayout.tsx`
+- [ ] Add basic SEO metadata structure  
+- [ ] Set up routing for `/pricing`, `/terms`, `/privacy`, `/cookies`
+- [ ] Test layout renders correctly
+
+### 🎯 Commit 2: Pricing Page Content (1 hour)  
+**Goal**: Migrate pricing page with feature comparison
+- [ ] Create `pages/static/PricingPage.tsx`
+- [ ] Port pricing tiers and features
+- [ ] Add responsive pricing table
+- [ ] Test pricing page functionality
+
+### 🎯 Commit 3: Terms of Service (45 min)
+**Goal**: Migrate terms of service with proper structure
+- [ ] Create `pages/static/TermsOfServicePage.tsx` 
+- [ ] Port existing terms content
+- [ ] Add section navigation
+- [ ] Test content display and links
+
+### 🎯 Commit 4: Privacy & Cookie Policies (1 hour)
+**Goal**: Complete legal compliance pages
+- [ ] Create `pages/static/PrivacyPolicyPage.tsx`
+- [ ] Create `pages/static/CookiePolicyPage.tsx`
+- [ ] Port and structure content
+- [ ] Test all legal pages
+
+### 🎯 Commit 5: SEO Optimization (45 min)
+**Goal**: Enhance SEO for all static pages
+- [ ] Add unique meta titles/descriptions
+- [ ] Implement structured data
+- [ ] Add Open Graph tags
+- [ ] Test SEO metadata
+
+### 🎯 Commit 6: Mobile & Performance (45 min)
+**Goal**: Ensure mobile-first responsive design
+- [ ] Optimize for mobile screens
+- [ ] Test cross-browser compatibility
+- [ ] Validate page load performance
+- [ ] Final testing checklist
+
+**Total**: 5.5 hours broken into 6 small, independent commits
+
 ## Timeline
 
-- Start Date: TBD
+- Start Date: TBD  
 - End Date: TBD
-- Duration: ~6 hours
+- Duration: ~5.5 hours (6 commits × ~1 hour each)
 
 ## Notes
 
 - These pages are important for legal compliance
-- SEO optimization can improve organic traffic
+- SEO optimization can improve organic traffic  
 - Content accuracy is critical
 - Consider automated testing for broken links
+- **This is the simplest task** - good starting point for webapp-v2 migration
+- Each commit is independent and can be tested individually

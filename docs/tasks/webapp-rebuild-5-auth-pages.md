@@ -4,7 +4,7 @@
 Migrate all authentication pages (login, register, reset password) to Preact with proper form handling, validation, and Firebase Auth integration.
 
 ## Prerequisites
-- [ ] Complete webapp-rebuild-3-migration-infrastructure.md
+- [ ] Working Preact app with basic routing (already have this)
 - [ ] Firebase Auth configured in Preact app
 - [ ] API client ready for auth endpoints
 
