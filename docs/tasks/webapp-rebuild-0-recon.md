@@ -74,17 +74,47 @@ Comprehensive analysis of the existing webapp to understand its structure, depen
    - [ ] Set code quality goals (test coverage, type coverage)
    - [ ] Establish user experience benchmarks
 
-### Phase 4: Endpoint Contract Generation (2 days)
+### Phase 3: API Endpoint Analysis (4 hours)
 
-1. **Extract TypeScript types**
-   - [ ] Parse `firebase/functions/src/index.ts`
-   - [ ] Generate request/response types for each endpoint
-   - [ ] Create a contract file that can be shared between frontend and backend
+**Simplified Approach** - Focus on documenting what exists, not generating complex tooling yet.
 
-2. **Set up contract validation**
-   - [ ] Create build-time validation to ensure contracts match implementation
-   - [ ] Set up CI to fail on breaking changes
-   - [ ] Document the contract update process
+1. **Extract API endpoints from webapp**
+   - [ ] Analyze `webapp/src/js/api.ts` for all API calls
+   - [ ] Document each endpoint with:
+     - HTTP method
+     - URL pattern
+     - Request payload shape
+     - Response data shape
+   - [ ] Create simple TypeScript interfaces for each endpoint
+
+2. **Map to Firebase functions**
+   - [ ] Find corresponding handlers in `firebase/functions/src/index.ts`
+   - [ ] Note any mismatches between client expectations and server implementation
+   - [ ] Identify endpoints missing proper TypeScript types
+
+3. **Create endpoint inventory**
+   - [ ] Generate `docs/endpoint-inventory.md` with all findings
+   - [ ] Include examples of actual API calls from the webapp
+   - [ ] Document any authentication requirements
+
+### Phase 4: Migration Planning (4 hours)
+
+1. **Create migration order document**
+   - [ ] Generate `docs/migration-order.md` with prioritized page list
+   - [ ] Consider complexity, dependencies, and user impact
+   - [ ] Group pages into migration "waves"
+   - [ ] Estimate effort for each page
+
+2. **Risk assessment**
+   - [ ] Create `docs/risk-register.md` with identified risks
+   - [ ] Document mitigation strategies for each risk
+   - [ ] Highlight any blockers or unknowns
+   - [ ] Flag features that might need redesign
+
+3. **Success metrics**
+   - [ ] Define clear acceptance criteria for migration
+   - [ ] Set performance benchmarks
+   - [ ] Establish quality gates
 
 ## In-Browser Testing Checklist
 
@@ -98,11 +128,10 @@ After completing analysis:
 
 ## Deliverables
 
-1. **`webapp-analysis.md`** - Complete analysis document
-2. **`endpoint-contracts.ts`** - Generated TypeScript contracts
-3. **`migration-order.md`** - Prioritized list of pages to migrate
-4. **`risk-register.md`** - Identified risks and mitigation strategies
-5. **User flow diagrams** - Visual representation of key user journeys
+1. **`docs/webapp-analysis.md`** - Complete analysis document (✅ In Progress)
+2. **`docs/endpoint-inventory.md`** - API endpoint documentation with types
+3. **`docs/migration-order.md`** - Prioritized list of pages to migrate
+4. **`docs/risk-register.md`** - Identified risks and mitigation strategies
 
 ## Success Criteria
 
@@ -121,11 +150,11 @@ After completing analysis:
 - ✅ Task is valid and ready for implementation
 
 ### Phase Breakdown for Small Commits
-1. **Commit 1**: User flow documentation and current page screenshots
-2. **Commit 2**: Dependencies analysis and build system review
-3. **Commit 3**: API endpoint extraction and contract types
-4. **Commit 4**: Pain points analysis and performance baseline
-5. **Commit 5**: Migration order and risk assessment
+1. **Commit 1**: ✅ User flow documentation and current page screenshots (DONE)
+2. **Commit 2**: ✅ Dependencies analysis and build system review (DONE)
+3. **Commit 3**: API endpoint inventory and documentation
+4. **Commit 4**: Migration order and prioritization
+5. **Commit 5**: Risk assessment and success metrics
 
 ### Priority Analysis Complete
 - **Easiest First**: Landing page → Static pages → Auth flows
@@ -134,10 +163,16 @@ After completing analysis:
 
 ## Timeline
 
-- Start Date: TBD
+- Start Date: 2025-07-22
 - End Date: TBD  
-- Total Duration: ~5 days
-- **Status**: Ready to begin implementation
+- Total Duration: ~1.5 days (8 hours remaining)
+- **Status**: In Progress - Phase 2 Complete
+
+### Progress Update
+- ✅ Phase 1: User flows documented (see webapp-analysis.md)
+- ✅ Phase 2: Dependencies and build system analyzed
+- 🚧 Phase 3: API endpoint contract extraction (NEXT)
+- ⏳ Phase 4: Migration planning and risk assessment
 
 ## Notes
 
