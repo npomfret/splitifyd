@@ -1,5 +1,5 @@
-import { signal, computed, effect } from '@preact/signals';
-import type { AuthState, AuthActions, AuthStore, User } from '../../types/auth';
+import { signal } from '@preact/signals';
+import type { AuthStore, User } from '../../types/auth';
 import { mapFirebaseUser } from '../../types/auth';
 import { firebaseService } from '../firebase';
 
