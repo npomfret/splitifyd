@@ -36,11 +36,11 @@ export async function initializeDashboard(): Promise<void> {
           <div class="header-balance-summary">
             <div class="header-balance-item header-balance-item--negative">
               <span class="header-balance-label">You Owe</span>
-              <span class="header-balance-amount">$0.00</span>
+              <span class="header-balance-amount" id="total-owe-amount">$0.00</span>
             </div>
             <div class="header-balance-item header-balance-item--positive">
               <span class="header-balance-label">Owed to You</span>
-              <span class="header-balance-amount">$0.00</span>
+              <span class="header-balance-amount" id="total-owed-amount">$0.00</span>
             </div>
           </div>
           <div class="header-actions">
@@ -62,10 +62,26 @@ export async function initializeDashboard(): Promise<void> {
     }
   }
 
+  // Create header component with updateBalances method
+  const headerComponent = {
+    updateBalances: (totalOwed: number, totalOwe: number) => {
+      const owedElement = document.getElementById('total-owed-amount');
+      const oweElement = document.getElementById('total-owe-amount');
+      
+      if (owedElement) {
+        owedElement.textContent = `$${totalOwed.toFixed(2)}`;
+      }
+      
+      if (oweElement) {
+        oweElement.textContent = `$${totalOwe.toFixed(2)}`;
+      }
+    }
+  };
+
   // Dynamically import GroupsList when needed
   const { GroupsList } = await import('./groups.js');
   
   // Initialize groups list using existing DOM structure
-  groupsList = new GroupsList('groupsContainer', null);
+  groupsList = new GroupsList('groupsContainer', headerComponent);
   await groupsList.loadGroups();
 }
