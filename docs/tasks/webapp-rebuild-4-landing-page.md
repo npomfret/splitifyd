@@ -1,11 +1,13 @@
 # Webapp Rebuild Task 4: Migrate Landing Page
 
+## Status: ✅ COMPLETED
+
 ## Overview
 Migrate the landing page to Preact, including the complex Three.js globe animation, as the first real page migration to prove the approach.
 
 ## Prerequisites
-- [ ] Working Preact app with basic routing (already have this)
-- [ ] Firebase hosting configured for webapp-v2 (already done at `/v2/*`)
+- [x] Working Preact app with basic routing (already have this)
+- [x] Firebase hosting configured for webapp-v2 (already done at `/v2/*`)
 
 ## Current State
 - Static HTML at `webapp/src/pages/index.html`

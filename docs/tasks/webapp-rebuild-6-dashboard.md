@@ -3,10 +3,10 @@
 ## Overview
 Migrate the dashboard page with group listing, recent activity, and user management features to Preact with reactive state management.
 
-## Prerequisites
-- [ ] Complete webapp-rebuild-5-auth-pages.md
-- [ ] Auth system working in Preact
-- [ ] API client configured for groups
+## Prerequisites  
+- [x] Complete webapp-rebuild-5-auth-pages.md (Auth pages are fully implemented)
+- [x] Auth system working in Preact (authStore and firebase auth working)
+- [x] API client configured for groups (apiClient with groups methods exists)
 
 ## Current State
 - Static dashboard with manual DOM updates
@@ -240,15 +240,212 @@ Migrate the dashboard page with group listing, recent activity, and user managem
    - Enhanced with real-time updates
    - Better error handling
 
+## Detailed Implementation Plan
+
+### Analysis Summary
+After analyzing the existing infrastructure, I found:
+
+1. ✅ **Firebase/Firestore fully integrated** - Complete backend API exists
+2. ✅ **Groups API endpoints available** - Full CRUD operations implemented
+3. ✅ **Authentication working** - Auth store and Firebase auth ready  
+4. ✅ **Type-safe client ready** - apiClient with groups methods exists
+5. ❌ **Missing groups store** - Need state management layer for groups
+6. ❌ **No dashboard UI yet** - Ready to build with existing infrastructure
+
+### Implementation Strategy
+
+**Chosen Approach: Store-First Pattern**
+1. Create groups store similar to auth-store pattern
+2. Build reusable dashboard components  
+3. Implement real-time sync later (MVP first)
+4. Focus on excellent UX with loading states
+
+### Phase-by-Phase Breakdown
+
+#### Phase 1: Groups Store Foundation (2 hours)
+**Purpose**: Create reactive groups state management
+
+**Implementation:**
+1. **Create `src/app/stores/groups-store.ts`**
+   - Follow exact pattern from `auth-store.ts` (proven architecture)
+   - Use Preact signals for reactive state  
+   - Handle loading, error, and data states
+   - Implement CRUD operations with API integration
+
+2. **Store interface:**
+   ```typescript
+   interface GroupsStore {
+     groups: Group[];
+     loading: boolean; 
+     error: string | null;
+     fetchGroups(): Promise<void>;
+     createGroup(data: CreateGroupData): Promise<Group>;
+     updateGroup(id: string, data: UpdateGroupData): Promise<void>;
+     deleteGroup(id: string): Promise<void>;
+   }
+   ```
+
+3. **Error handling strategy:**
+   - Network errors: Clear messaging, retry options
+   - Auth errors: Redirect to login
+   - Validation errors: Field-specific feedback
+   - Server errors: Generic error message
+
+#### Phase 2: Dashboard Page Component (1 hour)  
+**Purpose**: Main dashboard layout and routing
+
+**Implementation:**
+1. **Create `src/pages/DashboardPage.tsx`**
+   - Route protection (redirect if not authenticated)
+   - Loading state while groups fetch
+   - Error boundary for graceful failures
+   - Mobile-responsive layout
+
+2. **Page sections:**
+   - Header with user welcome message
+   - Groups list as primary content
+   - Empty state when no groups
+   - Create group CTA
+
+3. **Route integration:**
+   - Add route to App.tsx: `/dashboard`
+   - Update login redirect target
+   - Handle deep linking properly
+
+#### Phase 3: Groups List Component (1.5 hours)
+**Purpose**: Display and manage groups list
+
+**Implementation:**
+1. **Create `src/components/dashboard/GroupsList.tsx`**
+   - Iterate over groups from store
+   - Handle loading/error states
+   - Sort by most recent activity
+   - Search functionality (client-side initially)
+
+2. **Create `src/components/dashboard/GroupCard.tsx`**
+   - Reuse existing UI components (Card from ui library)
+   - Group name, member count, recent activity
+   - Click to navigate to group detail (placeholder route)
+   - Balance indicator with color coding
+   - Member avatars (initials for MVP)
+
+3. **Accessibility features:**
+   - Proper semantic structure
+   - Keyboard navigation
+   - Screen reader announcements
+   - Focus management
+
+#### Phase 4: Group Creation (1.5 hours)
+**Purpose**: Allow users to create new groups
+
+**Implementation:**
+1. **Create `src/components/dashboard/CreateGroupModal.tsx`**
+   - Modal dialog using existing UI components
+   - Group name input (required)
+   - Description field (optional)
+   - Form validation
+   - Success/error feedback
+
+2. **Create group flow:**
+   - Open modal from dashboard CTA
+   - Validate form client-side
+   - Call groups store createGroup method
+   - Optimistic update (add group immediately)
+   - Navigate to new group on success
+   - Handle errors gracefully
+
+3. **UX enhancements:**
+   - Auto-focus name input
+   - Enter to submit
+   - Escape to close
+   - Loading spinner during creation
+
+#### Phase 5: Dashboard Features & Polish (2 hours)
+**Purpose**: Complete dashboard functionality
+
+**Implementation:**
+1. **User info section:**
+   - Display current user name/email from auth store
+   - Account settings placeholder link
+   - Logout functionality
+   - User avatar (initials)
+
+2. **Empty state component:**
+   - Friendly message when no groups
+   - Clear CTA to create first group
+   - Getting started tips
+   - Illustrations/icons for visual appeal
+
+3. **Error handling:**
+   - Network error retry mechanism
+   - Authentication error redirect
+   - Generic error boundary
+   - Toast notifications for actions
+
+4. **Performance optimizations:**
+   - Lazy loading for large group lists
+   - Debounced search
+   - Optimistic updates
+   - Proper loading states
+
+### Technical Decisions
+
+1. **State Management**: Preact signals (consistent with auth-store)
+2. **API Integration**: Existing apiClient (proven working)
+3. **Real-time Updates**: Phase 2 feature (build solid foundation first) 
+4. **UI Components**: Leverage existing ui library components
+5. **Routing**: Add to existing router setup
+6. **Error Handling**: Comprehensive error boundaries and user feedback
+
+### Risk Mitigation
+
+1. **API Integration**: Use existing proven apiClient 
+2. **State Management**: Follow exact auth-store pattern
+3. **Authentication**: Proper route guards and error handling
+4. **Performance**: Build with scalability in mind
+5. **User Experience**: Clear loading states and error messages
+
+### Commit Strategy
+
+**Commit 1**: Groups store foundation
+- Groups store implementation
+- Basic state management working
+- API integration tested
+
+**Commit 2**: Dashboard layout and routing  
+- DashboardPage component
+- Route protection
+- Basic layout structure
+
+**Commit 3**: Groups list and cards
+- GroupsList component
+- GroupCard component  
+- Display groups from API
+
+**Commit 4**: Group creation functionality
+- CreateGroupModal component
+- Form validation
+- Create group workflow
+
+**Commit 5**: Polish and error handling
+- User info section
+- Empty states
+- Error boundaries
+- Performance optimizations
+
+This approach ensures each commit is independently valuable and testable.
+
 ## Timeline
 
-- Start Date: TBD
-- End Date: TBD
-- Duration: ~8 hours
+- Start Date: When instructed to begin
+- End Date: Same day  
+- Duration: ~8 hours (detailed breakdown above)
+- **Ready to start** - all prerequisites verified ✅
 
 ## Notes
 
-- Dashboard is central hub - must be solid
-- Real-time updates are key feature
-- Consider pagination for large group lists
-- Monitor performance closely
+- Dashboard is central hub - must be solid ✅ 
+- Real-time updates are key feature (Phase 2)
+- Consider pagination for large group lists (performance phase)
+- Monitor performance closely ✅
+- **Infrastructure analysis complete - ready to implement** 🚀
