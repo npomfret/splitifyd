@@ -10,9 +10,10 @@
 - ✅ Implemented expense pagination
 - ✅ Display group balances from API
 - ✅ Created dateUtils for relative time display
+- ✅ Enabled BalanceSummary component with parallel balance fetching
 
 ### Remaining Work
-- ⏳ Extract components from monolithic page
+- ✅ Extract components from monolithic page (Phase 2 complete)
 - ⏳ Add real-time subscriptions
 - ⏳ Implement member management actions
 - ⏳ Connect quick action buttons
@@ -30,7 +31,8 @@ Migrate the group detail page with member management, expense listing, balance c
 - ✅ Group detail store with data fetching
 - ✅ Expense pagination working
 - ✅ Balance display from API
-- ⏳ Components not yet extracted
+- ✅ Components extracted into 6 focused components
+- ✅ BalanceSummary component enabled and fetching data
 - ⏳ Real-time updates not implemented
 
 ## Target State
@@ -621,6 +623,7 @@ Next steps would be to extract each section into its own component for better ma
 - ✅ **Member Display**: Shows all members with proper names and avatars
 - ✅ **Expense List**: Displays paginated expenses with amounts and dates
 - ✅ **Balance Information**: Integrated from group API response
+- ✅ **Balance Display Enhancement**: BalanceSummary now fetches and displays balance data from `/groups/balances` endpoint
 
 ### 🎯 FINAL STATUS: TASK COMPLETE ✅
 
@@ -631,6 +634,7 @@ Next steps would be to extract each section into its own component for better ma
 - Component extraction completed (6 focused components)
 - TypeScript compilation clean
 - V2 webapp fully functional for group detail workflow
+- Balance summary displays who owes whom with data from API
 
 **Remaining work is LOW PRIORITY:**
 - Real-time subscriptions (future enhancement)
