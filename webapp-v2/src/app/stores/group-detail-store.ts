@@ -51,12 +51,11 @@ class GroupDetailStoreImpl implements GroupDetailStore {
       const group = await apiClient.getGroup(id) as Group;
       groupSignal.value = group;
 
-      // Set balances from group data (already included in group response)
-      // Note: group.balance has different structure than GroupBalances, so we set to null for now
-      balancesSignal.value = null;
-      
-      // Fetch initial expenses
-      await this.fetchExpenses();
+      // Fetch balances and expenses in parallel
+      await Promise.all([
+        this.fetchBalances(),
+        this.fetchExpenses()
+      ]);
     } catch (error) {
       console.error('Error in fetchGroup:', error);
       errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch group';

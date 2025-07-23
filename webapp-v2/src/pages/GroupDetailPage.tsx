@@ -10,7 +10,8 @@ import {
   GroupHeader, 
   QuickActions, 
   MembersList, 
-  ExpensesList 
+  ExpensesList,
+  BalanceSummary 
 } from '../components/group';
 
 interface GroupDetailPageProps {
@@ -23,6 +24,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   // Computed values from store
   const group = useComputed(() => groupDetailStore.group);
   const expenses = useComputed(() => groupDetailStore.expenses);
+  const balances = useComputed(() => groupDetailStore.balances);
   const loading = useComputed(() => groupDetailStore.loading);
   const error = useComputed(() => groupDetailStore.error);
   // const currentUser = useComputed(() => authStore.user);
@@ -150,7 +152,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
           createdBy={group.value!.createdBy || ''}
         />
 
-        {/* <BalanceSummary balances={balances.value} /> */}
+        <BalanceSummary balances={balances.value} />
 
         <ExpensesList 
           expenses={expenses.value}
