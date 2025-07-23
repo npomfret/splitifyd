@@ -63,6 +63,7 @@ Note: assume the emulator is running and changes are automatically built and ref
 - Local firebase logs are in `firebase/*.log`, the main application log is `firebase/firebase-debug.log`
 - After making ANY change, firebase will pick it up, but you need to refresh the browser to see it
 
+Note: We are currently in the process of building a new webapp.  It is also hosted in the firebase emulator side-by-side with the original. The nex pages all have some marker text on the page "v2 app".
 # TypeScript 
 - Only use the latest syntax
 - ❌ **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems
