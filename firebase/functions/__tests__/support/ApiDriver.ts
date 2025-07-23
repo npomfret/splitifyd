@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type {ExpenseData, GroupDetail, User as BaseUser} from '../../src/types/webapp-shared-types';
+import type {ExpenseData, Group, User as BaseUser} from '../../src/types/webapp-shared-types';
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -146,7 +146,7 @@ export class ApiDriver {
     };
   }
 
-  async createGroup(name: string, members: User[], creatorToken: string): Promise<GroupDetail> {
+  async createGroup(name: string, members: User[], creatorToken: string): Promise<Group> {
     // Step 1: Create group with just the creator
     const groupData = {
       name,
@@ -154,7 +154,7 @@ export class ApiDriver {
       memberEmails: [] // Don't include other emails initially
     };
 
-    const group = await this.apiRequest('/groups', 'POST', groupData, creatorToken) as GroupDetail;
+    const group = await this.apiRequest('/groups', 'POST', groupData, creatorToken) as Group;
     
     // Step 2: If there are other members, generate a share link and have them join
     const otherMembers = members.filter(m => m.token !== creatorToken);
@@ -174,7 +174,7 @@ export class ApiDriver {
     
     // Step 4: Fetch the updated group to get all members
     const updatedGroup = await this.apiRequest(`/groups/${group.id}`, 'GET', null, creatorToken);
-    return updatedGroup as GroupDetail;
+    return updatedGroup as Group;
   }
 
   async createExpense(expenseData: Partial<ExpenseData>, token: string): Promise<ExpenseData> {

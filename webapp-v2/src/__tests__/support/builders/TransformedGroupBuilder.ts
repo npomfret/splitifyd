@@ -1,21 +1,30 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { TransformedGroup, User } from '../../../types/webapp-shared-types';
+import type { Group, User } from '../../../types/webapp-shared-types';
 
-export class TransformedGroupBuilder {
-  private group: TransformedGroup;
+export class GroupBuilder {
+  private group: Group;
 
   constructor() {
     this.group = {
       id: uuidv4(),
       name: `Test Group ${uuidv4().slice(0, 8)}`,
       memberCount: 1,
-      yourBalance: 0,
+      balance: {
+        userBalance: {
+          userId: 'test-user',
+          name: 'Test User',
+          netBalance: 0,
+          owes: {},
+          owedBy: {}
+        },
+        totalOwed: 0,
+        totalOwing: 0
+      },
       lastActivity: 'Just created',
       lastActivityRaw: new Date().toISOString(),
-      lastExpense: null,
+      lastExpense: undefined,
       members: [],
-      expenseCount: 0,
-      lastExpenseTime: null
+      expenseCount: 0
     };
   }
 
@@ -35,7 +44,7 @@ export class TransformedGroupBuilder {
   }
 
   withBalance(balance: number): this {
-    this.group.yourBalance = balance;
+    this.group.balance.userBalance.netBalance = balance;
     return this;
   }
 
@@ -61,22 +70,21 @@ export class TransformedGroupBuilder {
       amount,
       date: date || new Date().toISOString()
     };
-    this.group.lastExpenseTime = date || new Date().toISOString();
     return this;
   }
 
   owingMoney(amount: number): this {
-    this.group.yourBalance = -Math.abs(amount);
+    this.group.balance.userBalance.netBalance = -Math.abs(amount);
     return this;
   }
 
   owedMoney(amount: number): this {
-    this.group.yourBalance = Math.abs(amount);
+    this.group.balance.userBalance.netBalance = Math.abs(amount);
     return this;
   }
 
   settledUp(): this {
-    this.group.yourBalance = 0;
+    this.group.balance.userBalance.netBalance = 0;
     return this;
   }
 
@@ -86,7 +94,7 @@ export class TransformedGroupBuilder {
     return this;
   }
 
-  build(): TransformedGroup {
+  build(): Group {
     return { ...this.group };
   }
 }

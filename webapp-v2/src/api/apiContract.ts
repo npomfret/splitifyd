@@ -9,9 +9,8 @@
  */
 
 import type {
-  GroupDetail,
+  Group,
   GroupBalances,
-  TransformedGroup,
   ExpenseData,
   CreateExpenseRequest,
   UpdateExpenseRequest,
@@ -115,7 +114,14 @@ export interface CreateUserDocumentResponse {
  * List groups response
  */
 export interface ListGroupsResponse {
-  groups: TransformedGroup[];
+  groups: Group[];
+  count: number;
+  hasMore: boolean;
+  nextCursor?: string;
+  pagination: {
+    limit: number;
+    order: string;
+  };
 }
 
 /**
@@ -191,18 +197,18 @@ export interface ApiContract {
   } | {
     method: 'POST';
     request: CreateGroupRequest;
-    response: GroupDetail;
+    response: Group;
   };
   '/groups/:id': {
     method: 'GET';
     params: { id: string };
     request: never;
-    response: GroupDetail;
+    response: Group;
   } | {
     method: 'PUT';
     params: { id: string };
-    request: Partial<GroupDetail>;
-    response: GroupDetail;
+    request: Partial<Group>;
+    response: Group;
   } | {
     method: 'DELETE';
     params: { id: string };

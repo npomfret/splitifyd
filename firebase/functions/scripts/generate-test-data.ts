@@ -4,7 +4,7 @@ import { ApiDriver } from '../__tests__/support/ApiDriver';
 import { ExpenseBuilder } from '../__tests__/support/builders/ExpenseBuilder';
 import { logger } from '../src/logger';
 import type { User } from '../__tests__/support/ApiDriver';
-import type { GroupDetail } from '../src/types/webapp-shared-types';
+import type { Group } from '../src/types/webapp-shared-types';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -120,7 +120,7 @@ async function createTestUser(userInfo: TestUser): Promise<User> {
   }
 }
 
-async function createTestGroup(name: string, members: User[], createdBy: User): Promise<GroupDetail> {
+async function createTestGroup(name: string, members: User[], createdBy: User): Promise<Group> {
   try {
     // Create group with all members
     const group = await driver.createGroup(name, members, createdBy.token);
@@ -222,8 +222,8 @@ function generateRandomGroupName(): string {
   return theme ? `${theme} ${adjective} ${noun}` : `${adjective} ${noun}`;
 }
 
-async function createRandomGroupsForUser(user: User, allUsers: User[], groupCount: number): Promise<GroupDetail[]> {
-  const groups: GroupDetail[] = [];
+async function createRandomGroupsForUser(user: User, allUsers: User[], groupCount: number): Promise<Group[]> {
+  const groups: Group[] = [];
   
   for (let i = 0; i < groupCount; i++) {
     const groupSize = Math.min(Math.floor(Math.random() * 3) + 2, allUsers.length); // 2-4 users per group, max available
@@ -240,9 +240,9 @@ async function createRandomGroupsForUser(user: User, allUsers: User[], groupCoun
   return groups;
 }
 
-async function createRandomExpensesForGroup(group: GroupDetail, allUsers: User[], expenseCount: number): Promise<void> {
+async function createRandomExpensesForGroup(group: Group, allUsers: User[], expenseCount: number): Promise<void> {
   const groupMembers = allUsers.filter(user => 
-    group.members.some(member => member.uid === user.uid)
+    group.members?.some((member: any) => member.uid === user.uid)
   );
   
   // Create expenses in smaller batches to avoid transaction lock timeouts

@@ -1,9 +1,9 @@
 import { signal } from '@preact/signals';
-import type { GroupDetail, ExpenseData, GroupBalances } from '../../types/webapp-shared-types';
+import type { Group, ExpenseData, GroupBalances } from '../../types/webapp-shared-types';
 import { apiClient } from '../apiClient';
 
 export interface GroupDetailStore {
-  group: GroupDetail | null;
+  group: Group | null;
   expenses: ExpenseData[];
   balances: GroupBalances | null;
   loading: boolean;
@@ -21,7 +21,7 @@ export interface GroupDetailStore {
 }
 
 // Signals for group detail state
-const groupSignal = signal<GroupDetail | null>(null);
+const groupSignal = signal<Group | null>(null);
 const expensesSignal = signal<ExpenseData[]>([]);
 const balancesSignal = signal<GroupBalances | null>(null);
 const loadingSignal = signal<boolean>(false);
@@ -44,19 +44,25 @@ class GroupDetailStoreImpl implements GroupDetailStore {
   get expenseCursor() { return expenseCursorSignal.value; }
 
   async fetchGroup(id: string): Promise<void> {
+    console.log('fetchGroup called with id:', id);
     loadingSignal.value = true;
     errorSignal.value = null;
 
     try {
-      const group = await apiClient.getGroup(id) as GroupDetail;
+      console.log('Calling apiClient.getGroup...');
+      const group = await apiClient.getGroup(id) as Group;
+      console.log('Got group:', group);
       groupSignal.value = group;
 
       // Fetch initial expenses and balances in parallel
+      console.log('Fetching expenses and balances...');
       await Promise.all([
         this.fetchExpenses(),
         this.fetchBalances()
       ]);
+      console.log('All data fetched successfully');
     } catch (error) {
+      console.error('Error in fetchGroup:', error);
       errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch group';
       throw error;
     } finally {

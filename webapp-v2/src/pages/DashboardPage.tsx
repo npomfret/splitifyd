@@ -7,6 +7,7 @@ import { Container } from '../components/ui';
 import { LoadingSpinner } from '../components/ui';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
+import { V2Indicator } from '../components/ui/V2Indicator';
 
 export function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -44,6 +45,7 @@ export function DashboardPage() {
 
   return (
     <div class="min-h-screen bg-gray-50">
+      <V2Indicator />
       <SEOHead 
         title="Dashboard - Splitifyd"
         description="Manage your groups and expenses with Splitifyd"

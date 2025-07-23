@@ -5,7 +5,7 @@
 import {ApiDriver, User} from '../support/ApiDriver';
 import {PerformanceTestWorkers} from './PerformanceTestWorkers';
 import {ExpenseBuilder, UserBuilder} from '../support/builders';
-import type {GroupDetail} from "../../src/types/webapp-shared-types";
+import type {Group} from "../../src/types/webapp-shared-types";
 
 describe('Performance and Load Testing', () => {
     let driver: ApiDriver;
@@ -191,7 +191,7 @@ describe('Performance and Load Testing', () => {
     });
 
     describe('Response Time Benchmarks', () => {
-        let benchmarkGroup: GroupDetail;
+        let benchmarkGroup: Group;
         let benchmarkExpenses: any[] = [];
 
         beforeAll(async () => {

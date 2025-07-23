@@ -75,76 +75,46 @@ export interface GroupBalance {
   totalOwing: number;
 }
 
-// Group Types
+// Group Types - Single unified interface for both list and detail views
 export interface Group {
+  // Always present
   id: string;
   name: string;
   description?: string;
-  createdBy: string;
-  memberIds: string[];
-  memberEmails: string[];
-  members: User[];
+  memberCount: number;
+  balance: {
+    userBalance: {
+      userId: string;
+      name: string;
+      netBalance: number;
+      owes: Record<string, number>;
+      owedBy: Record<string, number>;
+    };
+    totalOwed: number;
+    totalOwing: number;
+  };
+  lastActivity: string;
+  lastActivityRaw: string;
   expenseCount: number;
+  lastExpense?: {
+    description: string;
+    amount: number;
+    date: string;
+  };
+  
+  // Optional - only in detail view
+  members?: User[];
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  memberIds?: string[];
+  memberEmails?: string[];
   lastExpenseTime?: string;
-  lastExpense?: {
-    description: string;
-    amount: number;
-    date: string;
-  };
-  createdAt: string;
-  updatedAt: string;
 }
 
-export interface GroupSummary {
-  id: string;
-  name: string;
-  description?: string;
-  memberCount: number;
-  balance: GroupBalance;
-  lastActivity: string;
-  lastActivityRaw: string;
-  lastExpense?: {
-    description: string;
-    amount: number;
-    date: string;
-  };
-  expenseCount: number;
-}
 
-export interface GroupListResponse {
-  groups: GroupSummary[];
-  count: number;
-  hasMore: boolean;
-  nextCursor?: string;
-  pagination: {
-    limit: number;
-    order: 'asc' | 'desc';
-  };
-}
 
-// This is what the frontend currently expects
-export interface TransformedGroup {
-  id: string;
-  name: string;
-  memberCount: number;
-  yourBalance: number;  // This should be balance.userBalance.netBalance
-  lastActivity: string;
-  lastActivityRaw: string;
-  lastExpense: {
-    description: string;
-    amount: number;
-    date: string;
-  } | null;
-  members: User[];
-  expenseCount: number;
-  lastExpenseTime: string | null;
-  isSettledUp?: boolean;
-}
 
-// Group Detail for single group view
-export interface GroupDetail extends Group {
-  // Extends Group with no additional fields currently
-}
 
 // Firestore document structure
 export interface GroupDocument {

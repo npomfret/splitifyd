@@ -13,8 +13,6 @@ import {
 import {
   Group,
   GroupWithBalance,
-  GroupSummary,
-  GroupListResponse,
   GroupDocument,
 } from '../types/group-types';
 import { UserBalance } from '../types/webapp-shared-types';
@@ -29,9 +27,9 @@ const getGroupsCollection = () => {
 };
 
 /**
- * Transform Firestore document to API group format
+ * Transform Firestore document to GroupDocument format
  */
-const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group => {
+const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDocument => {
   const data = doc.data();
   if (!data) {
     throw new Error('Invalid group document');
@@ -39,6 +37,7 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
 
   // Handle both old (nested) and new (flat) document structures
   const groupData = data.data || data;
+  
 
   return {
     id: doc.id,
@@ -49,10 +48,58 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
     memberEmails: groupData.memberEmails || [],
     members: groupData.members || [],
     expenseCount: groupData.expenseCount || 0,
-    lastExpenseTime: groupData.lastExpenseTime || null,
-    lastExpense: groupData.lastExpense || null,
-    createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
-    updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+    lastExpenseTime: groupData.lastExpenseTime ? new Date(groupData.lastExpenseTime) : undefined,
+    lastExpense: groupData.lastExpense ? {
+      description: groupData.lastExpense.description,
+      amount: groupData.lastExpense.amount,
+      date: new Date(groupData.lastExpense.date)
+    } : undefined,
+    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+    updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+  };
+};
+
+/**
+ * Convert GroupDocument to Group with computed fields
+ * TODO: This is a minimal implementation - needs proper balance calculation
+ */
+const convertGroupDocumentToGroup = (groupDoc: GroupDocument, userId: string): Group => {
+  return {
+    id: groupDoc.id,
+    name: groupDoc.name,
+    description: groupDoc.description,
+    memberCount: groupDoc.members.length,
+    balance: {
+      userBalance: {
+        userId: userId,
+        name: 'Current User', // TODO: Get actual user name
+        netBalance: 0, // TODO: Calculate actual balance
+        owes: {},
+        owedBy: {}
+      },
+      totalOwed: 0, // TODO: Calculate from expenses
+      totalOwing: 0 // TODO: Calculate from expenses
+    },
+    lastActivity: groupDoc.lastExpenseTime ? 
+      `Last expense ${new Date(groupDoc.lastExpenseTime).toLocaleDateString()}` : 
+      'No recent activity',
+    lastActivityRaw: groupDoc.lastExpenseTime ? 
+      groupDoc.lastExpenseTime.toISOString() : 
+      groupDoc.createdAt.toISOString(),
+    expenseCount: groupDoc.expenseCount,
+    lastExpense: groupDoc.lastExpense ? {
+      description: groupDoc.lastExpense.description,
+      amount: groupDoc.lastExpense.amount,
+      date: groupDoc.lastExpense.date.toISOString()
+    } : undefined,
+    
+    // Optional detail fields
+    members: groupDoc.members,
+    createdBy: groupDoc.createdBy,
+    createdAt: groupDoc.createdAt.toISOString(),
+    updatedAt: groupDoc.updatedAt.toISOString(),
+    memberIds: groupDoc.memberIds,
+    memberEmails: groupDoc.memberEmails
   };
 };
 
@@ -71,10 +118,11 @@ const fetchGroupWithAccess = async (
     throw Errors.NOT_FOUND('Group');
   }
 
-  const group = transformGroupDocument(doc);
-
+  const groupDoc = transformGroupDocument(doc);
+  
   // Check if user is the owner
-  if (group.createdBy === userId) {
+  if (groupDoc.createdBy === userId) {
+    const group = convertGroupDocumentToGroup(groupDoc, userId);
     return { docRef, group };
   }
 
@@ -84,7 +132,8 @@ const fetchGroupWithAccess = async (
   }
 
   // For read operations, check if user is a member
-  if (group.memberIds.includes(userId)) {
+  if (groupDoc.memberIds.includes(userId)) {
+    const group = convertGroupDocumentToGroup(groupDoc, userId);
     return { docRef, group };
   }
 
@@ -159,7 +208,10 @@ export const createGroup = async (
     name: sanitizedData.name,
   });
 
-    res.status(HTTP_STATUS.CREATED).json(transformGroupDocument(await docRef.get()));
+    const createdDoc = await docRef.get();
+    const groupDoc = transformGroupDocument(createdDoc);
+    const group = convertGroupDocumentToGroup(groupDoc, userId);
+    res.status(HTTP_STATUS.CREATED).json(group);
   } catch (error) {
     logger.error('Error in createGroup', { 
       error: error instanceof Error ? error : new Error(String(error))
@@ -347,8 +399,8 @@ export const listGroups = async (
   const hasMore = documents.length > limit;
   const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
-  // Transform documents to group summaries
-  const groups: GroupSummary[] = await Promise.all(
+  // Transform documents to groups
+  const groups: Group[] = await Promise.all(
     returnedDocs.map(async (doc) => {
       const group = transformGroupDocument(doc);
       
@@ -370,7 +422,7 @@ export const listGroups = async (
 
       // Format last activity
       const lastActivityDate = group.lastExpenseTime || group.updatedAt;
-      const lastActivity = formatRelativeTime(lastActivityDate);
+      const lastActivity = formatRelativeTime(lastActivityDate.toISOString());
 
       return {
         id: group.id,
@@ -389,29 +441,33 @@ export const listGroups = async (
           totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
         },
         lastActivity,
-        lastActivityRaw: lastActivityDate,
-        lastExpense: group.lastExpense,
+        lastActivityRaw: lastActivityDate.toISOString(),
+        lastExpense: group.lastExpense ? {
+          description: group.lastExpense.description,
+          amount: group.lastExpense.amount,
+          date: group.lastExpense.date.toISOString(),
+        } : undefined,
         expenseCount: group.expenseCount,
       };
     })
   );
 
-  // Prepare next cursor
+  // Generate nextCursor if there are more results
   let nextCursor: string | undefined;
-  if (hasMore) {
+  if (hasMore && returnedDocs.length > 0) {
     const lastDoc = returnedDocs[returnedDocs.length - 1];
     const lastGroup = transformGroupDocument(lastDoc);
     nextCursor = encodeCursor({
-      updatedAt: lastGroup.updatedAt,
-      id: lastGroup.id,
+      updatedAt: lastGroup.updatedAt.toISOString(),
+      id: lastGroup.id
     });
   }
 
-  const response: GroupListResponse = {
+  const response = {
     groups,
     count: groups.length,
     hasMore,
-    nextCursor,
+    ...(nextCursor && { nextCursor }),
     pagination: {
       limit,
       order,

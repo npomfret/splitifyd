@@ -5,12 +5,12 @@
 import {v4 as uuidv4} from 'uuid';
 import {ApiDriver, User} from '../support/ApiDriver';
 import {ExpenseBuilder, UserBuilder} from '../support/builders';
-import type {GroupDetail} from "../../src/types/webapp-shared-types";
+import type {Group} from "../../src/types/webapp-shared-types";
 
 describe('Error Handling and Recovery Testing', () => {
     let driver: ApiDriver;
     let mainUser: User;
-    let testGroup: GroupDetail;
+    let testGroup: Group;
 
     jest.setTimeout(10000); // Timeout for error handling tests
 

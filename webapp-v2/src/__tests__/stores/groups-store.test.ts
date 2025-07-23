@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { groupsStore } from '../../app/stores/groups-store';
 import { apiClient } from '../../app/apiClient';
-import { TransformedGroupAdapter, GroupDetailAdapter } from '../support/test-adapters';
+import { GroupAdapter } from '../support/test-adapters';
 import type { CreateGroupRequest } from '../../types/webapp-shared-types';
 import type { ListGroupsResponse } from '../../api/apiContract';
 import { GroupBuilder } from "../../../../firebase/functions/__tests__/support/builders";
@@ -21,12 +21,18 @@ describe('GroupsStore', () => {
   describe('fetchGroups', () => {
     it('loads groups successfully', async () => {
       const testGroups = [
-        TransformedGroupAdapter.fromTestGroup(new GroupBuilder().withName('Group 1').build()),
-        TransformedGroupAdapter.fromTestGroup(new GroupBuilder().withName('Group 2').build())
+        GroupAdapter.fromTestGroup(new GroupBuilder().withName('Group 1').build()),
+        GroupAdapter.fromTestGroup(new GroupBuilder().withName('Group 2').build())
       ];
 
       const mockResponse: ListGroupsResponse = {
-        groups: testGroups
+        groups: testGroups,
+        count: testGroups.length,
+        hasMore: false,
+        pagination: {
+          limit: 100,
+          order: 'desc'
+        }
       };
 
       mockApiClient.getGroups.mockResolvedValueOnce(mockResponse);
@@ -40,8 +46,16 @@ describe('GroupsStore', () => {
     });
 
     it('sets loading state during fetch', async () => {
-      const testGroups = [TransformedGroupAdapter.fromTestGroup(new GroupBuilder().build())];
-      const mockResponse: ListGroupsResponse = { groups: testGroups };
+      const testGroups = [GroupAdapter.fromTestGroup(new GroupBuilder().build())];
+      const mockResponse: ListGroupsResponse = {
+        groups: testGroups,
+        count: testGroups.length,
+        hasMore: false,
+        pagination: {
+          limit: 100,
+          order: 'desc'
+        }
+      };
 
       // Create a promise we can control
       let resolvePromise: (value: ListGroupsResponse) => void;
@@ -68,7 +82,15 @@ describe('GroupsStore', () => {
     });
 
     it('prevents concurrent requests', async () => {
-      const mockResponse: ListGroupsResponse = { groups: [] };
+      const mockResponse: ListGroupsResponse = {
+        groups: [],
+        count: 0,
+        hasMore: false,
+        pagination: {
+          limit: 100,
+          order: 'desc'
+        }
+      };
       mockApiClient.getGroups.mockResolvedValue(mockResponse);
 
       // Start two concurrent fetches
@@ -89,7 +111,7 @@ describe('GroupsStore', () => {
         description: 'Test description'
       };
 
-      const mockCreatedGroup = GroupDetailAdapter.fromTestGroup(
+      const mockCreatedGroup = GroupAdapter.fromTestGroup(
         new GroupBuilder().withName('New Group').withDescription('Test description').build(),
         { id: 'group-123', createdBy: 'user-123' }
       );
@@ -102,7 +124,11 @@ describe('GroupsStore', () => {
         id: 'group-123',
         name: 'New Group',
         memberCount: 0,
-        yourBalance: 0,
+        balance: {
+          userBalance: {
+            netBalance: 0
+          }
+        },
         lastActivity: 'Just created',
         expenseCount: 0
       });
@@ -115,10 +141,18 @@ describe('GroupsStore', () => {
     it('adds new group to beginning of existing groups list', async () => {
       // Set up existing groups
       const existingGroups = [
-        TransformedGroupAdapter.fromTestGroup(new GroupBuilder().withName('Existing Group').build())
+        GroupAdapter.fromTestGroup(new GroupBuilder().withName('Existing Group').build())
       ];
       // Set up existing groups by directly calling the store
-      const existingResponse: ListGroupsResponse = { groups: existingGroups };
+      const existingResponse: ListGroupsResponse = {
+        groups: existingGroups,
+        count: existingGroups.length,
+        hasMore: false,
+        pagination: {
+          limit: 100,
+          order: 'desc'
+        }
+      };
       mockApiClient.getGroups.mockResolvedValueOnce(existingResponse);
       await groupsStore.fetchGroups();
       vi.clearAllMocks(); // Clear the setup call
@@ -127,7 +161,7 @@ describe('GroupsStore', () => {
         name: 'Newest Group'
       };
 
-      const mockCreatedGroup = GroupDetailAdapter.fromTestGroup(
+      const mockCreatedGroup = GroupAdapter.fromTestGroup(
         new GroupBuilder().withName('Newest Group').build(),
         { id: 'group-456', createdBy: 'user-123' }
       );
@@ -142,7 +176,7 @@ describe('GroupsStore', () => {
       expect(groupsStore.groups[1].name).toBe('Existing Group');
     });
 
-    it('transforms GroupDetail to TransformedGroup correctly', async () => {
+    it('creates group with correct structure', async () => {
       const groupRequest: CreateGroupRequest = {
         name: 'Transform Test'
       };
@@ -158,7 +192,7 @@ describe('GroupsStore', () => {
         .withName('Bob')
         .build();
       
-      const mockCreatedGroup = GroupDetailAdapter.fromTestGroup(
+      const mockCreatedGroup = GroupAdapter.fromTestGroup(
         new GroupBuilder()
           .withName('Transform Test')
           .build(),
@@ -177,12 +211,10 @@ describe('GroupsStore', () => {
         id: 'group-789',
         name: 'Transform Test',
         memberCount: 2,
-        yourBalance: 0,
         lastActivity: 'Just created',
-        lastExpense: null,
+        lastExpense: undefined,
         members: mockCreatedGroup.members,
-        expenseCount: 0,
-        lastExpenseTime: null
+        expenseCount: 0
       });
     });
   });
@@ -190,7 +222,15 @@ describe('GroupsStore', () => {
   describe('refreshGroups', () => {
     it('calls fetchGroups', async () => {
       const spy = vi.spyOn(groupsStore, 'fetchGroups');
-      const mockResponse: ListGroupsResponse = { groups: [] };
+      const mockResponse: ListGroupsResponse = {
+        groups: [],
+        count: 0,
+        hasMore: false,
+        pagination: {
+          limit: 100,
+          order: 'desc'
+        }
+      };
       mockApiClient.getGroups.mockResolvedValueOnce(mockResponse);
 
       await groupsStore.refreshGroups();

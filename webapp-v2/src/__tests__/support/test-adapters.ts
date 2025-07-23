@@ -1,4 +1,4 @@
-import type { TransformedGroup, User, GroupDetail } from '../../types/webapp-shared-types';
+import type { Group, User } from '../../types/webapp-shared-types';
 import type { TestGroup } from '../../../../firebase/functions/__tests__/support/builders/GroupBuilder';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -7,11 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
  * Following the builder pattern directive from testing.md
  */
 
-export class TransformedGroupAdapter {
+export class GroupAdapter {
   /**
-   * Converts a TestGroup from GroupBuilder to TransformedGroup for component testing
+   * Converts a TestGroup from GroupBuilder to Group for component testing
    */
-  static fromTestGroup(testGroup: TestGroup, overrides: Partial<TransformedGroup> = {}): TransformedGroup {
+  static fromTestGroup(testGroup: TestGroup, overrides: Partial<Group> = {}): Group {
     const members: User[] = testGroup.members?.map((member: any) => ({
       uid: member.uid,
       displayName: member.displayName,
@@ -22,13 +22,22 @@ export class TransformedGroupAdapter {
       id: uuidv4(),
       name: testGroup.name,
       memberCount: members.length,
-      yourBalance: 0,
+      balance: {
+        userBalance: {
+          userId: 'test-user',
+          name: 'Test User',
+          netBalance: 0,
+          owes: {},
+          owedBy: {}
+        },
+        totalOwed: 0,
+        totalOwing: 0
+      },
       lastActivity: 'Just created',
       lastActivityRaw: new Date().toISOString(),
-      lastExpense: null,
+      lastExpense: undefined,
       members,
       expenseCount: 0,
-      lastExpenseTime: null,
       ...overrides
     };
 
@@ -41,16 +50,28 @@ export class TransformedGroupAdapter {
   }
 
   /**
-   * Creates a TransformedGroup with specific balance state for testing
+   * Creates a Group with specific balance state for testing
    */
-  static withBalance(testGroup: TestGroup, balance: number): TransformedGroup {
-    return this.fromTestGroup(testGroup, { yourBalance: balance });
+  static withBalance(testGroup: TestGroup, balance: number): Group {
+    return this.fromTestGroup(testGroup, {
+      balance: {
+        userBalance: {
+          userId: 'test-user',
+          name: 'Test User',
+          netBalance: balance,
+          owes: {},
+          owedBy: {}
+        },
+        totalOwed: 0,
+        totalOwing: 0
+      }
+    });
   }
 
   /**
-   * Creates a TransformedGroup with recent activity for testing
+   * Creates a Group with recent activity for testing
    */
-  static withRecentActivity(testGroup: TestGroup, activity: string): TransformedGroup {
+  static withRecentActivity(testGroup: TestGroup, activity: string): Group {
     return this.fromTestGroup(testGroup, {
       lastActivity: activity,
       lastActivityRaw: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
@@ -58,12 +79,11 @@ export class TransformedGroupAdapter {
   }
 
   /**
-   * Creates a TransformedGroup with expenses for testing
+   * Creates a Group with expenses for testing
    */
-  static withExpenses(testGroup: TestGroup, expenseCount: number, lastExpenseDescription?: string): TransformedGroup {
-    const overrides: Partial<TransformedGroup> = {
-      expenseCount,
-      lastExpenseTime: new Date().toISOString()
+  static withExpenses(testGroup: TestGroup, expenseCount: number, lastExpenseDescription?: string): Group {
+    const overrides: Partial<Group> = {
+      expenseCount
     };
 
     if (lastExpenseDescription) {
@@ -78,31 +98,4 @@ export class TransformedGroupAdapter {
   }
 }
 
-export class GroupDetailAdapter {
-  /**
-   * Converts a TestGroup to GroupDetail for store testing
-   */
-  static fromTestGroup(testGroup: TestGroup, overrides: Partial<GroupDetail> = {}): GroupDetail {
-    const members: User[] = testGroup.members?.map((member: any) => ({
-      uid: member.uid,
-      displayName: member.displayName,
-      email: member.email
-    })) || [];
-
-    const result: GroupDetail = {
-      id: uuidv4(),
-      name: testGroup.name,
-      description: testGroup.description,
-      memberIds: members.map(m => m.uid),
-      memberEmails: members.map(m => m.email),
-      members,
-      createdBy: members[0]?.uid || 'test-user-id',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      expenseCount: 0,
-      ...overrides
-    };
-
-    return result;
-  }
-}
+// Note: GroupDetailAdapter removed as we now use single Group type

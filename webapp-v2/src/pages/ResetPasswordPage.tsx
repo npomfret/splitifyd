@@ -5,6 +5,7 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
+import { V2Indicator } from '../components/ui/V2Indicator';
 
 const emailSignal = signal('');
 
@@ -50,6 +51,7 @@ export function ResetPasswordPage() {
         title="Check Your Email"
         description="Password reset instructions have been sent to your email"
       >
+        <V2Indicator />
         <div class="text-center space-y-6">
           <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,6 +104,7 @@ export function ResetPasswordPage() {
       title="Reset Password"
       description="Enter your email address to receive password reset instructions"
     >
+      <V2Indicator />
       <AuthForm 
         onSubmit={handleSubmit}
         error={error}

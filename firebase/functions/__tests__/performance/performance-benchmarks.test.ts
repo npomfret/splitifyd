@@ -5,13 +5,13 @@
 import {ApiDriver, User} from '../support/ApiDriver';
 import {PerformanceTestWorkers} from './PerformanceTestWorkers';
 import {ExpenseBuilder, UserBuilder} from '../support/builders';
-import type {GroupDetail} from "../../src/types/webapp-shared-types";
+import type {Group} from "../../src/types/webapp-shared-types";
 
 describe('Performance - Response Time Benchmarks', () => {
     let driver: ApiDriver;
     let mainUser: User;
     let workers: PerformanceTestWorkers;
-    let benchmarkGroup: GroupDetail;
+    let benchmarkGroup: Group;
     let benchmarkExpenses: any[] = [];
 
     jest.setTimeout(60000);

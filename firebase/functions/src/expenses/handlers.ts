@@ -182,10 +182,15 @@ export const createExpense = async (
       // Create the expense
       transaction.set(docRef, expense);
       
-      // Update group metadata
+      // Update group metadata including lastExpense details
       transaction.update(groupDocRef, {
         'data.expenseCount': currentExpenseCount + 1,
-        'data.lastExpenseTime': lastExpenseTime
+        'data.lastExpenseTime': lastExpenseTime,
+        'data.lastExpense': {
+          description: expenseData.description,
+          amount: expenseData.amount,
+          date: expenseData.date
+        }
       });
       
       logger.info('Transaction: Creating expense and updating group metadata', {
@@ -322,12 +327,17 @@ export const updateExpense = async (
         // Update the expense
         transaction.update(docRef, updates);
         
-        // Update group's lastExpenseTime if this becomes the latest expense
+        // Update group's lastExpenseTime and lastExpense if this becomes the latest expense
         const newDate = new Date(updateData.date!);
         const lastExpenseTime = newDate.toISOString();
         
         transaction.update(groupDocRef, {
-          'data.lastExpenseTime': lastExpenseTime
+          'data.lastExpenseTime': lastExpenseTime,
+          'data.lastExpense': {
+            description: updateData.description || expense.description,
+            amount: updateData.amount || expense.amount,
+            date: updateData.date || (expense.date instanceof Date ? expense.date.toISOString() : expense.date.toDate().toISOString())
+          }
         });
         
         logger.info('Transaction: Updating expense with history and group lastExpenseTime', {

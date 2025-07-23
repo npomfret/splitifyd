@@ -1,23 +1,23 @@
 import { signal } from '@preact/signals';
-import type { TransformedGroup, CreateGroupRequest, GroupDetail } from '../../types/webapp-shared-types';
+import type { Group, CreateGroupRequest } from '../../types/webapp-shared-types';
 import type { ListGroupsResponse } from '../../api/apiContract';
 import { apiClient } from '../apiClient';
 
 export interface GroupsStore {
-  groups: TransformedGroup[];
+  groups: Group[];
   loading: boolean;
   error: string | null;
   initialized: boolean;
   
   fetchGroups(): Promise<void>;
-  createGroup(data: CreateGroupRequest): Promise<TransformedGroup>;
+  createGroup(data: CreateGroupRequest): Promise<Group>;
   refreshGroups(): Promise<void>;
   clearError(): void;
   reset(): void; // For testing
 }
 
 // Signals for groups state
-const groupsSignal = signal<TransformedGroup[]>([]);
+const groupsSignal = signal<Group[]>([]);
 const loadingSignal = signal<boolean>(false);
 const errorSignal = signal<string | null>(null);
 const initializedSignal = signal<boolean>(false);
@@ -46,31 +46,17 @@ class GroupsStoreImpl implements GroupsStore {
     }
   }
 
-  async createGroup(data: CreateGroupRequest): Promise<TransformedGroup> {
+  async createGroup(data: CreateGroupRequest): Promise<Group> {
     loadingSignal.value = true;
     errorSignal.value = null;
 
     try {
-      const newGroup = await apiClient.createGroup(data) as GroupDetail;
+      const newGroup = await apiClient.createGroup(data) as Group;
       
-      // Convert GroupDetail to TransformedGroup for consistent display
-      const transformedGroup: TransformedGroup = {
-        id: newGroup.id,
-        name: newGroup.name,
-        memberCount: newGroup.members.length,
-        yourBalance: 0, // New group has no expenses yet
-        lastActivity: 'Just created',
-        lastActivityRaw: newGroup.createdAt,
-        lastExpense: null, // No expenses yet
-        members: newGroup.members,
-        expenseCount: 0,
-        lastExpenseTime: null
-      };
-
       // Optimistically update the groups list
-      groupsSignal.value = [transformedGroup, ...groupsSignal.value];
+      groupsSignal.value = [newGroup, ...groupsSignal.value];
       
-      return transformedGroup;
+      return newGroup;
     } catch (error) {
       errorSignal.value = error instanceof Error ? error.message : 'Failed to create group';
       throw error;

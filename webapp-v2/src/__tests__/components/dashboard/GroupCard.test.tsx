@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import { GroupCard } from '../../../components/dashboard/GroupCard';
 import { GroupBuilder } from '../../../../../firebase/functions/__tests__/support/builders/GroupBuilder';
 import type { User } from '../../../types/webapp-shared-types';
-import { TransformedGroupAdapter } from '../../support/test-adapters';
+import { GroupAdapter } from '../../support/test-adapters';
 
 describe('GroupCard', () => {
   const mockOnClick = vi.fn();
@@ -13,7 +13,7 @@ describe('GroupCard', () => {
   });
 
   it('displays group name and basic info', () => {
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder().withName('Trip to Paris').build(),
       { memberCount: 3, expenseCount: 5 }
     );
@@ -26,9 +26,21 @@ describe('GroupCard', () => {
   });
 
   it('shows settled up state when balance is zero', () => {
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder().withName('Apartment Bills').build(),
-      { yourBalance: 0 }
+      { 
+        balance: {
+          userBalance: {
+            userId: 'test-user',
+            name: 'Test User',
+            netBalance: 0,
+            owes: {},
+            owedBy: {}
+          },
+          totalOwed: 0,
+          totalOwing: 0
+        }
+      }
     );
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -38,7 +50,7 @@ describe('GroupCard', () => {
   });
 
   it('shows amount owed when user has positive balance', () => {
-    const group = TransformedGroupAdapter.withBalance(
+    const group = GroupAdapter.withBalance(
       new GroupBuilder().withName('Dinner Split').build(),
       25.50
     );
@@ -50,7 +62,7 @@ describe('GroupCard', () => {
   });
 
   it('shows amount owing when user has negative balance', () => {
-    const group = TransformedGroupAdapter.withBalance(
+    const group = GroupAdapter.withBalance(
       new GroupBuilder().withName('Grocery Run').build(),
       -15.75
     );
@@ -62,7 +74,7 @@ describe('GroupCard', () => {
   });
 
   it('displays last expense information', () => {
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder().withName('Weekend Trip').build(),
       {
         lastExpense: {
@@ -83,7 +95,7 @@ describe('GroupCard', () => {
     const user2: User = { uid: 'user2', email: 'bob@test.com', displayName: 'Bob Smith' };
     const user3: User = { uid: 'user3', email: 'charlie@test.com', displayName: 'Charlie Brown' };
 
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder()
         .withName('Study Group')
         .withMember(user1)
@@ -105,7 +117,6 @@ describe('GroupCard', () => {
       uid: `user${i + 1}`,
       email: `user${i + 1}@test.com`,
       displayName: `User ${i + 1}`,
-      token: `token${i + 1}`
     }));
 
     let groupBuilder = new GroupBuilder().withName('Large Group');
@@ -113,7 +124,7 @@ describe('GroupCard', () => {
       groupBuilder = groupBuilder.withMember(user);
     });
 
-    const group = TransformedGroupAdapter.fromTestGroup(groupBuilder.build());
+    const group = GroupAdapter.fromTestGroup(groupBuilder.build());
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
@@ -121,7 +132,7 @@ describe('GroupCard', () => {
   });
 
   it('calls onClick when card is clicked', () => {
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder().withName('Clickable Group').build()
     );
 
@@ -132,7 +143,7 @@ describe('GroupCard', () => {
   });
 
   it('handles singular forms correctly', () => {
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder().withName('Solo Trip').build(),
       { memberCount: 1, expenseCount: 1 }
     );
@@ -144,7 +155,7 @@ describe('GroupCard', () => {
   });
 
   it('handles empty members array', () => {
-    const group = TransformedGroupAdapter.fromTestGroup(
+    const group = GroupAdapter.fromTestGroup(
       new GroupBuilder().withName('Empty Group').build(),
       { members: [] }
     );

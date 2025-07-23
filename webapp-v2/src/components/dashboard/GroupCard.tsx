@@ -1,8 +1,8 @@
-import type { TransformedGroup, User } from '../../types/webapp-shared-types';
+import type { Group, User } from '../../types/webapp-shared-types';
 import { Card } from '../ui';
 
 interface GroupCardProps {
-  group: TransformedGroup;
+  group: Group;
   onClick: () => void;
 }
 
@@ -33,7 +33,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
     }
   };
 
-  const balanceInfo = getBalanceDisplay(group.yourBalance);
+  const balanceInfo = getBalanceDisplay(group.balance.userBalance.netBalance);
 
   return (
     <Card 

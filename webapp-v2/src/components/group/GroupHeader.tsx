@@ -1,10 +1,10 @@
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { GroupDetail } from '../../types/webapp-shared-types';
+import type { Group } from '../../types/webapp-shared-types';
 
 interface GroupHeaderProps {
-  group: GroupDetail;
+  group: Group;
   onSettingsClick?: () => void;
 }
 
@@ -29,14 +29,16 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
       
       <div className="flex gap-6 text-sm text-gray-600">
         <div>
-          <span className="font-medium">{group.members.length}</span> members
+          <span className="font-medium">{group.members?.length || group.memberCount}</span> members
         </div>
         <div>
           <span className="font-medium">{group.expenseCount || 0}</span> expenses
         </div>
-        <div>
-          Created {formatDistanceToNow(new Date(group.createdAt))}
-        </div>
+        {group.createdAt && (
+          <div>
+            Created {formatDistanceToNow(new Date(group.createdAt))}
+          </div>
+        )}
       </div>
     </Card>
   );

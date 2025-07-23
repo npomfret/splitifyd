@@ -5,6 +5,7 @@ import { groupDetailStore } from '../app/stores/group-detail-store';
 // import { authStore } from '../app/stores/auth-store';
 import { LoadingSpinner, Card, Button } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
+import { V2Indicator } from '../components/ui/V2Indicator';
 import { 
   GroupHeader, 
   QuickActions, 
@@ -27,6 +28,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const loading = useComputed(() => groupDetailStore.loading);
   const error = useComputed(() => groupDetailStore.error);
   // const currentUser = useComputed(() => authStore.user);
+
+  // Debug logging
+  console.log('GroupDetailPage render:', {
+    groupId,
+    group: group.value,
+    loading: loading.value,
+    error: error.value,
+    isInitialized: isInitialized.value
+  });
 
   // Fetch group data on mount
   useEffect(() => {
@@ -54,6 +64,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   if (loading.value && !isInitialized.value) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <V2Indicator />
         <LoadingSpinner />
       </div>
     );
@@ -63,6 +74,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   if (error.value) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <V2Indicator />
         <Card className="p-6 text-center">
           <h2 className="text-xl font-semibold mb-2">Error Loading Group</h2>
           <p className="text-gray-600 mb-4">{error.value}</p>
@@ -81,6 +93,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   if (!group.value && isInitialized.value) {
     return (
       <div className="container mx-auto px-4 py-8">
+        <V2Indicator />
         <Card className="p-6 text-center">
           <h2 className="text-xl font-semibold mb-2">Group Not Found</h2>
           <p className="text-gray-600 mb-4">This group doesn't exist or you don't have access to it.</p>
@@ -119,6 +132,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   // Render group detail
   return (
     <div className="container mx-auto px-4 py-8">
+      <V2Indicator />
       <Stack spacing="lg">
         <GroupHeader 
           group={group.value!} 
@@ -132,8 +146,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         />
 
         <MembersList 
-          members={group.value!.members} 
-          createdBy={group.value!.createdBy}
+          members={group.value!.members || []} 
+          createdBy={group.value!.createdBy || ''}
         />
 
         <BalanceSummary balances={balances.value} />

@@ -493,7 +493,7 @@ describe('Comprehensive API Test Suite', () => {
       
       expect(initialGroupInList).toBeDefined();
       expect(initialGroupInList!.expenseCount).toBe(0);
-      expect(initialGroupInList!.lastExpense).toBeNull();
+      expect(initialGroupInList!.lastExpense).toBeUndefined();
       
       // Add an expense
       const expenseData = new ExpenseBuilder()

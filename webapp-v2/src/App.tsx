@@ -35,6 +35,8 @@ export function App() {
       {/* Group Routes */}
       <Route path={`${prefix}/groups/:id`} component={GroupDetailPage} />
       <Route path="/groups/:id" component={GroupDetailPage} />
+      <Route path={`${prefix}/group/:id`} component={GroupDetailPage} />
+      <Route path="/group/:id" component={GroupDetailPage} />
       
       {/* Static Pages */}
       <Route path={`${prefix}/pricing`} component={PricingPage} />

@@ -6,8 +6,6 @@ export {
   Group,
   GroupWithBalance,
   GroupBalance,
-  GroupSummary,
-  GroupListResponse,
   GroupDocument,
   CreateGroupRequest,
   UpdateGroupRequest,

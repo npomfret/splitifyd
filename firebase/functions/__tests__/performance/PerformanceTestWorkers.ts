@@ -1,12 +1,12 @@
 import {ApiDriver, User} from '../support/ApiDriver';
-import type {ExpenseData, GroupDetail} from "../../src/types/webapp-shared-types";
+import type {ExpenseData, Group} from "../../src/types/webapp-shared-types";
 
 export class PerformanceTestWorkers {
     constructor(private driver: ApiDriver) {}
 
     async createConcurrentExpenses(params: {
         users: User[];
-        group: GroupDetail;
+        group: Group;
         expensesPerUser: number;
         timeoutMs?: number;
     }): Promise<{
@@ -53,7 +53,7 @@ export class PerformanceTestWorkers {
     async createBalanceTestExpenses(params: {
         user1: User;
         user2: User;
-        group: GroupDetail;
+        group: Group;
         expensesPerUserPair: number;
     }): Promise<void> {
         const { user1, user2, group, expensesPerUserPair } = params;
@@ -110,7 +110,7 @@ export class PerformanceTestWorkers {
     }
 
     async createLargeGroupExpenses(params: {
-        group: GroupDetail;
+        group: Group;
         user1: User;
         user2: User;
         totalExpenses: number;
@@ -171,7 +171,7 @@ export class PerformanceTestWorkers {
 
     async createComplexDebtGraph(params: {
         users: User[];
-        group: GroupDetail;
+        group: Group;
         expensesPerUser: number;
     }): Promise<{
         totalExpenses: number;
@@ -235,7 +235,7 @@ export class PerformanceTestWorkers {
     }
 
     async performRepeatedOperations(params: {
-        group: GroupDetail;
+        group: Group;
         user: User;
         iterations: number;
     }): Promise<void> {

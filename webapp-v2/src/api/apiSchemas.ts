@@ -57,35 +57,51 @@ export const AppConfigurationSchema = z.object({
 });
 
 // Group schemas
-export const GroupDetailSchema = z.object({
+
+export const GroupSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  members: z.array(MemberSchema),
-  createdBy: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string()
-});
-
-export const TransformedGroupSchema = z.object({
-  id: z.string(),
-  name: z.string(),
   memberCount: z.number(),
-  yourBalance: z.number(),
+  balance: z.object({
+    userBalance: z.object({
+      userId: z.string(),
+      name: z.string(),
+      owes: z.record(z.string(), z.number()),
+      owedBy: z.record(z.string(), z.number()),
+      netBalance: z.number()
+    }),
+    totalOwed: z.number(),
+    totalOwing: z.number()
+  }),
   lastActivity: z.string(),
   lastActivityRaw: z.string(),
   lastExpense: z.object({
     description: z.string(),
     amount: z.number(),
     date: z.string()
-  }).nullable(),
-  members: z.array(MemberSchema),
+  }).optional(),
   expenseCount: z.number(),
-  lastExpenseTime: z.string().nullable()
+  
+  // Optional fields for detail view
+  members: z.array(MemberSchema).optional(),
+  createdBy: z.string().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+  memberIds: z.array(z.string()).optional(),
+  memberEmails: z.array(z.string()).optional(),
+  lastExpenseTime: z.string().optional()
 });
 
 export const ListGroupsResponseSchema = z.object({
-  groups: z.array(TransformedGroupSchema)
+  groups: z.array(GroupSchema),
+  count: z.number(),
+  hasMore: z.boolean(),
+  nextCursor: z.string().optional(),
+  pagination: z.object({
+    limit: z.number(),
+    order: z.string()
+  })
 });
 
 // Expense schemas
@@ -188,7 +204,7 @@ export const responseSchemas = {
   '/config': AppConfigurationSchema,
   '/health': HealthCheckResponseSchema,
   '/groups': ListGroupsResponseSchema,
-  '/groups/:id': GroupDetailSchema,
+  '/groups/:id': GroupSchema,
   '/expenses': ExpenseDataSchema,
   '/expenses/group': ExpenseListResponseSchema,
   '/groups/balances': GroupBalancesSchema,

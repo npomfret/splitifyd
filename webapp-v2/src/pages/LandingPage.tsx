@@ -3,6 +3,7 @@ import { SEOHead } from '../components/SEOHead';
 import { HeroSection } from '../components/landing/HeroSection';
 import { FeaturesGrid } from '../components/landing/FeaturesGrid';
 import { CTASection } from '../components/landing/CTASection';
+import { V2Indicator } from '../components/ui/V2Indicator';
 import '../styles/landing.css';
 
 export function LandingPage() {
@@ -31,6 +32,7 @@ export function LandingPage() {
   }, []);
   return (
     <div class="min-h-screen bg-white">
+      <V2Indicator />
       <SEOHead 
         title="Effortless Bill Splitting - Splitifyd"
         description="Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits."

@@ -80,6 +80,10 @@
         "destination": "/v2/index.html"
       },
       {
+        "source": "/group/**",
+        "destination": "/v2/index.html"
+      },
+      {
         "source": "/pricing",
         "destination": "/v2/index.html"
       },
