@@ -8,6 +8,7 @@
 import type { ApiContract } from '../api/apiContract';
 import { responseSchemas, ApiErrorResponseSchema } from '../api/apiSchemas';
 import { z } from 'zod';
+import { AUTH_TOKEN_KEY } from '../constants';
 
 // API configuration - use window.API_BASE_URL injected during build
 const apiBaseUrl = (window as any).API_BASE_URL;
@@ -82,7 +83,7 @@ export class ApiClient {
 
   constructor() {
     // Try to get auth token from localStorage
-    const token = localStorage.getItem('AUTH_TOKEN_KEY');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (token) {
       this.authToken = token;
     }
@@ -92,9 +93,9 @@ export class ApiClient {
   setAuthToken(token: string | null) {
     this.authToken = token;
     if (token) {
-      localStorage.setItem('AUTH_TOKEN_KEY', token);
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
     } else {
-      localStorage.removeItem('AUTH_TOKEN_KEY');
+      localStorage.removeItem(AUTH_TOKEN_KEY);
     }
   }
 

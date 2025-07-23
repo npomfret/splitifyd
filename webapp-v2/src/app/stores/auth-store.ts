@@ -2,6 +2,8 @@ import { signal } from '@preact/signals';
 import type { AuthStore, User } from '../../types/auth';
 import { mapFirebaseUser } from '../../types/auth';
 import { firebaseService } from '../firebase';
+import { apiClient } from '../apiClient';
+import { USER_ID_KEY } from '../../constants';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -25,11 +27,22 @@ class AuthStoreImpl implements AuthStore {
       await firebaseService.initialize();
       
       // Set up auth state listener
-      firebaseService.onAuthStateChanged((firebaseUser) => {
+      firebaseService.onAuthStateChanged(async (firebaseUser) => {
         if (firebaseUser) {
           userSignal.value = mapFirebaseUser(firebaseUser);
+          
+          // Get and store ID token for API authentication
+          try {
+            const idToken = await firebaseUser.getIdToken();
+            apiClient.setAuthToken(idToken);
+            localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
+          } catch (error) {
+            console.error('Failed to get ID token:', error);
+          }
         } else {
           userSignal.value = null;
+          apiClient.setAuthToken(null);
+          localStorage.removeItem(USER_ID_KEY);
         }
         loadingSignal.value = false;
         initializedSignal.value = true;
@@ -47,7 +60,13 @@ class AuthStoreImpl implements AuthStore {
     errorSignal.value = null;
 
     try {
-      await firebaseService.signInWithEmailAndPassword(email, password);
+      const userCredential = await firebaseService.signInWithEmailAndPassword(email, password);
+      
+      // Get ID token for API authentication
+      const idToken = await userCredential.user.getIdToken();
+      apiClient.setAuthToken(idToken);
+      localStorage.setItem(USER_ID_KEY, userCredential.user.uid);
+      
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {
       errorSignal.value = this.getAuthErrorMessage(error);
@@ -69,6 +88,11 @@ class AuthStoreImpl implements AuthStore {
         await firebaseService.updateProfile(result.user, { displayName });
       }
       
+      // Get ID token for API authentication
+      const idToken = await result.user.getIdToken();
+      apiClient.setAuthToken(idToken);
+      localStorage.setItem(USER_ID_KEY, result.user.uid);
+      
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {
       errorSignal.value = this.getAuthErrorMessage(error);
@@ -84,6 +108,8 @@ class AuthStoreImpl implements AuthStore {
 
     try {
       await firebaseService.signOut();
+      apiClient.setAuthToken(null);
+      localStorage.removeItem(USER_ID_KEY);
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {
       errorSignal.value = this.getAuthErrorMessage(error);

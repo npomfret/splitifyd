@@ -7,6 +7,7 @@ import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
+import { firebaseConfigManager } from '../app/firebase-config';
 
 const nameSignal = signal('');
 const emailSignal = signal('');
@@ -16,10 +17,28 @@ const agreeToTermsSignal = signal(false);
 const localErrorSignal = signal<string | null>(null);
 
 export function RegisterPage() {
-  // Clear any previous errors when component mounts
+  // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {
     authStore.clearError();
     localErrorSignal.value = null;
+    
+    // Load form defaults from config
+    firebaseConfigManager.getConfig().then(config => {
+      if (config.formDefaults) {
+        if (config.formDefaults.displayName) {
+          nameSignal.value = config.formDefaults.displayName;
+        }
+        if (config.formDefaults.email) {
+          emailSignal.value = config.formDefaults.email;
+        }
+        if (config.formDefaults.password) {
+          passwordSignal.value = config.formDefaults.password;
+          confirmPasswordSignal.value = config.formDefaults.password;
+        }
+      }
+    }).catch(error => {
+      console.error('Failed to load form defaults:', error);
+    });
   }, []);
 
   // Redirect if already logged in

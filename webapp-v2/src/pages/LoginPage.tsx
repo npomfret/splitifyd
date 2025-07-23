@@ -7,14 +7,28 @@ import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
+import { firebaseConfigManager } from '../app/firebase-config';
 
 const emailSignal = signal('');
 const passwordSignal = signal('');
+const formDefaultsLoadedSignal = signal(false);
 
 export function LoginPage() {
-  // Clear any previous errors when component mounts
+  // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {
     authStore.clearError();
+    
+    // Load form defaults from config
+    firebaseConfigManager.getConfig().then(config => {
+      if (config.formDefaults) {
+        emailSignal.value = config.formDefaults.email || '';
+        passwordSignal.value = config.formDefaults.password || '';
+      }
+      formDefaultsLoadedSignal.value = true;
+    }).catch(error => {
+      console.error('Failed to load form defaults:', error);
+      formDefaultsLoadedSignal.value = true;
+    });
   }, []);
 
   // Redirect if already logged in

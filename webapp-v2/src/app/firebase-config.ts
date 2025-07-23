@@ -13,6 +13,11 @@ interface AppConfiguration {
   environment: {
     warningBanner?: string;
   };
+  formDefaults: {
+    displayName?: string;
+    email?: string;
+    password?: string;
+  };
 }
 
 class FirebaseConfigManager {
