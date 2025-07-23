@@ -180,6 +180,18 @@ export interface JoinGroupResponse {
   message: string;
 }
 
+// List groups response
+export interface ListGroupsResponse {
+  groups: Group[];
+  count: number;
+  hasMore: boolean;
+  nextCursor?: string;
+  pagination: {
+    limit: number;
+    order: string;
+  };
+}
+
 // Expense Types
 export interface ExpenseSplit {
   userId: string;

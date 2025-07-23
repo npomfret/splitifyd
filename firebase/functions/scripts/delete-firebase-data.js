@@ -95,4 +95,3 @@ if (require.main === module) {
     });
 }
 
-module.exports = { deleteAllTestData, deleteCollection };

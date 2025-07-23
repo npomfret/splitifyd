@@ -211,10 +211,3 @@ export const responseSchemas = {
   '/groups/share': ShareableLinkResponseSchema,
   '/groups/join': JoinGroupResponseSchema
 } as const;
-
-// Helper function to get validator for an endpoint
-export function getResponseValidator(endpoint: string) {
-  // Handle parameterized routes
-  const normalizedEndpoint = endpoint.replace(/\/[^\/]+$/, '/:id');
-  return responseSchemas[normalizedEndpoint as keyof typeof responseSchemas];
-}

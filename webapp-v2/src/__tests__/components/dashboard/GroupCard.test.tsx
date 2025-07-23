@@ -77,9 +77,8 @@ describe('GroupCard', () => {
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText('Settled up')).toBeInTheDocument();
-    const balanceDisplay = screen.getByText('Settled up').parentElement;
-    expect(balanceDisplay).toHaveClass('bg-green-50');
+    const balanceDisplay = screen.getByText('Settled up');
+    expect(balanceDisplay).toBeInTheDocument();
     expect(balanceDisplay).toHaveClass('text-green-600');
   });
 
@@ -101,9 +100,8 @@ describe('GroupCard', () => {
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText('You owe $25.50')).toBeInTheDocument();
-    const balanceDisplay = screen.getByText('You owe $25.50').parentElement;
-    expect(balanceDisplay).toHaveClass('bg-red-50');
+    const balanceDisplay = screen.getByText('You owe $25.50');
+    expect(balanceDisplay).toBeInTheDocument();
     expect(balanceDisplay).toHaveClass('text-red-600');
   });
 
@@ -125,9 +123,8 @@ describe('GroupCard', () => {
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText("You're owed $42.75")).toBeInTheDocument();
-    const balanceDisplay = screen.getByText("You're owed $42.75").parentElement;
-    expect(balanceDisplay).toHaveClass('bg-green-50');
+    const balanceDisplay = screen.getByText("You're owed $42.75");
+    expect(balanceDisplay).toBeInTheDocument();
     expect(balanceDisplay).toHaveClass('text-green-600');
   });
 

@@ -55,7 +55,7 @@ jest.mock('../config', () => ({
       email: '',
       password: ''
     },
-    firebaseAuthUrl: undefined
+    firebaseAuthUrl: 'http://localhost:9099'
   })
 }));
 

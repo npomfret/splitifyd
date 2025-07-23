@@ -1,6 +1,5 @@
 import { signal } from '@preact/signals';
-import type { Group, CreateGroupRequest } from '../../types/webapp-shared-types';
-import type { ListGroupsResponse } from '../../api/apiContract';
+import type { Group, CreateGroupRequest, ListGroupsResponse } from '../../types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
 
 export interface GroupsStore {
