@@ -407,33 +407,53 @@ After analyzing the existing infrastructure, I found:
 
 ### Commit Strategy
 
-**Commit 1**: Groups store foundation
-- Groups store implementation
-- Basic state management working
-- API integration tested
+**Commit 1**: Groups store foundation (1.5 hours)
+- Groups store implementation following auth-store pattern exactly
+- Basic state management with Preact signals
+- API integration with existing apiClient
+- Validate early, fail fast on API errors
 
-**Commit 2**: Dashboard layout and routing  
-- DashboardPage component
-- Route protection
-- Basic layout structure
+**Commit 2**: Dashboard page with groups display (2 hours) 
+- DashboardPage component with route protection
+- GroupsList and GroupCard components (no extraction - inline first)
+- Display real groups from API
+- Loading and error states with clear messages
 
-**Commit 3**: Groups list and cards
-- GroupsList component
-- GroupCard component  
-- Display groups from API
-
-**Commit 4**: Group creation functionality
+**Commit 3**: Group creation functionality (1.5 hours)
 - CreateGroupModal component
-- Form validation
-- Create group workflow
+- Form validation (fail fast, clear errors)
+- Create group through store
+- Navigate to new group on success
 
-**Commit 5**: Polish and error handling
-- User info section
-- Empty states
-- Error boundaries
-- Performance optimizations
+**Commit 4**: Final polish and cleanup (1 hour)
+- Extract components if needed
+- Empty state for no groups
+- User info section with logout
+- Remove any debug logs or comments
 
 This approach ensures each commit is independently valuable and testable.
+
+### What NOT to Do (Per Directives)
+
+1. **No overengineering**:
+   - Don't add features not in the spec (no search, no filtering, no sorting yet)
+   - Don't create generic abstractions or helper functions
+   - Don't add "nice to have" features
+
+2. **No fallbacks or backward compatibility**:
+   - Trust the API data structure - don't add fallbacks
+   - If data is wrong, fix it upstream (in the API)
+   - Validate early and fail with clear errors
+
+3. **No extra work**:
+   - Don't implement real-time updates (that's a future phase)
+   - Don't add pagination (API doesn't support it yet)
+   - Don't create a generic modal system
+
+4. **Code quality**:
+   - No comments unless something is truly weird
+   - No console.log statements (use logger if needed)
+   - No try/catch/log patterns - let errors bubble up
 
 ## Timeline
 
