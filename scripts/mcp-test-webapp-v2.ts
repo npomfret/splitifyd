@@ -4,7 +4,18 @@
  * Webapp-v2 MCP Browser Test Runner
  * 
  * Uses actual MCP browser test results to validate webapp-v2 functionality
+ * Includes login form testing with field clearing
  */
+
+import { join } from 'path';
+import { config } from 'dotenv';
+
+// Load environment variables
+const envPath = join(process.cwd(), 'firebase/functions/.env');
+config({ path: envPath });
+
+const DEV_FORM_EMAIL = process.env.DEV_FORM_EMAIL || 'test1@test.com';
+const DEV_FORM_PASSWORD = process.env.DEV_FORM_PASSWORD || 'rrRR44$$';
 
 interface BrowserTestResult {
   url: string;
@@ -19,6 +30,21 @@ interface BrowserTestResult {
   readyState: string;
 }
 
+interface LoginTestConfig {
+  baseUrl: string;
+  loginUrl: string;
+  credentials: {
+    email: string;
+    password: string;
+  };
+  selectors: {
+    emailInput: string;
+    passwordInput: string;
+    submitButton: string;
+    dashboard: string;
+  };
+}
+
 interface TestAssertion {
   name: string;
   expected: any;
@@ -29,6 +55,80 @@ interface TestAssertion {
 
 export class McpWebappV2Tester {
   private assertions: TestAssertion[] = [];
+  
+  private loginTestConfig: LoginTestConfig = {
+    baseUrl: 'http://localhost:6002',
+    loginUrl: 'http://localhost:6002/v2/login',
+    credentials: {
+      email: DEV_FORM_EMAIL,
+      password: DEV_FORM_PASSWORD
+    },
+    selectors: {
+      emailInput: 'input[type="email"]',
+      passwordInput: 'input[type="password"]',
+      submitButton: 'button[type="submit"]',
+      dashboard: '[data-testid="dashboard"]'
+    }
+  };
+
+  /**
+   * Get JavaScript to clear login form fields
+   */
+  getClearFieldsScript(): string {
+    return `
+      // Clear email field
+      const emailField = document.querySelector('${this.loginTestConfig.selectors.emailInput}');
+      if (emailField) {
+        emailField.value = '';
+        emailField.dispatchEvent(new Event('input', { bubbles: true }));
+        emailField.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      
+      // Clear password field
+      const passwordField = document.querySelector('${this.loginTestConfig.selectors.passwordInput}');
+      if (passwordField) {
+        passwordField.value = '';
+        passwordField.dispatchEvent(new Event('input', { bubbles: true }));
+        passwordField.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      
+      JSON.stringify({ 
+        emailCleared: emailField ? emailField.value === '' : false,
+        passwordCleared: passwordField ? passwordField.value === '' : false
+      });
+    `;
+  }
+
+  /**
+   * Get login test steps for MCP browser automation
+   */
+  getLoginTestSteps(): string {
+    return `
+MCP Browser Login Test Steps:
+
+1. Navigate to login page: ${this.loginTestConfig.loginUrl}
+
+2. Clear fields using JavaScript:
+   mcp__puppeteer__puppeteer_evaluate with script:
+   ${this.getClearFieldsScript()}
+
+3. Fill email field:
+   mcp__puppeteer__puppeteer_fill
+   - selector: ${this.loginTestConfig.selectors.emailInput}
+   - value: ${this.loginTestConfig.credentials.email}
+
+4. Fill password field:
+   mcp__puppeteer__puppeteer_fill
+   - selector: ${this.loginTestConfig.selectors.passwordInput}
+   - value: ${this.loginTestConfig.credentials.password}
+
+5. Click submit button:
+   mcp__puppeteer__puppeteer_click
+   - selector: ${this.loginTestConfig.selectors.submitButton}
+
+6. Verify successful login
+`;
+  }
 
   /**
    * Run tests with actual MCP browser results
@@ -170,7 +270,19 @@ const mockBrowserResult: BrowserTestResult = {
 // Run tests if this script is executed directly
 if (require.main === module) {
   const tester = new McpWebappV2Tester();
+  
+  console.log('🔐 MCP Browser Test Configuration');
+  console.log('=====================================\n');
+  
+  // Show login test steps
+  console.log(tester.getLoginTestSteps());
+  
+  console.log('\n📝 Clear Fields Script:');
+  console.log(tester.getClearFieldsScript());
+  
+  console.log('\n🧪 Running Homepage Tests:');
+  console.log('=====================================\n');
   tester.runTests(mockBrowserResult);
 }
 
-export { BrowserTestResult };
+export { BrowserTestResult, LoginTestConfig };
