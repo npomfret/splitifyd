@@ -23,42 +23,54 @@ Migrate the join group functionality with invitation link handling, group previe
 
 ## Implementation Steps
 
-### Phase 1: Join Group Page (1 hour)
+### Phase 1: API Client & Store Setup (1 hour)
+
+1. **Add missing API methods** (`app/apiClient.ts`)
+   - [ ] `generateShareLink(groupId: string)` method
+   - [ ] `joinGroupByLink(linkId: string)` method
+   - [ ] `getGroupByShareLink(linkId: string)` method for preview
+   - [ ] Add proper error handling and validation
+
+2. **Join group store** (`stores/join-group-store.ts`)
+   - [ ] Group preview state management
+   - [ ] Join process state (loading, success, error)
+   - [ ] Link validation and error handling
+   - [ ] User membership checking
+
+### Phase 2: Join Group Page (1.5 hours)
 
 1. **Join group component** (`pages/JoinGroupPage.tsx`)
-   - [ ] URL parameter handling for group ID/code
-   - [ ] Loading state while fetching group
-   - [ ] Group preview section
-   - [ ] Join confirmation area
-   - [ ] Error state handling
+   - [ ] URL parameter handling for `linkId` parameter
+   - [ ] Loading state while fetching group preview
+   - [ ] Group preview section with member info
+   - [ ] Join confirmation area with clear CTA
+   - [ ] Error state handling (expired/invalid links)
 
 2. **URL pattern handling**
-   - [ ] Support `/join/:groupId` format
-   - [ ] Support `/join?code=:inviteCode` format
-   - [ ] Handle invalid/expired links
-   - [ ] Redirect to appropriate pages
+   - [ ] Support `/join?linkId=:shareToken` format (matches backend)
+   - [ ] Handle invalid/expired share tokens
+   - [ ] Redirect authenticated users appropriately
+   - [ ] Preserve link for unauthenticated users
 
-### Phase 2: Group Preview Components (2 hours)
+### Phase 3: Group Preview Components (1.5 hours)
 
 1. **Group preview components**
    ```
    components/join-group/
    ├── GroupPreview.tsx       # Group info and stats
-   ├── MembersPreview.tsx     # Current members list
-   ├── RecentActivity.tsx     # Recent group activity
+   ├── MembersPreview.tsx     # Current members grid
    ├── JoinButton.tsx         # Primary join action
-   ├── GroupStats.tsx         # Group statistics
-   └── InviterInfo.tsx        # Who invited you
+   └── GroupStats.tsx         # Basic group statistics
    ```
 
-2. **Preview information**
+2. **Preview information** (from group API response)
    - [ ] Group name and description
-   - [ ] Member count and avatars
-   - [ ] Recent expense activity
+   - [ ] Member count and member avatars
    - [ ] Group creation date
-   - [ ] Total expenses/amounts
+   - [ ] Total member count
+   - [ ] Basic group stats
 
-### Phase 3: Join Flow Logic (1 hour)
+### Phase 4: Join Flow Logic (1 hour)
 
 1. **Join process implementation**
    - [ ] Validate invitation (not expired, valid group)
@@ -74,21 +86,21 @@ Migrate the join group functionality with invitation link handling, group previe
    - [ ] User already member
    - [ ] Group at member limit
 
-### Phase 4: Enhanced Features (1 hour)
+### Phase 5: Routing & Navigation (1 hour)
 
-1. **Invitation context**
-   - [ ] Show who invited you
-   - [ ] Invitation message display
-   - [ ] Invitation timestamp
-   - [ ] Personal invitation notes
+1. **Add route to App.tsx**
+   - [ ] Add `/join` route to router
+   - [ ] Handle query parameter parsing
+   - [ ] Preserve URL pattern compatibility
+   - [ ] Add Firebase hosting rewrite rules
 
-2. **Onboarding improvements**
-   - [ ] Welcome message for new members
-   - [ ] Quick tour of group features
-   - [ ] Suggested first actions
-   - [ ] Tutorial tooltips
+2. **Navigation flow**
+   - [ ] Successful join → navigate to group detail
+   - [ ] Authentication required → redirect to login with return URL
+   - [ ] Already member → navigate directly to group
+   - [ ] Error states → clear error messages
 
-### Phase 5: Mobile & UX Polish (1 hour)
+### Phase 6: Mobile & UX Polish (1 hour)
 
 1. **Mobile optimization**
    - [ ] Touch-friendly interface
@@ -223,11 +235,43 @@ Migrate the join group functionality with invitation link handling, group previe
    - Identify drop-off points
    - A/B testing capabilities
 
+## Detailed Implementation Plan
+
+### API Integration Strategy
+Based on backend analysis (`firebase/functions/src/groups/shareHandlers.ts`):
+
+1. **Backend endpoints available**:
+   - `POST /api/groups/share/generate` - Creates shareable link (returns `linkId`)
+   - `POST /api/groups/share/join` - Joins via `linkId` (requires authentication)
+   - Use existing `GET /api/groups/:id` for group preview
+
+2. **URL format**: `/join?linkId=<16-char-token>` (matches backend generation)
+
+3. **Error handling**:
+   - `INVALID_LINK` - Expired or non-existent share token
+   - `ALREADY_MEMBER` - User already in group
+   - `GROUP_NOT_FOUND` - Group deleted after link creation
+
+### Implementation Flow
+1. **API Client** → Add missing share link methods
+2. **Store** → State management for join process
+3. **Components** → UI for group preview and join action
+4. **Page** → Complete join group experience
+5. **Routing** → URL handling and navigation
+6. **Polish** → Mobile UX and error handling
+
+### Technical Decisions
+- **Authentication**: Redirect to login if unauthenticated, preserve return URL
+- **State Management**: Separate join-group-store (don't pollute groups-store)
+- **URL Pattern**: Use query parameter `?linkId=` to match backend expectations
+- **Error Handling**: Clear user-friendly messages for all backend error cases
+- **Navigation**: Auto-redirect to group detail page on successful join
+
 ## Timeline
 
-- Start Date: TBD
-- End Date: TBD
-- Duration: ~6 hours
+- Start Date: When instructed
+- End Date: Same day  
+- Duration: ~7 hours (updated based on detailed analysis)
 
 ## Notes
 
