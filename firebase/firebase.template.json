@@ -60,6 +60,42 @@
     ],
     "rewrites": [
       {
+        "source": "/login",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/register", 
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/reset-password",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/dashboard",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/groups/**",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/pricing",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/terms-of-service",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/privacy-policy",
+        "destination": "/v2/index.html"
+      },
+      {
+        "source": "/cookies-policy",
+        "destination": "/v2/index.html"
+      },
+      {
         "source": "/v2/**",
         "destination": "/v2/index.html"
       },

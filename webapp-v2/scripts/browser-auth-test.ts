@@ -3,7 +3,6 @@
  * Tests the full authentication flow in the v2 webapp
  */
 
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from 'dotenv';
 

@@ -3,7 +3,6 @@
  * Tests login functionality with Firebase emulator
  */
 
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from 'dotenv';
 
