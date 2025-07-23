@@ -1,9 +1,42 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
 import { GroupCard } from '../../../components/dashboard/GroupCard';
-import { GroupBuilder } from '../../../../../firebase/functions/__tests__/support/builders/GroupBuilder';
-import type { User } from '../../../types/webapp-shared-types';
-import { GroupAdapter } from '../../support/test-adapters';
+import type { Group, User } from '../../../types/webapp-shared-types';
+
+// Helper to create test groups
+function createTestGroup(overrides: Partial<Group> = {}): Group {
+  return {
+    id: `group-${Math.random().toString(36).substr(2, 9)}`,
+    name: 'Test Group',
+    memberCount: 1,
+    balance: {
+      userBalance: {
+        userId: 'test-user',
+        name: 'Test User',
+        netBalance: 0,
+        owes: {},
+        owedBy: {}
+      },
+      totalOwed: 0,
+      totalOwing: 0
+    },
+    lastActivity: 'Just created',
+    lastActivityRaw: new Date().toISOString(),
+    expenseCount: 0,
+    ...overrides
+  };
+}
+
+// Helper to create test users
+function createTestUser(overrides: Partial<User> = {}): User {
+  const id = Math.random().toString(36).substr(2, 9);
+  return {
+    uid: `user-${id}`,
+    email: `test-${id}@example.com`,
+    displayName: `Test User ${id}`,
+    ...overrides
+  };
+}
 
 describe('GroupCard', () => {
   const mockOnClick = vi.fn();
@@ -13,10 +46,11 @@ describe('GroupCard', () => {
   });
 
   it('displays group name and basic info', () => {
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder().withName('Trip to Paris').build(),
-      { memberCount: 3, expenseCount: 5 }
-    );
+    const group = createTestGroup({
+      name: 'Trip to Paris',
+      memberCount: 3,
+      expenseCount: 5
+    });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
@@ -26,144 +60,194 @@ describe('GroupCard', () => {
   });
 
   it('shows settled up state when balance is zero', () => {
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder().withName('Apartment Bills').build(),
-      { 
-        balance: {
-          userBalance: {
-            userId: 'test-user',
-            name: 'Test User',
-            netBalance: 0,
-            owes: {},
-            owedBy: {}
-          },
-          totalOwed: 0,
-          totalOwing: 0
-        }
+    const group = createTestGroup({
+      name: 'Apartment Bills',
+      balance: {
+        userBalance: {
+          userId: 'test-user',
+          name: 'Test User',
+          netBalance: 0,
+          owes: {},
+          owedBy: {}
+        },
+        totalOwed: 0,
+        totalOwing: 0
       }
-    );
+    });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
     expect(screen.getByText('Settled up')).toBeInTheDocument();
-    expect(screen.getByText('Settled up').closest('div')).toHaveClass('text-green-600');
+    const balanceDisplay = screen.getByText('Settled up').parentElement;
+    expect(balanceDisplay).toHaveClass('bg-green-50');
+    expect(balanceDisplay).toHaveClass('text-green-600');
   });
 
-  it('shows amount owed when user has positive balance', () => {
-    const group = GroupAdapter.withBalance(
-      new GroupBuilder().withName('Dinner Split').build(),
-      25.50
-    );
-
-    render(<GroupCard group={group} onClick={mockOnClick} />);
-
-    expect(screen.getByText("You're owed $25.50")).toBeInTheDocument();
-    expect(screen.getByText("You're owed $25.50").closest('div')).toHaveClass('text-green-600');
-  });
-
-  it('shows amount owing when user has negative balance', () => {
-    const group = GroupAdapter.withBalance(
-      new GroupBuilder().withName('Grocery Run').build(),
-      -15.75
-    );
-
-    render(<GroupCard group={group} onClick={mockOnClick} />);
-
-    expect(screen.getByText('You owe $15.75')).toBeInTheDocument();
-    expect(screen.getByText('You owe $15.75').closest('div')).toHaveClass('text-red-600');
-  });
-
-  it('displays last expense information', () => {
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder().withName('Weekend Trip').build(),
-      {
-        lastExpense: {
-          description: 'Hotel booking',
-          amount: 120.00,
-          date: '2025-07-20'
-        }
+  it('shows money owed when balance is negative', () => {
+    const group = createTestGroup({
+      name: 'Dinner Split',
+      balance: {
+        userBalance: {
+          userId: 'test-user',
+          name: 'Test User',
+          netBalance: -25.50,
+          owes: { 'user-2': 25.50 },
+          owedBy: {}
+        },
+        totalOwed: 0,
+        totalOwing: 25.50
       }
-    );
-
-    render(<GroupCard group={group} onClick={mockOnClick} />);
-
-    expect(screen.getByText('Latest: Hotel booking - $120.00')).toBeInTheDocument();
-  });
-
-  it('shows member avatars when members are present', () => {
-    const user1: User = { uid: 'user1', email: 'alice@test.com', displayName: 'Alice Johnson' };
-    const user2: User = { uid: 'user2', email: 'bob@test.com', displayName: 'Bob Smith' };
-    const user3: User = { uid: 'user3', email: 'charlie@test.com', displayName: 'Charlie Brown' };
-
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder()
-        .withName('Study Group')
-        .withMember(user1)
-        .withMember(user2)
-        .withMember(user3)
-        .build()
-    );
-
-    render(<GroupCard group={group} onClick={mockOnClick} />);
-
-    // Check that member initials are displayed
-    expect(screen.getByText('AJ')).toBeInTheDocument();
-    expect(screen.getByText('BS')).toBeInTheDocument();
-    expect(screen.getByText('CB')).toBeInTheDocument();
-  });
-
-  it('shows +N indicator when there are more than 5 members', () => {
-    const users: User[] = Array.from({ length: 7 }, (_, i) => ({
-      uid: `user${i + 1}`,
-      email: `user${i + 1}@test.com`,
-      displayName: `User ${i + 1}`,
-    }));
-
-    let groupBuilder = new GroupBuilder().withName('Large Group');
-    users.forEach(user => {
-      groupBuilder = groupBuilder.withMember(user);
     });
 
-    const group = GroupAdapter.fromTestGroup(groupBuilder.build());
+    render(<GroupCard group={group} onClick={mockOnClick} />);
+
+    expect(screen.getByText('You owe $25.50')).toBeInTheDocument();
+    const balanceDisplay = screen.getByText('You owe $25.50').parentElement;
+    expect(balanceDisplay).toHaveClass('bg-red-50');
+    expect(balanceDisplay).toHaveClass('text-red-600');
+  });
+
+  it('shows money owed to user when balance is positive', () => {
+    const group = createTestGroup({
+      name: 'Grocery Run',
+      balance: {
+        userBalance: {
+          userId: 'test-user',
+          name: 'Test User',
+          netBalance: 42.75,
+          owes: {},
+          owedBy: { 'user-2': 42.75 }
+        },
+        totalOwed: 42.75,
+        totalOwing: 0
+      }
+    });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText('+2')).toBeInTheDocument();
+    expect(screen.getByText("You're owed $42.75")).toBeInTheDocument();
+    const balanceDisplay = screen.getByText("You're owed $42.75").parentElement;
+    expect(balanceDisplay).toHaveClass('bg-green-50');
+    expect(balanceDisplay).toHaveClass('text-green-600');
+  });
+
+  it('displays last activity and last expense', () => {
+    const group = createTestGroup({
+      name: 'Weekend Trip',
+      lastActivity: '2 hours ago',
+      lastExpense: {
+        description: 'Gas station',
+        amount: 45.00,
+        date: new Date().toISOString()
+      }
+    });
+
+    render(<GroupCard group={group} onClick={mockOnClick} />);
+
+    expect(screen.getByText('Last activity: 2 hours ago')).toBeInTheDocument();
+    expect(screen.getByText('Latest: Gas station - $45.00')).toBeInTheDocument();
+  });
+
+  it('shows member avatars when members are provided', () => {
+    const members: User[] = [
+      createTestUser({ displayName: 'Alice Anderson' }),
+      createTestUser({ displayName: 'Bob Brown' }),
+      createTestUser({ displayName: 'Charlie Chen' })
+    ];
+
+    const group = createTestGroup({
+      name: 'Large Group',
+      members,
+      memberCount: members.length
+    });
+
+    render(<GroupCard group={group} onClick={mockOnClick} />);
+
+    expect(screen.getByText('Members:')).toBeInTheDocument();
+    expect(screen.getByText('AA')).toBeInTheDocument(); // Alice Anderson
+    expect(screen.getByText('BB')).toBeInTheDocument(); // Bob Brown
+    expect(screen.getByText('CC')).toBeInTheDocument(); // Charlie Chen
+  });
+
+  it('limits member avatars to 5 and shows count for rest', () => {
+    const members: User[] = [];
+    for (let i = 0; i < 8; i++) {
+      members.push(createTestUser({ 
+        displayName: `User ${String.fromCharCode(65 + i)}`, // User A, User B, etc.
+        uid: `user-${i}` 
+      }));
+    }
+
+    const group = createTestGroup({
+      name: 'Large Group',
+      members,
+      memberCount: members.length
+    });
+
+    render(<GroupCard group={group} onClick={mockOnClick} />);
+
+    // Should show first 5 initials
+    expect(screen.getByText('UA')).toBeInTheDocument();
+    expect(screen.getByText('UE')).toBeInTheDocument();
+    
+    // Should show +3 for the remaining members
+    expect(screen.getByText('+3')).toBeInTheDocument();
   });
 
   it('calls onClick when card is clicked', () => {
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder().withName('Clickable Group').build()
-    );
+    const group = createTestGroup({ name: 'Clickable Group' });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    fireEvent.click(screen.getByText('Clickable Group').closest('div')!);
+    const card = screen.getByText('Clickable Group').closest('[class*="cursor-pointer"]');
+    fireEvent.click(card!);
+
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 
-  it('handles singular forms correctly', () => {
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder().withName('Solo Trip').build(),
-      { memberCount: 1, expenseCount: 1 }
-    );
+  it('handles groups with single member correctly', () => {
+    const group = createTestGroup({
+      name: 'Solo Trip',
+      memberCount: 1
+    });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText('1 member')).toBeInTheDocument();
-    expect(screen.getByText('1 expense')).toBeInTheDocument();
+    expect(screen.getByText('1 member')).toBeInTheDocument(); // singular
+  });
+
+  it('handles groups with single expense correctly', () => {
+    const group = createTestGroup({
+      name: 'Single Expense',
+      expenseCount: 1
+    });
+
+    render(<GroupCard group={group} onClick={mockOnClick} />);
+
+    expect(screen.getByText('1 expense')).toBeInTheDocument(); // singular
+  });
+
+  it('handles groups without members array', () => {
+    const group = createTestGroup({
+      name: 'No Members Array',
+      members: undefined
+    });
+
+    render(<GroupCard group={group} onClick={mockOnClick} />);
+
+    // Should not render member avatars section
+    expect(screen.queryByText('Members:')).not.toBeInTheDocument();
   });
 
   it('handles empty members array', () => {
-    const group = GroupAdapter.fromTestGroup(
-      new GroupBuilder().withName('Empty Group').build(),
-      { members: [] }
-    );
+    const group = createTestGroup({
+      name: 'Empty Members',
+      members: []
+    });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText('Empty Group')).toBeInTheDocument();
-    // Should not crash and should not show member avatars
+    // Should not render member avatars section
     expect(screen.queryByText('Members:')).not.toBeInTheDocument();
   });
 });

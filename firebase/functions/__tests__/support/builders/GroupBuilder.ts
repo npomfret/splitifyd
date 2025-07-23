@@ -1,15 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { User } from '../../../src/types/webapp-shared-types';
-
-export interface TestGroup {
-  name: string;
-  description?: string;
-  memberEmails?: string[];
-  members?: User[];
-}
+import type { User, CreateGroupRequest } from '../../../src/types/webapp-shared-types';
 
 export class GroupBuilder {
-  private group: TestGroup;
+  private group: CreateGroupRequest;
 
   constructor() {
     this.group = {
@@ -73,8 +66,8 @@ export class GroupBuilder {
     return this;
   }
 
-  build(): TestGroup {
-    const result: TestGroup = {
+  build(): CreateGroupRequest {
+    const result: CreateGroupRequest = {
       name: this.group.name
     };
     
