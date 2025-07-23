@@ -7,23 +7,22 @@
     "webapp-v2"
   ],
   "scripts": {
+    "clean": "npm run clean -ws --if-present",
+    "clean:logs": "rm -f firebase/*.log || true",
     "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
     "dev:prep": "npm run clean:logs && cd firebase && npm run clean && cd .. && npm run build",
     "dev": "npm run dev:prep && concurrently \"cd webapp && npm run watch\" \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
-    "clean:logs": "rm -f firebase/*.log || true",
     "build": "npm run build -ws --if-present",
+    "webapp-v2:build": "cd webapp-v2 && npm run build",
     "build:all": "npm run build -w webapp && npm run build -w webapp-v2",
     "watch": "npm run watch -ws --if-present",
-    "clean": "npm run clean -ws --if-present",
     "test": "npm test -ws --if-present",
     "test:unit": "cd firebase/functions && npm run test:unit && cd ../../webapp && npm run test:unit",
     "test:integration": "cd firebase/functions && npm run test:integration && cd ../../webapp && npm run test:integration",
     "test:performance": "cd firebase/functions && npm run test:performance",
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
-    "report": "repo-statter . -o reports",
-    "webapp-v2:build": "cd webapp-v2 && npm run build",
     "test:webapp-v2": "npx tsx scripts/mcp-test-webapp-v2.ts",
-    "dev:integrated": "npm run clean:logs && npm run build:all && cd firebase && npm run link-webapp && npm run start-emulators",
+    "report": "repo-statter . -o reports",
     "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\""
   },
   "devDependencies": {
