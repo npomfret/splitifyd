@@ -23,7 +23,8 @@
     "report": "repo-statter . -o reports",
     "webapp-v2:build": "cd webapp-v2 && npm run build",
     "test:webapp-v2": "npx tsx scripts/mcp-test-webapp-v2.ts",
-    "dev:integrated": "npm run clean:logs && npm run build:all && cd firebase && npm run link-webapp && npm run start-emulators"
+    "dev:integrated": "npm run clean:logs && npm run build:all && cd firebase && npm run link-webapp && npm run start-emulators",
+    "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\""
   },
   "devDependencies": {
     "typescript": "^5.8.3",
