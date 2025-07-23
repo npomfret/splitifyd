@@ -91,7 +91,8 @@ export const authenticate = async (
 ): Promise<void> => {
   // Skip authentication for OPTIONS requests (CORS preflight)
   if (req.method === 'OPTIONS') {
-    return next();
+    next();
+    return;
   }
 
   const correlationId = req.headers['x-correlation-id'] as string;
@@ -99,7 +100,8 @@ export const authenticate = async (
   // Extract token from Authorization header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return sendError(res, Errors.UNAUTHORIZED(), correlationId);
+    sendError(res, Errors.UNAUTHORIZED(), correlationId);
+    return;
   }
 
   const token = authHeader.substring(AUTH.BEARER_TOKEN_PREFIX_LENGTH); // Remove 'Bearer ' prefix
@@ -117,13 +119,14 @@ export const authenticate = async (
     // Check rate limit
     const isAllowed = getRateLimiter().isAllowed(decodedToken.uid);
     if (!isAllowed) {
-      return sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
+      sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
+      return;
     }
 
     next();
   } catch (error) {
     logger.errorWithContext('Token verification failed', error as Error, { correlationId });
-    return sendError(res, Errors.INVALID_TOKEN(), correlationId);
+    sendError(res, Errors.INVALID_TOKEN(), correlationId);
   }
 };
 

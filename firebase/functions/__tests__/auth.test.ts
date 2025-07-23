@@ -35,13 +35,13 @@ const { sendError: mockSendError } = require('../src/utils/errors');
 
 // Mock config
 jest.mock('../src/config', () => ({
-  CONFIG: {
+  getConfig: () => ({
     rateLimiting: {
       windowMs: 60000,
       maxRequests: 10,
       cleanupIntervalMs: 300000 // 5 minutes - longer interval to avoid cleanup during tests
     }
-  }
+  })
 }));
 
 describe('Authentication Middleware', () => {
