@@ -43,6 +43,16 @@ Once configured, Claude can use these browser automation tools:
 - **Element interaction** - Clicks, types, and interacts with page elements
 - **Network monitoring** - Observes API calls and responses
 
+## Getting the Correct Port
+
+The webapp port is configured in `firebase/firebase.json` and may vary by environment. To get the correct URL:
+
+```bash
+npm run get-webapp-url
+```
+
+This will output something like `http://localhost:6002` (port may vary).
+
 ## Usage Examples
 
 ### Basic Console Check
@@ -124,7 +134,8 @@ Use MCP for:
 await updateGroupsComponent();
 
 // 2. Request automated verification
-"Open localhost:6002/v2/dashboard and check for console errors"
+// Get port from: npm run get-webapp-url
+"Open localhost:PORT/v2/dashboard and check for console errors"
 
 // 3. If errors found, fix and re-test
 "Check the console again after my fix"

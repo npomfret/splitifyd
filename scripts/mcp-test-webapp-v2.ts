@@ -9,10 +9,16 @@
 
 import { join } from 'path';
 import { config } from 'dotenv';
+import { readFileSync } from 'fs';
 
 // Load environment variables
 const envPath = join(process.cwd(), 'firebase/functions/.env');
 config({ path: envPath });
+
+// Get port from firebase.json
+const firebaseConfig = JSON.parse(readFileSync(join(process.cwd(), 'firebase/firebase.json'), 'utf-8'));
+const HOSTING_PORT = firebaseConfig.emulators?.hosting?.port || 6002;
+const BASE_URL = `http://localhost:${HOSTING_PORT}`;
 
 const DEV_FORM_EMAIL = process.env.DEV_FORM_EMAIL || 'test1@test.com';
 const DEV_FORM_PASSWORD = process.env.DEV_FORM_PASSWORD || 'rrRR44$$';
@@ -57,8 +63,8 @@ export class McpWebappV2Tester {
   private assertions: TestAssertion[] = [];
   
   private loginTestConfig: LoginTestConfig = {
-    baseUrl: 'http://localhost:6002',
-    loginUrl: 'http://localhost:6002/v2/login',
+    baseUrl: BASE_URL,
+    loginUrl: `${BASE_URL}/v2/login`,
     credentials: {
       email: DEV_FORM_EMAIL,
       password: DEV_FORM_PASSWORD
@@ -138,7 +144,7 @@ MCP Browser Login Test Steps:
 
     // Test 1: Navigation
     this.assert('Page Navigation', 
-      'http://localhost:6002/v2/', 
+      `${BASE_URL}/v2/`, 
       browserResult.url,
       'Successfully navigated to webapp-v2'
     );
@@ -255,7 +261,7 @@ MCP Browser Login Test Steps:
 
 // Test with the actual MCP results from our previous run
 const mockBrowserResult: BrowserTestResult = {
-  url: "http://localhost:6002/v2/",
+  url: `${BASE_URL}/v2/`,
   title: "Splitifyd", 
   hasLoginButton: true,
   hasSignUpButton: true,
@@ -272,7 +278,9 @@ if (require.main === module) {
   const tester = new McpWebappV2Tester();
   
   console.log('🔐 MCP Browser Test Configuration');
-  console.log('=====================================\n');
+  console.log('=====================================');
+  console.log(`📍 Using port ${HOSTING_PORT} from firebase.json`);
+  console.log(`🌐 Base URL: ${BASE_URL}\n`);
   
   // Show login test steps
   console.log(tester.getLoginTestSteps());
