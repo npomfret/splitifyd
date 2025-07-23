@@ -40,10 +40,11 @@ Summarise what you have learned from them.
 Note: assume the emulator is running and changes are automatically built and reflected in the running app.
 
 # Firebase Local Development
-- Typically, the emulator is already running, via `npm run dev`, so do not try to start it again. If it is not running, ask the user to start it.
-- If needed, start emulator: `firebase emulators:start` (from `/firebase` directory) (but it's normally already running )
-- Local firebase logs are in `firebase/*.log`, the main application log is `firebase-debug.log` and can be viewed here: http://localhost:4000/logs
-- Read the appropriate firebase docs before doing firebase code or configuration changes
+- Firebase is configured to run on a set of ports (via the `switch-instance.sh` script and the .env files in `firebase/functions/.env.<envname>`)
+- To determine which port(s) to use, examine `firebase/firebase.json`
+- To get the webapp base url, run `npm run get-webapp-url`
+- Always assume emulator is already running (via `npm run dev`). If it is not running, ask the user to start it
+- Local firebase logs are in `firebase/*.log`, the main application log is `firebase/firebase-debug.log`
 
 # Code Style
 - async/await over promises
