@@ -7,8 +7,8 @@ import { FieldValue } from 'firebase-admin/firestore';
 export const onExpenseWriteV6 = onDocumentWritten({
     document: 'expenses/{expenseId}',
     region: 'us-central1',
-    memory: '256MiB',
-    maxInstances: 100,
+    memory: '512MiB',
+    maxInstances: 5,
 }, async (event) => {
     const expenseId = event.params.expenseId;
     const eventId = event.id;
