@@ -4,9 +4,9 @@
 Migrate the group detail page with member management, expense listing, balance calculations, and group settings to Preact.
 
 ## Prerequisites
-- [ ] Complete webapp-rebuild-6-dashboard.md
-- [ ] Groups store implemented
-- [ ] API client configured for expenses
+- [x] Complete webapp-rebuild-6-dashboard.md (Dashboard is implemented)
+- [x] Groups store implemented (groups-store.ts exists and working)
+- [x] API client configured for expenses (all endpoints available)
 
 ## Current State
 - Complex page with multiple sections
@@ -290,15 +290,232 @@ Migrate the group detail page with member management, expense listing, balance c
    - Cache frequently accessed data
    - Optimize re-renders
 
+## Detailed Implementation Plan
+
+### Analysis Summary
+After analyzing the existing codebase:
+
+1. ✅ **Full API support available**:
+   - GET `/groups/:id` - Fetch group details
+   - GET `/expenses/group` - Fetch expenses with pagination
+   - GET `/groups/balances` - Get balance calculations
+   - POST `/expenses` - Create new expense
+   - PUT/DELETE `/expenses` - Update/delete expenses
+
+2. ✅ **Type definitions complete**:
+   - GroupDetail, ExpenseData, GroupBalances types defined
+   - User and balance types ready
+   - All request/response types available
+
+3. ✅ **Infrastructure ready**:
+   - Groups store pattern established
+   - API client with auth working
+   - UI components library available
+   - Router ready for new routes
+
+4. ❌ **Missing components**:
+   - No group detail page yet
+   - No expense-related components
+   - No balance display components
+   - No member management UI
+
+### Implementation Strategy
+
+**Chosen Approach: Feature-Based Implementation**
+1. Start with basic group detail display (read-only)
+2. Add expense list with pagination
+3. Implement balance calculations display
+4. Add member management features
+5. Enable expense CRUD operations last
+
+This approach ensures we have a working page early and can incrementally add features.
+
+### Phase-by-Phase Breakdown
+
+#### Phase 1: Group Detail Store & Basic Page (2 hours)
+**Purpose**: Create foundation for group detail functionality
+
+**Implementation**:
+1. **Create `src/app/stores/group-detail-store.ts`**
+   ```typescript
+   interface GroupDetailStore {
+     group: GroupDetail | null;
+     expenses: ExpenseData[];
+     balances: GroupBalances | null;
+     loading: boolean;
+     error: string | null;
+     
+     fetchGroup(id: string): Promise<void>;
+     fetchExpenses(cursor?: string): Promise<void>;
+     fetchBalances(): Promise<void>;
+     reset(): void;
+   }
+   ```
+
+2. **Create `src/pages/GroupDetailPage.tsx`**
+   - Route params handling for group ID
+   - Loading states while data fetches
+   - Error handling for invalid groups
+   - Basic layout structure
+
+3. **Add route to App.tsx**:
+   ```tsx
+   <Route path="/groups/:id" component={GroupDetailPage} />
+   ```
+
+#### Phase 2: Group Header & Info Display (1.5 hours)
+**Purpose**: Display group information and quick stats
+
+**Implementation**:
+1. **Create `src/components/group/GroupHeader.tsx`**
+   - Group name and description
+   - Member count and avatars preview
+   - Total expense count
+   - Created date
+   - Settings button (placeholder)
+
+2. **Create `src/components/group/MembersList.tsx`**
+   - Display all members with avatars
+   - Show member names and emails
+   - Indicate group creator
+   - Placeholder for member actions
+
+3. **Styling approach**:
+   - Use existing Card component for sections
+   - Consistent spacing with Stack component
+   - Mobile-responsive grid for members
+
+#### Phase 3: Expense List Implementation (2 hours)
+**Purpose**: Display paginated expense list
+
+**Implementation**:
+1. **Create `src/components/group/ExpensesList.tsx`**
+   - Fetch expenses on mount
+   - Handle pagination with "Load More" button
+   - Show loading state for pagination
+   - Empty state when no expenses
+
+2. **Create `src/components/group/ExpenseItem.tsx`**
+   - Expense description and amount
+   - Paid by indicator
+   - Date formatting
+   - Category icon/badge
+   - Participants list
+   - Click handler for detail view (placeholder)
+
+3. **Features**:
+   - Virtual scrolling for performance (phase 2)
+   - Search/filter (phase 2)
+   - Sort options (phase 2)
+
+#### Phase 4: Balance Display (2 hours)
+**Purpose**: Show who owes whom
+
+**Implementation**:
+1. **Create `src/components/group/BalanceSummary.tsx`**
+   - Fetch balances from API
+   - Display user's personal balance prominently
+   - Show simplified debts list
+   - Color coding (red for owing, green for owed)
+
+2. **Create `src/components/group/BalanceItem.tsx`**
+   - Individual balance display
+   - "Person A owes Person B $X" format
+   - Settle button (placeholder)
+   - Amount formatting with currency
+
+3. **Balance calculation display**:
+   - Use the API's pre-calculated balances
+   - Don't recalculate client-side (trust server)
+   - Handle multi-currency gracefully
+
+#### Phase 5: Quick Actions & Polish (1.5 hours)
+**Purpose**: Add interactivity and polish
+
+**Implementation**:
+1. **Create `src/components/group/QuickActions.tsx`**
+   - Add Expense button (navigate to add page)
+   - Settle Up button (placeholder)
+   - Share Group button (placeholder)
+   - Leave Group option (placeholder)
+
+2. **Error handling improvements**:
+   - Network error retry buttons
+   - Permission denied messages
+   - Group not found redirect
+
+3. **Performance optimizations**:
+   - Debounce scroll events
+   - Lazy load member avatars
+   - Cache group data in store
+
+### Technical Decisions
+
+1. **State Management**: 
+   - Separate group-detail-store for this page
+   - Don't pollute groups-store with detail data
+   - Clear store on unmount to prevent stale data
+
+2. **Data Fetching**:
+   - Parallel fetch group, expenses, and balances
+   - Show partial data as it arrives
+   - Implement proper error boundaries
+
+3. **Navigation**:
+   - Add expense → `/groups/:id/add-expense`
+   - Expense detail → `/groups/:id/expenses/:expenseId`
+   - Back to dashboard preserves scroll position
+
+4. **Mobile First**:
+   - Stack layout on mobile
+   - Side-by-side on desktop
+   - Touch-friendly tap targets
+
+### Commit Strategy
+
+**Commit 1**: Group detail store and basic page (2 hours)
+- group-detail-store.ts implementation
+- GroupDetailPage with routing
+- Basic data fetching
+
+**Commit 2**: Group info display (1.5 hours)
+- GroupHeader component
+- MembersList component
+- Proper loading states
+
+**Commit 3**: Expense list (2 hours)
+- ExpensesList with pagination
+- ExpenseItem component
+- Empty states
+
+**Commit 4**: Balance display (2 hours)
+- BalanceSummary component
+- Balance calculations display
+- Settle indicators
+
+**Commit 5**: Actions and polish (1.5 hours)
+- QuickActions toolbar
+- Error handling
+- Performance optimizations
+
+### Future Enhancements (Not in MVP)
+1. Real-time updates via Firestore listeners
+2. Expense search and filtering
+3. Member management (add/remove)
+4. Group settings editing
+5. Expense bulk operations
+6. Export functionality
+
 ## Timeline
 
-- Start Date: TBD
-- End Date: TBD
-- Duration: ~9 hours
+- Start Date: When instructed
+- End Date: Same day
+- Duration: ~9 hours (detailed breakdown above)
+- **Ready to implement** ✅
 
 ## Notes
 
-- Most complex page - plan carefully
-- Balance calculations are critical
-- Real-time features are key selling point
-- Consider performance with large datasets
+- Most complex page - taking incremental approach
+- Balance calculations handled by API - no client-side math
+- Real-time features deferred to phase 2
+- Focus on solid foundation with good UX
