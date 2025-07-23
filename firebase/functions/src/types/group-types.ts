@@ -4,13 +4,16 @@
 
 export {
   Group,
-  GroupWithBalance,
   GroupBalance,
-  GroupDocument,
   CreateGroupRequest,
-  UpdateGroupRequest,
-  GroupData,
   User,
   User as GroupMember, // Alias for backward compatibility
   UserBalance
 } from './webapp-shared-types';
+
+export {
+  GroupWithBalance,
+  GroupDocument,
+  UpdateGroupRequest,
+  GroupData,
+} from './server-types';
