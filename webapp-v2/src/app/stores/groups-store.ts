@@ -1,7 +1,7 @@
 import { signal } from '@preact/signals';
 import type { Group, CreateGroupRequest } from '../../types/webapp-shared-types';
 import type { ListGroupsResponse } from '../../api/apiContract';
-import { apiClient } from '../apiClient';
+import { apiClient, ApiError } from '../apiClient';
 
 export interface GroupsStore {
   groups: Group[];
@@ -40,7 +40,8 @@ class GroupsStoreImpl implements GroupsStore {
       groupsSignal.value = response.groups;
       initializedSignal.value = true;
     } catch (error) {
-      errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch groups';
+      errorSignal.value = this.getErrorMessage(error);
+      throw error;
     } finally {
       loadingSignal.value = false;
     }
@@ -58,7 +59,7 @@ class GroupsStoreImpl implements GroupsStore {
       
       return newGroup;
     } catch (error) {
-      errorSignal.value = error instanceof Error ? error.message : 'Failed to create group';
+      errorSignal.value = this.getErrorMessage(error);
       throw error;
     } finally {
       loadingSignal.value = false;
@@ -79,6 +80,29 @@ class GroupsStoreImpl implements GroupsStore {
     loadingSignal.value = false;
     errorSignal.value = null;
     initializedSignal.value = false;
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof ApiError) {
+      switch (error.code) {
+        case 'PERMISSION_DENIED':
+          return 'You do not have permission to access groups.';
+        case 'UNAUTHORIZED':
+          return 'Please sign in to view groups.';
+        case 'GROUP_NOT_FOUND':
+          return 'The requested group could not be found.';
+        case 'NETWORK_ERROR':
+          return 'Network error. Please check your connection.';
+        default:
+          return error.message || 'Failed to access groups.';
+      }
+    }
+    
+    if (error instanceof Error) {
+      return error.message;
+    }
+    
+    return 'An unexpected error occurred.';
   }
 }
 
