@@ -158,6 +158,10 @@
         "destination": "/v2/index.html"
       },
       {
+        "source": "/join",
+        "destination": "/v2/index.html"
+      },
+      {
         "source": "/pricing",
         "destination": "/v2/index.html"
       },

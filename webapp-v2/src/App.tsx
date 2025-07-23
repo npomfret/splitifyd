@@ -10,6 +10,7 @@ import { PricingPage } from './pages/static/PricingPage';
 import { TermsOfServicePage } from './pages/static/TermsOfServicePage';
 import { PrivacyPolicyPage } from './pages/static/PrivacyPolicyPage';
 import { CookiePolicyPage } from './pages/static/CookiePolicyPage';
+import { JoinGroupPage } from './pages/JoinGroupPage';
 
 export function App() {
   // In production, we're served at /v2/ so we need to handle that prefix
@@ -37,6 +38,10 @@ export function App() {
       <Route path="/groups/:id" component={GroupDetailPage} />
       <Route path={`${prefix}/group/:id`} component={GroupDetailPage} />
       <Route path="/group/:id" component={GroupDetailPage} />
+      
+      {/* Join Group Route */}
+      <Route path={`${prefix}/join`} component={JoinGroupPage} />
+      <Route path="/join" component={JoinGroupPage} />
       
       {/* Static Pages */}
       <Route path={`${prefix}/pricing`} component={PricingPage} />
