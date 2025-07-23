@@ -7,7 +7,6 @@ export {
   GroupBalance,
   CreateGroupRequest,
   User,
-  User as GroupMember, // Alias for backward compatibility
   UserBalance
 } from './webapp-shared-types';
 

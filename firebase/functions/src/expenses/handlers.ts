@@ -14,7 +14,7 @@ import {
   calculateSplits,
   Expense
 } from './validation';
-import { GroupData, GroupMember } from '../types/group-types';
+import { GroupData, User } from '../types/group-types';
 
 const getExpensesCollection = () => {
   return admin.firestore().collection('expenses');
@@ -66,7 +66,7 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
   
   // Check members array (for backward compatibility)
   if (groupDataTyped.members && Array.isArray(groupDataTyped.members)) {
-    const isMember = groupDataTyped.members.some((member: GroupMember) => member.uid === userId);
+    const isMember = groupDataTyped.members.some((member: User) => member.uid === userId);
     if (isMember) {
       return;
     }
