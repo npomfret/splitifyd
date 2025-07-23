@@ -14,7 +14,8 @@ import type {
   ListGroupsResponse,
   GroupBalances,
   ExpenseData,
-  AppConfiguration
+  AppConfiguration,
+  CreateExpenseRequest
 } from '../types/webapp-shared-types';
 
 // API configuration - use window.API_BASE_URL injected during build
@@ -248,6 +249,13 @@ export class ApiClient {
     return this.request('/expenses/group', {
       method: 'GET',
       query
+    });
+  }
+
+  async createExpense(data: CreateExpenseRequest): Promise<ExpenseData> {
+    return this.request('/expenses', {
+      method: 'POST',
+      body: data
     });
   }
 

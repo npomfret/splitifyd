@@ -116,7 +116,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   };
 
   const handleAddExpense = () => {
-    console.log('Add expense clicked');
+    route(`/groups/${groupId}/add-expense`);
   };
 
   const handleSettleUp = () => {
