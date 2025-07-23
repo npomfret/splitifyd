@@ -44,23 +44,19 @@ class GroupDetailStoreImpl implements GroupDetailStore {
   get expenseCursor() { return expenseCursorSignal.value; }
 
   async fetchGroup(id: string): Promise<void> {
-    console.log('fetchGroup called with id:', id);
     loadingSignal.value = true;
     errorSignal.value = null;
 
     try {
-      console.log('Calling apiClient.getGroup...');
       const group = await apiClient.getGroup(id) as Group;
-      console.log('Got group:', group);
       groupSignal.value = group;
 
-      // Fetch initial expenses and balances in parallel
-      console.log('Fetching expenses and balances...');
-      await Promise.all([
-        this.fetchExpenses(),
-        this.fetchBalances()
-      ]);
-      console.log('All data fetched successfully');
+      // Set balances from group data (already included in group response)
+      // Note: group.balance has different structure than GroupBalances, so we set to null for now
+      balancesSignal.value = null;
+      
+      // Fetch initial expenses
+      await this.fetchExpenses();
     } catch (error) {
       console.error('Error in fetchGroup:', error);
       errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch group';

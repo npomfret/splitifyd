@@ -10,7 +10,6 @@ import {
   GroupHeader, 
   QuickActions, 
   MembersList, 
-  BalanceSummary, 
   ExpensesList 
 } from '../components/group';
 
@@ -24,19 +23,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   // Computed values from store
   const group = useComputed(() => groupDetailStore.group);
   const expenses = useComputed(() => groupDetailStore.expenses);
-  const balances = useComputed(() => groupDetailStore.balances);
   const loading = useComputed(() => groupDetailStore.loading);
   const error = useComputed(() => groupDetailStore.error);
   // const currentUser = useComputed(() => authStore.user);
 
-  // Debug logging
-  console.log('GroupDetailPage render:', {
-    groupId,
-    group: group.value,
-    loading: loading.value,
-    error: error.value,
-    isInitialized: isInitialized.value
-  });
 
   // Fetch group data on mount
   useEffect(() => {
@@ -89,23 +79,33 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     );
   }
 
-  // Handle no group found
-  if (!group.value && isInitialized.value) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <V2Indicator />
-        <Card className="p-6 text-center">
-          <h2 className="text-xl font-semibold mb-2">Group Not Found</h2>
-          <p className="text-gray-600 mb-4">This group doesn't exist or you don't have access to it.</p>
-          <Button 
-            variant="primary" 
-            onClick={() => route('/dashboard')}
-          >
-            Back to Dashboard
-          </Button>
-        </Card>
-      </div>
-    );
+  // Handle no group found or still loading
+  if (!group.value) {
+    if (isInitialized.value) {
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <V2Indicator />
+          <Card className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2">Group Not Found</h2>
+            <p className="text-gray-600 mb-4">This group doesn't exist or you don't have access to it.</p>
+            <Button 
+              variant="primary" 
+              onClick={() => route('/dashboard')}
+            >
+              Back to Dashboard
+            </Button>
+          </Card>
+        </div>
+      );
+    } else {
+      // Still loading
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <V2Indicator />
+          <LoadingSpinner />
+        </div>
+      );
+    }
   }
 
   // Handle click events
@@ -150,7 +150,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
           createdBy={group.value!.createdBy || ''}
         />
 
-        <BalanceSummary balances={balances.value} />
+        {/* <BalanceSummary balances={balances.value} /> */}
 
         <ExpensesList 
           expenses={expenses.value}

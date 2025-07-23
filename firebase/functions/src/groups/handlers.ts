@@ -27,6 +27,23 @@ const getGroupsCollection = () => {
 };
 
 /**
+ * Generate initials from a name or email
+ */
+const getInitials = (nameOrEmail: string): string => {
+  if (!nameOrEmail) return 'U';
+  
+  // If it's an email, use the part before @
+  if (nameOrEmail.includes('@')) {
+    const username = nameOrEmail.split('@')[0];
+    return username.charAt(0).toUpperCase();
+  }
+  
+  // For regular names, take first letter of each word
+  const words = nameOrEmail.trim().split(/\s+/);
+  return words.map(word => word.charAt(0).toUpperCase()).join('').substring(0, 2);
+};
+
+/**
  * Transform Firestore document to GroupDocument format
  */
 const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDocument => {
@@ -93,8 +110,14 @@ const convertGroupDocumentToGroup = (groupDoc: GroupDocument, userId: string): G
       date: groupDoc.lastExpense.date.toISOString()
     } : undefined,
     
-    // Optional detail fields
-    members: groupDoc.members,
+    // Optional detail fields - transform members to match frontend schema
+    members: groupDoc.members.map(member => ({
+      uid: member.uid,
+      name: member.displayName || member.email || 'Unknown User',
+      initials: getInitials(member.displayName || member.email || 'U'),
+      email: member.email,
+      displayName: member.displayName || member.email || 'Unknown User'
+    })),
     createdBy: groupDoc.createdBy,
     createdAt: groupDoc.createdAt.toISOString(),
     updatedAt: groupDoc.updatedAt.toISOString(),

@@ -15,11 +15,11 @@ export function MembersList({ members, createdBy }: MembersListProps) {
           <div key={member.uid} className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
               <span className="text-sm font-medium text-primary-700">
-                {member.displayName.charAt(0).toUpperCase()}
+                {(member.displayName || member.email || 'U').charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{member.displayName}</p>
+              <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
               {member.uid === createdBy && (
                 <p className="text-xs text-gray-500">Admin</p>
               )}
