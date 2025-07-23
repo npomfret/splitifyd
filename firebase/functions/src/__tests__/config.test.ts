@@ -29,6 +29,33 @@ jest.mock('../config', () => ({
       password: ''
     },
     warningBanner: '⚠️ this is a demo - your data will be deleted without notice'
+  }),
+  getAppConfig: () => ({
+    firebase: {
+      apiKey: 'test-api-key',
+      authDomain: 'test.firebaseapp.com',
+      projectId: 'test-project',
+      storageBucket: 'test.firebasestorage.app',
+      messagingSenderId: '123456789',
+      appId: '1:123456789:web:abcdef',
+      measurementId: 'G-TEST123'
+    },
+    api: {
+      timeout: 30000,
+      retryAttempts: 3
+    },
+    environment: {
+      warningBanner: {
+        enabled: true,
+        message: '⚠️ this is a demo - your data will be deleted without notice'
+      }
+    },
+    formDefaults: {
+      displayName: '',
+      email: '',
+      password: ''
+    },
+    firebaseAuthUrl: undefined
   })
 }));
 
