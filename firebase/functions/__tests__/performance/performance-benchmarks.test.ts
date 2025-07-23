@@ -2,15 +2,16 @@
  * @jest-environment node
  */
 
-import { ApiDriver, User, Group } from '../support/ApiDriver';
-import { PerformanceTestWorkers } from './PerformanceTestWorkers';
-import { ExpenseBuilder, UserBuilder } from '../support/builders';
+import {ApiDriver, User} from '../support/ApiDriver';
+import {PerformanceTestWorkers} from './PerformanceTestWorkers';
+import {ExpenseBuilder, UserBuilder} from '../support/builders';
+import type {GroupDetail} from "../../src/shared/apiTypes";
 
 describe('Performance - Response Time Benchmarks', () => {
     let driver: ApiDriver;
     let mainUser: User;
     let workers: PerformanceTestWorkers;
-    let benchmarkGroup: Group;
+    let benchmarkGroup: GroupDetail;
     let benchmarkExpenses: any[] = [];
 
     jest.setTimeout(60000);

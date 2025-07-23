@@ -345,7 +345,7 @@ export function createFormSection(title: string, children: HTMLElement[]): HTMLD
 /**
  * Creates a member item with checkbox for selection
  */
-export function createMemberCheckbox(member: { uid: string; name: string }, isCurrentUser: boolean, checked: boolean = true): HTMLDivElement {
+export function createMemberCheckbox(member: { uid: string; displayName: string }, isCurrentUser: boolean, checked: boolean = true): HTMLDivElement {
   const memberItem = document.createElement('div');
   memberItem.className = 'member-item';
 
@@ -365,11 +365,11 @@ export function createMemberCheckbox(member: { uid: string; name: string }, isCu
 
   const avatar = document.createElement('div');
   avatar.className = 'member-avatar';
-  avatar.textContent = member.name.charAt(0).toUpperCase();
+  avatar.textContent = member.displayName.charAt(0).toUpperCase();
 
   const name = document.createElement('span');
   name.className = 'member-name';
-  name.textContent = isCurrentUser ? 'You' : member.name;
+  name.textContent = isCurrentUser ? 'You' : member.displayName;
 
   avatarContainer.appendChild(avatar);
   label.appendChild(checkbox);

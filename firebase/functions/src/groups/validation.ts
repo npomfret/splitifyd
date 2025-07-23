@@ -2,7 +2,8 @@ import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
-import { CreateGroupRequest, UpdateGroupRequest } from '../types/group-types';
+import { CreateGroupRequest } from '../shared/apiTypes';
+import { UpdateGroupRequest } from '../types/group-types';
 
 /**
  * Schema for create group request
@@ -24,6 +25,14 @@ const createGroupSchema = Joi.object({
     .optional(),
   memberEmails: Joi.array()
     .items(Joi.string().email())
+    .max(VALIDATION_LIMITS.MAX_GROUP_MEMBERS)
+    .optional(),
+  members: Joi.array()
+    .items(Joi.object({
+      uid: Joi.string().required(),
+      displayName: Joi.string().required(),
+      email: Joi.string().email().required()
+    }))
     .max(VALIDATION_LIMITS.MAX_GROUP_MEMBERS)
     .optional()
 }).required();
@@ -84,7 +93,7 @@ export const validateGroupId = (id: unknown): string => {
 /**
  * Sanitize group data for safe storage
  */
-export const sanitizeGroupData = (data: CreateGroupRequest | UpdateGroupRequest): any => {
+export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequest>(data: T): T => {
   const sanitized: any = {};
   
   if ('name' in data && data.name) {
@@ -101,5 +110,13 @@ export const sanitizeGroupData = (data: CreateGroupRequest | UpdateGroupRequest)
     );
   }
   
-  return sanitized;
+  if ('members' in data && data.members) {
+    sanitized.members = data.members.map(member => ({
+      uid: sanitizeString(member.uid),
+      displayName: sanitizeString(member.displayName),
+      email: sanitizeString(member.email.toLowerCase().trim())
+    }));
+  }
+  
+  return sanitized as T;
 };

@@ -122,7 +122,7 @@ describe('RESTful Group Endpoints', () => {
         amount: 100,
         paidBy: users[0].uid,
         participants: [users[0].uid],
-        splitType: 'equal',
+        splitType: 'equal' as const,
         date: new Date().toISOString(),
         category: 'food'
       };
@@ -268,7 +268,7 @@ describe('RESTful Group Endpoints', () => {
         amount: 50,
         paidBy: users[0].uid,
         participants: [users[0].uid],
-        splitType: 'equal',
+        splitType: 'equal' as const,
         date: new Date().toISOString(),
         category: 'food'
       };

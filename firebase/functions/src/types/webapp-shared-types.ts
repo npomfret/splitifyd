@@ -53,14 +53,11 @@ export interface AppConfiguration {
   firebaseAuthUrl?: string;
 }
 
-// Group Types - Actually used by webapp
-export interface Member {
+// User Types - Actually used by webapp
+export interface User {
   uid: string;
-  name: string;
-  initials: string;
-  email?: string;
-  displayName?: string;
-  joinedAt?: string;
+  email: string;
+  displayName: string;
 }
 
 // Balance Types
@@ -86,7 +83,7 @@ export interface Group {
   createdBy: string;
   memberIds: string[];
   memberEmails: string[];
-  members: Member[];
+  members: User[];
   expenseCount: number;
   lastExpenseTime?: string;
   lastExpense?: {
@@ -138,7 +135,7 @@ export interface TransformedGroup {
     amount: number;
     date: string;
   } | null;
-  members: Member[];
+  members: User[];
   expenseCount: number;
   lastExpenseTime: string | null;
   isSettledUp?: boolean;
@@ -157,7 +154,7 @@ export interface GroupDocument {
   createdBy: string;
   memberIds: string[];
   memberEmails: string[];
-  members: Member[];
+  members: User[];
   expenseCount: number;
   lastExpenseTime?: Date;
   lastExpense?: {
@@ -174,6 +171,29 @@ export interface CreateGroupRequest {
   name: string;
   description?: string;
   memberEmails?: string[];
+  members?: User[];
+}
+
+export interface UpdateGroupRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface GroupWithBalance extends Group {
+  balance: GroupBalance;
+}
+
+export interface GroupData {
+  name: string;
+  description?: string;
+  memberIds?: string[];
+  memberEmails: string[];
+  members: User[];
+  yourBalance: number;
+  expenseCount: number;
+  lastExpenseTime: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ShareableLinkResponse {

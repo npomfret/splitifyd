@@ -245,8 +245,10 @@ describe('Comprehensive API Test Suite', () => {
         expect(createdExpense.amount).toBe(100);
         expect(createdExpense.splitType).toBe('exact');
         expect(createdExpense.splits).toHaveLength(2);
-        expect(createdExpense.splits.find((s: any) => s.userId === users[0].uid).amount).toBe(80);
-        expect(createdExpense.splits.find((s: any) => s.userId === users[1].uid).amount).toBe(20);
+        const user0Split = createdExpense.splits.find((s: any) => s.userId === users[0].uid);
+        const user1Split = createdExpense.splits.find((s: any) => s.userId === users[1].uid);
+        expect(user0Split?.amount).toBe(80);
+        expect(user1Split?.amount).toBe(20);
         
         // Verify the splits add up to the total amount
         const totalSplits = createdExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
@@ -369,8 +371,10 @@ describe('Comprehensive API Test Suite', () => {
         const initialExpense = await driver.getExpense(createResponse.id, users[0].token);
         expect(initialExpense.amount).toBe(100);
         expect(initialExpense.splits).toHaveLength(2);
-        expect(initialExpense.splits.find((s: any) => s.userId === users[0].uid).amount).toBe(60);
-        expect(initialExpense.splits.find((s: any) => s.userId === users[1].uid).amount).toBe(40);
+        const user0Split = initialExpense.splits.find((s: any) => s.userId === users[0].uid);
+        const user1Split = initialExpense.splits.find((s: any) => s.userId === users[1].uid);
+        expect(user0Split?.amount).toBe(60);
+        expect(user1Split?.amount).toBe(40);
 
         // Update only the amount - should revert to equal splits since no new splits provided
         const updatedData = {

@@ -4,7 +4,7 @@ import { resolve } from 'path';
 export default defineConfig({
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test-utils/setup.ts'],
+    setupFiles: ['./src/__tests__/setup.ts'],
     globals: true,
     css: true,
     exclude: [
@@ -36,6 +36,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@shared': resolve(__dirname, '../firebase/functions/src/shared'),
+      '@test-builders': resolve(__dirname, '../firebase/functions/__tests__/support/builders'),
     },
   },
 });

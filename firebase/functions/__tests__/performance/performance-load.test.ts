@@ -2,9 +2,10 @@
  * @jest-environment node
  */
 
-import { ApiDriver, User, Group } from '../support/ApiDriver';
-import { PerformanceTestWorkers } from './PerformanceTestWorkers';
-import { ExpenseBuilder, UserBuilder } from '../support/builders';
+import {ApiDriver, User} from '../support/ApiDriver';
+import {PerformanceTestWorkers} from './PerformanceTestWorkers';
+import {ExpenseBuilder, UserBuilder} from '../support/builders';
+import type {GroupDetail} from "../../src/shared/apiTypes";
 
 describe('Performance and Load Testing', () => {
     let driver: ApiDriver;
@@ -190,7 +191,7 @@ describe('Performance and Load Testing', () => {
     });
 
     describe('Response Time Benchmarks', () => {
-        let benchmarkGroup: Group;
+        let benchmarkGroup: GroupDetail;
         let benchmarkExpenses: any[] = [];
 
         beforeAll(async () => {

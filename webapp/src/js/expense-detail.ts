@@ -311,7 +311,7 @@ function getUserDisplayName(userId: string): string {
     if (!member) return userId;
     
     // Show "You" for current user, otherwise show the member's name
-    return member.uid === currentUser.uid ? 'You' : member.name;
+    return member.uid === currentUser.uid ? 'You' : member.displayName;
 }
 
 function formatDate(dateString: string): string {

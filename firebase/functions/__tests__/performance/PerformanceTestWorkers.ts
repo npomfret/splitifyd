@@ -1,18 +1,19 @@
-import { ApiDriver, User, Group, Expense } from '../support/ApiDriver';
+import {ApiDriver, User} from '../support/ApiDriver';
+import type {ExpenseData, GroupDetail} from "../../src/shared/apiTypes";
 
 export class PerformanceTestWorkers {
     constructor(private driver: ApiDriver) {}
 
     async createConcurrentExpenses(params: {
         users: User[];
-        group: Group;
+        group: GroupDetail;
         expensesPerUser: number;
         timeoutMs?: number;
     }): Promise<{
         totalTime: number;
         succeeded: number;
         failed: number;
-        expenses: Expense[];
+        expenses: ExpenseData[];
     }> {
         const { users, group, expensesPerUser } = params;
         const startTime = Date.now();
@@ -43,7 +44,7 @@ export class PerformanceTestWorkers {
         const succeeded = results.filter(r => r.status === 'fulfilled').length;
         const failed = results.filter(r => r.status === 'rejected').length;
         const expenses = results
-            .filter((r): r is PromiseFulfilledResult<Expense> => r.status === 'fulfilled')
+            .filter((r): r is PromiseFulfilledResult<ExpenseData> => r.status === 'fulfilled')
             .map(r => r.value);
 
         return { totalTime, succeeded, failed, expenses };
@@ -52,7 +53,7 @@ export class PerformanceTestWorkers {
     async createBalanceTestExpenses(params: {
         user1: User;
         user2: User;
-        group: Group;
+        group: GroupDetail;
         expensesPerUserPair: number;
     }): Promise<void> {
         const { user1, user2, group, expensesPerUserPair } = params;
@@ -109,7 +110,7 @@ export class PerformanceTestWorkers {
     }
 
     async createLargeGroupExpenses(params: {
-        group: Group;
+        group: GroupDetail;
         user1: User;
         user2: User;
         totalExpenses: number;
@@ -170,7 +171,7 @@ export class PerformanceTestWorkers {
 
     async createComplexDebtGraph(params: {
         users: User[];
-        group: Group;
+        group: GroupDetail;
         expensesPerUser: number;
     }): Promise<{
         totalExpenses: number;
@@ -234,7 +235,7 @@ export class PerformanceTestWorkers {
     }
 
     async performRepeatedOperations(params: {
-        group: Group;
+        group: GroupDetail;
         user: User;
         iterations: number;
     }): Promise<void> {

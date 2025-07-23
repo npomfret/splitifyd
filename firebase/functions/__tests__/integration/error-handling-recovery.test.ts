@@ -2,14 +2,15 @@
  * @jest-environment node
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User, Group } from '../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder } from '../support/builders';
+import {v4 as uuidv4} from 'uuid';
+import {ApiDriver, User} from '../support/ApiDriver';
+import {ExpenseBuilder, UserBuilder} from '../support/builders';
+import type {GroupDetail} from "../../src/shared/apiTypes";
 
 describe('Error Handling and Recovery Testing', () => {
     let driver: ApiDriver;
     let mainUser: User;
-    let testGroup: Group;
+    let testGroup: GroupDetail;
 
     jest.setTimeout(10000); // Timeout for error handling tests
 

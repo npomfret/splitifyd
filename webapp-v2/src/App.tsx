@@ -4,6 +4,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { DashboardPage } from './pages/DashboardPage';
 import { PricingPage } from './pages/static/PricingPage';
 import { TermsOfServicePage } from './pages/static/TermsOfServicePage';
 import { PrivacyPolicyPage } from './pages/static/PrivacyPolicyPage';
@@ -25,6 +26,10 @@ export function App() {
       <Route path="/register" component={RegisterPage} />
       <Route path={`${prefix}/reset-password`} component={ResetPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
+      
+      {/* Dashboard Routes */}
+      <Route path={`${prefix}/dashboard`} component={DashboardPage} />
+      <Route path="/dashboard" component={DashboardPage} />
       
       {/* Static Pages */}
       <Route path={`${prefix}/pricing`} component={PricingPage} />

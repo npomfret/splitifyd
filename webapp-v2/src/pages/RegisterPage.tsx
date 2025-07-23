@@ -25,7 +25,7 @@ export function RegisterPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (authStore.user) {
-      route('/', true); // TODO: Change to /dashboard once dashboard page is implemented
+      route('/dashboard', true);
     }
   }, [authStore.user]);
 

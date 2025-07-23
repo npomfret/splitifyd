@@ -1,33 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type {ExpenseData, GroupDetail, User as BaseUser} from '../../src/shared/apiTypes';
 
-export interface User {
-  uid: string;
-  email: string;
+// Test-specific extension of User to include auth token
+export interface User extends BaseUser {
   token: string;
-  displayName: string;
 }
 
-export interface Group {
-  id: string;
-  name: string;
-  members: any[];
-}
-
-export interface Expense {
-  id: string;
-  groupId: string;
-  description: string;
-  amount: number;
-  paidBy: string;
-  splitType: string;
-  participants: string[];
-  splits: any[];
-  date: string;
-  category: string;
-  receiptUrl?: string;
-}
-
+// Re-export shared types for backward compatibility
 // Polling configuration interface
 interface PollOptions {
   timeout?: number;      // Total timeout in ms (default: 10000)
@@ -160,13 +140,13 @@ export class ApiDriver {
 
     return {
       uid: decodedToken.user_id,
-      email: userInfo.email,
       displayName: userInfo.displayName,
+      email: userInfo.email,
       token: authData.idToken
     };
   }
 
-  async createGroup(name: string, members: User[], creatorToken: string): Promise<Group> {
+  async createGroup(name: string, members: User[], creatorToken: string): Promise<GroupDetail> {
     // Step 1: Create group with just the creator
     const groupData = {
       name,
@@ -174,7 +154,7 @@ export class ApiDriver {
       memberEmails: [] // Don't include other emails initially
     };
 
-    const group = await this.apiRequest('/groups', 'POST', groupData, creatorToken) as Group;
+    const group = await this.apiRequest('/groups', 'POST', groupData, creatorToken) as GroupDetail;
     
     // Step 2: If there are other members, generate a share link and have them join
     const otherMembers = members.filter(m => m.token !== creatorToken);
@@ -194,18 +174,18 @@ export class ApiDriver {
     
     // Step 4: Fetch the updated group to get all members
     const updatedGroup = await this.apiRequest(`/groups/${group.id}`, 'GET', null, creatorToken);
-    return updatedGroup as Group;
+    return updatedGroup as GroupDetail;
   }
 
-  async createExpense(expenseData: Partial<Expense>, token: string): Promise<Expense> {
+  async createExpense(expenseData: Partial<ExpenseData>, token: string): Promise<ExpenseData> {
     const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
     return {
       id: response.id,
       ...expenseData,
-    } as Expense;
+    } as ExpenseData;
   }
 
-  async updateExpense(expenseId: string, updateData: Partial<Expense>, token: string): Promise<void> {
+  async updateExpense(expenseId: string, updateData: Partial<ExpenseData>, token: string): Promise<void> {
     await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
   }
 
@@ -213,11 +193,11 @@ export class ApiDriver {
     await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
   }
 
-  async getExpense(expenseId: string, token: string): Promise<Expense> {
+  async getExpense(expenseId: string, token: string): Promise<ExpenseData> {
     return await this.apiRequest(`/expenses?id=${expenseId}`, 'GET', null, token);
   }
 
-  async getGroupExpenses(groupId: string, token: string, limit?: number): Promise<{ expenses: Expense[] }> {
+  async getGroupExpenses(groupId: string, token: string, limit?: number): Promise<{ expenses: ExpenseData[] }> {
     const limitParam = limit ? `&limit=${limit}` : '';
     return await this.apiRequest(`/expenses/group?groupId=${groupId}${limitParam}`, 'GET', null, token);
   }
@@ -348,7 +328,7 @@ export class ApiDriver {
     return await this.apiRequest('/createUserDocument', 'POST', data, token);
   }
 
-  async listUserExpenses(token: string, params?: Record<string, any>): Promise<{ expenses: Expense[] }> {
+  async listUserExpenses(token: string, params?: Record<string, any>): Promise<{ expenses: ExpenseData[] }> {
     let endpoint = '/expenses/user';
     if (params) {
       const queryParams = new URLSearchParams();
@@ -397,7 +377,7 @@ export class ApiDriver {
 
   // Helper methods for creating test data
 
-  createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<Expense> {
+  createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<ExpenseData> {
     return {
       groupId,
       description: 'Test Expense',

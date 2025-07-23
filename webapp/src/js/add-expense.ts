@@ -384,7 +384,7 @@ function populatePaidByOptions(): void {
     currentGroup.members.forEach((member: Member) => {
         const option = document.createElement('option');
         option.value = member.uid;
-        option.textContent = member.uid === currentUserId ? 'You' : member.name;
+        option.textContent = member.uid === currentUserId ? 'You' : member.displayName;
         paidBySelect.appendChild(option);
     });
     
@@ -425,12 +425,12 @@ function populateMembers(): void {
         
         const memberAvatar = createElementSafe('div', {
             className: 'member-avatar',
-            textContent: member.name.charAt(0).toUpperCase()
+            textContent: member.displayName.charAt(0).toUpperCase()
         });
         
         const memberName = createElementSafe('span', {
             className: 'member-name',
-            textContent: member.uid === currentUserId ? 'You' : member.name
+            textContent: member.uid === currentUserId ? 'You' : member.displayName
         });
         
         label.appendChild(checkboxVisual);
@@ -555,12 +555,12 @@ function updateCustomSplitInputs(): void {
         
         const avatar = createElementSafe('div', {
             className: 'member-avatar',
-            textContent: member.name.charAt(0).toUpperCase()
+            textContent: member.displayName.charAt(0).toUpperCase()
         });
         
         const name = createElementSafe('span', {
             className: 'member-name',
-            textContent: member.uid === currentUserId ? 'You' : member.name
+            textContent: member.uid === currentUserId ? 'You' : member.displayName
         });
         
         memberInfo.appendChild(avatar);

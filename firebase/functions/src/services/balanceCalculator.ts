@@ -3,7 +3,7 @@ import { UserBalance, simplifyDebts } from '../utils/debtSimplifier';
 import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
 import { db } from '../firebase';
-import { Member } from '../types/webapp-shared-types';
+import { User } from '../types/webapp-shared-types';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });
@@ -42,11 +42,11 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     
     logger.info('[BalanceCalculator] Group members', { 
         memberCount: members.length,
-        members: members.map((m: Member) => ({ uid: m.uid, name: m.name }))
+        members: members.map((m: User) => ({ uid: m.uid, name: m.displayName }))
     });
 
     for (const member of members) {
-        memberMap[member.uid] = member.name;
+        memberMap[member.uid] = member.displayName;
     }
 
     const userBalances: Record<string, UserBalance> = {};

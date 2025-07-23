@@ -129,15 +129,16 @@ export const createGroup = async (
   const newGroup: Omit<GroupDocument, 'lastExpenseTime' | 'lastExpense'> = {
     id: docRef.id,
     name: sanitizedData.name,
-    description: sanitizedData.description || '',
+    description: sanitizedData.description ?? '',
     createdBy: userId,
-    memberIds: [userId],
-    memberEmails: [userEmail].concat(sanitizedData.memberEmails || []),
-    members: [{
+    memberIds: sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId],
+    memberEmails: sanitizedData.members 
+      ? sanitizedData.members.map((m: any) => m.email)
+      : [userEmail].concat(sanitizedData.memberEmails || []),
+    members: sanitizedData.members || [{
       uid: userId,
-      name: userEmail || 'Unknown',
-      initials: (userEmail || 'U').substring(0, 2).toUpperCase(),
-      email: userEmail,
+      displayName: (user as any).displayName || userEmail || 'Unknown',
+      email: userEmail
     }],
     expenseCount: 0,
     createdAt: now,

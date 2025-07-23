@@ -7,7 +7,7 @@ import {
   ExpenseSplit, 
   CreateExpenseRequest, 
   UpdateExpenseRequest
-} from '../types/api-types';
+} from '../types/webapp-shared-types';
 import { EXPENSE_CATEGORIES } from '../types/firebase-config-types';
 
 export interface Expense {

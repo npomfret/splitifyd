@@ -1,16 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../ApiDriver';
+import type { User } from '../../../src/types/webapp-shared-types';
 
 export interface TestGroup {
   name: string;
   description?: string;
   memberEmails?: string[];
-  members?: Array<{
-    uid: string;
-    email: string;
-    name: string;
-    initials: string;
-  }>;
+  members?: User[];
 }
 
 export class GroupBuilder {
@@ -37,24 +32,20 @@ export class GroupBuilder {
     return this;
   }
 
-  withMembers(users: User[]): this {
+  withMembers(users: (User | {uid: string; displayName: string; email: string; [key: string]: any})[]): this {
     // Convert users to member emails for API compatibility
     this.group.memberEmails = users.map(user => user.email);
     
     // Store full member details for internal use
-    if (!this.group.members) {
-      this.group.members = [];
-    }
     this.group.members = users.map(user => ({
       uid: user.uid,
-      email: user.email,
-      name: user.displayName,
-      initials: user.displayName.split(' ').map(n => n[0]).join('')
+      displayName: user.displayName,
+      email: user.email
     }));
     return this;
   }
 
-  withMember(user: User): this {
+  withMember(user: User | {uid: string; displayName: string; email: string; [key: string]: any}): this {
     // Add user email to memberEmails for API compatibility
     if (!this.group.memberEmails) {
       this.group.memberEmails = [];
@@ -67,11 +58,10 @@ export class GroupBuilder {
     if (!this.group.members) {
       this.group.members = [];
     }
-    const member = {
+    const member: User = {
       uid: user.uid,
-      email: user.email,
-      name: user.displayName,
-      initials: user.displayName.split(' ').map(n => n[0]).join('')
+      displayName: user.displayName,
+      email: user.email
     };
     
     const existingIndex = this.group.members.findIndex(m => m.uid === user.uid);
@@ -96,9 +86,11 @@ export class GroupBuilder {
       result.memberEmails = this.group.memberEmails;
     }
     
-    // Don't include members field in the built object as it's not accepted by API
-    // Members field is only used internally for test tracking
+    if (this.group.members !== undefined) {
+      result.members = this.group.members;
+    }
     
     return result;
   }
+
 }

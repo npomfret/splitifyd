@@ -135,8 +135,8 @@ function updateGroupHeader(): void {
         const avatar = document.createElement('div');
         avatar.className = 'member-avatar';
         avatar.style.zIndex = String(maxVisibleMembers - index);
-        avatar.textContent = member.name.charAt(0).toUpperCase();
-        avatar.title = member.name;
+        avatar.textContent = member.displayName.charAt(0).toUpperCase();
+        avatar.title = member.displayName;
         membersList.appendChild(avatar);
     });
     
@@ -365,7 +365,7 @@ function createExpenseItem(expense: ExpenseData): { element: HTMLElement, cleanu
     
     const expensePayer = document.createElement('span');
     expensePayer.className = 'expense-payer';
-    expensePayer.textContent = `${paidByYou ? 'You' : (payer ? payer.name : 'Unknown')} paid`;
+    expensePayer.textContent = `${paidByYou ? 'You' : (payer ? payer.displayName : 'Unknown')} paid`;
     
     const expenseDate = document.createElement('span');
     expenseDate.className = 'expense-date';
@@ -478,11 +478,11 @@ function openGroupSettingsModal(): void {
         
         const memberAvatar = document.createElement('div');
         memberAvatar.className = 'member-avatar';
-        memberAvatar.textContent = member.name.charAt(0).toUpperCase();
+        memberAvatar.textContent = member.displayName.charAt(0).toUpperCase();
         
         const memberName = document.createElement('span');
         memberName.className = 'member-name';
-        memberName.textContent = member.name;
+        memberName.textContent = member.displayName;
         
         // Create remove button without component
         const buttonContainer = document.createElement('div');
