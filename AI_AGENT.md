@@ -27,6 +27,20 @@ Summarise what you have learned from them.
 - Check git status: `git status --porcelain`
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 
+# Build Verification
+- **NEVER truncate build output** - Always run `npm run build` without piping to head/tail
+- **ALWAYS check exit code** - Run `npm run build && echo "✅ BUILD SUCCESSFUL" || echo "❌ BUILD FAILED"`
+- **For long outputs** - Redirect to a file: `npm run build > build.log 2>&1 && echo "✅ BUILD SUCCESSFUL" || (echo "❌ BUILD FAILED" && tail -50 build.log)`
+- **Verify ALL packages in monorepo**:
+  - webapp-v2: `cd webapp-v2 && npm run build`
+  - firebase/functions: `cd firebase/functions && npm run build`
+  - Root: `npm run build` (if exists)
+- **Build means FULL compilation** - The build command now runs `build:check` first which compiles ALL TypeScript files including tests
+- **Build commands**:
+  - `npm run build` - Compiles everything (src + tests) then builds for production
+  - `npm run build:check` - Type checks all TypeScript files without emitting
+  - `npm run build:prod` - Legacy build that only compiles src (use sparingly)
+
 # Testing Commands
 - Run all tests: `npm test` (from root or any package)
 - Run unit tests only: `npm run test:unit` (from root)

@@ -2,7 +2,7 @@ import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { groupsStore } from '../../app/stores/groups-store';
 import { Input, Button, Form } from '../ui';
-import type { CreateGroupRequest } from '@shared/apiTypes';
+import type { CreateGroupRequest } from '../../types/webapp-shared-types';
 
 const groupNameSignal = signal('');
 const groupDescriptionSignal = signal('');

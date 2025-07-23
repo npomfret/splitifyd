@@ -5,8 +5,8 @@
  * This ensures the server response matches our expected types
  */
 
-import type { ApiContract } from '@shared/apiContract';
-import { responseSchemas, ApiErrorResponseSchema } from '@shared/apiSchemas';
+import type { ApiContract } from '../api/apiContract';
+import { responseSchemas, ApiErrorResponseSchema } from '../api/apiSchemas';
 import { z } from 'zod';
 
 // API configuration - use window.API_BASE_URL injected during build

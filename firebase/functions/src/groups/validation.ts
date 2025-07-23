@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
-import { CreateGroupRequest } from '../shared/apiTypes';
+import { CreateGroupRequest } from '../types/webapp-shared-types';
 import { UpdateGroupRequest } from '../types/group-types';
 
 /**

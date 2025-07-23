@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type {ExpenseData, GroupDetail, User as BaseUser} from '../../src/shared/apiTypes';
+import type {ExpenseData, GroupDetail, User as BaseUser} from '../../src/types/webapp-shared-types';
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {

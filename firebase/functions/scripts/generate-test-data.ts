@@ -1,46 +1,13 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
-import * as admin from 'firebase-admin';
-import * as fs from 'fs';
-import * as path from 'path';
+import { ApiDriver } from '../__tests__/support/ApiDriver';
+import { ExpenseBuilder } from '../__tests__/support/builders/ExpenseBuilder';
 import { logger } from '../src/logger';
+import type { User } from '../__tests__/support/ApiDriver';
+import type { GroupDetail } from '../src/types/webapp-shared-types';
 
-// Read ports from generated firebase.json
-const firebaseConfigPath = path.join(__dirname, '../../firebase.json');
-
-if (!fs.existsSync(firebaseConfigPath)) {
-  logger.error('❌ firebase.json not found. Run the build process first to generate it.');
-  process.exit(1);
-}
-
-const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port;
-const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
-const AUTH_PORT = firebaseConfig.emulators.auth.port;
-
-if (!FUNCTIONS_PORT || !FIRESTORE_PORT || !AUTH_PORT) {
-  logger.error('❌ Invalid firebase.json configuration - missing emulator ports');
-  process.exit(1);
-}
-
-// Read Firebase project ID from .firebaserc
-const firebaseRcPath = path.join(__dirname, '../../.firebaserc');
-const firebaseRc = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
-const firebaseProjectId = firebaseRc.projects.default;
-
-// API base URL
-const API_BASE_URL = `http://localhost:${FUNCTIONS_PORT}/${firebaseProjectId}/us-central1/api`;
-
-// Set emulator environment variables before initializing
-process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${FIRESTORE_PORT}`;
-process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${AUTH_PORT}`;
-
-// Initialize Firebase Admin for emulator (only for getting user info after creation)
-admin.initializeApp({
-  projectId: firebaseProjectId
-});
-
-const auth = admin.auth();
+// Initialize ApiDriver which handles all configuration
+const driver = new ApiDriver();
 
 interface TestUser {
   email: string;
@@ -54,16 +21,7 @@ interface TestExpense {
   category: string;
 }
 
-interface UserRecord extends admin.auth.UserRecord {
-  token: string;
-}
 
-interface Group {
-  id: string;
-  name: string;
-  description?: string;
-  members: any[];
-}
 
 const generateTestUsers = (): TestUser[] => {
   const users: TestUser[] = [
@@ -151,166 +109,22 @@ const generateRandomExpense = (): TestExpense => {
 };
 
 
-async function apiRequest(
-  endpoint: string, 
-  method: string = 'POST', 
-  body: unknown = null, 
-  token: string | null = null
-): Promise<unknown> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const options: RequestInit = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    }
-  };
-  
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
 
+
+async function createTestUser(userInfo: TestUser): Promise<User> {
   try {
-    const response = await fetch(url, options);
-    
-    // Try to parse response as JSON, but handle non-JSON responses
-    let data: unknown;
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      logger.error(`Non-JSON response from ${endpoint}`, { response: text });
-      
-      // If it's the "Function does not exist" error, it means Firebase isn't ready yet
-      if (text.includes('Function us-central1-api does not exist')) {
-        throw new Error('Firebase Functions not ready yet. Please wait for emulator to fully initialize.');
-      }
-      
-      throw new Error(`API returned non-JSON response: ${text.substring(0, 100)}...`);
-    }
-    
-    if (!response.ok) {
-      const msg = (data && typeof data === 'object' && 'error' in data && 
-                           data.error && typeof data.error === 'object' && 'message' in data.error && 
-                           typeof data.error.message === 'string') 
-                           ? data.error.message 
-                           : `API request failed: ${response.status}`;
-      throw new Error(msg);
-    }
-    
-    return data;
+    return await driver.createTestUser(userInfo);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`✗ API request to ${endpoint} failed`, { error: error instanceof Error ? error : new Error(String(error)) });
+    logger.error(`✗ Failed to create user ${userInfo.email}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
 }
 
-
-async function createTestUser(userInfo: TestUser): Promise<UserRecord> {
+async function createTestGroup(name: string, members: User[], createdBy: User): Promise<GroupDetail> {
   try {
-    
-    // Register user via API
-    await apiRequest('/register', 'POST', {
-      email: userInfo.email,
-      password: userInfo.password,
-      displayName: userInfo.displayName
-    });
-
-    // Use Firebase Auth REST API to sign in
-    const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
-    const signInResponse = await fetch(
-      `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: userInfo.email,
-          password: userInfo.password,
-          returnSecureToken: true
-        })
-      }
-    );
-
-    if (!signInResponse.ok) {
-      const error = await signInResponse.json();
-      throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
-    }
-
-    const authData = await signInResponse.json();
-    const idToken = authData.idToken;
-    
-    // Get user record from Firebase Auth to get the UID
-    const userRecord = await auth.getUserByEmail(userInfo.email);
-
-    return { ...userRecord, token: idToken } as UserRecord;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.includes('already exists')) {
-      
-      // Use Firebase Auth REST API to sign in
-      const FIREBASE_API_KEY = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
-      const signInResponse = await fetch(
-        `http://localhost:${AUTH_PORT}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: userInfo.email,
-            password: userInfo.password,
-            returnSecureToken: true
-          })
-        }
-      );
-
-      if (!signInResponse.ok) {
-        const error = await signInResponse.json();
-        throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
-      }
-
-      const authData = await signInResponse.json();
-      const idToken = authData.idToken;
-      
-      const userRecord = await auth.getUserByEmail(userInfo.email);
-      return { ...userRecord, token: idToken } as UserRecord;
-    }
-    throw error;
-  }
-}
-
-async function createTestGroup(name: string, members: UserRecord[], createdBy: UserRecord): Promise<Group> {
-  try {
-    // Step 1: Create group with just the creator
-    const groupData = {
-      name,
-      description: `Generated test group: ${name}`,
-      memberEmails: [] // Don't include other emails initially
-    };
-
-    // Create group via API
-    const group = await apiRequest('/groups', 'POST', groupData, createdBy.token) as Group;
-    
-    // Step 2: Generate a shareable link
-    const shareResponse = await apiRequest('/groups/share', 'POST', { groupId: group.id }, createdBy.token) as any;
-    const { linkId } = shareResponse;
-    
-    // Step 3: Have other members join using the share link
-    const otherMembers = members.filter(m => m.uid !== createdBy.uid);
-    for (const member of otherMembers) {
-      try {
-        await apiRequest('/groups/join', 'POST', { linkId }, member.token);
-      } catch (joinError) {
-        logger.warn(`Failed to add member ${member.email} to group ${name}`, { 
-          error: joinError instanceof Error ? joinError : new Error(String(joinError))
-        });
-      }
-    }
-    
-    // Step 4: Fetch the updated group to get all members
-    const updatedGroup = await apiRequest(`/groups/${group.id}`, 'GET', null, createdBy.token);
-
-    return updatedGroup as Group;
+    // Create group with all members
+    const group = await driver.createGroup(name, members, createdBy.token);
+    return group;
   } catch (error) {
     logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
@@ -320,23 +134,26 @@ async function createTestGroup(name: string, members: UserRecord[], createdBy: U
 async function createTestExpense(
   groupId: string, 
   expense: TestExpense, 
-  participants: UserRecord[], 
-  createdBy: UserRecord
+  participants: User[], 
+  createdBy: User
 ): Promise<any> {
   try {
-    const expenseData = {
-      groupId,
-      amount: expense.amount,
-      description: expense.description,
-      category: expense.category,
-      date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      splitType: 'equal',
-      participants: participants.map(p => p.uid),
-      paidBy: createdBy.uid // Just the user ID, not an object
-    };
+    const participantIds = participants.map(p => p.uid);
+    
+    // Use ExpenseBuilder to ensure proper structure
+    const expenseData = new ExpenseBuilder()
+      .withGroupId(groupId)
+      .withAmount(expense.amount)
+      .withDescription(expense.description)
+      .withCategory(expense.category)
+      .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
+      .withSplitType('equal')
+      .withParticipants(participantIds)
+      .withPaidBy(createdBy.uid)
+      .build();
 
-    // Create expense via API
-    const response = await apiRequest('/expenses', 'POST', expenseData, createdBy.token);
+    // Create expense via ApiDriver
+    const response = await driver.createExpense(expenseData, createdBy.token);
 
     return response;
   } catch (error) {
@@ -346,27 +163,25 @@ async function createTestExpense(
 }
 
 async function waitForApiReady(): Promise<void> {
+  // ApiDriver will handle checking if the API is ready
+  // We can simply try to make a request and it will work when ready
   const maxAttempts = 10;
   let attempts = 0;
   
   while (attempts < maxAttempts) {
     attempts++;
     try {
-      await apiRequest('/health', 'GET');
+      // Try to list groups as a health check
+      await driver.listGroupsNew('test-token');
       return;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('Firebase Functions not ready yet')) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        continue;
-      }
-      
-      // For other errors (like 404 on /health), the API is ready but endpoint doesn't exist
-      // This means functions are loaded
-      if (!errorMessage.includes('Function us-central1-api does not exist')) {
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        // This is expected - API is ready but we're using a fake token
         return;
       }
       
+      // If functions aren't ready yet, wait and retry
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
@@ -374,7 +189,7 @@ async function waitForApiReady(): Promise<void> {
   throw new Error('API functions failed to become ready within timeout');
 }
 
-function getRandomUsers(allUsers: UserRecord[], count: number): UserRecord[] {
+function getRandomUsers(allUsers: User[], count: number): User[] {
   const shuffled = [...allUsers].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 }
@@ -407,8 +222,8 @@ function generateRandomGroupName(): string {
   return theme ? `${theme} ${adjective} ${noun}` : `${adjective} ${noun}`;
 }
 
-async function createRandomGroupsForUser(user: UserRecord, allUsers: UserRecord[], groupCount: number): Promise<Group[]> {
-  const groups: Group[] = [];
+async function createRandomGroupsForUser(user: User, allUsers: User[], groupCount: number): Promise<GroupDetail[]> {
+  const groups: GroupDetail[] = [];
   
   for (let i = 0; i < groupCount; i++) {
     const groupSize = Math.min(Math.floor(Math.random() * 3) + 2, allUsers.length); // 2-4 users per group, max available
@@ -425,7 +240,7 @@ async function createRandomGroupsForUser(user: UserRecord, allUsers: UserRecord[
   return groups;
 }
 
-async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[], expenseCount: number): Promise<void> {
+async function createRandomExpensesForGroup(group: GroupDetail, allUsers: User[], expenseCount: number): Promise<void> {
   const groupMembers = allUsers.filter(user => 
     group.members.some(member => member.uid === user.uid)
   );
@@ -488,7 +303,7 @@ async function createRandomExpensesForGroup(group: Group, allUsers: UserRecord[]
   
 }
 
-async function createCircularDebtScenario(users: UserRecord[]): Promise<void> {
+async function createCircularDebtScenario(users: User[]): Promise<void> {
   const groupName = 'simplify-test-group';
   const groupMembers = [users[0], users[1], users[2]];
   const group = await createTestGroup(groupName, groupMembers, users[0]);

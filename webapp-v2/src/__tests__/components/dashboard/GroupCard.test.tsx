@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
 import { GroupCard } from '../../../components/dashboard/GroupCard';
 import { GroupBuilder } from '../../../../../firebase/functions/__tests__/support/builders/GroupBuilder';
-import type { User } from '@shared/apiTypes';
+import type { User } from '../../../types/webapp-shared-types';
 import { TransformedGroupAdapter } from '../../support/test-adapters';
 
 describe('GroupCard', () => {
@@ -79,9 +79,9 @@ describe('GroupCard', () => {
   });
 
   it('shows member avatars when members are present', () => {
-    const user1: User = { uid: 'user1', email: 'alice@test.com', displayName: 'Alice Johnson', token: 'token1' };
-    const user2: User = { uid: 'user2', email: 'bob@test.com', displayName: 'Bob Smith', token: 'token2' };
-    const user3: User = { uid: 'user3', email: 'charlie@test.com', displayName: 'Charlie Brown', token: 'token3' };
+    const user1: User = { uid: 'user1', email: 'alice@test.com', displayName: 'Alice Johnson' };
+    const user2: User = { uid: 'user2', email: 'bob@test.com', displayName: 'Bob Smith' };
+    const user3: User = { uid: 'user3', email: 'charlie@test.com', displayName: 'Charlie Brown' };
 
     const group = TransformedGroupAdapter.fromTestGroup(
       new GroupBuilder()

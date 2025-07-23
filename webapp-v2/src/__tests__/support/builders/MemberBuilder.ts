@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { User } from '@shared/apiTypes';
+import type { User } from '../../../types/webapp-shared-types';
 
 export class MemberBuilder {
   private member: User;

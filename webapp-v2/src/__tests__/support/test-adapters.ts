@@ -1,4 +1,4 @@
-import type { TransformedGroup, User, GroupDetail } from '@shared/apiTypes';
+import type { TransformedGroup, User, GroupDetail } from '../../types/webapp-shared-types';
 import type { TestGroup } from '../../../../firebase/functions/__tests__/support/builders/GroupBuilder';
 import { v4 as uuidv4 } from 'uuid';
 

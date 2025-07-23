@@ -1,7 +1,7 @@
 import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { displayNameSchema } from '../shared/validationSchemas';
+import { displayNameSchema } from '../validation/validationSchemas';
 
 const createUserSchema = Joi.object({
   displayName: displayNameSchema

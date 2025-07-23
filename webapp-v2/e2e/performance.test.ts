@@ -51,8 +51,8 @@ test.describe('Performance Tests', () => {
         let clsValue = 0;
         new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            if (!entry.hadRecentInput) {
-              clsValue += entry.value;
+            if (!(entry as any).hadRecentInput) {
+              clsValue += (entry as any).value;
             }
           }
           resolve(clsValue);

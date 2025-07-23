@@ -19,7 +19,7 @@ import type {
   ShareableLinkResponse,
   JoinGroupResponse,
   AppConfiguration
-} from './apiTypes';
+} from '../types/webapp-shared-types';
 
 /**
  * Standard API error response

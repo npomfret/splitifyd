@@ -2,8 +2,8 @@ import { vi } from 'vitest';
 import { groupsStore } from '../../app/stores/groups-store';
 import { apiClient } from '../../app/apiClient';
 import { TransformedGroupAdapter, GroupDetailAdapter } from '../support/test-adapters';
-import type { CreateGroupRequest } from '@shared/apiTypes';
-import type { ListGroupsResponse } from '@shared/apiContract';
+import type { CreateGroupRequest } from '../../types/webapp-shared-types';
+import type { ListGroupsResponse } from '../../api/apiContract';
 import { GroupBuilder } from "../../../../firebase/functions/__tests__/support/builders";
 import { MemberBuilder } from '../support/builders';
 

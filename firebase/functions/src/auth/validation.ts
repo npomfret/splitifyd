@@ -1,7 +1,7 @@
 import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { displayNameSchema } from '../shared/validationSchemas';
+import { displayNameSchema } from '../validation/validationSchemas';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 

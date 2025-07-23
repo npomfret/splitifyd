@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { TransformedGroup, User } from '@shared/apiTypes';
+import type { TransformedGroup, User } from '../../../types/webapp-shared-types';
 
 export class TransformedGroupBuilder {
   private group: TransformedGroup;
