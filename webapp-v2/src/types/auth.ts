@@ -3,7 +3,7 @@ import type { User as FirebaseUser } from 'firebase/auth';
 export interface User {
   uid: string;
   email: string;
-  displayName: string | null;
+  displayName: string;
   emailVerified: boolean;
   photoURL: string | null;
 }
@@ -29,7 +29,7 @@ export function mapFirebaseUser(firebaseUser: FirebaseUser): User {
   return {
     uid: firebaseUser.uid,
     email: firebaseUser.email || '',
-    displayName: firebaseUser.displayName,
+    displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
     emailVerified: firebaseUser.emailVerified,
     photoURL: firebaseUser.photoURL,
   };

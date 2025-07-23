@@ -81,17 +81,11 @@ class AuthStoreImpl implements AuthStore {
     errorSignal.value = null;
 
     try {
-      const result = await firebaseService.createUserWithEmailAndPassword(email, password);
+      // Use server-side registration which creates both Firebase Auth user and Firestore document
+      await apiClient.register(email, password, displayName);
       
-      // Update display name
-      if (result.user && displayName) {
-        await firebaseService.updateProfile(result.user, { displayName });
-      }
-      
-      // Get ID token for API authentication
-      const idToken = await result.user.getIdToken();
-      apiClient.setAuthToken(idToken);
-      localStorage.setItem(USER_ID_KEY, result.user.uid);
+      // Now sign in the user to get the Firebase Auth state
+      await this.login(email, password);
       
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {

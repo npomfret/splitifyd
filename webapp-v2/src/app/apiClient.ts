@@ -264,6 +264,13 @@ export class ApiClient {
       body: { linkId }
     });
   }
+
+  async register(email: string, password: string, displayName: string): Promise<{ success: boolean; message: string; user: { uid: string; email: string; displayName: string } }> {
+    return this.request('/register', {
+      method: 'POST',
+      body: { email, password, displayName }
+    });
+  }
 }
 
 // Export a singleton instance

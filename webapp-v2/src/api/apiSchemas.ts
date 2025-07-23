@@ -9,11 +9,11 @@ import { z } from 'zod';
 
 // Base schemas
 export const MemberSchema = z.object({
-  uid: z.string(),
-  name: z.string(),
-  initials: z.string(),
+  uid: z.string().min(1),
+  name: z.string().min(1),
+  initials: z.string().min(1),
   email: z.string().email().optional(),
-  displayName: z.string().optional(),
+  displayName: z.string().min(1).optional(),
   joinedAt: z.string().optional()
 });
 
@@ -34,7 +34,7 @@ export const ApiConfigSchema = z.object({
 
 export const WarningBannerSchema = z.object({
   enabled: z.boolean(),
-  message: z.string()
+  message: z.string().min(1)
 });
 
 export const EnvironmentConfigSchema = z.object({
@@ -59,14 +59,14 @@ export const AppConfigurationSchema = z.object({
 // Group schemas
 
 export const GroupSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+  id: z.string().min(1),
+  name: z.string().min(1),
   description: z.string().optional(),
   memberCount: z.number(),
   balance: z.object({
     userBalance: z.object({
-      userId: z.string(),
-      name: z.string(),
+      userId: z.string().min(1),
+      name: z.string().min(1),
       owes: z.record(z.string(), z.number()),
       owedBy: z.record(z.string(), z.number()),
       netBalance: z.number()
@@ -74,10 +74,10 @@ export const GroupSchema = z.object({
     totalOwed: z.number(),
     totalOwing: z.number()
   }),
-  lastActivity: z.string(),
+  lastActivity: z.string().min(1),
   lastActivityRaw: z.string(),
   lastExpense: z.object({
-    description: z.string(),
+    description: z.string().min(1),
     amount: z.number(),
     date: z.string()
   }).optional(),
@@ -106,25 +106,25 @@ export const ListGroupsResponseSchema = z.object({
 
 // Expense schemas
 export const ExpenseSplitSchema = z.object({
-  userId: z.string(),
+  userId: z.string().min(1),
   amount: z.number(),
   percentage: z.number().optional(),
-  userName: z.string().optional()
+  userName: z.string().min(1).optional()
 });
 
 export const ExpenseDataSchema = z.object({
-  id: z.string(),
-  groupId: z.string(),
-  description: z.string(),
+  id: z.string().min(1),
+  groupId: z.string().min(1),
+  description: z.string().min(1),
   amount: z.number(),
-  paidBy: z.string(),
-  paidByName: z.string().optional(),
-  category: z.string(),
+  paidBy: z.string().min(1),
+  paidByName: z.string().min(1).optional(),
+  category: z.string().min(1),
   date: z.string(),
   splitType: z.enum(['equal', 'exact', 'percentage']),
-  participants: z.array(z.string()),
+  participants: z.array(z.string().min(1)),
   splits: z.array(ExpenseSplitSchema),
-  createdBy: z.string(),
+  createdBy: z.string().min(1),
   createdAt: z.string(),
   updatedAt: z.string(),
   receiptUrl: z.string().optional()
@@ -193,13 +193,23 @@ export const HealthCheckResponseSchema = z.object({
 // Error response schema
 export const ApiErrorResponseSchema = z.object({
   error: z.object({
-    code: z.string(),
-    message: z.string(),
+    code: z.string().min(1),
+    message: z.string().min(1),
     details: z.unknown().optional()
   })
 });
 
 // Map of endpoints to their response schemas
+export const RegisterResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().min(1),
+  user: z.object({
+    uid: z.string().min(1),
+    email: z.string().email(),
+    displayName: z.string().min(2).max(50)
+  })
+});
+
 export const responseSchemas = {
   '/config': AppConfigurationSchema,
   '/health': HealthCheckResponseSchema,
@@ -209,5 +219,6 @@ export const responseSchemas = {
   '/expenses/group': ExpenseListResponseSchema,
   '/groups/balances': GroupBalancesSchema,
   '/groups/share': ShareableLinkResponseSchema,
-  '/groups/join': JoinGroupResponseSchema
+  '/groups/join': JoinGroupResponseSchema,
+  '/register': RegisterResponseSchema
 } as const;
