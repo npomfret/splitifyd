@@ -2,6 +2,14 @@
 
 ## Status: Ready for Implementation
 
+## Progress Tracking
+- [ ] Commit 1: Remove Duplicate Types
+- [ ] Commit 2: Update API Response Types  
+- [ ] Commit 3: Fix API Validation Schemas
+- [ ] Commit 4: Update Stores to Use Unified Types
+- [ ] Commit 5: Update Components for New Data Structure
+- [ ] Commit 6: Final Testing and Cleanup
+
 ## Problem Analysis
 
 ### Current Type Proliferation
@@ -111,39 +119,89 @@ type GroupDetailResponse = Group;
 
 ## Implementation Plan
 
-### Phase 1: Remove Duplicate Types (30 minutes)
-1. **Delete `TransformedGroup`** from webapp-shared-types.ts
-2. **Delete `GroupSummary`** from webapp-shared-types.ts  
-3. **Delete `GroupDetail`** from webapp-shared-types.ts
-4. **Update imports** across codebase to use `Group`
+### Commit 1: Remove Duplicate Types (15 minutes)
+**Goal:** Clean up type proliferation by removing unused/duplicate types
 
-### Phase 2: Update API Contracts (15 minutes)
-1. **Update `ListGroupsResponse`** in apiContract.ts to include pagination fields
-2. **Change `/groups/:id` response** from `GroupDetail` to `Group`
-3. **Update all endpoint types** to use `Group`
+1. **Delete duplicate types** from webapp-shared-types.ts:
+   - Remove `TransformedGroup` interface
+   - Remove `GroupSummary` interface (unused)
+   - Remove `GroupDetail` interface (no added value)
+2. **Update all imports** to use base `Group` type
+3. **Run build** to catch any missed imports
 
-### Phase 3: Fix API Schemas (15 minutes)
-1. **Update `ListGroupsResponseSchema`** to include count, hasMore, pagination
-2. **Create single `GroupSchema`** to replace multiple overlapping schemas
-3. **Update response schema mapping** to use consolidated schemas
+**Verification:** `npm run build` passes with no type errors
 
-### Phase 4: Update Stores (20 minutes)
-1. **Update `GroupsStore`** to use `Group[]` instead of `TransformedGroup[]`
-2. **Remove transformation logic** from groups store
-3. **Update `GroupDetailStore`** to use `Group` type
-4. **Fix store method signatures**
+### Commit 2: Update API Response Types (15 minutes)
+**Goal:** Align API contract types with actual API responses
 
-### Phase 5: Update Components (30 minutes)
-1. **Update dashboard components** to use `group.balance.userBalance.netBalance`
-2. **Update group detail components** to handle optional fields
-3. **Fix component prop types** to use `Group`
-4. **Update any hardcoded property access**
+1. **Update `ListGroupsResponse`** in apiContract.ts:
+   ```typescript
+   interface ListGroupsResponse {
+     groups: Group[];
+     count: number;
+     hasMore: boolean;
+     pagination: { limit: number; order: string; };
+   }
+   ```
+2. **Update endpoint response types**:
+   - `/groups` returns `ListGroupsResponse`
+   - `/groups/:id` returns `Group` (not GroupDetail)
+3. **Update any API client types** that reference old types
 
-### Phase 6: Testing & Validation (20 minutes)
-1. **Test dashboard** - should load groups without errors
-2. **Test group detail page** - should render with real data
-3. **Verify API validation** passes with new schemas
-4. **Test with missing optional fields**
+**Verification:** TypeScript compilation passes
+
+### Commit 3: Fix API Validation Schemas (20 minutes)
+**Goal:** Make schemas match actual API responses to fix validation errors
+
+1. **Update `ListGroupsResponseSchema`** to include all fields:
+   - Add count, hasMore, pagination to schema
+   - Ensure groups array uses consolidated GroupSchema
+2. **Consolidate group schemas**:
+   - Create single `GroupSchema` for all group data
+   - Remove `TransformedGroupSchema` and similar duplicates
+3. **Update schema mappings** in apiSchemas.ts
+
+**Verification:** Dashboard no longer shows "Failed to load groups" error
+
+### Commit 4: Update Stores to Use Unified Types (20 minutes)
+**Goal:** Remove transformation logic and use Group type consistently
+
+1. **Update GroupsStore**:
+   - Change state type from `TransformedGroup[]` to `Group[]`
+   - Remove any transformation logic in `loadGroups()`
+   - Update method return types
+2. **Update GroupDetailStore**:
+   - Use `Group` type instead of `GroupDetail`
+   - Ensure proper handling of optional fields
+3. **Fix any store tests** that rely on old types
+
+**Verification:** Stores work with real API data
+
+### Commit 5: Update Components for New Data Structure (30 minutes)
+**Goal:** Fix component property access for new unified type
+
+1. **Update dashboard components**:
+   - Change `group.yourBalance` to `group.balance.userBalance.netBalance`
+   - Update GroupCard and related components
+2. **Update group detail components**:
+   - Handle optional fields with proper guards
+   - Update prop types from `GroupDetail` to `Group`
+3. **Search and fix** any hardcoded property access patterns
+
+**Verification:** Dashboard and group detail pages render correctly
+
+### Commit 6: Final Testing and Cleanup (10 minutes)
+**Goal:** Ensure everything works end-to-end
+
+1. **Manual testing**:
+   - Dashboard loads and displays groups
+   - Group detail page shows all information
+   - No console errors or warnings
+2. **Run all tests**: `npm test`
+3. **Build verification**: `npm run build`
+4. **Remove any TODO comments** added during refactor
+
+**Verification:** All features work, no regressions
 
 ## Expected Benefits
 
