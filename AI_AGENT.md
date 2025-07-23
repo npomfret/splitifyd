@@ -56,6 +56,8 @@ Note: assume the emulator is running and changes are automatically built and ref
 # Firebase Local Development
 - Firebase is configured to run on a set of ports (via the `switch-instance.sh` script and the .env files in `firebase/functions/.env.<envname>`)
 - To determine which port(s) to use, examine `firebase/firebase.json`
+- Do not edit `firebase/firebase.json`, it is tempated during the build process - only edit the template
+- If there are changes to  `firebase/firebase.json` (via the template), stop and ask the user to restart the emulator 
 - To get the webapp base url, run `npm run get-webapp-url`
 - Always assume emulator is already running (via `npm run dev`). If it is not running, ask the user to start it
 - Local firebase logs are in `firebase/*.log`, the main application log is `firebase/firebase-debug.log`
