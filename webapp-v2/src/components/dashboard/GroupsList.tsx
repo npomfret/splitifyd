@@ -1,3 +1,4 @@
+import { route } from 'preact-router';
 import { groupsStore } from '../../app/stores/groups-store';
 import { LoadingSpinner } from '../ui';
 import { GroupCard } from './GroupCard';
@@ -51,8 +52,7 @@ export function GroupsList({ onCreateGroup }: GroupsListProps) {
           key={group.id} 
           group={group}
           onClick={() => {
-            // TODO: Navigate to group detail page
-            console.log('Navigate to group:', group.id);
+            route(`/groups/${group.id}`);
           }}
         />
       ))}

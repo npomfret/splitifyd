@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
+import GroupDetailPage from './pages/GroupDetailPage';
 import { PricingPage } from './pages/static/PricingPage';
 import { TermsOfServicePage } from './pages/static/TermsOfServicePage';
 import { PrivacyPolicyPage } from './pages/static/PrivacyPolicyPage';
@@ -30,6 +31,10 @@ export function App() {
       {/* Dashboard Routes */}
       <Route path={`${prefix}/dashboard`} component={DashboardPage} />
       <Route path="/dashboard" component={DashboardPage} />
+      
+      {/* Group Routes */}
+      <Route path={`${prefix}/groups/:id`} component={GroupDetailPage} />
+      <Route path="/groups/:id" component={GroupDetailPage} />
       
       {/* Static Pages */}
       <Route path={`${prefix}/pricing`} component={PricingPage} />
