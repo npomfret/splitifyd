@@ -297,15 +297,217 @@ Migrate the add expense page with all splitting options (equal, exact amounts, p
    - Optimize re-renders
    - Lazy load complex features
 
+## Detailed Implementation Plan
+
+### Analysis Summary
+After analyzing the existing codebase:
+
+1. **Full API support available**:
+   - POST `/expenses` - Create new expense (already implemented)
+   - Backend validation and split calculations in place
+   - Types already defined in webapp-shared-types.ts
+
+2. **Missing components**:
+   - No createExpense method in API client
+   - No expense form components
+   - No add expense page
+   - No form state management
+
+3. **Infrastructure ready**:
+   - Store patterns established (signals-based)
+   - UI components library available (Stack, Card, Button, etc.)
+   - Router ready for new routes
+   - Group context available from group detail page
+
+### Implementation Strategy
+
+**Approach: Incremental Feature Development**
+1. Start with basic expense form (description, amount, equal split)
+2. Add member selection and payer selection
+3. Implement split type switching (equal → exact → percentage)
+4. Add validation and error handling
+5. Implement auto-save drafts
+6. Add advanced features (categories, receipts)
+
+### Phase-by-Phase Breakdown
+
+#### Phase 1: API Client & Basic Store (1 hour)
+**Purpose**: Set up data layer for expense creation
+
+**Implementation**:
+1. **Add to `apiClient.ts`**:
+   ```typescript
+   async createExpense(data: CreateExpenseRequest): Promise<ExpenseData> {
+     return this.request('/expenses', {
+       method: 'POST',
+       body: data
+     });
+   }
+   ```
+
+2. **Create `src/app/stores/expense-form-store.ts`**:
+   - Basic form fields (description, amount, date)
+   - Equal split calculation
+   - Form validation
+   - Save expense method
+
+#### Phase 2: Basic Add Expense Page (2 hours)
+**Purpose**: Create functional expense form with equal split
+
+**Implementation**:
+1. **Create `src/pages/AddExpensePage.tsx`**:
+   - Route params for groupId
+   - Basic form layout
+   - Submit/cancel actions
+   - Loading and error states
+
+2. **Form sections**:
+   - Description input
+   - Amount input with currency
+   - Date picker (default to today)
+   - Member checkboxes for participants
+   - Save and Cancel buttons
+
+3. **Add route to App.tsx**:
+   ```tsx
+   <Route path="/groups/:groupId/add-expense" component={AddExpensePage} />
+   ```
+
+#### Phase 3: Split Type Implementation (3 hours)
+**Purpose**: Add all split calculation modes
+
+**Implementation**:
+1. **Split type selector UI**:
+   - Radio buttons or tabs for Equal/Exact/Percentage
+   - Dynamic form sections based on selection
+
+2. **Equal split** (enhance existing):
+   - Show amount per person preview
+   - Handle remainder distribution
+
+3. **Exact amounts split**:
+   - Input field for each selected participant
+   - Running total vs expense amount
+   - Validation for matching totals
+
+4. **Percentage split**:
+   - Percentage input for each participant
+   - Auto-calculate amounts
+   - Ensure 100% total
+
+#### Phase 4: Enhanced UI & Validation (2 hours)
+**Purpose**: Polish UX and add comprehensive validation
+
+**Implementation**:
+1. **Member selection improvements**:
+   - Member avatars and names
+   - Select all/none buttons
+   - Search/filter for large groups
+   - Visual indication of payer
+
+2. **Real-time validation**:
+   - Required field indicators
+   - Amount must be positive
+   - At least 2 participants for split
+   - Split totals must match expense
+
+3. **User feedback**:
+   - Success toast on save
+   - Clear error messages
+   - Loading states during save
+   - Confirmation for cancel with unsaved changes
+
+#### Phase 5: Auto-save & Advanced Features (2 hours)
+**Purpose**: Add quality-of-life features
+
+**Implementation**:
+1. **Auto-save drafts**:
+   - Save to localStorage on change
+   - Restore on page load
+   - Clear on successful save
+   - Per-group draft storage
+
+2. **Category system**:
+   - Dropdown with common categories
+   - Icons for each category
+   - "Other" option with custom input
+
+3. **Quick actions**:
+   - Recent amounts buttons
+   - Calculator popup
+   - Copy from previous expense
+
+### Technical Decisions
+
+1. **State Management**:
+   - Use signals pattern like other stores
+   - Separate expense-form-store
+   - Don't modify group-detail-store
+
+2. **Validation Strategy**:
+   - Client-side validation first
+   - Rely on backend for final validation
+   - Show inline errors immediately
+
+3. **Navigation Flow**:
+   - From group detail → Add expense
+   - On save → Back to group detail
+   - On cancel → Confirm if unsaved changes
+
+4. **Mobile First**:
+   - Touch-friendly inputs
+   - Number keyboard for amounts
+   - Responsive member grid
+
+### Commit Strategy
+
+**Commit 1**: API client method and basic store (1 hour)
+- Add createExpense to apiClient
+- Create expense-form-store with basic fields
+- Unit tests for store
+
+**Commit 2**: Basic add expense page with equal split (2 hours)
+- AddExpensePage component
+- Route configuration
+- Basic form with equal split only
+- Integration with store and API
+
+**Commit 3**: All split types implementation (3 hours)
+- Split type selector
+- Exact amounts UI and logic
+- Percentage split UI and logic
+- Split calculation utilities
+
+**Commit 4**: UI polish and validation (2 hours)
+- Enhanced member selection
+- Comprehensive validation
+- Error handling
+- Success feedback
+
+**Commit 5**: Auto-save and categories (2 hours)
+- LocalStorage draft system
+- Category selection
+- Quick action buttons
+- Final polish
+
+### Future Enhancements (Not in this task)
+- Receipt photo upload
+- Currency conversion
+- Recurring expenses
+- Expense templates
+- Bulk expense import
+
 ## Timeline
 
-- Start Date: TBD
-- End Date: TBD
-- Duration: ~10 hours
+- Start Date: When instructed
+- End Date: Same day
+- Duration: ~10 hours (detailed breakdown above)
+- **Ready to implement** ✅
 
 ## Notes
 
 - Most complex form in the app
-- Calculation accuracy is critical
+- Start with MVP (equal split) then add complexity
+- Calculation accuracy is critical - use backend validation
 - Mobile UX especially important
-- Consider user testing for split UX
+- Types and API already in place, just need UI
