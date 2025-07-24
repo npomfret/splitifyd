@@ -24,6 +24,8 @@ export interface ExpenseFormStore {
   setParticipants(participants: string[]): void;
   toggleParticipant(userId: string): void;
   calculateEqualSplits(): void;
+  updateSplitAmount(userId: string, amount: number): void;
+  updateSplitPercentage(userId: string, percentage: number): void;
   validateForm(): boolean;
   saveExpense(groupId: string): Promise<ExpenseData>;
   clearError(): void;
@@ -107,9 +109,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         break;
       case 'amount':
         amountSignal.value = value as number;
-        // Recalculate splits if in equal mode
+        // Recalculate splits based on current type
         if (splitTypeSignal.value === 'equal') {
           this.calculateEqualSplits();
+        } else if (splitTypeSignal.value === 'percentage') {
+          // Recalculate amounts for percentage splits
+          const currentSplits = [...splitsSignal.value];
+          currentSplits.forEach(split => {
+            if (split.percentage !== undefined) {
+              split.amount = (value as number * split.percentage) / 100;
+            }
+          });
+          splitsSignal.value = currentSplits;
         }
         break;
       case 'date':
@@ -128,9 +139,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       case 'splitType':
         splitTypeSignal.value = value as 'equal' | 'exact' | 'percentage';
         // Recalculate splits when type changes
-        if (value === 'equal') {
-          this.calculateEqualSplits();
-        }
+        this.handleSplitTypeChange(value as 'equal' | 'exact' | 'percentage');
         break;
     }
   }
@@ -141,10 +150,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     if (paidBySignal.value && !participants.includes(paidBySignal.value)) {
       participantsSignal.value = [...participants, paidBySignal.value];
     }
-    // Recalculate splits if in equal mode
-    if (splitTypeSignal.value === 'equal') {
-      this.calculateEqualSplits();
-    }
+    // Recalculate splits based on current type
+    this.handleSplitTypeChange(splitTypeSignal.value);
   }
 
   toggleParticipant(userId: string): void {
@@ -162,10 +169,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       participantsSignal.value = [...current, userId];
     }
     
-    // Recalculate splits if in equal mode
-    if (splitTypeSignal.value === 'equal') {
-      this.calculateEqualSplits();
-    }
+    // Recalculate splits based on current type
+    this.handleSplitTypeChange(splitTypeSignal.value);
   }
 
   calculateEqualSplits(): void {
@@ -188,6 +193,75 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }));
     
     splitsSignal.value = splits;
+  }
+
+  updateSplitAmount(userId: string, amount: number): void {
+    const currentSplits = [...splitsSignal.value];
+    const splitIndex = currentSplits.findIndex(s => s.userId === userId);
+    
+    if (splitIndex >= 0) {
+      currentSplits[splitIndex] = { ...currentSplits[splitIndex], amount };
+    } else {
+      currentSplits.push({ userId, amount });
+    }
+    
+    splitsSignal.value = currentSplits;
+  }
+
+  updateSplitPercentage(userId: string, percentage: number): void {
+    const currentSplits = [...splitsSignal.value];
+    const splitIndex = currentSplits.findIndex(s => s.userId === userId);
+    
+    if (splitIndex >= 0) {
+      currentSplits[splitIndex] = { 
+        ...currentSplits[splitIndex], 
+        percentage,
+        amount: (amountSignal.value * percentage) / 100
+      };
+    } else {
+      currentSplits.push({ 
+        userId, 
+        percentage,
+        amount: (amountSignal.value * percentage) / 100
+      });
+    }
+    
+    splitsSignal.value = currentSplits;
+  }
+
+  private handleSplitTypeChange(newType: 'equal' | 'exact' | 'percentage'): void {
+    const participants = participantsSignal.value;
+    const amount = amountSignal.value;
+    
+    if (participants.length === 0 || amount <= 0) {
+      splitsSignal.value = [];
+      return;
+    }
+    
+    switch (newType) {
+      case 'equal':
+        this.calculateEqualSplits();
+        break;
+        
+      case 'exact':
+        // Initialize with equal amounts as a starting point
+        const exactAmount = amount / participants.length;
+        splitsSignal.value = participants.map(userId => ({
+          userId,
+          amount: exactAmount
+        }));
+        break;
+        
+      case 'percentage':
+        // Initialize with equal percentages
+        const equalPercentage = 100 / participants.length;
+        splitsSignal.value = participants.map(userId => ({
+          userId,
+          percentage: equalPercentage,
+          amount: (amount * equalPercentage) / 100
+        }));
+        break;
+    }
   }
 
   validateForm(): boolean {

@@ -1,21 +1,28 @@
 # Webapp Rebuild Task 8: Migrate Add Expense Page
 
-## Status: Phase 2 Complete ✅
+## Status: Phase 3 Complete ✅
 
-### Completed (2025-07-23)
-- ✅ Created createExpense method in API client
-- ✅ Implemented expense-form-store.ts with form management
-- ✅ Built AddExpensePage.tsx with equal split functionality
-- ✅ Added routing and navigation integration
-- ✅ Form validation and error handling
-- ✅ Real-time split calculations for equal mode
+### Completed (2025-07-24)
+- ✅ Phase 1-2: Basic functionality with equal split
+  - Created createExpense method in API client
+  - Implemented expense-form-store.ts with form management
+  - Built AddExpensePage.tsx with complete form UI
+  - Added routing and navigation integration
+  - Form validation and error handling
+  - Real-time split calculations for equal mode
+
+- ✅ Phase 3: All split types implemented
+  - Split type selector UI (Equal/Exact/Percentage)
+  - Exact amount split with individual inputs
+  - Percentage split with automatic calculations
+  - Real-time validation for all split types
+  - Total tracking for exact amounts and percentages
+  - Dynamic UI updates when switching split types
 
 ### Remaining Work
-- ⏳ Implement exact amount splits (Phase 3)
-- ⏳ Implement percentage splits (Phase 3)
-- ⏳ Add split type selector UI (Phase 3)
 - ⏳ Enhanced UI polish and validation (Phase 4)
 - ⏳ Auto-save drafts functionality (Phase 5)
+- ⏳ Category icons and enhancements (Phase 5)
 
 ## Overview
 Migrate the add expense page with all splitting options (equal, exact amounts, percentages), member selection, and complex form validation to Preact.
@@ -514,9 +521,9 @@ After analyzing the existing codebase:
 - Expense templates
 - Bulk expense import
 
-## ✅ IMPLEMENTATION STATUS: PHASE 2 COMPLETE
+## ✅ IMPLEMENTATION STATUS: PHASE 3 COMPLETE
 
-**Completed**: 2025-07-23
+**Completed**: 2025-07-24 (Phases 1-3)
 
 ### ✅ What Was Implemented
 
@@ -538,7 +545,10 @@ After analyzing the existing codebase:
    - Description, amount, date, and category inputs
    - Payer selection with member grid
    - Participant selection with checkboxes
-   - Equal split preview showing amount per person
+   - Split type selector (Equal/Exact/Percentage)
+   - Equal split with automatic calculation
+   - Exact amount inputs with total validation
+   - Percentage inputs with amount preview
    - Save/Cancel actions with loading states
 
 4. **Navigation Integration** ✅
@@ -546,19 +556,22 @@ After analyzing the existing codebase:
    - Updated QuickActions to navigate to add expense page
    - Proper back navigation to group detail on save/cancel
 
+5. **Split Type Implementation** ✅
+   - Added methods for handling exact and percentage splits
+   - Smart split recalculation when amount changes
+   - Proper initialization when switching split types
+   - Full validation for all split types
+
 ### ✅ Testing Status
 
-- **Build**: ✅ TypeScript compilation clean, Vite build successful
-- **Basic Form**: ✅ Equal split functionality working
-- **Ready for Testing**: Navigate to a group and click "Add Expense"
+- **Build**: ✅ TypeScript compilation clean, Vite build successful (2025-07-24)
+- **Equal Split**: ✅ Automatic equal division with remainder handling
+- **Exact Split**: ✅ Individual amount inputs with running total validation
+- **Percentage Split**: ✅ Percentage inputs with automatic amount calculation
+- **Split Type Switching**: ✅ Smooth transitions with smart defaults
+- **Ready for Testing**: Navigate to a group and click "Add Expense" to test all split types
 
 ### 🚧 Remaining Phases
-
-**Phase 3: Split Type Implementation** (3 hours)
-- Add split type selector (Equal/Exact/Percentage)
-- Implement exact amount splits
-- Implement percentage splits
-- Update validation for each type
 
 **Phase 4: UI Polish & Validation** (2 hours)
 - Enhanced member selection with avatars
@@ -584,13 +597,15 @@ After analyzing the existing codebase:
 
 - Start Date: 2025-07-23
 - Phase 1-2 Complete: 2025-07-23 (~3 hours)
-- Remaining: ~7 hours for phases 3-5
-- **Status**: Basic functionality working, ready for enhancements
+- Phase 3 Complete: 2025-07-24 (~2 hours)
+- Remaining: ~4 hours for phases 4-5
+- **Status**: All split types working, ready for UI polish and advanced features
 
 ## Notes
 
 - Most complex form in the app
-- Basic MVP with equal split is now working ✅
+- All three split types fully implemented ✅
 - Calculation accuracy handled by backend
 - Mobile responsive design implemented
-- Ready for split type enhancements in Phase 3
+- Real-time validation for splits
+- Ready for UI polish and auto-save features in Phases 4-5

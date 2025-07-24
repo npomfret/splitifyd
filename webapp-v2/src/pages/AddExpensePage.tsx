@@ -29,6 +29,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const date = useComputed(() => expenseFormStore.date);
   const paidBy = useComputed(() => expenseFormStore.paidBy);
   const category = useComputed(() => expenseFormStore.category);
+  const splitType = useComputed(() => expenseFormStore.splitType);
   const participants = useComputed(() => expenseFormStore.participants);
   const splits = useComputed(() => expenseFormStore.splits);
   
@@ -323,32 +324,204 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                     {validationErrors.value.participants}
                   </p>
                 )}
-                
-                {/* Split Preview */}
-                {participants.value.length > 0 && amount.value > 0 && (
-                  <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Equal split preview:
-                    </p>
-                    <div className="space-y-1">
-                      {splits.value.map(split => {
-                        const member = memberMap[split.userId];
+              </Stack>
+            </Card>
+            
+            {/* Split Type Selection */}
+            {participants.value.length > 0 && (
+              <Card>
+                <Stack spacing="md">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    How to split
+                  </h2>
+                  <div className="grid grid-cols-3 gap-3">
+                    <label className={`
+                      flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center
+                      ${splitType.value === 'equal'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }
+                    `}>
+                      <input
+                        type="radio"
+                        name="splitType"
+                        value="equal"
+                        checked={splitType.value === 'equal'}
+                        onChange={() => expenseFormStore.updateField('splitType', 'equal')}
+                        className="sr-only"
+                      />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        Equal
+                      </span>
+                    </label>
+                    
+                    <label className={`
+                      flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center
+                      ${splitType.value === 'exact'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }
+                    `}>
+                      <input
+                        type="radio"
+                        name="splitType"
+                        value="exact"
+                        checked={splitType.value === 'exact'}
+                        onChange={() => expenseFormStore.updateField('splitType', 'exact')}
+                        className="sr-only"
+                      />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        Exact amounts
+                      </span>
+                    </label>
+                    
+                    <label className={`
+                      flex items-center justify-center p-3 rounded-lg border cursor-pointer transition-colors text-center
+                      ${splitType.value === 'percentage'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }
+                    `}>
+                      <input
+                        type="radio"
+                        name="splitType"
+                        value="percentage"
+                        checked={splitType.value === 'percentage'}
+                        onChange={() => expenseFormStore.updateField('splitType', 'percentage')}
+                        className="sr-only"
+                      />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        Percentage
+                      </span>
+                    </label>
+                  </div>
+                  
+                  {/* Split inputs based on type */}
+                  {splitType.value === 'exact' && amount.value > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Enter exact amounts for each person:
+                      </p>
+                      {participants.value.map(participantId => {
+                        const member = memberMap[participantId];
+                        const split = splits.value.find(s => s.userId === participantId);
                         return (
-                          <div key={split.userId} className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">
+                          <div key={participantId} className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">
                               {member?.displayName || 'Unknown'}
                             </span>
-                            <span className="font-medium text-gray-900 dark:text-white">
-                              ${split.amount.toFixed(2)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-500">$</span>
+                              <input
+                                type="number"
+                                value={split?.amount || 0}
+                                onInput={(e) => {
+                                  const value = parseFloat((e.target as HTMLInputElement).value) || 0;
+                                  expenseFormStore.updateSplitAmount(participantId, value);
+                                }}
+                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
                           </div>
                         );
                       })}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
+                          <span className={`font-medium ${
+                            Math.abs(splits.value.reduce((sum, s) => sum + s.amount, 0) - amount.value) < 0.01
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`}>
+                            ${splits.value.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amount.value.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </Stack>
-            </Card>
+                  )}
+                  
+                  {splitType.value === 'percentage' && amount.value > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Enter percentage for each person:
+                      </p>
+                      {participants.value.map(participantId => {
+                        const member = memberMap[participantId];
+                        const split = splits.value.find(s => s.userId === participantId);
+                        return (
+                          <div key={participantId} className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">
+                              {member?.displayName || 'Unknown'}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={split?.percentage || 0}
+                                onInput={(e) => {
+                                  const value = parseFloat((e.target as HTMLInputElement).value) || 0;
+                                  expenseFormStore.updateSplitPercentage(participantId, value);
+                                }}
+                                className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
+                                step="0.1"
+                                min="0"
+                                max="100"
+                              />
+                              <span className="text-gray-500">%</span>
+                              <span className="text-xs text-gray-500 w-16 text-right">
+                                ${split?.amount.toFixed(2) || '0.00'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
+                          <span className={`font-medium ${
+                            Math.abs(splits.value.reduce((sum, s) => sum + (s.percentage || 0), 0) - 100) < 0.01
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`}>
+                            {splits.value.reduce((sum, s) => sum + (s.percentage || 0), 0).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {splitType.value === 'equal' && amount.value > 0 && (
+                    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Each person pays:
+                      </p>
+                      <div className="space-y-1">
+                        {splits.value.map(split => {
+                          const member = memberMap[split.userId];
+                          return (
+                            <div key={split.userId} className="flex justify-between text-sm">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {member?.displayName || 'Unknown'}
+                              </span>
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                ${split.amount.toFixed(2)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {validationErrors.value.splits && (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {validationErrors.value.splits}
+                    </p>
+                  )}
+                </Stack>
+              </Card>
+            )}
             
             {/* Actions */}
             <div className="flex flex-row justify-end space-x-2">
