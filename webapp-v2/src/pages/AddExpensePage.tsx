@@ -4,7 +4,7 @@ import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, EXPENSE_CATEGORIES } from '../app/stores/expense-form-store';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { authStore } from '../app/stores/auth-store';
-import { LoadingSpinner, Card, Button } from '../components/ui';
+import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { V2Indicator } from '../components/ui/V2Indicator';
 
@@ -86,7 +86,12 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   };
   
   const handleCancel = () => {
-    // TODO: Add confirmation if form has unsaved changes
+    if (expenseFormStore.hasUnsavedChanges()) {
+      const confirmed = confirm('You have unsaved changes. Are you sure you want to leave?');
+      if (!confirmed) {
+        return;
+      }
+    }
     route(`/groups/${groupId}`);
   };
   
@@ -98,6 +103,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   
   const handleParticipantToggle = (memberId: string) => {
     expenseFormStore.toggleParticipant(memberId);
+  };
+  
+  const handleSelectAll = () => {
+    const allMemberIds = members.map(m => m.uid);
+    expenseFormStore.setParticipants(allMemberIds);
+  };
+  
+  const handleSelectNone = () => {
+    // Keep only the payer
+    expenseFormStore.setParticipants(paidBy.value ? [paidBy.value] : []);
   };
   
   // Show loading while initializing
@@ -163,13 +178,17 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Description
+                    Description <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={description.value}
                     onInput={(e) => expenseFormStore.updateField('description', (e.target as HTMLInputElement).value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                      validationErrors.value.description 
+                        ? 'border-red-500 dark:border-red-500' 
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
                     placeholder="What was this expense for?"
                     required
                   />
@@ -185,7 +204,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   {/* Amount */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Amount ($)
+                      Amount ($) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -195,6 +214,8 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       placeholder="0.00"
                       step="0.01"
                       min="0"
+                      inputMode="decimal"
+                      pattern="[0-9]*"
                       required
                     />
                     {validationErrors.value.amount && (
@@ -224,13 +245,17 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 {/* Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Date
+                    Date <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={date.value}
                     onInput={(e) => expenseFormStore.updateField('date', (e.target as HTMLInputElement).value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                      validationErrors.value.date 
+                        ? 'border-red-500 dark:border-red-500' 
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
                     required
                   />
                   {validationErrors.value.date && (
@@ -246,14 +271,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
             <Card>
               <Stack spacing="md">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Who paid?
+                  Who paid? <span className="text-red-500">*</span>
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {members.map(member => (
                     <label
                       key={member.uid}
                       className={`
-                        flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-colors
+                        flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
                         ${paidBy.value === member.uid
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                           : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -267,6 +292,11 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                         checked={paidBy.value === member.uid}
                         onChange={() => expenseFormStore.updateField('paidBy', member.uid)}
                         className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <Avatar 
+                        displayName={member.displayName}
+                        userId={member.uid}
+                        size="sm"
                       />
                       <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {member.displayName}
@@ -285,10 +315,30 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
             {/* Split Between */}
             <Card>
               <Stack spacing="md">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Split between
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Split between <span className="text-red-500">*</span>
+                  </h2>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSelectAll}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSelectNone}
+                    >
+                      Select none
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {members.map(member => {
                     const isSelected = participants.value.includes(member.uid);
                     const isPayer = paidBy.value === member.uid;
@@ -296,7 +346,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       <label
                         key={member.uid}
                         className={`
-                          flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-colors
+                          flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
                           ${isSelected
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                             : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -311,7 +361,12 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                           disabled={isPayer}
                           className="text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                         />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        <Avatar 
+                          displayName={member.displayName}
+                          userId={member.uid}
+                          size="sm"
+                        />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white flex-1">
                           {member.displayName}
                           {isPayer && <span className="text-green-600 dark:text-green-400 ml-1">(Payer)</span>}
                         </span>
@@ -407,9 +462,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                         const split = splits.value.find(s => s.userId === participantId);
                         return (
                           <div key={participantId} className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">
-                              {member?.displayName || 'Unknown'}
-                            </span>
+                            <div className="flex items-center gap-2 flex-1">
+                              <Avatar 
+                                displayName={member?.displayName || 'Unknown'}
+                                userId={participantId}
+                                size="sm"
+                              />
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {member?.displayName || 'Unknown'}
+                              </span>
+                            </div>
                             <div className="flex items-center gap-2">
                               <span className="text-gray-500">$</span>
                               <input
@@ -422,6 +484,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
                                 step="0.01"
                                 min="0"
+                                inputMode="decimal"
                               />
                             </div>
                           </div>
@@ -452,9 +515,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                         const split = splits.value.find(s => s.userId === participantId);
                         return (
                           <div key={participantId} className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">
-                              {member?.displayName || 'Unknown'}
-                            </span>
+                            <div className="flex items-center gap-2 flex-1">
+                              <Avatar 
+                                displayName={member?.displayName || 'Unknown'}
+                                userId={participantId}
+                                size="sm"
+                              />
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {member?.displayName || 'Unknown'}
+                              </span>
+                            </div>
                             <div className="flex items-center gap-2">
                               <input
                                 type="number"
@@ -467,6 +537,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 step="0.1"
                                 min="0"
                                 max="100"
+                                inputMode="decimal"
                               />
                               <span className="text-gray-500">%</span>
                               <span className="text-xs text-gray-500 w-16 text-right">
@@ -500,10 +571,17 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                         {splits.value.map(split => {
                           const member = memberMap[split.userId];
                           return (
-                            <div key={split.userId} className="flex justify-between text-sm">
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {member?.displayName || 'Unknown'}
-                              </span>
+                            <div key={split.userId} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <Avatar 
+                                  displayName={member?.displayName || 'Unknown'}
+                                  userId={split.userId}
+                                  size="sm"
+                                />
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {member?.displayName || 'Unknown'}
+                                </span>
+                              </div>
                               <span className="font-medium text-gray-900 dark:text-white">
                                 ${split.amount.toFixed(2)}
                               </span>

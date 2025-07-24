@@ -30,6 +30,7 @@ export interface ExpenseFormStore {
   saveExpense(groupId: string): Promise<ExpenseData>;
   clearError(): void;
   reset(): void;
+  hasUnsavedChanges(): boolean;
 }
 
 // Type for form data fields
@@ -98,11 +99,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
   updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void {
     errorSignal.value = null;
     
-    // Clear validation error for this field
-    const errors = { ...validationErrorsSignal.value };
-    delete errors[field];
-    validationErrorsSignal.value = errors;
-    
+    // Update the field value first
     switch (field) {
       case 'description':
         descriptionSignal.value = value as string;
@@ -142,6 +139,28 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.handleSplitTypeChange(value as 'equal' | 'exact' | 'percentage');
         break;
     }
+    
+    // Perform real-time validation for the field
+    const errors = { ...validationErrorsSignal.value };
+    const fieldError = this.validateField(field, value);
+    
+    if (fieldError) {
+      errors[field] = fieldError;
+    } else {
+      delete errors[field];
+    }
+    
+    // Also validate splits if amount or split type changed
+    if (field === 'amount' || field === 'splitType') {
+      const splitsError = this.validateField('splits');
+      if (splitsError) {
+        errors.splits = splitsError;
+      } else {
+        delete errors.splits;
+      }
+    }
+    
+    validationErrorsSignal.value = errors;
   }
 
   setParticipants(participants: string[]): void {
@@ -152,6 +171,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
     // Recalculate splits based on current type
     this.handleSplitTypeChange(splitTypeSignal.value);
+    
+    // Validate participants
+    const errors = { ...validationErrorsSignal.value };
+    const participantsError = this.validateField('participants');
+    if (participantsError) {
+      errors.participants = participantsError;
+    } else {
+      delete errors.participants;
+    }
+    validationErrorsSignal.value = errors;
   }
 
   toggleParticipant(userId: string): void {
@@ -206,6 +235,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
     
     splitsSignal.value = currentSplits;
+    
+    // Validate splits
+    const errors = { ...validationErrorsSignal.value };
+    const splitsError = this.validateField('splits');
+    if (splitsError) {
+      errors.splits = splitsError;
+    } else {
+      delete errors.splits;
+    }
+    validationErrorsSignal.value = errors;
   }
 
   updateSplitPercentage(userId: string, percentage: number): void {
@@ -227,6 +266,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
     
     splitsSignal.value = currentSplits;
+    
+    // Validate splits
+    const errors = { ...validationErrorsSignal.value };
+    const splitsError = this.validateField('splits');
+    if (splitsError) {
+      errors.splits = splitsError;
+    } else {
+      delete errors.splits;
+    }
+    validationErrorsSignal.value = errors;
   }
 
   private handleSplitTypeChange(newType: 'equal' | 'exact' | 'percentage'): void {
@@ -264,52 +313,93 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
   }
 
+  private validateField(field: string, value?: any): string | null {
+    switch (field) {
+      case 'description':
+        const desc = value ?? descriptionSignal.value;
+        if (!desc.trim()) {
+          return 'Description is required';
+        } else if (desc.length > 100) {
+          return 'Description must be less than 100 characters';
+        }
+        break;
+      
+      case 'amount':
+        const amt = value ?? amountSignal.value;
+        if (amt <= 0) {
+          return 'Amount must be greater than 0';
+        } else if (amt > 1000000) {
+          return 'Amount seems too large';
+        }
+        break;
+        
+      case 'date':
+        const dt = value ?? dateSignal.value;
+        if (!dt) {
+          return 'Date is required';
+        }
+        // Check if date is in the future
+        const selectedDate = new Date(dt);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        if (selectedDate > today) {
+          return 'Date cannot be in the future';
+        }
+        break;
+        
+      case 'paidBy':
+        const pb = value ?? paidBySignal.value;
+        if (!pb) {
+          return 'Please select who paid';
+        }
+        break;
+        
+      case 'participants':
+        const parts = value ?? participantsSignal.value;
+        if (parts.length === 0) {
+          return 'At least one participant is required';
+        }
+        break;
+        
+      case 'splits':
+        // Validate splits based on split type
+        if (splitTypeSignal.value === 'exact') {
+          const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
+          if (Math.abs(totalSplit - amountSignal.value) > 0.01) {
+            return `Split amounts must equal the total expense amount`;
+          }
+        } else if (splitTypeSignal.value === 'percentage') {
+          const totalPercentage = splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
+          if (Math.abs(totalPercentage - 100) > 0.01) {
+            return 'Percentages must add up to 100%';
+          }
+        }
+        break;
+    }
+    return null;
+  }
+
   validateForm(): boolean {
     const errors: Record<string, string> = {};
     
-    // Validate description
-    if (!descriptionSignal.value.trim()) {
-      errors.description = 'Description is required';
-    } else if (descriptionSignal.value.length > 100) {
-      errors.description = 'Description must be less than 100 characters';
-    }
+    // Validate all fields
+    const descError = this.validateField('description');
+    if (descError) errors.description = descError;
     
-    // Validate amount
-    if (amountSignal.value <= 0) {
-      errors.amount = 'Amount must be greater than 0';
-    } else if (amountSignal.value > 1000000) {
-      errors.amount = 'Amount seems too large';
-    }
+    const amountError = this.validateField('amount');
+    if (amountError) errors.amount = amountError;
     
-    // Validate date
-    if (!dateSignal.value) {
-      errors.date = 'Date is required';
-    }
+    const dateError = this.validateField('date');
+    if (dateError) errors.date = dateError;
     
-    // Validate payer
-    if (!paidBySignal.value) {
-      errors.paidBy = 'Please select who paid';
-    }
+    const payerError = this.validateField('paidBy');
+    if (payerError) errors.paidBy = payerError;
     
-    // Validate participants
-    if (participantsSignal.value.length === 0) {
-      errors.participants = 'At least one participant is required';
-    }
+    const participantsError = this.validateField('participants');
+    if (participantsError) errors.participants = participantsError;
     
-    // Validate splits based on split type
-    if (splitTypeSignal.value === 'equal') {
-      // Equal splits are auto-calculated, no validation needed
-    } else if (splitTypeSignal.value === 'exact') {
-      const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
-      if (Math.abs(totalSplit - amountSignal.value) > 0.01) {
-        errors.splits = `Split amounts must equal the total expense amount`;
-      }
-    } else if (splitTypeSignal.value === 'percentage') {
-      const totalPercentage = splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
-      if (Math.abs(totalPercentage - 100) > 0.01) {
-        errors.splits = 'Percentages must add up to 100%';
-      }
-    }
+    const splitsError = this.validateField('splits');
+    if (splitsError) errors.splits = splitsError;
     
     validationErrorsSignal.value = errors;
     return Object.keys(errors).length === 0;
@@ -369,6 +459,20 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     splitsSignal.value = [];
     errorSignal.value = null;
     validationErrorsSignal.value = {};
+  }
+
+  hasUnsavedChanges(): boolean {
+    // Check if any field has been modified from initial state
+    return (
+      descriptionSignal.value.trim() !== '' ||
+      amountSignal.value > 0 ||
+      dateSignal.value !== getTodayDate() ||
+      paidBySignal.value !== '' ||
+      categorySignal.value !== 'General' ||
+      splitTypeSignal.value !== 'equal' ||
+      participantsSignal.value.length > 0 ||
+      splitsSignal.value.length > 0
+    );
   }
 
   private getErrorMessage(error: unknown): string {

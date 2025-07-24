@@ -6,3 +6,4 @@ export { Alert } from './Alert';
 export { LoadingSpinner } from './LoadingSpinner';
 export { Container } from './Container';
 export { Stack } from './Stack';
+export { Avatar } from './Avatar';
