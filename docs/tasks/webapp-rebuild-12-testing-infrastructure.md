@@ -297,11 +297,220 @@ Establish a robust testing framework for the new Preact webapp with unit tests, 
    - Reusable page methods
    - Maintainable test code
 
+## Implementation Plan - Detailed Breakdown
+
+### Phase 1: Current State Analysis (1 hour)
+**Objective**: Understand existing testing setup and identify specific gaps
+
+**Implementation Steps**:
+1. **Audit current test files**:
+   - Check for existing test files in `webapp-v2/` and `firebase/functions/`
+   - Review current testing dependencies in package.json files
+   - Identify any existing test configurations
+
+2. **Analyze test coverage gaps**:
+   ```bash
+   # Search for existing tests
+   find . -name "*.test.*" -o -name "*.spec.*" | grep -v node_modules
+   # Check testing dependencies
+   grep -r "test\|jest\|vitest\|playwright" package.json
+   ```
+
+3. **Document findings**:
+   - Current testing frameworks (if any)
+   - Missing test categories (unit/integration/e2e)
+   - Component test coverage gaps
+   - Store/API test coverage gaps
+
+### Phase 2: Testing Framework Setup (2 hours)
+**Objective**: Install and configure comprehensive testing stack
+
+**Implementation Steps**:
+1. **Install testing dependencies** in `webapp-v2/`:
+   ```bash
+   npm install --save-dev vitest @vitest/ui jsdom
+   npm install --save-dev @testing-library/preact @testing-library/jest-dom @testing-library/user-event
+   npm install --save-dev @playwright/test
+   ```
+
+2. **Create configuration files**:
+   - `vitest.config.ts` - Vitest configuration with JSdom environment
+   - `playwright.config.ts` - Playwright configuration for e2e tests
+   - `src/test-utils/setup.ts` - Global test setup
+
+3. **Update package.json scripts**:
+   ```json
+   {
+     "test": "vitest",
+     "test:ui": "vitest --ui",
+     "test:coverage": "vitest --coverage",
+     "test:e2e": "playwright test"
+   }
+   ```
+
+### Phase 3: Test Utilities & Helpers (1 hour)  
+**Objective**: Create reusable testing infrastructure
+
+**Implementation Steps**:
+1. **Create test utilities** (`src/test-utils/`):
+   - `render.tsx` - Custom render with providers (auth, routing)
+   - `mocks.ts` - API mocks and data fixtures
+   - `builders.ts` - Test data builders for groups, expenses, users
+   - `api-mocks.ts` - MSW handlers for API endpoints
+
+2. **Mock Firebase dependencies**:
+   - Mock Firebase Auth for authentication tests
+   - Mock Firestore for data layer tests
+   - Create test environment variables
+
+### Phase 4: Component Unit Tests (3 hours)
+**Objective**: Test core UI components in isolation
+
+**Implementation Steps**:
+1. **Authentication component tests**:
+   - LoginPage.tsx - Form validation, submission, error handling
+   - RegisterPage.tsx - Registration flow, validation
+   - Auth-related hooks and stores
+
+2. **Group management component tests**:
+   - GroupCard.tsx - Display, interactions, loading states
+   - GroupDetailPage.tsx - Data display, error handling
+   - MembersList.tsx - Member display, role indicators
+
+3. **Expense component tests**:
+   - AddExpensePage.tsx - Form validation, split calculations
+   - ExpenseItem.tsx - Display formatting, click handlers
+   - Split calculation utilities
+
+### Phase 5: Store Integration Tests (2 hours)
+**Objective**: Test store logic and API integration
+
+**Implementation Steps**:
+1. **Auth store tests**:
+   - Login/logout flows
+   - Token management
+   - Error handling
+
+2. **Groups store tests**:
+   - Group fetching and caching
+   - Real-time updates simulation
+   - Error state management
+
+3. **Expense form store tests**:
+   - Split calculations accuracy
+   - Form validation logic
+   - Save/draft functionality
+
+### Phase 6: API Integration Tests (2 hours)
+**Objective**: Test API client and backend integration
+
+**Implementation Steps**:
+1. **API client tests**:
+   - Request/response handling
+   - Authentication headers
+   - Error response handling
+   - Retry logic
+
+2. **End-to-end API flow tests**:
+   - User registration → Login → Group creation → Expense creation
+   - Group joining flow
+   - Balance calculation verification
+
+### Phase 7: E2E Critical Path Tests (2 hours)
+**Objective**: Test complete user journeys
+
+**Implementation Steps**:
+1. **Core user journey tests** (`e2e/tests/`):
+   ```typescript
+   // auth.spec.ts - Registration and login
+   // groups.spec.ts - Group creation and management  
+   // expenses.spec.ts - Add expense and splits
+   // mobile.spec.ts - Mobile-specific interactions
+   ```
+
+2. **Page object models** (`e2e/pages/`):
+   - Reusable page interaction methods
+   - Consistent selectors and actions
+   - Error handling helpers
+
+3. **Test data management**:
+   - Fixture data for predictable tests
+   - Database setup/teardown helpers
+   - User account management
+
+## Commit Strategy
+
+**Commit 1**: Framework setup and configuration (3 hours)
+- Install all testing dependencies
+- Configure Vitest and Playwright
+- Create basic test utilities
+- Add npm scripts
+
+**Commit 2**: Component unit tests (3 hours) 
+- Test core components (auth, groups, expenses)
+- Test utility functions
+- Achieve 80%+ component coverage
+
+**Commit 3**: Store and API integration tests (2 hours)
+- Test all stores and their methods
+- Test API client functionality
+- Mock external dependencies
+
+**Commit 4**: E2E tests and critical paths (2 hours)
+- Implement Playwright tests for key user journeys
+- Page object models
+- Test data fixtures
+
+**Commit 5**: CI/CD integration and polish (1 hour)
+- GitHub Actions workflow
+- Coverage reporting
+- Quality gates
+- Documentation
+
+## Success Metrics
+
+**Unit Tests**:
+- 80%+ line coverage on components
+- All stores tested with edge cases
+- All utility functions tested
+
+**Integration Tests**:
+- All API endpoints tested
+- All store-to-API interactions tested
+- Auth flow fully tested
+
+**E2E Tests**:
+- Core user journeys (registration → group → expense)
+- Mobile-specific interactions
+- Error scenario handling
+
+**CI/CD**:
+- Tests run on all PRs
+- Coverage reports generated
+- Quality gates prevent broken builds
+
 ## Timeline
 
-- Start Date: TBD
+- Start Date: TBD  
 - End Date: TBD
-- Duration: ~13 hours
+- Duration: ~13 hours (detailed breakdown above)
+
+## Risk Mitigation
+
+1. **Existing code conflicts**:
+   - Analyze current setup thoroughly first
+   - Incremental implementation to avoid breaking changes
+   - Maintain compatibility with existing build process
+
+2. **Firebase emulator dependencies**:
+   - Mock Firebase services for unit tests
+   - Use emulator for integration tests only
+   - Clear setup/teardown procedures
+
+3. **Test maintenance burden**:
+   - Focus on high-value tests first
+   - Use builder pattern to reduce test complexity
+   - Regular test cleanup and refactoring
 
 ## Notes
 
