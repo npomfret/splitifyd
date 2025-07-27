@@ -24,3 +24,63 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn()
 }));
+
+// Mock window.matchMedia for GSAP
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // Deprecated
+    removeListener: vi.fn(), // Deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+// Mock GSAP modules
+vi.mock('gsap', () => ({
+  gsap: {
+    registerPlugin: vi.fn(),
+    timeline: vi.fn(() => ({
+      to: vi.fn().mockReturnThis(),
+      from: vi.fn().mockReturnThis(),
+      fromTo: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      add: vi.fn().mockReturnThis(),
+      play: vi.fn().mockReturnThis(),
+      pause: vi.fn().mockReturnThis(),
+      kill: vi.fn().mockReturnThis(),
+    })),
+    to: vi.fn(),
+    from: vi.fn(),
+    fromTo: vi.fn(),
+    set: vi.fn(),
+    killTweensOf: vi.fn(),
+  },
+  ScrollTrigger: {
+    create: vi.fn(),
+    refresh: vi.fn(),
+    killAll: vi.fn(),
+  },
+  default: {
+    registerPlugin: vi.fn(),
+    timeline: vi.fn(() => ({
+      to: vi.fn().mockReturnThis(),
+      from: vi.fn().mockReturnThis(),
+      fromTo: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      add: vi.fn().mockReturnThis(),
+      play: vi.fn().mockReturnThis(),
+      pause: vi.fn().mockReturnThis(),
+      kill: vi.fn().mockReturnThis(),
+    })),
+    to: vi.fn(),
+    from: vi.fn(),
+    fromTo: vi.fn(),
+    set: vi.fn(),
+    killTweensOf: vi.fn(),
+  }
+}));

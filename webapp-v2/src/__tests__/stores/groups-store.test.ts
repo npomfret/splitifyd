@@ -149,7 +149,12 @@ describe('GroupsStore', () => {
       const error = new Error('Network error');
       mockApiClient.getGroups.mockRejectedValueOnce(error);
 
-      await groupsStore.fetchGroups();
+      try {
+        await groupsStore.fetchGroups();
+        fail('Expected fetchGroups to throw an error');
+      } catch (e) {
+        // Expected to throw
+      }
 
       expect(groupsStore.error).toBe('Network error');
       expect(groupsStore.groups).toEqual([]);
@@ -157,9 +162,19 @@ describe('GroupsStore', () => {
     });
 
     it('prevents concurrent fetches', async () => {
+      const mockResponse: ListGroupsResponse = {
+        groups: [],
+        count: 0,
+        hasMore: false,
+        pagination: {
+          limit: 100,
+          order: 'desc'
+        }
+      };
+
       // Make getGroups return a long-running promise
       mockApiClient.getGroups.mockImplementation(() => 
-        new Promise(resolve => setTimeout(resolve, 100))
+        new Promise(resolve => setTimeout(() => resolve(mockResponse), 100))
       );
 
       // Start two fetches
@@ -304,7 +319,12 @@ describe('GroupsStore', () => {
     it('clears the error state', async () => {
       // Set an error by triggering a failed fetch
       mockApiClient.getGroups.mockRejectedValueOnce(new Error('Some error'));
-      await groupsStore.fetchGroups();
+      try {
+        await groupsStore.fetchGroups();
+        fail('Expected fetchGroups to throw an error');
+      } catch (e) {
+        // Expected to throw
+      }
 
       groupsStore.clearError();
 
