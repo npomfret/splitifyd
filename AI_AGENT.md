@@ -1,6 +1,6 @@
 # 🛑 MANDATORY: READ THIS FIRST - DO NOT SKIP
 
-Before making **ANY** code changes, you MUST read these files:
+**Before** making **ANY** changes, you MUST read these files:
 
 - directives/engineering.md
 - directives/code-style.md
