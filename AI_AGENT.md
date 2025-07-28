@@ -81,6 +81,6 @@ Claude Code CLI now supports automated browser testing via MCP (Model Context Pr
 - Configuration is set up in `~/Library/Application Support/Claude/claude_desktop_config.json`
 - See `docs/mcp-browser-testing-guide.md` for usage instructions
 - Use MCP tools to automatically check console errors and take screenshots
-- The MCP tests are in `scripts/mcp-test-webapp-v2.ts`
+- The MCP tests are in `mcp-browser-tests/mcp-test-webapp-v2.ts`
 
 IMPORTANT: never commit any code. When you are ready to commit, stop, write a commit message and wait for instructions.
