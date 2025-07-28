@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env npx tsx
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -9,9 +9,9 @@ import { logger } from './logger';
 const instance: string | undefined = process.argv[2];
 
 if (!instance) {
-  console.log('Usage: ts-node scripts/switch-instance.ts <instance-number>');
-  console.log('Example: ts-node scripts/switch-instance.ts 1');
-  console.log('Example: ts-node scripts/switch-instance.ts 2');
+  console.log('Usage: tsx scripts/switch-instance.ts <instance-number>');
+  console.log('Example: tsx scripts/switch-instance.ts 1');
+  console.log('Example: tsx scripts/switch-instance.ts 2');
   process.exit(1);
 }
 
@@ -45,7 +45,7 @@ try {
   const isProduction: boolean = instance === 'prod';
   
   if (!isProduction) {
-    execSync('ts-node scripts/generate-firebase-config.ts', { 
+    execSync('tsx scripts/generate-firebase-config.ts', { 
       cwd: path.join(__dirname, '..'),
       stdio: 'inherit' 
     });

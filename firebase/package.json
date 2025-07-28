@@ -4,24 +4,24 @@
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
     "link-webapp": "ln -sf ../webapp/dist public",
-    "start-emulators": "ts-node scripts/generate-firebase-config.ts && ts-node scripts/start-with-data.ts",
-    "generate-test-data": "cd functions && ts-node scripts/generate-test-data.ts",
+    "start-emulators": "tsx scripts/generate-firebase-config.ts && tsx scripts/start-with-data.ts",
+    "generate-test-data": "cd functions && tsx scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
-    "deploy:prod": "ts-node scripts/switch-instance.ts prod && cd .. && npm run build && cd firebase && firebase deploy && rm functions/.env",
-    "deploy:functions": "ts-node scripts/switch-instance.ts prod && firebase deploy --only functions && rm functions/.env",
+    "deploy:prod": "tsx scripts/switch-instance.ts prod && cd .. && npm run build && cd firebase && firebase deploy && rm functions/.env",
+    "deploy:functions": "tsx scripts/switch-instance.ts prod && firebase deploy --only functions && rm functions/.env",
     "deploy:hosting": "cd .. && npm run build && cd firebase && firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "logs": "firebase functions:log",
-    "clean": "ts-node scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log",
-    "kill-emulators": "ts-node scripts/kill-emulators.ts",
-    "switch-instance": "ts-node scripts/switch-instance.ts"
+    "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log",
+    "kill-emulators": "tsx scripts/kill-emulators.ts",
+    "switch-instance": "tsx scripts/switch-instance.ts"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.0.14",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.7.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {

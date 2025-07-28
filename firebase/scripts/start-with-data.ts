@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env npx tsx
 
 import { spawn } from 'child_process';
 import * as http from 'http';

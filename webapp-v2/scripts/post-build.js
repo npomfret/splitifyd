@@ -31,7 +31,8 @@ if (isDev) {
 }
 
 // Always inject API_BASE_URL (empty string for production)
-const indexPath = path.join(__dirname, '../../firebase/public/v2/index.html');
+// The build outputs to ../webapp/dist/v2, so we read from there
+const indexPath = path.join(__dirname, '../../webapp/dist/v2/index.html');
 
 let html = fs.readFileSync(indexPath, 'utf8');
 

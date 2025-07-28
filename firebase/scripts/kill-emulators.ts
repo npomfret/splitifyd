@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env npx tsx
 
 import { execSync } from 'child_process';
 import * as fs from 'fs';
