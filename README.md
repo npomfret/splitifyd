@@ -8,6 +8,10 @@ View the [docs](docs) for details on features, todo, dev stuff etc.
 
 This project uses automated browser testing via [Microsoft's Playwright MCP server](https://github.com/microsoft/playwright-mcp). This enables Claude Code to automatically navigate pages, take screenshots, and check for console errors during development.
 
+```shell
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
 ### Prerequisites
 
 **Claude Desktop Required**: MCP browser automation only works with Claude Desktop + Claude Code CLI, not the web version.
