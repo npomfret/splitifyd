@@ -33,7 +33,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
     }
   };
 
-  const balanceInfo = getBalanceDisplay(group.balance.userBalance.netBalance);
+  const balanceInfo = getBalanceDisplay(group.balance.userBalance?.netBalance || 0);
 
   return (
     <Card 

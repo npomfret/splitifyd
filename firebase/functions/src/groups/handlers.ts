@@ -259,42 +259,27 @@ export const getGroup = async (
   const { group } = await fetchGroupWithAccess(groupId, userId);
 
   // Add balance information
-  let userBalance: UserBalance | null = null;
-  try {
-    const balanceDoc = await admin.firestore()
-      .collection('group-balances')
-      .doc(groupId)
-      .get();
-    
-    if (balanceDoc.exists) {
-      const balanceData = balanceDoc.data();
-      userBalance = balanceData?.userBalances?.[userId] || null;
-    }
-    
-    const groupWithBalance: GroupWithBalance = {
-      ...group,
-      balance: {
-        userBalance: userBalance || {
-          userId,
-          name: '',
-          owes: {},
-          owedBy: {},
-          netBalance: 0
-        },
-        totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
-        totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
-      },
-    };
-
-    res.json(groupWithBalance);
-  } catch (error) {
-    // If balance calculation fails, return group without balance
-    logger.warn('Failed to calculate balance for group', { 
-      groupId, 
-      errorMessage: error instanceof Error ? error.message : String(error) 
-    });
-    res.json(group);
+  let userBalance: UserBalance | undefined;
+  const balanceDoc = await admin.firestore()
+    .collection('group-balances')
+    .doc(groupId)
+    .get();
+  
+  if (balanceDoc.exists) {
+    const balanceData = balanceDoc.data();
+    userBalance = balanceData?.userBalances?.[userId];
   }
+  
+  const groupWithBalance: GroupWithBalance = {
+    ...group,
+    balance: {
+      userBalance: userBalance,  // Allow null for groups without balances
+      totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
+      totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
+    },
+  };
+
+  res.json(groupWithBalance);
 };
 
 /**
@@ -428,19 +413,15 @@ export const listGroups = async (
       const group = transformGroupDocument(doc);
       
       // Calculate balance for each group
-      let userBalance: UserBalance | null = null;
-      try {
-        const balanceDoc = await admin.firestore()
-          .collection('group-balances')
-          .doc(group.id)
-          .get();
-        
-        if (balanceDoc.exists) {
-          const balanceData = balanceDoc.data();
-          userBalance = balanceData?.userBalances?.[userId] || null;
-        }
-      } catch (error) {
-        logger.warn('Failed to fetch balance for group', { groupId: group.id });
+      let userBalance: UserBalance | undefined;
+      const balanceDoc = await admin.firestore()
+        .collection('group-balances')
+        .doc(group.id)
+        .get();
+      
+      if (balanceDoc.exists) {
+        const balanceData = balanceDoc.data();
+        userBalance = balanceData?.userBalances?.[userId];
       }
 
       // Format last activity
@@ -453,13 +434,7 @@ export const listGroups = async (
         description: group.description,
         memberCount: group.members.length,
         balance: {
-          userBalance: userBalance || {
-            userId,
-            name: '',
-            owes: {},
-            owedBy: {},
-            netBalance: 0
-          },
+          userBalance: userBalance,  // Allow null for groups without balances
           totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
           totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
         },

@@ -21,7 +21,11 @@
     "test:integration": "cd firebase/functions && npm run test:integration && cd ../../webapp && npm run test:integration",
     "test:performance": "cd firebase/functions && npm run test:performance",
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
-    "test:webapp-v2": "npx tsx mcp-browser-tests/mcp-test-webapp-v2.ts",
+    "test:browser": "npm run test:browser:all",
+    "test:browser:all": "npm run test:browser:homepage && npm run test:browser:login && npm run test:browser:expenses",
+    "test:browser:homepage": "npx tsx mcp-browser-tests/test-homepage.ts",
+    "test:browser:login": "npx tsx mcp-browser-tests/test-login.ts",
+    "test:browser:expenses": "npx tsx mcp-browser-tests/test-expenses.ts",
     "report": "repo-statter . -o reports",
     "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\""
   },

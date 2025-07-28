@@ -70,7 +70,7 @@ export const GroupSchema = z.object({
       owes: z.record(z.string(), z.number()),
       owedBy: z.record(z.string(), z.number()),
       netBalance: z.number()
-    }),
+    }).optional(),
     totalOwed: z.number(),
     totalOwing: z.number()
   }),

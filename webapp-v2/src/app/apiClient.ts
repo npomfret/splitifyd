@@ -18,6 +18,20 @@ import type {
   CreateExpenseRequest
 } from '../types/webapp-shared-types';
 
+// Define HealthCheckResponse locally since it's not in shared types
+interface HealthCheckResponse {
+  checks: {
+    firestore: {
+      status: 'healthy' | 'unhealthy';
+      responseTime?: number;
+    };
+    auth: {
+      status: 'healthy' | 'unhealthy';
+      responseTime?: number;
+    };
+  };
+}
+
 // API configuration - use window.API_BASE_URL injected during build
 const apiBaseUrl = (window as any).API_BASE_URL;
 if (!apiBaseUrl) {
@@ -178,8 +192,18 @@ export class ApiClient {
       // Validate response
       const result = validator.safeParse(data);
       if (!result.success) {
+        // Create a more detailed error message
+        result.error.issues.map(issue => 
+          `${issue.path.join('.')}: ${issue.message}`
+        ).join(', ');
+        
+        console.error(`API Validation Error for ${endpoint}:`, {
+          issues: result.error.issues,
+          receivedData: data
+        });
+        
         throw new ApiValidationError(
-          `Response from ${endpoint} does not match expected type`,
+          `Invalid response from server. Please try again or contact support if the issue persists.`,
           result.error.issues
         );
       }
@@ -277,6 +301,12 @@ export class ApiClient {
     return this.request('/register', {
       method: 'POST',
       body: { email, password, displayName }
+    });
+  }
+
+  async healthCheck(): Promise<HealthCheckResponse> {
+    return this.request('/health', {
+      method: 'GET'
     });
   }
 }

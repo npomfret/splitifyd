@@ -4,7 +4,9 @@ import { resolve } from 'path';
 export default defineConfig({
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/__tests__/setup.ts'],
+    setupFiles: process.env.TEST_INTEGRATION 
+      ? ['./src/__tests__/setup.integration.ts']
+      : ['./src/__tests__/setup.ts'],
     globals: true,
     css: true,
     exclude: [
@@ -12,6 +14,8 @@ export default defineConfig({
       '**/dist/**',
       '**/e2e/**',  // Exclude E2E tests from Vitest
     ],
+    // Longer timeout for integration tests
+    testTimeout: process.env.TEST_INTEGRATION ? 30000 : 5000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
