@@ -60,10 +60,7 @@
           "tsconfig": "tsconfig.test.json"
         }
       ]
-    },
-    "setupFilesAfterEnv": [
-      "./jest.setup.js"
-    ]
+    }
   },
   "private": true
 }
