@@ -53,7 +53,7 @@ Summarise what you have learned from them.
   Example: `TEST_NAME="should efficiently calculate balances in complex debt graphs" TEST_PATH="firebase/functions/__tests__/performance/performance-load.test.ts" npm run test:single`
 
 Note: assume the emulator is running and changes are automatically built and reflected in the running app.
-Note: NEVER assume a port number.  There are several environments.  You need to get the port numbers from firebase.json
+Note: never assume a port number, never hard code ports, servers etc.  There are several environments.  You need to get the port numbers from firebase.json
 Note: if the emulator isn't running, STOP and ask the user to start it
 
 # Firebase Local Development
