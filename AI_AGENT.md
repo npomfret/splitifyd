@@ -55,6 +55,7 @@ Summarise what you have learned from them.
 Note: assume the emulator is running and changes are automatically built and reflected in the running app.
 Note: never assume a port number, never hard code ports, servers etc.  There are several environments.  You need to get the port numbers from firebase.json
 Note: if the emulator isn't running, STOP and ask the user to start it
+Note: never use the system browser, always use Chromium
 
 # Firebase Local Development
 - Firebase is configured to run on a set of ports (via the `switch-instance.sh` script and the .env files in `firebase/functions/.env.<envname>`)
