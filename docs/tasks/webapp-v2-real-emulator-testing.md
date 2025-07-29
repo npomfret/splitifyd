@@ -485,14 +485,36 @@ await page.click('[data-testid="register-button"]');
 - ✅ `webapp-v2/e2e/performance.test.ts` - Basic load time check
 - ✅ `webapp-v2/playwright.config.ts` - Configured with EMULATOR_URL
 
-#### Commit 18: Survey v2 UI and create simple browser tests
+#### Commit 18: Survey v2 UI and create simple browser tests ✅
 **Goal**: Identify what UI actually exists and create basic browser tests
 
-#### Tasks
-- Navigate to `http://localhost:6002/v2` and document actual pages
-- Identify what forms, buttons, and interactions exist
-- Create simple smoke tests for pages that load
-- No complex form testing until UI is verified to exist
+**Status**: COMPLETED - Surveyed UI and created simple browser tests
+
+**UI Survey Results**:
+- ✅ Homepage (`/v2`) - Marketing page with login/signup links
+- ✅ Login page (`/login`) - Email, password fields with "Sign In" button
+- ✅ Register page (`/register`) - Name, email, password, confirm password with "Create Account" button
+- ✅ Pricing page (`/pricing`) - Simple pricing info with free/premium tiers
+- ✅ Static pages accessible via footer links (Terms, Privacy, etc.)
+
+**New Tests Created**:
+1. `webapp-v2/e2e/auth-flow.e2e.test.ts` - 3 tests
+   - Navigation between login/register pages
+   - Form field visibility on login page
+   - Form field visibility on register page
+
+2. `webapp-v2/e2e/static-pages.e2e.test.ts` - 4 tests
+   - Navigation to terms of service
+   - Navigation to privacy policy  
+   - Navigation from login back to home
+   - Homepage link functionality
+
+**Key Learnings**:
+- All form labels include asterisks (e.g., "Email address *")
+- Navigation uses anchor tags, not buttons
+- Terms/Privacy pages use simplified URLs (`/v2/terms` not `/terms-of-service`)
+- Multiple "Sign Up" links require exact matching to avoid ambiguity
+- All 7 new tests pass with zero console errors
 
 #### Commit 19: Integrate MCP debugging capabilities
 **Goal**: Enable Claude Code to run failed browser tests via MCP for debugging
