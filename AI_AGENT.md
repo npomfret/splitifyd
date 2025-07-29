@@ -14,9 +14,10 @@ Summarise what you have learned from them.
 - Language: TypeScript (latest)
 - Framework: Firebase Functions
 - Dev Environment: Firebase Emulator Suite
-- It's a mono-repo - both the client (webapp) and the server (firebase) are sub projects
+- It's a mono-repo - both the client (webapp) and the server (firebase) are subprojects
 - Avoid environment variables, prefer configuration files
 - App must run in both the Firebase emulator and production Firebase
+- Use the firebase emulator to test against.  Do not use the Vite dev server
 
 # Commands
 - IMPORTANT! run `pwd` before you run ANY shell commands.
