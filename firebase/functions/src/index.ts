@@ -8,7 +8,7 @@ import { getEnhancedConfigResponse } from './utils/config-response';
 import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
-import { getConfig } from './config';
+import { disableETags } from './middleware/cache-control';
 import {
   createExpense,
   getExpense,
@@ -73,6 +73,9 @@ function getApp(): express.Application {
   if (!app) {
     app = express();
     
+    // Disable ETags to prevent 304 responses
+    disableETags(app);
+    
     // Strip /api prefix for hosting rewrites
     app.use((req, res, next) => {
       if (req.url.startsWith('/api/')) {
@@ -81,7 +84,7 @@ function getApp(): express.Application {
       next();
     });
     
-    // Apply standard middleware stack (includes CORS)
+    // Apply standard middleware stack (includes CORS and cache control)
     applyStandardMiddleware(app, { logMessage: 'Incoming request' });
     
     setupRoutes(app);
@@ -135,12 +138,6 @@ function setupRoutes(app: express.Application): void {
 
   // Environment variables endpoint (for debugging)
   app.get('/env', (req: express.Request, res: express.Response) => {
-  // IMPORTANT: DO NOT DELETE - Ensure this endpoint is never cached
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
-  
   const uptimeSeconds = process.uptime();
   const memUsage = process.memoryUsage();
   
@@ -237,11 +234,6 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
 app.get('/config', asyncHandler((req: express.Request, res: express.Response) => {
   // Always use enhanced config now
   const config = getEnhancedConfigResponse();
-  
-  // Cache for 5 minutes in development, 1 hour in production
-  const cfg = getConfig();
-  const maxAge = cfg.isDevelopment ? 300 : 3600;
-  res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
   
   res.json(config);
 }));

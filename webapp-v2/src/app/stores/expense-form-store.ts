@@ -1,6 +1,8 @@
 import { signal } from '@preact/signals';
 import type { CreateExpenseRequest, ExpenseData, ExpenseSplit } from '../../types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
+import { groupDetailStore } from './group-detail-store';
+import { groupsStore } from './groups-store';
 
 export interface ExpenseFormStore {
   // Form fields
@@ -431,6 +433,17 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       };
       
       const expense = await apiClient.createExpense(request);
+      
+      // Refresh group data to show the new expense immediately
+      try {
+        await Promise.all([
+          groupDetailStore.refreshAll(),
+          groupsStore.refreshGroups()
+        ]);
+      } catch (refreshError) {
+        // Log refresh error but don't fail the expense creation
+        console.warn('Failed to refresh data after creating expense:', refreshError);
+      }
       
       // Reset form after successful save
       this.reset();

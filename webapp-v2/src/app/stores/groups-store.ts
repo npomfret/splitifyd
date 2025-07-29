@@ -56,6 +56,14 @@ class GroupsStoreImpl implements GroupsStore {
       // Optimistically update the groups list
       groupsSignal.value = [newGroup, ...groupsSignal.value];
       
+      // Also refresh to ensure we have the latest server data
+      try {
+        await this.refreshGroups();
+      } catch (refreshError) {
+        // Log refresh error but don't fail the group creation
+        console.warn('Failed to refresh groups after creating group:', refreshError);
+      }
+      
       return newGroup;
     } catch (error) {
       errorSignal.value = this.getErrorMessage(error);

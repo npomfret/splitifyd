@@ -3,6 +3,7 @@ import { getConfig } from '../config';
 import { addCorrelationId, logger } from '../logger';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
+import { applyCacheControl } from '../middleware/cache-control';
 
 export interface MiddlewareOptions {
   functionName?: string;
@@ -17,6 +18,9 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
 
   // Apply security headers first
   app.use(applySecurityHeaders);
+
+  // Apply cache control headers to prevent stale data issues
+  app.use(applyCacheControl);
 
   // Add correlation ID to all requests for tracing
   app.use(addCorrelationId);

@@ -18,6 +18,7 @@ export interface GroupDetailStore {
   fetchBalances(): Promise<void>;
   loadMoreExpenses(): Promise<void>;
   reset(): void;
+  refreshAll(): Promise<void>;
 }
 
 // Signals for group detail state
@@ -129,6 +130,17 @@ class GroupDetailStoreImpl implements GroupDetailStore {
     errorSignal.value = null;
     hasMoreExpensesSignal.value = true;
     expenseCursorSignal.value = null;
+  }
+
+  async refreshAll(): Promise<void> {
+    if (!groupSignal.value) return;
+    
+    // Refresh group, expenses, and balances
+    await Promise.all([
+      this.fetchGroup(groupSignal.value.id),
+      this.fetchBalances(),
+      this.fetchExpenses() // Reset expenses to first page
+    ]);
   }
 }
 
