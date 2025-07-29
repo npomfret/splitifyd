@@ -1,6 +1,24 @@
 import { readFileSync } from 'fs';
-import { join } from 'path';
-import { findProjectRoot } from '../../../e2e/helpers/emulator-utils';
+import { join, dirname } from 'path';
+
+/**
+ * Find project root by looking for firebase/firebase.json
+ */
+function findProjectRoot(startPath: string = __dirname): string {
+  let currentPath = startPath;
+  
+  while (currentPath !== '/') {
+    try {
+      const firebaseJsonPath = join(currentPath, 'firebase', 'firebase.json');
+      readFileSync(firebaseJsonPath);
+      return currentPath;
+    } catch {
+      currentPath = dirname(currentPath);
+    }
+  }
+  
+  throw new Error('Could not find project root with firebase/firebase.json');
+}
 
 /**
  * Get Firebase emulator configuration from firebase.json

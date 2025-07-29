@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ApiClient } from './utils';
+import { 
+  createTestUser, 
+  createOtherTestUser,
+  createTestGroup,
+  INVALID_TEST_DATA 
+} from '../shared/test-data-fixtures';
 
 describe('Groups CRUD API Integration', () => {
   let apiClient: ApiClient;
@@ -10,17 +16,13 @@ describe('Groups CRUD API Integration', () => {
     apiClient = new ApiClient();
 
     // Create and authenticate test user
-    const userData = {
-      email: `test-${Date.now()}@example.com`,
-      password: 'TestPassword123!',
-      name: 'Test User',
-    };
+    const userData = createTestUser();
 
     testUser = await apiClient.post('/auth/register', userData);
     
     const loginResponse = await apiClient.post('/auth/login', {
       email: testUser.email,
-      password: 'TestPassword123!',
+      password: userData.password,
     });
     
     authToken = loginResponse.token;
@@ -32,11 +34,7 @@ describe('Groups CRUD API Integration', () => {
 
   describe('Group Creation', () => {
     it('should create a new group successfully', async () => {
-      const groupData = {
-        name: 'Test Group',
-        description: 'A test group for integration testing',
-        currency: 'USD',
-      };
+      const groupData = createTestGroup();
 
       const response = await apiClient.post('/groups', groupData, {
         headers: getAuthHeaders(),
@@ -53,11 +51,7 @@ describe('Groups CRUD API Integration', () => {
     });
 
     it('should reject group creation without authentication', async () => {
-      const groupData = {
-        name: 'Test Group',
-        description: 'A test group',
-        currency: 'USD',
-      };
+      const groupData = createTestGroup();
 
       await expect(
         apiClient.post('/groups', groupData)
@@ -65,10 +59,9 @@ describe('Groups CRUD API Integration', () => {
     });
 
     it('should reject group creation with invalid data', async () => {
-      const groupData = {
-        name: '', // Invalid empty name
-        currency: 'USD',
-      };
+      const groupData = createTestGroup({
+        name: INVALID_TEST_DATA.EMPTY_NAME,
+      });
 
       await expect(
         apiClient.post('/groups', groupData, {
@@ -82,11 +75,9 @@ describe('Groups CRUD API Integration', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-      const groupData = {
+      const groupData = createTestGroup({
         name: 'Test Group for Retrieval',
-        description: 'A test group',
-        currency: 'USD',
-      };
+      });
 
       testGroup = await apiClient.post('/groups', groupData, {
         headers: getAuthHeaders(),
@@ -132,11 +123,10 @@ describe('Groups CRUD API Integration', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-      const groupData = {
+      const groupData = createTestGroup({
         name: 'Test Group for Updates',
         description: 'Original description',
-        currency: 'USD',
-      };
+      });
 
       testGroup = await apiClient.post('/groups', groupData, {
         headers: getAuthHeaders(),
@@ -161,16 +151,12 @@ describe('Groups CRUD API Integration', () => {
 
     it('should reject updates by non-members', async () => {
       // Create another user
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       await apiClient.post('/auth/register', otherUserData);
       const otherLoginResponse = await apiClient.post('/auth/login', {
         email: otherUserData.email,
-        password: 'TestPassword123!',
+        password: otherUserData.password,
       });
 
       const updateData = {
@@ -194,27 +180,21 @@ describe('Groups CRUD API Integration', () => {
 
     beforeEach(async () => {
       // Create test group
-      const groupData = {
+      const groupData = createTestGroup({
         name: 'Test Group for Members',
-        description: 'A test group',
-        currency: 'USD',
-      };
+      });
 
       testGroup = await apiClient.post('/groups', groupData, {
         headers: getAuthHeaders(),
       });
 
       // Create another user
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       otherUser = await apiClient.post('/auth/register', otherUserData);
       const otherLoginResponse = await apiClient.post('/auth/login', {
         email: otherUserData.email,
-        password: 'TestPassword123!',
+        password: otherUserData.password,
       });
       otherUserToken = otherLoginResponse.token;
     });
@@ -277,11 +257,10 @@ describe('Groups CRUD API Integration', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-      const groupData = {
+      const groupData = createTestGroup({
         name: 'Test Group for Deletion',
         description: 'Will be deleted',
-        currency: 'USD',
-      };
+      });
 
       testGroup = await apiClient.post('/groups', groupData, {
         headers: getAuthHeaders(),
@@ -305,16 +284,12 @@ describe('Groups CRUD API Integration', () => {
 
     it('should reject deletion by non-creator', async () => {
       // Create another user and add them to group
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       await apiClient.post('/auth/register', otherUserData);
       const otherLoginResponse = await apiClient.post('/auth/login', {
         email: otherUserData.email,
-        password: 'TestPassword123!',
+        password: otherUserData.password,
       });
 
       await expect(

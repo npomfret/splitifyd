@@ -259,54 +259,78 @@ export class ApiClient {
 
 **Architectural Decision**: Instead of creating new utilities, we'll refactor our API integration tests to use the existing `ApiDriver` pattern for consistency and to avoid code duplication.
 
-### Commit 14: Refactor API tests to use existing ApiDriver pattern ✅
+### Commit 14: Refactor API tests to use existing ApiDriver pattern ❌ **REVERTED**
 **Goal**: Replace custom ApiClient with existing ApiDriver for consistency
 
-#### Files
+#### Status: FAILED AND REVERTED
+**Issue**: ApiDriver refactoring broke all tests with undefined fetch responses. The migration was incomplete and caused 40 test failures. Following engineering directive to "back out" changes that don't work, this commit was fully reverted.
+
+**Lesson Learned**: Need to verify ApiDriver works in webapp-v2 context before attempting migration. Tests are back to working state with original ApiClient implementation.
+
+### Commit 15: Add shared test data utilities ✅
+**Goal**: Create centralized test data fixtures to reduce duplication across API tests
+
+#### Files Created/Modified
+- Create `webapp-v2/src/__tests__/shared/test-data-fixtures.ts` ✅
 - Update `webapp-v2/src/__tests__/api-integration/auth-flows.test.ts` ✅
 - Update `webapp-v2/src/__tests__/api-integration/groups-crud.test.ts` ✅  
 - Update `webapp-v2/src/__tests__/api-integration/expenses-crud.test.ts` ✅
-- Remove `webapp-v2/src/__tests__/api-integration/utils/` directory ✅
+- Fix `webapp-v2/src/__tests__/api-integration/utils/emulator-config.ts` ✅
 
-#### Benefits of Using ApiDriver
-- **Proven async testing patterns**: Polling with proper timeout/retry logic
-- **Type safety**: Generic polling methods with proper TypeScript support
-- **Consistency**: Same patterns as existing integration tests
-- **Rich utilities**: User creation, authentication, comprehensive API methods
-- **No code duplication**: Reuses battle-tested infrastructure
+#### Implementation Details
 
-#### Implementation Notes
+**Created Shared Fixtures**:
 ```typescript
-// Before: Custom ApiClient
-const apiClient = new ApiClient();
-const response = await apiClient.post('/auth/register', userData);
+// test-data-fixtures.ts exports:
+export function createTestUser(overrides = {}) // Unique users with timestamps
+export function createOtherTestUser(overrides = {}) // Secondary users
+export function createTestGroup(overrides = {}) // Test groups
+export function createTestExpense(overrides = {}) // Test expenses
 
-// After: Using ApiDriver with polling capabilities
-const apiDriver = new ApiDriver();
-const testUser = await apiDriver.createTestUser(userData);
-// Can now use sophisticated polling when needed:
-await apiDriver.pollGroupBalancesUntil(groupId, token, matcher, options);
+export const TEST_CATEGORIES = { FOOD: 'food', TRANSPORT: 'transport', ... }
+export const TEST_AMOUNTS = { SMALL: 10.50, MEDIUM: 50.00, LARGE: 120.00, ... }
+export const INVALID_TEST_DATA = { EMPTY_EMAIL: '', WEAK_PASSWORD: '123', ... }
 ```
 
-### Commit 15: Add shared test data utilities
-**Goal**: Enhance ApiDriver with additional test data creation helpers if needed
+**Before/After Example**:
+```typescript
+// Before: Duplicate code in every test
+const userData = {
+  email: `test-${Date.now()}@example.com`,
+  password: 'TestPassword123!',
+  name: 'Test User',
+};
 
-#### Files
-- Extend `firebase/functions/__tests__/support/ApiDriver.ts` (if needed)
-- Or create `webapp-v2/src/__tests__/shared/test-data-fixtures.ts`
+// After: Centralized, consistent fixtures
+const userData = createTestUser();
+const expenseData = createTestExpense({
+  groupId: testGroup.id,
+  paidBy: testUser.uid,
+  splitBetween: [testUser.uid],
+  category: TEST_CATEGORIES.FOOD,
+  amount: TEST_AMOUNTS.LARGE
+});
+```
 
-**Note**: May not be needed if ApiDriver already provides sufficient test data utilities.
+**Code Reduction**: Eliminated ~40 lines of duplicate test data creation across all API integration test files.
 
-### Commit 16: Update package.json with API test script
+**TypeScript**: All imports resolve correctly, build passes with `npm run build:check`.
+
+### Commit 16: Update package.json with API test script ✅
 **Goal**: Add npm script for API integration tests
 
 #### Files
-- Update `webapp-v2/package.json`
+- Update `webapp-v2/package.json` ✅
 
-#### Add script
+#### Implementation
 ```json
-"test:api-integration": "vitest src/__tests__/api-integration/ --runInBand"
+"test:api-integration": "vitest run src/__tests__/api-integration/ --reporter=verbose"
 ```
+
+**Benefits**: 
+- Dedicated script for running API integration tests separately from unit tests
+- Uses `--reporter=verbose` for detailed output during CI/debugging
+- Allows focused testing of API layer without running all test suites
 
 ### Commit 17: Create browser integration test structure
 **Goal**: Set up Playwright within Vitest

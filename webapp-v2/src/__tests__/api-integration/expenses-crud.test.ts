@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ApiClient } from './utils';
+import { 
+  createTestUser, 
+  createOtherTestUser,
+  createTestGroup,
+  createTestExpense,
+  TEST_CATEGORIES,
+  TEST_AMOUNTS
+} from '../shared/test-data-fixtures';
 
 describe('Expenses CRUD API Integration', () => {
   let apiClient: ApiClient;
@@ -11,27 +19,22 @@ describe('Expenses CRUD API Integration', () => {
     apiClient = new ApiClient();
 
     // Create and authenticate test user
-    const userData = {
-      email: `test-${Date.now()}@example.com`,
-      password: 'TestPassword123!',
-      name: 'Test User',
-    };
+    const userData = createTestUser();
 
     testUser = await apiClient.post('/auth/register', userData);
     
     const loginResponse = await apiClient.post('/auth/login', {
       email: testUser.email,
-      password: 'TestPassword123!',
+      password: userData.password,
     });
     
     authToken = loginResponse.token;
 
     // Create test group for expenses
-    const groupData = {
+    const groupData = createTestGroup({
       name: 'Test Group for Expenses',
       description: 'A test group for expense testing',
-      currency: 'USD',
-    };
+    });
 
     testGroup = await apiClient.post('/groups', groupData, {
       headers: getAuthHeaders(),
@@ -44,15 +47,14 @@ describe('Expenses CRUD API Integration', () => {
 
   describe('Expense Creation', () => {
     it('should create a new expense successfully', async () => {
-      const expenseData = {
+      const expenseData = createTestExpense({
         groupId: testGroup.id,
         description: 'Test Restaurant Bill',
-        amount: 120.50,
+        amount: TEST_AMOUNTS.LARGE,
         paidBy: testUser.uid,
         splitBetween: [testUser.uid],
-        category: 'food',
-        date: new Date().toISOString(),
-      };
+        category: TEST_CATEGORIES.FOOD,
+      });
 
       const response = await apiClient.post('/expenses', expenseData, {
         headers: getAuthHeaders(),
@@ -102,25 +104,20 @@ describe('Expenses CRUD API Integration', () => {
 
     it('should reject expense creation for non-member', async () => {
       // Create another user not in the group
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       await apiClient.post('/auth/register', otherUserData);
       const otherLoginResponse = await apiClient.post('/auth/login', {
         email: otherUserData.email,
-        password: 'TestPassword123!',
+        password: otherUserData.password,
       });
 
-      const expenseData = {
+      const expenseData = createTestExpense({
         groupId: testGroup.id,
         description: 'Unauthorized Expense',
-        amount: 50.00,
         paidBy: testUser.uid,
         splitBetween: [testUser.uid],
-      };
+      });
 
       await expect(
         apiClient.post('/expenses', expenseData, {
@@ -136,14 +133,14 @@ describe('Expenses CRUD API Integration', () => {
     let testExpense: any;
 
     beforeEach(async () => {
-      const expenseData = {
+      const expenseData = createTestExpense({
         groupId: testGroup.id,
         description: 'Test Expense for Retrieval',
         amount: 75.25,
         paidBy: testUser.uid,
         splitBetween: [testUser.uid],
-        category: 'transport',
-      };
+        category: TEST_CATEGORIES.TRANSPORT,
+      });
 
       testExpense = await apiClient.post('/expenses', expenseData, {
         headers: getAuthHeaders(),
@@ -220,14 +217,14 @@ describe('Expenses CRUD API Integration', () => {
     let testExpense: any;
 
     beforeEach(async () => {
-      const expenseData = {
+      const expenseData = createTestExpense({
         groupId: testGroup.id,
         description: 'Test Expense for Updates',
         amount: 100.00,
         paidBy: testUser.uid,
         splitBetween: [testUser.uid],
-        category: 'entertainment',
-      };
+        category: TEST_CATEGORIES.ENTERTAINMENT,
+      });
 
       testExpense = await apiClient.post('/expenses', expenseData, {
         headers: getAuthHeaders(),
@@ -254,11 +251,7 @@ describe('Expenses CRUD API Integration', () => {
 
     it('should update expense split distribution', async () => {
       // Add another user to the group first
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       const otherUser = await apiClient.post('/auth/register', otherUserData);
       
@@ -285,16 +278,12 @@ describe('Expenses CRUD API Integration', () => {
 
     it('should reject updates by non-group members', async () => {
       // Create another user not in the group
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       await apiClient.post('/auth/register', otherUserData);
       const otherLoginResponse = await apiClient.post('/auth/login', {
         email: otherUserData.email,
-        password: 'TestPassword123!',
+        password: otherUserData.password,
       });
 
       const updateData = {
@@ -315,14 +304,14 @@ describe('Expenses CRUD API Integration', () => {
     let testExpense: any;
 
     beforeEach(async () => {
-      const expenseData = {
+      const expenseData = createTestExpense({
         groupId: testGroup.id,
         description: 'Test Expense for Deletion',
         amount: 60.00,
         paidBy: testUser.uid,
         splitBetween: [testUser.uid],
-        category: 'other',
-      };
+        category: TEST_CATEGORIES.OTHER,
+      });
 
       testExpense = await apiClient.post('/expenses', expenseData, {
         headers: getAuthHeaders(),
@@ -346,16 +335,12 @@ describe('Expenses CRUD API Integration', () => {
 
     it('should reject deletion by non-group members', async () => {
       // Create another user not in the group
-      const otherUserData = {
-        email: `other-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Other User',
-      };
+      const otherUserData = createOtherTestUser();
 
       await apiClient.post('/auth/register', otherUserData);
       const otherLoginResponse = await apiClient.post('/auth/login', {
         email: otherUserData.email,
-        password: 'TestPassword123!',
+        password: otherUserData.password,
       });
 
       await expect(
@@ -372,22 +357,22 @@ describe('Expenses CRUD API Integration', () => {
     beforeEach(async () => {
       // Create multiple expenses for balance calculation testing
       const expenses = [
-        {
+        createTestExpense({
           groupId: testGroup.id,
           description: 'Shared Dinner',
-          amount: 120.00,
+          amount: TEST_AMOUNTS.LARGE,
           paidBy: testUser.uid,
           splitBetween: [testUser.uid],
-          category: 'food',
-        },
-        {
+          category: TEST_CATEGORIES.FOOD,
+        }),
+        createTestExpense({
           groupId: testGroup.id,
           description: 'Taxi Ride',
           amount: 30.00,
           paidBy: testUser.uid,
           splitBetween: [testUser.uid],
-          category: 'transport',
-        },
+          category: TEST_CATEGORIES.TRANSPORT,
+        }),
       ];
 
       for (const expense of expenses) {

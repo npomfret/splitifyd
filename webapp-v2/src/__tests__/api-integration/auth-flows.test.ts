@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ApiClient } from './utils';
+import { 
+  createTestUser, 
+  INVALID_TEST_DATA 
+} from '../shared/test-data-fixtures';
 
 describe('Auth Flow API Integration', () => {
   let apiClient: ApiClient;
@@ -10,11 +14,7 @@ describe('Auth Flow API Integration', () => {
 
   describe('User Registration', () => {
     it('should register a new user successfully', async () => {
-      const userData = {
-        email: `test-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Test User',
-      };
+      const userData = createTestUser();
 
       const response = await apiClient.post('/auth/register', userData);
 
@@ -25,11 +25,9 @@ describe('Auth Flow API Integration', () => {
     });
 
     it('should reject registration with invalid email', async () => {
-      const userData = {
-        email: 'invalid-email',
-        password: 'TestPassword123!',
-        name: 'Test User',
-      };
+      const userData = createTestUser({
+        email: INVALID_TEST_DATA.INVALID_EMAIL,
+      });
 
       await expect(
         apiClient.post('/auth/register', userData)
@@ -37,11 +35,9 @@ describe('Auth Flow API Integration', () => {
     });
 
     it('should reject registration with weak password', async () => {
-      const userData = {
-        email: `test-${Date.now()}@example.com`,
-        password: '123',
-        name: 'Test User',
-      };
+      const userData = createTestUser({
+        password: INVALID_TEST_DATA.WEAK_PASSWORD,
+      });
 
       await expect(
         apiClient.post('/auth/register', userData)
@@ -51,14 +47,11 @@ describe('Auth Flow API Integration', () => {
 
   describe('User Login', () => {
     let testUser: any;
+    let userData: any;
 
     beforeEach(async () => {
       // Create a test user for login tests
-      const userData = {
-        email: `test-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Test User',
-      };
+      userData = createTestUser();
 
       testUser = await apiClient.post('/auth/register', userData);
     });
@@ -66,7 +59,7 @@ describe('Auth Flow API Integration', () => {
     it('should login with valid credentials', async () => {
       const loginData = {
         email: testUser.email,
-        password: 'TestPassword123!',
+        password: userData.password,
       };
 
       const response = await apiClient.post('/auth/login', loginData);
@@ -89,10 +82,9 @@ describe('Auth Flow API Integration', () => {
     });
 
     it('should reject login with non-existent email', async () => {
-      const loginData = {
+      const loginData = createTestUser({
         email: 'nonexistent@example.com',
-        password: 'TestPassword123!',
-      };
+      });
 
       await expect(
         apiClient.post('/auth/login', loginData)
@@ -106,17 +98,13 @@ describe('Auth Flow API Integration', () => {
 
     beforeEach(async () => {
       // Create and login test user
-      const userData = {
-        email: `test-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Test User',
-      };
+      const userData = createTestUser();
 
       testUser = await apiClient.post('/auth/register', userData);
       
       const loginResponse = await apiClient.post('/auth/login', {
         email: testUser.email,
-        password: 'TestPassword123!',
+        password: userData.password,
       });
       
       authToken = loginResponse.token;
@@ -154,11 +142,7 @@ describe('Auth Flow API Integration', () => {
     let testUser: any;
 
     beforeEach(async () => {
-      const userData = {
-        email: `test-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Test User',
-      };
+      const userData = createTestUser();
 
       testUser = await apiClient.post('/auth/register', userData);
     });
