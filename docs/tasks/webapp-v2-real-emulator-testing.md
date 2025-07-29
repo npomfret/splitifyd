@@ -332,54 +332,115 @@ const expenseData = createTestExpense({
 - Uses `--reporter=verbose` for detailed output during CI/debugging
 - Allows focused testing of API layer without running all test suites
 
-### Commit 17: Create browser integration test structure
-**Goal**: Set up Playwright within Vitest
+### ❌ COMMITS 17-23: Browser Integration Tests - **FAILED AND REVERTED**
 
-#### Files
-- Create `webapp-v2/src/__tests__/browser-integration/`
-- Create `webapp-v2/src/__tests__/browser-integration/helpers/`
-- Create `webapp-v2/src/__tests__/browser-integration/helpers/browser-test-utils.ts`
+#### **CRITICAL FAILURES - ALL REVERTED**
 
-### Commit 18: Add console error checker for browser tests
-**Goal**: Utility to fail tests on console errors
+**What Was Attempted**: Browser integration tests using Playwright within Vitest framework
+- Created `BrowserTestUtils` class for Chromium automation
+- Built `ConsoleErrorChecker` for JavaScript error detection
+- Implemented auth UI flow, dashboard, group interactions, and expense form tests
+- Added npm script `test:browser` for running browser tests
 
-#### Files
-- Create `webapp-v2/src/__tests__/browser-integration/helpers/ConsoleErrorChecker.ts`
+#### **Why It Failed**
 
-### Commit 19: Add auth UI flow browser test
-**Goal**: Test login/register UI with real backend
+**1. Fundamental Architecture Error**
+- Mixed Playwright (browser automation) with Vitest (unit test framework)
+- We already have Playwright e2e tests - this created confusion and duplication
+- No clear benefit over existing e2e infrastructure
 
-#### Files
-- Create `webapp-v2/src/__tests__/browser-integration/auth-ui-flow.test.ts`
+**2. Premature Implementation**
+- Tests assumed UI elements (`data-testid` attributes) that don't exist yet
+- Hard-coded selectors for features not yet implemented
+- Dashboard, group forms, expense forms may not have the expected structure
 
-### Commit 20: Add dashboard display browser test
-**Goal**: Test dashboard renders with real data
+**3. Broken Test Design**
+- All tests fail when emulator isn't running (connection refused to localhost:6002)
+- No graceful handling of missing emulator
+- Tests are integration tests disguised as unit tests
 
-#### Files
-- Create `webapp-v2/src/__tests__/browser-integration/dashboard-display.test.ts`
+**4. Pattern Violations**
+- Created new test patterns instead of using existing ones
+- Ignored established e2e test infrastructure
+- Added complexity without clear benefit
 
-### Commit 21: Add group interactions browser test
-**Goal**: Test creating/joining groups in UI
+#### **Specific Technical Issues**
 
-#### Files
-- Create `webapp-v2/src/__tests__/browser-integration/group-interactions.test.ts`
-
-### Commit 22: Add expense form browser test
-**Goal**: Test expense creation UI
-
-#### Files
-- Create `webapp-v2/src/__tests__/browser-integration/expense-form.test.ts`
-
-### Commit 23: Update package.json with browser test script
-**Goal**: Add npm script for browser integration tests
-
-#### Files
-- Update `webapp-v2/package.json`
-
-#### Add script
-```json
-"test:browser": "vitest src/__tests__/browser-integration/ --runInBand"
+**Emulator Dependency**:
 ```
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:6002/v2/register
+```
+- All browser tests fail when emulator not running
+- No fallback or clear error messaging
+- Tests should either mock or provide better error handling
+
+**Non-existent UI Elements**:
+```typescript
+await page.fill('[data-testid="email-input"]', testUser.email);
+await page.fill('[data-testid="password-input"]', testUser.password);
+await page.click('[data-testid="register-button"]');
+```
+- Assumes specific `data-testid` attributes exist in UI
+- UI may not have these elements or may use different patterns
+- Tests written before UI implementation
+
+**Architecture Confusion**:
+- Playwright + Vitest = unnecessary complexity
+- We already have `webapp-v2/e2e/` with Playwright tests
+- Browser tests belong in e2e, not in src/__tests__
+
+#### **Key Lessons Learned**
+
+**❌ Don't Create Browser Tests Before UI Exists**
+- UI elements must exist before writing browser tests
+- Check actual HTML structure before assuming data-testid patterns
+- Start with simple smoke tests, not complex form interactions
+
+**❌ Don't Mix Testing Frameworks**
+- Use Playwright for browser tests (e2e directory)
+- Use Vitest for unit/integration tests (src/__tests__ directory)
+- Don't try to combine them - each has its purpose
+
+**❌ Don't Test Non-Existent Features**
+- Verify features exist before writing tests
+- Complex UI flows (auth, dashboard, groups) may not be implemented yet
+- Start with API tests, then add UI tests after UI is built
+
+**❌ Handle Emulator Dependencies Properly**
+- Integration tests requiring emulator should fail gracefully
+- Provide clear error messages when emulator isn't running
+- Consider mocking for tests that don't need real backend
+
+#### **What Should Have Been Done Instead**
+
+**1. Fix Existing E2E Tests First**
+- Update `webapp-v2/e2e/` tests to work with emulator
+- Fix navigation, pricing, seo tests to use real emulator
+- Keep browser tests in e2e directory where they belong
+
+**2. Verify UI Exists Before Testing**
+- Check what pages/forms actually exist in v2 app
+- Inspect actual HTML to see what selectors are available
+- Start with basic "page loads" tests before complex interactions
+
+**3. Focus on API Integration Tests**
+- API tests provide more value and are easier to maintain
+- Can run without browser overhead
+- Test business logic directly
+
+**4. Simple Browser Tests Only**
+- Basic navigation and page load tests
+- Console error detection on key pages
+- Leave complex UI testing until UI is stable
+
+#### **Next Steps for Browser Testing**
+
+1. **Survey existing v2 UI** - See what pages/forms actually exist
+2. **Fix existing e2e tests** - Get navigation.e2e.test.ts working with emulator
+3. **Add simple browser smoke tests** - Just verify pages load without errors
+4. **Wait for UI implementation** - Don't test complex forms that don't exist yet
+
+**Status**: All browser integration test code has been reverted. API integration tests remain and should be prioritized.
 
 ### Commit 24: Move MCP test utilities
 **Goal**: Copy MCP utilities into main test infrastructure
