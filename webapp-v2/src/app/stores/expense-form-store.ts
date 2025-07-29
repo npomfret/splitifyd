@@ -33,6 +33,9 @@ export interface ExpenseFormStore {
   clearError(): void;
   reset(): void;
   hasUnsavedChanges(): boolean;
+  saveDraft(groupId: string): void;
+  loadDraft(groupId: string): boolean;
+  clearDraft(groupId: string): void;
 }
 
 // Type for form data fields
@@ -70,18 +73,69 @@ const savingSignal = signal<boolean>(false);
 const errorSignal = signal<string | null>(null);
 const validationErrorsSignal = signal<Record<string, string>>({});
 
-// Common expense categories
+// Common expense categories with icons
 export const EXPENSE_CATEGORIES = [
-  'General',
-  'Food & Dining',
-  'Transportation',
-  'Entertainment',
-  'Shopping',
-  'Bills & Utilities',
-  'Travel',
-  'Healthcare',
-  'Other'
+  { name: 'General', icon: '📄' },
+  { name: 'Food & Dining', icon: '🍽️' },
+  { name: 'Transportation', icon: '🚗' },  
+  { name: 'Entertainment', icon: '🎬' },
+  { name: 'Shopping', icon: '🛍️' },
+  { name: 'Bills & Utilities', icon: '⚡' },
+  { name: 'Travel', icon: '✈️' },
+  { name: 'Healthcare', icon: '🏥' },
+  { name: 'Other', icon: '❓' }
 ];
+
+
+// Recent categories management
+const RECENT_CATEGORIES_KEY = 'recent-expense-categories';
+const MAX_RECENT_CATEGORIES = 3;
+
+function getRecentCategories(): string[] {
+  try {
+    const recent = localStorage.getItem(RECENT_CATEGORIES_KEY);
+    return recent ? JSON.parse(recent) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addRecentCategory(category: string): void {
+  try {
+    const recent = getRecentCategories();
+    const filtered = recent.filter(cat => cat !== category);
+    const updated = [category, ...filtered].slice(0, MAX_RECENT_CATEGORIES);
+    localStorage.setItem(RECENT_CATEGORIES_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+// Recent amounts management
+const RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
+const MAX_RECENT_AMOUNTS = 5;
+
+function getRecentAmounts(): number[] {
+  try {
+    const recent = localStorage.getItem(RECENT_AMOUNTS_KEY);
+    return recent ? JSON.parse(recent) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addRecentAmount(amount: number): void {
+  try {
+    const recent = getRecentAmounts();
+    const filtered = recent.filter(amt => amt !== amount);
+    const updated = [amount, ...filtered].slice(0, MAX_RECENT_AMOUNTS);
+    localStorage.setItem(RECENT_AMOUNTS_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+export { getRecentCategories, getRecentAmounts };
 
 class ExpenseFormStoreImpl implements ExpenseFormStore {
   // State getters
@@ -434,6 +488,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       const expense = await apiClient.createExpense(request);
       
+      // Track recent category and amount
+      addRecentCategory(categorySignal.value);
+      addRecentAmount(amountSignal.value);
+      
       // Refresh group data to show the new expense immediately
       try {
         await Promise.all([
@@ -445,7 +503,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         console.warn('Failed to refresh data after creating expense:', refreshError);
       }
       
-      // Reset form after successful save
+      // Clear draft and reset form after successful save
+      this.clearDraft(groupId);
       this.reset();
       
       return expense;
@@ -486,6 +545,72 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       participantsSignal.value.length > 0 ||
       splitsSignal.value.length > 0
     );
+  }
+
+  saveDraft(groupId: string): void {
+    try {
+      const draftKey = `expense-draft-${groupId}`;
+      const draftData = {
+        description: descriptionSignal.value,
+        amount: amountSignal.value,
+        date: dateSignal.value,
+        paidBy: paidBySignal.value,
+        category: categorySignal.value,
+        splitType: splitTypeSignal.value,
+        participants: participantsSignal.value,
+        splits: splitsSignal.value,
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+    } catch (error) {
+      // Silently ignore localStorage errors (privacy mode, storage full, etc.)
+      console.warn('Failed to save expense draft:', error);
+    }
+  }
+
+  loadDraft(groupId: string): boolean {
+    try {
+      const draftKey = `expense-draft-${groupId}`;
+      const draftJson = localStorage.getItem(draftKey);
+      
+      if (!draftJson) {
+        return false;
+      }
+      
+      const draftData = JSON.parse(draftJson);
+      
+      // Check if draft is not too old (24 hours)
+      const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      if (Date.now() - draftData.timestamp > maxAge) {
+        this.clearDraft(groupId);
+        return false;
+      }
+      
+      // Restore form data
+      descriptionSignal.value = draftData.description || '';
+      amountSignal.value = draftData.amount || 0;
+      dateSignal.value = draftData.date || getTodayDate();
+      paidBySignal.value = draftData.paidBy || '';
+      categorySignal.value = draftData.category || 'General';
+      splitTypeSignal.value = draftData.splitType || 'equal';
+      participantsSignal.value = draftData.participants || [];
+      splitsSignal.value = draftData.splits || [];
+      
+      return true;
+    } catch (error) {
+      console.warn('Failed to load expense draft:', error);
+      return false;
+    }
+  }
+
+  clearDraft(groupId: string): void {
+    try {
+      const draftKey = `expense-draft-${groupId}`;
+      localStorage.removeItem(draftKey);
+    } catch (error) {
+      console.warn('Failed to clear expense draft:', error);
+    }
   }
 
   private getErrorMessage(error: unknown): string {

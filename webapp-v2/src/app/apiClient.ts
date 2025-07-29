@@ -283,12 +283,6 @@ export class ApiClient {
     });
   }
 
-  async generateShareLink(groupId: string): Promise<{ shareableUrl: string; linkId: string }> {
-    return this.request('/groups/share', {
-      method: 'POST',
-      body: { groupId }
-    });
-  }
 
   async joinGroupByLink(linkId: string): Promise<Group> {
     return this.request('/groups/join', {
