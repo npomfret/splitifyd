@@ -53,10 +53,24 @@ export function Globe() {
           color: 0xffffff,
           wireframe: true,
           transparent: true,
-          opacity: 0.2
+          opacity: 0.5
         });
         const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
         globeGroup.add(sphere);
+
+        // Continent Outlines
+        const textureLoader = new THREE.TextureLoader();
+        const continentTexture = textureLoader.load('/v2/images/world-map-outline.svg');
+
+        const continentGeometry = new THREE.SphereGeometry(sphereSize + 0.05, 64, 64); // Slightly larger sphere
+        const continentMaterial = new THREE.MeshBasicMaterial({
+          map: continentTexture,
+          transparent: true,
+          opacity: 1.0,
+          wireframe: false
+        });
+        const continents = new THREE.Mesh(continentGeometry, continentMaterial);
+        globeGroup.add(continents);
 
         // Add some visual interest with particles
         const particlesGeometry = new THREE.BufferGeometry();
