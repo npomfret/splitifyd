@@ -253,6 +253,56 @@ describe('Public Endpoints Tests', () => {
 
   });
 
+  describe('Cache Control Headers', () => {
+    test('should have strict no-cache headers for API endpoints', async () => {
+      const response = await fetch(`${driver.getBaseUrl()}/health`);
+      
+      expect(response.status).toBe(200);
+      
+      // Should have strict no-cache headers
+      const cacheControl = response.headers.get('cache-control');
+      expect(cacheControl).toContain('no-store');
+      expect(cacheControl).toContain('no-cache');
+      expect(cacheControl).toContain('must-revalidate');
+      expect(response.headers.get('pragma')).toBe('no-cache');
+      expect(response.headers.get('expires')).toBe('0');
+      expect(response.headers.get('surrogate-control')).toBe('no-store');
+      
+      // Should NOT have ETags (disabled globally)
+      expect(response.headers.get('etag')).toBeNull();
+    });
+
+    test('should prevent 304 Not Modified responses', async () => {
+      // Make the same request twice to ensure no 304 responses
+      const url = `${driver.getBaseUrl()}/health`;
+      
+      const response1 = await fetch(url);
+      const response2 = await fetch(url);
+      
+      // Neither response should be 304 Not Modified
+      expect(response1.status).not.toBe(304);
+      expect(response2.status).not.toBe(304);
+      
+      // Both should have the same strict cache headers
+      expect(response1.headers.get('cache-control')).toContain('no-store');
+      expect(response2.headers.get('cache-control')).toContain('no-store');
+    });
+
+    test('should ignore If-None-Match headers and not return 304', async () => {
+      // Simulate browser sending If-None-Match header (which would trigger 304 with ETags)
+      const response = await fetch(`${driver.getBaseUrl()}/health`, {
+        headers: {
+          'If-None-Match': 'W/"some-etag-value"'
+        }
+      });
+      
+      // Should not return 304 because ETags are disabled and cache headers prevent it
+      expect(response.status).not.toBe(304);
+      expect(response.headers.get('cache-control')).toContain('no-store');
+      expect(response.headers.get('etag')).toBeNull();
+    });
+  });
+
   describe('Error Handling', () => {
     test('should return 404 for non-existent endpoints', async () => {
       const response = await fetch(`${driver.getBaseUrl()}/non-existent-endpoint`);
