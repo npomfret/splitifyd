@@ -99,11 +99,26 @@ Tools like esbuild or rollup can handle module resolution without requiring `.js
 - [x] Ensure all tests pass with current setup
 - [x] Document current pain points
 
-### Step 1: Evaluate Need (Commit in isolation)
-- [ ] Audit dependencies for ESM-only packages
-- [ ] Measure current bundle sizes
+### Step 1: Evaluate Need (Commit in isolation) ✅
+- [x] Audit dependencies for ESM-only packages
+  - **Result**: No ESM-only dependencies found
+  - All packages support CommonJS, even those with `"type": "module"` (zod, uuid, tsx)
+- [x] Measure current bundle sizes
+  - **Total lib directory**: 596K
+  - **JavaScript files**: 191.8 KB across 52 files
+  - **Average file size**: ~3.7 KB per file
 - [ ] Team discussion on standardization needs
 - [ ] Document decision with rationale
+
+#### Dependency Analysis Results (2025-07-29)
+
+All current dependencies support CommonJS:
+- **CommonJS by default**: cors, dotenv, express, firebase-admin, firebase-functions, joi, xss, typescript
+- **Dual support (ESM + CJS)**: zod, uuid, tsx
+  - These packages use the `exports` field to provide both ESM and CommonJS entry points
+  - Example: `zod` provides both `import: './index.js'` and `require: './index.cjs'`
+
+**Conclusion**: No immediate pressure from dependencies to migrate to ES modules.
 
 ### Step 2: Choose Strategy (Commit in isolation)
 If proceeding:
