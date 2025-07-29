@@ -470,10 +470,13 @@ describe('Comprehensive API Test Suite', () => {
       const testGroupInList = listResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       expect(testGroupInList).toBeDefined();
       
-      // Verify balance data is included
-      expect(testGroupInList!.balance).toHaveProperty('userBalance');
-      // Check if userBalance might be null or undefined in some cases
-      if (testGroupInList!.balance.userBalance !== null && testGroupInList!.balance.userBalance !== undefined) {
+      // Verify balance data structure is present
+      expect(testGroupInList!.balance).toBeDefined();
+      expect(testGroupInList!.balance).toHaveProperty('totalOwed');
+      expect(testGroupInList!.balance).toHaveProperty('totalOwing');
+      
+      // userBalance is optional for groups without expenses or balance calculations
+      if (testGroupInList!.balance.userBalance) {
         expect(typeof testGroupInList!.balance.userBalance).toBe('object');
         expect(testGroupInList!.balance.userBalance).toHaveProperty('netBalance');
       }

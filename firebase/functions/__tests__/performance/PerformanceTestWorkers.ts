@@ -161,9 +161,13 @@ export class PerformanceTestWorkers {
         await this.driver.getGroupExpenses(group.id, user1.token, 100);
         const retrievalTime = Date.now() - retrievalStart;
 
-        // Test balance calculation performance
+        // Test balance calculation performance - wait for balance to be calculated
         const balanceStart = Date.now();
-        await this.driver.getGroupBalances(group.id, user1.token);
+        await this.driver.pollGroupBalancesUntil(
+            group.id, 
+            user1.token, 
+            (balance) => balance && Object.keys(balance.userBalances || {}).length > 0
+        );
         const balanceTime = Date.now() - balanceStart;
 
         return { creationTime, retrievalTime, balanceTime };
@@ -226,9 +230,13 @@ export class PerformanceTestWorkers {
             }
         }
 
-        // Measure balance calculation performance
+        // Measure balance calculation performance - wait for balance to be calculated
         const startTime = Date.now();
-        await this.driver.getGroupBalances(group.id, users[0].token);
+        await this.driver.pollGroupBalancesUntil(
+            group.id, 
+            users[0].token, 
+            (balance) => balance && Object.keys(balance.userBalances || {}).length > 0
+        );
         const balanceCalculationTime = Date.now() - startTime;
 
         return { totalExpenses, balanceCalculationTime };
@@ -260,8 +268,12 @@ export class PerformanceTestWorkers {
             // Get group expenses
             await this.driver.getGroupExpenses(group.id, user.token);
             
-            // Get balances
-            await this.driver.getGroupBalances(group.id, user.token);
+            // Get balances - poll until available
+            await this.driver.pollGroupBalancesUntil(
+                group.id, 
+                user.token, 
+                (balance) => balance !== null && balance !== undefined
+            );
             
             // Update expense
             await this.driver.updateExpense(expense.id, {
@@ -321,9 +333,13 @@ export class PerformanceTestWorkers {
         // Test performance of operations for a user with many groups
         const startTime = Date.now();
         
-        // Get all groups for the user (via balances in each group)
-        const balancePromises = groupIds.map(groupId => 
-            this.driver.getGroupBalances(groupId, busyUser.token)
+        // Get all groups for the user (via balances in each group) - poll until available
+        const balancePromises = groupIds.map((groupId) => 
+            this.driver.pollGroupBalancesUntil(
+                groupId, 
+                busyUser.token, 
+                (balance) => balance !== null && balance !== undefined
+            )
         );
         await Promise.all(balancePromises);
         
