@@ -116,73 +116,186 @@ export function setupConsoleErrorListener(page: Page): string[] {
 - Focus on ensuring pages load without errors
 - Detailed testing will be for dynamic features (auth, groups, expenses)
 
-### Commit 9: Create API integration test structure
+### Commit 9: Create API integration test structure ✅
 **Goal**: Set up directory structure for API tests
 
 #### Files
-- Create `webapp-v2/src/__tests__/api-integration/`
-- Create `webapp-v2/src/__tests__/api-integration/utils/`
-- Create `webapp-v2/src/__tests__/api-integration/utils/http-client.ts`
-- Create `webapp-v2/src/__tests__/api-integration/utils/emulator-config.ts`
+- Create `webapp-v2/src/__tests__/api-integration/` ✅
+- Create `webapp-v2/src/__tests__/api-integration/utils/` ✅
+- Create `webapp-v2/src/__tests__/api-integration/utils/http-client.ts` ✅
+- Create `webapp-v2/src/__tests__/api-integration/utils/emulator-config.ts` ✅
+- Create `webapp-v2/src/__tests__/api-integration/utils/index.ts` (barrel export) ✅
 
-### Commit 10: Add HTTP client for API tests
+**Implementation Notes**:
+- Reused `findProjectRoot` from e2e helpers to avoid code duplication
+- Created emulator config that dynamically reads firebase.json
+- Set up proper API base URL with Firebase project path
+
+### Commit 10: Add HTTP client for API tests ✅
 **Goal**: Simple fetch wrapper for API integration tests
 
 #### Files
-- Update `webapp-v2/src/__tests__/api-integration/utils/http-client.ts`
+- Update `webapp-v2/src/__tests__/api-integration/utils/http-client.ts` ✅
 
 #### Implementation
 ```typescript
 export class ApiClient {
-  constructor(private baseUrl: string) {}
-  
-  async request(path: string, options: RequestInit = {}) {
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    return response.json();
+  private baseUrl: string;
+
+  constructor(baseUrl?: string) {
+    this.baseUrl = baseUrl || EMULATOR_CONFIG.API_BASE_URL;
   }
+  
+  async request<T = any>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+    const { timeout = 10000, ...fetchOptions } = options;
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(`${this.baseUrl}${path}`, {
+        ...fetchOptions,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...fetchOptions.headers,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error ${response.status}: ${errorText}`);
+      }
+
+      // Handle both JSON and text responses
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+      return await response.text() as unknown as T;
+    } catch (error) {
+      // Handle timeout errors
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timeout after ${timeout}ms`);
+      }
+      throw error;
+    }
+  }
+
+  // GET, POST, PUT, DELETE convenience methods
 }
 ```
 
-### Commit 11: Add auth flow API integration test
+**Features**:
+- AbortController for request timeouts
+- Proper error handling with status codes
+- Support for both JSON and text responses
+- Type-safe generic responses
+
+### Commit 11: Add auth flow API integration test ✅
 **Goal**: Test login/register via real API calls
 
 #### Files
-- Create `webapp-v2/src/__tests__/api-integration/auth-flows.test.ts`
+- Create `webapp-v2/src/__tests__/api-integration/auth-flows.test.ts` ✅
 
-### Commit 12: Add groups CRUD API integration test
+**Test Coverage**:
+- User registration (success and validation errors)
+- User login (success and credential errors)
+- Token validation (valid/invalid/missing tokens)
+- Password reset flow (existing and non-existent emails)
+
+**Key Features**:
+- Dynamic email generation to avoid conflicts
+- Comprehensive error scenario testing
+- Token-based authentication flow validation
+
+### Commit 12: Add groups CRUD API integration test ✅
 **Goal**: Test group operations via real API calls
 
 #### Files
-- Create `webapp-v2/src/__tests__/api-integration/groups-crud.test.ts`
+- Create `webapp-v2/src/__tests__/api-integration/groups-crud.test.ts` ✅
 
-### Commit 13: Add expenses CRUD API integration test
+**Test Coverage**:
+- Group creation, retrieval, update, deletion
+- Member management (add/remove members)
+- Authorization testing (non-members can't access)
+- Error handling (404s, validation errors)
+
+**Key Features**:
+- Full CRUD operations testing
+- Multi-user authorization scenarios
+- Proper test isolation with beforeEach hooks
+
+### Commit 13: Add expenses CRUD API integration test ✅
 **Goal**: Test expense operations via real API calls
 
 #### Files
-- Create `webapp-v2/src/__tests__/api-integration/expenses-crud.test.ts`
+- Create `webapp-v2/src/__tests__/api-integration/expenses-crud.test.ts` ✅
 
-### Commit 14: Add polling helpers for async operations
-**Goal**: Helper functions for waiting on async operations
+**Test Coverage**:
+- Expense creation (success, validation, authorization)
+- Expense retrieval (by ID, by group, with filters)
+- Expense updates (description, amount, split distribution)
+- Expense deletion with authorization checks
+- Advanced features: date filtering, category filtering
+- Balance calculations and statistics
+
+**Key Features**:
+- Comprehensive CRUD operations
+- Advanced filtering and search capabilities
+- Multi-user split testing
+- Financial calculations validation
+- Statistics and reporting endpoints
+
+### 🔄 ARCHITECTURAL DISCOVERY: Existing ApiDriver Pattern
+
+**Key Finding**: The codebase already contains a sophisticated `ApiDriver` class at `firebase/functions/__tests__/support/ApiDriver.ts` with:
+
+- **Generic polling method**: `pollUntil<T>()` with configurable timeout, interval, and matchers
+- **Type-safe endpoint polling**: Methods like `pollGroupBalancesUntil()`
+- **Common matchers**: Pre-built matchers for various conditions
+- **Comprehensive API utilities**: User creation, group/expense CRUD, authentication
+- **Battle-tested**: Used by existing `api-client.integration.test.ts`
+
+**Architectural Decision**: Instead of creating new utilities, we'll refactor our API integration tests to use the existing `ApiDriver` pattern for consistency and to avoid code duplication.
+
+### Commit 14: Refactor API tests to use existing ApiDriver pattern ✅
+**Goal**: Replace custom ApiClient with existing ApiDriver for consistency
 
 #### Files
-- Create `webapp-v2/src/__tests__/api-integration/utils/polling-helpers.ts`
+- Update `webapp-v2/src/__tests__/api-integration/auth-flows.test.ts` ✅
+- Update `webapp-v2/src/__tests__/api-integration/groups-crud.test.ts` ✅  
+- Update `webapp-v2/src/__tests__/api-integration/expenses-crud.test.ts` ✅
+- Remove `webapp-v2/src/__tests__/api-integration/utils/` directory ✅
 
-### Commit 15: Add test data cleanup utilities
-**Goal**: Clean up test data after tests
+#### Benefits of Using ApiDriver
+- **Proven async testing patterns**: Polling with proper timeout/retry logic
+- **Type safety**: Generic polling methods with proper TypeScript support
+- **Consistency**: Same patterns as existing integration tests
+- **Rich utilities**: User creation, authentication, comprehensive API methods
+- **No code duplication**: Reuses battle-tested infrastructure
+
+#### Implementation Notes
+```typescript
+// Before: Custom ApiClient
+const apiClient = new ApiClient();
+const response = await apiClient.post('/auth/register', userData);
+
+// After: Using ApiDriver with polling capabilities
+const apiDriver = new ApiDriver();
+const testUser = await apiDriver.createTestUser(userData);
+// Can now use sophisticated polling when needed:
+await apiDriver.pollGroupBalancesUntil(groupId, token, matcher, options);
+```
+
+### Commit 15: Add shared test data utilities
+**Goal**: Enhance ApiDriver with additional test data creation helpers if needed
 
 #### Files
-- Create `webapp-v2/src/__tests__/api-integration/utils/test-data-cleanup.ts`
+- Extend `firebase/functions/__tests__/support/ApiDriver.ts` (if needed)
+- Or create `webapp-v2/src/__tests__/shared/test-data-fixtures.ts`
+
+**Note**: May not be needed if ApiDriver already provides sufficient test data utilities.
 
 ### Commit 16: Update package.json with API test script
 **Goal**: Add npm script for API integration tests
