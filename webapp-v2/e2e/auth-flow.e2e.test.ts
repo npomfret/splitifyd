@@ -64,4 +64,116 @@ test.describe('Auth Flow E2E', () => {
     // No console errors
     expect(errors).toHaveLength(0);
   });
+
+  test('should disable submit button with empty form on login', async ({ page }) => {
+    const errors = setupConsoleErrorListener(page);
+    
+    await page.goto(`${V2_URL}/login`);
+    await waitForV2App(page);
+    
+    // Clear any pre-filled data
+    const emailInput = page.locator('input[type="email"]');
+    const passwordInput = page.locator('input[type="password"]');
+    await emailInput.clear();
+    await passwordInput.clear();
+    
+    // The Sign In button should be disabled when form is empty
+    const submitButton = page.getByRole('button', { name: 'Sign In' });
+    await expect(submitButton).toBeDisabled();
+    
+    // Should still be on login page
+    await expect(page).toHaveURL(/\/login/);
+    
+    // No console errors
+    expect(errors).toHaveLength(0);
+  });
+
+  test('should handle empty form submission on register', async ({ page }) => {
+    const errors = setupConsoleErrorListener(page);
+    
+    await page.goto(`${V2_URL}/register`);
+    await waitForV2App(page);
+    
+    // The Create Account button should be disabled when form is empty
+    const submitButton = page.getByRole('button', { name: 'Create Account' });
+    await expect(submitButton).toBeDisabled();
+    
+    // Should still be on register page
+    await expect(page).toHaveURL(/\/register/);
+    
+    // Form fields should still be visible
+    await expect(page.getByText('Full Name *')).toBeVisible();
+    await expect(page.getByText('Email address *')).toBeVisible();
+    
+    // No console errors
+    expect(errors).toHaveLength(0);
+  });
+
+  test('should allow typing in login form fields', async ({ page }) => {
+    const errors = setupConsoleErrorListener(page);
+    
+    await page.goto(`${V2_URL}/login`);
+    await waitForV2App(page);
+    
+    // Find and fill email input
+    const emailInput = page.locator('input[type="email"]');
+    await emailInput.fill('test@example.com');
+    await expect(emailInput).toHaveValue('test@example.com');
+    
+    // Find and fill password input
+    const passwordInput = page.locator('input[type="password"]');
+    await passwordInput.fill('TestPassword123');
+    await expect(passwordInput).toHaveValue('TestPassword123');
+    
+    // No console errors
+    expect(errors).toHaveLength(0);
+  });
+
+  test('should allow typing in register form fields', async ({ page }) => {
+    const errors = setupConsoleErrorListener(page);
+    
+    await page.goto(`${V2_URL}/register`);
+    await waitForV2App(page);
+    
+    // Find and fill name input
+    const nameInput = page.locator('input[type="text"]').first();
+    await nameInput.fill('Test User');
+    await expect(nameInput).toHaveValue('Test User');
+    
+    // Find and fill email input
+    const emailInput = page.locator('input[type="email"]');
+    await emailInput.fill('test@example.com');
+    await expect(emailInput).toHaveValue('test@example.com');
+    
+    // Find and fill password inputs
+    const passwordInputs = page.locator('input[type="password"]');
+    await passwordInputs.first().fill('TestPassword123');
+    await expect(passwordInputs.first()).toHaveValue('TestPassword123');
+    
+    await passwordInputs.last().fill('TestPassword123');
+    await expect(passwordInputs.last()).toHaveValue('TestPassword123');
+    
+    // No console errors
+    expect(errors).toHaveLength(0);
+  });
+
+  test('should show forgot password link on login page', async ({ page }) => {
+    const errors = setupConsoleErrorListener(page);
+    
+    await page.goto(`${V2_URL}/login`);
+    await waitForV2App(page);
+    
+    // Check for forgot password link
+    const forgotPasswordLink = page.getByRole('link', { name: /forgot.*password/i });
+    await expect(forgotPasswordLink).toBeVisible();
+    
+    // Click it and verify navigation
+    await forgotPasswordLink.click();
+    
+    // Should navigate away from login page
+    await expect(page).not.toHaveURL(/\/login$/);
+    
+    // No console errors
+    expect(errors).toHaveLength(0);
+  });
 });
