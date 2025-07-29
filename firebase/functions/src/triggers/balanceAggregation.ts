@@ -9,6 +9,7 @@ export const onExpenseWriteV6 = onDocumentWritten({
     region: 'us-central1',
     memory: '512MiB',
     maxInstances: 5,
+    timeoutSeconds: 20,
 }, async (event) => {
     const expenseId = event.params.expenseId;
     const eventId = event.id;

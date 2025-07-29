@@ -353,7 +353,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 export const api = onRequest({
   invoker: 'public', // Allow unauthenticated access for CORS and public endpoints
   maxInstances: 10,
-  timeoutSeconds: 10,
+  timeoutSeconds: 20,
   region: 'us-central1',
   memory: '512MiB' // Optimized for API workload with authentication and database operations
 }, (req, res) => {
