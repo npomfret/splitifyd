@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorListener, setupMCPDebugOnFailure } from './helpers';
+
+// Enable MCP debugging for failed tests
+setupMCPDebugOnFailure();
 
 test.describe('Auth Flow E2E', () => {
   test('should navigate between login and register pages', async ({ page }) => {

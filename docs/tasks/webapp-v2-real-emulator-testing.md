@@ -516,14 +516,36 @@ await page.click('[data-testid="register-button"]');
 - Multiple "Sign Up" links require exact matching to avoid ambiguity
 - All 7 new tests pass with zero console errors
 
-#### Commit 19: Integrate MCP debugging capabilities
+#### Commit 19: Integrate MCP debugging capabilities ✅
 **Goal**: Enable Claude Code to run failed browser tests via MCP for debugging
 
-#### Tasks
-- Examine `mcp-browser-tests/` directory structure
-- Understand how MCP tests work
-- Create integration so failed tests can be re-run via MCP
-- Enable screenshots and console inspection when tests fail
+**Status**: COMPLETED - MCP debugging is now integrated with Playwright e2e tests
+
+**Implementation Details**:
+1. Created `webapp-v2/e2e/helpers/mcp-integration.ts` with:
+   - `setupMCPDebugOnFailure()` - Hook that logs MCP instructions when tests fail
+   - `generateMCPTestFile()` - Generates MCP test files for debugging
+   - `playwrightToMCPSteps()` - Converts Playwright actions to MCP instructions
+
+2. Created `webapp-v2/e2e/run-mcp-debug.ts` script:
+   - Command-line tool to generate MCP debug tests
+   - Can be run manually: `npx tsx e2e/run-mcp-debug.ts --test "test name" --url "http://..."`
+   - Generates instructions for Claude Code to execute
+
+3. Updated `auth-flow.e2e.test.ts` to use MCP debugging:
+   - Added `setupMCPDebugOnFailure()` call
+   - Failed tests now show MCP debug instructions
+
+4. Created comprehensive documentation:
+   - `webapp-v2/e2e/MCP-INTEGRATION.md` - Full guide on using MCP debugging
+   - Clear instructions for both automatic and manual debugging
+
+**Key Features**:
+- ✅ Failed tests automatically show MCP debug instructions
+- ✅ Manual debug script for investigating specific failures  
+- ✅ Integration with existing mcp-browser-tests structure
+- ✅ No parallel test systems - everything is integrated
+- ✅ Clear documentation for developers
 
 #### Commit 20: Add robust browser tests for existing UI
 **Goal**: Create comprehensive browser tests for UI elements that actually exist
