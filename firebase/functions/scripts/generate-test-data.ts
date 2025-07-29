@@ -9,6 +9,39 @@ import type { Group } from '../src/types/webapp-shared-types';
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
 
+// Retry logic with exponential backoff
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxAttempts = 3,
+  initialDelay = 1000
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      // Check if error is a transaction lock timeout
+      const errorMessage = error?.message || String(error);
+      const isTransactionTimeout = errorMessage.includes('Transaction lock timeout') ||
+                                  errorMessage.includes('transaction lock') ||
+                                  errorMessage.includes('ABORTED');
+      
+      if (attempt < maxAttempts && isTransactionTimeout) {
+        const delay = initialDelay * Math.pow(2, attempt - 1);
+        logger.warn(`Attempt ${attempt} failed with transaction timeout, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 interface TestUser {
   email: string;
   password: string;
@@ -21,18 +54,49 @@ interface TestExpense {
   category: string;
 }
 
+interface GroupWithInvite extends Group {
+  inviteLink: string;
+}
 
+interface TestDataConfig {
+  userCount: number;
+  groupCount: number;
+  regularExpensesPerUser: { min: number; max: number };
+  largeGroupExpenseCount: number;
+  mode: 'fast' | 'full';
+}
 
-const generateTestUsers = (): TestUser[] => {
-  const users: TestUser[] = [
-    // First user is always test1@test.com for consistency
-    { email: 'test1@test.com', password: 'rrRR44$$', displayName: 'Test User 1' }
-  ];
+// Configuration presets
+const TEST_CONFIGS: Record<string, TestDataConfig> = {
+  fast: {
+    userCount: 3,
+    groupCount: 5,
+    regularExpensesPerUser: { min: 1, max: 1 },
+    largeGroupExpenseCount: 10,
+    mode: 'fast'
+  },
+  full: {
+    userCount: 5,
+    groupCount: 10,
+    regularExpensesPerUser: { min: 1, max: 2 },
+    largeGroupExpenseCount: 50,
+    mode: 'full'
+  }
+};
+
+// Get configuration from environment or default to 'full'
+const getTestConfig = (): TestDataConfig => {
+  const mode = process.env.TEST_DATA_MODE as 'fast' | 'full' || 'full';
+  return TEST_CONFIGS[mode];
+};
+
+const generateTestUsers = (config: TestDataConfig): TestUser[] => {
+  const users: TestUser[] = [];
   
-  // Add remaining 4 users for 5 total
-  for (let i = 2; i <= 5; i++) {
+  // Generate users based on config
+  for (let i = 1; i <= config.userCount; i++) {
     users.push({
-      email: `user${i}@test.com`,
+      email: `test${i}@test.com`,
       password: 'rrRR44$$',
       displayName: `Test User ${i}`
     });
@@ -40,7 +104,7 @@ const generateTestUsers = (): TestUser[] => {
   return users;
 };
 
-const TEST_USERS: TestUser[] = generateTestUsers();
+// TEST_USERS will be generated based on config in generateTestData()
 
 const EXPENSE_CATEGORIES = ['food', 'transport', 'entertainment', 'accommodation', 'utilities', 'shopping', 'healthcare', 'other'];
 const EXPENSE_DESCRIPTIONS = [
@@ -108,9 +172,6 @@ const generateRandomExpense = (): TestExpense => {
   return { description, amount, category };
 };
 
-
-
-
 async function createTestUser(userInfo: TestUser): Promise<User> {
   try {
     return await driver.createTestUser(userInfo);
@@ -120,15 +181,133 @@ async function createTestUser(userInfo: TestUser): Promise<User> {
   }
 }
 
-async function createTestGroup(name: string, members: User[], createdBy: User): Promise<Group> {
+async function createGroupWithInvite(name: string, description: string, createdBy: User): Promise<GroupWithInvite> {
   try {
-    // Create group with all members
-    const group = await driver.createGroup(name, members, createdBy.token);
-    return group;
+    // Create group with just the creator initially (with retry)
+    const group = await retryWithBackoff(
+      () => driver.createGroup(name, [createdBy], createdBy.token),
+      3,
+      500
+    );
+    
+    // Generate shareable link (with retry)
+    const shareLink = await retryWithBackoff(
+      () => driver.generateShareLink(group.id, createdBy.token),
+      3,
+      500
+    );
+    
+    return {
+      ...group,
+      inviteLink: shareLink.linkId
+    } as GroupWithInvite;
   } catch (error) {
     logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
+}
+
+async function createGroups(createdBy: User, config: TestDataConfig): Promise<GroupWithInvite[]> {
+  const groups: GroupWithInvite[] = [];
+  
+  // Create special "Empty Group" with NO expenses
+  const emptyGroup = await createGroupWithInvite(
+    'Empty Group',
+    'This group has no expenses - testing empty state',
+    createdBy
+  );
+  groups.push(emptyGroup);
+  logger.info(`Created special empty group: ${emptyGroup.name} with invite link: ${emptyGroup.inviteLink}`);
+  
+  // Create special "Settled Group" for balanced expenses where no one owes
+  const settledGroup = await createGroupWithInvite(
+    'Settled Group',
+    'All expenses are balanced - no one owes anything',
+    createdBy
+  );
+  groups.push(settledGroup);
+  logger.info(`Created special settled group: ${settledGroup.name} with invite link: ${settledGroup.inviteLink}`);
+  
+  // Create special "Large Group" with many users and expenses
+  const largeGroup = await createGroupWithInvite(
+    'Large Group',
+    'Many users and expenses for testing pagination and performance',
+    createdBy
+  );
+  groups.push(largeGroup);
+  logger.info(`Created special large group: ${largeGroup.name} with invite link: ${largeGroup.inviteLink}`);
+  
+  // Create regular groups with various names
+  const regularGroupCount = config.groupCount - 3;
+  const groupNames = [
+    'Weekend Trip', 'Roommates', 'Lunch Crew', 'Game Night',
+    'Beach House', 'Ski Trip', 'Birthday Party', 'Road Trip',
+    'Concert Tickets', 'Dinner Club', 'Movie Night', 'Camping Trip'
+  ];
+  
+  for (let i = 0; i < regularGroupCount; i++) {
+    const groupName = groupNames[i % groupNames.length] + (i >= groupNames.length ? ` ${Math.floor(i / groupNames.length) + 1}` : '');
+    const group = await createGroupWithInvite(
+      groupName,
+      'Regular group with some expenses',
+      createdBy
+    );
+    groups.push(group);
+    logger.info(`Created group: ${group.name} with invite link: ${group.inviteLink}`);
+  }
+  
+  return groups;
+}
+
+async function joinGroupsRandomly(users: User[], groups: GroupWithInvite[]): Promise<void> {
+  // Each user (except test1 who created all groups) joins groups
+  const otherUsers = users.slice(1); // Skip test1@test.com
+  
+  logger.info(`Having ${otherUsers.length} users join groups`);
+  
+  // Process all users in parallel for better performance
+  await Promise.all(otherUsers.map(async (user) => {
+    let joinedCount = 0;
+    const joinPromises = [];
+    
+    for (const group of groups) {
+      let shouldJoin = false;
+      
+      // Special handling for different group types
+      if (group.name === 'Large Group') {
+        // Everyone joins the Large Group
+        shouldJoin = true;
+      } else if (group.name === 'Empty Group') {
+        // Only 50% join the Empty Group  
+        shouldJoin = Math.random() < 0.5;
+      } else if (group.name === 'Settled Group') {
+        // Everyone joins the Settled Group for balanced expenses
+        shouldJoin = true;
+      } else {
+        // 60% chance to join regular groups
+        shouldJoin = Math.random() < 0.6;
+      }
+      
+      if (shouldJoin) {
+        joinPromises.push(
+          retryWithBackoff(
+            () => driver.joinGroupViaShareLink(group.inviteLink, user.token),
+            3,
+            500
+          )
+            .then(() => joinedCount++)
+            .catch((joinError) => {
+              logger.warn(`Failed to add ${user.email} to group ${group.name}`, { 
+                error: joinError instanceof Error ? joinError : new Error(String(joinError))
+              });
+            })
+        );
+      }
+    }
+    
+    await Promise.all(joinPromises);
+    logger.info(`${user.email} joined ${joinedCount} out of ${groups.length} groups`);
+  }));
 }
 
 async function createTestExpense(
@@ -152,14 +331,193 @@ async function createTestExpense(
       .withPaidBy(createdBy.uid)
       .build();
 
-    // Create expense via ApiDriver
-    const response = await driver.createExpense(expenseData, createdBy.token);
+    // Create expense via ApiDriver with retry logic
+    const response = await retryWithBackoff(
+      () => driver.createExpense(expenseData, createdBy.token),
+      3,  // max attempts
+      500 // initial delay 500ms
+    );
 
     return response;
   } catch (error) {
     logger.error(`✗ Failed to create expense ${expense.description}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
   }
+}
+
+async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
+  // Skip the special groups - only process regular groups
+  const regularGroups = groups.filter(g => 
+    g.name !== 'Empty Group' && 
+    g.name !== 'Settled Group' && 
+    g.name !== 'Large Group'
+  );
+  
+  logger.info(`Creating random expenses for ${regularGroups.length} regular groups`);
+  
+  // Process groups in batches of 3 to reduce contention
+  const BATCH_SIZE = 3;
+  
+  for (let i = 0; i < regularGroups.length; i += BATCH_SIZE) {
+    const groupBatch = regularGroups.slice(i, i + BATCH_SIZE);
+    
+    await Promise.all(groupBatch.map(async (group) => {
+      // Get all members of this group
+      const groupMembers = users.filter(user => 
+        group.members?.some((member: any) => member.uid === user.uid)
+      );
+      
+      if (groupMembers.length === 0) return;
+      
+      const expensePromises = [];
+      
+      // Each user in the group creates expenses based on config
+      for (const user of groupMembers) {
+        const { min, max } = config.regularExpensesPerUser;
+        const expenseCount = Math.floor(Math.random() * (max - min + 1)) + min;
+        
+        for (let j = 0; j < expenseCount; j++) {
+          const expense = generateRandomExpense();
+          
+          // Random subset of group members participate (at least 2, including payer)
+          const minParticipants = 2;
+          const maxParticipants = Math.min(groupMembers.length, 5);
+          const participantCount = Math.floor(Math.random() * (maxParticipants - minParticipants + 1)) + minParticipants;
+          
+          const shuffled = [...groupMembers].sort(() => 0.5 - Math.random());
+          let participants = shuffled.slice(0, participantCount);
+          
+          // Ensure payer is always included
+          if (!participants.some(p => p.uid === user.uid)) {
+            participants[0] = user;
+          }
+          
+          expensePromises.push(
+            createTestExpense(group.id, expense, participants, user)
+              .catch(error => {
+                logger.error(`Failed to create expense in group ${group.name}`, {
+                  groupId: group.id,
+                  error: error instanceof Error ? error : new Error(String(error))
+                });
+                throw error;
+              })
+          );
+        }
+      }
+      
+      await Promise.all(expensePromises);
+      logger.info(`Created ${expensePromises.length} random expenses for group: ${group.name}`);
+    }));
+  }
+}
+
+async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], users: User[]): Promise<void> {
+  const settledGroup = groups.find(g => g.name === 'Settled Group');
+  if (!settledGroup) return;
+  
+  logger.info('Creating balanced expenses for "Settled Group" so no one owes anything');
+  
+  // Get all members of this group from the refreshed data
+  const groupMembers = users.filter(user => 
+    settledGroup.members?.some((member: any) => member.uid === user.uid)
+  );
+  
+  if (groupMembers.length < 2) return;
+  
+  // Create a perfectly balanced set of expenses where everyone pays and owes equally
+  // Example with 3 users (A, B, C):
+  // - A pays $60 for everyone (A owes $20, B owes $20, C owes $20)
+  // - B pays $60 for everyone (A owes $20, B owes $20, C owes $20)
+  // - C pays $60 for everyone (A owes $20, B owes $20, C owes $20)
+  // Result: Everyone paid $60 and owes $60 total, so net = $0
+  
+  const amountPerPerson = 20; // Each person's share per expense
+  const totalAmount = amountPerPerson * groupMembers.length;
+  
+  logger.info(`Creating balanced expenses for ${groupMembers.length} members in Settled Group`, {
+    groupId: settledGroup.id,
+    memberIds: groupMembers.map(m => m.uid),
+    memberNames: groupMembers.map(m => m.displayName)
+  });
+  
+  // Create one expense per member where they pay for everyone
+  let createdCount = 0;
+  const expensePromises = groupMembers.map(async (payer, index) => {
+    const expense: TestExpense = {
+      description: `Group dinner ${index + 1}`,
+      amount: totalAmount,
+      category: 'food'
+    };
+    
+    try {
+      await createTestExpense(settledGroup.id, expense, groupMembers, payer);
+      createdCount++;
+      logger.info(`Created balanced expense ${index + 1}/${groupMembers.length}`, {
+        groupId: settledGroup.id,
+        payer: payer.displayName,
+        amount: totalAmount
+      });
+    } catch (error) {
+      logger.error(`Failed to create balanced expense ${index + 1}`, {
+        groupId: settledGroup.id,
+        payer: payer.displayName,
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+      throw error;
+    }
+  });
+  
+  await Promise.all(expensePromises);
+  
+  logger.info(`Successfully created ${createdCount}/${groupMembers.length} balanced expenses for "Settled Group"`);
+}
+
+async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
+  const largeGroup = groups.find(g => g.name === 'Large Group');
+  if (!largeGroup) return;
+  
+  logger.info('Creating many expenses for "Large Group" to test pagination');
+  
+  // Get all members of this group from the refreshed data
+  const groupMembers = users.filter(user => 
+    largeGroup.members?.some((member: any) => member.uid === user.uid)
+  );
+  
+  if (groupMembers.length === 0) return;
+  
+  // Create expenses based on config to test pagination
+  const totalExpenses = config.largeGroupExpenseCount;
+  const BATCH_SIZE = 5;
+  
+  for (let i = 0; i < totalExpenses; i += BATCH_SIZE) {
+    const batchPromises = [];
+    
+    for (let j = 0; j < BATCH_SIZE && (i + j) < totalExpenses; j++) {
+      const expense = generateRandomExpense();
+      const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+      
+      // Random participants (2-5 people)
+      const participantCount = Math.floor(Math.random() * 4) + 2;
+      const shuffled = [...groupMembers].sort(() => 0.5 - Math.random());
+      let participants = shuffled.slice(0, Math.min(participantCount, groupMembers.length));
+      
+      // Ensure payer is included
+      if (!participants.some(p => p.uid === payer.uid)) {
+        participants[0] = payer;
+      }
+      
+      batchPromises.push(createTestExpense(largeGroup.id, expense, participants, payer));
+    }
+    
+    await Promise.all(batchPromises);
+    
+    // Small delay between batches
+    if (i + BATCH_SIZE < totalExpenses) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  logger.info(`Created ${totalExpenses} expenses for "Large Group"`);
 }
 
 async function waitForApiReady(): Promise<void> {
@@ -189,195 +547,98 @@ async function waitForApiReady(): Promise<void> {
   throw new Error('API functions failed to become ready within timeout');
 }
 
-function getRandomUsers(allUsers: User[], count: number): User[] {
-  const shuffled = [...allUsers].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
-
-function generateRandomGroupName(): string {
-  const adjectives = [
-    'Amazing', 'Awesome', 'Cool', 'Epic', 'Fun', 'Great', 'Happy', 'Super', 'Wild', 'Zen',
-    'Bold', 'Brave', 'Bright', 'Creative', 'Dynamic', 'Electric', 'Fierce', 'Golden', 'Infinite',
-    'Legendary', 'Magical', 'Noble', 'Radiant', 'Stellar', 'Thunder', 'Ultimate', 'Vibrant',
-    'Wicked', 'Zesty', 'Cosmic', 'Mystic', 'Phoenix', 'Quantum', 'Rapid', 'Sonic', 'Turbo'
-  ];
-  const nouns = [
-    'Adventures', 'Buddies', 'Crew', 'Friends', 'Gang', 'Group', 'Squad', 'Team', 'Travelers', 'Warriors',
-    'Alliance', 'Champions', 'Collective', 'Dynasty', 'Empire', 'Fellowship', 'Guild', 'Heroes',
-    'Legends', 'Mavericks', 'Ninjas', 'Pirates', 'Rebels', 'Rogues', 'Spartans', 'Titans',
-    'Vikings', 'Wizards', 'Explorers', 'Nomads', 'Pioneers', 'Wanderers', 'Crusaders', 'Defenders',
-    'Guardians', 'Knights', 'Rangers', 'Scouts', 'Hunters', 'Riders', 'Sailors', 'Pilots'
-  ];
-  
-  // Sometimes add a theme or location
-  const themes = [
-    '', '', '', '', '', // 50% chance of no theme (just adjective + noun)
-    'Tokyo', 'Paris', 'NYC', 'London', 'Berlin', 'Vegas', 'Beach', 'Mountain', 'City', 'Desert'
-  ];
-  
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const theme = themes[Math.floor(Math.random() * themes.length)];
-  
-  return theme ? `${theme} ${adjective} ${noun}` : `${adjective} ${noun}`;
-}
-
-async function createRandomGroupsForUser(user: User, allUsers: User[], groupCount: number): Promise<Group[]> {
-  const groups: Group[] = [];
-  
-  for (let i = 0; i < groupCount; i++) {
-    const groupSize = Math.min(Math.floor(Math.random() * 3) + 2, allUsers.length); // 2-4 users per group, max available
-    const otherUsers = allUsers.filter(u => u.uid !== user.uid);
-    const randomMembers = getRandomUsers(otherUsers, groupSize - 1);
-    const allMembers = [user, ...randomMembers];
-    
-    const groupName = generateRandomGroupName();
-    const group = await createTestGroup(groupName, allMembers, user);
-    groups.push(group);
-    
-  }
-  
-  return groups;
-}
-
-async function createRandomExpensesForGroup(group: Group, allUsers: User[], expenseCount: number): Promise<void> {
-  const groupMembers = allUsers.filter(user => 
-    group.members?.some((member: any) => member.uid === user.uid)
-  );
-  
-  // Create expenses in smaller batches to avoid transaction lock timeouts
-  const BATCH_SIZE = 5;
-  const expenses = [];
-  
-  for (let i = 0; i < expenseCount; i++) {
-    const expense = generateRandomExpense();
-    const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
-    
-    // More varied participant patterns to create uneven balances
-    const participantPatterns = [
-      // Sometimes just 2 people (creates more imbalance)
-      () => 2,
-      // Sometimes just payer + 1 other (creates debt)
-      () => Math.min(2, groupMembers.length),
-      // Sometimes most of the group
-      () => Math.max(2, groupMembers.length - 1),
-      // Sometimes everyone
-      () => groupMembers.length,
-      // Random subset
-      () => Math.floor(Math.random() * (groupMembers.length - 1)) + 2
-    ];
-    
-    const participantCount = participantPatterns[Math.floor(Math.random() * participantPatterns.length)]();
-    const participants = getRandomUsers(groupMembers, Math.min(participantCount, groupMembers.length));
-    
-    // Ensure payer is always a participant
-    if (!participants.some(p => p.uid === payer.uid)) {
-      participants[0] = payer;
-    }
-    
-    // Ensure we have at least one participant
-    if (participants.length === 0) {
-      participants.push(groupMembers[Math.floor(Math.random() * groupMembers.length)]);
-    }
-    
-    expenses.push({
-      expense,
-      participants,
-      payer
-    });
-  }
-  
-  // Execute expenses in batches
-  for (let i = 0; i < expenses.length; i += BATCH_SIZE) {
-    const batch = expenses.slice(i, i + BATCH_SIZE);
-    const batchPromises = batch.map(({ expense, participants, payer }) =>
-      createTestExpense(group.id, expense, participants, payer)
-    );
-    await Promise.all(batchPromises);
-    
-    // Small delay between batches to allow database to process
-    if (i + BATCH_SIZE < expenses.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-  }
-  
-}
-
-async function createCircularDebtScenario(users: User[]): Promise<void> {
-  const groupName = 'simplify-test-group';
-  const groupMembers = [users[0], users[1], users[2]];
-  const group = await createTestGroup(groupName, groupMembers, users[0]);
-
-  const expenseAmount = 100;
-
-  // Create all three expenses in parallel
-  await Promise.all([
-    // User 1 pays for User 2
-    createTestExpense(
-      group.id,
-      { description: 'U1 pays for U2', amount: expenseAmount, category: 'other' },
-      [users[0], users[1]],
-      users[0]
-    ),
-    // User 2 pays for User 3
-    createTestExpense(
-      group.id,
-      { description: 'U2 pays for U3', amount: expenseAmount, category: 'other' },
-      [users[1], users[2]],
-      users[1]
-    ),
-    // User 3 pays for User 1
-    createTestExpense(
-      group.id,
-      { description: 'U3 pays for U1', amount: expenseAmount, category: 'other' },
-      [users[2], users[0]],
-      users[2]
-    )
-  ]);
-
-}
-
 export async function generateTestData(): Promise<void> {
+  const config = getTestConfig();
+  const startTime = Date.now();
+  const timings: Record<string, number> = {};
+  
+  const logTiming = (phase: string, startMs: number) => {
+    const duration = Date.now() - startMs;
+    timings[phase] = duration;
+    logger.info(`⏱️  ${phase} completed in ${duration}ms`);
+  };
+  
   try {
-    logger.info('🚀 Starting test data generation');
+    logger.info(`🚀 Starting test data generation in ${config.mode} mode`);
 
     // Wait for API to be ready before proceeding
+    const apiCheckStart = Date.now();
     await waitForApiReady();
+    logTiming('API readiness check', apiCheckStart);
 
-    // Create all 5 test users in parallel
+    // Generate users based on config
+    const TEST_USERS = generateTestUsers(config);
+    
+    // Create all test users in parallel
+    logger.info(`Creating ${config.userCount} test users...`);
+    const userCreationStart = Date.now();
     const users = await Promise.all(
       TEST_USERS.map(userInfo => createTestUser(userInfo))
     );
+    logger.info(`✓ Created ${users.length} users`);
+    logTiming('User creation', userCreationStart);
 
-    // Create groups for each user (5 users × 1 group each = 5 groups total)
-    // Process all users in parallel - no batching needed for just 5 users
-    const groupPromises = users.map(user => 
-      createRandomGroupsForUser(user, users, 1)
+    // test1@test.com creates groups and collects invite links
+    logger.info(`Creating ${config.groupCount} groups with test1@test.com as creator...`);
+    const groupCreationStart = Date.now();
+    const test1User = users[0]; // test1@test.com
+    const groupsWithInvites = await createGroups(test1User, config);
+    logger.info(`✓ Created ${groupsWithInvites.length} groups with invite links`);
+    logTiming('Group creation', groupCreationStart);
+
+    // Other users randomly join ~70% of groups
+    logger.info('Having users randomly join groups...');
+    const joinGroupsStart = Date.now();
+    await joinGroupsRandomly(users, groupsWithInvites);
+    logger.info('✓ Users have joined groups randomly');
+    logTiming('Group joining', joinGroupsStart);
+    
+    // IMPORTANT: Refresh group data after joins to get updated member lists
+    logger.info('Refreshing group data to get updated member lists...');
+    const refreshStart = Date.now();
+    const refreshedGroups = await Promise.all(
+      groupsWithInvites.map(async (group) => {
+        const groupData = await driver.getGroupNew(group.id, test1User.token);
+        return {
+          ...groupData,
+          inviteLink: group.inviteLink
+        } as GroupWithInvite;
+      })
     );
-    
-    const allGroupsNested = await Promise.all(groupPromises);
-    const allGroups = allGroupsNested.flat();
-    
+    logger.info('✓ Refreshed group data with updated members');
+    logTiming('Group data refresh', refreshStart);
 
-    // Create expenses for all groups in sequence to avoid transaction lock timeouts
-    const expenseCounts = [];
-    
-    for (let index = 0; index < allGroups.length; index++) {
-      const group = allGroups[index];
-      // First group gets many expenses for pagination testing, others get minimal
-      const expenseCount = index === 0 ? 50 : 1; // 50 expenses for first group, 1 for others
-      await createRandomExpensesForGroup(group, users, expenseCount);
-      expenseCounts.push(expenseCount);
-    }
-    const totalExpenses = expenseCounts.reduce((sum, count) => sum + count, 0);
-    
-    await createCircularDebtScenario(users.slice(0, 3)); // Use first 3 users
+    // Create random expenses for regular groups (excluding special ones)
+    logger.info('Creating random expenses for regular groups...');
+    const regularExpensesStart = Date.now();
+    await createRandomExpensesForGroups(refreshedGroups, users, config);
+    logger.info('✓ Created random expenses for regular groups');
+    logTiming('Regular expenses creation', regularExpensesStart);
 
+    // Create special balanced expenses for "Settled Group"
+    logger.info('Creating balanced expenses for "Settled Group"...');
+    const balancedExpensesStart = Date.now();
+    await createBalancedExpensesForSettledGroup(refreshedGroups, users);
+    logger.info('✓ Created balanced expenses');
+    logTiming('Balanced expenses creation', balancedExpensesStart);
+
+    // Create many expenses for "Large Group" for pagination testing
+    logger.info('Creating many expenses for "Large Group"...');
+    const largeGroupExpensesStart = Date.now();
+    await createManyExpensesForLargeGroup(refreshedGroups, users, config);
+    logger.info('✓ Created many expenses for pagination testing');
+    logTiming('Large group expenses creation', largeGroupExpensesStart);
+
+    const totalTime = Date.now() - startTime;
     logger.info('🎉 Test data generation completed', {
       users: users.length,
-      groups: allGroups.length,
-      expenses: totalExpenses,
-      testCredentials: TEST_USERS.map(u => ({ email: u.email, password: u.password }))
+      groups: refreshedGroups.length,
+      totalTimeMs: totalTime,
+      totalTimeSeconds: (totalTime / 1000).toFixed(2),
+      mode: config.mode,
+      timings,
+      testCredentials: TEST_USERS.map(u => ({ email: u.email, password: u.password })),
+      inviteLinks: refreshedGroups.map(g => ({ name: g.name, inviteLink: g.inviteLink }))
     });
 
   } catch (error) {
@@ -388,6 +649,10 @@ export async function generateTestData(): Promise<void> {
 
 // Run the script
 if (require.main === module) {
+  const config = getTestConfig();
+  logger.info(`Running generate-test-data script in ${config.mode} mode`);
+  logger.info('To use fast mode, run: TEST_DATA_MODE=fast npm run generate-test-data');
+  
   generateTestData().then(() => {
     process.exit(0);
   }).catch(error => {
