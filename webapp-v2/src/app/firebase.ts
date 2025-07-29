@@ -4,10 +4,8 @@ import {
   Auth,
   connectAuthEmulator,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile,
   sendPasswordResetEmail,
   User as FirebaseUser,
   AuthError
@@ -59,14 +57,6 @@ class FirebaseService {
     return signInWithEmailAndPassword(this.getAuth(), email, password);
   }
 
-  async createUserWithEmailAndPassword(email: string, password: string) {
-    return createUserWithEmailAndPassword(this.getAuth(), email, password);
-  }
-
-  async updateProfile(user: FirebaseUser, profile: { displayName?: string; photoURL?: string }) {
-    return updateProfile(user, profile);
-  }
-
   async sendPasswordResetEmail(email: string) {
     return sendPasswordResetEmail(this.getAuth(), email);
   }
@@ -79,13 +69,6 @@ class FirebaseService {
     return onAuthStateChanged(this.getAuth(), callback);
   }
 
-  getCurrentUser() {
-    return this.getAuth().currentUser;
-  }
-
-  isInitialized() {
-    return this.initialized;
-  }
 }
 
 export const firebaseService = new FirebaseService();

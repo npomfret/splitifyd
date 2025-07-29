@@ -86,8 +86,6 @@ export const EXPENSE_CATEGORIES = [
   { name: 'Other', icon: '❓' }
 ];
 
-// Export just the names for backwards compatibility
-export const EXPENSE_CATEGORY_NAMES = EXPENSE_CATEGORIES.map(cat => cat.name);
 
 // Recent categories management
 const RECENT_CATEGORIES_KEY = 'recent-expense-categories';
