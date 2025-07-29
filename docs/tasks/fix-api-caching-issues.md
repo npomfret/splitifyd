@@ -170,27 +170,27 @@ describe('Cache Headers', () => {
 ## Acceptance Criteria
 
 - [ ] No hard refresh required after any data mutation
-- [ ] API endpoints have NO caching in any environment
-- [ ] Static pages (login, landing, terms, privacy) have minimal caching even in dev
+- [x] API endpoints have NO caching in any environment
+- [x] Static pages (login, landing, terms, privacy) have minimal caching even in dev
 - [ ] Integration tests exist for EVERY endpoint verifying correct cache headers
 - [ ] Client automatically refreshes stale data after mutations
-- [ ] No ETags are sent by Express for API responses
+- [x] No ETags are sent by Express for API responses
 
 ## Implementation Plan
 
-### Phase 1: Add Cache Control Middleware (Server-side)
-1. **Create new middleware file** `firebase/functions/src/middleware/cache-control.ts`
-   - Implement no-cache middleware that disables all caching for API endpoints
-   - Allow minimal caching for static pages (/login, /, /terms, /privacy)
-   - Disable Express ETags completely
+### Phase 1: Add Cache Control Middleware (Server-side) ✅ COMPLETED
+1. **✅ Create new middleware file** `firebase/functions/src/middleware/cache-control.ts`
+   - ✅ Implement no-cache middleware that disables all caching for API endpoints
+   - ✅ Allow minimal caching for static pages (/login, /, /terms, /privacy)
+   - ✅ Disable Express ETags completely
 
-2. **Update middleware stack** in `firebase/functions/src/utils/middleware.ts`
-   - Add cache control middleware to the standard middleware stack
-   - Ensure it runs early in the chain (after security headers)
+2. **✅ Update middleware stack** in `firebase/functions/src/utils/middleware.ts`
+   - ✅ Add cache control middleware to the standard middleware stack
+   - ✅ Ensure it runs early in the chain (after security headers)
 
-3. **Update index.ts** to disable ETags
-   - Set `app.set('etag', false)` in the Express configuration
-   - Remove any existing cache control headers (like in /env endpoint)
+3. **✅ Update index.ts** to disable ETags
+   - ✅ Set `app.set('etag', false)` in the Express configuration
+   - ✅ Remove any existing cache control headers (like in /env and /config endpoints)
 
 ### Phase 2: Client-side Cache Busting
 1. **Update apiClient.ts** in webapp-v2
@@ -227,10 +227,11 @@ describe('Cache Headers', () => {
 
 ## Small Commits Breakdown
 
-1. **Commit 1**: Add cache control middleware and disable ETags
-   - New file: middleware/cache-control.ts
-   - Update: utils/middleware.ts
-   - Update: index.ts (disable ETags)
+1. **✅ Commit 1**: Add cache control middleware and disable ETags
+   - ✅ New file: middleware/cache-control.ts
+   - ✅ Update: utils/middleware.ts
+   - ✅ Update: index.ts (disable ETags)
+   - ✅ Build verified successfully
 
 2. **Commit 2**: Update client-side API calls for cache busting
    - Update: webapp-v2/src/app/apiClient.ts
