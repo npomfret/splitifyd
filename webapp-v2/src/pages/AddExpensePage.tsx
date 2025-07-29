@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
-import { expenseFormStore, EXPENSE_CATEGORIES } from '../app/stores/expense-form-store';
+import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { authStore } from '../app/stores/auth-store';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
@@ -50,9 +50,13 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
           await groupDetailStore.fetchGroup(groupId);
         }
         
-        // Set current user as payer by default
-        if (currentUser.value) {
-          expenseFormStore.updateField('paidBy', currentUser.value.uid);
+        // Try to load draft first, then set defaults if no draft
+        const draftLoaded = expenseFormStore.loadDraft(groupId);
+        if (!draftLoaded) {
+          // Set current user as payer by default only if no draft
+          if (currentUser.value) {
+            expenseFormStore.updateField('paidBy', currentUser.value.uid);
+          }
         }
         
         isInitialized.value = true;
@@ -69,6 +73,31 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
       expenseFormStore.reset();
     };
   }, [groupId]);
+  
+  // Auto-save draft when form changes (debounced)
+  useEffect(() => {
+    if (!isInitialized.value || !groupId) return;
+    
+    // Debounce auto-save to avoid excessive localStorage writes
+    const saveTimer = setTimeout(() => {
+      if (expenseFormStore.hasUnsavedChanges()) {
+        expenseFormStore.saveDraft(groupId);
+      }
+    }, 1000); // Auto-save after 1 second of inactivity
+    
+    return () => clearTimeout(saveTimer);
+  }, [
+    description.value,
+    amount.value,
+    date.value,
+    paidBy.value,
+    category.value,
+    splitType.value,
+    participants.value,
+    splits.value,
+    isInitialized.value,
+    groupId
+  ]);
   
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -218,6 +247,29 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       pattern="[0-9]*"
                       required
                     />
+                    
+                    {/* Recent amounts buttons */}
+                    {(() => {
+                      const recentAmounts = getRecentAmounts();
+                      return recentAmounts.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Recent amounts:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {recentAmounts.map((amt, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => expenseFormStore.updateField('amount', amt)}
+                                className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                              >
+                                ${amt.toFixed(2)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    
                     {validationErrors.value.amount && (
                       <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                         {validationErrors.value.amount}
@@ -236,7 +288,9 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     >
                       {EXPENSE_CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                        <option key={cat.name} value={cat.name}>
+                          {cat.icon} {cat.name}
+                        </option>
                       ))}
                     </select>
                   </div>

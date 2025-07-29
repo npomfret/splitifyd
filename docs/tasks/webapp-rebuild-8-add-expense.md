@@ -31,8 +31,8 @@
   - Future date validation
 
 ### Remaining Work
-- ⏳ Auto-save drafts functionality (Phase 5)
-- ⏳ Category icons and enhancements (Phase 5)
+- ✅ Auto-save drafts functionality (Phase 5) - COMPLETED 2025-07-29
+- ✅ Category icons and enhancements (Phase 5) - COMPLETED 2025-07-29
 
 ## Overview
 Migrate the add expense page with all splitting options (equal, exact amounts, percentages), member selection, and complex form validation to Preact.
@@ -585,19 +585,22 @@ After analyzing the existing codebase:
 
 ### 🚧 Remaining Phases
 
-**Phase 5: Auto-save & Advanced Features** (2 hours)
-- LocalStorage draft auto-save
-- Category icons
-- Quick action buttons
-- Recent amounts
+**Phase 5: Auto-save & Advanced Features** ✅ COMPLETED (2025-07-29)
+- ✅ LocalStorage draft auto-save with 24-hour expiry
+- ✅ Category icons (emoji icons for all categories)
+- ✅ Quick action buttons (recent amounts)
+- ✅ Recent amounts tracking and display
 
 ### 🧪 Testing Instructions
 
 1. **Start emulator**: `npm run dev`
 2. **Navigate to group**: Go to dashboard, click on a group
 3. **Add expense**: Click "Add Expense" button
-4. **Test form**: Fill out form with equal split
-5. **Save**: Should create expense and return to group
+4. **Test auto-save**: Fill out form partially, navigate away and back - form should restore
+5. **Test categories**: Select category with emoji icons
+6. **Test recent amounts**: Add expense, create another - should see recent amount buttons
+7. **Test form**: Fill out form with all split types (equal/exact/percentage)
+8. **Save**: Should create expense and return to group
 
 ## Timeline
 
@@ -605,8 +608,8 @@ After analyzing the existing codebase:
 - Phase 1-2 Complete: 2025-07-23 (~3 hours)
 - Phase 3 Complete: 2025-07-24 (~2 hours)
 - Phase 4 Complete: 2025-07-24 (~2 hours)
-- Remaining: ~2 hours for phase 5
-- **Status**: Full form functionality with excellent UX, ready for auto-save features
+- Phase 5 Complete: 2025-07-29 (~2 hours)
+- **Status**: ✅ ALL PHASES COMPLETE - Full-featured expense form with auto-save, category icons, and recent amounts
 
 ## Notes
 
