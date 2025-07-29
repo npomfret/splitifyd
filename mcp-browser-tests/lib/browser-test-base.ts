@@ -8,7 +8,7 @@ config({ path: envPath });
 
 // Get ports from firebase.json
 const firebaseConfig = JSON.parse(readFileSync(join(process.cwd(), 'firebase/firebase.json'), 'utf-8'));
-export const HOSTING_PORT = firebaseConfig.emulators?.hosting?.port || 5002;
+export const HOSTING_PORT = firebaseConfig.emulators?.hosting?.port || 6002;
 export const BASE_URL = `http://localhost:${HOSTING_PORT}`;
 export const V2_BASE_URL = `${BASE_URL}/v2`;
 
