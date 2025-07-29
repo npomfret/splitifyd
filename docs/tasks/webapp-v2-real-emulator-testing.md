@@ -1,14 +1,35 @@
 # Webapp v2 Real Emulator Testing Infrastructure
 
 ## Problem Statement
-The webapp-v2 keeps breaking due to insufficient real integration testing. Current tests use mocks and the Vite dev server instead of testing against the Firebase emulator. We need comprehensive tests that catch real-world issues.
+
+**WE KEEP BREAKING THE UI, OVER AND OVER AND OVER AGAIN.**
+
+Mocking the server is a **waste of time**. It **DOES NOT WORK** - it is way too brittle and unreliable. We need a solution that any developer can follow, regardless of skill level.
+
+## Core Requirements
+
+### ✅ What We Want
+1. **webapp-v2 tested heavily against the Firebase emulator** - Real server, real data, real responses
+2. **Zero mocked server tests** - All tests must hit actual emulator endpoints
+3. **Pure code tests that fetch and parse server data** - Fast API integration tests without browser overhead
+4. **In-browser tests that run against the emulator** - Headless, fast, real UI testing
+5. **Integrated debugging via MCP** - When browser tests fail, Claude Code can run them via MCP to view pages and console
+6. **Merge existing mcp-browser-tests** - Don't create parallel test systems
+
+### ❌ What We DON'T Want
+- **Any server mocking** - Mocks don't catch real issues
+- **Tests against Vite dev server** - Not the real production environment
+- **Separate test systems** - mcp-browser-tests should be integrated, not duplicated
+- **Complex test setup** - Must be simple enough for any developer to understand
+- **Brittle tests** - Tests should be robust and catch real problems
 
 ## Current Issues
 1. Playwright tests use Vite dev server instead of Firebase emulator
 2. Only one real integration test exists (api-client.integration.test.ts)
-3. MCP browser tests exist but aren't integrated
+3. MCP browser tests exist but aren't integrated with main test suite
 4. App breaks repeatedly - tests aren't catching real issues
 5. No fast non-browser tests that validate server responses
+6. **Server mocking is unreliable and brittle** - Doesn't match real server behavior
 
 ## Implementation Plan - Small Commits
 
@@ -442,177 +463,92 @@ await page.click('[data-testid="register-button"]');
 
 **Status**: All browser integration test code has been reverted. API integration tests remain and should be prioritized.
 
-### Commit 24: Move MCP test utilities
-**Goal**: Copy MCP utilities into main test infrastructure
+## Revised Implementation Plan - Real Emulator Testing
 
-#### Files
-- Copy `mcp-browser-tests/lib/*` → `webapp-v2/src/__tests__/mcp/lib/`
-- Update imports and types
+### Phase 1: Fix Existing E2E Tests (Commits 17-20)
 
-### Commit 25: Create MCP test runner integration
-**Goal**: Integrate MCP tests with npm scripts
+#### Commit 17: Fix existing e2e tests to use emulator
+**Goal**: Update existing `webapp-v2/e2e/` tests to run against Firebase emulator instead of Vite dev server
 
-#### Files
-- Create `webapp-v2/src/__tests__/mcp/run-tests.ts`
+#### Files to Update
+- `webapp-v2/e2e/navigation.e2e.test.ts`
+- `webapp-v2/e2e/pricing.e2e.test.ts` 
+- `webapp-v2/e2e/seo.e2e.test.ts`
+- `webapp-v2/e2e/accessibility.test.ts`
+- `webapp-v2/e2e/performance.test.ts`
 
-### Commit 26: Add MCP login flow test
-**Goal**: MCP test for full login with screenshots
+#### Changes
+- Use emulator helpers from existing `webapp-v2/e2e/helpers/emulator-utils.ts`
+- Remove any server mocking
+- Test actual v2 app pages that exist
+- Add console error checking
+- Ensure tests fail gracefully when emulator not running
 
-#### Files
-- Create `webapp-v2/src/__tests__/mcp/login-flow.mcp.ts`
+#### Commit 18: Survey v2 UI and create simple browser tests
+**Goal**: Identify what UI actually exists and create basic browser tests
 
-### Commit 27: Add MCP console health test
-**Goal**: Check all pages for console errors
+#### Tasks
+- Navigate to `http://localhost:6002/v2` and document actual pages
+- Identify what forms, buttons, and interactions exist
+- Create simple smoke tests for pages that load
+- No complex form testing until UI is verified to exist
 
-#### Files
-- Create `webapp-v2/src/__tests__/mcp/console-health.mcp.ts`
+#### Commit 19: Integrate MCP debugging capabilities
+**Goal**: Enable Claude Code to run failed browser tests via MCP for debugging
 
-### Commit 28: Update package.json with MCP test script
-**Goal**: Add npm script for MCP tests
+#### Tasks
+- Examine `mcp-browser-tests/` directory structure
+- Understand how MCP tests work
+- Create integration so failed tests can be re-run via MCP
+- Enable screenshots and console inspection when tests fail
 
-#### Files
-- Update `webapp-v2/package.json`
+#### Commit 20: Add robust browser tests for existing UI
+**Goal**: Create comprehensive browser tests for UI elements that actually exist
 
-#### Add script
-```json
-"test:mcp": "tsx src/__tests__/mcp/run-tests.ts"
-```
+#### Tasks  
+- Test only verified UI elements from Commit 18 survey
+- Focus on page loads, navigation, console errors
+- Add form testing only for forms that exist
+- Use real data from emulator
 
-### Commit 29: Create test orchestration scripts
-**Goal**: Add comprehensive test suite scripts
+### Phase 2: Expand API Testing (Commits 21-25)
 
-#### Files
-- Update `webapp-v2/package.json`
+#### Commits 21-25: Enhance API integration tests
+- Add comprehensive endpoint coverage
+- Test error scenarios thoroughly  
+- Add performance/load testing
+- Ensure all business logic is tested via API
 
-#### Add scripts
-```json
-"test:all": "npm run test:unit && npm run test:integration && npm run test:api-integration && npm run test:e2e",
-"test:ci": "npm run test:all -- --reporter=json --outputFile=../tmp/test-results.json"
-```
+### Phase 3: Continuous Integration (Commits 26-30)
 
-### Commit 30: Create comprehensive testing documentation
-**Goal**: Document all test types and usage
-
-#### Files
-- Create `webapp-v2/TESTING.md`
-
-### Commit 31: Add health check test structure
-**Goal**: Create structure for continuous monitoring tests
-
-#### Files
-- Create `webapp-v2/src/__tests__/health/`
-- Create `webapp-v2/src/__tests__/health/fixtures/`
-
-### Commit 32: Add all pages load health test
-**Goal**: Verify every route loads without errors
-
-#### Files
-- Create `webapp-v2/src/__tests__/health/all-pages-load.test.ts`
-
-### Commit 33: Add API health test
-**Goal**: Verify all endpoints respond
-
-#### Files
-- Create `webapp-v2/src/__tests__/health/api-health.test.ts`
-
-### Commit 34: Add performance health test
-**Goal**: Check load times meet targets
-
-#### Files
-- Create `webapp-v2/src/__tests__/health/performance.test.ts`
-
-### Commit 35: Add test fixtures and cleanup
-**Goal**: Standard test data and cleanup utilities
-
-#### Files
-- Create `webapp-v2/src/__tests__/health/fixtures/test-users.json`
-- Create `webapp-v2/src/__tests__/health/fixtures/cleanup.ts`
-
+#### Commits 26-30: CI/CD integration
+- Ensure tests run in CI with emulator
+- Add test reports and notifications
+- Create health monitoring tests
+- Add automated test execution
 
 ## Success Criteria
 
-### Technical Requirements
-- ✅ All tests run against Firebase emulator (ports from firebase.json)
-- ✅ Zero false positives - tests only fail for real issues
-- ✅ Fast feedback - API tests < 30s, browser tests < 2min
-- ✅ Screenshots on failures for debugging
-- ✅ Console error detection on all pages
-- ✅ Network request validation
+### Must Have
+1. **Zero mocked tests** - All tests hit real emulator
+2. **Browser tests work with MCP debugging** - Failed tests can be debugged by Claude Code
+3. **Fast API tests** - Complete API test suite runs in <30 seconds
+4. **Reliable browser tests** - Test only UI that exists, fail gracefully
+5. **Single test system** - No parallel mcp-browser-tests, everything integrated
 
-### Coverage Requirements
-- ✅ All authentication flows tested
-- ✅ Group CRUD operations verified
-- ✅ Expense creation and calculations validated
-- ✅ Real-time updates tested
-- ✅ Error scenarios handled
-- ✅ Mobile viewport testing
+### Nice to Have  
+- Automated screenshots on failures
+- Performance budgets
+- Load testing
+- Real-time test monitoring
 
-### Integration Requirements
-- ✅ Tests integrated into CI/CD pipeline
-- ✅ Automated test reports generated
-- ✅ Test failures block deployment
-- ✅ Performance budgets enforced
+### Never Again
+- **No server mocking** - Ever
+- **No tests against Vite dev server** - Only emulator
+- **No complex test frameworks mixing** - Keep it simple
+- **No testing non-existent UI** - Survey first, test second
 
-## Implementation Timeline
-
-**Commits 1-8**: Fix existing Playwright tests (~2 hours)
-- Create emulator utilities
-- Update Playwright config
-- Fix all existing e2e tests to use emulator
-
-**Commits 9-16**: API integration tests (~2 hours)
-- Set up test structure
-- Create HTTP client
-- Implement auth, groups, expenses tests
-- Add polling and cleanup utilities
-
-**Commits 17-23**: Browser integration tests (~2 hours)
-- Set up Playwright in Vitest
-- Create browser test utilities
-- Implement UI flow tests
-
-**Commits 24-28**: MCP integration (~1 hour)
-- Move MCP utilities
-- Create test runner
-- Implement key MCP tests
-
-**Commits 29-30**: Test orchestration (~30 min)
-- Add npm scripts
-- Create documentation
-
-**Commits 31-35**: Health monitoring tests (~1 hour)
-- Create health test structure
-- Implement monitoring tests
-- Add fixtures
-
-**Total**: ~8.5 hours across 35 focused commits
-
-## Risk Mitigation
-
-### Flaky Tests
-- Use proper wait conditions
-- Implement retry logic
-- Clear test isolation
-
-### Performance Impact
-- Run tests in parallel where possible
-- Use test data builders
-- Efficient cleanup
-
-### Maintenance Burden
-- Clear test organization
-- Reusable utilities
-- Good documentation
-
-## Next Steps
-
-1. Start with Phase 1 - fix Playwright configuration
-2. Run existing tests to establish baseline
-3. Incrementally add new test types
-4. Monitor test execution times
-5. Refine based on findings
-
-## Notes
+## Implementation Notes
 
 - Emulator must be running for all integration tests
 - Use `npm run dev` to start emulator before testing
@@ -621,3 +557,14 @@ await page.click('[data-testid="register-button"]');
 - **IMPORTANT**: Never hardcode ports - always read from firebase.json
 - Use `npm run get-webapp-url` to get the current webapp URL
 - Ports may vary between environments (dev, staging, CI)
+
+## Ready for Implementation
+
+The next phase should focus on:
+
+1. **Fix existing e2e tests** - Make them work with Firebase emulator
+2. **Survey actual v2 UI** - Document what pages/forms exist before testing them  
+3. **Integrate MCP debugging** - Enable Claude Code to debug failed browser tests
+4. **Zero mocking** - All tests must hit real emulator endpoints
+
+This approach will finally give us reliable, maintainable tests that catch real UI breakages.
