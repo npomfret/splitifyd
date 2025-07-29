@@ -39,9 +39,18 @@ describe('Performance - Response Time Benchmarks', () => {
     });
 
     it('should meet target response times for read operations', async () => {
+        // Verify group exists first
+        console.log(`Testing with group ID: ${benchmarkGroup.id}`);
+        const group = await driver.getGroupNew(benchmarkGroup.id, mainUser.token);
+        console.log(`Group verified: ${group.name}`);
+
         const readOperations = [
             { name: 'Get group expenses', fn: () => driver.getGroupExpenses(benchmarkGroup.id, mainUser.token), target: 500 },
-            { name: 'Get balances', fn: () => driver.getGroupBalances(benchmarkGroup.id, mainUser.token), target: 500 },
+            { 
+                name: 'Get balances', 
+                fn: () => driver.getGroupBalances(benchmarkGroup.id, mainUser.token), 
+                target: 500 
+            },
             { name: 'Get expense', fn: () => driver.getExpense(benchmarkExpenses[0].id, mainUser.token), target: 300 }
         ];
 
