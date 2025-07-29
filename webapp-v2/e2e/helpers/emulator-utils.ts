@@ -35,7 +35,7 @@ export async function waitForEmulator(page: Page) {
 }
 
 export async function waitForV2App(page: Page) {
-  await page.waitForSelector('text=v2 app', { timeout: 10000 });
+  await page.waitForLoadState('networkidle');
 }
 
 export function setupConsoleErrorListener(page: Page): string[] {
