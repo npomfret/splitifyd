@@ -175,3 +175,84 @@ describe('Cache Headers', () => {
 - [ ] Integration tests exist for EVERY endpoint verifying correct cache headers
 - [ ] Client automatically refreshes stale data after mutations
 - [ ] No ETags are sent by Express for API responses
+
+## Implementation Plan
+
+### Phase 1: Add Cache Control Middleware (Server-side)
+1. **Create new middleware file** `firebase/functions/src/middleware/cache-control.ts`
+   - Implement no-cache middleware that disables all caching for API endpoints
+   - Allow minimal caching for static pages (/login, /, /terms, /privacy)
+   - Disable Express ETags completely
+
+2. **Update middleware stack** in `firebase/functions/src/utils/middleware.ts`
+   - Add cache control middleware to the standard middleware stack
+   - Ensure it runs early in the chain (after security headers)
+
+3. **Update index.ts** to disable ETags
+   - Set `app.set('etag', false)` in the Express configuration
+   - Remove any existing cache control headers (like in /env endpoint)
+
+### Phase 2: Client-side Cache Busting
+1. **Update apiClient.ts** in webapp-v2
+   - Add cache-busting headers for all mutations (POST, PUT, DELETE)
+   - Add `cache: 'no-store'` to fetch options for mutations
+   - Ensure GET requests also include appropriate cache headers
+
+2. **Update stores to invalidate data after mutations**
+   - In groups-store.ts: After createGroup, automatically call fetchGroups
+   - In expense-form-store.ts: After creating expense, trigger group refresh
+   - Ensure all mutation operations trigger appropriate data refreshes
+
+### Phase 3: Comprehensive Testing
+1. **Create integration test file** `firebase/functions/__tests__/integration/cache-headers.test.ts`
+   - Test ALL API endpoints for correct cache headers
+   - Test static pages for appropriate caching
+   - Verify no ETags are present in responses
+   - Test both development and production configurations
+
+2. **Manual testing checklist**
+   - Create group → verify immediate update without refresh
+   - Add expense → verify group stats update immediately
+   - Check Network tab for no 304 responses
+   - Verify no If-None-Match headers sent by browser
+
+### Phase 4: Documentation and Cleanup
+1. **Update documentation**
+   - Add notes about cache control strategy to relevant docs
+   - Document the middleware behavior for future reference
+
+2. **Clean up any remaining cache-related code**
+   - Remove redundant cache headers from individual endpoints
+   - Ensure consistency across all endpoints
+
+## Small Commits Breakdown
+
+1. **Commit 1**: Add cache control middleware and disable ETags
+   - New file: middleware/cache-control.ts
+   - Update: utils/middleware.ts
+   - Update: index.ts (disable ETags)
+
+2. **Commit 2**: Update client-side API calls for cache busting
+   - Update: webapp-v2/src/app/apiClient.ts
+   - Add cache control headers and fetch options
+
+3. **Commit 3**: Update stores to refresh data after mutations
+   - Update: groups-store.ts (refresh after create)
+   - Update: expense-form-store.ts (trigger group refresh)
+   - Update: group-detail-store.ts (if needed)
+
+4. **Commit 4**: Add comprehensive integration tests
+   - New file: __tests__/integration/cache-headers.test.ts
+   - Test all endpoints and configurations
+
+5. **Commit 5**: Clean up and document
+   - Remove redundant cache headers
+   - Update any relevant documentation
+
+## Technical Notes
+
+- Express automatically adds ETags when no cache headers are set
+- The `app.set('etag', false)` directive must be set before route handlers
+- Cache-Control headers must be set on every response to override defaults
+- Client-side `cache: 'no-store'` in fetch options prevents browser caching
+- Integration tests should cover both emulator and production scenarios
