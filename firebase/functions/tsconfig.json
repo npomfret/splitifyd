@@ -13,12 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "lib": ["es2020"],
-    "types": ["node", "jest"],
-    "paths": {
-      "@bill-splitter/shared-types": ["../../shared-types/dist/index.d.ts"],
-      "@bill-splitter/shared-types/*": ["../../shared-types/dist/*"]
-    },
-    "baseUrl": "."
+    "types": ["node", "jest"]
   },
   "compileOnSave": true,
   "include": [
