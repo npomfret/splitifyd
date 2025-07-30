@@ -131,11 +131,11 @@ describe('RESTful Group Endpoints', () => {
       expect(response.description).toBe(testGroup.description);
       expect(response.members).toHaveLength(1);
       expect(response.balance).toBeDefined();
-      // userBalance is optional for groups without expenses
+      // userBalance is null for groups without expenses
       if (response.balance.userBalance) {
         expect(response.balance.userBalance.netBalance).toBe(0);
       } else {
-        expect(response.balance.userBalance).toBeUndefined();
+        expect(response.balance.userBalance).toBeNull();
       }
     });
 
@@ -157,7 +157,7 @@ describe('RESTful Group Endpoints', () => {
       const groupWithBalance = await driver.pollGroupUntilBalanceUpdated(
         testGroup.id,
         users[0].token,
-        (group) => group.balance && group.balance.userBalance !== undefined,
+        (group) => group.balance && group.balance.userBalance !== null,
         { timeout: 5000 }
       );
 
@@ -369,7 +369,7 @@ describe('RESTful Group Endpoints', () => {
       expect(firstGroup).toHaveProperty('balance');
       expect(firstGroup.balance).toHaveProperty('totalOwed');
       expect(firstGroup.balance).toHaveProperty('totalOwing');
-      // userBalance is optional - may be undefined for groups without balances
+      // userBalance is null for groups without balances
       expect(firstGroup).toHaveProperty('lastActivity');
       expect(firstGroup).toHaveProperty('expenseCount');
     });

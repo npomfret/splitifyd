@@ -252,7 +252,7 @@ export const getGroup = async (
   const { group } = await fetchGroupWithAccess(groupId, userId);
 
   // Add balance information
-  let userBalance: UserBalance | undefined;
+  let userBalance: UserBalance | null = null;
   const balanceDoc = await admin.firestore()
     .collection('group-balances')
     .doc(groupId)
@@ -260,13 +260,13 @@ export const getGroup = async (
   
   if (balanceDoc.exists) {
     const balanceData = balanceDoc.data();
-    userBalance = balanceData?.userBalances?.[userId];
+    userBalance = balanceData?.userBalances?.[userId] || null;
   }
   
   const groupWithBalance: GroupWithBalance = {
     ...group,
     balance: {
-      userBalance: userBalance,  // Allow null for groups without balances
+      userBalance: userBalance,
       totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
       totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
     },
@@ -406,7 +406,7 @@ export const listGroups = async (
       const group = transformGroupDocument(doc);
       
       // Calculate balance for each group
-      let userBalance: UserBalance | undefined;
+      let userBalance: UserBalance | null = null;
       const balanceDoc = await admin.firestore()
         .collection('group-balances')
         .doc(group.id)
@@ -414,7 +414,7 @@ export const listGroups = async (
       
       if (balanceDoc.exists) {
         const balanceData = balanceDoc.data();
-        userBalance = balanceData?.userBalances?.[userId];
+        userBalance = balanceData?.userBalances?.[userId] || null;
       }
 
       // Format last activity
@@ -427,7 +427,7 @@ export const listGroups = async (
         description: group.description,
         memberCount: group.memberIds.length,
         balance: {
-          userBalance: userBalance,  // Allow null for groups without balances
+          userBalance: userBalance,
           totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
           totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
         },

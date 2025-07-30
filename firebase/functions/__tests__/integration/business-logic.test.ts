@@ -460,8 +460,8 @@ describe('Business Logic Edge Cases', () => {
       if (groupInList.balance.userBalance) {
         expect(groupInList.balance.userBalance.netBalance).toBe(0);
       } else {
-        // For groups without expenses, userBalance can be undefined
-        expect(groupInList.balance.userBalance).toBeUndefined();
+        // For groups without expenses, userBalance is null
+        expect(groupInList.balance.userBalance).toBeNull();
       }
     });
 
@@ -517,10 +517,10 @@ describe('Business Logic Edge Cases', () => {
       expect(groupInList).toBeDefined();
       
       // When a user pays for expenses only they participate in, net balance should be 0
-      if (typeof groupInList.balance.userBalance === 'object') {
+      if (groupInList.balance.userBalance) {
         expect(groupInList.balance.userBalance.netBalance).toBe(0);
       } else {
-        expect(groupInList.balance.userBalance).toBe(0);
+        expect(groupInList.balance.userBalance).toBeNull();
       }
     });
 
@@ -584,8 +584,8 @@ describe('Business Logic Edge Cases', () => {
       if (groupInList.balance.userBalance) {
         expect(groupInList.balance.userBalance.netBalance).toBe(0);
       } else {
-        // For groups without calculated balances, userBalance can be undefined
-        expect(groupInList.balance.userBalance).toBeUndefined();
+        // For groups without calculated balances, userBalance is null
+        expect(groupInList.balance.userBalance).toBeNull();
       }
     });
 

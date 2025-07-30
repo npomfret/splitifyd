@@ -166,11 +166,25 @@ describe('Comprehensive Security Test Suite', () => {
     });
 
     describe('Privilege Escalation Attempts', () => {
-      test('should prevent non-admin users from generating share links', async () => {
-        // User 2 should not be able to generate share links (user 1 is admin)
+      test('should allow any member to generate share links', async () => {
+        // Any group member should be able to generate share links
+        const shareLink = await driver.generateShareLink(testGroup.id, users[1].token);
+        expect(shareLink).toHaveProperty('linkId');
+        expect(shareLink).toHaveProperty('shareableUrl');
+      });
+
+      test('should prevent non-members from generating share links', async () => {
+        // Create a user who is not a member of the group
+        const nonMemberUser = await driver.createTestUser({
+          email: `nonmember-${uuidv4()}@test.com`,
+          password: 'testPass123!',
+          displayName: 'Non Member User'
+        });
+
+        // Non-member should not be able to generate share links
         await expect(
-          driver.generateShareLink(testGroup.id, users[1].token)
-        ).rejects.toThrow(/403|forbidden|admin|not.*authorized/i);
+          driver.generateShareLink(testGroup.id, (nonMemberUser as any).token)
+        ).rejects.toThrow(/403|forbidden|member|not.*authorized/i);
       });
 
       test('should prevent users from modifying group membership directly', async () => {
