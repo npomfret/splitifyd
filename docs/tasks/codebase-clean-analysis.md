@@ -151,9 +151,9 @@ return splits || [];                                 // Line 275
 ## 📋 **UPDATED REMEDIATION PLAN**
 
 ### **Phase 2: Complete Denormalization Removal (CRITICAL)**
-6. **Remove all denormalized storage from group handlers**: Stop storing/using `expenseCount`, `lastExpenseTime` 
-7. **Calculate expense metadata on-demand**: Create functions to calculate counts and timestamps from expense collections
+6. ✅ **Remove all denormalized storage from group handlers**: Removed storage/usage of `expenseCount`, `lastExpenseTime` 
+7. ✅ **Calculate expense metadata on-demand**: Created `expenseMetadataService.ts` with `calculateExpenseMetadata()` function
 8. **Replace fallback operators**: Convert all `||` patterns in expense validation to proper validation
 9. **Clean webapp-shared-types**: Remove remaining denormalized fields from type definitions
 
-**Estimated additional effort**: 1 day for complete remediation
+**Progress**: 2/4 tasks complete - Group handlers now calculate all expense metadata on-demand
