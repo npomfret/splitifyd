@@ -164,6 +164,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
           <ExpensesList 
             expenses={expenses.value}
+            members={group.value!.members || []}
             hasMore={groupDetailStore.hasMoreExpenses}
             loading={groupDetailStore.loadingExpenses}
             onLoadMore={() => groupDetailStore.loadMoreExpenses()}
