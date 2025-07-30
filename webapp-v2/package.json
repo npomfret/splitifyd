@@ -16,7 +16,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "test:integration": "vitest run src/__tests__/integration/",
-    "test:api-integration": "vitest run src/__tests__/api-integration/ --reporter=verbose",
+    "test:api-integration": "vitest run --config vitest.config.api.ts --reporter=verbose",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug"

@@ -7,11 +7,17 @@
 
 import '@testing-library/jest-dom';
 
-// Set up the API base URL for integration tests
-(window as any).API_BASE_URL = 'http://localhost:5001/splitifyd/us-central1';
-
 // Don't mock fetch - we need the real implementation for integration tests
-// Node.js 18+ has native fetch support
+// Node.js 18+ has native fetch support, but jsdom doesn't provide it
+// So we need to explicitly set it
+if (!globalThis.fetch) {
+  // Import node's native fetch
+  const nodeFetch = global.fetch;
+  globalThis.fetch = nodeFetch;
+  globalThis.Headers = global.Headers;
+  globalThis.Request = global.Request;
+  globalThis.Response = global.Response;
+}
 
 // Still need to mock some browser-only APIs that aren't used in integration tests
 global.IntersectionObserver = class IntersectionObserver {

@@ -44,5 +44,5 @@ export const EMULATOR_CONFIG = {
   HOSTING_PORT: config.hosting.port,
   FUNCTIONS_PORT: config.functions.port,
   HOSTING_URL: `http://localhost:${config.hosting.port}`,
-  API_BASE_URL: `http://localhost:${config.functions.port}/splitifyd/us-central1`,
+  API_BASE_URL: `http://localhost:${config.functions.port}/splitifyd/us-central1/api`,
 };

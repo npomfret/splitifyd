@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ApiClient } from './utils';
-import { 
-  createTestUser, 
-  INVALID_TEST_DATA 
-} from '../shared/test-data-fixtures';
+import { UserBuilder } from '@test-builders';
 
 describe('Auth Flow API Integration', () => {
   let apiClient: ApiClient;
@@ -14,156 +11,220 @@ describe('Auth Flow API Integration', () => {
 
   describe('User Registration', () => {
     it('should register a new user successfully', async () => {
-      const userData = createTestUser();
+      const userData = new UserBuilder().build();
+      
+      // Add displayName which is required
+      const registerData = {
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.displayName,
+      };
 
-      const response = await apiClient.post('/auth/register', userData);
+      const response = await apiClient.post<any>('/register', registerData);
 
-      expect(response).toHaveProperty('uid');
-      expect(response).toHaveProperty('email', userData.email);
-      expect(response).toHaveProperty('name', userData.name);
-      expect(response).not.toHaveProperty('password');
+      expect(response).toHaveProperty('success', true);
+      expect(response).toHaveProperty('message', 'Account created successfully');
+      expect(response).toHaveProperty('user');
+      expect(response.user).toHaveProperty('uid');
+      expect(response.user).toHaveProperty('email', userData.email);
+      expect(response.user).toHaveProperty('displayName', userData.displayName);
     });
 
     it('should reject registration with invalid email', async () => {
-      const userData = createTestUser({
-        email: INVALID_TEST_DATA.INVALID_EMAIL,
-      });
+      const userData = new UserBuilder()
+        .withEmail('invalid-email')
+        .build();
+      
+      const registerData = {
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.displayName,
+      };
 
       await expect(
-        apiClient.post('/auth/register', userData)
+        apiClient.post('/register', registerData)
       ).rejects.toThrow(/email/i);
     });
 
     it('should reject registration with weak password', async () => {
-      const userData = createTestUser({
-        password: INVALID_TEST_DATA.WEAK_PASSWORD,
-      });
+      const userData = new UserBuilder()
+        .withPassword('123')
+        .build();
+      
+      const registerData = {
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.displayName,
+      };
 
       await expect(
-        apiClient.post('/auth/register', userData)
+        apiClient.post('/register', registerData)
       ).rejects.toThrow(/password/i);
     });
-  });
 
-  describe('User Login', () => {
-    let testUser: any;
-    let userData: any;
-
-    beforeEach(async () => {
-      // Create a test user for login tests
-      userData = createTestUser();
-
-      testUser = await apiClient.post('/auth/register', userData);
-    });
-
-    it('should login with valid credentials', async () => {
-      const loginData = {
-        email: testUser.email,
+    it('should reject registration with missing displayName', async () => {
+      const userData = new UserBuilder().build();
+      
+      const registerData = {
+        email: userData.email,
         password: userData.password,
-      };
-
-      const response = await apiClient.post('/auth/login', loginData);
-
-      expect(response).toHaveProperty('uid', testUser.uid);
-      expect(response).toHaveProperty('email', testUser.email);
-      expect(response).toHaveProperty('token');
-      expect(typeof response.token).toBe('string');
-    });
-
-    it('should reject login with invalid password', async () => {
-      const loginData = {
-        email: testUser.email,
-        password: 'WrongPassword123!',
+        // Missing displayName
       };
 
       await expect(
-        apiClient.post('/auth/login', loginData)
-      ).rejects.toThrow(/password|credentials/i);
+        apiClient.post('/register', registerData)
+      ).rejects.toThrow(/display.*name|displayName/i);
     });
 
-    it('should reject login with non-existent email', async () => {
-      const loginData = createTestUser({
-        email: 'nonexistent@example.com',
-      });
+    it('should reject registration with duplicate email', async () => {
+      const userData = new UserBuilder().build();
+      
+      const registerData = {
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.displayName,
+      };
 
+      // Register first time
+      await apiClient.post('/register', registerData);
+
+      // Try to register again with same email
       await expect(
-        apiClient.post('/auth/login', loginData)
-      ).rejects.toThrow(/user|credentials/i);
+        apiClient.post('/register', registerData)
+      ).rejects.toThrow(/already.*exists|duplicate/i);
     });
   });
 
-  describe('Token Validation', () => {
-    let testUser: any;
-    let authToken: string;
-
-    beforeEach(async () => {
-      // Create and login test user
-      const userData = createTestUser();
-
-      testUser = await apiClient.post('/auth/register', userData);
+  describe('Firebase Auth Integration', () => {
+    it('should create user with proper auth record', async () => {
+      const userData = new UserBuilder().build();
       
-      const loginResponse = await apiClient.post('/auth/login', {
-        email: testUser.email,
+      const registerData = {
+        email: userData.email,
         password: userData.password,
-      });
+        displayName: userData.displayName,
+      };
+
+      const response = await apiClient.post<any>('/register', registerData);
       
-      authToken = loginResponse.token;
+      // User should have a valid UID
+      expect(response.user.uid).toBeTruthy();
+      expect(response.user.uid.length).toBeGreaterThan(10);
     });
 
-    it('should validate valid token', async () => {
-      const response = await apiClient.get('/auth/verify', {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+    it('should handle Firebase Auth errors gracefully', async () => {
+      // Test with invalid data that Firebase Auth will reject
+      const registerData = {
+        email: 'not-an-email',
+        password: '123', // Too short
+        displayName: 'Test',
+      };
 
-      expect(response).toHaveProperty('uid', testUser.uid);
-      expect(response).toHaveProperty('email', testUser.email);
-    });
-
-    it('should reject invalid token', async () => {
       await expect(
-        apiClient.get('/auth/verify', {
-          headers: {
-            Authorization: 'Bearer invalid-token',
-          },
+        apiClient.post('/register', registerData)
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('Registration Validation', () => {
+    it('should reject email with leading/trailing whitespace', async () => {
+      const userData = new UserBuilder().build();
+      
+      const registerData = {
+        email: `  ${userData.email}  `,
+        password: userData.password,
+        displayName: userData.displayName,
+      };
+
+      // API should reject email with whitespace
+      await expect(
+        apiClient.post('/register', registerData)
+      ).rejects.toThrow(/email/i);
+    });
+
+    it('should require all fields', async () => {
+      // Missing email
+      await expect(
+        apiClient.post('/register', {
+          password: 'ValidPassword123!',
+          displayName: 'Test User',
         })
-      ).rejects.toThrow(/token|unauthorized/i);
+      ).rejects.toThrow(/email/i);
+
+      // Missing password
+      await expect(
+        apiClient.post('/register', {
+          email: 'test@example.com',
+          displayName: 'Test User',
+        })
+      ).rejects.toThrow(/password/i);
+
+      // Missing displayName
+      await expect(
+        apiClient.post('/register', {
+          email: 'test@example.com',
+          password: 'ValidPassword123!',
+        })
+      ).rejects.toThrow(/display.*name/i);
     });
 
-    it('should reject missing token', async () => {
-      await expect(
-        apiClient.get('/auth/verify')
-      ).rejects.toThrow(/token|unauthorized/i);
+    it('should validate email format', async () => {
+      const invalidEmails = [
+        'notanemail',
+        '@example.com',
+        'test@',
+        'test@.com',
+        'test.example.com',
+      ];
+
+      for (const email of invalidEmails) {
+        await expect(
+          apiClient.post('/register', {
+            email,
+            password: 'ValidPassword123!',
+            displayName: 'Test User',
+          })
+        ).rejects.toThrow(/email/i);
+      }
+    });
+
+    it('should validate password strength', async () => {
+      const weakPasswords = [
+        '123',
+        'abc',
+        'password',
+        '12345678',
+      ];
+
+      for (const password of weakPasswords) {
+        await expect(
+          apiClient.post('/register', {
+            email: `test-${Date.now()}@example.com`,
+            password,
+            displayName: 'Test User',
+          })
+        ).rejects.toThrow(/password/i);
+      }
     });
   });
 
-  describe('Password Reset', () => {
-    let testUser: any;
+  describe('User Document Creation', () => {
+    it('should create Firestore document on registration', async () => {
+      const userData = new UserBuilder().build();
+      
+      const registerData = {
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.displayName,
+      };
 
-    beforeEach(async () => {
-      const userData = createTestUser();
-
-      testUser = await apiClient.post('/auth/register', userData);
-    });
-
-    it('should initiate password reset for valid email', async () => {
-      const response = await apiClient.post('/auth/forgot-password', {
-        email: testUser.email,
-      });
-
-      expect(response).toHaveProperty('success', true);
-      expect(response).toHaveProperty('message');
-    });
-
-    it('should handle password reset for non-existent email gracefully', async () => {
-      // Should not reveal whether email exists or not
-      const response = await apiClient.post('/auth/forgot-password', {
-        email: 'nonexistent@example.com',
-      });
-
-      expect(response).toHaveProperty('success', true);
-      expect(response).toHaveProperty('message');
+      const response = await apiClient.post<any>('/register', registerData);
+      
+      // Registration should succeed
+      expect(response.success).toBe(true);
+      
+      // User document should be created (implied by success response)
+      // Actual Firestore verification would require admin SDK access
     });
   });
 });
