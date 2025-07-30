@@ -118,8 +118,8 @@ function buildConfig(): Config {
     },
     formDefaults: {
       displayName: isEmulator ? 'test' : '',
-      email: env.DEV_FORM_EMAIL || '',
-      password: env.DEV_FORM_PASSWORD || '',
+      email: env.DEV_FORM_EMAIL ?? '',
+      password: env.DEV_FORM_PASSWORD ?? '',
     },
     warningBanner: isProduction 
       ? '⚠️ this is a demo - your data will be deleted without notice' 

@@ -19,6 +19,7 @@ import { UserBalance } from '../types/webapp-shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 import { userService } from '../services/userService';
+import { calculateGroupBalances } from '../services/balanceCalculator';
 
 /**
  * Get the groups collection reference
@@ -53,47 +54,65 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDoc
     throw new Error('Invalid group document');
   }
 
-  // Handle both old (nested) and new (flat) document structures
-  const groupData = data.data || data;
+  // Expect consistent document structure
+  if (!data.data) {
+    throw new Error('Invalid group document structure: missing data field');
+  }
+  const groupData = data.data;
   
 
   return {
     id: doc.id,
-    name: groupData.name,
-    description: groupData.description || '',
-    createdBy: groupData.createdBy || data.userId,
+    name: groupData.name!,
+    description: groupData.description ?? '',
+    createdBy: groupData.createdBy!,
     memberIds: groupData.memberIds!,
-    expenseCount: groupData.expenseCount || 0,
+    expenseCount: groupData.expenseCount ?? 0,
     lastExpenseTime: groupData.lastExpenseTime ? new Date(groupData.lastExpenseTime) : undefined,
     lastExpense: groupData.lastExpense ? {
       description: groupData.lastExpense.description,
       amount: groupData.lastExpense.amount,
       date: new Date(groupData.lastExpense.date)
     } : undefined,
-    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
-    updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+    createdAt: data.createdAt!.toDate(),
+    updatedAt: data.updatedAt!.toDate(),
   };
 };
 
 /**
  * Convert GroupDocument to Group with computed fields
- * TODO: This is a minimal implementation - needs proper balance calculation
  */
 const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: string): Promise<Group> => {
+  // Calculate real balance for the user
+  const groupBalances = await calculateGroupBalances(groupDoc.id);
+  const userBalanceData = groupBalances.userBalances[userId];
+  
+  let userBalance: UserBalance | null = null;
+  let totalOwed = 0;
+  let totalOwing = 0;
+  
+  if (userBalanceData) {
+    userBalance = {
+      userId: userId,
+      netBalance: userBalanceData.netBalance,
+      owes: userBalanceData.owes,
+      owedBy: userBalanceData.owedBy
+    };
+    
+    // Calculate totals from user's balance data
+    totalOwed = Object.values(userBalanceData.owedBy as Record<string, number>).reduce((sum: number, amount: number) => sum + amount, 0);
+    totalOwing = Object.values(userBalanceData.owes as Record<string, number>).reduce((sum: number, amount: number) => sum + amount, 0);
+  }
+
   return {
     id: groupDoc.id,
     name: groupDoc.name,
     description: groupDoc.description,
     memberCount: groupDoc.memberIds.length,
     balance: {
-      userBalance: {
-        userId: userId,
-        netBalance: 0, // TODO: Calculate actual balance
-        owes: {},
-        owedBy: {}
-      },
-      totalOwed: 0, // TODO: Calculate from expenses
-      totalOwing: 0 // TODO: Calculate from expenses
+      userBalance,
+      totalOwed,
+      totalOwing
     },
     lastActivity: groupDoc.lastExpenseTime ? 
       `Last expense ${new Date(groupDoc.lastExpenseTime).toLocaleDateString()}` : 
@@ -377,7 +396,7 @@ export const listGroups = async (
     DOCUMENT_CONFIG.LIST_LIMIT
   );
   const cursor = req.query.cursor as string;
-  const order = (req.query.order as 'asc' | 'desc') || 'desc';
+  const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
 
   // Build base query - groups where user is a member
   const baseQuery = getGroupsCollection()

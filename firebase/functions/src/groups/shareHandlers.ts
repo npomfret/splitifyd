@@ -168,7 +168,10 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       }
 
       const groupData = groupSnapshot.data()!;
-      const currentMemberIds = groupData.data?.memberIds || [];
+      if (!groupData.data?.memberIds) {
+        throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP', 'Group missing memberIds');
+      }
+      const currentMemberIds = groupData.data.memberIds;
       
       // Ensure group owner is in memberIds (but no duplicates)
       const allMemberIds = [...currentMemberIds];
@@ -194,7 +197,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       });
 
       return {
-        groupName: groupData.data?.name || 'Unknown Group'
+        groupName: groupData.data!.name!
       };
     });
 

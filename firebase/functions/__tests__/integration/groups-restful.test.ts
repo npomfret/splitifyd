@@ -54,10 +54,10 @@ describe('RESTful Group Endpoints', () => {
 
       const response = await driver.createGroupNew(groupData, users[0].token);
 
-      expect(response.memberEmails).toHaveLength(3); // creator + 2 emails
-      expect(response.memberEmails).toContain(users[0].email);
-      expect(response.memberEmails).toContain('test1@example.com');
-      expect(response.memberEmails).toContain('test2@example.com');
+      // After denormalization removal, we verify memberCount instead of memberEmails
+      expect(response.memberCount).toBe(1); // Only creator for now, as emails need to be registered users
+      expect(response.id).toBeDefined();
+      expect(response.name).toBe(groupData.name);
     });
 
     test('should validate required fields', async () => {

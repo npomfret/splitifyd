@@ -34,7 +34,10 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     }
 
     const groupData = groupDoc.data() as any;
-    const memberIds = groupData.data?.memberIds || [];
+    if (!groupData.data?.memberIds) {
+        throw new Error('Group missing memberIds - invalid data structure');
+    }
+    const memberIds = groupData.data.memberIds;
     if (memberIds.length === 0) {
         throw new Error(`Group ${groupId} has no members for balance calculation`);
     }

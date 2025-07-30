@@ -37,7 +37,7 @@ class InMemoryRateLimiter {
     const now = Date.now();
     const windowStart = now - this.windowMs;
     
-    const userRequests = this.requests.get(userId) || [];
+    const userRequests = this.requests.get(userId) ?? [];
     const recentRequests = userRequests.filter(time => time > windowStart);
     
     if (recentRequests.length >= this.maxRequests) {
