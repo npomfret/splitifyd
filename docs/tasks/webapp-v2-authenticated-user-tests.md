@@ -26,9 +26,56 @@ The current test suite has **71 tests** running against the Firebase emulator, b
 - **Error handling** - Network failures, validation errors, edge cases
 - **Business logic** - Balance calculations, expense splitting, settlements
 
+## Deep Dive Analysis of Existing Test Infrastructure
+
+### Key Findings
+
+1. **Path Mappings Already Configured**
+   - `tsconfig.json` has: `"@test-builders": ["../firebase/functions/__tests__/support/builders"]`
+   - `vitest.config.ts` also has the same alias configured
+   - Can import builders directly: `import { UserBuilder } from '@test-builders'`
+   - ApiDriver path should be added similarly
+
+2. **Test Separation**
+   - E2E tests use Playwright (in `webapp-v2/e2e/`)
+   - Integration tests use Vitest with real API calls (in `src/__tests__/integration/`)
+   - Unit tests mock everything (in `src/__tests__/`)
+   - Tests have different setup files: `setup.ts` (mocks) vs `setup.integration.ts` (real fetch)
+
+3. **ApiDriver and Builders Pattern**
+   - ApiDriver is at `firebase/functions/__tests__/support/ApiDriver.ts`
+   - Builders are at `firebase/functions/__tests__/support/builders/`
+   - UserBuilder creates test user data with unique IDs
+   - GroupBuilder and ExpenseBuilder also available
+   - ApiDriver has methods like `createTestUser()`, `createGroup()`, etc.
+
+4. **Authentication in Tests**
+   - Unit tests mock Firebase auth completely
+   - Integration test (`api-client.integration.test.ts`) uses ApiDriver to create real users
+   - ApiDriver returns User with token property for authenticated requests
+   - E2E tests currently only test UI visibility, not actual login
+
+5. **Module System Issues**
+   - Firebase functions use CommonJS (`"module": "commonjs"` in tsconfig)
+   - Webapp uses ESNext modules
+   - Need to handle imports carefully or add proper path mapping
+
 ## Implementation Plan
 
 **Note**: Based on analysis, the v2 app HAS dashboard, groups, and expense functionality implemented. We need to test it!
+
+### Phase 0: Setup Path Mappings (Commit 0)
+
+#### Commit 0: Add ApiDriver path mapping
+**Goal**: Add path mapping for ApiDriver to avoid module issues
+
+```json
+// webapp-v2/tsconfig.json - add to paths:
+"@test-support/*": ["../firebase/functions/__tests__/support/*"]
+
+// webapp-v2/vitest.config.ts - add to aliases:
+'@test-support': resolve(__dirname, '../firebase/functions/__tests__/support'),
+```
 
 ### Phase 1: Authentication Setup (Commit 1-2)
 
@@ -37,24 +84,33 @@ The current test suite has **71 tests** running against the Firebase emulator, b
 
 ```typescript
 // webapp-v2/e2e/helpers/auth-utils.ts
-export async function loginTestUser(page: Page, credentials?: TestCredentials) {
-  // Navigate to login
-  // Fill credentials
-  // Submit form
-  // Wait for dashboard
-  // Return user context
+import { Page } from '@playwright/test';
+import { V2_URL } from './emulator-utils';
+import { UserBuilder } from '@test-builders';
+import type { User } from '@test-support/ApiDriver';
+
+// Create test user via API and login via browser
+export async function createAndLoginTestUser(page: Page): Promise<User> {
+  // Dynamic import to handle CommonJS/ESM
+  const { ApiDriver } = await import('@test-support/ApiDriver');
+  const api = new ApiDriver();
+  
+  // Use builder for consistent test data
+  const userData = new UserBuilder().build();
+  const user = await api.createTestUser(userData);
+  
+  // Login via browser UI
+  await loginTestUser(page, userData);
+  
+  return user;
 }
 
-export async function createAndLoginTestUser(page: Page) {
-  // Generate unique user
-  // Register via API or UI
-  // Login
-  // Return user context
-}
-
-export async function ensureLoggedOut(page: Page) {
-  // Check if logged in
-  // Sign out if needed
+export async function loginTestUser(page: Page, credentials: { email: string; password: string }) {
+  await page.goto(`${V2_URL}/login`);
+  await page.fill('input[type="email"]', credentials.email);
+  await page.fill('input[type="password"]', credentials.password);
+  await page.getByRole('button', { name: 'Sign In' }).click();
+  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
 }
 ```
 
