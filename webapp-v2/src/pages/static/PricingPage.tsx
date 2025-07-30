@@ -7,7 +7,7 @@ export function PricingPage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Pricing - Splitifyd",
+    "name": "Pricing (It's Free, Seriously) - Splitifyd",
     "description": "Simple, transparent pricing for Splitifyd. Split bills with friends for free.",
     "url": canonical,
     "mainEntity": {
@@ -21,14 +21,6 @@ export function PricingPage() {
           "price": "0",
           "priceCurrency": "USD",
           "description": "Perfect for personal use with unlimited friends and expense tracking"
-        },
-        {
-          "@type": "Offer", 
-          "name": "Premium Plan",
-          "price": "5",
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/ComingSoon",
-          "description": "Advanced features including reporting and receipt scanning"
         }
       ]
     }
@@ -36,7 +28,7 @@ export function PricingPage() {
 
   return (
     <StaticPageLayout 
-      title="Pricing" 
+      title="Pricing (It's Free, Seriously)" 
       description="Simple, transparent pricing for Splitifyd. Split bills with friends for free."
       canonical={canonical}
       structuredData={structuredData}
@@ -44,143 +36,167 @@ export function PricingPage() {
       <div class="space-y-8">
         {/* Pricing Hero */}
         <div class="text-center">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-          <p class="text-lg text-gray-600 mb-8">
-            Split bills with friends and family without breaking the bank
-          </p>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Choose Your Adventure</h2>
         </div>
 
         {/* Pricing Cards */}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Free Plan */}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Just Getting Started Plan */}
           <div class="border border-gray-200 rounded-lg p-6">
             <div class="text-center">
-              <h3 class="text-xl font-bold text-gray-900 mb-2">Free</h3>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">The "Just Getting Started" Plan</h3>
               <div class="mb-4">
-                <span class="text-4xl font-bold">$0</span>
+                <sup class="text-xl">$</sup>
+                <span class="text-4xl font-bold">0</span>
                 <span class="text-gray-500">/month</span>
               </div>
-              <p class="text-gray-600 mb-6">Perfect for personal use</p>
             </div>
             
             <ul class="space-y-3 mb-8">
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Split bills with unlimited friends</span>
+                <span>Unlimited expense tracking</span>
               </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Track expenses and balances</span>
+                <span>Unlimited groups</span>
               </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Email notifications</span>
+                <span>Unlimited friends (if you have that many)</span>
               </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Mobile-friendly interface</span>
+                <span>Basic debt simplification</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Access to our highly sarcastic FAQ section</span>
               </li>
             </ul>
             
-            <button class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-              Get Started Free
-            </button>
+            <a href="/register" class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+              Sign Up (It's Still Free)
+            </a>
           </div>
 
-          {/* Premium Plan (Future) */}
-          <div class="border border-gray-200 rounded-lg p-6 opacity-60">
+          {/* I'm Basically a Pro Plan */}
+          <div class="border-2 border-blue-500 rounded-lg p-6 relative">
+            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded text-sm">
+              MOST POPULAR
+            </div>
             <div class="text-center">
-              <h3 class="text-xl font-bold text-gray-900 mb-2">Premium</h3>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">The "I'm Basically a Pro" Plan</h3>
               <div class="mb-4">
-                <span class="text-4xl font-bold">$5</span>
+                <sup class="text-xl">$</sup>
+                <span class="text-4xl font-bold">0</span>
                 <span class="text-gray-500">/month</span>
               </div>
-              <p class="text-gray-600 mb-6">Coming Soon</p>
             </div>
             
             <ul class="space-y-3 mb-8">
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Everything in Free</span>
+                <span>Everything in "Just Getting Started"</span>
               </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Advanced reporting</span>
+                <span>Advanced debt simplification (it's the same, but sounds cooler)</span>
               </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Receipt scanning</span>
+                <span>Priority access to our "we'll get to it when we get to it" support</span>
               </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span>Priority support</span>
+                <span>The warm fuzzy feeling of not paying for anything</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Bragging rights to your friends about your free app</span>
               </li>
             </ul>
             
-            <button class="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed">
-              Coming Soon
-            </button>
+            <a href="/register" class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+              Join Now (Seriously, No Catch)
+            </a>
+          </div>
+
+          {/* I'm a Philanthropist Plan */}
+          <div class="border border-gray-200 rounded-lg p-6">
+            <div class="text-center">
+              <h3 class="text-xl font-bold text-gray-900 mb-2">The "I'm a Philanthropist" Plan</h3>
+              <div class="mb-4">
+                <sup class="text-xl">$</sup>
+                <span class="text-4xl font-bold">0</span>
+                <span class="text-gray-500">/month</span>
+              </div>
+            </div>
+            
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Everything in "I'm Basically a Pro"</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>The ability to tell people you're on the "Philanthropist" plan</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>A deep sense of satisfaction from using a free app</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>We'll send you good vibes (results may vary)</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Your name will be whispered in the halls of free software fame</span>
+              </li>
+            </ul>
+            
+            <a href="/register" class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+              Get Started (It's a Gift!)
+            </a>
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div class="bg-gray-50 rounded-lg p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h3>
-          
-          <div class="space-y-4">
-            <div>
-              <h4 class="font-semibold text-gray-900 mb-2">Is Splitifyd really free?</h4>
-              <p class="text-gray-600">
-                Yes! All core features for splitting bills and tracking expenses are completely free. 
-                We believe everyone should have access to fair bill splitting.
-              </p>
-            </div>
-            
-            <div>
-              <h4 class="font-semibold text-gray-900 mb-2">How do you make money?</h4>
-              <p class="text-gray-600">
-                We're planning premium features for power users in the future, but our core mission 
-                is to provide free, fair bill splitting for everyone.
-              </p>
-            </div>
-            
-            <div>
-              <h4 class="font-semibold text-gray-900 mb-2">Can I use Splitifyd for large groups?</h4>
-              <p class="text-gray-600">
-                Absolutely! There's no limit on group size or the number of expenses you can track.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div class="text-center bg-blue-50 rounded-lg p-8">
-          <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Split Bills Fairly?</h3>
-          <p class="text-gray-600 mb-6">
-            Join thousands of users who trust Splitifyd to manage their shared expenses.
+        {/* Transparency Notice */}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <p class="text-gray-700">
+            <strong>Disclaimer:</strong> All plans are, and always will be, absolutely free. We just like making fancy tables. No hidden fees, no premium features, no secret handshake required. Just pure, unadulterated free expense splitting. You're welcome.
           </p>
-          <a 
-            href="/" 
-            class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Start Splitting Bills
-          </a>
         </div>
       </div>
     </StaticPageLayout>
