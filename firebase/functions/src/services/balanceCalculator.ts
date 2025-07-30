@@ -134,11 +134,3 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     };
 }
 
-export async function updateGroupBalances(groupId: string): Promise<void> {
-    const balances = await calculateGroupBalances(groupId);
-    
-    await db
-        .collection('group-balances')
-        .doc(groupId)
-        .set(balances);
-}

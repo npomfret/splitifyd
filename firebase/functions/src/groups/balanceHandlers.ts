@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
-import { GroupBalance } from '../models/groupBalance';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { ApiError } from '../utils/errors';
-import { logger } from '../logger';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.uid;
@@ -32,18 +30,8 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
         throw new ApiError(403, 'FORBIDDEN', 'User is not a member of this group');
     }
 
-    let balances: GroupBalance;
-    
-    const balanceDoc = await admin.firestore().collection('group-balances').doc(groupId).get();
-    
-    if (!balanceDoc.exists) {
-        logger.info('No cached balances found, calculating...', { groupId });
-        balances = await calculateGroupBalances(groupId);
-        
-        await admin.firestore().collection('group-balances').doc(groupId).set(balances);
-    } else {
-        balances = balanceDoc.data() as GroupBalance;
-    }
+    // Always calculate balances on-demand for accurate data
+    const balances = await calculateGroupBalances(groupId);
 
     res.json({
         groupId: balances.groupId,

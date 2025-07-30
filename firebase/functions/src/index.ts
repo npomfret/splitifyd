@@ -19,7 +19,6 @@ import {
   getExpenseHistory,
 } from './expenses/handlers';
 import { createUserDocument } from './users/handlers';
-import { onExpenseWriteV6 } from './triggers/balanceAggregation';
 import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
 import {
@@ -354,5 +353,3 @@ export const api = onRequest({
   app(req, res);
 });
 
-// Export Firestore triggers
-export { onExpenseWriteV6 };

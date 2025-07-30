@@ -258,14 +258,14 @@ export const updateExpense = async (
   }
 
   if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
-    const amount = updateData.amount || expense.amount;
-    const splitType = updateData.splitType || expense.splitType;
-    const participants = updateData.participants || expense.participants;
+    const amount = updateData.amount !== undefined ? updateData.amount : expense.amount;
+    const splitType = updateData.splitType !== undefined ? updateData.splitType : expense.splitType;
+    const participants = updateData.participants !== undefined ? updateData.participants : expense.participants;
     
     // If only amount is updated and splitType is 'exact', we need to recalculate as equal splits
     // since the old exact splits won't match the new amount
     let finalSplitType = splitType;
-    let splits = updateData.splits || expense.splits;
+    let splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
     
     if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
       if (splitType === 'exact') {
