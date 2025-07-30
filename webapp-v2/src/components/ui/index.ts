@@ -7,3 +7,4 @@ export { LoadingSpinner } from './LoadingSpinner';
 export { Container } from './Container';
 export { Stack } from './Stack';
 export { Avatar } from './Avatar';
+export { ConfirmDialog } from './ConfirmDialog';
