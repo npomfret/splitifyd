@@ -70,7 +70,7 @@ export const GroupSchema = z.object({
       owes: z.record(z.string(), z.number()),
       owedBy: z.record(z.string(), z.number()),
       netBalance: z.number()
-    }).optional(),
+    }).nullable().optional(),
     totalOwed: z.number(),
     totalOwing: z.number()
   }),
@@ -81,7 +81,6 @@ export const GroupSchema = z.object({
     amount: z.number(),
     date: z.string()
   }).optional(),
-  expenseCount: z.number(),
   
   // Optional fields for detail view
   members: z.array(MemberSchema).optional(),
