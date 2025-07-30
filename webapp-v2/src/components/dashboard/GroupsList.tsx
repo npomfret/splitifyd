@@ -52,7 +52,7 @@ export function GroupsList({ onCreateGroup }: GroupsListProps) {
           key={group.id} 
           group={group}
           onClick={() => {
-            route(`/group/${group.id}`);
+            route(`/groups/${group.id}`);
           }}
         />
       ))}

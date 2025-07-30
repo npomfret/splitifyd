@@ -7,6 +7,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import GroupDetailPage from './pages/GroupDetailPage';
 import AddExpensePage from './pages/AddExpensePage';
+import ExpenseDetailPage from './pages/ExpenseDetailPage';
 import { PricingPage } from './pages/static/PricingPage';
 import { TermsOfServicePage } from './pages/static/TermsOfServicePage';
 import { PrivacyPolicyPage } from './pages/static/PrivacyPolicyPage';
@@ -43,6 +44,10 @@ export function App() {
       {/* Add Expense Route */}
       <Route path={`${prefix}/groups/:groupId/add-expense`} component={AddExpensePage} />
       <Route path="/groups/:groupId/add-expense" component={AddExpensePage} />
+      
+      {/* Expense Detail Route */}
+      <Route path={`${prefix}/groups/:groupId/expenses/:expenseId`} component={ExpenseDetailPage} />
+      <Route path="/groups/:groupId/expenses/:expenseId" component={ExpenseDetailPage} />
       
       {/* Join Group Route */}
       <Route path={`${prefix}/join`} component={JoinGroupPage} />

@@ -112,7 +112,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
   // Handle click events
   const handleExpenseClick = (expense: any) => {
-    console.log('Expense clicked:', expense.id);
+    route(`/groups/${groupId}/expenses/${expense.id}`);
   };
 
   const handleAddExpense = () => {
