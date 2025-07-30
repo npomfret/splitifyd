@@ -4,6 +4,8 @@ import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { authStore } from '../app/stores/auth-store';
+import { apiClient } from '../app/apiClient';
+import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { V2Indicator } from '../components/ui/V2Indicator';
@@ -14,6 +16,11 @@ interface AddExpensePageProps {
 
 export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const isInitialized = useSignal(false);
+  
+  // Parse URL parameters for edit mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const expenseId = urlParams.get('id');
+  const isEditMode = urlParams.get('edit') === 'true' && !!expenseId;
   
   // Computed values from stores
   const currentUser = useComputed(() => authStore.user);
@@ -50,12 +57,52 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
           await groupDetailStore.fetchGroup(groupId);
         }
         
-        // Try to load draft first, then set defaults if no draft
-        const draftLoaded = expenseFormStore.loadDraft(groupId);
-        if (!draftLoaded) {
-          // Set current user as payer by default only if no draft
-          if (currentUser.value) {
-            expenseFormStore.updateField('paidBy', currentUser.value.uid);
+        if (isEditMode && expenseId) {
+          // Edit mode: fetch existing expense and populate form
+          try {
+            const expense = await apiClient.request<ExpenseData>('/expenses', {
+              method: 'GET',
+              query: { id: expenseId }
+            });
+            
+            if (expense) {
+              // Populate form with existing expense data
+              expenseFormStore.updateField('description', expense.description);
+              expenseFormStore.updateField('amount', expense.amount);
+              expenseFormStore.updateField('date', expense.date.split('T')[0]); // Extract date part
+              expenseFormStore.updateField('paidBy', expense.paidBy);
+              expenseFormStore.updateField('category', expense.category);
+              expenseFormStore.updateField('splitType', expense.splitType);
+              
+              // Set participants from expense splits
+              const participantIds = expense.splits.map(split => split.userId);
+              expenseFormStore.setParticipants(participantIds);
+              
+              // Set splits based on split type
+              expense.splits.forEach(split => {
+                if (expense.splitType === 'exact') {
+                  expenseFormStore.updateSplitAmount(split.userId, split.amount);
+                } else if (expense.splitType === 'percentage') {
+                  const percentage = (split.amount / expense.amount) * 100;
+                  expenseFormStore.updateSplitPercentage(split.userId, percentage);
+                }
+              });
+            } else {
+              throw new Error('Expense not found');
+            }
+          } catch (error) {
+            console.error('Failed to load expense for editing:', error);
+            route(`/groups/${groupId}`);
+            return;
+          }
+        } else {
+          // Create mode: try to load draft first, then set defaults if no draft
+          const draftLoaded = expenseFormStore.loadDraft(groupId);
+          if (!draftLoaded) {
+            // Set current user as payer by default only if no draft
+            if (currentUser.value) {
+              expenseFormStore.updateField('paidBy', currentUser.value.uid);
+            }
           }
         }
         
@@ -105,9 +152,17 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     if (!groupId) return;
     
     try {
-      await expenseFormStore.saveExpense(groupId);
-      // Navigate back to group detail on success
-      route(`/groups/${groupId}`);
+      if (isEditMode && expenseId) {
+        // Edit mode: update existing expense
+        await expenseFormStore.updateExpense(groupId, expenseId);
+        // Navigate back to expense detail after successful update
+        route(`/groups/${groupId}/expenses/${expenseId}`);
+      } else {
+        // Create mode: save new expense
+        await expenseFormStore.saveExpense(groupId);
+        // Navigate back to group detail on success
+        route(`/groups/${groupId}`);
+      }
     } catch (error) {
       // Error is handled by the store
       console.error('Failed to save expense:', error);
@@ -121,7 +176,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         return;
       }
     }
-    route(`/groups/${groupId}`);
+    
+    if (isEditMode && expenseId) {
+      // Navigate back to expense detail when canceling edit
+      route(`/groups/${groupId}/expenses/${expenseId}`);
+    } else {
+      // Navigate back to group detail when canceling create
+      route(`/groups/${groupId}`);
+    }
   };
   
   const handleAmountChange = (e: Event) => {
@@ -174,7 +236,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex flex-row items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Add Expense
+              {isEditMode ? 'Edit Expense' : 'Add Expense'}
             </h1>
             <Button variant="ghost" onClick={handleCancel}>
               Cancel
@@ -669,7 +731,10 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 variant="primary"
                 disabled={saving.value || participants.value.length === 0}
               >
-                {saving.value ? 'Saving...' : 'Save Expense'}
+                {saving.value 
+                  ? (isEditMode ? 'Updating...' : 'Saving...') 
+                  : (isEditMode ? 'Update Expense' : 'Save Expense')
+                }
               </Button>
             </div>
           </Stack>

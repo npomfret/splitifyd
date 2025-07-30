@@ -30,6 +30,7 @@ export interface ExpenseFormStore {
   updateSplitPercentage(userId: string, percentage: number): void;
   validateForm(): boolean;
   saveExpense(groupId: string): Promise<ExpenseData>;
+  updateExpense(groupId: string, expenseId: string): Promise<ExpenseData>;
   clearError(): void;
   reset(): void;
   hasUnsavedChanges(): boolean;
@@ -506,6 +507,60 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       // Clear draft and reset form after successful save
       this.clearDraft(groupId);
       this.reset();
+      
+      return expense;
+    } catch (error) {
+      errorSignal.value = this.getErrorMessage(error);
+      throw error;
+    } finally {
+      savingSignal.value = false;
+    }
+  }
+
+  async updateExpense(groupId: string, expenseId: string): Promise<ExpenseData> {
+    if (!this.validateForm()) {
+      throw new Error('Please fix validation errors');
+    }
+    
+    savingSignal.value = true;
+    errorSignal.value = null;
+    
+    try {
+      // Convert date string to ISO format with time
+      const dateTime = new Date(dateSignal.value);
+      dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      
+      const request: CreateExpenseRequest = {
+        groupId,
+        description: descriptionSignal.value.trim(),
+        amount: amountSignal.value,
+        paidBy: paidBySignal.value,
+        category: categorySignal.value,
+        date: dateTime.toISOString(),
+        splitType: splitTypeSignal.value,
+        participants: participantsSignal.value,
+        splits: splitsSignal.value
+      };
+      
+      const expense = await apiClient.updateExpense(expenseId, request);
+      
+      // Track recent category and amount
+      addRecentCategory(categorySignal.value);
+      addRecentAmount(amountSignal.value);
+      
+      // Refresh group data to show the updated expense immediately
+      try {
+        await Promise.all([
+          groupDetailStore.refreshAll(),
+          groupsStore.refreshGroups()
+        ]);
+      } catch (refreshError) {
+        // Log refresh error but don't fail the expense update
+        console.warn('Failed to refresh data after updating expense:', refreshError);
+      }
+      
+      // Clear draft after successful update
+      this.clearDraft(groupId);
       
       return expense;
     } catch (error) {

@@ -290,6 +290,13 @@ export class ApiClient {
     });
   }
 
+  async updateExpense(expenseId: string, data: CreateExpenseRequest): Promise<ExpenseData> {
+    return this.request('/expenses', {
+      method: 'PUT',
+      body: { ...data, id: expenseId }
+    });
+  }
+
 
   async joinGroupByLink(linkId: string): Promise<Group> {
     return this.request('/groups/join', {

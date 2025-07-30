@@ -1,7 +1,6 @@
 import { test, expect } from './fixtures/base-test';
 import { authenticatedTest } from './fixtures/authenticated-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, V2_URL } from './helpers';
-import { createAndLoginTestUser } from './helpers/auth-utils';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 import { DashboardPage, CreateGroupModalPage } from './pages';
 
 setupMCPDebugOnFailure();
@@ -311,6 +310,141 @@ test.describe('Split Breakdown Visualization E2E', () => {
       
       // Check that no console errors were logged
       expect(consoleErrors.length).toBe(0);
+    });
+  });
+
+  test.describe('Edit Expense Flow', () => {
+    authenticatedTest('should edit expense from detail page', async ({ authenticatedPage }) => {
+      const { page } = authenticatedPage;
+      
+      // Create a test group and expense first
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
+      
+      await dashboardPage.openCreateGroupModal();
+      await page.waitForTimeout(500);
+      await createGroupModal.createGroup('Edit Test Group', 'Testing expense editing');
+      
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Create an expense
+      const addExpenseButton = page.getByRole('button', { name: /Add Expense/i });
+      await expect(addExpenseButton).toBeVisible();
+      await addExpenseButton.click();
+      
+      // Fill out expense form
+      await page.getByPlaceholder(/What was this expense for\?/i).fill('Original Description');
+      await page.getByRole('spinbutton', { name: /Amount/i }).fill('100.00');
+      
+      // Select participants
+      const participantCheckboxes = page.getByRole('checkbox');
+      const firstCheckbox = participantCheckboxes.first();
+      if (!(await firstCheckbox.isChecked())) {
+        await firstCheckbox.check();
+      }
+      
+      // Submit the expense
+      await page.getByRole('button', { name: /Save Expense/i }).click();
+      
+      // Wait for navigation back to group page
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Find and click on the created expense to go to detail page
+      const expenseItem = page.getByText('Original Description');
+      await expect(expenseItem).toBeVisible();
+      await expenseItem.click();
+      
+      // Wait for expense detail page
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Verify we're on expense detail page
+      await expect(page.getByText('Original Description')).toBeVisible();
+      await expect(page.getByText('$100.00')).toBeVisible();
+      
+      // Click edit button
+      const editButton = page.getByRole('button', { name: /Edit/i });
+      await expect(editButton).toBeVisible();
+      await editButton.click();
+      
+      // Should navigate to edit page (AddExpensePage with edit parameters)
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?id=[a-zA-Z0-9]+&edit=true/, { timeout: 3000 });
+      
+      // Verify edit mode UI
+      await expect(page.getByText('Edit Expense')).toBeVisible();
+      await expect(page.getByRole('button', { name: /Update Expense/i })).toBeVisible();
+      
+      // Verify form is pre-populated with existing data
+      const descriptionField = page.getByPlaceholder(/What was this expense for\?/i);
+      const amountField = page.getByRole('spinbutton', { name: /Amount/i });
+      
+      await expect(descriptionField).toHaveValue('Original Description');
+      await expect(amountField).toHaveValue('100');
+      
+      // Modify the expense
+      await descriptionField.fill('Updated Description');
+      await amountField.fill('150.00');
+      
+      // Submit the update
+      await page.getByRole('button', { name: /Update Expense/i }).click();
+      
+      // Should navigate back to expense detail page
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Verify updated expense details
+      await expect(page.getByText('Updated Description')).toBeVisible();
+      await expect(page.getByText('$150.00')).toBeVisible();
+    });
+
+    authenticatedTest('should cancel edit and return to expense detail', async ({ authenticatedPage }) => {
+      const { page } = authenticatedPage;
+      
+      // Create group and expense (abbreviated setup)
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
+      
+      await dashboardPage.openCreateGroupModal();
+      await page.waitForTimeout(500);
+      await createGroupModal.createGroup('Cancel Edit Test', 'Testing edit cancellation');
+      
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Create expense
+      const addExpenseButton = page.getByRole('button', { name: /Add Expense/i });
+      await addExpenseButton.click();
+      
+      await page.getByPlaceholder(/What was this expense for\?/i).fill('Test Cancel Expense');
+      await page.getByRole('spinbutton', { name: /Amount/i }).fill('75.00');
+      
+      const participantCheckboxes = page.getByRole('checkbox');
+      const firstCheckbox = participantCheckboxes.first();
+      if (!(await firstCheckbox.isChecked())) {
+        await firstCheckbox.check();
+      }
+      
+      await page.getByRole('button', { name: /Save Expense/i }).click();
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Go to expense detail
+      await page.getByText('Test Cancel Expense').click();
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Click edit
+      await page.getByRole('button', { name: /Edit/i }).click();
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?id=[a-zA-Z0-9]+&edit=true/, { timeout: 3000 });
+      
+      // Make a change
+      await page.getByPlaceholder(/What was this expense for\?/i).fill('Should Not Save This');
+      
+      // Click cancel
+      await page.getByRole('button', { name: /Cancel/i }).click();
+      
+      // Should return to expense detail page
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      
+      // Verify original data is still there (changes were not saved)
+      await expect(page.getByText('Test Cancel Expense')).toBeVisible();
+      await expect(page.getByText('$75.00')).toBeVisible();
+      await expect(page.getByText('Should Not Save This')).not.toBeVisible();
     });
   });
 });
