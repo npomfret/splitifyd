@@ -89,6 +89,55 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - [ ] Performance optimizations
 - [ ] Final testing and polish
 
+### Phase 4 Implementation Plan
+
+**Current State Analysis:**
+- ExpenseDetailPage has basic view/edit functionality working
+- Delete expense API endpoint exists in firebase/functions/src/expenses/handlers.ts:387
+- No delete functionality in frontend yet
+- No share functionality implemented
+- Basic receipt display exists but could be enhanced
+- Error handling is basic but functional
+
+**Implementation Approach:**
+1. **ExpenseActions Component**: Create reusable component for expense actions
+2. **Delete Functionality**: Implement delete with confirmation dialog
+3. **Share Functionality**: Add simple URL sharing capability
+4. **Receipt Enhancement**: Improve receipt display if receipts exist
+5. **Error Handling**: Enhance error boundaries and feedback
+6. **Polish**: UI improvements and performance optimizations
+
+**Implementation Steps:**
+1. Create ExpenseActions.tsx component with action buttons layout
+2. Add delete confirmation dialog using existing UI components
+3. Implement deleteExpense method in apiClient.ts
+4. Add handleDelete method to ExpenseDetailPage
+5. Implement basic share functionality (copy URL to clipboard)
+6. Add receipt viewing enhancements if receipts are present
+7. Improve loading states and error feedback
+8. Add optimistic updates for better UX
+9. Polish mobile responsiveness and animations
+10. Add comprehensive error boundaries
+
+**Components to Create:**
+- `ExpenseActions.tsx` - Action buttons (edit, delete, share)
+- `ConfirmDialog.tsx` - Reusable confirmation dialog (if doesn't exist)
+- Enhanced receipt viewer (if needed)
+
+**API Integration:**
+- DELETE `/expenses?id=:id` - Delete expense (already exists)
+
+**State Management:**
+- Local state for delete confirmation
+- Optimistic updates for delete action
+- Error state management
+
+**Testing:**
+- Delete functionality with confirmation
+- Share URL generation and copying
+- Error scenarios (network, permissions)
+- Mobile interaction testing
+
 ## Implementation Details
 
 ### Key Components to Create
