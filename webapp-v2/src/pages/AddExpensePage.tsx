@@ -2,6 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
+import type { ExpenseCategory } from '@shared/types/webapp-shared-types';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { authStore } from '../app/stores/auth-store';
 import { apiClient } from '../app/apiClient';
@@ -349,9 +350,9 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       onChange={(e) => expenseFormStore.updateField('category', (e.target as HTMLSelectElement).value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     >
-                      {EXPENSE_CATEGORIES.map(cat => (
+                      {EXPENSE_CATEGORIES.map((cat: ExpenseCategory) => (
                         <option key={cat.name} value={cat.name}>
-                          {cat.icon} {cat.name}
+                          {cat.icon} {cat.displayName}
                         </option>
                       ))}
                     </select>

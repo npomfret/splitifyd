@@ -66,7 +66,6 @@ export const GroupSchema = z.object({
   balance: z.object({
     userBalance: z.object({
       userId: z.string().min(1),
-      name: z.string().min(1),
       owes: z.record(z.string(), z.number()),
       owedBy: z.record(z.string(), z.number()),
       netBalance: z.number()

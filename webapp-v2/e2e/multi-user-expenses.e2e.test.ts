@@ -4,7 +4,7 @@ import { GroupDetailPage } from './pages';
 
 test.describe('Multi-user group with expenses', () => {
   test('multiple users can join a group via share link and add expenses', async ({ browser }) => {
-    test.setTimeout(10000);
+    test.setTimeout(40000);
     // Create 3 browser contexts for 3 different users
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();

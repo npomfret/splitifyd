@@ -22,6 +22,22 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     }
   }, [isOpen, groupId]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
   const generateLink = async () => {
     setLoading(true);
     setError(null);

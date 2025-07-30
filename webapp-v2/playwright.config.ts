@@ -10,8 +10,8 @@ export default defineConfig({
   tsconfig: './tsconfig.build.json',
   /* Output directory for test results */
   outputDir: '../tmp/playwright-test-results',
-  /* Global test timeout - 30 seconds to capture console errors */
-  timeout: 30000,
+  /* Global test timeout - 5 seconds for fast feedback */
+  timeout: 5000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

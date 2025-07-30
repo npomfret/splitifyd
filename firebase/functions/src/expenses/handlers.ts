@@ -186,10 +186,15 @@ export const createExpense = async (
       userId
     });
 
-    res.status(HTTP_STATUS.CREATED).json({
-      id: docRef.id,
-      message: 'Expense created successfully',
-    });
+    // Convert Firestore Timestamps to ISO strings for the response
+    const responseExpense = {
+      ...expense,
+      date: toISOString(expense.date),
+      createdAt: toISOString(expense.createdAt),
+      updatedAt: toISOString(expense.updatedAt),
+    };
+
+    res.status(HTTP_STATUS.CREATED).json(responseExpense);
   } catch (error) {
     logger.error('Failed to create expense', {
       userId,

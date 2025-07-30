@@ -1,8 +1,12 @@
 import { signal } from '@preact/signals';
 import type { CreateExpenseRequest, ExpenseData, ExpenseSplit } from '@shared/types/webapp-shared-types';
+import { EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
+
+// Re-export categories for easy access
+export { EXPENSE_CATEGORIES };
 
 export interface ExpenseFormStore {
   // Form fields
@@ -63,7 +67,7 @@ const descriptionSignal = signal<string>('');
 const amountSignal = signal<number>(0);
 const dateSignal = signal<string>(getTodayDate());
 const paidBySignal = signal<string>('');
-const categorySignal = signal<string>('General');
+const categorySignal = signal<string>('food');
 const splitTypeSignal = signal<'equal' | 'exact' | 'percentage'>('equal');
 const participantsSignal = signal<string[]>([]);
 const splitsSignal = signal<ExpenseSplit[]>([]);
@@ -74,18 +78,7 @@ const savingSignal = signal<boolean>(false);
 const errorSignal = signal<string | null>(null);
 const validationErrorsSignal = signal<Record<string, string>>({});
 
-// Common expense categories with icons
-export const EXPENSE_CATEGORIES = [
-  { name: 'General', icon: '📄' },
-  { name: 'Food & Dining', icon: '🍽️' },
-  { name: 'Transportation', icon: '🚗' },  
-  { name: 'Entertainment', icon: '🎬' },
-  { name: 'Shopping', icon: '🛍️' },
-  { name: 'Bills & Utilities', icon: '⚡' },
-  { name: 'Travel', icon: '✈️' },
-  { name: 'Healthcare', icon: '🏥' },
-  { name: 'Other', icon: '❓' }
-];
+// Categories are now imported from shared types
 
 
 // Recent categories management
@@ -580,7 +573,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     amountSignal.value = 0;
     dateSignal.value = getTodayDate();
     paidBySignal.value = '';
-    categorySignal.value = 'General';
+    categorySignal.value = 'food';
     splitTypeSignal.value = 'equal';
     participantsSignal.value = [];
     splitsSignal.value = [];
@@ -595,7 +588,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       amountSignal.value > 0 ||
       dateSignal.value !== getTodayDate() ||
       paidBySignal.value !== '' ||
-      categorySignal.value !== 'General' ||
+      categorySignal.value !== 'food' ||
       splitTypeSignal.value !== 'equal' ||
       participantsSignal.value.length > 0 ||
       splitsSignal.value.length > 0
@@ -647,7 +640,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       amountSignal.value = draftData.amount || 0;
       dateSignal.value = draftData.date || getTodayDate();
       paidBySignal.value = draftData.paidBy || '';
-      categorySignal.value = draftData.category || 'General';
+      categorySignal.value = draftData.category || 'food';
       splitTypeSignal.value = draftData.splitType || 'equal';
       participantsSignal.value = draftData.participants || [];
       splitsSignal.value = draftData.splits || [];
