@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import type { CreateExpenseRequest, ExpenseData, ExpenseSplit } from '../../types/webapp-shared-types';
+import type { CreateExpenseRequest, ExpenseData, ExpenseSplit } from '@shared/types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';

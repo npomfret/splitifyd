@@ -1,7 +1,7 @@
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { Group } from '../../types/webapp-shared-types';
+import type { Group } from '@shared/types/webapp-shared-types';
 
 interface GroupHeaderProps {
   group: Group;

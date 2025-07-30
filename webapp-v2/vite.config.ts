@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, './src/shared'),
+      '@shared': path.resolve(__dirname, '../firebase/functions/src'),
       // React compatibility for libraries that expect React
       'react': 'preact/compat',
       'react-dom': 'preact/compat'

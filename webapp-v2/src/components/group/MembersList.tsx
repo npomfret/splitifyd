@@ -1,5 +1,5 @@
 import { Card } from '../ui/Card';
-import type { User } from '../../types/webapp-shared-types';
+import type { User } from '@shared/types/webapp-shared-types';
 
 interface MembersListProps {
   members: User[];

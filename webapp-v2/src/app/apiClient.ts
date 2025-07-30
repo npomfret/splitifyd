@@ -16,7 +16,7 @@ import type {
   ExpenseData,
   AppConfiguration,
   CreateExpenseRequest
-} from '../types/webapp-shared-types';
+} from '@shared/types/webapp-shared-types';
 
 // Define HealthCheckResponse locally since it's not in shared types
 interface HealthCheckResponse {

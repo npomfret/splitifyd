@@ -20,7 +20,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["../firebase/functions/src/*"],
+      "@test-builders": ["../firebase/functions/__tests__/support/builders"]
     }
   },
   "include": ["src"],

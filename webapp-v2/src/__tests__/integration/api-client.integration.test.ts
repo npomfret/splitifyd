@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { apiClient } from '../../app/apiClient';
 import { ApiDriver } from '../../../../firebase/functions/__tests__/support/ApiDriver';
-import type { User } from '../../types/webapp-shared-types';
+import type { User } from '@shared/types/webapp-shared-types';
 
 describe('API Client Integration Tests', () => {
   let apiDriver: ApiDriver;
