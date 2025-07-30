@@ -14,9 +14,11 @@ jest.mock('../src/logger', () => ({
 
 // Mock Firebase Admin
 const mockVerifyIdToken = jest.fn();
+const mockGetUser = jest.fn();
 jest.mock('firebase-admin', () => ({
   auth: () => ({
-    verifyIdToken: mockVerifyIdToken
+    verifyIdToken: mockVerifyIdToken,
+    getUser: mockGetUser
   })
 }));
 
@@ -67,6 +69,11 @@ describe('Authentication Middleware', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    // Clean up any timers to prevent Jest from hanging
+    jest.clearAllTimers();
   });
 
   describe('authenticate', () => {
@@ -131,11 +138,18 @@ describe('Authentication Middleware', () => {
         email: 'test@example.com'
       };
 
+      const mockUserRecord = {
+        uid: 'user123',
+        email: 'test@example.com',
+        displayName: 'Test User'
+      };
+
       mockRequest.headers = {
         authorization: 'Bearer valid-token'
       };
 
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockGetUser.mockResolvedValue(mockUserRecord);
 
       await authenticate(
         mockRequest as AuthenticatedRequest,
@@ -144,9 +158,11 @@ describe('Authentication Middleware', () => {
       );
 
       expect(mockVerifyIdToken).toHaveBeenCalledWith('valid-token');
+      expect(mockGetUser).toHaveBeenCalledWith('user123');
       expect(mockRequest.user).toEqual({
         uid: 'user123',
-        email: 'test@example.com'
+        email: 'test@example.com',
+        displayName: 'Test User'
       });
       expect(mockNext).toHaveBeenCalled();
     });
@@ -157,6 +173,43 @@ describe('Authentication Middleware', () => {
       };
 
       mockVerifyIdToken.mockRejectedValue(new Error('Invalid token'));
+
+      await authenticate(
+        mockRequest as AuthenticatedRequest,
+        mockResponse as Response,
+        mockNext
+      );
+
+      expect(mockSendError).toHaveBeenCalledWith(
+        mockResponse,
+        expect.objectContaining({
+          statusCode: 401,
+          code: 'INVALID_TOKEN',
+          message: 'Invalid authentication token'
+        }),
+        undefined
+      );
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should reject users without required fields', async () => {
+      const mockDecodedToken = {
+        uid: 'user123',
+        email: 'test@example.com'
+      };
+
+      const mockUserRecord = {
+        uid: 'user123',
+        email: 'test@example.com',
+        // Missing displayName
+      };
+
+      mockRequest.headers = {
+        authorization: 'Bearer valid-token'
+      };
+
+      mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockGetUser.mockResolvedValue(mockUserRecord);
 
       await authenticate(
         mockRequest as AuthenticatedRequest,
@@ -186,11 +239,18 @@ describe('Authentication Middleware', () => {
         email: 'test@example.com'
       };
 
+      const mockUserRecord = {
+        uid: uniqueUserId,
+        email: 'test@example.com',
+        displayName: 'Rate Limit Test User'
+      };
+
       mockRequest.headers = {
         authorization: 'Bearer valid-token'
       };
 
       mockVerifyIdToken.mockResolvedValue(mockDecodedToken);
+      mockGetUser.mockResolvedValue(mockUserRecord);
       
       // Make requests up to the limit
       for (let i = 0; i < 10; i++) {
