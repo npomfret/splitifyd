@@ -150,8 +150,7 @@ export class ApiDriver {
     // Step 1: Create group with just the creator
     const groupData = {
       name,
-      description: `Test group created at ${new Date().toISOString()}`,
-      memberEmails: [] // Don't include other emails initially
+      description: `Test group created at ${new Date().toISOString()}`
     };
 
     const group = await this.apiRequest('/groups', 'POST', groupData, creatorToken) as Group;

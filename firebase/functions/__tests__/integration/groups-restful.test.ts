@@ -42,20 +42,22 @@ describe('RESTful Group Endpoints', () => {
       expect(response.createdBy).toBe(users[0].uid);
       expect(response.members).toHaveLength(1);
       expect(response.members[0].uid).toBe(users[0].uid);
-      expect(response.memberIds).toContain(users[0].uid);
-      // expenseCount removed - calculated on demand
+      expect(response.expenseCount).toBe(0);
     });
 
-    test('should create a group with member emails', async () => {
+    test('should create a group with member objects', async () => {
       const groupData = new GroupBuilder()
         .withName(`Group with Members ${uuidv4()}`)
-        .withMemberEmails(['test1@example.com', 'test2@example.com'])
+        .withMembers([{
+          uid: users[0].uid,
+          displayName: users[0].displayName,
+          email: users[0].email
+        }])
         .build();
 
       const response = await driver.createGroupNew(groupData, users[0].token);
 
-      // After denormalization removal, we verify memberCount instead of memberEmails
-      expect(response.memberCount).toBe(1); // Only creator for now, as emails need to be registered users
+      expect(response.memberCount).toBe(1);
       expect(response.id).toBeDefined();
       expect(response.name).toBe(groupData.name);
     });
@@ -371,7 +373,7 @@ describe('RESTful Group Endpoints', () => {
       expect(firstGroup.balance).toHaveProperty('totalOwing');
       // userBalance is null for groups without balances
       expect(firstGroup).toHaveProperty('lastActivity');
-      // expenseCount and lastExpense removed - calculated on demand
+      expect(firstGroup).toHaveProperty('expenseCount');
     });
 
     test('should support pagination', async () => {

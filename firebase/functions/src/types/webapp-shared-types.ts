@@ -94,8 +94,6 @@ export interface Group {
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
-  memberIds?: string[];
-  memberEmails?: string[];
 }
 
 
@@ -106,7 +104,6 @@ export interface Group {
 export interface CreateGroupRequest {
   name: string;
   description?: string;
-  memberEmails?: string[];
   members?: User[];
 }
 

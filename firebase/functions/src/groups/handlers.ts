@@ -134,8 +134,7 @@ const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: stri
     })(),
     createdBy: groupDoc.createdBy,
     createdAt: groupDoc.createdAt.toISOString(),
-    updatedAt: groupDoc.updatedAt.toISOString(),
-    memberIds: groupDoc.memberIds
+    updatedAt: groupDoc.updatedAt.toISOString()
   };
 };
 

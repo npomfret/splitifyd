@@ -64,7 +64,7 @@ test.describe('Settlement Workflow E2E', () => {
           
           // Submit settlement
           const recordButton = page.getByRole('button', { name: /record/i })
-            .or(page.getByRole('button', { name: /confirm/i })
+            .or(page.getByRole('button', { name: /confirm/i }))
             .or(page.getByRole('button', { name: /settle/i }).last());
           
           await recordButton.click();
@@ -209,7 +209,7 @@ test.describe('Settlement Workflow E2E', () => {
             
             // Confirm the settlement
             const confirmButton = page.getByRole('button', { name: /confirm/i })
-              .or(page.getByRole('button', { name: /yes/i });
+              .or(page.getByRole('button', { name: /yes/i }));
             
             await confirmButton.click();
             await page.waitForTimeout(2000);
@@ -561,7 +561,7 @@ test.describe('Settlement Workflow E2E', () => {
         
         // Check for confirmation actions
         const confirmButton = page.getByRole('button', { name: /confirm.*receipt/i })
-          .or(page.getByRole('button', { name: /acknowledge/i })
+          .or(page.getByRole('button', { name: /acknowledge/i }))
           .or(page.getByRole('button', { name: /verify/i }));
         
         if (await confirmButton.count() > 0) {

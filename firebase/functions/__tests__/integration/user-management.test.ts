@@ -340,7 +340,7 @@ describe('User Management Tests', () => {
       // Test user can update groups they created
       const groupData = new GroupBuilder()
         .withName(`User Profile Group ${testUser.displayName}`)
-        .withMemberEmails([testUser.email])
+        .withMembers([testUser])
         .build();
       
       const userGroup = await driver.createGroupNew(groupData, testUser.token);
@@ -361,7 +361,7 @@ describe('User Management Tests', () => {
 
       const otherGroupData = new GroupBuilder()
         .withName(`Other User Group ${otherUser.displayName}`)
-        .withMemberEmails([otherUser.email])
+        .withMembers([otherUser])
         .build();
       
       const otherUserGroup = await driver.createGroupNew(otherGroupData, otherUser.token);
@@ -380,7 +380,7 @@ describe('User Management Tests', () => {
     test('should handle concurrent user operations safely', async () => {
       const concurrentGroupData = new GroupBuilder()
         .withName(`Concurrent Test Group ${testUser.displayName}`)
-        .withMemberEmails([testUser.email])
+        .withMembers([testUser])
         .build();
       
       const userGroup = await driver.createGroupNew(concurrentGroupData, testUser.token);

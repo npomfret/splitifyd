@@ -67,7 +67,7 @@ test.describe('Delete Operations E2E', () => {
         if (hasConfirmation) {
           // Confirm deletion
           const confirmButton = page.getByRole('button', { name: /confirm/i })
-            .or(page.getByRole('button', { name: /yes/i })
+            .or(page.getByRole('button', { name: /yes/i }))
             .or(page.getByRole('button', { name: /delete/i }).last());
           
           await confirmButton.click();
@@ -430,7 +430,7 @@ test.describe('Delete Operations E2E', () => {
         
         // Look for bulk delete button
         const bulkDeleteButton = page.getByRole('button', { name: /delete.*selected/i })
-          .or(page.getByRole('button', { name: /delete \(\d+\)/i });
+          .or(page.getByRole('button', { name: /delete \(\d+\)/i }));
         
         if (await bulkDeleteButton.count() > 0) {
           await bulkDeleteButton.first().click();
