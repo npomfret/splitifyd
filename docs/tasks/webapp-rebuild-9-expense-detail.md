@@ -10,9 +10,10 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - [x] ExpensesList component with onClick handler
 
 ## Current State
-- ExpenseItem has onClick handler that passes expense data
-- GroupDetailPage has handleExpenseClick that only logs to console
-- No expense detail route exists yet
+- ✅ ExpenseItem has onClick handler that passes expense data
+- ✅ GroupDetailPage has handleExpenseClick that navigates to expense detail
+- ✅ Expense detail route exists and works
+- ✅ ExpenseDetailPage displays full expense information
 - Edit functionality exists in AddExpensePage via URL params
 
 ## Target State
@@ -24,13 +25,15 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 
 ## Task Breakdown (4 commits, ~6 hours total)
 
-### Commit 1: Basic Expense Detail View (1.5 hours)
-- [ ] Add expense detail route to App.tsx
-- [ ] Create ExpenseDetailPage component
-- [ ] Wire up navigation from ExpensesList
-- [ ] Display basic expense info (amount, description, date, category, payer)
-- [ ] Add loading and error states
-- [ ] Back navigation to group
+### Commit 1: Basic Expense Detail View (1.5 hours) ✅ COMPLETED
+- [x] Add expense detail route to App.tsx
+- [x] Create ExpenseDetailPage component
+- [x] Wire up navigation from ExpensesList
+- [x] Display basic expense info (amount, description, date, category, payer)
+- [x] Add loading and error states
+- [x] Back navigation to group
+- [x] Fix routing inconsistency (use /groups/ instead of /group/)
+- [x] Implement split breakdown display with participants and amounts
 
 ### Commit 2: Split Breakdown Visualization (1.5 hours)
 - [ ] Create SplitBreakdown component
@@ -235,6 +238,30 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
    - Clearer split representation
    - Intuitive edit mode
    - Smooth transitions
+
+## Phase 1 Completion Notes
+
+**Completed:** January 30, 2025
+
+**Implementation Details:**
+- Created ExpenseDetailPage.tsx with full expense display functionality
+- Added expense detail routes to App.tsx for both dev and production paths
+- Fixed routing inconsistency (changed /group/ to /groups/ in GroupsList)
+- Implemented expense data fetching with proper error handling and loading states
+- Added back navigation and edit button
+- Display includes: amount, description, date, category, payer info, and split breakdown
+- Uses existing UI components (Card, Button, Avatar, Stack, LoadingSpinner)
+- Follows established patterns for state management with signals
+- Proper TypeScript typing throughout
+
+**Files Modified:**
+- webapp-v2/src/App.tsx - Added expense detail routes
+- webapp-v2/src/components/dashboard/GroupsList.tsx - Fixed route consistency
+- webapp-v2/src/pages/GroupDetailPage.tsx - Wired up expense click navigation
+- webapp-v2/src/pages/ExpenseDetailPage.tsx - New component (235 lines)
+
+**Next Steps:**
+Ready for Phase 2: Split Breakdown Visualization (1.5 hours)
 
 ## Timeline
 
