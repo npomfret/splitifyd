@@ -19,6 +19,7 @@ import { UserBalance } from '../types/webapp-shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 import { userService } from '../services/userService';
+import { calculateGroupBalances } from '../services/balanceCalculator';
 
 /**
  * Get the groups collection reference
@@ -80,23 +81,38 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDoc
 
 /**
  * Convert GroupDocument to Group with computed fields
- * TODO: This is a minimal implementation - needs proper balance calculation
  */
 const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: string): Promise<Group> => {
+  // Calculate real balance for the user
+  const groupBalances = await calculateGroupBalances(groupDoc.id);
+  const userBalanceData = groupBalances.userBalances[userId];
+  
+  let userBalance: UserBalance | null = null;
+  let totalOwed = 0;
+  let totalOwing = 0;
+  
+  if (userBalanceData) {
+    userBalance = {
+      userId: userId,
+      netBalance: userBalanceData.netBalance,
+      owes: userBalanceData.owes,
+      owedBy: userBalanceData.owedBy
+    };
+    
+    // Calculate totals from user's balance data
+    totalOwed = Object.values(userBalanceData.owedBy as Record<string, number>).reduce((sum: number, amount: number) => sum + amount, 0);
+    totalOwing = Object.values(userBalanceData.owes as Record<string, number>).reduce((sum: number, amount: number) => sum + amount, 0);
+  }
+
   return {
     id: groupDoc.id,
     name: groupDoc.name,
     description: groupDoc.description,
     memberCount: groupDoc.memberIds.length,
     balance: {
-      userBalance: {
-        userId: userId,
-        netBalance: 0, // TODO: Calculate actual balance
-        owes: {},
-        owedBy: {}
-      },
-      totalOwed: 0, // TODO: Calculate from expenses
-      totalOwing: 0 // TODO: Calculate from expenses
+      userBalance,
+      totalOwed,
+      totalOwing
     },
     lastActivity: groupDoc.lastExpenseTime ? 
       `Last expense ${new Date(groupDoc.lastExpenseTime).toLocaleDateString()}` : 

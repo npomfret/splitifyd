@@ -148,7 +148,6 @@ export interface ExpenseSplit {
   userId: string;
   amount: number;
   percentage?: number;
-  userName?: string;
 }
 
 export interface ExpenseData {
@@ -156,7 +155,6 @@ export interface ExpenseData {
   groupId: string;
   createdBy: string;
   paidBy: string;
-  paidByName?: string;
   amount: number;
   description: string;
   category: string;
