@@ -28,6 +28,8 @@ The current test suite has **71 tests** running against the Firebase emulator, b
 
 ## Implementation Plan
 
+**Note**: Based on analysis, the v2 app HAS dashboard, groups, and expense functionality implemented. We need to test it!
+
 ### Phase 1: Authentication Setup (Commit 1-2)
 
 #### Commit 1: Create auth test utilities
@@ -331,28 +333,19 @@ test('data persists across sessions', async ({ page, context }) => {
 });
 ```
 
-### Phase 6: Performance and Load Tests (Commit 16-17)
+### Phase 6: Integration with Existing Tests (Commit 16)
 
-#### Commit 16: Large data set tests
-**Goal**: Test UI performance with many groups/expenses
-
-```typescript
-test('handles large number of expenses', async ({ page }) => {
-  // Create group with 100+ expenses
-  // Verify page still loads quickly
-  // Verify scrolling is smooth
-  // Verify calculations are correct
-});
-```
-
-#### Commit 17: Concurrent operation tests
-**Goal**: Test simultaneous updates
+#### Commit 16: Update existing auth tests to actually login
+**Goal**: Enhance existing auth-flow.e2e.test.ts to test real login
 
 ```typescript
-test('handles concurrent updates', async ({ browser }) => {
-  // Multiple users update same group simultaneously
-  // Verify no data loss
-  // Verify UI updates for all users
+test('should login with valid credentials', async ({ page }) => {
+  // Register a test user
+  // Navigate to login
+  // Fill credentials
+  // Submit form
+  // Verify redirect to dashboard
+  // Verify user info displayed
 });
 ```
 
@@ -431,12 +424,27 @@ export class DashboardPage {
 - [ ] Member management
 - [ ] Error handling for all failure modes
 
-## Implementation Timeline
+## Implementation Approach
 
-- **Week 1**: Phase 1-2 (Auth setup, Dashboard tests)
-- **Week 2**: Phase 3 (Group management tests)
-- **Week 3**: Phase 4-5 (Error handling, User journeys)
-- **Week 4**: Phase 6 (Performance tests) + Review and refinement
+### Small, Focused Commits
+Each commit should be independently testable and add value:
+
+1. **Auth helpers first** - Create reusable authentication utilities
+2. **One feature at a time** - Dashboard, then groups, then expenses
+3. **Happy path before edge cases** - Get basic flows working first
+4. **Incremental coverage** - Each commit adds new test coverage
+
+### Test Only What Exists
+- Dashboard with groups list ✅
+- Create group modal ✅
+- Group detail page ✅
+- Add expense page ✅
+- Join group page ✅
+
+### Skip What Doesn't Exist Yet
+- Complex permission tests (if permissions aren't implemented)
+- Advanced features not in UI
+- Theoretical edge cases
 
 ## Notes
 
