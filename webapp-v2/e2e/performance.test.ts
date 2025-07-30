@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+
+setupConsoleErrorReporting();
 
 // Simplified performance test - just basic load time check
 test.describe('Performance Tests', () => {
   test('should load within reasonable time', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     const startTime = Date.now();
     await page.goto(V2_URL);
@@ -15,6 +16,5 @@ test.describe('Performance Tests', () => {
     expect(loadTime).toBeLessThan(5000);
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 });

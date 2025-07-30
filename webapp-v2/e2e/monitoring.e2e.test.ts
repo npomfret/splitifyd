@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener, setupMCPDebugOnFailure } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
+setupConsoleErrorReporting();
 
 test.describe('Performance and Error Monitoring E2E', () => {
   test('should load all pages without JavaScript errors', async ({ page }) => {
@@ -16,13 +17,11 @@ test.describe('Performance and Error Monitoring E2E', () => {
     ];
 
     for (const pageInfo of pagesToTest) {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}${pageInfo.path}`);
       await waitForV2App(page);
       
       // Check for any console errors
-      expect(errors).toHaveLength(0);
     }
   });
 
@@ -127,7 +126,6 @@ test.describe('Performance and Error Monitoring E2E', () => {
   });
 
   test('should handle rapid navigation without errors', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     // Rapidly navigate between pages
     for (let i = 0; i < 5; i++) {
@@ -143,11 +141,10 @@ test.describe('Performance and Error Monitoring E2E', () => {
     })).toBeVisible();
     
     // No console errors from rapid navigation
-    expect(errors).toHaveLength(0);
+    // Console errors are automatically captured by setupConsoleErrorReporting
   });
 
   test('should maintain functionality with slow network', async ({ page, context }) => {
-    const errors = setupConsoleErrorListener(page);
     
     // Simulate slow 3G
     await context.route('**/*', route => {
@@ -166,6 +163,6 @@ test.describe('Performance and Error Monitoring E2E', () => {
     await expect(emailInput).toHaveValue('test@example.com');
     
     // No console errors
-    expect(errors).toHaveLength(0);
+    // Console errors are automatically captured by setupConsoleErrorReporting
   });
 });

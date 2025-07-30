@@ -38,5 +38,3 @@ export async function waitForV2App(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 
-// Re-export from the new console error reporter for backwards compatibility
-export { setupConsoleErrorListener } from './console-error-reporter';

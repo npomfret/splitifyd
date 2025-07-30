@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+
+setupConsoleErrorReporting();
 
 // Simplified E2E test for pricing page - just verify it loads without errors
 test.describe('Pricing Page E2E', () => {
   test('should load pricing page without console errors', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/pricing`);
     await waitForV2App(page);
@@ -13,6 +14,5 @@ test.describe('Pricing Page E2E', () => {
     await expect(page.getByRole('heading', { name: 'Pricing', level: 1 })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 });

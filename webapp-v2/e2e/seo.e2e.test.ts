@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+
+setupConsoleErrorReporting();
 
 // Simplified SEO test - just verify pages have titles and no errors
 test.describe('SEO E2E', () => {
   test('should set page titles without console errors', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     // Just check that key pages load with titles
     const pages = [
@@ -21,6 +22,5 @@ test.describe('SEO E2E', () => {
     }
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 });

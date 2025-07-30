@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener, setupMCPDebugOnFailure } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
+setupConsoleErrorReporting();
 
 test.describe('Static Pages E2E', () => {
   test('should navigate to terms of service', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -18,11 +18,9 @@ test.describe('Static Pages E2E', () => {
     await expect(page).toHaveURL(/\/terms/);
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should navigate to privacy policy', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -34,11 +32,9 @@ test.describe('Static Pages E2E', () => {
     await expect(page).toHaveURL(/\/privacy/);
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should navigate from login back to home', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -52,11 +48,9 @@ test.describe('Static Pages E2E', () => {
     })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should have working links on homepage', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -74,6 +68,5 @@ test.describe('Static Pages E2E', () => {
     await expect(page).toHaveURL(/\/register/);
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 });
