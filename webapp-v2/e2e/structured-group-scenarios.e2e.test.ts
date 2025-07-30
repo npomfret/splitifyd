@@ -267,17 +267,19 @@ test.describe('Structured Group Scenarios', () => {
           }
         }
         
+        let hasCopyButton = false;
         if (!foundLink) {
           // Try copying to clipboard if there's a copy button
           const copyButton = page1.getByRole('button', { name: /copy/i });
-          if (await copyButton.count() > 0) {
+          hasCopyButton = await copyButton.count() > 0;
+          if (hasCopyButton) {
             await copyButton.first().click();
             console.log('Clicked copy button - link may be in clipboard');
             // Note: Can't directly access clipboard in Playwright without browser permissions
           }
         }
         
-        expect(foundLink || await copyButton.count() > 0).toBe(true);
+        expect(foundLink || hasCopyButton).toBe(true);
       });
 
       test('another user should join group via share link', async () => {
