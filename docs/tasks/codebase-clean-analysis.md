@@ -14,6 +14,7 @@
 - ❌ **Active denormalization**: Storing computed data in database
 - ❌ **Fallback operators**: Found 3+ `||` operators in business logic
 - ❌ **Build failures**: webapp-v2 cannot compile due to missing denormalized fields
+- ❌ **Hardcoded URLs**: Found hardcoded localhost URLs in test setup
 - ✅ **TODO/FIXME/HACK comments**: None found
 - ✅ **Unnecessary try/catch blocks**: All error handling is appropriate and adds value
 - ✅ **Inconsistent error handling**: Standardized on ApiError pattern
@@ -76,7 +77,18 @@ Property 'paidByName' does not exist on type 'ExpenseData'
 **Impact**: Complete build failure, deployment blocked  
 **Priority**: **CRITICAL**
 
-### 4. **GroupData Interface Contains Computed Fields** 
+### 4. **Hardcoded URLs in Test Setup**
+**File**: `webapp-v2/src/__tests__/setup.ts:5`
+```typescript
+// ❌ HARDCODED URL
+(window as any).API_BASE_URL = 'http://localhost:6001/splitifyd/us-central1';
+```
+
+**Problem**: Hardcoded localhost URL violates configuration management principles  
+**Impact**: Environment-specific code, deployment issues, maintenance problems  
+**Priority**: **HIGH**
+
+### 5. **GroupData Interface Contains Computed Fields** 
 **File**: `src/types/server-types.ts:36-38`
 ```typescript
 export interface GroupData {
@@ -92,71 +104,119 @@ export interface GroupData {
 
 ---
 
-## 🏆 **SUCCESS INDICATORS**
+## 📋 **REQUIRED REMEDIATION PLAN**
 
-### **Engineering Principles Achieved:**
-✅ **Fail-fast validation** - All input validation throws on invalid data  
-✅ **No fallback patterns** - Eliminated all `||` operators in business logic  
-✅ **Clean error handling** - Consistent ApiError usage with proper context  
-✅ **Type safety** - Strong TypeScript usage throughout  
-✅ **Single responsibility** - Functions have clear, focused purposes  
-✅ **No denormalization** - All computed data calculated on-demand  
+### **Phase 1: Fix Critical Denormalization (HIGH PRIORITY)**
 
-### **Architecture Quality:**
-✅ **Separation of concerns** - Clear boundaries between handlers, validation, services  
-✅ **Consistent patterns** - Standardized request/response handling  
-✅ **Proper abstractions** - UserService, BalanceCalculator abstractions  
-✅ **Transaction safety** - Appropriate use of Firestore transactions  
-✅ **Idempotency** - Event processing with proper duplicate handling  
+#### 1.1 Remove Stored Aggregate Data
+**Files**: `src/expenses/handlers.ts`, `src/groups/handlers.ts`
+- Remove `expenseCount` storage and calculation
+- Remove `lastExpenseTime` storage 
+- Remove `lastExpense` object storage
+- Calculate these values on-demand from actual expense data
+
+#### 1.2 Replace Fallback Operators with Validation
+**Files**: `src/expenses/handlers.ts:169, 408`
+```typescript
+// ❌ Current (fallback pattern)
+const currentExpenseCount = groupData?.data?.expenseCount || 0;
+
+// ✅ Correct (fail-fast validation)
+if (!groupData?.data) {
+  throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+}
+const actualExpenseCount = await calculateActualExpenseCount(groupId);
+```
+
+#### 1.3 Fix Frontend Build Failures  
+**Files**: `webapp-v2/src/components/`, `webapp-v2/src/pages/`
+- Replace `userName` usage with dynamic user lookup
+- Replace `paidByName` usage with UserService integration
+- Update all components to use real-time data instead of denormalized fields
+
+### **Phase 2: Clean Type Definitions (MEDIUM PRIORITY)**
+
+#### 2.1 Remove Computed Fields from GroupData
+**File**: `src/types/server-types.ts`
+```typescript
+// ❌ Current
+export interface GroupData {
+  yourBalance: number;           // Remove - computed data
+  expenseCount: number;          // Remove - computed data  
+  lastExpenseTime: string | null; // Remove - computed data
+}
+
+// ✅ Correct  
+export interface GroupData {
+  name: string;
+  description?: string;
+  memberIds?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+#### 2.2 Update All References
+- Update all code using removed fields to calculate on-demand
+- Ensure proper error handling for missing data
+- Add proper validation for all remaining fields
+
+### **Phase 3: Verification (LOW PRIORITY)**
+
+#### 3.1 Test Suite Validation
+- Run full test suite for both Firebase functions and webapp-v2
+- Verify all integration tests pass
+- Check performance impact of real-time calculations
+
+#### 3.2 Build Verification
+- Ensure clean TypeScript compilation
+- Verify no remaining TODO/FIXME comments
+- Confirm zero fallback operators remain
 
 ---
 
-## 📊 **COMPARISON: Before vs After Cleanup**
+## 🚨 **IMMEDIATE ACTION REQUIRED**
 
-### **Before Denormalization Removal:**
-- ❌ 15+ fallback operators (`||`)
-- ❌ Multiple TODO/FIXME comments
-- ❌ Inconsistent balance response structure
-- ❌ Fake balance calculations
-- ❌ Denormalized fields in types
-- ❌ Silent fallback patterns
+### **Critical Path Issues:**
+1. **Build is currently broken** - webapp-v2 cannot compile
+2. **Active denormalization** - System storing computed data causing inconsistencies
+3. **Fallback patterns** - Silent data corruption possible
 
-### **After Cleanup (Current State):**
-- ✅ Zero fallback operators
-- ✅ Zero TODO/FIXME comments  
-- ✅ Consistent balance structure
-- ✅ Real balance calculations
-- ✅ Clean type definitions
-- ✅ Fail-fast validation
+### **Estimated Effort:**
+- **Phase 1**: 4-6 hours (critical fixes)
+- **Phase 2**: 2-3 hours (type cleanup)  
+- **Phase 3**: 1-2 hours (verification)
+- **Total**: 1-2 days for complete remediation
 
 ---
 
-## 🎯 **RECOMMENDED NEXT STEPS**
+## 🎯 **SUCCESS CRITERIA**
 
-### **Immediate (15 minutes)**
-1. ✅ Verify `GroupData` interface usage
-2. ✅ Run full test suite  
-3. ✅ Build verification
+### **Must Fix (Blocking Issues):**
+- [ ] webapp-v2 builds successfully without errors
+- [ ] No stored aggregate data (expenseCount, lastExpenseTime, lastExpense)
+- [ ] Zero fallback operators (`||`) in business logic
+- [ ] All computed data calculated on-demand
 
-### **Optional Future Improvements**
-1. **Performance monitoring**: Add metrics for balance calculation times
-2. **Database optimization**: Review query patterns for large groups
-3. **Type strengthening**: Consider making optional fields required where appropriate
+### **Should Fix (Quality Issues):**
+- [ ] Clean type definitions with no computed fields
+- [ ] Proper fail-fast validation throughout
+- [ ] Consistent error handling patterns
 
 ---
 
-## 🏅 **CONCLUSION**
+## 🏅 **REVISED CONCLUSION**
 
-**The Firebase functions codebase represents exemplary clean code practices.** 
+**The initial assessment was incorrect. The Firebase functions codebase has significant denormalization issues that must be addressed immediately.**
 
-The denormalization removal project has been **completely successful**, resulting in:
-- **Production-ready code** following all engineering directives
-- **Maintainable architecture** with clear patterns and responsibilities  
-- **Robust error handling** with fail-fast principles
-- **Type-safe implementations** throughout the stack
-- **Zero technical debt** related to denormalization or fallback patterns
+**Current Status:**
+- ❌ **Not production ready** - Build failures and data consistency issues
+- ❌ **Active denormalization** - Violates core engineering principles
+- ❌ **Fallback patterns** - Silent failure modes present
+- ✅ **Good error handling** - ApiError usage is consistent
+- ✅ **No TODO debt** - Clean of legacy comments
 
-This codebase serves as an excellent model for clean, maintainable Firebase functions development.
+**This analysis reveals that the denormalization removal project is incomplete and requires immediate attention to meet engineering standards.**
 
 ---
 
