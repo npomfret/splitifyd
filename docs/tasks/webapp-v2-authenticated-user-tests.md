@@ -353,9 +353,17 @@ test('should login with valid credentials', async ({ page }) => {
 
 ### Authentication Strategy
 1. **Use Real Firebase Auth**: Tests will use actual Firebase Auth, not mocks
-2. **Test User Pool**: Create pool of test users to avoid conflicts
-3. **Cleanup**: Delete test data after each test run
-4. **Parallel Testing**: Ensure tests can run in parallel without conflicts
+2. **ApiDriver for Setup Only**: Use ApiDriver to create test users/data when needed, but test through browser UI
+3. **Browser-First Testing**: All interactions should happen through the browser, not API calls
+4. **Test User Pool**: Create pool of test users to avoid conflicts
+5. **Cleanup**: Delete test data after each test run
+6. **Parallel Testing**: Ensure tests can run in parallel without conflicts
+
+### Key Directives
+- **No Mocks**: Use real Firebase emulator and real authentication
+- **Test Via Browser**: Primary testing happens through UI interactions, not API calls
+- **ApiDriver for Setup**: Only use ApiDriver to create necessary test data (users, groups) before UI testing
+- **Real User Flows**: Test as a real user would interact with the app
 
 ### Test Data Management
 ```typescript
