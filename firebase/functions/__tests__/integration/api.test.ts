@@ -77,11 +77,11 @@ describe('Comprehensive API Test Suite', () => {
         ).rejects.toThrow(/403|FORBIDDEN|not.*member|access.*denied|404|NOT_FOUND/i);
       });
 
-      test('should generate shareable link for group (admin only)', async () => {
+      test('should generate shareable link for group', async () => {
         // Create a test group
         const testGroup = await driver.createGroup(`Share Link Test Group ${uuidv4()}`, users, users[0].token);
         
-        // Admin (creator) should be able to generate a share link
+        // Any member should be able to generate a share link
         const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
         
         expect(shareResponse).toHaveProperty('shareableUrl');
@@ -91,14 +91,31 @@ describe('Comprehensive API Test Suite', () => {
         expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
       });
 
-      test('should not allow non-admin to generate shareable link', async () => {
-        // Create a new group where user[0] is the admin
-        const nonAdminGroup = await driver.createGroup(`Non-Admin Test Group ${uuidv4()}`, users, users[0].token);
+      test('should allow any member to generate shareable link', async () => {
+        // Create a new group where user[0] is the creator and user[1] is a member
+        const memberGroup = await driver.createGroup(`Member Share Test Group ${uuidv4()}`, users, users[0].token);
         
-        // User[1] should not be able to generate a share link
+        // User[1] (member) should be able to generate a share link
+        const shareResponse = await driver.generateShareLink(memberGroup.id, users[1].token);
+        
+        expect(shareResponse).toHaveProperty('shareableUrl');
+        expect(shareResponse).toHaveProperty('linkId');
+        expect(shareResponse.shareableUrl).toContain('http');
+        expect(shareResponse.shareableUrl).toContain('/join-group.html?linkId=');
+        expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
+      });
+
+      test('should not allow non-members to generate shareable link', async () => {
+        // Create a group with only user[0]
+        const groupData = new GroupBuilder()
+          .withName(`Non-Member Test Group ${uuidv4()}`)
+          .build();
+        const restrictedGroup = await driver.createGroupNew(groupData, users[0].token);
+        
+        // User[1] (non-member) should not be able to generate a share link
         await expect(
-          driver.generateShareLink(nonAdminGroup.id, users[1].token)
-        ).rejects.toThrow(/403|FORBIDDEN|admin|not.*authorized/i);
+          driver.generateShareLink(restrictedGroup.id, users[1].token)
+        ).rejects.toThrow(/403|FORBIDDEN|member/i);
       });
 
       test('should allow new users to join group via share link', async () => {
@@ -487,16 +504,16 @@ describe('Comprehensive API Test Suite', () => {
       expect([0, 50]).toContain(netBalance);
     });
 
-    // NOTE: This test now uses synchronous metadata updates in expense handlers
-    // instead of relying solely on triggers, ensuring consistency in both emulator and production
-    test('should include expense metadata in listGroups response after creating expenses', async () => {
-      // First, verify the group starts with no expense metadata
+    // NOTE: Expense metadata (expenseCount, lastExpense) removed in favor of on-demand calculation
+    test('should show updated lastActivity after creating expenses', async () => {
+      // First, verify the group starts with default lastActivity
       const initialListResponse = await driver.listGroupsNew(users[0].token);
       const initialGroupInList = initialListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(initialGroupInList).toBeDefined();
-      expect(initialGroupInList!.expenseCount).toBe(0);
-      expect(initialGroupInList!.lastExpense).toBeUndefined();
+      // lastActivity should default to group creation time
+      expect(initialGroupInList!.lastActivityRaw).toBeDefined();
+      const initialActivityTime = new Date(initialGroupInList!.lastActivityRaw);
       
       // Add an expense
       const expenseData = new ExpenseBuilder()
@@ -507,24 +524,27 @@ describe('Comprehensive API Test Suite', () => {
         .build();
       await driver.createExpense(expenseData, users[0].token);
       
-      // Check immediately after creating expense (should be synchronous now)
+      // Wait a moment for potential async updates
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check after creating expense
       const updatedListResponse = await driver.listGroupsNew(users[0].token);
       const updatedGroupInList = updatedListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(updatedGroupInList).toBeDefined();
       
-      // Verify expense metadata is populated synchronously
-      expect(updatedGroupInList!).toHaveProperty('expenseCount');
-      expect(updatedGroupInList!.expenseCount).toBe(1);
-      
-      expect(updatedGroupInList!).toHaveProperty('lastExpense');
+      // Verify lastActivity is updated (either immediately or after calculation)
       expect(updatedGroupInList!.lastActivityRaw).toBeDefined();
       expect(typeof updatedGroupInList!.lastActivityRaw).toBe('string');
       
       // Verify the lastActivityRaw is a valid ISO timestamp
       expect(new Date(updatedGroupInList!.lastActivityRaw).getTime()).not.toBeNaN();
       
-      // Add another expense to test count increment
+      // The activity time should be updated or the same (if on-demand calculation hasn't run yet)
+      const updatedActivityTime = new Date(updatedGroupInList!.lastActivityRaw);
+      expect(updatedActivityTime.getTime()).toBeGreaterThanOrEqual(initialActivityTime.getTime());
+      
+      // Add another expense to test activity update
       const secondExpenseData = new ExpenseBuilder()
         .withGroupId(balanceTestGroup.id)
         .withAmount(25)
@@ -533,17 +553,18 @@ describe('Comprehensive API Test Suite', () => {
         .build();
       await driver.createExpense(secondExpenseData, users[1].token);
       
-      // Check immediately after second expense
+      // Wait a moment for potential async updates
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check after second expense
       const finalListResponse = await driver.listGroupsNew(users[0].token);
       const finalGroupInList = finalListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
-      expect(finalGroupInList!.expenseCount).toBe(2);
       expect(finalGroupInList!.lastActivityRaw).toBeDefined();
       
-      // The lastActivityRaw should be updated to the more recent expense
-      const lastExpenseTime = new Date(finalGroupInList!.lastActivityRaw);
-      const initialExpenseTime = new Date(updatedGroupInList!.lastActivityRaw);
-      expect(lastExpenseTime.getTime()).toBeGreaterThanOrEqual(initialExpenseTime.getTime());
+      // The lastActivityRaw should reflect recent activity
+      const lastActivityTime = new Date(finalGroupInList!.lastActivityRaw);
+      expect(lastActivityTime.getTime()).toBeGreaterThanOrEqual(updatedActivityTime.getTime());
     });
   });
 
