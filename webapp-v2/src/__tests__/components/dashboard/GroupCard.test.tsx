@@ -21,7 +21,6 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     },
     lastActivity: 'Just created',
     lastActivityRaw: new Date().toISOString(),
-    expenseCount: 0,
     ...overrides
   };
 }
@@ -48,14 +47,13 @@ describe('GroupCard', () => {
     const group = createTestGroup({
       name: 'Trip to Paris',
       memberCount: 3,
-      expenseCount: 5
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
     expect(screen.getByText('Trip to Paris')).toBeInTheDocument();
     expect(screen.getByText('3 members')).toBeInTheDocument();
-    expect(screen.getByText('5 expenses')).toBeInTheDocument();
+    expect(screen.getByText('Recent expenses')).toBeInTheDocument();
   });
 
   it('shows settled up state when balance is zero', () => {
@@ -124,21 +122,15 @@ describe('GroupCard', () => {
     expect(balanceDisplay).toHaveClass('text-green-600');
   });
 
-  it('displays last activity and last expense', () => {
+  it('displays last activity', () => {
     const group = createTestGroup({
       name: 'Weekend Trip',
-      lastActivity: '2 hours ago',
-      lastExpense: {
-        description: 'Gas station',
-        amount: 45.00,
-        date: new Date().toISOString()
-      }
+      lastActivity: '2 hours ago'
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
     expect(screen.getByText('Last activity: 2 hours ago')).toBeInTheDocument();
-    expect(screen.getByText('Latest: Gas station - $45.00')).toBeInTheDocument();
   });
 
   it('shows member avatars when members are provided', () => {
@@ -209,15 +201,14 @@ describe('GroupCard', () => {
     expect(screen.getByText('1 member')).toBeInTheDocument(); // singular
   });
 
-  it('handles groups with single expense correctly', () => {
+  it('displays recent expenses text', () => {
     const group = createTestGroup({
-      name: 'Single Expense',
-      expenseCount: 1
+      name: 'Test Group'
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
 
-    expect(screen.getByText('1 expense')).toBeInTheDocument(); // singular
+    expect(screen.getByText('Recent expenses')).toBeInTheDocument();
   });
 
   it('handles groups without members array', () => {

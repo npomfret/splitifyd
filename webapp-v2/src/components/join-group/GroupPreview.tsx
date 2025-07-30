@@ -42,10 +42,10 @@ export function GroupPreview({ group }: GroupPreviewProps) {
               </div>
               <div>
                 <div className="text-2xl font-semibold text-primary-600">
-                  {group.lastExpense ? '1+' : '0'}
+                  Active
                 </div>
                 <div className="text-sm text-gray-600">
-                  Expenses
+                  Group
                 </div>
               </div>
             </div>

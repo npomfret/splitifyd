@@ -166,32 +166,20 @@ export const createExpense = async (
       }
       
       const groupData = groupDoc.data();
-      const currentExpenseCount = groupData?.data?.expenseCount || 0;
-      const lastExpenseTime = now.toISOString();
+      if (!groupData?.data) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+      }
       
       // Create the expense
       transaction.set(docRef, expense);
       
-      // Update group metadata including lastExpense details
-      transaction.update(groupDocRef, {
-        'data.expenseCount': currentExpenseCount + 1,
-        'data.lastExpenseTime': lastExpenseTime,
-        'data.lastExpense': {
-          description: expenseData.description,
-          amount: expenseData.amount,
-          date: expenseData.date
-        }
-      });
-      
-      logger.info('Transaction: Creating expense and updating group metadata', {
+      logger.info('Transaction: Creating expense', {
         expenseId: docRef.id,
-        groupId: expenseData.groupId,
-        newExpenseCount: currentExpenseCount + 1,
-        lastExpenseTime
+        groupId: expenseData.groupId
       });
     });
 
-    logger.info('Expense created with metadata update', {
+    logger.info('Expense created', {
       expenseId: docRef.id,
       groupId: expenseData.groupId,
       amount: expenseData.amount,
@@ -317,23 +305,11 @@ export const updateExpense = async (
         // Update the expense
         transaction.update(docRef, updates);
         
-        // Update group's lastExpenseTime and lastExpense if this becomes the latest expense
-        const newDate = new Date(updateData.date!);
-        const lastExpenseTime = newDate.toISOString();
+        // Note: Group metadata will be updated by the balance aggregation trigger
         
-        transaction.update(groupDocRef, {
-          'data.lastExpenseTime': lastExpenseTime,
-          'data.lastExpense': {
-            description: updateData.description || expense.description,
-            amount: updateData.amount || expense.amount,
-            date: updateData.date || (expense.date instanceof Date ? expense.date.toISOString() : expense.date.toDate().toISOString())
-          }
-        });
-        
-        logger.info('Transaction: Updating expense with history and group lastExpenseTime', {
+        logger.info('Transaction: Updating expense with history', {
           expenseId,
           groupId: expense.groupId,
-          newDate: lastExpenseTime,
           historyId: historyRef.id
         });
       });
@@ -403,23 +379,20 @@ export const deleteExpense = async (
       // Delete the expense
       transaction.delete(docRef);
       
-      // Simply decrement the expense count (triggers will recalculate correct values)
       const groupData = groupDoc.data();
-      const currentExpenseCount = groupData?.data?.expenseCount || 1;
-      const newCount = Math.max(0, currentExpenseCount - 1);
+      if (!groupData?.data) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+      }
       
-      transaction.update(groupDocRef, {
-        'data.expenseCount': newCount
-      });
+      // Note: Group metadata will be updated by the balance aggregation trigger
       
-      logger.info('Transaction: Deleting expense and updating group metadata', {
+      logger.info('Transaction: Deleting expense', {
         expenseId,
-        groupId: expense.groupId,
-        newExpenseCount: newCount
+        groupId: expense.groupId
       });
     });
 
-    logger.info('Expense deleted with metadata update', {
+    logger.info('Expense deleted', {
       expenseId,
       groupId: expense.groupId,
       userId

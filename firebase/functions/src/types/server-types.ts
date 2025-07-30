@@ -8,13 +8,6 @@ export interface GroupDocument {
   description?: string;
   createdBy: string;
   memberIds: string[];
-  expenseCount: number;
-  lastExpenseTime?: Date;
-  lastExpense?: {
-    description: string;
-    amount: number;
-    date: Date;
-  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,9 +26,6 @@ export interface GroupData {
   name: string;
   description?: string;
   memberIds?: string[];
-  yourBalance: number;
-  expenseCount: number;
-  lastExpenseTime: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -25,7 +25,6 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     },
     lastActivity: 'Just created',
     lastActivityRaw: new Date().toISOString(),
-    expenseCount: 0,
     ...overrides
   };
 }
@@ -66,8 +65,7 @@ describe('GroupsStore', () => {
             totalOwing: 0
           },
           lastActivity: 'Just created',
-          lastActivityRaw: new Date().toISOString(),
-          expenseCount: 0
+          lastActivityRaw: new Date().toISOString()
         },
         {
           id: 'group-2',
@@ -84,8 +82,7 @@ describe('GroupsStore', () => {
             totalOwing: 0
           },
           lastActivity: '2 hours ago',
-          lastActivityRaw: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          expenseCount: 5
+          lastActivityRaw: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
         }
       ];
 

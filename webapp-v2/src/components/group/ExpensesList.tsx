@@ -6,7 +6,7 @@ import type { ExpenseData, User } from '@shared/types/webapp-shared-types';
 
 interface ExpensesListProps {
   expenses: ExpenseData[];
-  members?: User[];
+  members: User[];
   hasMore: boolean;
   loading: boolean;
   onLoadMore: () => void;
@@ -15,7 +15,7 @@ interface ExpensesListProps {
 
 export function ExpensesList({ 
   expenses, 
-  members = [],
+  members,
   hasMore, 
   loading, 
   onLoadMore, 
@@ -31,7 +31,7 @@ export function ExpensesList({
           {expenses.map((expense) => (
             <ExpenseItem 
               key={expense.id} 
-              expense={expense} 
+              expense={expense}
               members={members}
               onClick={onExpenseClick}
             />
