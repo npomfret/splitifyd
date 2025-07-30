@@ -7,6 +7,7 @@
 .claude/commands/analyse.md
 .claude/commands/changes.md
 .claude/commands/next-task.md
+.claude/commands/fix.md
 /directives
 
 # Logs
