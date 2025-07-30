@@ -197,10 +197,10 @@ export class ApiClient {
           `${issue.path.join('.')}: ${issue.message}`
         ).join(', ');
         
-        console.error(`API Validation Error for ${endpoint}:`, {
+        console.error(`API Validation Error for ${endpoint}:`, JSON.stringify({
           issues: result.error.issues,
           receivedData: data
-        });
+        }, null, 2));
         
         throw new ApiValidationError(
           `Invalid response from server. Please try again or contact support if the issue persists.`,

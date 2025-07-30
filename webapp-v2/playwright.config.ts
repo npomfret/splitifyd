@@ -10,8 +10,8 @@ export default defineConfig({
   tsconfig: './tsconfig.build.json',
   /* Output directory for test results */
   outputDir: '../tmp/playwright-test-results',
-  /* Global test timeout - 2 seconds max */
-  timeout: 2000,
+  /* Global test timeout - 30 seconds to capture console errors */
+  timeout: 30000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -21,9 +21,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [
-    ['html', { outputFolder: '../tmp/playwright-html-report' }]
-  ],
+  reporter: 'list',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

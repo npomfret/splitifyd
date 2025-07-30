@@ -22,7 +22,7 @@ export function Form({ onSubmit, children, className = '', id }: FormProps) {
       try {
         await onSubmit(e);
       } catch (error) {
-        console.error('Form submission error:', error);
+        console.error('Form submission error:', error instanceof Error ? error.toString() : JSON.stringify(error, null, 2));
         throw error;
       } finally {
         setIsSubmitting(false);

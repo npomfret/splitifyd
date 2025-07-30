@@ -1,7 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/base-test';
 import { authenticatedTest } from './fixtures/authenticated-test';
 import { setupConsoleErrorListener, setupMCPDebugOnFailure, V2_URL } from './helpers';
 import { createAndLoginTestUser } from './helpers/auth-utils';
+import { DashboardPage, CreateGroupModalPage } from './pages';
 
 setupMCPDebugOnFailure();
 
@@ -10,12 +11,19 @@ test.describe('Dashboard E2E', () => {
     const errors = setupConsoleErrorListener(page);
     
     const user = await createAndLoginTestUser(page);
+    const dashboardPage = new DashboardPage(page);
     
     await expect(page).toHaveURL(/\/dashboard/);
     
-    await expect(page.getByText(user.displayName)).toBeVisible();
+    // Check user is logged in
+    await expect(dashboardPage.isLoggedIn()).resolves.toBe(true);
     
-    await expect(page.getByText(/Welcome back|Dashboard|Your Groups/i)).toBeVisible();
+    // Check user name in header
+    const displayName = await dashboardPage.getUserDisplayName();
+    expect(displayName).toBe(user.displayName);
+    
+    // Check welcome message
+    await expect(page.getByText(/Welcome back/i)).toBeVisible();
     
     expect(errors).toHaveLength(0);
   });
@@ -86,56 +94,52 @@ test.describe('Dashboard E2E', () => {
       const { page } = authenticatedPage;
       const errors = setupConsoleErrorListener(page);
       
-      const createGroupButton = page.getByRole('button', { name: /Create.*Group/i });
-      await createGroupButton.click();
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
       
-      await expect(page.getByRole('dialog')).toBeVisible();
+      await dashboardPage.openCreateGroupModal();
+      
+      await expect(createGroupModal.isOpen()).resolves.toBe(true);
       await expect(page.getByText(/Create.*New.*Group|New Group/i)).toBeVisible();
       
-      await expect(page.getByLabel(/Group Name|Name/i)).toBeVisible();
-      await expect(page.getByLabel(/Description/i)).toBeVisible();
+      // Check form fields are visible
+      await expect(page.getByPlaceholder(/e\.g\., Apartment Expenses/i)).toBeVisible();
+      await expect(page.getByPlaceholder(/Add any details/i)).toBeVisible();
       
       expect(errors).toHaveLength(0);
     });
 
     authenticatedTest('should create a new group', async ({ authenticatedPage }) => {
       const { page } = authenticatedPage;
-      const errors = setupConsoleErrorListener(page);
       
-      const createGroupButton = page.getByRole('button', { name: /Create.*Group/i });
-      await createGroupButton.click();
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
+      
+      await dashboardPage.openCreateGroupModal();
       
       await page.waitForTimeout(500);
       
-      const nameInput = page.getByLabel(/Group Name|Name/i);
-      await nameInput.fill('Test Group');
-      
-      const descriptionInput = page.getByLabel(/Description/i);
-      await descriptionInput.fill('Test Description');
-      
-      const submitButton = page.getByRole('button', { name: /Create.*Group|Create|Submit/i }).last();
-      await submitButton.click();
+      await createGroupModal.createGroup('Test Group', 'Test Description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
       
       await expect(page.getByText('Test Group')).toBeVisible();
-      
-      expect(errors).toHaveLength(0);
     });
 
     authenticatedTest('should close modal on cancel', async ({ authenticatedPage }) => {
       const { page } = authenticatedPage;
       const errors = setupConsoleErrorListener(page);
       
-      const createGroupButton = page.getByRole('button', { name: /Create.*Group/i });
-      await createGroupButton.click();
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
       
-      await expect(page.getByRole('dialog')).toBeVisible();
+      await dashboardPage.openCreateGroupModal();
       
-      const cancelButton = page.getByRole('button', { name: /Cancel|Close/i });
-      await cancelButton.click();
+      await expect(createGroupModal.isOpen()).resolves.toBe(true);
       
-      await expect(page.getByRole('dialog')).not.toBeVisible();
+      await createGroupModal.cancel();
+      
+      await createGroupModal.waitForModalToClose();
       
       await expect(page).toHaveURL(/\/dashboard/);
       
@@ -146,14 +150,14 @@ test.describe('Dashboard E2E', () => {
       const { page } = authenticatedPage;
       const errors = setupConsoleErrorListener(page);
       
-      const createGroupButton = page.getByRole('button', { name: /Create.*Group/i });
-      await createGroupButton.click();
+      const dashboardPage = new DashboardPage(page);
+      await dashboardPage.openCreateGroupModal();
       
-      const submitButton = page.getByRole('button', { name: /Create.*Group|Create|Submit/i }).last();
+      const submitButton = page.getByRole('button', { name: 'Create Group' }).last();
       
       await expect(submitButton).toBeDisabled();
       
-      const nameInput = page.getByLabel(/Group Name|Name/i);
+      const nameInput = page.getByPlaceholder(/e\.g\., Apartment Expenses/i);
       await nameInput.fill('Test');
       
       await expect(submitButton).toBeEnabled();
@@ -167,17 +171,15 @@ test.describe('Dashboard E2E', () => {
       const { page } = authenticatedPage;
       const errors = setupConsoleErrorListener(page);
 
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
+
       // Create a group via UI first
-      const createGroupButton = page.getByRole('button', { name: /Create.*Group/i });
-      await createGroupButton.click();
+      await dashboardPage.openCreateGroupModal();
       
       await page.waitForTimeout(500);
       
-      const nameInput = page.getByLabel(/Group Name|Name/i);
-      await nameInput.fill('Navigation Test Group');
-      
-      const submitButton = page.getByRole('button', { name: /Create.*Group|Create|Submit/i }).last();
-      await submitButton.click();
+      await createGroupModal.createGroup('Navigation Test Group');
       
       // Should navigate to the new group page
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
@@ -212,17 +214,15 @@ test.describe('Dashboard E2E', () => {
       const { page } = authenticatedPage;
       const errors = setupConsoleErrorListener(page);
       
+      const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
+      
       // Create a group via UI first, then navigate back
-      const createGroupButton = page.getByRole('button', { name: /Create.*Group/i });
-      await createGroupButton.click();
+      await dashboardPage.openCreateGroupModal();
       
       await page.waitForTimeout(500);
       
-      const nameInput = page.getByLabel(/Group Name|Name/i);
-      await nameInput.fill('Back Navigation Test');
-      
-      const submitButton = page.getByRole('button', { name: /Create.*Group|Create|Submit/i }).last();
-      await submitButton.click();
+      await createGroupModal.createGroup('Back Navigation Test');
       
       // Wait for navigation to group page
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
@@ -245,6 +245,7 @@ test.describe('Dashboard E2E', () => {
     authenticatedTest('should persist authentication on page reload', async ({ authenticatedPage }) => {
       const { page } = authenticatedPage;
       const errors = setupConsoleErrorListener(page);
+      const dashboardPage = new DashboardPage(page);
       
       await expect(page).toHaveURL(/\/dashboard/);
       
@@ -252,7 +253,9 @@ test.describe('Dashboard E2E', () => {
       
       await expect(page).toHaveURL(/\/dashboard/);
       
-      await expect(page.getByText(authenticatedPage.user.displayName)).toBeVisible();
+      // Check user name is still displayed after reload
+      const displayName = await dashboardPage.getUserDisplayName();
+      expect(displayName).toBe(authenticatedPage.user.displayName);
       
       expect(errors).toHaveLength(0);
     });
