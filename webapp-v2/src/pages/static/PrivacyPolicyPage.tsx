@@ -30,120 +30,73 @@ export function PrivacyPolicyPage() {
       structuredData={structuredData}
     >
       <div class="space-y-6">
-        <div class="text-sm text-gray-500 mb-8">
-          Last updated: January 22, 2025
-        </div>
-
         <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">1. Information We Collect</h2>
-          <p class="text-gray-700 mb-3">
-            We collect information you provide directly to us, such as when you create an account, 
-            add expenses, or contact us for support.
-          </p>
-          
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Personal Information</h3>
-          <ul class="list-disc list-inside text-gray-700 space-y-1 mb-3">
-            <li>Name and email address</li>
-            <li>Profile information you choose to provide</li>
-            <li>Expense and group data you create</li>
-            <li>Communications you send to us</li>
-          </ul>
-
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Automatically Collected Information</h3>
-          <ul class="list-disc list-inside text-gray-700 space-y-1">
-            <li>Device information (IP address, browser type, operating system)</li>
-            <li>Usage data (pages viewed, features used, time spent)</li>
-            <li>Cookies and similar tracking technologies</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">2. How We Use Your Information</h2>
-          <p class="text-gray-700 mb-3">We use the information we collect to:</p>
-          <ul class="list-disc list-inside text-gray-700 space-y-1">
-            <li>Provide, maintain, and improve our services</li>
-            <li>Process transactions and send notifications</li>
-            <li>Respond to your comments, questions, and customer service requests</li>
-            <li>Send you technical notices, updates, and security alerts</li>
-            <li>Monitor and analyze trends, usage, and activities</li>
-            <li>Detect, investigate, and prevent fraudulent or unauthorized activity</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">3. Information Sharing</h2>
-          <p class="text-gray-700 mb-3">
-            We do not sell, trade, or otherwise transfer your personal information to third parties except as described in this policy:
-          </p>
-          
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">With Other Users</h3>
-          <p class="text-gray-700 mb-3">
-            When you join a group or add expenses, your name and relevant expense information is shared with other group members.
-          </p>
-
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Service Providers</h3>
-          <p class="text-gray-700 mb-3">
-            We may share information with trusted service providers who assist us in operating our service, 
-            such as hosting, analytics, and customer support.
-          </p>
-
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Legal Requirements</h3>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Introduction</h2>
           <p class="text-gray-700">
-            We may disclose information if required by law or if we believe such disclosure is necessary to protect our rights or comply with legal process.
+            This Privacy Policy describes how we ("we," "us," or "our") collect, use, and protect your personal information when you use our expense sharing application. By using our service, you consent to the collection and use of information in accordance with this policy. We may update this policy from time to time, and we will notify you of any material changes by posting the new policy on this page.
           </p>
         </section>
 
         <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">4. Data Security</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Information We Collect</h2>
           <p class="text-gray-700">
-            We implement appropriate technical and organizational measures to protect your personal information against 
-            unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet 
-            or electronic storage is 100% secure.
+            We collect minimal personal information necessary to provide our service. This includes your email address for account creation and authentication purposes. We do not collect, store, or process any other personally identifiable information such as your name, phone number, physical address, or payment information directly. Payment processing, if applicable, is handled by third-party processors who maintain their own privacy policies. We may also collect non-personal technical information such as device type, operating system, and usage patterns to improve our service quality and user experience.
           </p>
         </section>
 
         <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">5. Your Rights</h2>
-          <p class="text-gray-700 mb-3">
-            Depending on your location, you may have certain rights regarding your personal information:
-          </p>
-          <ul class="list-disc list-inside text-gray-700 space-y-1">
-            <li>Access to your personal information</li>
-            <li>Correction of inaccurate information</li>
-            <li>Deletion of your personal information</li>
-            <li>Portability of your data</li>
-            <li>Objection to processing</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">6. Data Retention</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">How We Use Your Information</h2>
           <p class="text-gray-700">
-            We retain your personal information for as long as necessary to provide our services and for legitimate business purposes. 
-            When you delete your account, we will delete your personal information, though some information may be retained for legal or safety reasons.
+            We use your email address solely for account management, authentication, and essential service communications. We do not currently engage in user tracking, behavioral analysis, or targeted advertising. However, we reserve the right to implement such features in the future, subject to providing appropriate notice and obtaining necessary consent. Any usage analytics we collect are aggregated and anonymized to protect individual user privacy while helping us improve our service.
           </p>
         </section>
 
         <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">7. Cookies</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Information Sharing and Disclosure</h2>
           <p class="text-gray-700">
-            We use cookies and similar technologies to enhance your experience, analyze usage, and provide personalized content. 
-            You can control cookie preferences through your browser settings. For more information, see our Cookie Policy.
+            We do not sell, rent, or share your personal information with third parties for their marketing purposes. We may disclose your information only in the following circumstances: (a) with your explicit consent; (b) to comply with legal obligations, court orders, or governmental requests; (c) to protect our rights, property, or safety, or that of our users or the public; (d) in connection with a merger, acquisition, or sale of assets, provided the acquiring party agrees to protect your information under terms at least as protective as this policy; or (e) to trusted service providers who assist us in operating our service, subject to appropriate confidentiality agreements.
           </p>
         </section>
 
         <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">8. Changes to This Policy</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Data Security</h2>
           <p class="text-gray-700">
-            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new 
-            Privacy Policy on this page and updating the "Last updated" date.
+            We implement reasonable security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet or electronic storage is completely secure, and we cannot guarantee absolute security. We encourage you to use strong, unique passwords and to contact us immediately if you suspect any unauthorized access to your account.
           </p>
         </section>
 
         <section>
-          <h2 class="text-xl font-bold text-gray-900 mb-4">9. Contact Us</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Data Retention and Deletion</h2>
           <p class="text-gray-700">
-            If you have any questions about this Privacy Policy, please contact us at: privacy@splitifyd.com
+            We retain your personal information only for as long as necessary to provide our service and fulfill the purposes outlined in this policy. You may request deletion of your account and associated data at any time by contacting us. We will make reasonable efforts to delete your information within thirty (30) days of such request, except where retention is required by law or for legitimate business purposes such as fraud prevention or dispute resolution.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Your Rights and Choices</h2>
+          <p class="text-gray-700">
+            You have the right to access, update, or delete your personal information. You may also object to certain processing of your data or request data portability where applicable. To exercise these rights, please contact us using the information provided below. We will respond to your request within a reasonable timeframe and in accordance with applicable law.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Third-Party Services</h2>
+          <p class="text-gray-700">
+            Our service may contain links to third-party websites or integrate with third-party services. This privacy policy does not apply to such third-party services, and we are not responsible for their privacy practices. We encourage you to review the privacy policies of any third-party services you interact with.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Future Changes and Analytics</h2>
+          <p class="text-gray-700">
+            While we do not currently implement user tracking or serve advertisements, we reserve the right to introduce such features in the future as our business evolves. Should we implement tracking technologies, analytics platforms, or advertising networks, we will update this policy accordingly and provide appropriate notice to users. Any such changes will be implemented in compliance with applicable privacy laws and industry best practices.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
+          <p class="text-gray-700">
+            If you have any questions about this Privacy Policy or our data practices, please contact us through the communication channels provided in our application. We will make reasonable efforts to respond to your inquiries in a timely manner.
           </p>
         </section>
       </div>
