@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@/test-utils';
-import { App } from '../App';
+import { App } from '../../App';
 
 // Integration tests for App routing - test real route navigation behavior
 describe('App Integration', () => {
@@ -30,7 +30,7 @@ describe('App Integration', () => {
     
     render(<App />);
     
-    expect(screen.getByRole('heading', { name: 'Pricing' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Pricing (It\'s Free, Seriously)' })).toBeInTheDocument();
   });
 
   it('configures routes for both development and production prefixes', () => {
@@ -73,11 +73,11 @@ describe('App Integration', () => {
     // Test that both /pricing and /v2/pricing work
     window.history.replaceState({}, '', '/pricing');
     const { rerender } = render(<App />);
-    expect(screen.getByRole('heading', { name: 'Pricing' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Pricing (It\'s Free, Seriously)' })).toBeInTheDocument();
     
     // Change route and re-render
     window.history.replaceState({}, '', '/v2/pricing'); 
     rerender(<App />);
-    expect(screen.getByRole('heading', { name: 'Pricing' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Pricing (It\'s Free, Seriously)' })).toBeInTheDocument();
   });
 });

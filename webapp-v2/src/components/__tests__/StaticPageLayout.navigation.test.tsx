@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@/test-utils';
-import { StaticPageLayout } from '../components/StaticPageLayout';
+import { StaticPageLayout } from '../StaticPageLayout';
 
-// Integration tests for navigation flows - test cross-component behavior
-describe('Navigation Integration', () => {
+// Unit tests for navigation elements in StaticPageLayout
+describe('StaticPageLayout - Navigation', () => {
   it('provides consistent navigation across all static pages', () => {
     render(
       <StaticPageLayout title="Test Page" description="Test description">

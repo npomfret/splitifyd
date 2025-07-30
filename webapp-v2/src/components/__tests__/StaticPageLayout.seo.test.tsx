@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@/test-utils';
-import { StaticPageLayout } from '../components/StaticPageLayout';
+import { StaticPageLayout } from '../StaticPageLayout';
 
-// Integration tests for SEO - test how SEOHead works within StaticPageLayout
-describe('SEO Integration', () => {
+// Unit tests for SEO functionality in StaticPageLayout
+describe('StaticPageLayout - SEO', () => {
   beforeEach(() => {
     // Reset document head before each test
     document.head.innerHTML = '';
