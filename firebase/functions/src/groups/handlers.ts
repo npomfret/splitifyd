@@ -62,9 +62,7 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDoc
     name: groupData.name,
     description: groupData.description || '',
     createdBy: groupData.createdBy || data.userId,
-    memberIds: groupData.memberIds || [],
-    memberEmails: groupData.memberEmails || [],
-    members: groupData.members || [],
+    memberIds: groupData.memberIds!,
     expenseCount: groupData.expenseCount || 0,
     lastExpenseTime: groupData.lastExpenseTime ? new Date(groupData.lastExpenseTime) : undefined,
     lastExpense: groupData.lastExpense ? {
@@ -86,7 +84,7 @@ const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: stri
     id: groupDoc.id,
     name: groupDoc.name,
     description: groupDoc.description,
-    memberCount: groupDoc.members.length,
+    memberCount: groupDoc.memberIds.length,
     balance: {
       userBalance: {
         userId: userId,
@@ -117,18 +115,17 @@ const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: stri
         const profile = memberProfiles.get(memberId);
         return {
           uid: memberId,
-          name: profile?.displayName || 'Unknown User',
-          initials: getInitials(profile?.displayName || 'U'),
-          email: profile?.email || '',
-          displayName: profile?.displayName || 'Unknown User'
+          name: profile!.displayName,
+          initials: getInitials(profile!.displayName),
+          email: profile!.email,
+          displayName: profile!.displayName
         };
       });
     })(),
     createdBy: groupDoc.createdBy,
     createdAt: groupDoc.createdAt.toISOString(),
     updatedAt: groupDoc.updatedAt.toISOString(),
-    memberIds: groupDoc.memberIds,
-    memberEmails: groupDoc.memberEmails
+    memberIds: groupDoc.memberIds
   };
 };
 
@@ -182,8 +179,6 @@ export const createGroup = async (
     if (!userId) {
       throw Errors.UNAUTHORIZED();
     }
-    const user = req.user!;
-    const userEmail = user.email || '';
 
     // Validate request body
     let groupData;
@@ -210,14 +205,6 @@ export const createGroup = async (
     description: sanitizedData.description ?? '',
     createdBy: userId,
     memberIds: sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId],
-    memberEmails: sanitizedData.members 
-      ? sanitizedData.members.map((m: any) => m.email)
-      : [userEmail].concat(sanitizedData.memberEmails || []),
-    members: sanitizedData.members || [{
-      uid: userId,
-      displayName: (user as any).displayName || userEmail || 'Unknown',
-      email: userEmail
-    }],
     expenseCount: 0,
     createdAt: now,
     updatedAt: now,
@@ -438,7 +425,7 @@ export const listGroups = async (
         id: group.id,
         name: group.name,
         description: group.description,
-        memberCount: group.members.length,
+        memberCount: group.memberIds.length,
         balance: {
           userBalance: userBalance,  // Allow null for groups without balances
           totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,

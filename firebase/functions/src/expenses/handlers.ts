@@ -14,7 +14,7 @@ import {
   calculateSplits,
   Expense
 } from './validation';
-import { GroupData, User } from '../types/group-types';
+import { GroupData } from '../types/group-types';
 
 const getExpensesCollection = () => {
   return admin.firestore().collection('expenses');
@@ -57,19 +57,9 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
   // Check if user is a member of the group
   const groupDataTyped = groupData.data as GroupData;
   
-  // Check memberIds array (new structure)
-  if (groupDataTyped.memberIds && Array.isArray(groupDataTyped.memberIds)) {
-    if (groupDataTyped.memberIds.includes(userId)) {
-      return;
-    }
-  }
-  
-  // Check members array (for backward compatibility)
-  if (groupDataTyped.members && Array.isArray(groupDataTyped.members)) {
-    const isMember = groupDataTyped.members.some((member: User) => member.uid === userId);
-    if (isMember) {
-      return;
-    }
+  // Check memberIds array
+  if (groupDataTyped.memberIds!.includes(userId)) {
+    return;
   }
   
   throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');

@@ -19,8 +19,8 @@ export function BalanceSummary({ balances }: BalanceSummaryProps) {
           {balances.simplifiedDebts.map((debt, index: number) => (
             <div key={index} className="flex justify-between items-center py-2">
               <span className="text-sm">
-                <span className="font-medium">{debt.from.name}</span> owes{' '}
-                <span className="font-medium">{debt.to.name}</span>
+                <span className="font-medium">{debt.from.userId}</span> owes{' '}
+                <span className="font-medium">{debt.to.userId}</span>
               </span>
               <span className="font-semibold text-red-600">
                 ${debt.amount.toFixed(2)}

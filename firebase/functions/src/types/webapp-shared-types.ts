@@ -204,11 +204,9 @@ export interface FirestoreTimestamp {
 export interface SimplifiedDebt {
   from: {
     userId: string;
-    name: string;
   };
   to: {
     userId: string;
-    name: string;
   };
   amount: number;
 }

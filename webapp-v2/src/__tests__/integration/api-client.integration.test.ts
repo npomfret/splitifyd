@@ -72,26 +72,28 @@ describe('API Client Integration Tests', () => {
         expect(group).toHaveProperty('balance');
         expect(group.balance).toHaveProperty('userBalance');
         if (group.balance.userBalance) {
-          expect(group.balance.userBalance).toHaveProperty('name');
-          // Name can be empty string based on our schema fix
-          expect(typeof group.balance.userBalance.name).toBe('string');
+          expect(group.balance.userBalance).toHaveProperty('userId');
+          expect(typeof group.balance.userBalance.userId).toBe('string');
         }
       });
     });
 
-    it('should handle groups with empty user balance names', async () => {
-      // This test specifically checks the issue we just fixed
-      // The API sometimes returns empty strings for balance names
+    it('should handle groups with valid user balance structure', async () => {
+      // This test verifies the balance structure is consistent
       
       const response = await apiClient.getGroups();
       
-      // Find any groups with empty balance names
-      const groupsWithEmptyNames = response.groups.filter(
-        g => g.balance.userBalance && g.balance.userBalance.name === ''
-      );
-      
-      // This should not throw an error anymore
-      expect(groupsWithEmptyNames).toBeDefined();
+      // Verify all groups have proper balance structure without denormalized names
+      response.groups.forEach(group => {
+        if (group.balance.userBalance) {
+          expect(group.balance.userBalance).toHaveProperty('userId');
+          expect(group.balance.userBalance).toHaveProperty('netBalance');
+          expect(group.balance.userBalance).toHaveProperty('owes');
+          expect(group.balance.userBalance).toHaveProperty('owedBy');
+          // Should NOT have denormalized name property
+          expect(group.balance.userBalance).not.toHaveProperty('name');
+        }
+      });
     });
 
     it('should fetch a single group by ID', async () => {

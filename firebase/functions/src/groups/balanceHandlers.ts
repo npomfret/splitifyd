@@ -4,7 +4,6 @@ import { GroupBalance } from '../models/groupBalance';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
-import type { User } from '../types/webapp-shared-types';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.uid;
@@ -25,11 +24,10 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
     }
     
     const groupData = groupDoc.data()!;
-    const members = groupData.data?.members || [];
-    if (members.length === 0) {
+    const memberIds = groupData.data!.memberIds!;
+    if (memberIds.length === 0) {
         throw new Error(`Group ${groupId} has no members`);
     }
-    const memberIds = members.map((m: User) => m.uid);
     if (!memberIds.includes(userId)) {
         throw new ApiError(403, 'FORBIDDEN', 'User is not a member of this group');
     }

@@ -7,18 +7,15 @@ export interface UserBalance {
 
 export interface NetBalance {
     userId: string;
-    name: string;
     netAmount: number;
 }
 
 export interface SimplifiedDebt {
     from: {
         userId: string;
-        name: string;
     };
     to: {
         userId: string;
-        name: string;
     };
     amount: number;
 }
@@ -45,7 +42,6 @@ function calculateNetBalances(balances: Record<string, UserBalance>, userNames: 
         if (Math.abs(netAmount) > 0.01) {
             netBalances[user.userId] = {
                 userId: user.userId,
-                name: userNames.get(user.userId) || 'Unknown User',
                 netAmount: netAmount
             };
         }
@@ -82,12 +78,10 @@ function createOptimalTransactions(netBalances: Record<string, NetBalance>): Sim
         if (transferAmount > 0.01) {
             transactions.push({
                 from: {
-                    userId: debtor.userId,
-                    name: debtor.name
+                    userId: debtor.userId
                 },
                 to: {
-                    userId: creditor.userId,
-                    name: creditor.name
+                    userId: creditor.userId
                 },
                 amount: transferAmount
             });

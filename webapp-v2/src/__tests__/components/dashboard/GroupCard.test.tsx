@@ -12,7 +12,6 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     balance: {
       userBalance: {
         userId: 'test-user',
-        name: 'Test User',
         netBalance: 0,
         owes: {},
         owedBy: {}
@@ -65,7 +64,6 @@ describe('GroupCard', () => {
       balance: {
         userBalance: {
           userId: 'test-user',
-          name: 'Test User',
           netBalance: 0,
           owes: {},
           owedBy: {}
@@ -88,7 +86,6 @@ describe('GroupCard', () => {
       balance: {
         userBalance: {
           userId: 'test-user',
-          name: 'Test User',
           netBalance: -25.50,
           owes: { 'user-2': 25.50 },
           owedBy: {}
@@ -111,7 +108,6 @@ describe('GroupCard', () => {
       balance: {
         userBalance: {
           userId: 'test-user',
-          name: 'Test User',
           netBalance: 42.75,
           owes: {},
           owedBy: { 'user-2': 42.75 }

@@ -265,14 +265,12 @@ describe('ApiService', () => {
                 userBalances: {
                     'user-1': {
                         userId: 'user-1',
-                        name: 'User 1',
                         owes: {},
                         owedBy: { 'user-2': 50 },
                         netBalance: 50
                     },
                     'user-2': {
                         userId: 'user-2',
-                        name: 'User 2',
                         owes: { 'user-1': 50 },
                         owedBy: {},
                         netBalance: -50
@@ -280,8 +278,8 @@ describe('ApiService', () => {
                 },
                 simplifiedDebts: [
                     {
-                        from: { userId: 'user-2', name: 'User 2' },
-                        to: { userId: 'user-1', name: 'User 1' },
+                        from: { userId: 'user-2' },
+                        to: { userId: 'user-1' },
                         amount: 50
                     }
                 ],
