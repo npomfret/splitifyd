@@ -20,8 +20,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../firebase/functions/src/*"],
-      "@test-builders": ["../firebase/functions/__tests__/support/builders"]
+      "@shared/types/webapp-shared-types": ["../firebase/functions/src/types/webapp-shared-types.ts"],
+      "@test-builders": ["../firebase/functions/__tests__/support/builders"],
+      "@test-support/ApiDriver": ["../firebase/functions/__tests__/support/ApiDriver.ts"]
     }
   },
   "include": ["src"],
