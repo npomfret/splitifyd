@@ -92,6 +92,16 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - Add percentage calculations and display
 - Enhance mobile responsiveness
 
+**Implementation Steps:**
+1. Create SplitBreakdown.tsx component with props interface
+2. Move split display logic from ExpenseDetailPage (lines 192-213)
+3. Add percentage calculations for each participant
+4. Implement progress bar visualization with Tailwind
+5. Add color coding based on participant status (payer vs owes)
+6. Add split type badge indicator
+7. Enhance mobile layout with responsive grid
+8. Test with different split types and participant counts
+
 ### Reusable Components from AddExpensePage
 
 - Form fields and validation logic
