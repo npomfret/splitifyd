@@ -10,7 +10,7 @@ test('share link functionality works', async ({ page }) => {
   test.setTimeout(10000);
   
   // Create user and group
-  const user = await createAndLoginTestUser(page);
+  await createAndLoginTestUser(page);
   const createGroupModal = new CreateGroupModalPage(page);
   
   await page.getByRole('button', { name: 'Create Group' }).click();

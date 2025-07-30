@@ -50,17 +50,17 @@ Open jdk: https://formulae.brew.sh/formula/openjdk
 
 4. **Start a new Claude Code CLI session** to get MCP tools
 
-### Testing Webapp-v2
+### Testing the Webapp
 
 Once MCP is configured, Claude can automatically:
-- Navigate to webapp-v2 routes (`http://localhost:6002/v2/`)
+- Navigate to webapp routes (served at Firebase emulator root)
 - Take screenshots at different viewport sizes
 - Check for console errors
 - Verify page elements and functionality
 
 Run the integrated development server first:
 ```bash
-npm run dev  # Starts Firebase emulator + webapp-v2 at /v2/
+npm run dev  # Starts Firebase emulator + webapp
 ```
 
 ## Getting started
@@ -86,24 +86,21 @@ In your browser go to http://localhost:5002/
 
 To stop the emulator, just hit `ctrl-c`, but if it doesn't stop cleanly run `./scripts/kill-emulators.js`
 
-## Webapp v2 (Preact Migration)
+## Webapp Architecture
 
-A new Preact-based version of the webapp is being developed in the `webapp-v2` directory. This allows incremental migration from the current vanilla JS/TS webapp.
+The webapp is a modern Preact-based SPA located in the `webapp-v2` directory. It's served directly from the Firebase emulator and provides a responsive, single-page application experience.
 
-### Running Webapp v2
+### Development
 
 ```bash
-# Start the Preact dev server (with HMR)
-npm run webapp-v2:dev
+# Start the full development environment (Firebase emulator + webapp)
+npm run dev
 
-# Build webapp-v2
+# Build webapp only
 npm run webapp-v2:build
-
-# Preview production build
-npm run webapp-v2:preview
 ```
 
-The Preact app runs on http://localhost:3000 by default.
+The webapp is served from the Firebase emulator's hosting service.
 
 ## Deployment
 

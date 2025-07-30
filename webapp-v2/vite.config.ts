@@ -7,7 +7,7 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/v2/' : '/',
+  base: '/',
   plugins: [
     preact(),
     {
@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => ({
     open: false
   },
   build: {
-    outDir: '../webapp/dist/v2',
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {

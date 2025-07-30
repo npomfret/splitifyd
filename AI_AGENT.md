@@ -14,7 +14,7 @@ Summarise what you have learned from them.
 - Language: TypeScript (latest)
 - Framework: Firebase Functions
 - Dev Environment: Firebase Emulator Suite
-- It's a mono-repo - both the client (webapp) and the server (firebase) are subprojects
+- It's a mono-repo - both the client (webapp-v2) and the server (firebase) are subprojects
 - Avoid environment variables, prefer configuration files
 - App must run in both the Firebase emulator and production Firebase
 - Use the firebase emulator to test against.  Do not use the Vite dev server
@@ -67,7 +67,7 @@ Note: never use the system browser, always use Chromium
 - Local firebase logs are in `firebase/*.log`, the main application log is `firebase/firebase-debug.log`
 - After making ANY change, firebase will pick it up, but you need to refresh the browser to see it
 
-Note: We are currently in the process of building a new webapp.  It is also hosted in the firebase emulator side-by-side with the original. The nex pages all have some marker text on the page "v2 app".
+Note: The webapp is now a modern Preact SPA (webapp-v2) served directly from the Firebase emulator. All pages have been migrated from the legacy multi-page application.
 # TypeScript 
 - Only use the latest syntax
 - ❌ **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems

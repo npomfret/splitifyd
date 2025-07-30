@@ -31,8 +31,8 @@ if (isDev) {
 }
 
 // Always inject API_BASE_URL (empty string for production)
-// The build outputs to ../webapp/dist/v2, so we read from there
-const indexPath = path.join(__dirname, '../../webapp/dist/v2/index.html');
+// The build outputs to dist, so we read from there
+const indexPath = path.join(__dirname, '../dist/index.html');
 
 let html = fs.readFileSync(indexPath, 'utf8');
 

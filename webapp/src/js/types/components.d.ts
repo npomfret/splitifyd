@@ -1,1 +1,0 @@
-// Component type definitions - currently empty as all interfaces were unused

@@ -202,8 +202,8 @@ export class ApiClient {
         // Create a more detailed error message
         const errorDetails = result.error.issues.map(issue => {
           const path = issue.path.join('.');
-          const expected = issue.expected || issue.code;
-          const received = JSON.stringify(issue.received) || 'unknown';
+          const expected = 'expected' in issue ? issue.expected : issue.code;
+          const received = 'received' in issue ? JSON.stringify(issue.received) : 'unknown';
           return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
         }).join('\n');
         
