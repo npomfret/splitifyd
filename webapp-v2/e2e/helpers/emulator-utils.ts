@@ -38,10 +38,5 @@ export async function waitForV2App(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 
-export function setupConsoleErrorListener(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('console', msg => {
-    if (msg.type() === 'error') errors.push(msg.text());
-  });
-  return errors;
-}
+// Re-export from the new console error reporter for backwards compatibility
+export { setupConsoleErrorListener } from './console-error-reporter';

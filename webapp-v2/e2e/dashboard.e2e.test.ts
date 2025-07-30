@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/base-test';
 import { authenticatedTest } from './fixtures/authenticated-test';
 import { setupConsoleErrorListener, setupMCPDebugOnFailure, V2_URL } from './helpers';
 import { createAndLoginTestUser } from './helpers/auth-utils';
@@ -111,7 +111,6 @@ test.describe('Dashboard E2E', () => {
 
     authenticatedTest('should create a new group', async ({ authenticatedPage }) => {
       const { page } = authenticatedPage;
-      const errors = setupConsoleErrorListener(page);
       
       const dashboardPage = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
@@ -125,8 +124,6 @@ test.describe('Dashboard E2E', () => {
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
       
       await expect(page.getByText('Test Group')).toBeVisible();
-      
-      expect(errors).toHaveLength(0);
     });
 
     authenticatedTest('should close modal on cancel', async ({ authenticatedPage }) => {

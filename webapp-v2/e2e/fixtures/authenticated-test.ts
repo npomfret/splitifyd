@@ -1,5 +1,6 @@
-import { test as base, Page } from '@playwright/test';
-import { createAndLoginTestUser, ensureLoggedOut, TestUser } from '../helpers/auth-utils';
+import { test as base } from './base-test';
+import { Page } from '@playwright/test';
+import { createAndLoginTestUser, TestUser } from '../helpers/auth-utils';
 
 export interface AuthenticatedFixtures {
   authenticatedPage: {
