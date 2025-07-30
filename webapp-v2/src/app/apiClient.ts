@@ -297,6 +297,13 @@ export class ApiClient {
     });
   }
 
+  async deleteExpense(expenseId: string): Promise<{ message: string }> {
+    return this.request('/expenses', {
+      method: 'DELETE',
+      query: { id: expenseId }
+    });
+  }
+
 
   async joinGroupByLink(linkId: string): Promise<Group> {
     return this.request('/groups/join', {
