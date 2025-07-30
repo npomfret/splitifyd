@@ -35,22 +35,51 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - [x] Fix routing inconsistency (use /groups/ instead of /group/)
 - [x] Implement split breakdown display with participants and amounts
 
-### Commit 2: Split Breakdown Visualization (1.5 hours)
-- [ ] Create SplitBreakdown component to replace basic split display
-- [ ] Add visual progress bars showing percentage breakdown
-- [ ] Color-coded debt indicators (red for owes, green for paid)
-- [ ] Enhanced participant display with status icons
-- [ ] Percentage display alongside amounts
-- [ ] Improved mobile responsive layout
-- [ ] Visual split type indicator (equal/exact/percentage)
+### Commit 2: Split Breakdown Visualization (1.5 hours) ✅ COMPLETED
+- [x] Create SplitBreakdown component to replace basic split display
+- [x] Add visual progress bars showing percentage breakdown
+- [x] Color-coded debt indicators (red for owes, green for paid)
+- [x] Enhanced participant display with status icons
+- [x] Percentage display alongside amounts
+- [x] Improved mobile responsive layout
+- [x] Visual split type indicator (equal/exact/percentage)
 
 ### Commit 3: Edit Mode Integration (2 hours)
-- [ ] Add edit/view mode toggle
-- [ ] Reuse AddExpensePage form components
-- [ ] Pre-populate form with existing data
-- [ ] Save/cancel actions with validation
-- [ ] Optimistic updates
-- [ ] Smooth mode transitions
+- [ ] Add URL parameter handling to AddExpensePage for edit mode
+- [ ] Pre-populate expense form with existing expense data
+- [ ] Implement expense fetching and form initialization in edit mode
+- [ ] Add update expense functionality to expense-form-store
+- [ ] Handle validation and save/cancel actions in edit mode
+- [ ] Add proper navigation back to expense detail after save
+- [ ] Test edit flow end-to-end with different expense types
+
+### Phase 3 Implementation Plan
+
+**Current State Analysis:**
+- ExpenseDetailPage has edit button that navigates to `/groups/{groupId}/add-expense?id={expenseId}&edit=true`
+- AddExpensePage doesn't handle URL parameters or edit mode yet
+- expense-form-store has save functionality but may need update functionality
+- Need to bridge the gap between viewing and editing
+
+**Implementation Approach:**
+1. **URL Parameter Handling**: Add URL parameter parsing to AddExpensePage
+2. **Edit Mode Detection**: Detect when in edit mode vs create mode
+3. **Expense Loading**: Fetch existing expense data when editing
+4. **Form Pre-population**: Initialize form fields with existing expense data
+5. **Update vs Create**: Handle both create and update operations
+6. **Navigation**: Proper routing back to expense detail after successful edit
+
+**Implementation Steps:**
+1. Add URL parameter handling to AddExpensePage (useLocation or similar)
+2. Modify expense-form-store to support update operations
+3. Add expense fetching when in edit mode
+4. Pre-populate all form fields with existing expense data
+5. Handle participant selection and split data initialization
+6. Add update expense API call to expense-form-store
+7. Modify save handler to distinguish create vs update
+8. Add proper success navigation back to expense detail
+9. Add loading states and error handling for edit mode
+10. Test with various expense types and split configurations
 
 ### Commit 4: Actions and Polish (1 hour)
 - [ ] Delete expense with confirmation
@@ -293,7 +322,28 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - webapp-v2/src/pages/ExpenseDetailPage.tsx - New component (235 lines)
 
 **Next Steps:**
-Ready for Phase 2: Split Breakdown Visualization (1.5 hours)
+Ready for Phase 3: Edit Mode Integration (2 hours)
+
+## Phase 2 Completion Notes
+
+**Completed:** January 30, 2025
+
+**Implementation Details:**
+- Created SplitBreakdown.tsx component with comprehensive visual enhancements
+- Added progress bars with dynamic width based on split percentages
+- Implemented color coding: green for payer, red for participants who owe money
+- Added status icons (checkmark badge) for payer identification
+- Enhanced participant display with avatars, names, amounts, and percentages
+- Created split type badges with distinct colors (blue/purple/green)
+- Responsive design works well on mobile viewports
+- Added percentage totals validation for percentage splits
+- Proper TypeScript typing throughout
+- Comprehensive e2e test suite created (split-breakdown.e2e.test.ts)
+
+**Files Created/Modified:**
+- webapp-v2/src/components/expense/SplitBreakdown.tsx - New enhanced component (129 lines)
+- webapp-v2/src/pages/ExpenseDetailPage.tsx - Integrated SplitBreakdown component
+- webapp-v2/e2e/split-breakdown.e2e.test.ts - Comprehensive e2e tests (316 lines)
 
 ## Timeline
 
