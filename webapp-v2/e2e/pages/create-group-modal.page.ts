@@ -22,19 +22,50 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Use the input element directly by label text
-    const nameInput = this.page.getByText('Group Name').locator('..').locator('input');
+    // Try multiple approaches to find the name input
+    const nameInput = this.page.getByPlaceholder(/group.*name/i)
+      .or(this.page.getByLabel(/group.*name/i))
+      .or(this.page.getByText('Group Name').locator('..').locator('input'));
+    
+    await nameInput.clear();
     await nameInput.fill(name);
     
+    // Verify the name was actually filled
+    const filledValue = await nameInput.inputValue();
+    if (filledValue !== name) {
+      throw new Error(`Failed to fill group name. Expected: "${name}", Got: "${filledValue}"`);
+    }
+    
     if (description) {
-      const descInput = this.page.getByText('Description (optional)').locator('..').locator('textarea');
+      const descInput = this.page.getByPlaceholder(/add.*details/i)
+        .or(this.page.getByLabel(/description/i))
+        .or(this.page.getByText('Description (optional)').locator('..').locator('textarea'));
+      
+      await descInput.clear();
       await descInput.fill(description);
     }
+    
+    // Wait for form validation to process
+    await this.page.waitForTimeout(800);
   }
   
   async submitForm() {
-    // Click the Create Group button inside the modal
-    await this.page.getByRole('button', { name: 'Create Group' }).last().click();
+    // Wait for button to be enabled before clicking
+    const submitButton = this.page.getByRole('button', { name: 'Create Group' }).last();
+    await submitButton.waitFor({ state: 'visible' });
+    
+    // Check if button is enabled, if not wait a bit more
+    let isEnabled = await submitButton.isEnabled();
+    if (!isEnabled) {
+      await this.page.waitForTimeout(1000);
+      isEnabled = await submitButton.isEnabled();
+    }
+    
+    if (!isEnabled) {
+      throw new Error('Create Group button is disabled - form validation may have failed');
+    }
+    
+    await submitButton.click();
   }
   
   async cancel() {
