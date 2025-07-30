@@ -9,7 +9,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    await createAndLoginTestUser(page);
     
     // Create a group first using the same pattern as dashboard tests
     const createGroupModal = new CreateGroupModalPage(page);
@@ -66,7 +66,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should handle expense form validation', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    await createAndLoginTestUser(page);
     
     // Create a group first
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -114,7 +114,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should allow selecting expense category', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    await createAndLoginTestUser(page);
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -208,7 +208,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should handle different split types if available', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    await createAndLoginTestUser(page);
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -256,7 +256,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should handle expense with date selection', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    await createAndLoginTestUser(page);
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -290,7 +290,7 @@ test.describe('Add Expense E2E', () => {
       await expect(dateField.first()).toBeVisible();
       
       // Try to set a date
-      const isDateInput = await dateField.first().evaluate(el => el.type === 'date');
+      const isDateInput = await dateField.first().evaluate((el: any) => el.type === 'date');
       if (isDateInput) {
         await dateField.first().fill('2024-01-15');
       } else {

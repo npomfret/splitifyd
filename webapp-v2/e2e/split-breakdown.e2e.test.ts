@@ -1,7 +1,6 @@
 import { test, expect } from './fixtures/base-test';
 import { authenticatedTest } from './fixtures/authenticated-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, V2_URL } from './helpers';
-import { createAndLoginTestUser } from './helpers/auth-utils';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 import { DashboardPage, CreateGroupModalPage } from './pages';
 
 setupMCPDebugOnFailure();

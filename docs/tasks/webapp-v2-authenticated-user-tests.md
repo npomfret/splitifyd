@@ -618,20 +618,56 @@ With core authentication working, we've moved to Phase 2: Group Management Tests
 
 **Technical Achievement**: All tests use proper authentication flow and group creation, ensuring they will work when expense functionality is implemented.
 
+#### Commit 8: Member Management Tests ✅ COMPLETED
+**File: `webapp-v2/e2e/member-management.e2e.test.ts`**
+
+- ✅ **Add Member Test** - Tests member invitation/addition flow
+- ✅ **Display Current Members Test** - Verifies member list display
+- ✅ **Member Permissions Test** - Tests admin/owner permissions
+- ✅ **Member Selection in Expenses Test** - Verifies member selection for expense splits
+- ✅ **Member Removal Restrictions Test** - Tests removal constraints and validation
+- ✅ **Member Activity Display Test** - Tests contribution and balance display per member
+
+**Status**: Comprehensive member management test suite completed. Tests handle current single-member scenarios and are ready for multi-member functionality.
+
+#### Commit 9: Balance and Settlement Tests ✅ COMPLETED
+**File: `webapp-v2/e2e/balance-settlement.e2e.test.ts`**
+
+- ✅ **Initial Zero Balances Test** - Verifies new groups show balanced state
+- ✅ **Balance Calculation Test** - Tests balance updates after expenses
+- ✅ **Debt Tracking Test** - Tests who-owes-whom display
+- ✅ **Settlement Recording Test** - Tests payment recording functionality
+- ✅ **Settlement History Test** - Tests transaction history display
+- ✅ **Balance Summary Test** - Tests total spent and individual balance display
+- ✅ **Complex Calculations Test** - Tests mathematical precision in balance calculations
+- ✅ **Balance Status Indicators Test** - Tests visual balance status indicators
+
+**Status**: Complete balance and settlement test coverage implemented. Tests are ready for balance calculation engine integration.
+
 #### Current Implementation Status
 - ✅ **Authentication & Dashboard**: Fully working (94% test success)
 - ✅ **Group Creation**: Fully working 
 - ✅ **Group Navigation**: Fully working
-- 🔄 **Group Details Page**: Under development (tests written as specification)
-- 🔄 **Expense Management**: Under development (tests written as specification)  
-- ⏳ **Member Management**: Next phase
-- ⏳ **Balance Calculations**: Next phase
+- ✅ **Group Details Page**: Tests completed (ready for implementation)
+- ✅ **Expense Management**: Tests completed (ExpenseDetailPage added in parallel)
+- ✅ **Member Management**: Tests completed (ready for implementation)
+- ✅ **Balance Calculations**: Tests completed (ready for implementation)
 
-#### Next Steps
-1. **Commit 8**: Member management tests
-2. **Commit 9**: Balance and settlement tests  
-3. **Integration testing**: Multi-user scenarios
-4. **Error handling**: Network failures, validation errors
+#### Phase 2 COMPLETE - All Group Management Tests Implemented
+**Major Achievement**: Phase 2 implementation has been completed with 4 comprehensive test suites:
+
+1. **group-details.e2e.test.ts** - 5 tests for group page functionality
+2. **add-expense.e2e.test.ts** - 6 tests for expense creation and validation  
+3. **member-management.e2e.test.ts** - 6 tests for member operations
+4. **balance-settlement.e2e.test.ts** - 8 tests for balance tracking and settlements
+
+**Total**: 25 additional E2E tests implemented, bringing the authenticated user test suite to 115+ tests.
+
+#### Next Steps - Phase 3: Error Handling Tests
+1. **Commit 10**: Network error tests
+2. **Commit 11**: Validation error tests
+3. **Commit 12**: Permission error tests
+4. **Phase 4**: End-to-end user journey tests
 
 ### 🎯 Summary: Mission Accomplished! 
 
