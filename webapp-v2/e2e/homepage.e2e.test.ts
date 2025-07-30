@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener, setupMCPDebugOnFailure } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
+setupConsoleErrorReporting();
 
 test.describe('Homepage E2E', () => {
   test('should load homepage with all key elements', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -22,11 +22,9 @@ test.describe('Homepage E2E', () => {
     await expect(page.getByRole('link', { name: 'Sign Up', exact: true })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should navigate to pricing page from homepage', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -39,11 +37,9 @@ test.describe('Homepage E2E', () => {
     await expect(page.getByRole('heading', { name: 'Pricing' })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should navigate to login from homepage header', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -56,11 +52,9 @@ test.describe('Homepage E2E', () => {
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should navigate to register from homepage header', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -73,11 +67,9 @@ test.describe('Homepage E2E', () => {
     await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should have working footer links', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -95,11 +87,9 @@ test.describe('Homepage E2E', () => {
     await expect(privacyLink).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should scroll to pricing section if exists', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(V2_URL);
     await waitForV2App(page);
@@ -115,11 +105,9 @@ test.describe('Homepage E2E', () => {
     }
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should have responsive navigation on mobile', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
@@ -146,11 +134,9 @@ test.describe('Homepage E2E', () => {
     })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should handle logo click navigation', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     // Start from a different page
     await page.goto(`${V2_URL}/pricing`);
@@ -167,6 +153,5 @@ test.describe('Homepage E2E', () => {
     })).toBeVisible();
     
     // No console errors
-    expect(errors).toHaveLength(0);
   });
 });

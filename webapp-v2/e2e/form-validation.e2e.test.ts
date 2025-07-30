@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener, setupMCPDebugOnFailure } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
+setupConsoleErrorReporting();
 
 test.describe('Form Validation E2E', () => {
   test.describe('Login Form', () => {
     test('should show validation for invalid email format', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/login`);
       await waitForV2App(page);
@@ -40,12 +40,9 @@ test.describe('Form Validation E2E', () => {
         // For now, we just ensure no console errors
       }
       
-      // No console errors (validation errors are not console errors)
-      expect(errors).toHaveLength(0);
     });
 
     test('should require both email and password', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/login`);
       await waitForV2App(page);
@@ -84,7 +81,6 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should clear form on page refresh', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/login`);
       await waitForV2App(page);
@@ -115,7 +111,6 @@ test.describe('Form Validation E2E', () => {
 
   test.describe('Register Form', () => {
     test('should validate password confirmation match', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/register`);
       await waitForV2App(page);
@@ -141,7 +136,6 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should require all fields', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/register`);
       await waitForV2App(page);
@@ -164,7 +158,6 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should validate email format on register', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/register`);
       await waitForV2App(page);
@@ -190,7 +183,6 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should trim whitespace from inputs', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/register`);
       await waitForV2App(page);
@@ -215,7 +207,6 @@ test.describe('Form Validation E2E', () => {
 
   test.describe('Form Accessibility', () => {
     test('should navigate login form with keyboard', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/login`);
       await waitForV2App(page);
@@ -244,7 +235,6 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should have proper ARIA labels', async ({ page }) => {
-      const errors = setupConsoleErrorListener(page);
       
       await page.goto(`${V2_URL}/login`);
       await waitForV2App(page);
