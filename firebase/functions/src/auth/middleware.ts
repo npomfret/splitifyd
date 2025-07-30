@@ -11,7 +11,8 @@ import { AUTH } from '../constants';
 export interface AuthenticatedRequest extends Request {
   user?: {
     uid: string;
-    email?: string;
+    email: string;
+    displayName: string;
   };
 }
 
@@ -110,10 +111,18 @@ export const authenticate = async (
     // Verify ID token - no fallbacks or hacks
     const decodedToken = await admin.auth().verifyIdToken(token);
     
+    // Fetch full user profile from Firebase Auth
+    const userRecord = await admin.auth().getUser(decodedToken.uid);
+    
+    if (!userRecord.email || !userRecord.displayName) {
+      throw new Error('User missing required fields: email and displayName are mandatory');
+    }
+    
     // Attach user information to request
     req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName: userRecord.displayName,
     };
 
     // Check rate limit

@@ -18,6 +18,7 @@ import {
 import { UserBalance } from '../types/webapp-shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
+import { userService } from '../services/userService';
 
 /**
  * Get the groups collection reference
@@ -80,7 +81,7 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDoc
  * Convert GroupDocument to Group with computed fields
  * TODO: This is a minimal implementation - needs proper balance calculation
  */
-const convertGroupDocumentToGroup = (groupDoc: GroupDocument, userId: string): Group => {
+const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: string): Promise<Group> => {
   return {
     id: groupDoc.id,
     name: groupDoc.name,
@@ -89,7 +90,6 @@ const convertGroupDocumentToGroup = (groupDoc: GroupDocument, userId: string): G
     balance: {
       userBalance: {
         userId: userId,
-        name: 'Current User', // TODO: Get actual user name
         netBalance: 0, // TODO: Calculate actual balance
         owes: {},
         owedBy: {}
@@ -110,14 +110,20 @@ const convertGroupDocumentToGroup = (groupDoc: GroupDocument, userId: string): G
       date: groupDoc.lastExpense.date.toISOString()
     } : undefined,
     
-    // Optional detail fields - transform members to match frontend schema
-    members: groupDoc.members.map(member => ({
-      uid: member.uid,
-      name: member.displayName || member.email || 'Unknown User',
-      initials: getInitials(member.displayName || member.email || 'U'),
-      email: member.email,
-      displayName: member.displayName || member.email || 'Unknown User'
-    })),
+    // Fetch member profiles dynamically
+    members: await (async () => {
+      const memberProfiles = await userService.getUsers(groupDoc.memberIds);
+      return groupDoc.memberIds.map(memberId => {
+        const profile = memberProfiles.get(memberId);
+        return {
+          uid: memberId,
+          name: profile?.displayName || 'Unknown User',
+          initials: getInitials(profile?.displayName || 'U'),
+          email: profile?.email || '',
+          displayName: profile?.displayName || 'Unknown User'
+        };
+      });
+    })(),
     createdBy: groupDoc.createdBy,
     createdAt: groupDoc.createdAt.toISOString(),
     updatedAt: groupDoc.updatedAt.toISOString(),
@@ -145,7 +151,7 @@ const fetchGroupWithAccess = async (
   
   // Check if user is the owner
   if (groupDoc.createdBy === userId) {
-    const group = convertGroupDocumentToGroup(groupDoc, userId);
+    const group = await convertGroupDocumentToGroup(groupDoc, userId);
     return { docRef, group };
   }
 
@@ -156,7 +162,7 @@ const fetchGroupWithAccess = async (
 
   // For read operations, check if user is a member
   if (groupDoc.memberIds.includes(userId)) {
-    const group = convertGroupDocumentToGroup(groupDoc, userId);
+    const group = await convertGroupDocumentToGroup(groupDoc, userId);
     return { docRef, group };
   }
 
@@ -233,7 +239,7 @@ export const createGroup = async (
 
     const createdDoc = await docRef.get();
     const groupDoc = transformGroupDocument(createdDoc);
-    const group = convertGroupDocumentToGroup(groupDoc, userId);
+    const group = await convertGroupDocumentToGroup(groupDoc, userId);
     res.status(HTTP_STATUS.CREATED).json(group);
   } catch (error) {
     logger.error('Error in createGroup', { 

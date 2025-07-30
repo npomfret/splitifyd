@@ -1,8 +1,8 @@
 export interface UserBalance {
     userId: string;
-    name: string;
     owes: Record<string, number>;
     owedBy: Record<string, number>;
+    netBalance: number;
 }
 
 export interface NetBalance {
@@ -23,12 +23,12 @@ export interface SimplifiedDebt {
     amount: number;
 }
 
-export function simplifyDebts(balances: Record<string, UserBalance>): SimplifiedDebt[] {
-    const netBalances = calculateNetBalances(balances);
+export function simplifyDebts(balances: Record<string, UserBalance>, userNames: Map<string, string>): SimplifiedDebt[] {
+    const netBalances = calculateNetBalances(balances, userNames);
     return createOptimalTransactions(netBalances);
 }
 
-function calculateNetBalances(balances: Record<string, UserBalance>): Record<string, NetBalance> {
+function calculateNetBalances(balances: Record<string, UserBalance>, userNames: Map<string, string>): Record<string, NetBalance> {
     const netBalances: Record<string, NetBalance> = {};
     
     Object.values(balances).forEach(user => {
@@ -45,7 +45,7 @@ function calculateNetBalances(balances: Record<string, UserBalance>): Record<str
         if (Math.abs(netAmount) > 0.01) {
             netBalances[user.userId] = {
                 userId: user.userId,
-                name: user.name,
+                name: userNames.get(user.userId) || 'Unknown User',
                 netAmount: netAmount
             };
         }

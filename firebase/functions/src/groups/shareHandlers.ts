@@ -170,38 +170,27 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       }
 
       const groupData = groupSnapshot.data()!;
-      const members = groupData.data?.members || [];
-      const isAlreadyMember = members.some((member: any) => member.uid === userId);
+      const currentMemberIds = groupData.data?.memberIds || [];
       
-      if (isAlreadyMember || groupData.userId === userId) {
+      // Ensure group owner is in memberIds (but no duplicates)
+      const allMemberIds = [...currentMemberIds];
+      if (!allMemberIds.includes(groupData.userId)) {
+        allMemberIds.push(groupData.userId);
+      }
+      
+      // Check if user is already a member
+      if (allMemberIds.includes(userId)) {
         throw new ApiError(
           HTTP_STATUS.CONFLICT,
           'ALREADY_MEMBER',
           'You are already a member of this group'
         );
       }
-
-      const newMember = {
-        uid: userId,
-        name: userName,
-        initials: userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
-        role: 'member',
-        joinedAt: new Date().toISOString(),
-      };
-
-      const currentMembers = groupData.data?.members || [];
-      const currentEmails = groupData.data?.memberEmails || [];
       
-      const allMemberIds = [groupData.userId];
-      [...currentMembers, newMember].forEach((member: any) => {
-        if (!allMemberIds.includes(member.uid)) {
-          allMemberIds.push(member.uid);
-        }
-      });
+      // Add user to memberIds
+      allMemberIds.push(userId);
       
       transaction.update(groupRef, {
-        'data.members': [...currentMembers, newMember],
-        'data.memberEmails': [...currentEmails, userEmail],
         'data.memberIds': allMemberIds,
         updatedAt: Timestamp.now(),
       });
