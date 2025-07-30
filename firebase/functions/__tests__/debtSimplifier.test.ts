@@ -2,16 +2,18 @@ import { simplifyDebts, UserBalance } from '../src/utils/debtSimplifier';
 
 describe('simplifyDebts', () => {
     it('should return empty array for empty balances', () => {
-        const result = simplifyDebts({});
+        const userNames = new Map<string, string>();
+        const result = simplifyDebts({}, userNames);
         expect(result).toEqual([]);
     });
 
     it('should return empty array when all balances are zero', () => {
         const balances: Record<string, UserBalance> = {
-            user1: { userId: 'user1', name: 'Alice', owes: {}, owedBy: {} },
-            user2: { userId: 'user2', name: 'Bob', owes: {}, owedBy: {} }
+            user1: { userId: 'user1', owes: {}, owedBy: {}, netBalance: 0 },
+            user2: { userId: 'user2', owes: {}, owedBy: {}, netBalance: 0 }
         };
-        const result = simplifyDebts(balances);
+        const userNames = new Map([['user1', 'Alice'], ['user2', 'Bob']]);
+        const result = simplifyDebts(balances, userNames);
         expect(result).toEqual([]);
     });
 
@@ -19,19 +21,20 @@ describe('simplifyDebts', () => {
         const balances: Record<string, UserBalance> = {
             user1: { 
                 userId: 'user1', 
-                name: 'Alice', 
+                 
                 owes: { user2: 50 }, 
-                owedBy: {} 
+                owedBy: {}, netBalance: 0
             },
             user2: { 
                 userId: 'user2', 
-                name: 'Bob', 
+                 
                 owes: {}, 
-                owedBy: { user1: 50 } 
+                owedBy: { user1: 50 } , netBalance: 0
             }
         };
         
-        const result = simplifyDebts(balances);
+        const userNames = new Map([['user1', 'Alice'], ['user2', 'Bob']]);
+        const result = simplifyDebts(balances, userNames);
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -45,19 +48,20 @@ describe('simplifyDebts', () => {
         const balances: Record<string, UserBalance> = {
             user1: { 
                 userId: 'user1', 
-                name: 'Alice', 
+                 
                 owes: { user2: 50 }, 
-                owedBy: { user2: 30 } 
+                owedBy: { user2: 30 } , netBalance: 0
             },
             user2: { 
                 userId: 'user2', 
-                name: 'Bob', 
+                 
                 owes: { user1: 30 }, 
-                owedBy: { user1: 50 } 
+                owedBy: { user1: 50 } , netBalance: 0
             }
         };
         
-        const result = simplifyDebts(balances);
+        const userNames = new Map([['user1', 'Alice'], ['user2', 'Bob']]);
+        const result = simplifyDebts(balances, userNames);
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -71,25 +75,26 @@ describe('simplifyDebts', () => {
         const balances: Record<string, UserBalance> = {
             user1: { 
                 userId: 'user1', 
-                name: 'Alice', 
+                 
                 owes: { user2: 30 }, 
-                owedBy: { user3: 30 } 
+                owedBy: { user3: 30 } , netBalance: 0
             },
             user2: { 
                 userId: 'user2', 
-                name: 'Bob', 
+                 
                 owes: { user3: 30 }, 
-                owedBy: { user1: 30 } 
+                owedBy: { user1: 30 } , netBalance: 0
             },
             user3: { 
                 userId: 'user3', 
-                name: 'Charlie', 
+                 
                 owes: { user1: 30 }, 
-                owedBy: { user2: 30 } 
+                owedBy: { user2: 30 } , netBalance: 0
             }
         };
         
-        const result = simplifyDebts(balances);
+        const userNames = new Map();
+        const result = simplifyDebts(balances, userNames);
         
         expect(result).toHaveLength(0);
     });
@@ -98,31 +103,32 @@ describe('simplifyDebts', () => {
         const balances: Record<string, UserBalance> = {
             user1: { 
                 userId: 'user1', 
-                name: 'Alice', 
+                 
                 owes: { user2: 40, user3: 30, user4: 20 }, 
-                owedBy: { user2: 30 } 
+                owedBy: { user2: 30 } , netBalance: 0
             },
             user2: { 
                 userId: 'user2', 
-                name: 'Bob', 
+                 
                 owes: { user1: 30, user4: 40 }, 
-                owedBy: { user1: 40 } 
+                owedBy: { user1: 40 } , netBalance: 0
             },
             user3: { 
                 userId: 'user3', 
-                name: 'Charlie', 
+                 
                 owes: {}, 
-                owedBy: { user1: 30 } 
+                owedBy: { user1: 30 } , netBalance: 0
             },
             user4: { 
                 userId: 'user4', 
-                name: 'David', 
+                 
                 owes: { user1: 20 }, 
-                owedBy: { user2: 40 } 
+                owedBy: { user2: 40 } , netBalance: 0
             }
         };
         
-        const result = simplifyDebts(balances);
+        const userNames = new Map();
+        const result = simplifyDebts(balances, userNames);
         
         // Calculate net balances:
         // Alice: owes 90 (40+30+20), owed 30 = net -60
@@ -148,19 +154,20 @@ describe('simplifyDebts', () => {
         const balances: Record<string, UserBalance> = {
             user1: { 
                 userId: 'user1', 
-                name: 'Alice', 
+                 
                 owes: { user2: 0.005 }, 
-                owedBy: {} 
+                owedBy: {}, netBalance: 0
             },
             user2: { 
                 userId: 'user2', 
-                name: 'Bob', 
+                 
                 owes: {}, 
-                owedBy: { user1: 0.005 } 
+                owedBy: { user1: 0.005 } , netBalance: 0
             }
         };
         
-        const result = simplifyDebts(balances);
+        const userNames = new Map();
+        const result = simplifyDebts(balances, userNames);
         expect(result).toHaveLength(0);
     });
 
@@ -168,31 +175,32 @@ describe('simplifyDebts', () => {
         const balances: Record<string, UserBalance> = {
             user1: { 
                 userId: 'user1', 
-                name: 'Alice', 
+                 
                 owes: { user2: 100 }, 
-                owedBy: {} 
+                owedBy: {}, netBalance: 0
             },
             user2: { 
                 userId: 'user2', 
-                name: 'Bob', 
+                 
                 owes: { user3: 50, user4: 50 }, 
-                owedBy: { user1: 100 } 
+                owedBy: { user1: 100 } , netBalance: 0
             },
             user3: { 
                 userId: 'user3', 
-                name: 'Charlie', 
+                 
                 owes: {}, 
-                owedBy: { user2: 50 } 
+                owedBy: { user2: 50 } , netBalance: 0
             },
             user4: { 
                 userId: 'user4', 
-                name: 'David', 
+                 
                 owes: {}, 
-                owedBy: { user2: 50 } 
+                owedBy: { user2: 50 } , netBalance: 0
             }
         };
         
-        const result = simplifyDebts(balances);
+        const userNames = new Map();
+        const result = simplifyDebts(balances, userNames);
         
         expect(result).toHaveLength(2);
         

@@ -3,7 +3,7 @@ import { UserBalance, simplifyDebts } from '../utils/debtSimplifier';
 import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
 import { db } from '../firebase';
-import { User } from '../types/webapp-shared-types';
+import { userService } from './userService';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });
@@ -34,26 +34,23 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     }
 
     const groupData = groupDoc.data() as any;
-    const members = groupData.data?.members || [];
-    if (members.length === 0) {
+    const memberIds = groupData.data?.memberIds || [];
+    if (memberIds.length === 0) {
         throw new Error(`Group ${groupId} has no members for balance calculation`);
     }
-    const memberMap: Record<string, string> = {};
+    
+    // Fetch user profiles dynamically
+    const memberProfiles = await userService.getUsers(memberIds);
     
     logger.info('[BalanceCalculator] Group members', { 
-        memberCount: members.length,
-        members: members.map((m: User) => ({ uid: m.uid, name: m.displayName }))
+        memberCount: memberIds.length,
+        memberIds
     });
-
-    for (const member of members) {
-        memberMap[member.uid] = member.displayName;
-    }
 
     const userBalances: Record<string, UserBalance> = {};
 
     for (const expense of expenses) {
         const payerId = expense.paidBy;
-        const payerName = memberMap[payerId] || 'Unknown User';
         
         logger.info('[BalanceCalculator] Processing expense', {
             expenseId: expense.id,
@@ -67,22 +64,21 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         if (!userBalances[payerId]) {
             userBalances[payerId] = {
                 userId: payerId,
-                name: payerName,
                 owes: {},
-                owedBy: {}
+                owedBy: {},
+                netBalance: 0
             };
         }
 
         for (const split of expense.splits) {
             const splitUserId = split.userId;
-            const splitUserName = memberMap[splitUserId] || 'Unknown User';
 
             if (!userBalances[splitUserId]) {
                 userBalances[splitUserId] = {
                     userId: splitUserId,
-                    name: splitUserName,
                     owes: {},
-                    owedBy: {}
+                    owedBy: {},
+                    netBalance: 0
                 };
             }
 
@@ -114,15 +110,18 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         }
         
         netBalances[userId] = netBalance;
-        userBalances[userId] = {
-            ...user,
-            netBalance: netBalance
-        } as any;
+        userBalances[userId].netBalance = netBalance;
     }
 
     logger.info('[BalanceCalculator] Final userBalances', { userBalances });
     
-    const simplifiedDebts = simplifyDebts(userBalances);
+    // Create user names map for debt simplification
+    const userNames = new Map<string, string>();
+    for (const [userId, profile] of memberProfiles) {
+        userNames.set(userId, profile.displayName);
+    }
+    
+    const simplifiedDebts = simplifyDebts(userBalances, userNames);
 
     return {
         groupId,

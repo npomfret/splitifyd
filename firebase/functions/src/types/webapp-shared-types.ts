@@ -63,7 +63,6 @@ export interface User {
 // Balance Types
 export interface UserBalance {
   userId: string;
-  name: string;
   owes: Record<string, number>;
   owedBy: Record<string, number>;
   netBalance: number;
@@ -83,13 +82,7 @@ export interface Group {
   description?: string;
   memberCount: number;
   balance: {
-    userBalance?: {
-      userId: string;
-      name: string;
-      netBalance: number;
-      owes: Record<string, number>;
-      owedBy: Record<string, number>;
-    };
+    userBalance?: UserBalance;
     totalOwed: number;
     totalOwing: number;
   };
