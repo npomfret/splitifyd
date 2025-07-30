@@ -88,8 +88,6 @@ export const GroupSchema = z.object({
   createdBy: z.string().optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
-  memberIds: z.array(z.string()).optional(),
-  memberEmails: z.array(z.string()).optional(),
   lastExpenseTime: z.string().optional()
 });
 
