@@ -108,7 +108,52 @@ export interface GroupData {
 
 ---
 
-**Status**: ✅ **COMPLETE** - All 5 critical violations have been resolved
+**Status**: ❌ **ADDITIONAL VIOLATIONS DISCOVERED** - Analysis was incomplete
 **Build**: ✅ Passing - webapp-v2 compiles successfully  
-**Denormalization**: ✅ Removed - All computed data now calculated on-demand
-**Engineering Standards**: ✅ Compliant - Follows fail-fast validation patterns
+**Denormalization**: ❌ **STILL ACTIVE** - Additional patterns found in group handlers and types
+**Engineering Standards**: ❌ **PARTIAL** - Fallback operators remain in validation code
+
+## 🚨 **NEWLY DISCOVERED VIOLATIONS (Phase 2)**
+
+### 6. **Active Denormalization in Group Handlers**
+**Files**: 
+- `src/groups/handlers.ts:70, 123, 227, 440, 460`
+- `src/types/webapp-shared-types.ts:91, 105`
+
+```typescript
+// ❌ STILL STORING/USING COMPUTED DATA
+expenseCount: groupData.expenseCount ?? 0,           // Line 70
+lastExpenseTime: groupData.lastExpenseTime ? ...     // Line 71
+expenseCount: groupDoc.expenseCount,                 // Line 123
+expenseCount: 0,                                     // Line 227 (initializing denormalized field)
+expenseCount: group.expenseCount,                    // Line 460
+```
+
+**Problem**: Group handlers still actively maintain and use denormalized expense counts and timestamps  
+**Impact**: Data consistency issues, violates on-demand calculation principles  
+**Priority**: **CRITICAL**
+
+### 7. **Fallback Operators in Expense Validation**
+**File**: `src/expenses/validation.ts:138, 143, 237, 270, 275`
+```typescript
+// ❌ FALLBACK PATTERNS REMAIN
+sum + (split.amount || 0)                           // Line 138
+sum + (split.percentage || 0)                       // Line 143  
+const participants = value.participants || [];       // Line 237
+amount * (split.percentage || 0)                     // Line 270
+return splits || [];                                 // Line 275
+```
+
+**Problem**: Fallback operators mask missing data instead of proper validation  
+**Impact**: Silent data corruption, inconsistent calculations  
+**Priority**: **HIGH**
+
+## 📋 **UPDATED REMEDIATION PLAN**
+
+### **Phase 2: Complete Denormalization Removal (CRITICAL)**
+6. **Remove all denormalized storage from group handlers**: Stop storing/using `expenseCount`, `lastExpenseTime` 
+7. **Calculate expense metadata on-demand**: Create functions to calculate counts and timestamps from expense collections
+8. **Replace fallback operators**: Convert all `||` patterns in expense validation to proper validation
+9. **Clean webapp-shared-types**: Remove remaining denormalized fields from type definitions
+
+**Estimated additional effort**: 1 day for complete remediation
