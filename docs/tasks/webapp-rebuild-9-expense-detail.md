@@ -36,12 +36,13 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - [x] Implement split breakdown display with participants and amounts
 
 ### Commit 2: Split Breakdown Visualization (1.5 hours)
-- [ ] Create SplitBreakdown component
-- [ ] Visual representation of who owes what
-- [ ] Show amounts and percentages
-- [ ] Add participant avatars and names
-- [ ] Color-coded debt indicators
-- [ ] Responsive design for mobile
+- [ ] Create SplitBreakdown component to replace basic split display
+- [ ] Add visual progress bars showing percentage breakdown
+- [ ] Color-coded debt indicators (red for owes, green for paid)
+- [ ] Enhanced participant display with status icons
+- [ ] Percentage display alongside amounts
+- [ ] Improved mobile responsive layout
+- [ ] Visual split type indicator (equal/exact/percentage)
 
 ### Commit 3: Edit Mode Integration (2 hours)
 - [ ] Add edit/view mode toggle
@@ -63,12 +64,33 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 
 ### Key Components to Create
 
-1. **ExpenseDetailPage.tsx** - Main page component
+1. **ExpenseDetailPage.tsx** - Main page component ✅ COMPLETED
 2. **Components for display:**
-   - `ExpenseHeader.tsx` - Amount, description, date display
-   - `PayerInfo.tsx` - Who paid with avatar
-   - `SplitBreakdown.tsx` - Visual split representation
-   - `ExpenseActions.tsx` - Edit/delete/share buttons
+   - `SplitBreakdown.tsx` - Enhanced visual split representation (Phase 2)
+   - `ExpenseActions.tsx` - Edit/delete/share buttons (Phase 4)
+
+### Phase 2 Implementation Plan
+
+**SplitBreakdown.tsx Component Structure:**
+- Progress bar visualization for split percentages
+- Participant cards with avatars, names, amounts, and percentages
+- Color coding: green for payer, red for participants who owe
+- Visual split type indicator badge
+- Responsive grid layout for mobile
+- Status icons (paid/owes) for clarity
+
+**Current State Analysis:**
+- Basic split display exists in ExpenseDetailPage lines 185-221
+- Uses simple list format with avatars and amounts
+- Missing visual hierarchy and percentage display
+- No color coding or status indicators
+
+**Enhancement Approach:**
+- Extract current split display into dedicated SplitBreakdown component
+- Add visual progress bars using CSS/Tailwind
+- Implement participant status logic (payer vs participants)
+- Add percentage calculations and display
+- Enhance mobile responsiveness
 
 ### Reusable Components from AddExpensePage
 
