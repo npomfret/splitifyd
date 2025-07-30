@@ -157,8 +157,7 @@ export const GroupBalancesSchema = z.object({
 // Share schemas
 export const ShareableLinkResponseSchema = z.object({
   linkId: z.string(),
-  shareUrl: z.string(),
-  expiresAt: z.string()
+  shareableUrl: z.string()
 });
 
 export const JoinGroupResponseSchema = z.object({
@@ -210,6 +209,7 @@ export const responseSchemas = {
   '/expenses': ExpenseDataSchema,
   '/expenses/group': ExpenseListResponseSchema,
   '/groups/balances': GroupBalancesSchema,
+  'POST /groups/share': ShareableLinkResponseSchema,
   '/groups/share': ShareableLinkResponseSchema,
   '/groups/join': JoinGroupResponseSchema,
   '/register': RegisterResponseSchema

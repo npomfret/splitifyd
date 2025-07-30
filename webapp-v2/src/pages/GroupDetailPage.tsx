@@ -11,7 +11,8 @@ import {
   QuickActions, 
   MembersList, 
   ExpensesList,
-  BalanceSummary 
+  BalanceSummary,
+  ShareGroupModal 
 } from '../components/group';
 
 interface GroupDetailPageProps {
@@ -20,6 +21,7 @@ interface GroupDetailPageProps {
 
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const isInitialized = useSignal(false);
+  const showShareModal = useSignal(false);
 
   // Computed values from store
   const group = useComputed(() => groupDetailStore.group);
@@ -129,7 +131,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   };
 
   const handleShare = () => {
-    console.log('Share clicked');
+    showShareModal.value = true;
   };
 
   const handleSettings = () => {
@@ -173,6 +175,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
           />
         </Stack>
       </div>
+
+      {/* Share Modal */}
+      <ShareGroupModal
+        isOpen={showShareModal.value}
+        onClose={() => showShareModal.value = false}
+        groupId={groupId!}
+        groupName={group.value!.name}
+      />
     </BaseLayout>
   );
 }

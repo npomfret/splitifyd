@@ -22,10 +22,8 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Try multiple approaches to find the name input
-    const nameInput = this.page.getByPlaceholder(/group.*name/i)
-      .or(this.page.getByLabel(/group.*name/i))
-      .or(this.page.getByText('Group Name').locator('..').locator('input'));
+    // Use specific selectors based on the actual form structure
+    const nameInput = this.page.getByRole('textbox', { name: 'Group Name' });
     
     await nameInput.clear();
     await nameInput.fill(name);
@@ -37,9 +35,7 @@ export class CreateGroupModalPage extends BasePage {
     }
     
     if (description) {
-      const descInput = this.page.getByPlaceholder(/add.*details/i)
-        .or(this.page.getByLabel(/description/i))
-        .or(this.page.getByText('Description (optional)').locator('..').locator('textarea'));
+      const descInput = this.page.getByPlaceholder('Add any details about this group...');
       
       await descInput.clear();
       await descInput.fill(description);
@@ -50,8 +46,8 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async submitForm() {
-    // Wait for button to be enabled before clicking
-    const submitButton = this.page.getByRole('button', { name: 'Create Group' }).last();
+    // Wait for button to be enabled before clicking (use form-specific selector)
+    const submitButton = this.page.locator('form').getByRole('button', { name: 'Create Group' });
     await submitButton.waitFor({ state: 'visible' });
     
     // Check if button is enabled, if not wait a bit more

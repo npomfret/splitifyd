@@ -18,6 +18,7 @@ import { JoinButton } from '../components/join-group/JoinButton';
 
 interface JoinGroupPageProps {
   linkId?: string;
+  matches?: any; // For route parameters
 }
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
@@ -33,6 +34,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
   // Get linkId from URL query parameters if not provided as prop
   const urlParams = new URLSearchParams(window.location.search);
   const actualLinkId = linkId || urlParams.get('linkId');
+  
 
   useEffect(() => {
     // Reset store on component mount
@@ -45,9 +47,14 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     }
 
     if (!isAuthenticated) {
-      // Not authenticated - redirect to login with return URL
-      const returnUrl = encodeURIComponent(`/join?linkId=${actualLinkId}`);
-      route(`/login?returnUrl=${returnUrl}`);
+      // Not authenticated - redirect to login with return URL after a short delay
+      // to allow authentication state to settle
+      setTimeout(() => {
+        if (!authStore.user) {
+          const returnUrl = encodeURIComponent(`/join?linkId=${actualLinkId}`);
+          route(`/login?returnUrl=${returnUrl}`);
+        }
+      }, 100);
       return;
     }
 

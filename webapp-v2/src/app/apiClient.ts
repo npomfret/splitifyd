@@ -308,11 +308,33 @@ export class ApiClient {
   }
 
 
+  async generateShareLink(groupId: string): Promise<{ linkId: string; shareableUrl: string }> {
+    return this.request('/groups/share', {
+      method: 'POST',
+      body: { groupId }
+    });
+  }
+
   async joinGroupByLink(linkId: string): Promise<Group> {
-    return this.request('/groups/join', {
+    const response = await this.request('/groups/join', {
       method: 'POST',
       body: { linkId }
     });
+    
+    // Transform the response to match Group interface
+    return {
+      id: response.groupId,
+      name: response.groupName,
+      description: '',
+      memberCount: 1,
+      balance: {
+        userBalance: null,
+        totalOwed: 0,
+        totalOwing: 0
+      },
+      lastActivity: 'just now',
+      lastActivityRaw: new Date().toISOString()
+    } as Group;
   }
 
   async register(email: string, password: string, displayName: string): Promise<{ success: boolean; message: string; user: { uid: string; email: string; displayName: string } }> {

@@ -90,7 +90,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     const host = req.get('host');
     const baseUrl = `${protocol}://${host}`;
     
-    const shareableUrl = `${baseUrl}/join-group.html?linkId=${shareToken}`;
+    const shareableUrl = `${baseUrl}/join?linkId=${shareToken}`;
 
     logger.info('Shareable link generated', {
       groupId,
@@ -212,6 +212,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       groupId,
       groupName: result.groupName,
       message: 'Successfully joined group',
+      success: true,
     });
   } catch (error) {
     if (error instanceof ApiError) throw error;

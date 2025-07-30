@@ -87,7 +87,7 @@ describe('Comprehensive API Test Suite', () => {
         expect(shareResponse).toHaveProperty('shareableUrl');
         expect(shareResponse).toHaveProperty('linkId');
         expect(shareResponse.shareableUrl).toContain('http');
-        expect(shareResponse.shareableUrl).toContain('/join-group.html?linkId=');
+        expect(shareResponse.shareableUrl).toContain('/join?linkId=');
         expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
       });
 
@@ -101,7 +101,7 @@ describe('Comprehensive API Test Suite', () => {
         expect(shareResponse).toHaveProperty('shareableUrl');
         expect(shareResponse).toHaveProperty('linkId');
         expect(shareResponse.shareableUrl).toContain('http');
-        expect(shareResponse.shareableUrl).toContain('/join-group.html?linkId=');
+        expect(shareResponse.shareableUrl).toContain('/join?linkId=');
         expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
       });
 
