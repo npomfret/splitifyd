@@ -1,5 +1,5 @@
 // Server-only types - not shared with webapp clients
-import { Group, GroupBalance, User } from './webapp-shared-types';
+import { Group, GroupBalance } from './webapp-shared-types';
 
 // Firestore document structure
 export interface GroupDocument {
@@ -8,8 +8,6 @@ export interface GroupDocument {
   description?: string;
   createdBy: string;
   memberIds: string[];
-  memberEmails: string[];
-  members: User[];
   expenseCount: number;
   lastExpenseTime?: Date;
   lastExpense?: {
@@ -35,8 +33,6 @@ export interface GroupData {
   name: string;
   description?: string;
   memberIds?: string[];
-  memberEmails: string[];
-  members: User[];
   yourBalance: number;
   expenseCount: number;
   lastExpenseTime: string | null;

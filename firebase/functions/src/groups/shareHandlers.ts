@@ -67,16 +67,14 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     const groupData = groupDoc.data()!;
     
     if (groupData.userId !== userId) {
-      const members = groupData.data?.members || [];
-      const isAdmin = members.some((member: any) => 
-        member.uid === userId && member.role === 'admin'
-      );
+      const memberIds = groupData.data!.memberIds!;
+      const isMember = memberIds.includes(userId);
       
-      if (!isAdmin) {
+      if (!isMember) {
         throw new ApiError(
           HTTP_STATUS.FORBIDDEN,
           'UNAUTHORIZED',
-          'Only group admins can generate share links'
+          'Only group members can generate share links'
         );
       }
     }
@@ -136,7 +134,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
 
   const { linkId } = req.body;
   const userId = req.user!.uid;
-  const userEmail = req.user!.email || '';
+  const userEmail = req.user!.email;
   const userName = userEmail.split('@')[0];
 
   try {

@@ -104,19 +104,6 @@ export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequ
     sanitized.description = sanitizeString(data.description);
   }
   
-  if ('memberEmails' in data && data.memberEmails) {
-    sanitized.memberEmails = data.memberEmails.map(email => 
-      sanitizeString(email.toLowerCase().trim())
-    );
-  }
-  
-  if ('members' in data && data.members) {
-    sanitized.members = data.members.map(member => ({
-      uid: sanitizeString(member.uid),
-      displayName: sanitizeString(member.displayName),
-      email: sanitizeString(member.email.toLowerCase().trim())
-    }));
-  }
   
   return sanitized as T;
 };
