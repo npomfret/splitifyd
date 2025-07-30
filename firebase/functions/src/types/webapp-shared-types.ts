@@ -69,7 +69,7 @@ export interface UserBalance {
 }
 
 export interface GroupBalance {
-  userBalance?: UserBalance;
+  userBalance: UserBalance | null;
   totalOwed: number;
   totalOwing: number;
 }
@@ -82,7 +82,7 @@ export interface Group {
   description?: string;
   memberCount: number;
   balance: {
-    userBalance?: UserBalance;
+    userBalance: UserBalance | null;
     totalOwed: number;
     totalOwing: number;
   };
