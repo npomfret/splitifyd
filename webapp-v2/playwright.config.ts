@@ -6,8 +6,12 @@ import { EMULATOR_URL } from './e2e/helpers';
  */
 export default defineConfig({
   testDir: './e2e',
+  /* Use the build tsconfig that includes e2e directory */
+  tsconfig: './tsconfig.build.json',
   /* Output directory for test results */
   outputDir: '../tmp/playwright-test-results',
+  /* Global test timeout - 2 seconds max */
+  timeout: 2000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
