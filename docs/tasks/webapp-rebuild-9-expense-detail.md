@@ -4,15 +4,16 @@
 Migrate the expense detail page with view/edit functionality, split breakdown, and expense management actions to Preact.
 
 ## Prerequisites
-- [ ] Complete webapp-rebuild-8-add-expense.md
-- [ ] Expense form components available
-- [ ] API client configured for expense CRUD
+- [x] AddExpensePage completed with form components
+- [x] Expense form store (expense-form-store.ts) available
+- [x] API client configured for expense CRUD
+- [x] ExpensesList component with onClick handler
 
 ## Current State
-- Static expense display
-- Modal or separate page for editing
-- Basic expense information layout
-- Manual navigation and updates
+- ExpenseItem has onClick handler that passes expense data
+- GroupDetailPage has handleExpenseClick that only logs to console
+- No expense detail route exists yet
+- Edit functionality exists in AddExpensePage via URL params
 
 ## Target State
 - Dynamic expense detail with edit mode
@@ -21,90 +22,70 @@ Migrate the expense detail page with view/edit functionality, split breakdown, a
 - Enhanced mobile experience
 - Better visual split breakdown
 
-## Implementation Steps
+## Task Breakdown (4 commits, ~6 hours total)
 
-### Phase 1: Page Structure (1 hour)
+### Commit 1: Basic Expense Detail View (1.5 hours)
+- [ ] Add expense detail route to App.tsx
+- [ ] Create ExpenseDetailPage component
+- [ ] Wire up navigation from ExpensesList
+- [ ] Display basic expense info (amount, description, date, category, payer)
+- [ ] Add loading and error states
+- [ ] Back navigation to group
 
-1. **Expense detail component** (`pages/ExpenseDetailPage.tsx`)
-   - [ ] Expense header with amount/description
-   - [ ] Split breakdown section
-   - [ ] Actions toolbar (edit/delete/share)
-   - [ ] Comments/notes section
-   - [ ] Receipt display
+### Commit 2: Split Breakdown Visualization (1.5 hours)
+- [ ] Create SplitBreakdown component
+- [ ] Visual representation of who owes what
+- [ ] Show amounts and percentages
+- [ ] Add participant avatars and names
+- [ ] Color-coded debt indicators
+- [ ] Responsive design for mobile
 
-2. **View/edit modes**
-   - [ ] Toggle between view and edit mode
-   - [ ] Preserve form state during mode switch
-   - [ ] Smooth transitions
-   - [ ] Save/cancel actions
+### Commit 3: Edit Mode Integration (2 hours)
+- [ ] Add edit/view mode toggle
+- [ ] Reuse AddExpensePage form components
+- [ ] Pre-populate form with existing data
+- [ ] Save/cancel actions with validation
+- [ ] Optimistic updates
+- [ ] Smooth mode transitions
 
-### Phase 2: Display Components (2 hours)
+### Commit 4: Actions and Polish (1 hour)
+- [ ] Delete expense with confirmation
+- [ ] Share expense functionality
+- [ ] Receipt viewer (if applicable)
+- [ ] Error handling for all edge cases
+- [ ] Performance optimizations
+- [ ] Final testing and polish
 
-1. **Expense info components**
-   ```
-   components/expense-detail/
-   ├── ExpenseHeader.tsx      # Amount, description, date
-   ├── PayerInfo.tsx          # Who paid this expense
-   ├── SplitBreakdown.tsx     # Visual split representation
-   ├── ParticipantsList.tsx   # Who owes what
-   ├── ReceiptViewer.tsx      # Receipt image display
-   ├── ExpenseActions.tsx     # Edit/delete/share buttons
-   └── ExpenseComments.tsx    # Comments and notes
-   ```
+## Implementation Details
 
-2. **Split visualization**
-   - [ ] Visual chart/graph of splits
-   - [ ] Individual participant amounts
-   - [ ] Percentage breakdowns
-   - [ ] Color-coded amounts
-   - [ ] Clear debt indicators
+### Key Components to Create
 
-### Phase 3: Edit Mode Integration (2 hours)
+1. **ExpenseDetailPage.tsx** - Main page component
+2. **Components for display:**
+   - `ExpenseHeader.tsx` - Amount, description, date display
+   - `PayerInfo.tsx` - Who paid with avatar
+   - `SplitBreakdown.tsx` - Visual split representation
+   - `ExpenseActions.tsx` - Edit/delete/share buttons
 
-1. **Edit mode implementation**
-   - [ ] Reuse add expense form components
-   - [ ] Pre-populate with existing data
-   - [ ] Validation for updates
-   - [ ] Handle split recalculations
-   - [ ] Optimistic updates
+### Reusable Components from AddExpensePage
 
-2. **Edit mode features**
-   - [ ] Inline editing for simple fields
-   - [ ] Full form for complex changes
-   - [ ] Preview changes before saving
-   - [ ] Undo/redo functionality
-   - [ ] Auto-save drafts
+- Form fields and validation logic
+- Split type selection
+- Participant selection
+- Amount inputs
+- Date picker
 
-### Phase 4: Expense Actions (1 hour)
+### API Integration
 
-1. **Action implementations**
-   - [ ] Edit expense (mode switch)
-   - [ ] Delete expense (with confirmation)
-   - [ ] Duplicate expense
-   - [ ] Share expense details
-   - [ ] Export expense
+- GET `/expenses/:id` - Fetch single expense
+- PUT `/expenses/:id` - Update expense
+- DELETE `/expenses/:id` - Delete expense
 
-2. **Bulk operations** (if applicable)
-   - [ ] Select multiple related expenses
-   - [ ] Batch edit capabilities
-   - [ ] Mass delete with confirmation
-   - [ ] Export multiple expenses
+### State Management
 
-### Phase 5: Receipt and Media (1 hour)
-
-1. **Receipt display**
-   - [ ] Full-screen image viewer
-   - [ ] Zoom and pan functionality
-   - [ ] Multiple image support
-   - [ ] Image editing tools
-   - [ ] Download original images
-
-2. **Media management**
-   - [ ] Add/remove receipts in edit mode
-   - [ ] Replace existing receipts
-   - [ ] Image optimization
-   - [ ] Loading states for images
-   - [ ] Error handling for failed uploads
+- Use expense-form-store.ts for edit mode
+- Local state for view/edit toggle
+- Optimistic updates for better UX
 
 ## In-Browser Testing Checklist
 
