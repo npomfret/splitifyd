@@ -137,30 +137,24 @@ export const ExpenseListResponseSchema = z.object({
   nextCursor: z.string().optional()
 });
 
-// Balance schemas
+// Balance schemas - Updated to match server response structure
+export const UserBalanceSchema = z.object({
+  netBalance: z.number(),
+  owes: z.record(z.string(), z.number()),
+  owedBy: z.record(z.string(), z.number())
+});
+
+export const SimplifiedDebtSchema = z.object({
+  from: z.string(),
+  to: z.string(),
+  amount: z.number()
+});
+
 export const GroupBalancesSchema = z.object({
-  balances: z.array(z.object({
-    userId: z.string(),
-    userName: z.string(),
-    balance: z.number(),
-    owes: z.array(z.object({
-      userId: z.string(),
-      userName: z.string(),
-      amount: z.number()
-    })),
-    owedBy: z.array(z.object({
-      userId: z.string(),
-      userName: z.string(),
-      amount: z.number()
-    }))
-  })),
-  simplifiedDebts: z.array(z.object({
-    fromUserId: z.string(),
-    fromUserName: z.string(),
-    toUserId: z.string(),
-    toUserName: z.string(),
-    amount: z.number()
-  }))
+  groupId: z.string(),
+  userBalances: z.record(z.string(), UserBalanceSchema),
+  simplifiedDebts: z.array(SimplifiedDebtSchema),
+  lastUpdated: z.string()
 });
 
 // Share schemas
@@ -213,7 +207,8 @@ export const RegisterResponseSchema = z.object({
 export const responseSchemas = {
   '/config': AppConfigurationSchema,
   '/health': HealthCheckResponseSchema,
-  '/groups': ListGroupsResponseSchema,
+  'GET /groups': ListGroupsResponseSchema,
+  'POST /groups': GroupSchema,
   '/groups/:id': GroupSchema,
   '/expenses': ExpenseDataSchema,
   '/expenses/group': ExpenseListResponseSchema,

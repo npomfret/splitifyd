@@ -136,9 +136,9 @@ export function DashboardPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(groupId) => {
-          // TODO: Navigate to new group detail page when available
           console.log('Successfully created group:', groupId);
           setIsCreateModalOpen(false);
+          route(`/groups/${groupId}`);
         }}
       />
     </div>

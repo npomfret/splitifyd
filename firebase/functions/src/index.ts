@@ -273,16 +273,16 @@ app.get('/expenses/history', authenticate, asyncHandler(getExpenseHistory));
 // NEW Group endpoints (requires auth) - RESTful API
 app.post('/groups', authenticate, asyncHandler(createGroup));
 app.get('/groups', authenticate, asyncHandler(listGroups));
-app.get('/groups/:id', authenticate, asyncHandler(getGroup));
-app.put('/groups/:id', authenticate, asyncHandler(updateGroup));
-app.delete('/groups/:id', authenticate, asyncHandler(deleteGroup));
 
-// Group sharing endpoints (requires auth)
+// Specific group endpoints must come BEFORE :id routes
+app.get('/groups/balances', authenticate, asyncHandler(getGroupBalances));
 app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));
 app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
 
-// Group balance endpoint (requires auth)
-app.get('/groups/balances', authenticate, asyncHandler(getGroupBalances));
+// Parameterized routes come last
+app.get('/groups/:id', authenticate, asyncHandler(getGroup));
+app.put('/groups/:id', authenticate, asyncHandler(updateGroup));
+app.delete('/groups/:id', authenticate, asyncHandler(deleteGroup));
 
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
