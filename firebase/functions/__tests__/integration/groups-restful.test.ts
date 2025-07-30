@@ -42,7 +42,8 @@ describe('RESTful Group Endpoints', () => {
       expect(response.createdBy).toBe(users[0].uid);
       expect(response.members).toHaveLength(1);
       expect(response.members[0].uid).toBe(users[0].uid);
-      expect(response.expenseCount).toBe(0);
+      expect(response.memberIds).toContain(users[0].uid);
+      // expenseCount removed - calculated on demand
     });
 
     test('should create a group with member objects', async () => {
@@ -373,7 +374,7 @@ describe('RESTful Group Endpoints', () => {
       expect(firstGroup.balance).toHaveProperty('totalOwing');
       // userBalance is null for groups without balances
       expect(firstGroup).toHaveProperty('lastActivity');
-      expect(firstGroup).toHaveProperty('expenseCount');
+      // expenseCount and lastExpense removed - calculated on demand
     });
 
     test('should support pagination', async () => {
