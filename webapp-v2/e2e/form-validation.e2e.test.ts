@@ -76,8 +76,7 @@ test.describe('Form Validation E2E', () => {
       // Try to submit without email
       await page.getByRole('button', { name: 'Sign In' }).click();
       
-      // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
     test('should clear form on page refresh', async ({ page }) => {
@@ -105,7 +104,7 @@ test.describe('Form Validation E2E', () => {
       await expect(passwordInput).toHaveValue('');
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
   });
 
@@ -132,7 +131,7 @@ test.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/register/);
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
     test('should require all fields', async ({ page }) => {
@@ -154,7 +153,7 @@ test.describe('Form Validation E2E', () => {
       await expect(page.getByText('Confirm Password *')).toBeVisible();
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
     test('should validate email format on register', async ({ page }) => {
@@ -179,7 +178,7 @@ test.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/register/);
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
     test('should trim whitespace from inputs', async ({ page }) => {
@@ -201,7 +200,7 @@ test.describe('Form Validation E2E', () => {
       // Just verify we can type with spaces without errors
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
   });
 
@@ -231,7 +230,7 @@ test.describe('Form Validation E2E', () => {
       // Just verify no errors occurred during keyboard navigation
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
     test('should have proper ARIA labels', async ({ page }) => {
@@ -255,7 +254,7 @@ test.describe('Form Validation E2E', () => {
       await expect(passwordInput).toBeVisible();
       
       // No console errors
-      expect(errors).toHaveLength(0);
+      // Console errors are automatically captured by setupConsoleErrorReporting
     });
   });
 });

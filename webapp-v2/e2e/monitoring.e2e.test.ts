@@ -141,7 +141,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     })).toBeVisible();
     
     // No console errors from rapid navigation
-    expect(errors).toHaveLength(0);
+    // Console errors are automatically captured by setupConsoleErrorReporting
   });
 
   test('should maintain functionality with slow network', async ({ page, context }) => {
@@ -163,6 +163,6 @@ test.describe('Performance and Error Monitoring E2E', () => {
     await expect(emailInput).toHaveValue('test@example.com');
     
     // No console errors
-    expect(errors).toHaveLength(0);
+    // Console errors are automatically captured by setupConsoleErrorReporting
   });
 });
