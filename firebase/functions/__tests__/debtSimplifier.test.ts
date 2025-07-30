@@ -38,8 +38,8 @@ describe('simplifyDebts', () => {
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            from: { userId: 'user1', name: 'Alice' },
-            to: { userId: 'user2', name: 'Bob' },
+            from: { userId: 'user1' },
+            to: { userId: 'user2' },
             amount: 50
         });
     });
@@ -65,8 +65,8 @@ describe('simplifyDebts', () => {
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            from: { userId: 'user1', name: 'Alice' },
-            to: { userId: 'user2', name: 'Bob' },
+            from: { userId: 'user1' },
+            to: { userId: 'user2' },
             amount: 20
         });
     });
