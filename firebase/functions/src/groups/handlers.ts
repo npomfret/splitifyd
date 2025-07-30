@@ -53,25 +53,28 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDoc
     throw new Error('Invalid group document');
   }
 
-  // Handle both old (nested) and new (flat) document structures
-  const groupData = data.data || data;
+  // Expect consistent document structure
+  if (!data.data) {
+    throw new Error('Invalid group document structure: missing data field');
+  }
+  const groupData = data.data;
   
 
   return {
     id: doc.id,
-    name: groupData.name,
-    description: groupData.description || '',
-    createdBy: groupData.createdBy || data.userId,
+    name: groupData.name!,
+    description: groupData.description ?? '',
+    createdBy: groupData.createdBy!,
     memberIds: groupData.memberIds!,
-    expenseCount: groupData.expenseCount || 0,
+    expenseCount: groupData.expenseCount ?? 0,
     lastExpenseTime: groupData.lastExpenseTime ? new Date(groupData.lastExpenseTime) : undefined,
     lastExpense: groupData.lastExpense ? {
       description: groupData.lastExpense.description,
       amount: groupData.lastExpense.amount,
       date: new Date(groupData.lastExpense.date)
     } : undefined,
-    createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
-    updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+    createdAt: data.createdAt!.toDate(),
+    updatedAt: data.updatedAt!.toDate(),
   };
 };
 
@@ -377,7 +380,7 @@ export const listGroups = async (
     DOCUMENT_CONFIG.LIST_LIMIT
   );
   const cursor = req.query.cursor as string;
-  const order = (req.query.order as 'asc' | 'desc') || 'desc';
+  const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
 
   // Build base query - groups where user is a member
   const baseQuery = getGroupsCollection()

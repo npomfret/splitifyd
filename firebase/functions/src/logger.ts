@@ -45,7 +45,7 @@ export const logger = {
       method: req.method,
       path: req.path,
       userAgent: req.headers['user-agent'],
-      ip: req.ip || req.connection.remoteAddress,
+      ip: req.ip ?? req.connection.remoteAddress ?? 'unknown',
       ...additionalContext,
     };
     
@@ -68,7 +68,7 @@ export const logger = {
 
 // Middleware to add correlation ID to requests
 export const addCorrelationId = (req: Request, res: any, next: any) => {
-  const correlationId = req.headers['x-correlation-id'] as string || randomUUID();
+  const correlationId = req.headers['x-correlation-id'] as string ?? randomUUID();
   req.headers['x-correlation-id'] = correlationId;
   res.setHeader('x-correlation-id', correlationId);
   next();

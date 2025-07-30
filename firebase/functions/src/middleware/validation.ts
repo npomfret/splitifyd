@@ -116,7 +116,7 @@ export const rateLimitByIP = (
   res: Response,
   next: NextFunction
 ): void => {
-  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const ip = req.ip ?? req.connection.remoteAddress ?? 'unknown';
   const now = Date.now();
   const config = getConfig();
   const windowMs = config.rateLimiting.windowMs;
