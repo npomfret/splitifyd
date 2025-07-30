@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
 import { GroupCard } from '../../../components/dashboard/GroupCard';
-import type { Group, User } from '../../../types/webapp-shared-types';
+import type { Group, User } from '@shared/types/webapp-shared-types';
 
 // Helper to create test groups
 function createTestGroup(overrides: Partial<Group> = {}): Group {

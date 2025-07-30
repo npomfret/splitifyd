@@ -11,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@shared': resolve(__dirname, '../firebase/functions/src/shared'),
+      '@shared': resolve(__dirname, '../firebase/functions/src'),
       '@test-builders': resolve(__dirname, '../firebase/functions/__tests__/support/builders'),
     },
   },

@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import type { Group, ExpenseData, GroupBalances } from '../../types/webapp-shared-types';
+import type { Group, ExpenseData, GroupBalances } from '@shared/types/webapp-shared-types';
 import { apiClient } from '../apiClient';
 
 export interface GroupDetailStore {

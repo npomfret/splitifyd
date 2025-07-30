@@ -1,6 +1,6 @@
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import type { GroupBalances } from '../../types/webapp-shared-types';
+import type { GroupBalances } from '@shared/types/webapp-shared-types';
 
 interface BalanceSummaryProps {
   balances: GroupBalances | null;

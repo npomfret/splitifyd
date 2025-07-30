@@ -4,7 +4,7 @@
  * Shows current group members in the join group flow
  */
 
-import type { Group } from '../../types/webapp-shared-types';
+import type { Group } from '@shared/types/webapp-shared-types';
 
 interface MembersPreviewProps {
   group: Group;

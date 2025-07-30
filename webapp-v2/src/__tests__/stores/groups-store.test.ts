@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { groupsStore } from '../../app/stores/groups-store';
 import { apiClient } from '../../app/apiClient';
-import type { CreateGroupRequest, Group, User, ListGroupsResponse } from '../../types/webapp-shared-types';
+import type { CreateGroupRequest, Group, User, ListGroupsResponse } from '@shared/types/webapp-shared-types';
 
 // Mock the API client
 vi.mock('../../app/apiClient');

@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { ExpenseData } from '../../types/webapp-shared-types';
+import type { ExpenseData } from '@shared/types/webapp-shared-types';
 
 interface ExpenseItemProps {
   expense: ExpenseData;
