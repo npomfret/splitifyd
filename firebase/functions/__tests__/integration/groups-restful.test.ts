@@ -90,6 +90,27 @@ describe('RESTful Group Endpoints', () => {
         driver.createGroupNew({ name: 'Test' }, '')
       ).rejects.toThrow(/401|unauthorized/i);
     });
+
+    test('should be able to fetch balances immediately after creating group', async () => {
+      const groupData = new GroupBuilder()
+        .withName(`Balance Test Group ${uuidv4()}`)
+        .withDescription('Testing immediate balance fetch')
+        .build();
+
+      const createdGroup = await driver.createGroupNew(groupData, users[0].token);
+      
+      // Verify the group can be fetched normally
+      const fetchedGroup = await driver.getGroupNew(createdGroup.id, users[0].token);
+      expect(fetchedGroup).toBeDefined();
+      expect(fetchedGroup.id).toBe(createdGroup.id);
+      
+      // Fetch balances immediately after creation
+      const balances = await driver.getGroupBalances(createdGroup.id, users[0].token);
+      
+      expect(balances).toBeDefined();
+      expect(balances.groupId).toBe(createdGroup.id);
+      expect(balances.userBalances).toBeDefined();
+    });
   });
 
   describe('GET /groups/:id - Get Group', () => {
@@ -398,6 +419,234 @@ describe('RESTful Group Endpoints', () => {
       await expect(
         driver.listGroupsNew('')
       ).rejects.toThrow(/401|unauthorized/i);
+    });
+  });
+
+  describe('GET /groups/balances - Group Balances', () => {
+    let testGroup: any;
+
+    beforeEach(async () => {
+      const groupData = new GroupBuilder()
+        .withName(`Balance Test Group ${uuidv4()}`)
+        .withDescription('Testing balance endpoint')
+        .build();
+      testGroup = await driver.createGroupNew(groupData, users[0].token);
+    });
+
+    test('should return correct response structure for empty group', async () => {
+      const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+      
+      // Verify server response structure matches what server actually returns
+      expect(balances).toHaveProperty('groupId', testGroup.id);
+      expect(balances).toHaveProperty('userBalances');
+      expect(balances).toHaveProperty('simplifiedDebts');
+      expect(balances).toHaveProperty('lastUpdated');
+      
+      // For empty group, balances should be empty
+      expect(typeof balances.userBalances).toBe('object');
+      expect(Array.isArray(balances.simplifiedDebts)).toBe(true);
+      expect(typeof balances.lastUpdated).toBe('string');
+    });
+
+    test('should return balances for group with expenses', async () => {
+      // Add multiple users to the group
+      const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
+      await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+      await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
+
+      // Create an expense where user 0 pays for everyone
+      const expenseData = {
+        groupId: testGroup.id,
+        description: 'Dinner for everyone',
+        amount: 150, // $1.50
+        paidBy: users[0].uid,
+        participants: [users[0].uid, users[1].uid, users[2].uid],
+        splitType: 'equal' as const,
+        date: new Date().toISOString(),
+        category: 'food'
+      };
+      await driver.createExpense(expenseData, users[0].token);
+
+      // Wait for balance calculation
+      const balances = await driver.pollGroupBalancesUntil(
+        testGroup.id,
+        users[0].token,
+        (b) => b.userBalances && Object.keys(b.userBalances).length > 0,
+        { timeout: 5000 }
+      );
+
+      // Verify response structure
+      expect(balances.groupId).toBe(testGroup.id);
+      expect(balances.userBalances).toBeDefined();
+      expect(balances.simplifiedDebts).toBeDefined();
+      expect(balances.lastUpdated).toBeDefined();
+
+      // Verify balance calculations
+      expect(Object.keys(balances.userBalances)).toContain(users[0].uid);
+      expect(balances.userBalances[users[0].uid]).toHaveProperty('netBalance');
+      
+      // User 0 should have positive balance (others owe them)
+      expect(balances.userBalances[users[0].uid].netBalance).toBeGreaterThan(0);
+    });
+
+    test('should handle complex multi-expense scenarios', async () => {
+      // Add another user
+      const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
+      await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+
+      // Create multiple expenses with different payers
+      const expenses = [
+        {
+          groupId: testGroup.id,
+          description: 'Lunch',
+          amount: 60, // $0.60
+          paidBy: users[0].uid,
+          participants: [users[0].uid, users[1].uid],
+          splitType: 'equal' as const,
+          date: new Date().toISOString(),
+          category: 'food'
+        },
+        {
+          groupId: testGroup.id,
+          description: 'Coffee',
+          amount: 20, // $0.20
+          paidBy: users[1].uid,
+          participants: [users[0].uid, users[1].uid],
+          splitType: 'equal' as const,
+          date: new Date().toISOString(),
+          category: 'food'
+        }
+      ];
+
+      for (const expense of expenses) {
+        await driver.createExpense(expense, users[0].token);
+      }
+
+      // Wait for balance calculation
+      const balances = await driver.pollGroupBalancesUntil(
+        testGroup.id,
+        users[0].token,
+        (b) => b.userBalances && Object.keys(b.userBalances).length >= 2,
+        { timeout: 5000 }
+      );
+
+      // Verify both users have balances
+      expect(Object.keys(balances.userBalances)).toHaveLength(2);
+      expect(balances.userBalances[users[0].uid]).toBeDefined();
+      expect(balances.userBalances[users[1].uid]).toBeDefined();
+
+      // Net balances should add up to zero
+      const user0Balance = balances.userBalances[users[0].uid].netBalance;
+      const user1Balance = balances.userBalances[users[1].uid].netBalance;
+      expect(user0Balance + user1Balance).toBeCloseTo(0, 2);
+    });
+
+    test('should require authentication', async () => {
+      await expect(
+        driver.getGroupBalances(testGroup.id, '')
+      ).rejects.toThrow(/401|unauthorized/i);
+    });
+
+    test('should return 404 for non-existent group', async () => {
+      await expect(
+        driver.getGroupBalances('non-existent-id', users[0].token)
+      ).rejects.toThrow(/404|not found/i);
+    });
+
+    test('should restrict access to group members only', async () => {
+      // User 1 is not a member of the group
+      await expect(
+        driver.getGroupBalances(testGroup.id, users[1].token)
+      ).rejects.toThrow(/403|forbidden/i);
+    });
+
+    test('should validate groupId parameter', async () => {
+      // Test with missing groupId (should be handled by validation)
+      try {
+        await driver.apiRequest('/groups/balances', 'GET', null, users[0].token);
+        fail('Should have thrown validation error');
+      } catch (error) {
+        expect((error as Error).message).toMatch(/validation|required|groupId/i);
+      }
+    });
+
+    test('should handle groups with no expenses gracefully', async () => {
+      const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+      
+      expect(balances.groupId).toBe(testGroup.id);
+      expect(balances.userBalances).toBeDefined();
+      expect(balances.simplifiedDebts).toBeDefined();
+      expect(Array.isArray(balances.simplifiedDebts)).toBe(true);
+      expect(balances.simplifiedDebts).toHaveLength(0);
+    });
+
+    test('should return updated timestamp', async () => {
+      const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+      
+      expect(balances.lastUpdated).toBeDefined();
+      expect(typeof balances.lastUpdated).toBe('string');
+      
+      // Should be a valid ISO date string
+      const date = new Date(balances.lastUpdated);
+      expect(date).toBeInstanceOf(Date);
+      expect(date.getTime()).not.toBeNaN();
+    });
+
+    test('should include simplified debts for complex scenarios', async () => {
+      // Create a three-person group with circular debts
+      const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
+      await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+      await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
+
+      // Create expenses that would benefit from debt simplification
+      const expenses = [
+        {
+          groupId: testGroup.id,
+          description: 'User 0 pays for all',
+          amount: 300, // $3.00
+          paidBy: users[0].uid,
+          participants: [users[0].uid, users[1].uid, users[2].uid],
+          splitType: 'equal' as const,
+          date: new Date().toISOString(),
+          category: 'food'
+        },
+        {
+          groupId: testGroup.id,
+          description: 'User 1 pays for User 0 and 2',
+          amount: 120, // $1.20
+          paidBy: users[1].uid,
+          participants: [users[0].uid, users[1].uid, users[2].uid],
+          splitType: 'equal' as const,
+          date: new Date().toISOString(),
+          category: 'transport'
+        }
+      ];
+
+      for (const expense of expenses) {
+        await driver.createExpense(expense, users[0].token);
+      }
+
+      // Wait for balance calculation
+      const balances = await driver.pollGroupBalancesUntil(
+        testGroup.id,
+        users[0].token,
+        (b) => b.userBalances && Object.keys(b.userBalances).length >= 3,
+        { timeout: 5000 }
+      );
+
+      // Should have simplified debts
+      expect(Array.isArray(balances.simplifiedDebts)).toBe(true);
+      
+      // Verify debt structure if any exist
+      if (balances.simplifiedDebts.length > 0) {
+        balances.simplifiedDebts.forEach((debt: any) => {
+          expect(debt).toHaveProperty('from');
+          expect(debt).toHaveProperty('to');
+          expect(debt).toHaveProperty('amount');
+          expect(typeof debt.amount).toBe('number');
+          expect(debt.amount).toBeGreaterThan(0);
+        });
+      }
     });
   });
 

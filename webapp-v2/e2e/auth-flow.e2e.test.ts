@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorListener, setupMCPDebugOnFailure } from './helpers';
+import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
+setupConsoleErrorReporting();
 
 test.describe('Auth Flow E2E', () => {
   test('should navigate between login and register pages', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     // Go to login page
     await page.goto(`${V2_URL}/login`);
@@ -28,13 +28,9 @@ test.describe('Auth Flow E2E', () => {
     
     // Back on login page
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should show form fields on login page', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -43,13 +39,9 @@ test.describe('Auth Flow E2E', () => {
     await expect(page.getByText('Email address *')).toBeVisible();
     await expect(page.getByText('Password *')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should show form fields on register page', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/register`);
     await waitForV2App(page);
@@ -60,13 +52,9 @@ test.describe('Auth Flow E2E', () => {
     await expect(page.getByText('Password *', { exact: true })).toBeVisible();
     await expect(page.getByText('Confirm Password *')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should disable submit button with empty form on login', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -83,13 +71,9 @@ test.describe('Auth Flow E2E', () => {
     
     // Should still be on login page
     await expect(page).toHaveURL(/\/login/);
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should handle empty form submission on register', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/register`);
     await waitForV2App(page);
@@ -104,13 +88,9 @@ test.describe('Auth Flow E2E', () => {
     // Form fields should still be visible
     await expect(page.getByText('Full Name *')).toBeVisible();
     await expect(page.getByText('Email address *')).toBeVisible();
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should allow typing in login form fields', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -124,13 +104,9 @@ test.describe('Auth Flow E2E', () => {
     const passwordInput = page.locator('input[type="password"]');
     await passwordInput.fill('TestPassword123');
     await expect(passwordInput).toHaveValue('TestPassword123');
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should allow typing in register form fields', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/register`);
     await waitForV2App(page);
@@ -152,13 +128,9 @@ test.describe('Auth Flow E2E', () => {
     
     await passwordInputs.last().fill('TestPassword123');
     await expect(passwordInputs.last()).toHaveValue('TestPassword123');
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 
   test('should show forgot password link on login page', async ({ page }) => {
-    const errors = setupConsoleErrorListener(page);
     
     await page.goto(`${V2_URL}/login`);
     await waitForV2App(page);
@@ -172,8 +144,5 @@ test.describe('Auth Flow E2E', () => {
     
     // Should navigate away from login page
     await expect(page).not.toHaveURL(/\/login$/);
-    
-    // No console errors
-    expect(errors).toHaveLength(0);
   });
 });

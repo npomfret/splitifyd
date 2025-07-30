@@ -182,8 +182,15 @@ export class ApiClient {
       // Parse response
       const data = await response.json();
 
-      // Get validator for this endpoint
-      const validator = responseSchemas[endpoint as keyof typeof responseSchemas];
+      // Get validator for this endpoint, trying method-specific first
+      const methodEndpoint = `${options.method} ${endpoint}` as keyof typeof responseSchemas;
+      let validator = responseSchemas[methodEndpoint];
+      
+      // Fallback to endpoint without method
+      if (!validator) {
+        validator = responseSchemas[endpoint as keyof typeof responseSchemas];
+      }
+      
       if (!validator) {
         console.warn(`No validator found for endpoint ${endpoint}`);
         return data as T;

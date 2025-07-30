@@ -10,11 +10,14 @@ export interface TestUser {
 }
 
 export async function createAndLoginTestUser(page: Page): Promise<TestUser> {
-  // Generate test user data
+  // Generate test user data with high uniqueness including process-level randomness
   const timestamp = Date.now();
-  const email = `test-${timestamp}@example.com`;
+  const random = Math.floor(Math.random() * 10000);
+  const processRandom = Math.floor(Math.random() * 10000);
+  const uuid = `${timestamp}-${random}-${processRandom}`;
+  const email = `test-${uuid}@example.com`;
   const password = 'TestPassword123!';
-  const displayName = `Test User ${timestamp}`;
+  const displayName = `Test User ${uuid}`;
 
   // Use RegisterPage for registration
   const registerPage = new RegisterPage(page);
@@ -26,7 +29,7 @@ export async function createAndLoginTestUser(page: Page): Promise<TestUser> {
   await dashboardPage.waitForDashboard();
   
   return {
-    uid: `test-uid-${timestamp}`,
+    uid: `test-uid-${uuid}`,
     email,
     displayName
   };
