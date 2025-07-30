@@ -559,17 +559,24 @@ This comprehensive test suite will ensure that broken functionality is caught im
 - **Proper Form Interaction**: Clear fields before filling, handle all required form elements
 
 #### Current Status
-- ✅ **65 comprehensive test cases** covering dashboard functionality
-- ✅ **Form interaction works correctly** - registration form submits successfully
-- ✅ **Fast execution** - tests timeout quickly instead of hanging
-- ✅ **Build passes** - TypeScript compiles successfully
-- ⚠️ **Registration redirect flow needs investigation** - form submits but doesn't redirect to dashboard as expected
+- ✅ **13 dashboard test cases** implemented
+- ✅ **7 tests passing** - basic dashboard display, navigation, modal operations
+- ❌ **6 tests failing** due to server validation errors
+- ✅ **Fixed test teardown issue** - removed `ensureLoggedOut()` that was causing misleading `/v2/logout` URLs in failures
+- ❌ **Server returns "Invalid response from server"** when loading groups or creating new groups
+
+#### What We Learned
+1. **Test Cleanup Issue Fixed**: Removed `ensureLoggedOut()` from authenticated fixture teardown. This was causing all failed tests to show `/v2/logout` as the final URL, which was misleading. Tests should set up their own clean state, not clean up after.
+
+2. **Actual Failures Revealed**: With cleanup removed, we can now see the real failures:
+   - Dashboard shows "Failed to load groups" with "Invalid response from server" error
+   - Create Group modal shows the same "Invalid response from server" error
+   - The form fields get filled correctly but the entire modal becomes disabled when the error occurs
+   - Tests stay on `/dashboard` (not `/v2/logout`) when they fail
+
+3. **Root Cause**: The server is returning a response that fails Zod schema validation in `apiClient.ts`, triggering the "Invalid response from server" error message. This happens for both:
+   - GET /groups (loading groups list)
+   - POST /groups (creating a new group)
 
 #### What's Next
-The foundation is solid. Next step is to debug why the registration flow doesn't redirect to dashboard after successful account creation. This might be:
-- Email verification requirement
-- Different redirect behavior in emulator vs production
-- Authentication state timing issues
-- Missing configuration in test environment
-
-The test infrastructure is now in place to quickly identify and fix these flow issues.
+The test infrastructure is working correctly. The issue is a schema mismatch between what the server returns and what the client expects. This needs to be fixed at the API level before the tests can pass.

@@ -12,7 +12,6 @@ export const authenticatedTest = base.extend<AuthenticatedFixtures>({
   authenticatedPage: async ({ page }, use) => {
     const user = await createAndLoginTestUser(page);
     await use({ page, user });
-    await ensureLoggedOut(page);
   }
 });
 
