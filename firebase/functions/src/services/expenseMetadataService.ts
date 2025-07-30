@@ -45,7 +45,7 @@ export const calculateExpenseMetadata = async (groupId: string): Promise<Expense
     lastExpense: {
       description: latestExpenseData.description,
       amount: latestExpenseData.amount,
-      date: latestExpenseData.date?.toDate() || latestExpenseData.createdAt?.toDate()
+      date: latestExpenseData.date?.toDate() ?? latestExpenseData.createdAt?.toDate() ?? new Date()
     }
   };
 };

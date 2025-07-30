@@ -260,17 +260,9 @@ export const getGroup = async (
 
   const { group } = await fetchGroupWithAccess(groupId, userId);
 
-  // Add balance information
-  let userBalance: UserBalance | null = null;
-  const balanceDoc = await admin.firestore()
-    .collection('group-balances')
-    .doc(groupId)
-    .get();
-  
-  if (balanceDoc.exists) {
-    const balanceData = balanceDoc.data();
-    userBalance = balanceData?.userBalances?.[userId] || null;
-  }
+  // Calculate balance information on-demand
+  const groupBalances = await calculateGroupBalances(groupId);
+  const userBalance = groupBalances.userBalances[userId] || null;
   
   const groupWithBalance: GroupWithBalance = {
     ...group,
@@ -414,23 +406,15 @@ export const listGroups = async (
     returnedDocs.map(async (doc) => {
       const group = transformGroupDocument(doc);
       
-      // Calculate balance for each group
-      let userBalance: UserBalance | null = null;
-      const balanceDoc = await admin.firestore()
-        .collection('group-balances')
-        .doc(group.id)
-        .get();
-      
-      if (balanceDoc.exists) {
-        const balanceData = balanceDoc.data();
-        userBalance = balanceData?.userBalances?.[userId] || null;
-      }
+      // Calculate balance for each group on-demand
+      const groupBalances = await calculateGroupBalances(group.id);
+      const userBalance = groupBalances.userBalances[userId] || null;
 
       // Calculate expense metadata for each group
       const expenseMetadata = await calculateExpenseMetadata(group.id);
       
       // Format last activity
-      const lastActivityDate = expenseMetadata.lastExpenseTime || group.updatedAt;
+      const lastActivityDate = expenseMetadata.lastExpenseTime ?? group.updatedAt;
       const lastActivity = formatRelativeTime(lastActivityDate.toISOString());
 
       return {
@@ -445,12 +429,6 @@ export const listGroups = async (
         },
         lastActivity,
         lastActivityRaw: lastActivityDate.toISOString(),
-        lastExpense: expenseMetadata.lastExpense ? {
-          description: expenseMetadata.lastExpense.description,
-          amount: expenseMetadata.lastExpense.amount,
-          date: expenseMetadata.lastExpense.date.toISOString(),
-        } : undefined,
-        expenseCount: expenseMetadata.expenseCount,
       };
     })
   );
