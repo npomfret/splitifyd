@@ -56,6 +56,9 @@ export function setupConsoleErrorReporting() {
           } : undefined,
           timestamp: new Date()
         });
+        
+        // Immediately log that we captured an error
+        console.log(`🚨 CONSOLE ERROR CAPTURED: ${msgText}`);
       }
     });
     
@@ -71,70 +74,72 @@ export function setupConsoleErrorReporting() {
   });
 
   test.afterEach(async ({}, testInfo) => {
-    // Only report errors if the test failed
-    if (testInfo.status === 'failed') {
-      const hasConsoleErrors = consoleErrors.length > 0;
-      const hasPageErrors = pageErrors.length > 0;
+    const hasConsoleErrors = consoleErrors.length > 0;
+    const hasPageErrors = pageErrors.length > 0;
+    
+    if (hasConsoleErrors || hasPageErrors) {
+      // Print to console for immediate visibility
+      console.log('\n' + '='.repeat(80));
+      console.log('❌ BROWSER ERRORS DETECTED');
+      console.log('='.repeat(80));
+      console.log(`Test: ${testInfo.title}`);
+      console.log(`File: ${testInfo.file}`);
       
-      if (hasConsoleErrors || hasPageErrors) {
-        // Print to console for immediate visibility
-        console.log('\n' + '='.repeat(80));
-        console.log('❌ BROWSER ERRORS DETECTED');
-        console.log('='.repeat(80));
-        console.log(`Test: ${testInfo.title}`);
-        console.log(`File: ${testInfo.file}`);
+      if (hasConsoleErrors) {
+        console.log(`\n📋 Console Errors (${consoleErrors.length}):`);
+        consoleErrors.forEach((err, index) => {
+          console.log(`\n  ${index + 1}. ${err.type.toUpperCase()}: ${err.message}`);
+          if (err.location?.url) {
+            console.log(`     at ${err.location.url}:${err.location.lineNumber || '?'}:${err.location.columnNumber || '?'}`);
+          }
+          console.log(`     time: ${err.timestamp.toISOString()}`);
+        });
+      }
+      
+      if (hasPageErrors) {
+        console.log(`\n⚠️  Page Errors (${pageErrors.length}):`);
+        pageErrors.forEach((err, index) => {
+          console.log(`\n  ${index + 1}. ${err.name}: ${err.message}`);
+          if (err.stack) {
+            console.log(`     Stack trace:\n${err.stack.split('\n').map(line => '       ' + line).join('\n')}`);
+          }
+          console.log(`     time: ${err.timestamp.toISOString()}`);
+        });
+      }
+      
+      console.log('\n' + '='.repeat(80) + '\n');
+      
+      // Attach console errors to test report
+      if (hasConsoleErrors) {
+        const consoleErrorReport = consoleErrors.map((err, index) => 
+          `${index + 1}. ${err.type.toUpperCase()}: ${err.message}\n` +
+          `   Location: ${err.location?.url || 'unknown'}:${err.location?.lineNumber || '?'}:${err.location?.columnNumber || '?'}\n` +
+          `   Time: ${err.timestamp.toISOString()}`
+        ).join('\n\n');
         
-        if (hasConsoleErrors) {
-          console.log(`\n📋 Console Errors (${consoleErrors.length}):`);
-          consoleErrors.forEach((err, index) => {
-            console.log(`\n  ${index + 1}. ${err.type.toUpperCase()}: ${err.message}`);
-            if (err.location?.url) {
-              console.log(`     at ${err.location.url}:${err.location.lineNumber || '?'}:${err.location.columnNumber || '?'}`);
-            }
-            console.log(`     time: ${err.timestamp.toISOString()}`);
-          });
-        }
+        await testInfo.attach('console-errors.txt', {
+          body: consoleErrorReport,
+          contentType: 'text/plain'
+        });
+      }
+      
+      // Attach page errors to test report
+      if (hasPageErrors) {
+        const pageErrorReport = pageErrors.map((err, index) => 
+          `${index + 1}. ${err.name}: ${err.message}\n` +
+          `${err.stack ? `Stack trace:\n${err.stack}\n` : ''}` +
+          `Time: ${err.timestamp.toISOString()}`
+        ).join('\n\n');
         
-        if (hasPageErrors) {
-          console.log(`\n⚠️  Page Errors (${pageErrors.length}):`);
-          pageErrors.forEach((err, index) => {
-            console.log(`\n  ${index + 1}. ${err.name}: ${err.message}`);
-            if (err.stack) {
-              console.log(`     Stack trace:\n${err.stack.split('\n').map(line => '       ' + line).join('\n')}`);
-            }
-            console.log(`     time: ${err.timestamp.toISOString()}`);
-          });
-        }
-        
-        console.log('\n' + '='.repeat(80) + '\n');
-        
-        // Attach console errors to test report
-        if (hasConsoleErrors) {
-          const consoleErrorReport = consoleErrors.map((err, index) => 
-            `${index + 1}. ${err.type.toUpperCase()}: ${err.message}\n` +
-            `   Location: ${err.location?.url || 'unknown'}:${err.location?.lineNumber || '?'}:${err.location?.columnNumber || '?'}\n` +
-            `   Time: ${err.timestamp.toISOString()}`
-          ).join('\n\n');
-          
-          await testInfo.attach('console-errors.txt', {
-            body: consoleErrorReport,
-            contentType: 'text/plain'
-          });
-        }
-        
-        // Attach page errors to test report
-        if (hasPageErrors) {
-          const pageErrorReport = pageErrors.map((err, index) => 
-            `${index + 1}. ${err.name}: ${err.message}\n` +
-            `${err.stack ? `Stack trace:\n${err.stack}\n` : ''}` +
-            `Time: ${err.timestamp.toISOString()}`
-          ).join('\n\n');
-          
-          await testInfo.attach('page-errors.txt', {
-            body: pageErrorReport,
-            contentType: 'text/plain'
-          });
-        }
+        await testInfo.attach('page-errors.txt', {
+          body: pageErrorReport,
+          contentType: 'text/plain'
+        });
+      }
+      
+      // FAIL THE TEST if there are errors and test hasn't already failed
+      if (testInfo.status !== 'failed') {
+        throw new Error(`Test had ${consoleErrors.length} console error(s) and ${pageErrors.length} page error(s). Check console output above for details.`);
       }
     }
   });

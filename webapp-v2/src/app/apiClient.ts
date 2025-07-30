@@ -200,9 +200,12 @@ export class ApiClient {
       const result = validator.safeParse(data);
       if (!result.success) {
         // Create a more detailed error message
-        result.error.issues.map(issue => 
-          `${issue.path.join('.')}: ${issue.message}`
-        ).join(', ');
+        const errorDetails = result.error.issues.map(issue => {
+          const path = issue.path.join('.');
+          const expected = issue.expected || issue.code;
+          const received = JSON.stringify(issue.received) || 'unknown';
+          return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
+        }).join('\n');
         
         console.error(`API Validation Error for ${endpoint}:`, JSON.stringify({
           issues: result.error.issues,
@@ -210,7 +213,7 @@ export class ApiClient {
         }, null, 2));
         
         throw new ApiValidationError(
-          `Invalid response from server. Please try again or contact support if the issue persists.`,
+          `API response validation failed for ${endpoint}:\n${errorDetails}`,
           result.error.issues
         );
       }
