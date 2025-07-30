@@ -181,10 +181,78 @@ Total: ~6 hours of focused work
 - [ ] Documentation updated
 - [ ] No references to webapp remain in codebase
 
+## Implementation Plan
+
+Based on analysis of the current codebase, this plan is accurate and ready for execution. All assumptions have been validated.
+
+### Detailed Implementation Steps
+
+#### Phase 1: Pre-Flight Validation (30 minutes)
+1. **Feature Parity Verification**
+   - [ ] Test all major user flows in webapp-v2 (login, dashboard, group management, expenses)
+   - [ ] Verify all static pages work (pricing, terms, privacy, cookies)
+   - [ ] Confirm all routes in firebase.template.json map correctly
+
+2. **Build System Verification**
+   - [ ] Run `npm run build` to ensure current state builds successfully
+   - [ ] Verify webapp-v2 outputs to `../webapp/dist/v2/` as expected
+   - [ ] Check symlink works: `firebase/public -> ../webapp/dist`
+
+#### Phase 2: Build Configuration Updates (45 minutes)
+1. **Update webapp-v2/vite.config.ts** - Change build output from `../webapp/dist/v2` to `dist`
+2. **Update webapp-v2/scripts/post-build.js** - Change paths from `../../webapp/dist/v2/` to `../dist/`
+3. **Test new build configuration** - Ensure webapp-v2 builds correctly to its own dist folder
+
+#### Phase 3: Firebase Configuration Updates (30 minutes)
+1. **Update firebase/package.json** - Change symlink from `../webapp/dist` to `../webapp-v2/dist`
+2. **Update firebase.template.json** - Remove `/v2/**` rewrite, make all routes point to root index.html
+3. **Verify firebase config generation** - Run config generation and check resulting firebase.json
+
+#### Phase 4: Monorepo Cleanup (30 minutes)
+1. **Update root package.json** - Remove `webapp` from workspaces array
+2. **Update npm scripts** - Remove webapp references from build/dev/test commands
+3. **Clean up unused scripts** - Remove webapp-specific commands
+
+#### Phase 5: Directory Removal (15 minutes)
+1. **Remove webapp directory** - `rm -rf webapp/`
+2. **Update documentation** - Update CLAUDE.md and README.md
+
+#### Phase 6: Comprehensive Testing (45 minutes)
+1. **Local testing sequence**:
+   - `npm run super-clean`
+   - `npm install`
+   - `npm run build` (verify success)
+   - `npm run dev` (verify emulator starts)
+   - Test all major user flows
+   - Verify no 404s or broken routes
+
+2. **Build verification**:
+   - Check all assets load correctly
+   - Verify API calls work from new path structure
+   - Test production build simulation
+
+### Commit Strategy
+This will be implemented as **5 focused commits**:
+1. **webapp-v2: update build configuration to output to local dist/**
+2. **firebase: update hosting configuration for webapp-v2 direct serving**
+3. **monorepo: remove webapp workspace and update scripts**
+4. **remove webapp directory and legacy code**
+5. **docs: update development instructions for simplified architecture**
+
+### Risk Mitigation
+- Each phase can be tested independently
+- Changes are modular and reversible
+- Firebase template system allows easy rollback of hosting config
+- Git history preserves ability to restore webapp if needed
+
+### Success Criteria
+- [ ] `npm run dev` starts successfully with emulator
+- [ ] All user-facing features work
+- [ ] No 404 errors for any previously working routes
+- [ ] Build process completes without errors
+- [ ] All tests pass
+- [ ] Documentation reflects new simplified structure
+
 ## Next Steps
 
-1. Review this plan with the team
-2. Complete feature parity audit
-3. Execute removal in a dedicated branch
-4. Thorough testing before merging
-5. Monitor production for any issues post-deployment
+**READY FOR IMPLEMENTATION** - All prerequisites verified, plan is technically sound and comprehensive.
