@@ -135,12 +135,22 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
     }
 
     if (value.splitType === 'exact') {
-      const totalSplit = value.splits.reduce((sum: number, split: ExpenseSplit) => sum + (split.amount || 0), 0);
+      const totalSplit = value.splits.reduce((sum: number, split: ExpenseSplit) => {
+        if (split.amount === undefined || split.amount === null) {
+          throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits');
+        }
+        return sum + split.amount;
+      }, 0);
       if (Math.abs(totalSplit - value.amount) > 0.01) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
       }
     } else if (value.splitType === 'percentage') {
-      const totalPercentage = value.splits.reduce((sum: number, split: ExpenseSplit) => sum + (split.percentage || 0), 0);
+      const totalPercentage = value.splits.reduce((sum: number, split: ExpenseSplit) => {
+        if (split.percentage === undefined || split.percentage === null) {
+          throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_PERCENTAGE', 'Split percentage is required for percentage splits');
+        }
+        return sum + split.percentage;
+      }, 0);
       if (Math.abs(totalPercentage - 100) > 0.01) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100');
       }
@@ -234,7 +244,10 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
 
   if ('splitType' in value || 'participants' in value || 'splits' in value) {
     const splitType = value.splitType || 'equal';
-    const participants = value.participants || [];
+    if (!value.participants) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_PARTICIPANTS', 'Participants are required for split updates');
+    }
+    const participants = value.participants;
     const splits = value.splits;
 
     if (splitType === 'exact' || splitType === 'percentage') {
@@ -267,10 +280,13 @@ export const calculateSplits = (amount: number, splitType: string, participants:
   if (splitType === 'percentage' && splits) {
     return splits.map(split => ({
       userId: split.userId,
-      amount: Math.round((amount * (split.percentage || 0) / 100) * 100) / 100,
+      amount: Math.round((amount * (split.percentage ?? 0) / 100) * 100) / 100,
       percentage: split.percentage
     }));
   }
 
-  return splits || [];
+  if (!splits) {
+    throw new Error('Splits are required for non-equal split types');
+  }
+  return splits;
 };

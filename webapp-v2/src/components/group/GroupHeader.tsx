@@ -32,7 +32,7 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
           <span className="font-medium">{group.members?.length || group.memberCount}</span> members
         </div>
         <div>
-          <span className="font-medium">{group.expenseCount || 0}</span> expenses
+          <span className="font-medium">Recent</span> expenses
         </div>
         {group.createdAt && (
           <div>

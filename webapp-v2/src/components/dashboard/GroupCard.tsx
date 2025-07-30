@@ -60,7 +60,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                   </svg>
-                  {group.expenseCount} expense{group.expenseCount !== 1 ? 's' : ''}
+                  Recent expenses
                 </span>
               </div>
             </div>
@@ -71,11 +71,6 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
             <p class="text-sm text-gray-500">
               Last activity: {group.lastActivity}
             </p>
-            {group.lastExpense && (
-              <p class="text-sm text-gray-600 mt-1">
-                Latest: {group.lastExpense.description} - ${group.lastExpense.amount.toFixed(2)}
-              </p>
-            )}
           </div>
         </div>
 

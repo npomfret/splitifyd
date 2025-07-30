@@ -117,12 +117,6 @@ const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: stri
     lastActivityRaw: expenseMetadata.lastExpenseTime ? 
       expenseMetadata.lastExpenseTime.toISOString() : 
       groupDoc.createdAt.toISOString(),
-    expenseCount: expenseMetadata.expenseCount,
-    lastExpense: expenseMetadata.lastExpense ? {
-      description: expenseMetadata.lastExpense.description,
-      amount: expenseMetadata.lastExpense.amount,
-      date: expenseMetadata.lastExpense.date.toISOString()
-    } : undefined,
     
     // Fetch member profiles dynamically
     members: await (async () => {

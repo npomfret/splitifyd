@@ -88,12 +88,6 @@ export interface Group {
   };
   lastActivity: string;
   lastActivityRaw: string;
-  expenseCount: number;
-  lastExpense?: {
-    description: string;
-    amount: number;
-    date: string;
-  };
   
   // Optional - only in detail view
   members?: User[];
@@ -102,7 +96,6 @@ export interface Group {
   updatedAt?: string;
   memberIds?: string[];
   memberEmails?: string[];
-  lastExpenseTime?: string;
 }
 
 
