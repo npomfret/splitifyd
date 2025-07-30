@@ -25,6 +25,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const group = useComputed(() => groupDetailStore.group);
   const expenses = useComputed(() => groupDetailStore.expenses);
   const balances = useComputed(() => groupDetailStore.balances);
+  const members = useComputed(() => group.value?.members || []);
   const loading = useComputed(() => groupDetailStore.loading);
   const error = useComputed(() => groupDetailStore.error);
   // const currentUser = useComputed(() => authStore.user);
@@ -164,6 +165,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
           <ExpensesList 
             expenses={expenses.value}
+            members={members.value}
             hasMore={groupDetailStore.hasMoreExpenses}
             loading={groupDetailStore.loadingExpenses}
             onLoadMore={() => groupDetailStore.loadMoreExpenses()}

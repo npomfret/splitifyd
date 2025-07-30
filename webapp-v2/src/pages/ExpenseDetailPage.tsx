@@ -225,13 +225,13 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
               </h3>
               <div className="flex items-center gap-3">
                 <Avatar 
-                  displayName={payer?.displayName || expense.value.paidByName || 'Unknown'}
+                  displayName={payer?.displayName || 'Unknown'}
                   userId={expense.value.paidBy}
                   size="md"
                 />
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    {payer?.displayName || expense.value.paidByName || 'Unknown'}
+                    {payer?.displayName || 'Unknown'}
                   </p>
                   {payer?.email && (
                     <p className="text-sm text-gray-500 dark:text-gray-400">

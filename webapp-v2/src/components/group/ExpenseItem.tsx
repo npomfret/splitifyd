@@ -1,12 +1,14 @@
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { ExpenseData } from '@shared/types/webapp-shared-types';
+import type { ExpenseData, User } from '@shared/types/webapp-shared-types';
 
 interface ExpenseItemProps {
   expense: ExpenseData;
+  members: User[];
   onClick?: (expense: ExpenseData) => void;
 }
 
-export function ExpenseItem({ expense, onClick }: ExpenseItemProps) {
+export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
+  const paidByUser = members.find(m => m.uid === expense.paidBy);
   return (
     <div 
       className="border-b last:border-0 pb-3 last:pb-0 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded"
@@ -16,7 +18,7 @@ export function ExpenseItem({ expense, onClick }: ExpenseItemProps) {
         <div className="flex-1">
           <p className="font-medium">{expense.description}</p>
           <p className="text-sm text-gray-600">
-            Paid by {expense.paidByName || 'Unknown'} • {formatDistanceToNow(new Date(expense.date))}
+            Paid by {paidByUser?.displayName || 'Unknown'} • {formatDistanceToNow(new Date(expense.date))}
           </p>
         </div>
         <div className="text-right">

@@ -64,7 +64,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <Avatar 
-                      displayName={member?.displayName || split.userName || 'Unknown'}
+                      displayName={member?.displayName || 'Unknown'}
                       userId={split.userId}
                       size="md"
                     />
@@ -78,7 +78,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {member?.displayName || split.userName || 'Unknown'}
+                      {member?.displayName || 'Unknown'}
                     </p>
                     {isPayer && (
                       <p className="text-xs text-green-600 dark:text-green-400">Paid</p>
@@ -108,7 +108,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                 </div>
                 {isOwing && (
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    Owes {memberMap[expense.paidBy]?.displayName || expense.paidByName || 'Unknown'}
+                    Owes {memberMap[expense.paidBy]?.displayName || 'Unknown'}
                   </p>
                 )}
               </div>

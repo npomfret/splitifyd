@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Mock window.API_BASE_URL which is injected by the build process
-(window as any).API_BASE_URL = 'http://localhost:6001/splitifyd/us-central1';
+// Mock window.API_BASE_URL - use dynamic port from firebase.json
+const config = require('../../../firebase/firebase.json');
+const functionsPort = config.emulators.functions.port;
+(window as any).API_BASE_URL = `http://localhost:${functionsPort}/splitifyd/us-central1`;
 
 // Mock fetch for API client tests
 global.fetch = vi.fn();

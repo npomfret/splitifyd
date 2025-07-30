@@ -2,10 +2,11 @@ import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
 import { Button } from '../ui/Button';
 import { ExpenseItem } from './ExpenseItem';
-import type { ExpenseData } from '@shared/types/webapp-shared-types';
+import type { ExpenseData, User } from '@shared/types/webapp-shared-types';
 
 interface ExpensesListProps {
   expenses: ExpenseData[];
+  members: User[];
   hasMore: boolean;
   loading: boolean;
   onLoadMore: () => void;
@@ -14,6 +15,7 @@ interface ExpensesListProps {
 
 export function ExpensesList({ 
   expenses, 
+  members,
   hasMore, 
   loading, 
   onLoadMore, 
@@ -29,7 +31,8 @@ export function ExpensesList({
           {expenses.map((expense) => (
             <ExpenseItem 
               key={expense.id} 
-              expense={expense} 
+              expense={expense}
+              members={members}
               onClick={onExpenseClick}
             />
           ))}
