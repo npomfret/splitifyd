@@ -3,9 +3,9 @@ import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 // import { authStore } from '../app/stores/auth-store';
+import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
-import { V2Indicator } from '../components/ui/V2Indicator';
 import { 
   GroupHeader, 
   QuickActions, 
@@ -55,41 +55,22 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   // Handle loading state
   if (loading.value && !isInitialized.value) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <V2Indicator />
-        <LoadingSpinner />
-      </div>
+      <BaseLayout>
+        <div className="container mx-auto px-4 py-8">
+          <LoadingSpinner />
+        </div>
+      </BaseLayout>
     );
   }
 
   // Handle error state
   if (error.value) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <V2Indicator />
-        <Card className="p-6 text-center">
-          <h2 className="text-xl font-semibold mb-2">Error Loading Group</h2>
-          <p className="text-gray-600 mb-4">{error.value}</p>
-          <Button 
-            variant="primary" 
-            onClick={() => route('/dashboard')}
-          >
-            Back to Dashboard
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
-  // Handle no group found or still loading
-  if (!group.value) {
-    if (isInitialized.value) {
-      return (
+      <BaseLayout>
         <div className="container mx-auto px-4 py-8">
-          <V2Indicator />
           <Card className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">Group Not Found</h2>
-            <p className="text-gray-600 mb-4">This group doesn't exist or you don't have access to it.</p>
+            <h2 className="text-xl font-semibold mb-2">Error Loading Group</h2>
+            <p className="text-gray-600 mb-4">{error.value}</p>
             <Button 
               variant="primary" 
               onClick={() => route('/dashboard')}
@@ -98,14 +79,37 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             </Button>
           </Card>
         </div>
+      </BaseLayout>
+    );
+  }
+
+  // Handle no group found or still loading
+  if (!group.value) {
+    if (isInitialized.value) {
+      return (
+        <BaseLayout>
+          <div className="container mx-auto px-4 py-8">
+            <Card className="p-6 text-center">
+              <h2 className="text-xl font-semibold mb-2">Group Not Found</h2>
+              <p className="text-gray-600 mb-4">This group doesn't exist or you don't have access to it.</p>
+              <Button 
+                variant="primary" 
+                onClick={() => route('/dashboard')}
+              >
+                Back to Dashboard
+              </Button>
+            </Card>
+          </div>
+        </BaseLayout>
       );
     } else {
       // Still loading
       return (
-        <div className="container mx-auto px-4 py-8">
-          <V2Indicator />
-          <LoadingSpinner />
-        </div>
+        <BaseLayout>
+          <div className="container mx-auto px-4 py-8">
+            <LoadingSpinner />
+          </div>
+        </BaseLayout>
       );
     }
   }
@@ -133,35 +137,40 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
   // Render group detail
   return (
-    <div className="container mx-auto px-4 py-8">
-      <V2Indicator />
-      <Stack spacing="lg">
-        <GroupHeader 
-          group={group.value!} 
-          onSettingsClick={handleSettings}
-        />
+    <BaseLayout 
+      title={`${group.value!.name} - Splitifyd`}
+      description={`Manage expenses for ${group.value!.name}`}
+      headerVariant="dashboard"
+    >
+      <div className="container mx-auto px-4 py-8">
+        <Stack spacing="lg">
+          <GroupHeader 
+            group={group.value!} 
+            onSettingsClick={handleSettings}
+          />
 
-        <QuickActions 
-          onAddExpense={handleAddExpense}
-          onSettleUp={handleSettleUp}
-          onShare={handleShare}
-        />
+          <QuickActions 
+            onAddExpense={handleAddExpense}
+            onSettleUp={handleSettleUp}
+            onShare={handleShare}
+          />
 
-        <MembersList 
-          members={group.value!.members || []} 
-          createdBy={group.value!.createdBy || ''}
-        />
+          <MembersList 
+            members={group.value!.members || []} 
+            createdBy={group.value!.createdBy || ''}
+          />
 
-        <BalanceSummary balances={balances.value} />
+          <BalanceSummary balances={balances.value} />
 
-        <ExpensesList 
-          expenses={expenses.value}
-          hasMore={groupDetailStore.hasMoreExpenses}
-          loading={groupDetailStore.loadingExpenses}
-          onLoadMore={() => groupDetailStore.loadMoreExpenses()}
-          onExpenseClick={handleExpenseClick}
-        />
-      </Stack>
-    </div>
+          <ExpensesList 
+            expenses={expenses.value}
+            hasMore={groupDetailStore.hasMoreExpenses}
+            loading={groupDetailStore.loadingExpenses}
+            onLoadMore={() => groupDetailStore.loadMoreExpenses()}
+            onExpenseClick={handleExpenseClick}
+          />
+        </Stack>
+      </div>
+    </BaseLayout>
   );
 }

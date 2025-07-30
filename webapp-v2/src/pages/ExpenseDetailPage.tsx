@@ -3,9 +3,9 @@ import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
 import { groupDetailStore } from '../app/stores/group-detail-store';
+import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
-import { V2Indicator } from '../components/ui/V2Indicator';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow } from '../utils/dateUtils';
@@ -135,51 +135,58 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
   
   if (loading.value) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <LoadingSpinner size="lg" />
-      </div>
+      <BaseLayout>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+          <LoadingSpinner size="lg" />
+        </div>
+      </BaseLayout>
     );
   }
   
   if (error.value || !expense.value) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <Card className="max-w-md mx-auto mt-8">
-          <Stack spacing="md">
-            <h2 className="text-xl font-semibold text-red-600">Error</h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              {error.value || 'Expense not found'}
-            </p>
-            <Button onClick={handleBack}>Back to Group</Button>
-          </Stack>
-        </Card>
-      </div>
+      <BaseLayout>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+          <Card className="max-w-md mx-auto mt-8">
+            <Stack spacing="md">
+              <h2 className="text-xl font-semibold text-red-600">Error</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                {error.value || 'Expense not found'}
+              </p>
+              <Button onClick={handleBack}>Back to Group</Button>
+            </Stack>
+          </Card>
+        </div>
+      </BaseLayout>
     );
   }
   
   const payer = memberMap.value[expense.value.paidBy];
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <V2Indicator />
-      
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={handleBack}>
-              ← Back
-            </Button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Expense Details
-            </h1>
-            <div className="w-16"></div> {/* Spacer for centered title */}
+    <BaseLayout
+      title={`${expense.value.description} - Expense Details`}
+      description={`Expense for ${expense.value.description} - $${expense.value.amount.toFixed(2)}`}
+      headerVariant="dashboard"
+    >
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Page Header */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" onClick={handleBack}>
+                ← Back
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Expense Details
+              </h1>
+              <div className="w-16"></div> {/* Spacer for centered title */}
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-4 py-6">
+        
+        {/* Content */}
+        <div className="max-w-3xl mx-auto px-4 py-6">
         <Stack spacing="md">
           {/* Main Expense Info */}
           <Card>
@@ -289,9 +296,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             </div>
           </Card>
         </Stack>
-      </div>
+        </div>
 
-      {/* Receipt Modal */}
+        {/* Receipt Modal */}
       {showReceiptModal && expense.value?.receiptUrl && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
@@ -325,6 +332,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </BaseLayout>
   );
 }
