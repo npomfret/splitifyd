@@ -6,6 +6,7 @@ import { groupDetailStore } from '../app/stores/group-detail-store';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { V2Indicator } from '../components/ui/V2Indicator';
+import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { formatDistanceToNow } from '../utils/dateUtils';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 
@@ -184,40 +185,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
           
           {/* Split Information */}
           <Card>
-            <Stack spacing="md">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Split between {expense.value.participants.length} {expense.value.participants.length === 1 ? 'person' : 'people'}
-              </h3>
-              
-              <div className="space-y-3">
-                {expense.value.splits.map(split => {
-                  const member = memberMap.value[split.userId];
-                  return (
-                    <div key={split.userId} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar 
-                          displayName={member?.displayName || split.userName || 'Unknown'}
-                          userId={split.userId}
-                          size="sm"
-                        />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {member?.displayName || split.userName || 'Unknown'}
-                        </span>
-                      </div>
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        ${split.amount.toFixed(2)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {expense.value.splitType !== 'equal' && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  Split type: {expense.value.splitType === 'exact' ? 'Exact amounts' : 'Percentage based'}
-                </p>
-              )}
-            </Stack>
+            <SplitBreakdown expense={expense.value} members={members.value} />
           </Card>
           
           {/* Metadata */}
