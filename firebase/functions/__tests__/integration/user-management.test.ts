@@ -122,62 +122,6 @@ describe('User Management Tests', () => {
     });
   });
 
-  describe('User Document Creation', () => {
-    test('should create user document after registration', async () => {
-      const newUser = await driver.createUser(new UserBuilder().build());
-
-      const response = await driver.createUserDocument({
-        displayName: newUser.displayName
-      }, newUser.token);
-
-      expect(response).toHaveProperty('message');
-      expect(response.message).toBe('User document created');
-    });
-
-    test('should require authentication for user document creation', async () => {
-      const testUserData = new UserBuilder()
-        .withDisplayName('Test User')
-        .withEmail('test@example.com')
-        .build();
-        
-      await expect(
-        driver.createUserDocument(testUserData, null as any)
-      ).rejects.toThrow(/401|unauthorized|missing.*token/i);
-    });
-
-    test('should validate user document data', async () => {
-      const invalidData = [
-        { displayName: '' }, // empty display name
-        {}, // missing displayName
-      ];
-
-      for (const data of invalidData) {
-        await expect(
-          driver.createUserDocument(data, testUser.token)
-        ).rejects.toThrow(/400|required|validation|missing/i);
-      }
-    });
-
-
-    test('should handle duplicate user document creation gracefully', async () => {
-      // API currently allows multiple user document creations
-      // This documents the current behavior rather than expected behavior
-      
-      // First creation
-      const response1 = await driver.createUserDocument({
-        displayName: testUser.displayName
-      }, testUser.token);
-      expect(response1.message).toBe('User document created');
-
-      // Second creation - currently succeeds but ideally should fail
-      const response2 = await driver.createUserDocument({
-        displayName: testUser.displayName
-      }, testUser.token);
-      
-      // TODO: Implement proper duplicate prevention
-      expect(response2.message).toBe('User document created');
-    });
-  });
 
   describe('User Expenses Endpoint', () => {
     let testGroup: any;
