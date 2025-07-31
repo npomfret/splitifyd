@@ -52,7 +52,7 @@ firebase/functions/*service-account-key.json
 .DS_Store
 
 # Build outputs
-webapp/dist/
+dist
 firebase/public
 
 reports
