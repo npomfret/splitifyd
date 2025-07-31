@@ -68,13 +68,18 @@ test.describe('Dashboard E2E', () => {
   authenticatedTest('should show navigation elements', async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
     
+    // Check for various navigation elements that indicate user is logged in
     const logoutButton = page.getByRole('button', { name: /Sign Out|Logout/i });
     const profileButton = page.getByRole('button', { name: /Profile|Account|User/i });
+    // On mobile, might just show user avatar/initial
+    const userAvatar = page.getByRole('button', { name: /^[A-Z]$/ }); // Single letter avatar
     
     const hasLogout = await logoutButton.isVisible({ timeout: 2000 }).catch(() => false);
     const hasProfile = await profileButton.isVisible({ timeout: 2000 }).catch(() => false);
+    const hasAvatar = await userAvatar.isVisible({ timeout: 2000 }).catch(() => false);
     
-    expect(hasLogout || hasProfile).toBeTruthy();
+    // At least one navigation element should be visible
+    expect(hasLogout || hasProfile || hasAvatar).toBeTruthy();
     
   });
 
@@ -179,15 +184,33 @@ test.describe('Dashboard E2E', () => {
     authenticatedTest('should sign out successfully', async ({ authenticatedPage }) => {
       const { page } = authenticatedPage;
         
+      // Try direct sign out button first (desktop)
       const signOutButton = page.getByRole('button', { name: /Sign Out|Logout/i });
       
       if (await signOutButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await signOutButton.click();
       } else {
-        const userMenu = page.getByRole('button', { name: /Profile|Account|User|Menu/i });
-        await userMenu.click();
-        const menuSignOut = page.getByRole('menuitem', { name: /Sign Out|Logout/i });
-        await menuSignOut.click();
+        // If not visible, try clicking user menu first
+        // On mobile, this might be just a single letter avatar
+        const userMenuOptions = [
+          page.getByRole('button', { name: /Profile|Account|User|Menu/i }),
+          page.getByRole('button', { name: /^[A-Z]$/ }) // Single letter avatar
+        ];
+        
+        let menuClicked = false;
+        for (const menu of userMenuOptions) {
+          if (await menu.isVisible({ timeout: 1000 }).catch(() => false)) {
+            await menu.click();
+            menuClicked = true;
+            break;
+          }
+        }
+        
+        if (menuClicked) {
+          // Wait for menu to open and click sign out button
+          const menuSignOut = page.getByRole('button', { name: /Sign Out|Logout/i });
+          await menuSignOut.click();
+        }
       }
       
       await expect(page).toHaveURL(/\/(login|home|$)/, { timeout: 3000 });
