@@ -33,7 +33,7 @@ When a test fails, you'll see output like:
 ================================================================================
 Test: should show form fields on login page
 File: auth-flow.e2e.test.ts
-URL: http://localhost:6002/v2/login
+URL: http://localhost:6002/login
 
 To debug this test with Claude Code MCP:
 1. Ask Claude: "Debug the failed test using MCP browser tools"
@@ -48,7 +48,7 @@ You can also manually trigger MCP debugging:
 
 ```bash
 # Debug a specific test
-npx tsx e2e/run-mcp-debug.ts --test "login form test" --url "http://localhost:6002/v2/login"
+npx tsx e2e/run-mcp-debug.ts --test "login form test" --url "http://localhost:6002/login"
 
 # Debug with error details
 npx tsx e2e/run-mcp-debug.ts --test "navigation test" --error "Button not found" --file "nav.test.ts"

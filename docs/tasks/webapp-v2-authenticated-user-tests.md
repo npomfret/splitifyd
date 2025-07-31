@@ -1,4 +1,4 @@
-# Webapp v2 Authenticated User Tests Implementation Plan
+# Webapp Authenticated User Tests Implementation Plan
 
 ## Problem Statement
 

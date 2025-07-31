@@ -1,8 +1,8 @@
-# UI Consistency Task - V2 App
+# UI Consistency Task - Webapp
 
 ## Problem Summary
 
-The V2 app currently lacks consistent UI across different pages, particularly in the header/navigation area. Each page implements its own header style, leading to a fragmented user experience.
+The webapp currently lacks consistent UI across different pages, particularly in the header/navigation area. Each page implements its own header style, leading to a fragmented user experience.
 
 ## Current State Analysis
 
@@ -26,7 +26,7 @@ The V2 app currently lacks consistent UI across different pages, particularly in
    - Full custom implementation inline
 
 4. **Group Detail Page** (`webapp-v2/src/pages/GroupDetailPage.tsx`):
-   - **NO HEADER AT ALL** - only V2 indicator
+   - **NO HEADER AT ALL** - minimal header needed
    - No way to navigate back to dashboard
    - Uses GroupHeader component for group-specific info only
 
@@ -63,7 +63,7 @@ The V2 app currently lacks consistent UI across different pages, particularly in
 3. **Create `webapp-v2/src/components/layout/BaseLayout.tsx`**
    - Wrapper component for consistent page structure
    - Include Header component
-   - Handle V2 indicator placement
+   - Consistent layout structure
    - Optional footer
 
 ### Phase 2: Update Existing Pages
