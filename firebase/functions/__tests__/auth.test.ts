@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { authenticate, AuthenticatedRequest } from '../src/auth/middleware';
+import { authenticate, AuthenticatedRequest, cleanupRateLimiter } from '../src/auth/middleware';
 
 // Mock logger
 jest.mock('../src/logger', () => ({
@@ -74,6 +74,8 @@ describe('Authentication Middleware', () => {
   afterAll(() => {
     // Clean up any timers to prevent Jest from hanging
     jest.clearAllTimers();
+    // Clean up rate limiter
+    cleanupRateLimiter();
   });
 
   describe('authenticate', () => {

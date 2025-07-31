@@ -23,6 +23,7 @@ class InMemoryRateLimiter {
   private readonly windowMs: number;
   private readonly maxRequests: number;
   private readonly requests = new Map<string, number[]>();
+  private cleanupTimer: NodeJS.Timeout | null = null;
 
   constructor(windowMs?: number, maxRequests?: number) {
     const config = getConfig();
@@ -30,7 +31,7 @@ class InMemoryRateLimiter {
     this.maxRequests = maxRequests ?? config.rateLimiting.maxRequests;
     
     // Periodic cleanup
-    setInterval(() => this.cleanup(), config.rateLimiting.cleanupIntervalMs);
+    this.cleanupTimer = setInterval(() => this.cleanup(), config.rateLimiting.cleanupIntervalMs);
   }
 
   isAllowed(userId: string): boolean {
@@ -70,6 +71,14 @@ class InMemoryRateLimiter {
       logger.debug(`Cleaned up ${cleaned} rate limit entries`);
     }
   }
+
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+    this.requests.clear();
+  }
 }
 
 // Lazy-initialize rate limiter
@@ -80,6 +89,16 @@ function getRateLimiter(): InMemoryRateLimiter {
     rateLimiter = new InMemoryRateLimiter();
   }
   return rateLimiter;
+}
+
+/**
+ * Clean up rate limiter resources (for testing)
+ */
+export function cleanupRateLimiter(): void {
+  if (rateLimiter) {
+    rateLimiter.destroy();
+    rateLimiter = null;
+  }
 }
 
 /**
