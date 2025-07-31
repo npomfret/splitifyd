@@ -27,7 +27,7 @@ const firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf-8'));
 export const HOSTING_PORT = firebaseConfig.emulators!.hosting!.port;
 export const EMULATOR_URL = `http://localhost:${HOSTING_PORT}`; // App uses root URLs, not /v2 prefix
 
-export async function waitForV2App(page: Page) {
+export async function waitForApp(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 

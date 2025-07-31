@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -9,7 +9,7 @@ test.describe('Static Pages E2E', () => {
   test('should navigate to terms of service', async ({ page }) => {
     
     await page.goto(`${EMULATOR_URL}/login`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click Terms link in footer
     await page.getByRole('link', { name: 'Terms' }).click();
@@ -23,7 +23,7 @@ test.describe('Static Pages E2E', () => {
   test('should navigate to privacy policy', async ({ page }) => {
     
     await page.goto(`${EMULATOR_URL}/login`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click Privacy link in footer
     await page.getByRole('link', { name: 'Privacy' }).click();
@@ -37,7 +37,7 @@ test.describe('Static Pages E2E', () => {
   test('should navigate from login back to home', async ({ page }) => {
     
     await page.goto(`${EMULATOR_URL}/login`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click logo to go back to home (logo serves as home link)
     await page.getByAltText('Splitifyd').click();
@@ -53,7 +53,7 @@ test.describe('Static Pages E2E', () => {
   test('should have working links on homepage', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Test Login link
     await page.getByRole('link', { name: 'Login' }).click();
@@ -61,7 +61,7 @@ test.describe('Static Pages E2E', () => {
     
     // Go back to home
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Test Sign Up link (use exact match to avoid ambiguity)
     await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
