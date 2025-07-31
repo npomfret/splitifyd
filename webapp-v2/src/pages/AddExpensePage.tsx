@@ -9,7 +9,6 @@ import { apiClient } from '../app/apiClient';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
-import { V2Indicator } from '../components/ui/V2Indicator';
 
 interface AddExpensePageProps {
   groupId?: string;
@@ -230,8 +229,6 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <V2Indicator />
-      
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-4">

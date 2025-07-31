@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -9,7 +9,7 @@ test.describe('Performance Tests', () => {
     
     const startTime = Date.now();
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     const loadTime = Date.now() - startTime;
     
     // Page should load within 5 seconds (generous for emulator)

@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {HOSTING_PORT, setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL, waitForV2App} from './helpers';
+import {HOSTING_PORT, setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL, waitForApp} from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -9,7 +9,7 @@ test.describe('Homepage E2E', () => {
   test('should load homepage with all key elements', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Verify main heading
     await expect(page.getByRole('heading', { 
@@ -27,7 +27,7 @@ test.describe('Homepage E2E', () => {
   test('should navigate to pricing page from homepage', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click pricing link
     await page.getByRole('link', { name: 'Pricing' }).click();
@@ -42,7 +42,7 @@ test.describe('Homepage E2E', () => {
   test('should navigate to login from homepage header', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click login link in header
     await page.getByRole('link', { name: 'Login' }).click();
@@ -57,7 +57,7 @@ test.describe('Homepage E2E', () => {
   test('should navigate to register from homepage header', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click sign up link in header (exact match to avoid ambiguity)
     await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
@@ -72,7 +72,7 @@ test.describe('Homepage E2E', () => {
   test('should have working footer links', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Check footer exists
     const footer = page.locator('footer');
@@ -92,7 +92,7 @@ test.describe('Homepage E2E', () => {
   test('should scroll to pricing section if exists', async ({ page }) => {
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Look for pricing section on homepage
     const pricingSection = page.locator('#pricing').or(page.locator('[data-section="pricing"]'));
@@ -113,7 +113,7 @@ test.describe('Homepage E2E', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Check if mobile menu exists (hamburger icon)
     const mobileMenuButton = page.getByRole('button', { name: /menu/i }).or(
@@ -140,7 +140,7 @@ test.describe('Homepage E2E', () => {
     
     // Start from a different page
     await page.goto(`http://localhost:${HOSTING_PORT}/pricing`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Click on logo/home link
     const logoLink = page.getByRole('link', { name: /splitifyd|home/i }).first();

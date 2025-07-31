@@ -8,7 +8,7 @@ const config = getFirebaseEmulatorConfig(projectRoot);
 export const HOSTING_PORT = config.hostingPort;
 export const EMULATOR_URL = `http://localhost:${HOSTING_PORT}`; // App uses root URLs, not /v2 prefix
 
-export async function waitForV2App(page: Page) {
+export async function waitForApp(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 

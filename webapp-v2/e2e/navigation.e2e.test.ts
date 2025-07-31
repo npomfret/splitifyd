@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -15,7 +15,7 @@ test.describe('Navigation E2E', () => {
     
     for (const { url, heading, level } of pages) {
       await page.goto(url);
-      await waitForV2App(page);
+      await waitForApp(page);
       const selector = level 
         ? page.getByRole('heading', { name: heading, level })
         : page.getByRole('heading', { name: heading });

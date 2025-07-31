@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -19,7 +19,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     for (const pageInfo of pagesToTest) {
       
       await page.goto(`${EMULATOR_URL}${pageInfo.path}`);
-      await waitForV2App(page);
+      await waitForApp(page);
       
       // Check for any console errors
     }
@@ -37,13 +37,13 @@ test.describe('Performance and Error Monitoring E2E', () => {
 
     // Visit main pages
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     await page.goto(`${EMULATOR_URL}/login`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     await page.goto(`${EMULATOR_URL}/register`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // No 404s should have occurred
     expect(failed404s).toHaveLength(0);
@@ -53,7 +53,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     const startTime = Date.now();
     
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     const loadTime = Date.now() - startTime;
     
@@ -77,7 +77,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
 
   test('should have proper meta tags for SEO', async ({ page }) => {
     await page.goto(EMULATOR_URL);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Check for essential meta tags
     const title = await page.title();
@@ -103,10 +103,10 @@ test.describe('Performance and Error Monitoring E2E', () => {
     
     // Navigate through auth pages
     await page.goto(`${EMULATOR_URL}/login`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     await page.goto(`${EMULATOR_URL}/register`);
-    await waitForV2App(page);
+    await waitForApp(page);
     
     // Check logs don't contain sensitive patterns
     const sensitivePatterns = [
@@ -135,7 +135,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     }
     
     // Final page should load correctly
-    await waitForV2App(page);
+    await waitForApp(page);
     await expect(page.getByRole('heading', { 
       name: 'Effortless Bill Splitting, Simplified & Smart.' 
     })).toBeVisible();
@@ -154,7 +154,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     await page.goto(`${EMULATOR_URL}/login`);
     
     // Page should still be functional on slow network
-    await waitForV2App(page);
+    await waitForApp(page);
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
     
     // Form should be interactive

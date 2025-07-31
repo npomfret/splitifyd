@@ -1,9 +1,6 @@
-import { V2Indicator } from '../components/ui/V2Indicator';
-
 export function NotFoundPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <V2Indicator />
       <div className="text-center">
         <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
         <p className="text-xl text-gray-600 mb-8">Page not found</p>
