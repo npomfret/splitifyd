@@ -55,7 +55,7 @@ class ExpenseTests extends BrowserTestBase {
       // Create test users
       for (let i = 1; i <= 3; i++) {
         const creds = TEST_CREDENTIALS[`user${i}` as keyof typeof TEST_CREDENTIALS];
-        const user = await this.apiDriver.createTestUser({
+        const user = await this.apiDriver.createUser({
           email: creds.email,
           password: creds.password,
           displayName: creds.displayName
@@ -64,7 +64,7 @@ class ExpenseTests extends BrowserTestBase {
       }
       
       // Create a test group with all users
-      const group = await this.apiDriver.createGroup(
+      const group = await this.apiDriver.createGroupWithMembers(
         'Test Expense Group',
         this.testUsers,
         this.testUsers[0].token

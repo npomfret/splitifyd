@@ -17,7 +17,7 @@ describe('Performance - Large Dataset Handling', () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
-        mainUser = await driver.createTestUser(new UserBuilder().build());
+        mainUser = await driver.createUser(new UserBuilder().build());
     });
 
     const testCases = [
@@ -29,9 +29,9 @@ describe('Performance - Large Dataset Handling', () => {
     testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
         it(`should handle groups with ${totalExpenses} expenses efficiently (${description})`, async () => {
             const largeGroupUser1 = mainUser;
-            const largeGroupUser2 = await driver.createTestUser(new UserBuilder().build());
+            const largeGroupUser2 = await driver.createUser(new UserBuilder().build());
             
-            const largeGroup = await driver.createGroup(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
+            const largeGroup = await driver.createGroupWithMembers(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
 
             const metrics = await workers.createLargeGroupExpenses({
                 group: largeGroup,

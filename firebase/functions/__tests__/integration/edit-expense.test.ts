@@ -24,14 +24,14 @@ describe('Edit Expense Integration Tests', () => {
 
     // Create test users
     users = await Promise.all([
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build())
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build())
     ]);
 
     // Create a test group
     const groupName = `Edit Expense Test ${uuidv4()}`;
-    testGroup = await driver.createGroup(groupName, users, users[0].token);
+    testGroup = await driver.createGroupWithMembers(groupName, users, users[0].token);
   });
 
   afterAll(async () => {
@@ -190,7 +190,7 @@ describe('Edit Expense Integration Tests', () => {
       }, users[0].token);
 
       // Check group metadata was updated
-      const groupsResponse = await driver.listGroupsNew(users[0].token);
+      const groupsResponse = await driver.listGroups(users[0].token);
       const updatedGroup = groupsResponse.groups.find((g: any) => g.id === testGroup.id);
       expect(updatedGroup).toBeDefined();
       

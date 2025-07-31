@@ -16,9 +16,9 @@ describe('Business Logic Edge Cases', () => {
   beforeAll(async () => {
     driver = new ApiDriver();
     users = await Promise.all([
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
     ]);
   });
 
@@ -27,7 +27,7 @@ describe('Business Logic Edge Cases', () => {
       .withName(`Test Group ${uuidv4()}`)
       .withMembers(users)
       .build();
-    testGroup = await driver.createGroupNew(groupData, users[0].token);
+    testGroup = await driver.createGroup(groupData, users[0].token);
   });
 
 
@@ -436,14 +436,14 @@ describe('Business Logic Edge Cases', () => {
       const groupData = new GroupBuilder()
         .withName(`Empty Group ${uuidv4()}`)
         .build();
-      const emptyGroup = await driver.createGroupNew(groupData, users[0].token);
+      const emptyGroup = await driver.createGroup(groupData, users[0].token);
       
       // Verify the group was created
-      const createdGroup = await driver.getGroupNew(emptyGroup.id, users[0].token);
+      const createdGroup = await driver.getGroup(emptyGroup.id, users[0].token);
       expect(createdGroup.id).toBe(emptyGroup.id);
       
       // Should be able to get group details and verify no expenses
-      const groupDetails = await driver.getGroupNew(emptyGroup.id, users[0].token);
+      const groupDetails = await driver.getGroup(emptyGroup.id, users[0].token);
       expect(groupDetails).toHaveProperty('id');
       expect(groupDetails).toHaveProperty('members');
       
@@ -452,7 +452,7 @@ describe('Business Logic Edge Cases', () => {
       expect(expenses.expenses).toHaveLength(0);
       
       // Check group list shows zero balance - may need to wait for propagation
-      const groupsList = await driver.listGroupsNew(users[0].token);
+      const groupsList = await driver.listGroups(users[0].token);
       const groupInList = groupsList.groups.find((g: any) => g.id === emptyGroup.id);
       
       expect(groupInList).toBeDefined();
@@ -467,12 +467,12 @@ describe('Business Logic Edge Cases', () => {
 
     test('should handle multiple expenses with same participants', async () => {
       // Create a single test user for this isolated test
-      const testUser = await driver.createTestUser(new UserBuilder().build());
+      const testUser = await driver.createUser(new UserBuilder().build());
 
       const multiExpenseGroupData = new GroupBuilder()
         .withName(`Multi Expense Group ${uuidv4()}`)
         .build();
-      const multiExpenseGroup = await driver.createGroupNew(multiExpenseGroupData, testUser.token);
+      const multiExpenseGroup = await driver.createGroup(multiExpenseGroupData, testUser.token);
       
       // Create multiple expenses where the user pays themselves (testing expense tracking)
       const expenses = [
@@ -512,7 +512,7 @@ describe('Business Logic Edge Cases', () => {
       expect(groupExpenses.expenses).toHaveLength(3);
       
       // Get group from list to check balance
-      const groupsList = await driver.listGroupsNew(testUser.token);
+      const groupsList = await driver.listGroups(testUser.token);
       const groupInList = groupsList.groups.find((g: any) => g.id === multiExpenseGroup.id);
       expect(groupInList).toBeDefined();
       
@@ -558,7 +558,7 @@ describe('Business Logic Edge Cases', () => {
       const complexGroupData = new GroupBuilder()
         .withName(`Complex Split Group ${uuidv4()}`)
         .build();
-      const complexGroup = await driver.createGroupNew(complexGroupData, users[0].token);
+      const complexGroup = await driver.createGroup(complexGroupData, users[0].token);
       
       // Scenario: Mixed split types in one group - just verify structure
       const expenseData1 = new ExpenseBuilder()
@@ -576,7 +576,7 @@ describe('Business Logic Edge Cases', () => {
       expect(expenses.expenses[0].amount).toBe(90);
       
       // Get group from list to verify balance info
-      const groupsList = await driver.listGroupsNew(users[0].token);
+      const groupsList = await driver.listGroups(users[0].token);
       const groupInList = groupsList.groups.find((g: any) => g.id === complexGroup.id);
       expect(groupInList).toBeDefined();
       

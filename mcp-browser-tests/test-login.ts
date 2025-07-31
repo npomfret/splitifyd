@@ -49,7 +49,7 @@ class LoginTests extends BrowserTestBase {
     this.log('Setting up test user...');
     
     try {
-      await this.apiDriver.createTestUser({
+      await this.apiDriver.createUser({
         email: TEST_CREDENTIALS.user1.email,
         password: TEST_CREDENTIALS.user1.password,
         displayName: TEST_CREDENTIALS.user1.displayName

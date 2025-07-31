@@ -17,7 +17,7 @@ describe('User Management Tests', () => {
 
   beforeAll(async () => {
     driver = new ApiDriver();
-    testUser = await driver.createTestUser(new UserBuilder().build());
+    testUser = await driver.createUser(new UserBuilder().build());
   });
 
   describe('User Registration', () => {
@@ -124,7 +124,7 @@ describe('User Management Tests', () => {
 
   describe('User Document Creation', () => {
     test('should create user document after registration', async () => {
-      const newUser = await driver.createTestUser(new UserBuilder().build());
+      const newUser = await driver.createUser(new UserBuilder().build());
 
       const response = await driver.createUserDocument({
         displayName: newUser.displayName
@@ -185,9 +185,9 @@ describe('User Management Tests', () => {
 
     beforeAll(async () => {
       // Create a test group and some expenses for the user
-      const secondUser = await driver.createTestUser(new UserBuilder().build());
+      const secondUser = await driver.createUser(new UserBuilder().build());
 
-      testGroup = await driver.createGroup(
+      testGroup = await driver.createGroupWithMembers(
         `User Expenses Test Group ${uuidv4()}`,
         [testUser, secondUser],
         testUser.token
@@ -285,7 +285,7 @@ describe('User Management Tests', () => {
     });
 
     test('should return empty array for user with no expenses', async () => {
-      const newUser = await driver.createTestUser(new UserBuilder().build());
+      const newUser = await driver.createUser(new UserBuilder().build());
 
       const response = await driver.listUserExpenses(newUser.token);
 
@@ -343,32 +343,32 @@ describe('User Management Tests', () => {
         .withMembers([testUser])
         .build();
       
-      const userGroup = await driver.createGroupNew(groupData, testUser.token);
+      const userGroup = await driver.createGroup(groupData, testUser.token);
 
       const updatedData = {
         name: `Updated Profile Group ${testUser.displayName}`,
         description: 'Updated group description'
       };
 
-      await driver.updateGroupNew(userGroup.id, updatedData, testUser.token);
+      await driver.updateGroup(userGroup.id, updatedData, testUser.token);
 
-      const retrievedGroup = await driver.getGroupNew(userGroup.id, testUser.token);
+      const retrievedGroup = await driver.getGroup(userGroup.id, testUser.token);
       expect(retrievedGroup.name).toBe(`Updated Profile Group ${testUser.displayName}`);
     });
 
     test('should prevent users from updating other users groups', async () => {
-      const otherUser = await driver.createTestUser(new UserBuilder().build());
+      const otherUser = await driver.createUser(new UserBuilder().build());
 
       const otherGroupData = new GroupBuilder()
         .withName(`Other User Group ${otherUser.displayName}`)
         .withMembers([otherUser])
         .build();
       
-      const otherUserGroup = await driver.createGroupNew(otherGroupData, otherUser.token);
+      const otherUserGroup = await driver.createGroup(otherGroupData, otherUser.token);
 
       // testUser should not be able to update otherUser's group
       await expect(
-        driver.updateGroupNew(otherUserGroup.id, {
+        driver.updateGroup(otherUserGroup.id, {
           name: 'Hijacked Group Name'
         }, testUser.token)
       ).rejects.toThrow(/403|404|forbidden|access.*denied|not.*found/i);
@@ -383,11 +383,11 @@ describe('User Management Tests', () => {
         .withMembers([testUser])
         .build();
       
-      const userGroup = await driver.createGroupNew(concurrentGroupData, testUser.token);
+      const userGroup = await driver.createGroup(concurrentGroupData, testUser.token);
 
       // Perform multiple concurrent updates
       const promises = Array.from({ length: 5 }, (_, i) => 
-        driver.updateGroupNew(userGroup.id, {
+        driver.updateGroup(userGroup.id, {
           name: `Concurrent Update ${i + 1}`
         }, testUser.token)
       );

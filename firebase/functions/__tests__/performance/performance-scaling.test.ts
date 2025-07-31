@@ -25,7 +25,7 @@ describe('Performance - Group Membership Scaling', () => {
 
     testCases.forEach(({ groupCount, expensesPerGroup, description }) => {
         it(`should handle users with ${groupCount} group memberships (${description})`, async () => {
-            const busyUser = await driver.createTestUser(new UserBuilder().build());
+            const busyUser = await driver.createUser(new UserBuilder().build());
             
             const { responseTime } = await workers.handleGroupMemberships({
                 busyUser,

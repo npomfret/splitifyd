@@ -17,8 +17,8 @@ describe('Performance and Load Testing', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        mainUser = await driver.createTestUser(new UserBuilder().build());
-        await driver.createGroup('Performance Test Group', [mainUser], mainUser.token);
+        mainUser = await driver.createUser(new UserBuilder().build());
+        await driver.createGroupWithMembers('Performance Test Group', [mainUser], mainUser.token);
     });
 
     describe('Concurrent User Operations', () => {
@@ -32,11 +32,11 @@ describe('Performance and Load Testing', () => {
             it(`should handle ${users} users creating ${expensesPerUser} expenses each (${description})`, async () => {
                 const testUsers: User[] = [];
                 for (let i = 0; i < users; i++) {
-                    const user = await driver.createTestUser(new UserBuilder().build());
+                    const user = await driver.createUser(new UserBuilder().build());
                     testUsers.push(user);
                 }
 
-                const concurrentGroup = await driver.createGroup(`Concurrent Test Group (${users} users)`, [mainUser, ...testUsers], mainUser.token);
+                const concurrentGroup = await driver.createGroupWithMembers(`Concurrent Test Group (${users} users)`, [mainUser, ...testUsers], mainUser.token);
 
                 const result = await workers.createConcurrentExpenses({
                     users: testUsers,
@@ -65,10 +65,10 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ expensesPerUserPair, description }) => {
             it(`should maintain data consistency with ${expensesPerUserPair * 2} concurrent balance updates (${description})`, async () => {
-                const user1 = await driver.createTestUser(new UserBuilder().build());
-                const user2 = await driver.createTestUser(new UserBuilder().build());
+                const user1 = await driver.createUser(new UserBuilder().build());
+                const user2 = await driver.createUser(new UserBuilder().build());
                 
-                const balanceGroup = await driver.createGroup(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
+                const balanceGroup = await driver.createGroupWithMembers(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
 
                 await workers.createBalanceTestExpenses({
                     user1,
@@ -106,9 +106,9 @@ describe('Performance and Load Testing', () => {
         testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
             it(`should handle groups with ${totalExpenses} expenses efficiently (${description})`, async () => {
                 const largeGroupUser1 = mainUser;
-                const largeGroupUser2 = await driver.createTestUser(new UserBuilder().build());
+                const largeGroupUser2 = await driver.createUser(new UserBuilder().build());
                 
-                const largeGroup = await driver.createGroup(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
+                const largeGroup = await driver.createGroupWithMembers(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
 
                 const metrics = await workers.createLargeGroupExpenses({
                     group: largeGroup,
@@ -140,11 +140,11 @@ describe('Performance and Load Testing', () => {
             it(`should efficiently calculate balances in complex debt graphs with ${users} users (${description})`, async () => {
                 const complexUsers: User[] = [mainUser];
                 for (let i = 1; i < users; i++) {
-                    const user = await driver.createTestUser(new UserBuilder().build());
+                    const user = await driver.createUser(new UserBuilder().build());
                     complexUsers.push(user);
                 }
 
-                const complexGroup = await driver.createGroup(`Complex Debt Group (${users} users)`, complexUsers, mainUser.token);
+                const complexGroup = await driver.createGroupWithMembers(`Complex Debt Group (${users} users)`, complexUsers, mainUser.token);
 
                 const metrics = await workers.createComplexDebtGraph({
                     users: complexUsers,
@@ -174,7 +174,7 @@ describe('Performance and Load Testing', () => {
 
         testCases.forEach(({ groupCount, expensesPerGroup, description }) => {
             it(`should handle users with ${groupCount} group memberships (${description})`, async () => {
-                const busyUser = await driver.createTestUser(new UserBuilder().build());
+                const busyUser = await driver.createUser(new UserBuilder().build());
                 
                 const { responseTime } = await workers.handleGroupMemberships({
                     busyUser,
@@ -195,7 +195,7 @@ describe('Performance and Load Testing', () => {
         let benchmarkExpenses: any[] = [];
 
         beforeAll(async () => {
-            benchmarkGroup = await driver.createGroup('Benchmark Group', [mainUser], mainUser.token);
+            benchmarkGroup = await driver.createGroupWithMembers('Benchmark Group', [mainUser], mainUser.token);
             
             for (let i = 0; i < 20; i++) {
                 const expense = await driver.createExpense(new ExpenseBuilder()
@@ -253,7 +253,7 @@ describe('Performance and Load Testing', () => {
                 },
                 {
                     name: 'Create group',
-                    fn: () => driver.createGroup('New benchmark group', [mainUser], mainUser.token),
+                    fn: () => driver.createGroupWithMembers('New benchmark group', [mainUser], mainUser.token),
                     target: 2000
                 }
             ];
@@ -272,7 +272,7 @@ describe('Performance and Load Testing', () => {
 
     describe('Memory and Resource Usage', () => {
         it('should not leak memory during repeated operations', async () => {
-            const memoryGroup = await driver.createGroup('Memory Test Group', [mainUser], mainUser.token);
+            const memoryGroup = await driver.createGroupWithMembers('Memory Test Group', [mainUser], mainUser.token);
             
             await workers.performRepeatedOperations({
                 group: memoryGroup,

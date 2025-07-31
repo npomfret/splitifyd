@@ -24,8 +24,8 @@ describe('Comprehensive API Test Suite', () => {
   beforeAll(async () => {
     driver = new ApiDriver();
     users = await Promise.all([
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
     ]);
   });
 
@@ -47,13 +47,13 @@ describe('Comprehensive API Test Suite', () => {
           .withName(`Test Group ${uuidv4()}`)
           .build();
 
-        const response = await driver.createGroupNew(groupData, users[0].token);
+        const response = await driver.createGroup(groupData, users[0].token);
 
         expect(response.id).toBeDefined();
         const createdGroup = response;
 
         // Verify the group was created
-        const fetchedGroup = await driver.getGroupNew(createdGroup.id, users[0].token);
+        const fetchedGroup = await driver.getGroup(createdGroup.id, users[0].token);
         expect(fetchedGroup.name).toBe(groupData.name);
         expect(fetchedGroup.members.length).toBe(1); // Only creator initially
       });
@@ -66,20 +66,20 @@ describe('Comprehensive API Test Suite', () => {
         const groupData = new GroupBuilder()
           .withName(`Members Only Group ${uuidv4()}`)
           .build();
-        const testGroup = await driver.createGroupNew(groupData, users[0].token);
+        const testGroup = await driver.createGroup(groupData, users[0].token);
         
         // Create a third user who is not part of the group
-        const outsiderUser = await driver.createTestUser(new UserBuilder().build());
+        const outsiderUser = await driver.createUser(new UserBuilder().build());
         
         // Try to access group as non-member
         await expect(
-          driver.getGroupNew(testGroup.id, outsiderUser.token)
+          driver.getGroup(testGroup.id, outsiderUser.token)
         ).rejects.toThrow(/403|FORBIDDEN|not.*member|access.*denied|404|NOT_FOUND/i);
       });
 
       test('should generate shareable link for group', async () => {
         // Create a test group
-        const testGroup = await driver.createGroup(`Share Link Test Group ${uuidv4()}`, users, users[0].token);
+        const testGroup = await driver.createGroupWithMembers(`Share Link Test Group ${uuidv4()}`, users, users[0].token);
         
         // Any member should be able to generate a share link
         const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
@@ -93,7 +93,7 @@ describe('Comprehensive API Test Suite', () => {
 
       test('should allow any member to generate shareable link', async () => {
         // Create a new group where user[0] is the creator and user[1] is a member
-        const memberGroup = await driver.createGroup(`Member Share Test Group ${uuidv4()}`, users, users[0].token);
+        const memberGroup = await driver.createGroupWithMembers(`Member Share Test Group ${uuidv4()}`, users, users[0].token);
         
         // User[1] (member) should be able to generate a share link
         const shareResponse = await driver.generateShareLink(memberGroup.id, users[1].token);
@@ -110,7 +110,7 @@ describe('Comprehensive API Test Suite', () => {
         const groupData = new GroupBuilder()
           .withName(`Non-Member Test Group ${uuidv4()}`)
           .build();
-        const restrictedGroup = await driver.createGroupNew(groupData, users[0].token);
+        const restrictedGroup = await driver.createGroup(groupData, users[0].token);
         
         // User[1] (non-member) should not be able to generate a share link
         await expect(
@@ -124,13 +124,13 @@ describe('Comprehensive API Test Suite', () => {
           .withMember(users[0])
           .build();
         
-        const shareableGroup = await driver.createGroupNew(shareableGroupData, users[0].token);
+        const shareableGroup = await driver.createGroup(shareableGroupData, users[0].token);
         
         // Generate share link
         const shareResponse = await driver.generateShareLink(shareableGroup.id, users[0].token);
         
         // Create a new user who will join via the link
-        const newUser = await driver.createTestUser(new UserBuilder().build());
+        const newUser = await driver.createUser(new UserBuilder().build());
         
         // Join the group using the share token
         const joinResponse = await driver.joinGroupViaShareLink(shareResponse.linkId, newUser.token);
@@ -141,7 +141,7 @@ describe('Comprehensive API Test Suite', () => {
         expect(joinResponse).toHaveProperty('groupName');
         
         // Verify the user was added to the group
-        const updatedGroup = await driver.getGroupNew(shareableGroup.id, newUser.token);
+        const updatedGroup = await driver.getGroup(shareableGroup.id, newUser.token);
         const memberUids = updatedGroup.members.map((m: any) => m.uid);
         expect(memberUids).toContain(newUser.uid);
       });
@@ -152,7 +152,7 @@ describe('Comprehensive API Test Suite', () => {
           .withMember(users[0])
           .build();
         
-        const dupTestGroup = await driver.createGroupNew(dupTestGroupData, users[0].token);
+        const dupTestGroup = await driver.createGroup(dupTestGroupData, users[0].token);
         const shareResponse = await driver.generateShareLink(dupTestGroup.id, users[0].token);
         
         // Add user[1] to the group via share link
@@ -165,7 +165,7 @@ describe('Comprehensive API Test Suite', () => {
       });
 
       test('should reject invalid share tokens', async () => {
-        const invalidUser = await driver.createTestUser(new UserBuilder().build());
+        const invalidUser = await driver.createUser(new UserBuilder().build());
         
         // Try to join with an invalid token
         await expect(
@@ -179,16 +179,16 @@ describe('Comprehensive API Test Suite', () => {
           .withMember(users[0])
           .build();
         
-        const multiJoinGroup = await driver.createGroupNew(multiJoinGroupData, users[0].token);
+        const multiJoinGroup = await driver.createGroup(multiJoinGroupData, users[0].token);
         
         // Generate a share link
         const shareResponse = await driver.generateShareLink(multiJoinGroup.id, users[0].token);
         
         // Create multiple new users who will join via the same link
         const newUsers = await Promise.all([
-          driver.createTestUser(new UserBuilder().build()),
-          driver.createTestUser(new UserBuilder().build()),
-          driver.createTestUser(new UserBuilder().build())
+          driver.createUser(new UserBuilder().build()),
+          driver.createUser(new UserBuilder().build()),
+          driver.createUser(new UserBuilder().build())
         ]);
         
         // All users should be able to join using the same link
@@ -201,7 +201,7 @@ describe('Comprehensive API Test Suite', () => {
         }
         
         // Verify all users were added to the group
-        const updatedGroup = await driver.getGroupNew(multiJoinGroup.id, users[0].token);
+        const updatedGroup = await driver.getGroup(multiJoinGroup.id, users[0].token);
         const memberUids = updatedGroup.members.map((m: any) => m.uid);
         
         // Should have original member + 3 new members = 4 total
@@ -218,7 +218,7 @@ describe('Comprehensive API Test Suite', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-      testGroup = await driver.createGroup(`Test Group ${uuidv4()}`, users, users[0].token);
+      testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     describe('Expense Creation', () => {
@@ -442,7 +442,7 @@ describe('Comprehensive API Test Suite', () => {
     let balanceTestGroup: any;
 
     beforeEach(async () => {
-      balanceTestGroup = await driver.createGroup(`Balance Test Group ${uuidv4()}`, users, users[0].token);
+      balanceTestGroup = await driver.createGroupWithMembers(`Balance Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     test('should include balance information in group details', async () => {
@@ -456,7 +456,7 @@ describe('Comprehensive API Test Suite', () => {
       await driver.createExpense(expenseData, users[0].token);
       
       // Get group details to check balance info
-      const groupDetails = await driver.getGroupNew(balanceTestGroup.id, users[0].token);
+      const groupDetails = await driver.getGroup(balanceTestGroup.id, users[0].token);
       
       // Verify the response structure includes balance info
       expect(groupDetails).toHaveProperty('id');
@@ -478,7 +478,7 @@ describe('Comprehensive API Test Suite', () => {
       // Get group list to check balance data
       
       // Test the listGroups endpoint (which dashboard uses)
-      const listResponse = await driver.listGroupsNew(users[0].token);
+      const listResponse = await driver.listGroups(users[0].token);
       
       expect(listResponse).toHaveProperty('groups');
       expect(Array.isArray(listResponse.groups)).toBe(true);
@@ -507,7 +507,7 @@ describe('Comprehensive API Test Suite', () => {
     // NOTE: Expense metadata (expenseCount, lastExpense) removed in favor of on-demand calculation
     test('should show updated lastActivity after creating expenses', async () => {
       // First, verify the group starts with default lastActivity
-      const initialListResponse = await driver.listGroupsNew(users[0].token);
+      const initialListResponse = await driver.listGroups(users[0].token);
       const initialGroupInList = initialListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(initialGroupInList).toBeDefined();
@@ -528,7 +528,7 @@ describe('Comprehensive API Test Suite', () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check after creating expense
-      const updatedListResponse = await driver.listGroupsNew(users[0].token);
+      const updatedListResponse = await driver.listGroups(users[0].token);
       const updatedGroupInList = updatedListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(updatedGroupInList).toBeDefined();
@@ -557,7 +557,7 @@ describe('Comprehensive API Test Suite', () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check after second expense
-      const finalListResponse = await driver.listGroupsNew(users[0].token);
+      const finalListResponse = await driver.listGroups(users[0].token);
       const finalGroupInList = finalListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
       
       expect(finalGroupInList!.lastActivityRaw).toBeDefined();
