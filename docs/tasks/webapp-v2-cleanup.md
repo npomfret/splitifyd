@@ -90,3 +90,32 @@ After each phase:
 - Test code uses generic naming (waitForApp instead of waitForV2App)
 - Documentation reflects single webapp architecture
 - Code is cleaner and less confusing for new developers
+
+## Implementation Plan
+
+### Phase 1: Remove V2Indicator Component
+1. First, find all files that import V2Indicator
+2. Remove the import statements and component usage from each file
+3. Delete the V2Indicator component file
+4. Run tests to ensure nothing breaks
+
+### Phase 2: Rename Test Helper Function
+1. Update the function definition in emulator-utils.ts
+2. Find all test files that use waitForV2App
+3. Replace all occurrences with waitForApp
+4. Verify all E2E tests still pass
+
+### Phase 3: Documentation Updates
+1. Search for "v2" references in documentation files
+2. Update or remove references as appropriate
+3. Archive obsolete v1-removal documentation
+
+### Phase 4: Clean Up Props
+1. Remove showV2Indicator prop from BaseLayout interface
+2. Remove any code that passes this prop
+3. Verify the layout still works correctly
+
+### Commit Strategy
+- Each phase will be a separate commit
+- Test after each commit to ensure stability
+- Use descriptive commit messages for each phase
