@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -8,7 +8,7 @@ setupConsoleErrorReporting();
 test.describe('Accessibility Tests', () => {
   test('should not have critical accessibility issues', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Run basic accessibility scan

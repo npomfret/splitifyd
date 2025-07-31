@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -9,8 +9,8 @@ test.describe('Navigation E2E', () => {
     
     // Test key pages load correctly
     const pages = [
-      { url: V2_URL, heading: 'Effortless Bill Splitting, Simplified & Smart.' },
-      { url: `${V2_URL}/pricing`, heading: 'Pricing', level: 1 },
+      { url: EMULATOR_URL, heading: 'Effortless Bill Splitting, Simplified & Smart.' },
+      { url: `${EMULATOR_URL}/pricing`, heading: 'Pricing', level: 1 },
     ];
     
     for (const { url, heading, level } of pages) {

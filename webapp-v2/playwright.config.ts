@@ -1,5 +1,5 @@
-import { defineConfig, devices } from '@playwright/test';
-import { EMULATOR_URL } from './e2e/helpers';
+import {defineConfig, devices} from '@playwright/test';
+import {HOSTING_PORT} from './e2e/helpers';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -25,7 +25,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: EMULATOR_URL,
+    baseURL: `http://localhost:${HOSTING_PORT}`,
     
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

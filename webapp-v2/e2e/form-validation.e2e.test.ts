@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 import { LoginPage, RegisterPage } from './pages';
 
 // Enable MCP debugging for failed tests
@@ -111,7 +111,7 @@ test.describe('Form Validation E2E', () => {
   test.describe('Register Form', () => {
     test('should validate password confirmation match', async ({ page }) => {
       
-      await page.goto(`${V2_URL}/register`);
+      await page.goto(`${EMULATOR_URL}/register`);
       await waitForV2App(page);
       
       // Fill form with mismatched passwords
@@ -136,7 +136,7 @@ test.describe('Form Validation E2E', () => {
 
     test('should require all fields', async ({ page }) => {
       
-      await page.goto(`${V2_URL}/register`);
+      await page.goto(`${EMULATOR_URL}/register`);
       await waitForV2App(page);
       
       // The Create Account button should be disabled with empty form
@@ -158,7 +158,7 @@ test.describe('Form Validation E2E', () => {
 
     test('should validate email format on register', async ({ page }) => {
       
-      await page.goto(`${V2_URL}/register`);
+      await page.goto(`${EMULATOR_URL}/register`);
       await waitForV2App(page);
       
       // Fill form with invalid email
@@ -183,7 +183,7 @@ test.describe('Form Validation E2E', () => {
 
     test('should trim whitespace from inputs', async ({ page }) => {
       
-      await page.goto(`${V2_URL}/register`);
+      await page.goto(`${EMULATOR_URL}/register`);
       await waitForV2App(page);
       
       // Fill form with extra spaces
@@ -207,7 +207,7 @@ test.describe('Form Validation E2E', () => {
   test.describe('Form Accessibility', () => {
     test('should navigate login form with keyboard', async ({ page }) => {
       
-      await page.goto(`${V2_URL}/login`);
+      await page.goto(`${EMULATOR_URL}/login`);
       await waitForV2App(page);
       
       // Focus should start at first input or be tabbable to it
@@ -235,7 +235,7 @@ test.describe('Form Validation E2E', () => {
 
     test('should have proper ARIA labels', async ({ page }) => {
       
-      await page.goto(`${V2_URL}/login`);
+      await page.goto(`${EMULATOR_URL}/login`);
       await waitForV2App(page);
       
       // Check form has proper structure

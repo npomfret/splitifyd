@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -8,7 +8,7 @@ test.describe('Performance Tests', () => {
   test('should load within reasonable time', async ({ page }) => {
     
     const startTime = Date.now();
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     const loadTime = Date.now() - startTime;
     

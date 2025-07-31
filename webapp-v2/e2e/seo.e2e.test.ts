@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -14,7 +14,7 @@ test.describe('SEO E2E', () => {
     ];
     
     for (const { path, titleContains } of pages) {
-      await page.goto(`${V2_URL}${path}`);
+      await page.goto(`${EMULATOR_URL}${path}`);
       await waitForV2App(page);
       
       const title = await page.title();

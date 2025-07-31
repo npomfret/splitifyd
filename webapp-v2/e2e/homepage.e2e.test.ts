@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import {expect, test} from '@playwright/test';
+import {HOSTING_PORT, setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL, waitForV2App} from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -8,7 +8,7 @@ setupConsoleErrorReporting();
 test.describe('Homepage E2E', () => {
   test('should load homepage with all key elements', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Verify main heading
@@ -26,7 +26,7 @@ test.describe('Homepage E2E', () => {
 
   test('should navigate to pricing page from homepage', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Click pricing link
@@ -41,7 +41,7 @@ test.describe('Homepage E2E', () => {
 
   test('should navigate to login from homepage header', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Click login link in header
@@ -56,7 +56,7 @@ test.describe('Homepage E2E', () => {
 
   test('should navigate to register from homepage header', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Click sign up link in header (exact match to avoid ambiguity)
@@ -71,7 +71,7 @@ test.describe('Homepage E2E', () => {
 
   test('should have working footer links', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Check footer exists
@@ -91,7 +91,7 @@ test.describe('Homepage E2E', () => {
 
   test('should scroll to pricing section if exists', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Look for pricing section on homepage
@@ -112,7 +112,7 @@ test.describe('Homepage E2E', () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Check if mobile menu exists (hamburger icon)
@@ -139,7 +139,7 @@ test.describe('Homepage E2E', () => {
   test('should handle logo click navigation', async ({ page }) => {
     
     // Start from a different page
-    await page.goto(`${V2_URL}/pricing`);
+    await page.goto(`http://localhost:${HOSTING_PORT}/pricing`);
     await waitForV2App(page);
     
     // Click on logo/home link
@@ -147,7 +147,7 @@ test.describe('Homepage E2E', () => {
     await logoLink.click();
     
     // Should be back on homepage
-    await expect(page).toHaveURL(V2_URL);
+    await expect(page).toHaveURL(EMULATOR_URL);
     await expect(page.getByRole('heading', { 
       name: 'Effortless Bill Splitting, Simplified & Smart.' 
     })).toBeVisible();

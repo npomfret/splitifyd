@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { V2_URL } from './emulator-utils';
+import { EMULATOR_URL } from './emulator-utils';
 
 /**
  * MCP Integration for Playwright E2E Tests
@@ -134,7 +134,7 @@ export function playwrightToMCPSteps(actions: Array<{
         return {
           description: action.description,
           tool: 'mcp__puppeteer__puppeteer_navigate',
-          parameters: { url: action.url || V2_URL }
+          parameters: { url: action.url || EMULATOR_URL }
         };
       
       case 'click':

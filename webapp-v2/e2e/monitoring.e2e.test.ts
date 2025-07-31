@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -18,7 +18,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
 
     for (const pageInfo of pagesToTest) {
       
-      await page.goto(`${V2_URL}${pageInfo.path}`);
+      await page.goto(`${EMULATOR_URL}${pageInfo.path}`);
       await waitForV2App(page);
       
       // Check for any console errors
@@ -36,13 +36,13 @@ test.describe('Performance and Error Monitoring E2E', () => {
     });
 
     // Visit main pages
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     await waitForV2App(page);
     
-    await page.goto(`${V2_URL}/register`);
+    await page.goto(`${EMULATOR_URL}/register`);
     await waitForV2App(page);
     
     // No 404s should have occurred
@@ -52,7 +52,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
   test('should load pages within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     const loadTime = Date.now() - startTime;
@@ -66,7 +66,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     await context.route('**/api/**', route => route.abort());
     
     // Try to load login page (which might make API calls)
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     
     // Page should still render even if API calls fail
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
   });
 
   test('should have proper meta tags for SEO', async ({ page }) => {
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Check for essential meta tags
@@ -102,10 +102,10 @@ test.describe('Performance and Error Monitoring E2E', () => {
     });
     
     // Navigate through auth pages
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     await waitForV2App(page);
     
-    await page.goto(`${V2_URL}/register`);
+    await page.goto(`${EMULATOR_URL}/register`);
     await waitForV2App(page);
     
     // Check logs don't contain sensitive patterns
@@ -129,9 +129,9 @@ test.describe('Performance and Error Monitoring E2E', () => {
     
     // Rapidly navigate between pages
     for (let i = 0; i < 5; i++) {
-      await page.goto(`${V2_URL}/login`);
-      await page.goto(`${V2_URL}/register`);
-      await page.goto(V2_URL);
+      await page.goto(`${EMULATOR_URL}/login`);
+      await page.goto(`${EMULATOR_URL}/register`);
+      await page.goto(EMULATOR_URL);
     }
     
     // Final page should load correctly
@@ -151,7 +151,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
       setTimeout(() => route.continue(), 100);
     });
     
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     
     // Page should still be functional on slow network
     await waitForV2App(page);

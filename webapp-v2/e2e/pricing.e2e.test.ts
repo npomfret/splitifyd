@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting } from './helpers';
 
 setupConsoleErrorReporting();
 
@@ -7,7 +7,7 @@ setupConsoleErrorReporting();
 test.describe('Pricing Page E2E', () => {
   test('should load pricing page without console errors', async ({ page }) => {
     
-    await page.goto(`${V2_URL}/pricing`);
+    await page.goto(`${EMULATOR_URL}/pricing`);
     await waitForV2App(page);
     
     // Basic smoke test - page loads with expected heading

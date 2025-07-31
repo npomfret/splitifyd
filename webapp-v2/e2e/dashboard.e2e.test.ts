@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/base-test';
 import { authenticatedTest } from './fixtures/authenticated-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, V2_URL } from './helpers';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from './helpers';
 import { createAndLoginTestUser } from './helpers/auth-utils';
 import { DashboardPage, CreateGroupModalPage } from './pages';
 
@@ -54,7 +54,7 @@ test.describe('Dashboard E2E', () => {
 
   test('should navigate to dashboard after login', async ({ page }) => {
     
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     
     await createAndLoginTestUser(page);
     

@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import type { Page } from '@playwright/test';
+import {readFileSync} from 'fs';
+import {dirname, join} from 'path';
+import type {Page} from '@playwright/test';
 
 // Find project root by looking for firebase/firebase.json
 function findProjectRoot(startPath: string): string {
@@ -24,15 +24,8 @@ const projectRoot = findProjectRoot(process.cwd());
 const firebaseConfigPath = join(projectRoot, 'firebase', 'firebase.json');
 const firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf-8'));
 
-export const HOSTING_PORT = firebaseConfig.emulators?.hosting?.port || 6002;
-export const FUNCTIONS_PORT = firebaseConfig.emulators?.functions?.port || 6001;
-export const EMULATOR_URL = `http://localhost:${HOSTING_PORT}`;
-export const V2_URL = `${EMULATOR_URL}/v2`;
-export const API_URL = `http://localhost:${FUNCTIONS_PORT}`;
-
-export async function waitForEmulator(page: Page) {
-  await page.waitForLoadState('networkidle');
-}
+export const HOSTING_PORT = firebaseConfig.emulators!.hosting!.port;
+export const EMULATOR_URL = `http://localhost:${HOSTING_PORT}`; // App uses root URLs, not /v2 prefix
 
 export async function waitForV2App(page: Page) {
   await page.waitForLoadState('networkidle');

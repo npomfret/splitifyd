@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { EMULATOR_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -8,7 +8,7 @@ setupConsoleErrorReporting();
 test.describe('Static Pages E2E', () => {
   test('should navigate to terms of service', async ({ page }) => {
     
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     await waitForV2App(page);
     
     // Click Terms link in footer
@@ -22,7 +22,7 @@ test.describe('Static Pages E2E', () => {
 
   test('should navigate to privacy policy', async ({ page }) => {
     
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     await waitForV2App(page);
     
     // Click Privacy link in footer
@@ -36,11 +36,11 @@ test.describe('Static Pages E2E', () => {
 
   test('should navigate from login back to home', async ({ page }) => {
     
-    await page.goto(`${V2_URL}/login`);
+    await page.goto(`${EMULATOR_URL}/login`);
     await waitForV2App(page);
     
-    // Click Back to Home link
-    await page.getByRole('link', { name: 'Back to Home' }).click();
+    // Click logo to go back to home (logo serves as home link)
+    await page.getByAltText('Splitifyd').click();
     
     // Verify we're on home page with main heading
     await expect(page.getByRole('heading', { 
@@ -52,7 +52,7 @@ test.describe('Static Pages E2E', () => {
 
   test('should have working links on homepage', async ({ page }) => {
     
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Test Login link
@@ -60,7 +60,7 @@ test.describe('Static Pages E2E', () => {
     await expect(page).toHaveURL(/\/login/);
     
     // Go back to home
-    await page.goto(V2_URL);
+    await page.goto(EMULATOR_URL);
     await waitForV2App(page);
     
     // Test Sign Up link (use exact match to avoid ambiguity)

@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { V2_URL } from './emulator-utils';
+import { EMULATOR_URL } from './emulator-utils';
 import { RegisterPage, LoginPage, DashboardPage } from '../pages';
 
 export interface TestUser {
@@ -45,7 +45,7 @@ export async function loginTestUser(page: Page, credentials: { email: string; pa
 }
 
 export async function ensureLoggedOut(page: Page) {
-  await page.goto(`${V2_URL}/logout`);
+  await page.goto(`${EMULATOR_URL}/logout`);
   await page.waitForURL(/\/(login|home)?/, { timeout: 2000 });
 }
 
