@@ -8,7 +8,6 @@ import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
 import { firebaseConfigManager } from '../app/firebase-config';
-import { V2Indicator } from '../components/ui/V2Indicator';
 
 const nameSignal = signal('');
 const emailSignal = signal('');
@@ -107,7 +106,6 @@ export function RegisterPage() {
       title="Create Account"
       description="Create your Splitifyd account to start managing shared expenses"
     >
-      <V2Indicator />
       <AuthForm 
         onSubmit={handleSubmit}
         error={displayError}
