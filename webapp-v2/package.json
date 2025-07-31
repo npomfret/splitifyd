@@ -13,9 +13,6 @@
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:unit": "vitest run --exclude 'src/__tests__/integration/**'",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch",
     "test:integration": "vitest run src/__tests__/integration/"
   },
   "dependencies": {

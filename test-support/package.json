@@ -6,7 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "echo 'No tests for test-support'",
+    "test:unit": "echo 'No unit tests for test-support'",
+    "test:integration": "echo 'No integration tests for test-support'"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",

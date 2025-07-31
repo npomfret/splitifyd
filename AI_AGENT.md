@@ -48,7 +48,6 @@ Summarise what you have learned from them.
 - Run integration tests only: `npm run test:integration` (from root, requires emulator running)
 - Run performance tests only: `npm run test:performance` (from root, requires emulator running)
 - Run specific test file: `npm test -- path/to/test.ts`
-- Run tests in watch mode: `npm run test:watch`
 - Run single test case: `TEST_NAME="<test description>" TEST_PATH="<test file path>" npm run test:single`
   Example: `TEST_NAME="should efficiently calculate balances in complex debt graphs" TEST_PATH="firebase/functions/__tests__/performance/performance-load.test.ts" npm run test:single`
 
