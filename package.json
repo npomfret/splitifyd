@@ -4,7 +4,8 @@
   "workspaces": [
     "firebase/functions",
     "webapp-v2",
-    "test-support"
+    "test-support",
+    "e2e-tests"
   ],
   "scripts": {
     "clean": "npm run clean -ws --if-present",
@@ -21,6 +22,9 @@
     "test:integration": "cd firebase/functions && npm run test:integration",
     "test:performance": "cd firebase/functions && npm run test:performance",
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
+    "test:e2e": "cd e2e-tests && npm test",
+    "test:e2e:ui": "cd e2e-tests && npm run test:ui",
+    "test:e2e:debug": "cd e2e-tests && npm run test:debug",
     "test:browser": "npm run test:browser:all",
     "test:browser:all": "npm run test:browser:homepage && npm run test:browser:login && npm run test:browser:expenses",
     "test:browser:homepage": "npx tsx mcp-browser-tests/test-homepage.ts",

@@ -52,19 +52,19 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: 'webapp-v2/package-lock.json'
+        cache-dependency-path: 'package-lock.json'
     
     - name: Install dependencies
-      run: cd webapp-v2 && npm ci
+      run: npm ci
     
     - name: Install Playwright Browsers
-      run: cd webapp-v2 && npx playwright install --with-deps
+      run: cd e2e-tests && npx playwright install --with-deps
     
-    - name: Build application
-      run: cd webapp-v2 && npm run build
+    - name: Build applications
+      run: npm run build
     
     - name: Run Playwright tests
-      run: cd webapp-v2 && npm run test:e2e
+      run: npm run test:e2e
     
     - name: Upload Playwright Report
       uses: actions/upload-artifact@v4
@@ -87,10 +87,10 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: 'webapp-v2/package-lock.json'
+        cache-dependency-path: 'package-lock.json'
     
     - name: Install dependencies
-      run: cd webapp-v2 && npm ci
+      run: npm ci
     
     - name: Check coverage threshold
       run: cd webapp-v2 && npm run test:coverage

@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { createAndLoginTestUser, TestUser } from './helpers/auth-utils';
-import { CreateGroupModalPage } from './pages';
+import { CreateGroupModalPage } from '../pages';
 import { BrowserContext, Page } from '@playwright/test';
 
 // Enable console error reporting and MCP debugging

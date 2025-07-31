@@ -1,13 +1,11 @@
 import {defineConfig, devices} from '@playwright/test';
-import {HOSTING_PORT} from './e2e/helpers';
+import {HOSTING_PORT} from './helpers';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './e2e',
-  /* Use the build tsconfig that includes e2e directory */
-  tsconfig: './tsconfig.build.json',
+  testDir: './tests',
   /* Output directory for test results */
   outputDir: '../tmp/playwright-test-results',
   /* Global test timeout - 5 seconds for fast feedback */

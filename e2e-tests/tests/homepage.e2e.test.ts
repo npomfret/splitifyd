@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {HOSTING_PORT, setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL, waitForApp} from './helpers';
+import {HOSTING_PORT, setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL, waitForApp} from '../helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
