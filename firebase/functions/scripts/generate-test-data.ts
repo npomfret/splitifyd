@@ -174,7 +174,7 @@ const generateRandomExpense = (): TestExpense => {
 
 async function createTestUser(userInfo: TestUser): Promise<User> {
   try {
-    return await driver.createTestUser(userInfo);
+    return await driver.createUser(userInfo);
   } catch (error: unknown) {
     logger.error(`✗ Failed to create user ${userInfo.email}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
@@ -185,7 +185,7 @@ async function createGroupWithInvite(name: string, description: string, createdB
   try {
     // Create group with just the creator initially (with retry)
     const group = await retryWithBackoff(
-      () => driver.createGroup(name, [createdBy], createdBy.token),
+      () => driver.createGroupWithMembers(name, [createdBy], createdBy.token),
       3,
       500
     );
@@ -530,7 +530,7 @@ async function waitForApiReady(): Promise<void> {
     attempts++;
     try {
       // Try to list groups as a health check
-      await driver.listGroupsNew('test-token');
+      await driver.listGroups('test-token');
       return;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -598,7 +598,7 @@ export async function generateTestData(): Promise<void> {
     const refreshStart = Date.now();
     const refreshedGroups = await Promise.all(
       groupsWithInvites.map(async (group) => {
-        const groupData = await driver.getGroupNew(group.id, test1User.token);
+        const groupData = await driver.getGroup(group.id, test1User.token);
         return {
           ...groupData,
           inviteLink: group.inviteLink

@@ -18,16 +18,16 @@ describe('Concurrent Operations and Transaction Integrity', () => {
     
     // Create more users for concurrent testing
     users = await Promise.all([
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
     ]);
   });
 
   beforeEach(async () => {
-    testGroup = await driver.createGroup(`Concurrent Test Group ${uuidv4()}`, users, users[0].token);
+    testGroup = await driver.createGroupWithMembers(`Concurrent Test Group ${uuidv4()}`, users, users[0].token);
   });
 
   describe('Race Conditions', () => {
@@ -139,9 +139,9 @@ describe('Concurrent Operations and Transaction Integrity', () => {
     test('should handle concurrent group membership changes', async () => {
       // Create additional users for membership testing
       const newUsers = await Promise.all([
-        driver.createTestUser(new UserBuilder().build()),
-        driver.createTestUser(new UserBuilder().build()),
-        driver.createTestUser(new UserBuilder().build()),
+        driver.createUser(new UserBuilder().build()),
+        driver.createUser(new UserBuilder().build()),
+        driver.createUser(new UserBuilder().build()),
       ]);
 
       // Generate share link
@@ -161,7 +161,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       expect(successfulJoins.length).toBe(newUsers.length);
 
       // Verify final group membership
-      const finalGroup = await driver.getGroupNew(testGroup.id, users[0].token);
+      const finalGroup = await driver.getGroup(testGroup.id, users[0].token);
       const memberUids = finalGroup.members.map((m: any) => m.uid);
 
       // Should have original 5 users + at least some new users
@@ -176,7 +176,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
     test('should prevent duplicate concurrent joins by same user', async () => {
       // Create a new user for this test
-      const duplicateUser = await driver.createTestUser(new UserBuilder().build());
+      const duplicateUser = await driver.createUser(new UserBuilder().build());
 
       // Generate share link
       const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
@@ -200,7 +200,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       expect(successfulJoins.length).toBeLessThanOrEqual(joinAttempts);
 
       // Verify user appears only once in group
-      const finalGroup = await driver.getGroupNew(testGroup.id, users[0].token);
+      const finalGroup = await driver.getGroup(testGroup.id, users[0].token);
       const userOccurrences = finalGroup.members.filter((m: any) => m.uid === duplicateUser.uid);
       expect(userOccurrences.length).toBe(1);
     });

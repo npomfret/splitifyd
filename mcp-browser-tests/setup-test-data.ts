@@ -13,7 +13,7 @@ async function setupTestData() {
     for (let i = 1; i <= 3; i++) {
       const creds = TEST_CREDENTIALS[`user${i}` as keyof typeof TEST_CREDENTIALS];
       console.log(`Creating user ${i}: ${creds.email}`);
-      const user = await apiDriver.createTestUser({
+      const user = await apiDriver.createUser({
         email: creds.email,
         password: creds.password,
         displayName: creds.displayName
@@ -23,7 +23,7 @@ async function setupTestData() {
     
     // Create test group
     console.log('Creating test group...');
-    const group = await apiDriver.createGroup(
+    const group = await apiDriver.createGroupWithMembers(
       'Test Expense Group',
       users,
       users[0].token

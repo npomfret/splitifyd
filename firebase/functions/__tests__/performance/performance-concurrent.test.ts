@@ -17,7 +17,7 @@ describe('Performance - Concurrent User Operations', () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
-        mainUser = await driver.createTestUser(new UserBuilder().build());
+        mainUser = await driver.createUser(new UserBuilder().build());
     });
 
     const testCases = [
@@ -30,11 +30,11 @@ describe('Performance - Concurrent User Operations', () => {
         it(`should handle ${users} users creating ${expensesPerUser} expenses each (${description})`, async () => {
             const testUsers: User[] = [];
             for (let i = 0; i < users; i++) {
-                const user = await driver.createTestUser(new UserBuilder().build());
+                const user = await driver.createUser(new UserBuilder().build());
                 testUsers.push(user);
             }
 
-            const concurrentGroup = await driver.createGroup(`Concurrent Test Group (${users} users)`, [mainUser, ...testUsers], mainUser.token);
+            const concurrentGroup = await driver.createGroupWithMembers(`Concurrent Test Group (${users} users)`, [mainUser, ...testUsers], mainUser.token);
 
             const result = await workers.createConcurrentExpenses({
                 users: testUsers,

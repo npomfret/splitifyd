@@ -20,7 +20,7 @@ describe('API Client Integration Tests', () => {
     apiDriver = new ApiDriver();
     
     // Create a test user
-    testUser = await apiDriver.createTestUser({
+    testUser = await apiDriver.createUser({
       email: 'apitest@test.com',
       password: 'testPass123!',
       displayName: 'API Test User'
@@ -41,13 +41,13 @@ describe('API Client Integration Tests', () => {
   describe('Groups API', () => {
     it('should fetch groups list and validate against schema', async () => {
       // Create some test groups first
-      const group1 = await apiDriver.createGroup(
+      const group1 = await apiDriver.createGroupWithMembers(
         'Integration Test Group 1',
         [testUser as any],
         authToken
       );
       
-      const group2 = await apiDriver.createGroup(
+      const group2 = await apiDriver.createGroupWithMembers(
         'Integration Test Group 2',
         [testUser as any],
         authToken
@@ -98,7 +98,7 @@ describe('API Client Integration Tests', () => {
 
     it('should fetch a single group by ID', async () => {
       // Create a test group
-      const testGroup = await apiDriver.createGroup(
+      const testGroup = await apiDriver.createGroupWithMembers(
         'Single Group Test',
         [testUser as any],
         authToken

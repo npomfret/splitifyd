@@ -17,13 +17,13 @@ describe('Enhanced Data Validation Tests', () => {
   beforeAll(async () => {
     driver = new ApiDriver();
     users = await Promise.all([
-      driver.createTestUser(new UserBuilder().build()),
-      driver.createTestUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
+      driver.createUser(new UserBuilder().build()),
     ]);
   });
 
   beforeEach(async () => {
-    testGroup = await driver.createGroup(`Test Group ${uuidv4()}`, users, users[0].token);
+    testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
   });
 
   describe('Date Validation', () => {
@@ -318,7 +318,7 @@ describe('Enhanced Data Validation Tests', () => {
 
       // API enforces a 100 character limit on group names
       await expect(
-        driver.createGroupNew(groupData, users[0].token)
+        driver.createGroup(groupData, users[0].token)
       ).rejects.toThrow(/name.*less than 100|TOO_LONG|length.*exceeded/i);
     });
 
@@ -329,10 +329,10 @@ describe('Enhanced Data Validation Tests', () => {
         .withName(validGroupName)
         .build();
 
-      const response = await driver.createGroupNew(groupData, users[0].token);
+      const response = await driver.createGroup(groupData, users[0].token);
       expect(response.id).toBeDefined();
 
-      const createdGroup = await driver.getGroupNew(response.id, users[0].token);
+      const createdGroup = await driver.getGroup(response.id, users[0].token);
       expect(createdGroup.name).toBe(validGroupName);
       expect(createdGroup.name.length).toBe(99);
     });
@@ -346,7 +346,7 @@ describe('Enhanced Data Validation Tests', () => {
 
       // NOTE: API currently rejects Unicode as "potentially dangerous content"
       await expect(
-        driver.createGroupNew(groupData, users[0].token)
+        driver.createGroup(groupData, users[0].token)
       ).rejects.toThrow(/dangerous.*content|INVALID_INPUT/i);
     });
 

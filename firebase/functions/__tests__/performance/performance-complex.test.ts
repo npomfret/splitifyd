@@ -16,7 +16,7 @@ describe('Performance - Complex Debt Graphs', () => {
     beforeAll(async () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        mainUser = await driver.createTestUser(new UserBuilder().build());
+        mainUser = await driver.createUser(new UserBuilder().build());
     });
 
     const testCases = [
@@ -29,11 +29,11 @@ describe('Performance - Complex Debt Graphs', () => {
         it(`should efficiently calculate balances in complex debt graphs with ${users} users (${description})`, async () => {
             const complexUsers: User[] = [mainUser];
             for (let i = 1; i < users; i++) {
-                const user = await driver.createTestUser(new UserBuilder().build());
+                const user = await driver.createUser(new UserBuilder().build());
                 complexUsers.push(user);
             }
 
-            const complexGroup = await driver.createGroup(`Complex Debt Group (${users} users)`, complexUsers, mainUser.token);
+            const complexGroup = await driver.createGroupWithMembers(`Complex Debt Group (${users} users)`, complexUsers, mainUser.token);
 
             const metrics = await workers.createComplexDebtGraph({
                 users: complexUsers,

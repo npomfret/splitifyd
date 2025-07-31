@@ -302,13 +302,13 @@ export class PerformanceTestWorkers {
         
         // Create groups and have the user join each
         for (let i = 0; i < groupCount; i++) {
-            const groupOwner = await this.driver.createTestUser({
+            const groupOwner = await this.driver.createUser({
                 email: `perf-owner-${userSuffix}-${i}@example.com`,
                 password: 'Password123!',
                 displayName: `Owner ${i}`
             });
             
-            const group = await this.driver.createGroup(`Group ${i}`, [groupOwner, busyUser], groupOwner.token);
+            const group = await this.driver.createGroupWithMembers(`Group ${i}`, [groupOwner, busyUser], groupOwner.token);
             groupIds.push(group.id);
             
             // Add a few expenses to each group

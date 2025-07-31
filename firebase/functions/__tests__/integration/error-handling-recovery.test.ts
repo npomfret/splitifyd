@@ -18,10 +18,10 @@ describe('Error Handling and Recovery Testing', () => {
         driver = new ApiDriver();
 
         // Create main test user
-        mainUser = await driver.createTestUser(new UserBuilder().build());
+        mainUser = await driver.createUser(new UserBuilder().build());
 
         // Create a test group
-        testGroup = await driver.createGroup('Error Handling Test Group', [mainUser], mainUser.token);
+        testGroup = await driver.createGroupWithMembers('Error Handling Test Group', [mainUser], mainUser.token);
     });
 
     describe('4.1 Service Outage Scenarios', () => {
@@ -59,14 +59,14 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(retrievedExpense.id).toBe(validExpense.id);
 
                 // Test that group data is still accessible
-                const groupData = await driver.getGroupNew(testGroup.id, mainUser.token);
+                const groupData = await driver.getGroup(testGroup.id, mainUser.token);
                 expect(groupData).toHaveProperty('id');
                 expect(groupData.id).toBe(testGroup.id);
             });
 
             it('should handle database permission errors gracefully', async () => {
                 // Test accessing resources user doesn't have permission for
-                const unauthorizedUser = await driver.createTestUser(new UserBuilder().build());
+                const unauthorizedUser = await driver.createUser(new UserBuilder().build());
 
                 // Try to access group expenses with user not in group
                 await expect(
@@ -116,7 +116,7 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle rapid request bursts gracefully', async () => {
                 // Create multiple rapid requests to test rate limiting
                 const rapidRequests = Array(20).fill(null).map((_, index) =>
-                    driver.getGroupNew(testGroup.id, mainUser.token)
+                    driver.getGroup(testGroup.id, mainUser.token)
                         .then(result => ({ success: true, index, result }))
                         .catch(error => ({ success: false, index, error: error.message }))
                 );
@@ -177,9 +177,9 @@ describe('Error Handling and Recovery Testing', () => {
                 
                 // Perform multiple operations
                 const operations = [
-                    driver.getGroupNew(testGroup.id, mainUser.token),
+                    driver.getGroup(testGroup.id, mainUser.token),
                     driver.getGroupExpenses(testGroup.id, mainUser.token),
-                    driver.listGroupsNew(mainUser.token)
+                    driver.listGroups(mainUser.token)
                 ];
 
                 const results = await Promise.allSettled(operations);
@@ -216,9 +216,9 @@ describe('Error Handling and Recovery Testing', () => {
                     .build(), mainUser.token);
 
                 // Test getting all user's data (simulate export)
-                const groupData = await driver.getGroupNew(testGroup.id, mainUser.token);
+                const groupData = await driver.getGroup(testGroup.id, mainUser.token);
                 const expenseData = await driver.getGroupExpenses(testGroup.id, mainUser.token);
-                const groupsList = await driver.listGroupsNew(mainUser.token);
+                const groupsList = await driver.listGroups(mainUser.token);
 
                 // Verify all data is accessible for export
                 expect(groupData).toBeDefined();
@@ -290,7 +290,7 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle data consistency after failed operations', async () => {
                 // Get initial state
                 const initialExpenses = await driver.getGroupExpenses(testGroup.id, mainUser.token);
-                const initialGroupData = await driver.getGroupNew(testGroup.id, mainUser.token);
+                const initialGroupData = await driver.getGroup(testGroup.id, mainUser.token);
                 const initialExpenseCount = initialExpenses.expenses.length;
 
                 // Attempt invalid operation that should fail
@@ -308,7 +308,7 @@ describe('Error Handling and Recovery Testing', () => {
 
                 // Verify state is unchanged after failed operation
                 const finalExpenses = await driver.getGroupExpenses(testGroup.id, mainUser.token);
-                const finalGroupData = await driver.getGroupNew(testGroup.id, mainUser.token);
+                const finalGroupData = await driver.getGroup(testGroup.id, mainUser.token);
 
                 expect(finalExpenses.expenses.length).toBe(initialExpenseCount);
                 
@@ -319,7 +319,7 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle database transaction consistency', async () => {
                 // Test that complex operations maintain consistency
-                const user2 = await driver.createTestUser(new UserBuilder().build());
+                const user2 = await driver.createUser(new UserBuilder().build());
 
                 // Add user to group
                 const shareLink = await driver.generateShareLink(testGroup.id, mainUser.token);
@@ -343,8 +343,8 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(mainUserView.participants).toEqual(user2View.participants);
 
                 // Verify group state is consistent for both users
-                const mainUserGroupView = await driver.getGroupNew(testGroup.id, mainUser.token);
-                const user2GroupView = await driver.getGroupNew(testGroup.id, user2.token);
+                const mainUserGroupView = await driver.getGroup(testGroup.id, mainUser.token);
+                const user2GroupView = await driver.getGroup(testGroup.id, user2.token);
 
                 // Both should see the same group state
                 expect(mainUserGroupView.id).toBe(user2GroupView.id);

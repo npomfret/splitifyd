@@ -20,9 +20,9 @@ describe('Performance - Response Time Benchmarks', () => {
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
-        mainUser = await driver.createTestUser(new UserBuilder().build());
+        mainUser = await driver.createUser(new UserBuilder().build());
 
-        benchmarkGroup = await driver.createGroup('Benchmark Group', [mainUser], mainUser.token);
+        benchmarkGroup = await driver.createGroupWithMembers('Benchmark Group', [mainUser], mainUser.token);
         
         for (let i = 0; i < 20; i++) {
             const expense = await driver.createExpense(new ExpenseBuilder()
@@ -41,7 +41,7 @@ describe('Performance - Response Time Benchmarks', () => {
     it('should meet target response times for read operations', async () => {
         // Verify group exists first
         console.log(`Testing with group ID: ${benchmarkGroup.id}`);
-        const group = await driver.getGroupNew(benchmarkGroup.id, mainUser.token);
+        const group = await driver.getGroup(benchmarkGroup.id, mainUser.token);
         console.log(`Group verified: ${group.name}`);
 
         const readOperations = [
@@ -89,7 +89,7 @@ describe('Performance - Response Time Benchmarks', () => {
             },
             {
                 name: 'Create group',
-                fn: () => driver.createGroup('New benchmark group', [mainUser], mainUser.token),
+                fn: () => driver.createGroupWithMembers('New benchmark group', [mainUser], mainUser.token),
                 target: 2000
             }
         ];
@@ -106,7 +106,7 @@ describe('Performance - Response Time Benchmarks', () => {
     });
 
     it('should not leak memory during repeated operations', async () => {
-        const memoryGroup = await driver.createGroup('Memory Test Group', [mainUser], mainUser.token);
+        const memoryGroup = await driver.createGroupWithMembers('Memory Test Group', [mainUser], mainUser.token);
         
         await workers.performRepeatedOperations({
             group: memoryGroup,

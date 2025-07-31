@@ -22,10 +22,10 @@ describe('Performance - Balance Consistency Under Load', () => {
 
     testCases.forEach(({ expensesPerUserPair, description }) => {
         it(`should maintain data consistency with ${expensesPerUserPair * 2} concurrent balance updates (${description})`, async () => {
-            const user1 = await driver.createTestUser(new UserBuilder().build());
-            const user2 = await driver.createTestUser(new UserBuilder().build());
+            const user1 = await driver.createUser(new UserBuilder().build());
+            const user2 = await driver.createUser(new UserBuilder().build());
             
-            const balanceGroup = await driver.createGroup(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
+            const balanceGroup = await driver.createGroupWithMembers(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
 
             // Create expenses concurrently in batches
             const batchSize = 5;

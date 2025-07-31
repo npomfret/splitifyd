@@ -60,7 +60,7 @@ class SplitBreakdownTests extends BrowserTestBase {
           password: 'rrRR44$$',
           displayName: `Test User ${i}`
         };
-        const user = await this.apiDriver.createTestUser({
+        const user = await this.apiDriver.createUser({
           email: creds.email,
           password: creds.password,
           displayName: creds.displayName
@@ -69,7 +69,7 @@ class SplitBreakdownTests extends BrowserTestBase {
       }
       
       // Create a test group
-      const group = await this.apiDriver.createGroup(
+      const group = await this.apiDriver.createGroupWithMembers(
         'Split Breakdown Test Group',
         this.testUsers,
         this.testUsers[0].token
