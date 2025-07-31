@@ -69,45 +69,6 @@ export class ApiDriver {
     return this.baseUrl;
   }
 
-  // this does not look right
-  async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const options: RequestInit = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      },
-    };
-
-    if (body && method !== 'GET') {
-      options.body = JSON.stringify(body);
-    }
-
-    try {
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        const errorText = await response.text();
-
-        // Check if this might be an emulator restart
-        if (response.status === 500 && errorText.includes('ECONNREFUSED')) {
-          throw new Error(`Emulator appears to be restarting. Please wait and try again.`);
-        }
-
-        throw new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
-      }
-      // Handle cases where the response might be empty
-      const responseText = await response.text();
-      return responseText ? JSON.parse(responseText) : {};
-    } catch (error) {
-      // Check for connection errors that might indicate emulator restart
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(`Cannot connect to emulator. Please ensure the Firebase emulator is running.`);
-      }
-      throw error;
-    }
-  }
-
   async createUser(userInfo: { email: string; password: string; displayName: string }): Promise<User> {
     try {
       // Register user via API
@@ -275,7 +236,6 @@ export class ApiDriver {
     return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
   }
 
-
   async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
     // Step 1: Create group with just the creator
     const groupData = {
@@ -335,6 +295,10 @@ export class ApiDriver {
     return await this.apiRequest('/register', 'POST', userData);
   }
 
+  async makeInvalidApiCall(endpoint: string, method: string = 'GET', body: unknown = null, token: string | null = null): Promise<any> {
+    return await this.apiRequest(endpoint, method, body, token);
+  }
+
   private async pollUntil<T>(
       fetcher: () => Promise<T>,
       matcher: Matcher<T>,
@@ -374,5 +338,43 @@ export class ApiDriver {
         `${errorMsg} after ${timeout}ms (${attempts} attempts). ` +
         `Last error: ${lastError?.message || 'None'}`
     );
+  }
+
+  private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
+    };
+
+    if (body && method !== 'GET') {
+      options.body = JSON.stringify(body);
+    }
+
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const errorText = await response.text();
+
+        // Check if this might be an emulator restart
+        if (response.status === 500 && errorText.includes('ECONNREFUSED')) {
+          throw new Error(`Emulator appears to be restarting. Please wait and try again.`);
+        }
+
+        throw new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+      }
+      // Handle cases where the response might be empty
+      const responseText = await response.text();
+      return responseText ? JSON.parse(responseText) : {};
+    } catch (error) {
+      // Check for connection errors that might indicate emulator restart
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Cannot connect to emulator. Please ensure the Firebase emulator is running.`);
+      }
+      throw error;
+    }
   }
 }

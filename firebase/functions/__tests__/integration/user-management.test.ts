@@ -251,8 +251,8 @@ describe('User Management Tests', () => {
 
       for (const param of invalidParams) {
         try {
-          // For invalid parameter testing, we still use apiRequest to test error handling
-          const response = await driver.apiRequest(`/expenses/user?${param}`, 'GET', null, testUser.token);
+          // For invalid parameter testing, we use makeInvalidApiCall to test error handling
+          const response = await driver.makeInvalidApiCall(`/expenses/user?${param}`, 'GET', null, testUser.token);
           // API currently allows invalid parameters and returns data anyway
           // TODO: Strengthen validation to reject invalid parameters
           expect(response).toHaveProperty('expenses');
