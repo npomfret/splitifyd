@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { V2_URL, waitForV2App, setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
+import { LoginPage, RegisterPage } from './pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -8,13 +9,13 @@ setupConsoleErrorReporting();
 test.describe('Form Validation E2E', () => {
   test.describe('Login Form', () => {
     test('should show validation for invalid email format', async ({ page }) => {
+      const loginPage = new LoginPage(page);
       
-      await page.goto(`${V2_URL}/login`);
-      await waitForV2App(page);
+      await loginPage.navigate();
       
       // Clear any pre-filled data
-      const emailInput = page.locator('input[type="email"]');
-      const passwordInput = page.locator('input[type="password"]');
+      const emailInput = page.locator(loginPage.emailInput);
+      const passwordInput = page.locator(loginPage.passwordInput);
       await emailInput.clear();
       await passwordInput.clear();
       
@@ -25,7 +26,7 @@ test.describe('Form Validation E2E', () => {
       await passwordInput.fill('ValidPassword123');
       
       // Try to submit
-      await page.getByRole('button', { name: 'Sign In' }).click();
+      await loginPage.submitForm();
       
       // Check if HTML5 validation or server validation prevented submission
       // If we're still on login page, validation worked
@@ -43,13 +44,13 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should require both email and password', async ({ page }) => {
+      const loginPage = new LoginPage(page);
       
-      await page.goto(`${V2_URL}/login`);
-      await waitForV2App(page);
+      await loginPage.navigate();
       
       // Clear any pre-filled data
-      const emailInput = page.locator('input[type="email"]');
-      const passwordInput = page.locator('input[type="password"]');
+      const emailInput = page.locator(loginPage.emailInput);
+      const passwordInput = page.locator(loginPage.passwordInput);
       await emailInput.clear();
       await passwordInput.clear();
       
@@ -57,15 +58,14 @@ test.describe('Form Validation E2E', () => {
       await emailInput.fill('test@example.com');
       
       // Try to submit without password
-      await page.getByRole('button', { name: 'Sign In' }).click();
+      await loginPage.submitForm();
       
       // Check current behavior
       const afterFirstClick = page.url();
       
       // Navigate back if needed
       if (!afterFirstClick.includes('/login')) {
-        await page.goto(`${V2_URL}/login`);
-        await waitForV2App(page);
+        await loginPage.navigate();
       }
       
       // Clear and try with only password
@@ -74,19 +74,19 @@ test.describe('Form Validation E2E', () => {
       await passwordInput.fill('Password123');
       
       // Try to submit without email
-      await page.getByRole('button', { name: 'Sign In' }).click();
+      await loginPage.submitForm();
       
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
     test('should clear form on page refresh', async ({ page }) => {
+      const loginPage = new LoginPage(page);
       
-      await page.goto(`${V2_URL}/login`);
-      await waitForV2App(page);
+      await loginPage.navigate();
       
       // Fill form
-      const emailInput = page.locator('input[type="email"]');
-      const passwordInput = page.locator('input[type="password"]');
+      const emailInput = page.locator(loginPage.emailInput);
+      const passwordInput = page.locator(loginPage.passwordInput);
       
       await emailInput.fill('test@example.com');
       await passwordInput.fill('Password123');

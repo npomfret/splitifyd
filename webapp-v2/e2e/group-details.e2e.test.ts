@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from './helpers';
 import { createAndLoginTestUser } from './helpers/auth-utils';
+import { DashboardPage, CreateGroupModalPage } from './pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -10,13 +11,12 @@ test.describe('Group Details E2E', () => {
   test('should display group information', async ({ page }) => {
     const user = await createAndLoginTestUser(page);
     
-    // Create a group first via the UI
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.getByLabel('Group Name').fill('Test Group Details');
-    await page.getByLabel('Description').fill('Test group for details page');
+    const dashboardPage = new DashboardPage(page);
+    const createGroupModal = new CreateGroupModalPage(page);
     
-    // Submit the form
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    // Create a group first via the UI
+    await dashboardPage.openCreateGroupModal();
+    await createGroupModal.createGroup('Test Group Details', 'Test group for details page');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -37,17 +37,18 @@ test.describe('Group Details E2E', () => {
   test('should display empty expense list', async ({ page }) => {
     await createAndLoginTestUser(page);
     
+    const dashboardPage = new DashboardPage(page);
+    const createGroupModal = new CreateGroupModalPage(page);
+    
     // Create a group first
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.getByLabel('Group Name').fill('Empty Expenses Group');
-    await page.getByLabel('Description').fill('Group with no expenses');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await dashboardPage.openCreateGroupModal();
+    await createGroupModal.createGroup('Empty Expenses Group', 'Group with no expenses');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
     
     // Should show empty state for expenses
-    await expect(page.getByText(/no expenses/i).or(page.getByText(/add your first expense/i))).toBeVisible();
+    await expect(page.getByText(/no expenses yet/i).or(page.getByText(/add your first expense/i))).toBeVisible();
     
     // Should show Add Expense button
     await expect(page.getByRole('button', { name: /add expense/i })).toBeVisible();
@@ -56,11 +57,12 @@ test.describe('Group Details E2E', () => {
   test('should show group balances section', async ({ page }) => {
     await createAndLoginTestUser(page);
     
+    const dashboardPage = new DashboardPage(page);
+    const createGroupModal = new CreateGroupModalPage(page);
+    
     // Create a group
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.getByLabel('Group Name').fill('Balance Test Group');
-    await page.getByLabel('Description').fill('Group for testing balances');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await dashboardPage.openCreateGroupModal();
+    await createGroupModal.createGroup('Balance Test Group', 'Group for testing balances');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -72,10 +74,12 @@ test.describe('Group Details E2E', () => {
   test('should have navigation back to dashboard', async ({ page }) => {
     await createAndLoginTestUser(page);
     
+    const dashboardPage = new DashboardPage(page);
+    const createGroupModal = new CreateGroupModalPage(page);
+    
     // Create a group and navigate to it
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.getByLabel('Group Name').fill('Navigation Test Group');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await dashboardPage.openCreateGroupModal();
+    await createGroupModal.createGroup('Navigation Test Group', 'Test description');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });

@@ -42,7 +42,7 @@ export class LoginPage extends BasePage {
   }
   
   async clickSignUp() {
-    await this.page.getByRole('link', { name: this.signUpLink }).click();
+    await this.page.getByRole('link', { name: this.signUpLink }).first().click();
   }
   
   async clickForgotPassword() {
