@@ -42,7 +42,7 @@ describe('RESTful Group Endpoints', () => {
       expect(response.createdBy).toBe(users[0].uid);
       expect(response.members).toHaveLength(1);
       expect(response.members[0].uid).toBe(users[0].uid);
-      expect(response.memberIds).toContain(users[0].uid);
+      // memberIds is not part of the response - only members array and memberCount
       // expenseCount removed - calculated on demand
     });
 
