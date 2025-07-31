@@ -270,16 +270,6 @@ describe('Comprehensive Security Test Suite', () => {
         ).rejects.toThrow(/400|invalid|dangerous/i);
       });
 
-      test('should sanitize XSS attempts in user display names', async () => {
-        const xssPayload = '<img src="x" onerror="alert(\'displayname\')">';
-        
-        // Try to create user document with malicious display name
-        await expect(
-          driver.createUserDocument({
-            displayName: xssPayload
-          }, users[0].token)
-        ).rejects.toThrow(); // Should be rejected or sanitized
-      });
     });
 
     describe('Data Injection Prevention', () => {

@@ -18,7 +18,6 @@ import {
   listUserExpenses,
   getExpenseHistory,
 } from './expenses/handlers';
-import { createUserDocument } from './users/handlers';
 import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
 import {
@@ -257,8 +256,6 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
 // Auth endpoints (no auth required)
 app.post('/register', asyncHandler(register));
 
-// User document creation (requires auth)
-app.post('/createUserDocument', authenticate, asyncHandler(createUserDocument));
 
 // Expense endpoints (requires auth)
 app.post('/expenses', authenticate, asyncHandler(createExpense));

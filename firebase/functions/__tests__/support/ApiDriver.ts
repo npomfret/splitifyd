@@ -68,8 +68,8 @@ export class ApiDriver {
   getBaseUrl(): string {
     return this.baseUrl;
   }
-  // this does not look right
 
+  // this does not look right
   async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
     const options: RequestInit = {
@@ -275,10 +275,6 @@ export class ApiDriver {
     return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
   }
 
-  //todo
-  async createUserDocument(data: any, token: string): Promise<any> {
-    return await this.apiRequest('/createUserDocument', 'POST', data, token);
-  }
 
   async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
     // Step 1: Create group with just the creator
