@@ -1,14 +1,16 @@
 import { join } from 'path';
 import { config } from 'dotenv';
-import { readFileSync } from 'fs';
+import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
 
 // Load environment variables
 const envPath = join(process.cwd(), 'firebase/functions/.env');
 config({ path: envPath });
 
-// Get ports from firebase.json
-const firebaseConfig = JSON.parse(readFileSync(join(process.cwd(), 'firebase/firebase.json'), 'utf-8'));
-export const HOSTING_PORT = firebaseConfig.emulators?.hosting?.port || 6002;
+// Get Firebase emulator configuration
+const projectRoot = findProjectRoot(process.cwd());
+const emulatorConfig = getFirebaseEmulatorConfig(projectRoot);
+
+export const HOSTING_PORT = emulatorConfig.hostingPort;
 export const BASE_URL = `http://localhost:${HOSTING_PORT}`;
 export const V2_BASE_URL = `${BASE_URL}/v2`;
 

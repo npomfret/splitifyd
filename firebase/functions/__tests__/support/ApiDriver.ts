@@ -1,6 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import type {ExpenseData, Group, User as BaseUser} from '../../src/types/webapp-shared-types';
+import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -43,21 +42,13 @@ export class ApiDriver {
 
 
   constructor() {
-    // Read emulator configuration from firebase.json
-    const firebaseConfigPath = path.join(__dirname, '../../../firebase.json');
-    const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+    // Get Firebase emulator configuration
+    const projectRoot = findProjectRoot(__dirname);
+    const config = getFirebaseEmulatorConfig(projectRoot);
 
-    // Read project ID from .firebaserc
-    const firebaseRcPath = path.join(__dirname, '../../../.firebaserc');
-    const firebaseRc = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
-    const projectId = firebaseRc.projects.default;
-
-    const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port;
-    const AUTH_PORT = firebaseConfig.emulators.auth.port;
-
-    this.baseUrl = `http://localhost:${FUNCTIONS_PORT}/${projectId}/us-central1/api`;
-    this.authPort = AUTH_PORT;
-    this.firebaseApiKey = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
+    this.baseUrl = config.baseUrl;
+    this.authPort = config.authPort;
+    this.firebaseApiKey = config.firebaseApiKey;
   }
 
   getBaseUrl(): string {

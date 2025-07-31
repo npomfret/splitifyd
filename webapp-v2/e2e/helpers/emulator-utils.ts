@@ -1,30 +1,11 @@
-import {readFileSync} from 'fs';
-import {dirname, join} from 'path';
 import type {Page} from '@playwright/test';
+import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
 
-// Find project root by looking for firebase/firebase.json
-function findProjectRoot(startPath: string): string {
-  let currentPath = startPath;
-  
-  while (currentPath !== '/') {
-    try {
-      const firebaseJsonPath = join(currentPath, 'firebase', 'firebase.json');
-      readFileSync(firebaseJsonPath);
-      return currentPath;
-    } catch {
-      currentPath = dirname(currentPath);
-    }
-  }
-  
-  throw new Error('Could not find project root with firebase/firebase.json');
-}
-
-// Get ports from firebase.json
+// Get Firebase emulator configuration
 const projectRoot = findProjectRoot(process.cwd());
-const firebaseConfigPath = join(projectRoot, 'firebase', 'firebase.json');
-const firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf-8'));
+const config = getFirebaseEmulatorConfig(projectRoot);
 
-export const HOSTING_PORT = firebaseConfig.emulators!.hosting!.port;
+export const HOSTING_PORT = config.hostingPort;
 export const EMULATOR_URL = `http://localhost:${HOSTING_PORT}`; // App uses root URLs, not /v2 prefix
 
 export async function waitForV2App(page: Page) {

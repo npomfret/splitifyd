@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "firebase/functions",
-    "webapp-v2"
+    "webapp-v2",
+    "test-support"
   ],
   "scripts": {
     "clean": "npm run clean -ws --if-present",
