@@ -12,7 +12,7 @@ describe('PrivacyPolicyPage', () => {
     render(<PrivacyPolicyPage />);
     // StaticPageLayout adds header with Splitifyd branding and footer
     expect(screen.getAllByText('Splitifyd').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('© 2025 Splitifyd. All rights reserved.')).toBeInTheDocument();
+    expect(screen.getByText('© 2025 Pomo Corp ltd. All rights reserved.')).toBeInTheDocument();
   });
 
   it('contains privacy-related sections', () => {

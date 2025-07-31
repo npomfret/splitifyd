@@ -32,8 +32,8 @@ describe('StaticPageLayout', () => {
     );
     
     // Check for main navigation links - there might be multiple Pricing links (header + footer)
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
-    expect(screen.getAllByRole('link', { name: 'Pricing' })[0]).toHaveAttribute('href', '/v2/pricing');
+    expect(screen.getByRole('link', { name: 'Splitifyd' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Pricing' })).toHaveAttribute('href', '/v2/pricing');
   });
 
   it('includes footer with legal links', () => {
@@ -58,7 +58,7 @@ describe('StaticPageLayout', () => {
     
     // Check for Splitifyd branding - expect multiple instances (header + footer)
     expect(screen.getAllByText('Splitifyd').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('© 2025 Splitifyd. All rights reserved.')).toBeInTheDocument();
+    expect(screen.getByText('© 2025 Pomo Corp ltd. All rights reserved.')).toBeInTheDocument();
   });
 
   it('includes company description in footer', () => {

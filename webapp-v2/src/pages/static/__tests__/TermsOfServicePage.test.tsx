@@ -47,6 +47,6 @@ describe('TermsOfServicePage', () => {
     
     // Should use StaticPageLayout
     expect(screen.getAllByText('Splitifyd').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('© 2025 Splitifyd. All rights reserved.')).toBeInTheDocument();
+    expect(screen.getByText('© 2025 Pomo Corp ltd. All rights reserved.')).toBeInTheDocument();
   });
 });

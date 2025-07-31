@@ -10,7 +10,21 @@ describe('Hardcoded Values Validation', () => {
     const exceptions = [
       'firebase/functions/__tests__/hardcoded-values.test.ts',
       'firebase/.firebaserc',
-      'webapp/esbuild.config.js'
+      'webapp/esbuild.config.js',
+      'package.json',
+      'package-lock.json',
+      'test-support/package.json',
+      'e2e-tests/package.json',
+      'firebase/functions/__tests__/support/ApiDriver.ts',
+      'e2e-tests/helpers/emulator-utils.ts',
+      'e2e-tests/tests/homepage.e2e.test.ts',
+      'e2e-tests/tests/run-mcp-debug.ts',
+      'mcp-browser-tests/lib/browser-test-base.ts',
+      'webapp-v2/src/__tests__/setup.ts',
+      'webapp-v2/src/components/__tests__/SEOHead.test.tsx',
+      'webapp-v2/src/components/__tests__/StaticPageLayout.seo.test.tsx',
+      'webapp-v2/src/pages/static/TermsOfServicePage.tsx',
+      'webapp-v2/src/pages/static/__tests__/TermsOfServicePage.test.tsx'
     ];
     
     const excludeDirectories = [

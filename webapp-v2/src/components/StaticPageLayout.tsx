@@ -10,12 +10,15 @@ interface StaticPageLayoutProps {
   children: ComponentChildren;
 }
 
-export function StaticPageLayout({ title, description, children }: StaticPageLayoutProps) {
+export function StaticPageLayout({ title, description, canonical, ogImage, structuredData, children }: StaticPageLayoutProps) {
 
   return (
     <BaseLayout 
       title={title}
       description={description}
+      canonical={canonical}
+      ogImage={ogImage}
+      structuredData={structuredData}
     >
       {/* Main Content */}
       <main class="max-w-4xl mx-auto px-4 py-12">

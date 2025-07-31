@@ -12,11 +12,11 @@ describe('StaticPageLayout - Navigation', () => {
     );
     
     // Navigation should be consistent across all pages
-    const homeLink = screen.getByRole('link', { name: 'Home' });
-    const pricingLinks = screen.getAllByRole('link', { name: 'Pricing' });
+    const logoLink = screen.getByRole('link', { name: 'Splitifyd' });
+    const pricingLink = screen.getByRole('link', { name: 'Pricing' });
     
-    expect(homeLink).toHaveAttribute('href', '/');
-    expect(pricingLinks[0]).toHaveAttribute('href', '/v2/pricing');
+    expect(logoLink).toHaveAttribute('href', '/');
+    expect(pricingLink).toHaveAttribute('href', '/v2/pricing');
   });
 
   it('provides footer legal navigation on all static pages', () => {
@@ -40,8 +40,10 @@ describe('StaticPageLayout - Navigation', () => {
     );
     
     // Branding should be consistent
-    expect(screen.getAllByText('Splitifyd').length).toBeGreaterThanOrEqual(2); // Header + Footer
-    expect(screen.getByText('© 2025 Splitifyd. All rights reserved.')).toBeInTheDocument();
+    // Logo in header (as img alt text) + "Splitifyd" text in footer
+    expect(screen.getByAltText('Splitifyd')).toBeInTheDocument(); // Header logo
+    expect(screen.getByText('Splitifyd')).toBeInTheDocument(); // Footer heading
+    expect(screen.getByText('© 2025 Pomo Corp ltd. All rights reserved.')).toBeInTheDocument();
   });
 
   it('includes company description consistently in footer', () => {
@@ -62,7 +64,7 @@ describe('StaticPageLayout - Navigation', () => {
     );
     
     // Users should always be able to navigate back to home and main sections
-    expect(screen.getByRole('link', { name: 'Home' })).toBeVisible();
-    expect(screen.getAllByRole('link', { name: 'Pricing' })[0]).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Splitifyd' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Pricing' })).toBeVisible();
   });
 });

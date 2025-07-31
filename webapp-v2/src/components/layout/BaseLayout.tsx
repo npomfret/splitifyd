@@ -7,6 +7,9 @@ interface BaseLayoutProps {
   children: ComponentChildren;
   title?: string;
   description?: string;
+  canonical?: string;
+  ogImage?: string;
+  structuredData?: any;
   headerVariant?: 'default' | 'minimal' | 'dashboard';
   showHeader?: boolean;
   showFooter?: boolean;
@@ -16,6 +19,9 @@ export function BaseLayout({
   children,
   title,
   description,
+  canonical,
+  ogImage,
+  structuredData,
   headerVariant = 'default',
   showHeader = true,
   showFooter = true,
@@ -26,6 +32,9 @@ export function BaseLayout({
         <SEOHead 
           title={title}
           description={description || title}
+          canonical={canonical}
+          ogImage={ogImage}
+          structuredData={structuredData}
         />
       )}
       
