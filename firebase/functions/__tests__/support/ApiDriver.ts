@@ -53,16 +53,11 @@ export class ApiDriver {
     const projectId = firebaseRc.projects.default;
 
     const FUNCTIONS_PORT = firebaseConfig.emulators.functions.port;
-    const FIRESTORE_PORT = firebaseConfig.emulators.firestore.port;
     const AUTH_PORT = firebaseConfig.emulators.auth.port;
 
     this.baseUrl = `http://localhost:${FUNCTIONS_PORT}/${projectId}/us-central1/api`;
     this.authPort = AUTH_PORT;
     this.firebaseApiKey = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
-
-    // Set emulator environment variables
-    process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
   }
 
   getBaseUrl(): string {
