@@ -1,10 +1,10 @@
-# Webapp V2 Cleanup Task
+# Webapp V2 Cleanup Task - STATUS: NEEDS COMPLETION
 
 ## Summary
-Now that we've established there's only one webapp (no `/v2` prefix needed), we should clean up all v2-specific references throughout the codebase. This will reduce confusion and make the codebase cleaner.
+Clean up remaining v2-specific references throughout the codebase. The V2Indicator component has been removed but some references may remain.
 
-## Priority: Medium
-This is a refactoring task that improves code clarity but doesn't affect functionality.
+## Priority: Low
+Most cleanup is complete. Remaining tasks are cosmetic improvements.
 
 ## Tasks
 
@@ -109,6 +109,20 @@ After each phase:
 1. Search for "v2" references in documentation files
 2. Update or remove references as appropriate
 3. Archive obsolete v1-removal documentation
+
+**Detailed Plan:**
+1. First scan all documentation files for v2 references
+2. Update references in active documentation:
+   - README.md - Update any webapp-v2 references to just webapp
+   - AI_AGENT.md - Update references if any
+   - webapp-v2/e2e/MCP-INTEGRATION.md - Update test references
+   - mcp-browser-tests/README.md - Update test references
+   - docs/mcp-browser-testing-guide.md - Update guide references
+3. Archive obsolete documentation:
+   - docs/tasks/webapp-v1-removal-plan.md - Move to docs/tasks/archived/
+   - docs/tasks/ui-consistency-v2-app.md - Update title and content
+   - docs/tasks/webapp-v2-authenticated-user-tests.md - Update title and content
+4. Verify no broken references remain
 
 ### Phase 4: Clean Up Props
 1. Remove showV2Indicator prop from BaseLayout interface

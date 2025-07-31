@@ -135,7 +135,7 @@ await updateGroupsComponent();
 
 // 2. Request automated verification
 // Get port from: npm run get-webapp-url
-"Open localhost:PORT/v2/dashboard and check for console errors"
+"Open localhost:PORT/dashboard and check for console errors"
 
 // 3. If errors found, fix and re-test
 "Check the console again after my fix"
