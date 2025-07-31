@@ -42,7 +42,7 @@ export class CreateGroupModalPage extends BasePage {
     }
     
     // Wait for form validation to process
-    await this.page.waitForTimeout(800);
+    await this.page.waitForTimeout(500);
   }
   
   async submitForm() {
@@ -53,7 +53,7 @@ export class CreateGroupModalPage extends BasePage {
     // Check if button is enabled, if not wait a bit more
     let isEnabled = await submitButton.isEnabled();
     if (!isEnabled) {
-      await this.page.waitForTimeout(1000);
+      await this.page.waitForTimeout(1500);
       isEnabled = await submitButton.isEnabled();
     }
     
@@ -73,6 +73,9 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async createGroup(name: string, description?: string) {
+    if (!description) {
+      throw new Error('Description is required for createGroup method. The app currently requires a description to enable the Create Group button.');
+    }
     await this.fillGroupForm(name, description);
     await this.submitForm();
   }
