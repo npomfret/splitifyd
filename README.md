@@ -14,9 +14,6 @@ claude mcp add playwright npx @playwright/mcp@latest
 
 This enables Claude Code to automatically navigate pages, take screenshots, and check for console errors during development.
 
-```shell
-claude mcp add playwright npx @playwright/mcp@latest
-```
 
 ### Prerequisites
 
