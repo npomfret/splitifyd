@@ -1,7 +1,7 @@
-import { test, expect } from './fixtures/base-test';
-import { authenticatedTest } from './fixtures/authenticated-test';
+import { test, expect } from '../fixtures/base-test';
+import { authenticatedTest } from '../fixtures/authenticated-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../helpers';
-import { createAndLoginTestUser } from './helpers/auth-utils';
+import { createAndLoginTestUser } from '../helpers/auth-utils';
 import { DashboardPage, CreateGroupModalPage } from '../pages';
 
 setupMCPDebugOnFailure();
@@ -96,7 +96,8 @@ test.describe('Dashboard E2E', () => {
       await expect(page.getByText(/Create.*New.*Group|New Group/i)).toBeVisible();
       
       // Check form fields are visible
-      await expect(page.getByPlaceholder(/e\.g\., Apartment Expenses/i)).toBeVisible();
+      // Verify form fields are visible using proper selectors
+      await expect(page.getByLabel('Group Name*')).toBeVisible();
       await expect(page.getByPlaceholder(/Add any details/i)).toBeVisible();
       
       });
@@ -140,22 +141,37 @@ test.describe('Dashboard E2E', () => {
       const { page } = authenticatedPage;
         
       const dashboardPage = new DashboardPage(page);
+      const createGroupModal = new CreateGroupModalPage(page);
+      
       await dashboardPage.openCreateGroupModal();
       
-      const submitButton = page.getByRole('button', { name: 'Create Group' }).last();
+      // Wait for modal to be ready
+      await expect(createGroupModal.isOpen()).resolves.toBe(true);
       
-      // Button should be disabled initially
+      // Use proper modal selector for the submit button
+      const modalElement = page.locator('.fixed.inset-0').filter({ has: page.getByText('Create New Group') });
+      const submitButton = modalElement.getByRole('button', { name: 'Create Group' });
+      
+      // Button should be disabled initially (empty form)
       await expect(submitButton).toBeDisabled();
       
-      // Fill in name only
-      const nameInput = page.getByPlaceholder(/e\.g\., Apartment Expenses/i);
-      await nameInput.fill('Test');
+      // Fill in only one character - should still be disabled
+      const nameInput = page.getByLabel('Group Name*');
+      await nameInput.click();
+      await nameInput.type('T');
+      await page.keyboard.press('Tab'); // Trigger blur event
+      await page.waitForTimeout(100);
       
-      // Fill in description to enable button (as observed in working tests)
-      const descInput = page.getByPlaceholder(/Add any details/i);
-      await descInput.fill('Test description');
+      // Button should still be disabled (name too short - needs at least 2 chars)
+      await expect(submitButton).toBeDisabled();
       
-      // Now button should be enabled
+      // Fill in valid name (at least 2 characters)
+      await nameInput.clear();
+      await nameInput.type('Test Group');
+      await page.keyboard.press('Tab'); // Trigger blur event
+      await page.waitForTimeout(100);
+      
+      // Now button should be enabled (description is optional)
       await expect(submitButton).toBeEnabled();
       
       });

@@ -1,5 +1,5 @@
-import { test, expect } from './fixtures/base-test';
-import { createAndLoginTestUser } from './helpers/auth-utils';
+import { test, expect } from '../fixtures/base-test';
+import { createAndLoginTestUser } from '../helpers/auth-utils';
 import { GroupDetailPage } from '../pages';
 
 test.describe('Multi-user group with expenses', () => {

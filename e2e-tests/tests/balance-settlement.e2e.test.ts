@@ -1,6 +1,6 @@
-import { test, expect } from './fixtures/base-test';
+import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from './helpers/auth-utils';
+import { createAndLoginTestUser } from '../helpers/auth-utils';
 import { CreateGroupModalPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -29,8 +29,8 @@ test.describe('Balance and Settlement E2E', () => {
     
     await expect(balanceIndicators.first()).toBeVisible();
     
-    // Should show user with zero balance
-    await expect(page.getByText(user.displayName)).toBeVisible();
+    // Should show user in members list
+    await expect(page.getByRole('main').getByText(user.displayName)).toBeVisible();
   });
 
   test('should calculate balances after expenses', async ({ page }) => {
@@ -90,11 +90,10 @@ test.describe('Balance and Settlement E2E', () => {
     await createAndLoginTestUser(page);
     
     // Create a group
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForTimeout(500);
-    const nameInput = page.getByPlaceholder(/group.*name/i);
-    await nameInput.fill('Debt Tracking Group');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Debt Tracking Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -128,11 +127,10 @@ test.describe('Balance and Settlement E2E', () => {
     await createAndLoginTestUser(page);
     
     // Create a group
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForTimeout(500);
-    const nameInput = page.getByPlaceholder(/group.*name/i);
-    await nameInput.fill('Settlement Test Group');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Settlement Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -190,11 +188,10 @@ test.describe('Balance and Settlement E2E', () => {
     await createAndLoginTestUser(page);
     
     // Create a group
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForTimeout(500);
-    const nameInput = page.getByPlaceholder(/group.*name/i);
-    await nameInput.fill('Settlement History Group');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Settlement History Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -228,11 +225,10 @@ test.describe('Balance and Settlement E2E', () => {
     const user = await createAndLoginTestUser(page);
     
     // Create a group
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForTimeout(500);
-    const nameInput = page.getByPlaceholder(/group.*name/i);
-    await nameInput.fill('Balance Summary Group');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Balance Summary Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -303,11 +299,10 @@ test.describe('Balance and Settlement E2E', () => {
     await createAndLoginTestUser(page);
     
     // Create a group
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForTimeout(500);
-    const nameInput = page.getByPlaceholder(/group.*name/i);
-    await nameInput.fill('Balance Status Group');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Balance Status Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });

@@ -12,21 +12,25 @@ export class GroupDetailPage extends BasePage {
         await this.page.waitForSelector('.fixed.inset-0', { state: 'visible', timeout: 10000 });
     }
 
-    async addExpense(expenseData: {
-        description: string;
-        amount: number;
-        paidBy: string;
-        splitType: 'equal' | 'exact' | 'percentage';
-    }) {
+    async clickAddExpenseButton() {
         // Click add expense button - try multiple selectors
         const addExpenseButton = this.page.getByRole('button', { name: /add expense/i })
             .or(this.page.getByRole('link', { name: /add expense/i }))
             .or(this.page.getByText(/add expense/i));
         
         await addExpenseButton.first().click();
-
+        
         // Wait for navigation to add expense page
         await this.page.waitForURL(/\/groups\/[^\/]+\/add-expense/, { timeout: 5000 });
+    }
+
+    async addExpense(expenseData: {
+        description: string;
+        amount: number;
+        paidBy: string;
+        splitType: 'equal' | 'exact' | 'percentage';
+    }) {
+        await this.clickAddExpenseButton();
 
         // Fill in expense details
         await this.page.getByPlaceholder('What was this expense for?').fill(expenseData.description);

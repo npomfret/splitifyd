@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 
 export class CreateGroupModalPage extends BasePage {
@@ -22,11 +23,20 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Use specific selectors based on the actual form structure
-    const nameInput = this.page.getByRole('textbox', { name: 'Group Name' });
+    // Use label selector that includes the asterisk for required field
+    const nameInput = this.page.getByLabel('Group Name*');
     
+    // Click to focus the input first
+    await nameInput.click();
     await nameInput.clear();
-    await nameInput.fill(name);
+    
+    // Type the text character by character to ensure proper event triggering
+    for (const char of name) {
+      await nameInput.press(char);
+    }
+    
+    // Tab out to trigger blur event if needed
+    await this.page.keyboard.press('Tab');
     
     // Verify the name was actually filled
     const filledValue = await nameInput.inputValue();
@@ -37,8 +47,11 @@ export class CreateGroupModalPage extends BasePage {
     if (description) {
       const descInput = this.page.getByPlaceholder('Add any details about this group...');
       
+      await descInput.click();
       await descInput.clear();
-      await descInput.fill(description);
+      for (const char of description) {
+        await descInput.press(char);
+      }
     }
     
     // Wait for form validation to process
@@ -50,16 +63,8 @@ export class CreateGroupModalPage extends BasePage {
     const submitButton = this.page.locator('form').getByRole('button', { name: 'Create Group' });
     await submitButton.waitFor({ state: 'visible' });
     
-    // Check if button is enabled, if not wait a bit more
-    let isEnabled = await submitButton.isEnabled();
-    if (!isEnabled) {
-      await this.page.waitForTimeout(1500);
-      isEnabled = await submitButton.isEnabled();
-    }
-    
-    if (!isEnabled) {
-      throw new Error('Create Group button is disabled - form validation may have failed');
-    }
+    // Wait for button to be enabled (form validation may take a moment)
+    await expect(submitButton).toBeEnabled({ timeout: 5000 });
     
     await submitButton.click();
   }
@@ -73,9 +78,6 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async createGroup(name: string, description?: string) {
-    if (!description) {
-      throw new Error('Description is required for createGroup method. The app currently requires a description to enable the Create Group button.');
-    }
     await this.fillGroupForm(name, description);
     await this.submitForm();
   }

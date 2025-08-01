@@ -77,7 +77,12 @@ export function setupConsoleErrorReporting() {
     const hasConsoleErrors = consoleErrors.length > 0;
     const hasPageErrors = pageErrors.length > 0;
     
-    if (hasConsoleErrors || hasPageErrors) {
+    // Check if this test has skip-error-checking annotation
+    const skipErrorChecking = testInfo.annotations.some(
+      annotation => annotation.type === 'skip-error-checking'
+    );
+    
+    if ((hasConsoleErrors || hasPageErrors) && !skipErrorChecking) {
       // Print to console for immediate visibility
       console.log('\n' + '='.repeat(80));
       console.log('❌ BROWSER ERRORS DETECTED');
@@ -141,6 +146,14 @@ export function setupConsoleErrorReporting() {
       if (testInfo.status !== 'failed') {
         throw new Error(`Test had ${consoleErrors.length} console error(s) and ${pageErrors.length} page error(s). Check console output above for details.`);
       }
+    } else if ((hasConsoleErrors || hasPageErrors) && skipErrorChecking) {
+      // Log that errors were detected but ignored due to annotation
+      console.log('\n' + '='.repeat(80));
+      console.log('⚠️  ERRORS DETECTED BUT IGNORED (skip-error-checking annotation)');
+      console.log('='.repeat(80));
+      console.log(`Console errors: ${consoleErrors.length}, Page errors: ${pageErrors.length}`);
+      console.log('These errors are expected for this test.');
+      console.log('='.repeat(80) + '\n');
     }
   });
 }

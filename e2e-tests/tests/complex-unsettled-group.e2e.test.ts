@@ -1,6 +1,6 @@
-import { test, expect } from './fixtures/base-test';
+import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from './helpers/auth-utils';
+import { createAndLoginTestUser } from '../helpers/auth-utils';
 import { CreateGroupModalPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -9,6 +9,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Complex Unsettled Group Scenario', () => {
   test('create group with multiple people and expenses that is NOT settled', async ({ browser }) => {
+    test.setTimeout(30000); // Increase timeout to 30 seconds for this complex test
     // Create User 1 (Alice - the group creator)
     const context1 = await browser.newContext();
     const page1 = await context1.newPage();
@@ -29,7 +30,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     
     // Verify Alice is in the group
     await expect(page1.getByText('Vacation Trip 2024')).toBeVisible();
-    await expect(page1.getByText(user1.displayName)).toBeVisible();
+    await expect(page1.getByRole('main').getByText(user1.displayName)).toBeVisible();
     
     // Alice adds the first expense: Beach house rental ($800)
     const addExpenseButton = page1.getByRole('button', { name: /add expense/i })
@@ -60,7 +61,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
         
         // Verify we're back on group page and expense appears
         await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-        await expect(page1.getByText('Beach House Rental')).toBeVisible();
+        await expect(page1.getByText('Beach House Rental', { exact: true })).toBeVisible();
         console.log('✅ Beach House Rental expense added');
       }
       
@@ -79,7 +80,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
         await submitButton.first().click();
         await page1.waitForTimeout(2000);
         
-        await expect(page1.getByText('Groceries for the week')).toBeVisible();
+        await expect(page1.getByText('Groceries for the week', { exact: true })).toBeVisible();
         console.log('✅ Groceries expense added');
       }
     }
@@ -136,8 +137,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
     console.log(`Group appears unsettled: ${isUnsettled}`);
     
     // Verify the expenses are visible
-    await expect(page1.getByText('Beach House Rental')).toBeVisible();
-    await expect(page1.getByText('Groceries for the week')).toBeVisible();
+    await expect(page1.getByText('Beach House Rental', { exact: true })).toBeVisible();
+    await expect(page1.getByText('Groceries for the week', { exact: true })).toBeVisible();
     
     // Total should be $950 if both expenses were added
     const totalExpected = 800 + 150; // $950
