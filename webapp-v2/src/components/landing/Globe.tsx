@@ -60,11 +60,12 @@ export function Globe() {
 
         // Continent Outlines
         const textureLoader = new THREE.TextureLoader();
-        const continentTexture = textureLoader.load('/v2/images/world-map-outline.svg');
+        const continentTexture = textureLoader.load('/images/world-map-outline.svg');
 
         const continentGeometry = new THREE.SphereGeometry(sphereSize + 0.05, 64, 64); // Slightly larger sphere
         const continentMaterial = new THREE.MeshBasicMaterial({
           map: continentTexture,
+          color: 0x4a7c59, // Green color for continents
           transparent: true,
           opacity: 1.0,
           wireframe: false
