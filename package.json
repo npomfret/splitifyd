@@ -31,7 +31,8 @@
     "test:browser:login": "npx tsx mcp-browser-tests/test-login.ts",
     "test:browser:expenses": "npx tsx mcp-browser-tests/test-expenses.ts",
     "report": "repo-statter . -o reports",
-    "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\""
+    "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
+    "postinstall": "cd e2e-tests && npx playwright install chromium"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
