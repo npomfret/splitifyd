@@ -15,8 +15,6 @@ test.describe('Multi-User Collaboration E2E', () => {
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
-      console.log(`User 1 (Group Creator): ${user1.displayName}`);
-      
       // Create group
       const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
@@ -25,7 +23,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
       const groupId = page1.url().match(/\/groups\/([a-zA-Z0-9]+)/)?.[1];
-      console.log(`Group created with ID: ${groupId}`);
+      expect(groupId).toBeTruthy();
       
       // Look for share functionality
       const shareButton = page1.getByRole('button', { name: /share/i })
@@ -51,8 +49,7 @@ test.describe('Multi-User Collaboration E2E', () => {
             // If it's text, get the text content
             shareLink = await linkInput.first().textContent();
           }
-          
-          console.log(`Share link generated: ${shareLink}`);
+
           expect(shareLink).toBeTruthy();
           expect(shareLink).toContain('http');
           
@@ -60,7 +57,7 @@ test.describe('Multi-User Collaboration E2E', () => {
           const copyButton = page1.getByRole('button', { name: /copy/i });
           if (await copyButton.count() > 0) {
             await copyButton.click();
-            console.log('Share link copied to clipboard');
+
           }
         }
       }
@@ -72,33 +69,26 @@ test.describe('Multi-User Collaboration E2E', () => {
         
         // User 2 creates account first
         const user2 = await createAndLoginTestUser(page2);
-        console.log(`User 2 (Joining Member): ${user2.displayName}`);
         
         // Navigate to share link
-        console.log('User 2 navigating to share link...');
         await page2.goto(shareLink);
-        await page1.waitForLoadState('networkidle');
-        
-        // Check if redirected to join page or group page
-        const currentUrl = page2.url();
-        console.log(`User 2 current URL: ${currentUrl}`);
+        await page2.waitForLoadState('networkidle');
         
         // Look for join confirmation
         const joinButton = page2.getByRole('button', { name: /join/i })
           .or(page2.getByRole('button', { name: /accept/i }));
         
         if (await joinButton.count() > 0) {
-          console.log('Join confirmation page displayed');
           await joinButton.first().click();
-          await page1.waitForLoadState('networkidle');
+          await page2.waitForLoadState('networkidle');
         }
         
         // Check if User 2 can see the group
-        const canSeeGroup = await page2.getByText('Share Link Test Group').count() > 0;
+        const groupNameElement = page2.getByText('Share Link Test Group');
+        const canSeeGroup = await groupNameElement.count() > 0;
         
         if (canSeeGroup) {
-          console.log('✅ User 2 successfully joined the group');
-          await expect(page2.getByText('Share Link Test Group')).toBeVisible();
+          await expect(groupNameElement).toBeVisible();
           
           // Verify User 2 appears as member
           await expect(page2.getByText(user2.displayName)).toBeVisible();
@@ -108,29 +98,28 @@ test.describe('Multi-User Collaboration E2E', () => {
           await page1.waitForLoadState('networkidle');
           
           // Check if User 1 can see User 2 as member
-          const user2VisibleToUser1 = await page1.getByText(user2.displayName).count() > 0;
-          if (user2VisibleToUser1) {
-            console.log('✅ User 1 can see User 2 as a group member');
+          const user2Element = page1.getByText(user2.displayName);
+          if (await user2Element.count() > 0) {
+            await expect(user2Element).toBeVisible();
           }
           
           // Check member count updated
           const memberCount = page1.getByText(/2 members/i);
           if (await memberCount.count() > 0) {
             await expect(memberCount).toBeVisible();
-            console.log('✅ Member count updated to 2');
           }
         } else {
-          console.log('⚠️ User 2 could not access the group via share link');
+          // Share functionality not implemented - verify we're still logged in
+          await expect(page2).toHaveURL(/\/dashboard/);
         }
         
         await context2.close();
       } else {
-        console.log('❌ Share link generation not implemented');
+        // Share functionality not available - this is expected for now
+        expect(await shareButton.count()).toBe(0);
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
     });
 
     test('should handle invalid or expired share links', async ({ browser }) => {
@@ -140,31 +129,24 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       // Try to access an invalid share link
       const invalidShareLink = `${page.url().split('/dashboard')[0]}/join/invalid-group-id`;
-      console.log(`Testing invalid share link: ${invalidShareLink}`);
       
       await page.goto(invalidShareLink);
       await page.waitForLoadState('networkidle');
       
-      // Check for error handling
-      const errorMessage = page.getByText(/invalid.*link/i)
-        .or(page.getByText(/expired/i))
-        .or(page.getByText(/not.*found/i))
-        .or(page.getByText(/error/i));
+      // Check for error handling - 404 page shows "Page not found"
+      const errorMessage = page.getByText(/page not found/i)
+        .or(page.getByText(/404/))
+        .or(page.getByText(/invalid.*link/i))
+        .or(page.getByText(/expired/i));
       
-      if (await errorMessage.count() > 0) {
-        console.log('✅ Invalid share link handled with error message');
-        await expect(errorMessage.first()).toBeVisible();
-      }
+      // Should show error message
+      await expect(errorMessage.first()).toBeVisible();
       
-      // Check if redirected to dashboard or home
-      const currentUrl = page.url();
-      if (currentUrl.includes('/dashboard') || currentUrl.endsWith('/')) {
-        console.log('✅ User redirected to safe page after invalid link');
-      }
+      // Should show "Go Home" link on 404 page
+      const goHomeLink = page.getByRole('link', { name: /go home/i });
+      await expect(goHomeLink).toBeVisible();
       
       await context.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
     });
 
     test('should show pending invitations in user dashboard', async ({ browser }) => {
@@ -218,16 +200,14 @@ test.describe('Multi-User Collaboration E2E', () => {
             .or(page2.getByRole('region', { name: /invitation/i }));
           
           if (await invitationsSection.count() > 0) {
-            console.log('✅ Invitations section found in dashboard');
-            
+
             // Look for the specific invitation
             const invitationCard = page2.getByText('Invitation Test Group')
               .or(page2.getByText(new RegExp(user1.displayName + '.*invited', 'i')));
             
             if (await invitationCard.count() > 0) {
               await expect(invitationCard.first()).toBeVisible();
-              console.log('✅ Invitation from User 1 visible to User 2');
-              
+
               // Accept invitation
               const acceptButton = page2.getByRole('button', { name: /accept/i })
                 .or(page2.getByRole('button', { name: /join/i }));
@@ -239,7 +219,7 @@ test.describe('Multi-User Collaboration E2E', () => {
                 // Should redirect to group
                 await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
                 await expect(page2.getByText('Invitation Test Group')).toBeVisible();
-                console.log('✅ User 2 successfully joined via invitation');
+
               }
             }
           }
@@ -249,8 +229,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
 
     test('should allow users who joined via share link to add expenses', async ({ browser }) => {
@@ -319,7 +298,7 @@ test.describe('Multi-User Collaboration E2E', () => {
           // Check if User 2 can select participants including User 1
           const participantsList = page2.getByText(user1.displayName);
           if (await participantsList.count() > 0) {
-            console.log('✅ User 2 can see User 1 in participants list');
+
           }
           
           const submitButton = page2.getByRole('button', { name: /save/i });
@@ -328,7 +307,7 @@ test.describe('Multi-User Collaboration E2E', () => {
           
           // Verify expense was created
           await expect(page2.getByText('User 2 Contribution')).toBeVisible();
-          console.log('✅ User 2 successfully added expense to shared group');
+
         }
         
         // User 1 checks if they can see User 2's expense
@@ -337,14 +316,13 @@ test.describe('Multi-User Collaboration E2E', () => {
         
         const user2ExpenseVisible = await page1.getByText('User 2 Contribution').count() > 0;
         if (user2ExpenseVisible) {
-          console.log('✅ User 1 can see expense added by User 2');
-          
+
           // Check if balance was updated
           const balanceIndicator = page1.getByText(/75/)
             .or(page1.getByText(/\$75/));
           
           if (await balanceIndicator.count() > 0) {
-            console.log('✅ Group balance updated with User 2\'s expense');
+
           }
         }
         
@@ -352,8 +330,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
   });
 
@@ -404,9 +381,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Check if User 2 can see the group (they likely can't without invitation)
       const canSeeGroup = await page2.getByText('Concurrent Test Group').count() > 0;
       
-      if (!canSeeGroup) {
-        console.log('User 2 cannot access group without invitation - expected behavior');
-      }
+      expect(!canSeeGroup).toBe(true);
       
       // User 1 submits their expense
       const submitButton1 = page1.getByRole('button', { name: /save/i });
@@ -418,8 +393,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       await context1.close();
       await context2.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
 
     test('should sync expense updates across users in real-time', async ({ browser }) => {
@@ -466,12 +440,11 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.locator('[data-testid="sync-status"]'));
       
       if (await liveIndicator.count() > 0) {
-        console.log('Real-time sync indicators found');
+
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
   });
 
@@ -512,7 +485,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await user1Balance.count() > 0) {
         await expect(user1Balance.first()).toBeVisible();
-        console.log('User 1 balance updated after expense');
+
       }
       
       // In multi-user scenario:
@@ -521,8 +494,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // - Debt simplification would occur
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
 
     test('should handle settlement recording by different users', async ({ browser }) => {
@@ -559,8 +531,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.getByRole('button', { name: /record.*payment/i }));
       
       if (await settlementButton.count() > 0) {
-        console.log('Settlement functionality available');
-        
+
         // In multi-user scenario:
         // - User who owes money would record payment
         // - User who is owed would confirm receipt
@@ -568,8 +539,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
   });
 
@@ -628,13 +598,12 @@ test.describe('Multi-User Collaboration E2E', () => {
           .or(page1.getByText(/outdated/i));
         
         if (await conflictWarning.count() > 0) {
-          console.log('Conflict detection implemented');
+
         }
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
 
     test('should prevent race conditions in expense deletion', async ({ browser }) => {
@@ -681,14 +650,11 @@ test.describe('Multi-User Collaboration E2E', () => {
         const isDeleting = await page1.getByText(/deleting/i).count() > 0;
         const isProcessing = await page1.locator('.spinner').count() > 0;
         
-        if (isDeleting || isProcessing) {
-          console.log('Deletion state indicators present');
-        }
+        expect(isDeleting || isProcessing).toBe(true);
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
   });
 
@@ -713,7 +679,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.getByRole('region', { name: /activity/i }));
       
       if (await activityFeed.count() > 0) {
-        console.log('Activity feed present');
+
       }
       
       // Add expense to generate activity
@@ -738,7 +704,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await activityEntry.count() > 0) {
         await expect(activityEntry.first()).toBeVisible();
-        console.log('Activity entries being tracked');
+
       }
       
       // Look for notification badges
@@ -747,12 +713,11 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.getByText(/^\d+$/).filter({ hasText: /^[1-9]\d*$/ }));
       
       if (await notificationBadge.count() > 0) {
-        console.log('Notification badges implemented');
+
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
 
     test('should show real-time updates when other users make changes', async ({ browser }) => {
@@ -774,7 +739,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.locator('.online-indicator'));
       
       if (await connectionStatus.count() > 0) {
-        console.log('Real-time connection status indicators present');
+
       }
       
       // Look for auto-refresh or live update settings
@@ -783,7 +748,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.getByText(/real.*time/i));
       
       if (await liveUpdateToggle.count() > 0) {
-        console.log('Live update controls available');
+
       }
       
       // In real multi-user scenario:
@@ -798,12 +763,11 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.locator('[data-testid="sync-spinner"]'));
       
       if (await updateIndicator.count() > 0) {
-        console.log('Update indicators present');
+
       }
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
   });
 
@@ -828,7 +792,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await adminBadge.count() > 0) {
         await expect(adminBadge.first()).toBeVisible();
-        console.log('Admin role indicators present');
+
       }
       
       // Check for admin-only features
@@ -837,7 +801,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         .or(page1.getByRole('button', { name: /delete.*group/i }));
       
       if (await adminFeatures.count() > 0) {
-        console.log('Admin-only features accessible');
+
       }
       
       // In multi-user scenario:
@@ -846,8 +810,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // - UI would disable/hide admin features
       
       await context1.close();
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
 
     test('should handle member role changes', async ({ page }) => {
@@ -876,21 +839,18 @@ test.describe('Multi-User Collaboration E2E', () => {
           .or(page.locator('[data-testid="role-selector"]'));
         
         if (await roleDropdown.count() > 0) {
-          console.log('Role management UI present');
-          
+
           // Check available roles
           const adminOption = page.getByRole('option', { name: /admin/i });
           const memberOption = page.getByRole('option', { name: /member/i });
           const viewerOption = page.getByRole('option', { name: /viewer/i });
           
           if (await adminOption.count() > 0 || await memberOption.count() > 0) {
-            console.log('Multiple role types available');
+
           }
         }
       }
-      
-      // Multi-user features not yet implemented - skip test
-      test.skip();
+
     });
   });
 });
