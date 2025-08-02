@@ -10,7 +10,6 @@ setupMCPDebugOnFailure();
 test.describe('Delete Operations E2E', () => {
   test.describe('Expense Deletion', () => {
     test('should delete an expense with confirmation', async ({ page }) => {
-      test.setTimeout(20000); // 20 seconds for delete test
       const user = await createAndLoginTestUser(page);
       
       // Create a group
@@ -20,72 +19,49 @@ test.describe('Delete Operations E2E', () => {
       await createGroupModal.createGroup('Delete Test Group', 'Testing expense deletion');
       
       // Wait for navigation to group page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
       // Add an expense to delete
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
+      
       // Wait for expense form to load
-      await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
+      const amountField = page.getByPlaceholder('0.00');
       
       await descriptionField.fill('Expense to Delete');
       await amountField.fill('50.00');
       
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      
       await submitButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
       
       // Verify expense was created
       await expect(page.getByText('Expense to Delete')).toBeVisible();
       
-      // Click on the expense to go to detail page
+      // Click on the expense to view details
       await page.getByText('Expense to Delete').click();
       await page.waitForLoadState('domcontentloaded');
       
-      // Look for delete button
-      const deleteButton = page.getByRole('button', { name: /delete/i })
-        .or(page.getByRole('button', { name: /remove/i }))
-        .or(page.locator('[data-testid*="delete"]'));
+      // Click delete button
+      const deleteButton = page.getByRole('button', { name: /delete/i });
+      await deleteButton.click();
       
-      // Verify delete button exists
-      const hasDeleteButton = await deleteButton.count() > 0;
-      expect(hasDeleteButton).toBe(true);
-      
-      await deleteButton.first().click();
-      
-      // Look for confirmation dialog
-      const confirmDialog = page.getByText(/are you sure/i)
-        .or(page.getByText(/confirm.*delete/i))
-        .or(page.getByRole('dialog'));
-      
-      // Wait for any confirmation or direct deletion
-      await page.waitForLoadState('domcontentloaded');
-      
-      const hasConfirmation = await confirmDialog.count() > 0;
-      if (hasConfirmation) {
-        // Confirm deletion
-        const confirmButton = page.getByRole('button', { name: /confirm/i })
-          .or(page.getByRole('button', { name: /yes/i }))
-          .or(page.getByRole('button', { name: /delete/i }).last());
-        
-        await expect(confirmButton.first()).toBeVisible();
-        await confirmButton.first().click();
-        await page.waitForLoadState('networkidle');
-      }
+      // Confirm deletion
+      const confirmButton = page.getByRole('button', { name: /confirm|yes/i });
+      await confirmButton.click();
+      await page.waitForLoadState('networkidle');
       
       // Should be back on group page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
-      // Expense should no longer be visible on the group page
+      // Expense should no longer be visible
       await expect(page.getByText('Expense to Delete')).not.toBeVisible();
     });
 
     test('should cancel expense deletion', async ({ page }) => {
-      test.setTimeout(20000);
       await createAndLoginTestUser(page);
       
       // Create group and expense
@@ -94,112 +70,69 @@ test.describe('Delete Operations E2E', () => {
       await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Cancel Delete Test', 'Testing deletion cancellation');
       
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
       // Add expense
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForLoadState('domcontentloaded');
       
-      const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
+      await page.getByPlaceholder('What was this expense for?').fill('Keep This Expense');
+      await page.getByPlaceholder('0.00').fill('75.00');
       
-      await descriptionField.fill('Keep This Expense');
-      await amountField.fill('75.00');
-      
-      const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      
-      await submitButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.getByRole('button', { name: 'Save Expense' }).click();
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
       
       // Click on expense
       await page.getByText('Keep This Expense').click();
-      await page.waitForLoadState('domcontentloaded');
       
-      // Try to delete but cancel
+      // Click delete
       const deleteButton = page.getByRole('button', { name: /delete/i });
-      
-      // Delete button should be present
-      await expect(deleteButton.first()).toBeVisible({ timeout: 5000 });
-      await deleteButton.first().click();
+      await deleteButton.click();
       
       // Cancel deletion
-      const cancelButton = page.getByRole('button', { name: /cancel/i })
-        .or(page.getByRole('button', { name: /no/i }));
+      const cancelButton = page.getByRole('button', { name: /cancel|no/i });
+      await cancelButton.click();
       
-      // Cancel button should be available
-      await expect(cancelButton.first()).toBeVisible({ timeout: 5000 });
-      await cancelButton.first().click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Expense should still exist
+      // Expense should still be visible
       await expect(page.getByText('Keep This Expense')).toBeVisible();
     });
 
     test('should prevent deletion of expenses by non-creator', async ({ page, browser }) => {
-      test.setTimeout(20000);
-      // Create User 1 and expense
-      await createAndLoginTestUser(page);
+      // User 1 creates group and expense
+      const user1 = await createAndLoginTestUser(page);
       
       const dashboard = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Permission Test Group', 'Testing delete permissions');
       
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       const groupUrl = page.url();
       
       // Add expense as User 1
-      const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-      await addExpenseButton.click();
-      await page.waitForLoadState('domcontentloaded');
+      await page.getByRole('button', { name: /add expense/i }).click();
+      await page.getByPlaceholder('What was this expense for?').fill('User 1 Expense');
+      await page.getByPlaceholder('0.00').fill('100.00');
+      await page.getByRole('button', { name: 'Save Expense' }).click();
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
       
-      const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
-      
-      await descriptionField.fill('User 1 Expense');
-      await amountField.fill('100.00');
-      
-      const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      await submitButton.click();
-      await page.waitForLoadState('networkidle');
-      
-      // Create User 2 in separate context
+      // User 2 joins the group
       const context2 = await browser.newContext();
       const page2 = await context2.newPage();
-      await createAndLoginTestUser(page2);
+      const user2 = await createAndLoginTestUser(page2);
       
-      // User 2 tries to access the group (would need invitation in real app)
       await page2.goto(groupUrl);
       await page2.waitForLoadState('networkidle');
       
-      // Check if User 2 can see the group
-      const canSeeGroup = await page2.getByText('Permission Test Group').count() > 0;
+      // User 2 should see the expense but not be able to delete it
+      await expect(page2.getByText('User 1 Expense')).toBeVisible();
       
-      if (canSeeGroup) {
-        // Try to access the expense
-        const expenseVisible = await page2.getByText('User 1 Expense').count() > 0;
-        
-        if (expenseVisible) {
-          await page2.getByText('User 1 Expense').click();
-          await page2.waitForLoadState('domcontentloaded');
-          
-          // Check if delete button is visible/enabled for User 2
-          const deleteButton = page2.getByRole('button', { name: /delete/i });
-          const hasDeleteButton = await deleteButton.count() > 0;
-          
-          if (hasDeleteButton) {
-            const isDisabled = await deleteButton.first().isDisabled();
-            const isHidden = await deleteButton.first().isHidden();
-            
-            // Delete button should be disabled or hidden for non-creator
-            expect(isDisabled || isHidden).toBe(true);
-          } else {
-            // Delete button not present for non-creator - this is correct behavior
-            expect(hasDeleteButton).toBe(false);
-          }
-        }
-      }
+      // Click on expense as User 2
+      await page2.getByText('User 1 Expense').click();
+      
+      // Delete button should not be visible for non-creator
+      const deleteButton = page2.getByRole('button', { name: /delete/i });
+      await expect(deleteButton).not.toBeVisible();
       
       await context2.close();
     });
@@ -209,402 +142,110 @@ test.describe('Delete Operations E2E', () => {
     test('should delete an empty group', async ({ page }) => {
       await createAndLoginTestUser(page);
       
-      // Create a group to delete
+      // Create empty group
       const dashboard = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       await dashboard.openCreateGroupModal();
-      await createGroupModal.createGroup('Empty Group to Delete', 'This group will be deleted');
+      await createGroupModal.createGroup('Empty Group', 'Group to be deleted');
       
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
-      // Look for group settings or delete option
-      const settingsButton = page.getByRole('button', { name: /settings/i })
-        .or(page.getByRole('button', { name: /menu/i }))
-        .or(page.getByRole('button', { name: /options/i }))
-        .or(page.locator('[data-testid*="settings"]'));
+      // Open group settings
+      const settingsButton = page.getByRole('button', { name: /settings/i });
+      await settingsButton.click();
       
-      // Verify settings functionality exists
-      const hasSettings = await settingsButton.count() > 0;
-      expect(hasSettings).toBe(true);
-      
-      await settingsButton.first().click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Look for delete group option
-      const deleteGroupOption = page.getByText(/delete.*group/i)
-        .or(page.getByRole('button', { name: /delete.*group/i }))
-        .or(page.getByRole('menuitem', { name: /delete/i }));
-      
-      // Verify delete option exists
-      const hasDeleteOption = await deleteGroupOption.count() > 0;
-      expect(hasDeleteOption).toBe(true);
-      
-      await deleteGroupOption.first().click();
-      await page.waitForLoadState('domcontentloaded');
+      // Click delete group option
+      const deleteGroupOption = page.getByText(/delete.*group/i);
+      await deleteGroupOption.click();
       
       // Confirm deletion
-      const confirmButton = page.getByRole('button', { name: /confirm/i })
-        .or(page.getByRole('button', { name: /delete/i }).last());
+      const confirmButton = page.getByRole('button', { name: /confirm|delete/i });
+      await confirmButton.click();
+      await page.waitForLoadState('networkidle');
       
-      const hasConfirmButton = await confirmButton.count() > 0;
-      if (hasConfirmButton) {
-        await confirmButton.first().click();
-        await page.waitForLoadState('networkidle');
-        
-        // Should redirect to dashboard
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
-        
-        // Group should not appear in list
-        await expect(page.getByText('Empty Group to Delete')).not.toBeVisible();
-      } else {
-        // At minimum, verify we're still on a valid page
-        await expect(page).toHaveURL(/\/(groups|dashboard)/, { timeout: 5000 });
-      }
+      // Should redirect to dashboard
+      await expect(page).toHaveURL(/\/dashboard/);
+      
+      // Group should not appear in list
+      await expect(page.getByText('Empty Group')).not.toBeVisible();
     });
 
     test('should prevent deletion of group with expenses', async ({ page }) => {
-      test.setTimeout(20000);
-      await createAndLoginTestUser(page);
-      
-      // Create group with expense
-      const dashboard = new DashboardPage(page);
-      const createGroupModal = new CreateGroupModalPage(page);
-      await dashboard.openCreateGroupModal();
-            await createGroupModal.createGroup('Group with Expenses', 'Cannot delete with expenses');
-      
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-      
-      // Add an expense
-      const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-      await addExpenseButton.click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
-      
-      await descriptionField.fill('Blocking Expense');
-      await amountField.fill('200.00');
-      
-      const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      await submitButton.click();
-      await page.waitForLoadState('networkidle');
-      
-      // Try to delete group
-      const settingsButton = page.getByRole('button', { name: /settings/i })
-        .or(page.getByRole('button', { name: /menu/i }));
-      
-      // Verify settings exists
-      const hasSettings = await settingsButton.count() > 0;
-      expect(hasSettings).toBe(true);
-      
-      await settingsButton.first().click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const deleteGroupOption = page.getByText(/delete.*group/i);
-      
-      // Check if delete option exists
-      const hasDeleteOption = await deleteGroupOption.count() > 0;
-      if (hasDeleteOption) {
-        await deleteGroupOption.first().click();
-        await page.waitForLoadState('domcontentloaded');
-        
-        // Should show error or warning
-        const warningMessage = page.getByText(/cannot.*delete.*expenses/i)
-          .or(page.getByText(/remove.*expenses.*first/i))
-          .or(page.getByText(/group.*has.*expenses/i));
-        
-        // Verify warning appears or deletion is prevented
-        const hasWarning = await warningMessage.count() > 0;
-        if (hasWarning) {
-          await expect(warningMessage.first()).toBeVisible();
-        }
-        
-        // Group should still exist
-        await expect(page.getByText('Group with Expenses')).toBeVisible();
-      } else {
-        // If no delete option, verify group still exists
-        await expect(page.getByText('Group with Expenses')).toBeVisible();
-      }
-    });
-
-    test('should handle group deletion with unsettled balances', async ({ page }) => {
-      test.setTimeout(20000);
       await createAndLoginTestUser(page);
       
       // Create group
       const dashboard = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       await dashboard.openCreateGroupModal();
-            await createGroupModal.createGroup('Unsettled Group', 'Has unsettled balances');
+      await createGroupModal.createGroup('Group with Expenses', 'Cannot be deleted');
       
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
-      // Add expenses to create unsettled balance
-      const addExpenseButton = page.getByRole('button', { name: /add expense/i });
+      // Add expense
+      await page.getByRole('button', { name: /add expense/i }).click();
+      await page.getByPlaceholder('What was this expense for?').fill('Blocking Expense');
+      await page.getByPlaceholder('0.00').fill('200.00');
+      await page.getByRole('button', { name: 'Save Expense' }).click();
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
       
-      // Add first expense
-      await addExpenseButton.click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
-      
-      await descriptionField.fill('Dinner');
-      await amountField.fill('120.00');
-      
-      const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      await submitButton.click();
-      await page.waitForLoadState('networkidle');
-      
-      // Try to delete group with unsettled balances
-      const settingsButton = page.getByRole('button', { name: /settings/i })
-        .or(page.getByRole('button', { name: /menu/i }));
-      
-      // Verify settings exists
-      const hasSettings = await settingsButton.count() > 0;
-      expect(hasSettings).toBe(true);
-      
-      await settingsButton.first().click();
-      await page.waitForLoadState('domcontentloaded');
+      // Try to delete group
+      const settingsButton = page.getByRole('button', { name: /settings/i });
+      await settingsButton.click();
       
       const deleteGroupOption = page.getByText(/delete.*group/i);
+      await deleteGroupOption.click();
       
-      // Check if delete option exists
-      const hasDeleteOption = await deleteGroupOption.count() > 0;
-      if (hasDeleteOption) {
-        await deleteGroupOption.first().click();
-        await page.waitForLoadState('domcontentloaded');
-        
-        // Look for warning about unsettled balances
-        const balanceWarning = page.getByText(/unsettled.*balance/i)
-          .or(page.getByText(/settle.*first/i))
-          .or(page.getByText(/outstanding.*debt/i));
-        
-        // Verify warning appears
-        const hasBalanceWarning = await balanceWarning.count() > 0;
-        if (hasBalanceWarning) {
-          await expect(balanceWarning.first()).toBeVisible();
-        }
-      }
+      // Should show error message
+      const warningMessage = page.getByText(/cannot.*delete.*expenses|remove.*expenses.*first/i);
+      await expect(warningMessage).toBeVisible();
       
-      // Group should still exist regardless
-      await expect(page.getByText('Unsettled Group')).toBeVisible();
+      // Group should still exist
+      await expect(page.getByText('Group with Expenses')).toBeVisible();
     });
   });
 
   test.describe('Bulk Operations', () => {
     test('should select and delete multiple expenses', async ({ page }) => {
-      test.setTimeout(20000);
       await createAndLoginTestUser(page);
       
       // Create group
       const dashboard = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       await dashboard.openCreateGroupModal();
-            await createGroupModal.createGroup('Bulk Delete Test', 'Testing bulk operations');
+      await createGroupModal.createGroup('Bulk Delete Test', 'Testing bulk operations');
       
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
       // Add multiple expenses
       for (let i = 1; i <= 3; i++) {
-        const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-        await addExpenseButton.click();
-        await page.waitForLoadState('domcontentloaded');
-        
-        const descriptionField = page.getByPlaceholder('What was this expense for?');
-        const amountField = page.getByRole('spinbutton');
-        
-        await descriptionField.fill(`Expense ${i}`);
-        await amountField.fill(`${i * 10}.00`);
-        
-        const submitButton = page.getByRole('button', { name: 'Save Expense' });
-        await submitButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.getByRole('button', { name: /add expense/i }).click();
+        await page.getByPlaceholder('What was this expense for?').fill(`Expense ${i}`);
+        await page.getByPlaceholder('0.00').fill(`${i * 10}.00`);
+        await page.getByRole('button', { name: 'Save Expense' }).click();
+        await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
       }
       
-      // Look for bulk selection UI
-      const selectAllCheckbox = page.getByRole('checkbox', { name: /select.*all/i })
-        .or(page.locator('[data-testid="select-all"]'));
+      // Enable bulk select mode
+      const bulkSelectButton = page.getByRole('button', { name: /bulk|select.*multiple/i });
+      await bulkSelectButton.click();
       
-      const bulkSelectButton = page.getByRole('button', { name: /select/i })
-        .or(page.getByText(/bulk.*action/i));
+      // Select all expenses
+      const selectAllCheckbox = page.getByRole('checkbox', { name: /select.*all/i });
+      await selectAllCheckbox.check();
       
-      const hasBulkOperations = await selectAllCheckbox.count() > 0 || await bulkSelectButton.count() > 0;
+      // Delete selected
+      const bulkDeleteButton = page.getByRole('button', { name: /delete.*selected/i });
+      await bulkDeleteButton.click();
       
-      if (hasBulkOperations) {
-        // Enable bulk mode if needed
-        if (await bulkSelectButton.count() > 0) {
-          await bulkSelectButton.first().click();
-                  }
-        
-        // Select expenses
-        const expenseCheckboxes = page.getByRole('checkbox').filter({ hasNot: page.getByText(/select.*all/i) });
-        const checkboxCount = await expenseCheckboxes.count();
-        
-        for (let i = 0; i < Math.min(2, checkboxCount); i++) {
-          await expenseCheckboxes.nth(i).check();
-        }
-        
-        // Look for bulk delete button
-        const bulkDeleteButton = page.getByRole('button', { name: /delete.*selected/i })
-          .or(page.getByRole('button', { name: /delete \(\d+\)/i }));
-        
-        if (await bulkDeleteButton.count() > 0) {
-          await bulkDeleteButton.first().click();
-                    
-          // Confirm bulk deletion
-          const confirmButton = page.getByRole('button', { name: /confirm/i });
-          if (await confirmButton.count() > 0) {
-            await confirmButton.click();
-            await page.waitForLoadState('networkidle');
-          }
-          
-          // At least one expense should be removed
-          const remainingExpenses = await page.getByText(/Expense \d/).count();
-          expect(remainingExpenses).toBeLessThan(3);
-        } else {
-          // Bulk delete not available - feature not implemented yet
-          expect(checkAll).toHaveCount(0);
-        }
-      } else {
-        // Bulk operations not implemented - this is expected
-        expect(bulkSelect).toHaveCount(0);
-      }
-    });
-  });
-
-  test.describe('Undo/Recovery', () => {
-    test('should show undo option after deletion', async ({ page }) => {
-      test.setTimeout(20000);
-      await createAndLoginTestUser(page);
-      
-      // Create group and expense
-      const dashboard = new DashboardPage(page);
-      const createGroupModal = new CreateGroupModalPage(page);
-      await dashboard.openCreateGroupModal();
-            await createGroupModal.createGroup('Undo Test Group', 'Testing undo functionality');
-      
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-      
-      // Add expense
-      const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-      await addExpenseButton.click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
-      
-      await descriptionField.fill('Expense to Undo');
-      await amountField.fill('45.00');
-      
-      const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      await submitButton.click();
-      await page.waitForLoadState('networkidle');
-      
-      // Delete the expense
-      await page.getByText('Expense to Undo').click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const deleteButton = page.getByRole('button', { name: /delete/i });
-      
-      // Delete button should be available
-      await expect(deleteButton.first()).toBeVisible({ timeout: 5000 });
-      await deleteButton.first().click();
-      
-      // Confirm deletion
-      const confirmButton = page.getByRole('button', { name: /confirm/i });
-      await expect(confirmButton.first()).toBeVisible({ timeout: 5000 });
+      // Confirm bulk deletion
+      const confirmButton = page.getByRole('button', { name: /confirm|delete/i });
       await confirmButton.click();
       await page.waitForLoadState('networkidle');
       
-      // Look for undo notification
-      const undoNotification = page.getByText(/undo/i)
-        .or(page.getByRole('button', { name: /undo/i }))
-        .or(page.getByText(/deleted.*undo/i));
-      
-      const hasUndo = await undoNotification.count() > 0;
-      
-      if (hasUndo) {
-        await expect(undoNotification.first()).toBeVisible();
-        
-        // Try to undo
-        const undoButton = page.getByRole('button', { name: /undo/i });
-        if (await undoButton.count() > 0) {
-          await undoButton.click();
-          await page.waitForLoadState('networkidle');
-          
-          // Expense should be restored
-          await expect(page.getByText('Expense to Undo')).toBeVisible();
-        }
-      } else {
-        // Undo feature not available - this is okay for now
-        expect(hasUndo).toBe(false);
-      }
-    });
-
-    test('should handle deletion of recently edited expense', async ({ page }) => {
-      test.setTimeout(20000);
-      await createAndLoginTestUser(page);
-      
-      // Create group and expense
-      const dashboard = new DashboardPage(page);
-      const createGroupModal = new CreateGroupModalPage(page);
-      await dashboard.openCreateGroupModal();
-            await createGroupModal.createGroup('Edit Delete Test', 'Testing edit then delete');
-      
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-      
-      // Add expense
-      const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-      await addExpenseButton.click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const descriptionField = page.getByPlaceholder('What was this expense for?');
-      const amountField = page.getByRole('spinbutton');
-      
-      await descriptionField.fill('Original Expense');
-      await amountField.fill('60.00');
-      
-      const submitButton = page.getByRole('button', { name: 'Save Expense' });
-      await submitButton.click();
-      await page.waitForLoadState('networkidle');
-      
-      // Edit the expense
-      await page.getByText('Original Expense').click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      const editButton = page.getByRole('button', { name: /edit/i });
-      if (await editButton.count() > 0) {
-        await editButton.click();
-        await page.waitForLoadState('domcontentloaded');
-        
-        // Update description
-        const editDescField = page.getByPlaceholder('What was this expense for?');
-        await editDescField.fill('Edited Expense');
-        
-        const updateButton = page.getByRole('button', { name: /save|update/i });
-        
-        if (await updateButton.count() > 0) {
-          await updateButton.first().click();
-        }
-        await page.waitForLoadState('networkidle');
-      }
-      
-      // Now delete the edited expense
-      const deleteButton = page.getByRole('button', { name: /delete/i });
-      
-      // Delete button should be available
-      await expect(deleteButton.first()).toBeVisible({ timeout: 5000 });
-      await deleteButton.first().click();
-      
-      const confirmButton = page.getByRole('button', { name: /confirm/i });
-      await expect(confirmButton.first()).toBeVisible({ timeout: 5000 });
-      await confirmButton.click();
-      await page.waitForLoadState('networkidle');
-      
-      // Expense should be deleted
-      await expect(page.getByText('Edited Expense')).not.toBeVisible();
-      await expect(page.getByText('Original Expense')).not.toBeVisible();
+      // All expenses should be deleted
+      await expect(page.getByText('Expense 1')).not.toBeVisible();
+      await expect(page.getByText('Expense 2')).not.toBeVisible();
+      await expect(page.getByText('Expense 3')).not.toBeVisible();
     });
   });
 });

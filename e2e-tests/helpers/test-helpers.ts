@@ -18,8 +18,8 @@ export async function createTestGroup(
     await dashboardPage.navigate();
   }
   
-  // Click create group button
-  await page.getByRole('button', { name: /create.*group/i }).click();
+  // Click create group button (use first to handle multiple buttons)
+  await page.getByRole('button', { name: /create.*group/i }).first().click();
   
   // Fill in group details
   await createGroupModal.createGroup(groupName, description);

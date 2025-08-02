@@ -8,7 +8,6 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Error Handling E2E', () => {
-  test.describe.configure({ timeout: 30000 });
   test('should handle network errors gracefully', async ({ page, context }) => {
     // NOTE: This test intentionally triggers network errors to test error handling
     test.info().annotations.push({ 
@@ -47,13 +46,13 @@ test.describe('Error Handling E2E', () => {
       .or(page.getByText(/error/i));
     
     // Verify error is displayed
-    await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
+    await expect(errorMessage.first()).toBeVisible();
     
     // Verify UI is still responsive after error
     const cancelButton = page.getByRole('button', { name: /cancel/i })
       .or(page.getByRole('button', { name: /close/i }));
     
-    await expect(cancelButton.first()).toBeVisible({ timeout: 2000 });
+    await expect(cancelButton.first()).toBeVisible();
     // Cancel button may be disabled during network error
     // Just verify it exists
   });
@@ -72,7 +71,7 @@ test.describe('Error Handling E2E', () => {
     const submitButton = page.locator('form').getByRole('button', { name: 'Create Group' });
     
     // Submit button must exist
-    await expect(submitButton).toBeVisible({ timeout: 3000 });
+    await expect(submitButton).toBeVisible();
     
     const isDisabled = await submitButton.isDisabled();
     let hasValidation = false;
@@ -124,14 +123,14 @@ test.describe('Error Handling E2E', () => {
       await page.waitForLoadState('networkidle');
       
       // Should navigate to group page after successful submission
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     }
     
     // Based on CreateGroupModal implementation, submit button is disabled when form is invalid
     // This is the primary validation mechanism - button is disabled until name is at least 2 chars
     if (!isDisabled && !hasValidation) {
       // If button wasn't disabled and no validation errors, we should have navigated to group page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     } else {
       // Otherwise, validation prevented submission
       expect(isDisabled || hasValidation).toBe(true);
@@ -148,7 +147,7 @@ test.describe('Error Handling E2E', () => {
     await createGroupModal.createGroup('Private Group', 'User 1 only');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     const groupUrl = page.url();
     
     // Create User 2 in separate context
@@ -225,11 +224,11 @@ test.describe('Error Handling E2E', () => {
     // Check if any timeout handling exists
     // This is an advanced feature that may not be implemented
     if (hasTimeoutHandling) {
-      await expect(timeoutMessage.first()).toBeVisible({ timeout: 15000 });
+      await expect(timeoutMessage.first()).toBeVisible();
     } else {
       // If no explicit timeout handling, verify the modal is still open
       const modal = page.locator('.fixed.inset-0');
-      await expect(modal).toBeVisible({ timeout: 2000 });
+      await expect(modal).toBeVisible();
     }
   });
 
@@ -267,7 +266,7 @@ test.describe('Error Handling E2E', () => {
       .or(page.getByText(/500/i));
     
     // Server error should be handled gracefully
-    await expect(serverError.first()).toBeVisible({ timeout: 5000 });
+    await expect(serverError.first()).toBeVisible();
     
     // Modal should still be open allowing user to retry or cancel
     const modalButtons = page.locator('form').getByRole('button');
@@ -307,7 +306,7 @@ test.describe('Error Handling E2E', () => {
     // App should handle malformed JSON gracefully
     // The create button should still be visible and functional
     const createButton = page.getByRole('button', { name: 'Create Group' });
-    await expect(createButton).toBeVisible({ timeout: 5000 });
+    await expect(createButton).toBeVisible();
     await expect(createButton).toBeEnabled();
     
     // Dashboard should still be functional despite the malformed response
@@ -316,6 +315,6 @@ test.describe('Error Handling E2E', () => {
     await expect(pageContent).toBeVisible();
     
     // Verify we're still on the dashboard page
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 2000 });
+    await expect(page).toHaveURL(/\/dashboard/, );
   });
 });

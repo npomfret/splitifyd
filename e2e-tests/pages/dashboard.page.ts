@@ -23,7 +23,8 @@ export class DashboardPage extends BasePage {
   
   async getUserDisplayName(): Promise<string> {
     const nameElement = this.page.locator(this.userNameText).first();
-    return await nameElement.textContent() || '';
+    const textContent = await nameElement.textContent();
+    return textContent ?? '';
   }
   
   async signOut() {
@@ -52,5 +53,43 @@ export class DashboardPage extends BasePage {
   
   async waitForDashboard() {
     await this.waitForNavigation(/\/dashboard/);
+  }
+
+  /**
+   * Ensures user is logged in with strict validation
+   * Throws if login indicators are not present
+   */
+  async ensureLoggedIn(): Promise<void> {
+    // Wait for and validate login indicators
+    const welcomeText = this.page.getByText(/Welcome back/i);
+    await welcomeText.waitFor({ state: 'visible', timeout: 3000 });
+    
+    // Additional validation - check for user name display
+    const userNameElement = this.page.locator(this.userNameText).first();
+    await userNameElement.waitFor({ state: 'visible', timeout: 2000 });
+    
+    // Ensure we're on the dashboard page
+    await this.page.waitForURL(/\/dashboard/, { timeout: 2000 });
+  }
+
+  /**
+   * Opens create group modal with strict validation
+   * Throws if modal doesn't open properly
+   */
+  async openCreateGroupModalStrict(): Promise<void> {
+    // Find and click the create group button
+    const createButton = await this.page.getByRole('button', { name: this.createGroupButton }).isVisible()
+      ? this.page.getByRole('button', { name: this.createGroupButton })
+      : this.page.getByRole('button', { name: this.createFirstGroupButton });
+    
+    await createButton.waitFor({ state: 'visible', timeout: 2000 });
+    await createButton.click();
+    
+    // Validate modal opened - wait for modal overlay
+    await this.page.waitForSelector('.fixed.inset-0', { state: 'visible', timeout: 3000 });
+    
+    const nameField = this.page.getByLabel('Group Name*');
+    
+    await nameField.waitFor({ state: 'visible', timeout: 2000 });
   }
 }

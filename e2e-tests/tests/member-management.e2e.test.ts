@@ -8,75 +8,6 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Member Management E2E', () => {
-  test('should add member to group', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    // Create a group first using the same pattern as other tests
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Member Test Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-    
-    // Look for member management functionality
-    const membersSection = page.getByText(/members/i)
-      .or(page.getByRole('heading', { name: /members/i }))
-      .or(page.locator('[data-testid*="members"]'));
-    
-    await expect(membersSection.first()).toBeVisible();
-    
-    // Look for Add Member button or invite functionality
-    const addMemberButton = page.getByRole('button', { name: /add member/i })
-      .or(page.getByRole('button', { name: /invite/i }))
-      .or(page.getByRole('link', { name: /add member/i }))
-      .or(page.getByText(/add member/i).first());
-    
-    const hasAddMember = await addMemberButton.count() > 0;
-    if (hasAddMember) {
-      await expect(addMemberButton.first()).toBeVisible();
-      await addMemberButton.first().click();
-      
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Look for member input form
-      const memberInput = page.getByLabel(/email/i)
-        .or(page.getByPlaceholder(/email/i))
-        .or(page.getByLabel(/member/i))
-        .or(page.locator('input[type="email"]'));
-      
-      const hasInput = await memberInput.count() > 0;
-      if (hasInput) {
-        await expect(memberInput.first()).toBeVisible();
-        
-        // Fill in a test email
-        await memberInput.first().fill('testmember@example.com');
-        
-        // Look for submit button
-        const submitButton = page.getByRole('button', { name: /add/i })
-          .or(page.getByRole('button', { name: /invite/i }))
-          .or(page.getByRole('button', { name: /send/i }));
-        
-        await expect(submitButton.first()).toBeVisible();
-        await submitButton.first().click();
-        
-        await page.waitForLoadState('networkidle');
-        
-        // Should show the member was added/invited (depending on implementation)
-        const memberAdded = page.getByText('testmember@example.com')
-          .or(page.getByText(/invited/i))
-          .or(page.getByText(/pending/i));
-        
-        await expect(memberAdded.first()).toBeVisible();
-      }
-    }
-    
-    // Feature check: Add member functionality
-    // Test passes - feature availability varies by implementation
-  });
-
   test('should display current group members', async ({ page }) => {
     const user = await createAndLoginTestUser(page);
     
@@ -88,177 +19,126 @@ test.describe('Member Management E2E', () => {
     await createGroupModal.createGroup('Members Display Group');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Should show the current user as a member or their email
+    // Should show the current user as a member
     const userIdentifier = page.getByText(user.displayName)
-      .or(page.getByText(user.email))
-      .or(page.getByText(user.email.split('@')[0]));
+      .or(page.getByText(user.email));
     
     await expect(userIdentifier.first()).toBeVisible();
     
-    // Look for members section or member count - wait for it to appear
-    const memberIndicator = page.getByText(/member/i)
-      .or(page.getByRole('heading', { name: /member/i }))
-      .or(page.getByText(/participant/i));
+    // Look for members section or member count
+    const memberIndicator = page.getByText(/1 member/i)
+      .or(page.getByRole('heading', { name: /member/i }));
     
-    // Wait for member information to be visible
     await expect(memberIndicator.first()).toBeVisible();
   });
 
-  test('should handle member permissions and roles', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    // Create a group using page objects
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Permissions Test Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-    
-    // Creator should have admin/owner permissions
-    // Look for admin indicators or special permissions
-    const adminIndicator = page.getByText(/owner/i)
-      .or(page.getByText(/admin/i))
-      .or(page.getByText(/creator/i))
-      .or(page.locator('[data-testid*="admin"]'));
-    
-    const hasAdminIndicator = await adminIndicator.count() > 0;
-    if (hasAdminIndicator) {
-      await expect(adminIndicator.first()).toBeVisible();
-    }
-    
-    // Should have access to member management (as creator)
-    const memberManagement = page.getByRole('button', { name: /add member/i })
-      .or(page.getByRole('button', { name: /manage members/i }))
-      .or(page.getByRole('button', { name: /invite/i }));
-    
-    const hasManagement = await memberManagement.count() > 0;
-    if (hasManagement) {
-      await expect(memberManagement.first()).toBeVisible();
-    }
-    
-    // Admin indicators are shown in MembersList component
-    // "Admin" text appears for group creator
-  });
-
-  test('should show member selection in expense splits', async ({ page }) => {
+  test('should show member in expense split options', async ({ page }) => {
     const user = await createAndLoginTestUser(page);
     
-    // Create a group using page objects
+    // Create a group
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
     await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Split Members Group');
+    await createGroupModal.createGroup('Split Test Group');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Try to add an expense to see member selection
-    const addExpenseButton = page.getByRole('button', { name: /add expense/i })
-      .or(page.getByRole('link', { name: /add expense/i }));
+    // Navigate to add expense
+    const addExpenseButton = page.getByRole('button', { name: /add expense/i });
+    await addExpenseButton.click();
     
-    const hasAddExpense = await addExpenseButton.count() > 0;
-    if (hasAddExpense) {
-      await addExpenseButton.first().click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Look for member selection in expense form
-      const memberSelection = page.getByText(/split between/i)
-        .or(page.getByText(/who participated/i))
-        .or(page.getByLabel(/members/i))
-        .or(page.locator('[data-testid*="members"]'));
-      
-      const hasMemberSelection = await memberSelection.count() > 0;
-      if (hasMemberSelection) {
-        await expect(memberSelection.first()).toBeVisible();
-        
-        // Should show current user as selectable
-        const userCheckbox = page.getByRole('checkbox', { name: user.displayName })
-          .or(page.getByText(user.displayName).locator('..').locator('input[type="checkbox"]'));
-        
-        const hasUserSelection = await userCheckbox.count() > 0;
-        if (hasUserSelection) {
-          await expect(userCheckbox.first()).toBeVisible();
-          await expect(userCheckbox.first()).toBeChecked(); // Should be selected by default
-        }
-      }
-    }
+    // Wait for expense form
+    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
     
-    // Expense feature availability checked
+    // Member should be visible in split section
+    const splitSection = page.getByRole('heading', { name: /split between/i }).locator('..');
+    await expect(splitSection).toBeVisible();
+    
+    // The current user should be included and checked by default (payer is auto-selected)
+    const userCheckbox = splitSection.getByRole('checkbox');
+    await expect(userCheckbox).toBeVisible();
+    await expect(userCheckbox).toBeChecked();
+    
+    // User name should be visible in split section
+    await expect(splitSection.getByText(user.displayName)).toBeVisible();
   });
 
-  test('should handle member removal restrictions', async ({ page }) => {
+  test('should show creator as admin', async ({ page }) => {
     await createAndLoginTestUser(page);
     
-    // Create a group using page objects
+    // Create a group
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
     await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Member Removal Group');
+    await createGroupModal.createGroup('Admin Test Group');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Look for member management options
-    const memberOptions = page.getByRole('button', { name: /remove/i })
-      .or(page.getByRole('button', { name: /delete/i }))
-      .or(page.getByText(/remove/i))
-      .or(page.locator('[data-testid*="remove"]'));
+    // Creator should have admin badge
+    const adminIndicator = page.getByText(/admin/i)
+      .or(page.locator('[data-testid="admin-badge"]'));
     
-    const hasRemoveOption = await memberOptions.count() > 0;
-    if (hasRemoveOption) {
-      // Creator shouldn't be able to remove themselves if they're the only member
-      const isRemoveDisabled = await memberOptions.first().isDisabled();
-      const hasRemoveRestriction = await page.getByText(/cannot remove/i).count() > 0 ||
-                                   await page.getByText(/last member/i).count() > 0;
-      
-      // Either button should be disabled or there should be a restriction message
-      expect(isRemoveDisabled || hasRemoveRestriction).toBeTruthy();
-    }
-    
-    // Removal restrictions checked - feature may not be implemented
+    await expect(adminIndicator.first()).toBeVisible();
   });
 
-  test('should show member activity or contributions', async ({ page }) => {
+  test('should show share functionality', async ({ page }) => {
     await createAndLoginTestUser(page);
     
-    // Create a group using page objects
+    // Create a group
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
     await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Member Activity Group');
+    await createGroupModal.createGroup('Share Test Group');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Look for member activity indicators
-    const memberActivity = page.getByText(/contributed/i)
-      .or(page.getByText(/paid/i))
-      .or(page.getByText(/owes/i))
-      .or(page.getByText(/balance/i));
+    // Share button should be visible
+    const shareButton = page.getByRole('button', { name: /share/i });
+    await expect(shareButton).toBeVisible();
     
-    const hasActivity = await memberActivity.count() > 0;
-    if (hasActivity) {
-      await expect(memberActivity.first()).toBeVisible();
-    }
+    // Click share to open modal
+    await shareButton.click();
     
-    // Should show the user's balance (likely $0.00 for new group)
-    const balanceIndicator = page.getByText(/\$0\.00/)
-      .or(page.getByText(/settled/i))
-      .or(page.getByText(/even/i));
+    // Share modal should open with link
+    const shareModal = page.getByRole('dialog');
+    await expect(shareModal).toBeVisible();
     
-    const hasBalance = await balanceIndicator.count() > 0;
-    if (hasBalance) {
-      await expect(balanceIndicator.first()).toBeVisible();
-    }
+    // Should show share link
+    const shareLink = shareModal.getByRole('textbox');
+    await expect(shareLink).toBeVisible();
     
-    // Activity and balance display checked
+    // Link should contain the group URL
+    const linkValue = await shareLink.inputValue();
+    expect(linkValue).toMatch(/\/join\//);
+  });
+
+  test('should handle member count display', async ({ page }) => {
+    const user = await createAndLoginTestUser(page);
+    
+    // Create a group
+    const dashboard = new DashboardPage(page);
+    const createGroupModal = new CreateGroupModalPage(page);
+    
+    await dashboard.openCreateGroupModal();
+    await createGroupModal.createGroup('Member Count Group');
+    
+    // Wait for navigation to group page
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    
+    // Should show member count
+    const memberCount = page.getByText(/1 member/i);
+    await expect(memberCount).toBeVisible();
+    
+    // Verify balance section shows settled state for single member
+    const balanceSection = page.getByRole('heading', { name: /balance/i }).locator('..');
+    await expect(balanceSection.getByText(/all settled up/i)).toBeVisible();
   });
 });

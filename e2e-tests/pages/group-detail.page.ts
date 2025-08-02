@@ -56,4 +56,5 @@ export class GroupDetailPage extends BasePage {
         const expenses = await this.getExpenseItems();
         return Promise.all(expenses.map(expense => expense.textContent()));
     }
+
 }
