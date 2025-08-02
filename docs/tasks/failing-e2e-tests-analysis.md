@@ -102,10 +102,14 @@ This task will systematically remove test hacks and workarounds to improve test 
 
 **Commit:** "fix: remove skip-error-checking hack from delete operations test"
 
-#### 1.2 Replace No-Op Assertions
+#### 1.2 Replace No-Op Assertions  
 **Files with expect(true).toBe(true):** Found 67 instances across 12 files
-- delete-operations.e2e.test.ts: 10 instances
-- add-expense.e2e.test.ts: 5 instances  
+- delete-operations.e2e.test.ts: 10 instances - COMPLETED ✓
+- add-expense.e2e.test.ts: 5 instances - IN PROGRESS
+  - No expect(true).toBe(true) found, but has:
+    - Non-deterministic comments (L34, L63)
+    - console.log statements instead of assertions (L172, L266)
+    - Weak validation testing
 - balance-settlement.e2e.test.ts: 7 instances
 - error-handling.e2e.test.ts: 6 instances
 - multi-user-collaboration.e2e.test.ts: 14 instances
@@ -213,6 +217,29 @@ const deleteButton = page.getByRole('button', { name: 'Delete Expense' });
 - Tests are more maintainable with clearer selectors
 
 ### Implementation Notes
+
+#### add-expense.e2e.test.ts Plan
+Issues to fix:
+1. **Line 34**: "Should navigate to add expense page or open modal" - Make deterministic
+   - Check URL change OR modal presence, not both as alternatives
+   - Assert specific expected behavior based on current implementation
+
+2. **Line 63**: "Should show the expense in the list or navigate back to group" - Make deterministic
+   - Assert that we're on the group page AND expense is visible
+   - Remove uncertainty about navigation
+
+3. **Line 96**: "Submit button should be disabled or show validation errors" - Strengthen validation
+   - Assert specific validation behavior 
+   - Check for specific error messages on required fields
+   - Verify form cannot be submitted without required data
+
+4. **Line 172**: console.log for category implementation
+   - If categories are implemented, test them properly
+   - If not implemented, remove the test entirely (don't test features that don't exist)
+
+5. **Line 266**: console.log for split types
+   - If split types are implemented, test them properly
+   - If not implemented, remove the test entirely (don't test features that don't exist)
 
 #### Phase 1.1 - Delete Operation Error Analysis
 The skipped error checking in delete-operations.e2e.test.ts indicates a frontend bug where the UI shows an error despite successful deletion. Need to:
