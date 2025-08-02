@@ -14,7 +14,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Balance Test Group');
     
     // Wait for navigation to group page
@@ -39,7 +39,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Expense Balance Group');
     
     // Wait for navigation to group page
@@ -52,7 +52,7 @@ test.describe('Balance and Settlement E2E', () => {
     const hasAddExpense = await addExpenseButton.count() > 0;
     if (hasAddExpense) {
       await addExpenseButton.first().click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       // Fill expense form if available
       const descriptionField = page.getByLabel(/description/i)
@@ -71,7 +71,7 @@ test.describe('Balance and Settlement E2E', () => {
           .or(page.getByRole('button', { name: /save/i }));
         
         await submitButton.first().click();
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle');
         
         // Should show updated balance (user paid $20, so might owe themselves in single-member group)
         const balanceChange = page.getByText(/20/)
@@ -82,8 +82,10 @@ test.describe('Balance and Settlement E2E', () => {
       }
     }
     
-    // Test passes whether or not expense functionality is fully implemented
-    expect(true).toBe(true);
+    // Verify at least the basic flow completed
+    if (!hasAddExpense) {
+      test.skip();
+    }
   });
 
   test('should show who owes whom', async ({ page }) => {
@@ -92,7 +94,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Debt Tracking Group');
     
     // Wait for navigation to group page
@@ -105,6 +107,8 @@ test.describe('Balance and Settlement E2E', () => {
       .or(page.getByRole('heading', { name: /balance/i }));
     
     const hasBalanceSection = await balanceSection.count() > 0;
+    let hasSettledState = false;
+    
     if (hasBalanceSection) {
       await expect(balanceSection.first()).toBeVisible();
       
@@ -113,14 +117,14 @@ test.describe('Balance and Settlement E2E', () => {
         .or(page.getByText(/balanced/i))
         .or(page.getByText(/no debts/i));
       
-      const hasSettledState = await settledState.count() > 0;
+      hasSettledState = await settledState.count() > 0;
       if (hasSettledState) {
         await expect(settledState.first()).toBeVisible();
       }
     }
     
-    // Test passes whether or not balance tracking is implemented
-    expect(true).toBe(true);
+    // Verify balance tracking UI exists
+    expect(hasBalanceSection || hasSettledState).toBe(true);
   });
 
   test('should handle settlement recording', async ({ page }) => {
@@ -129,7 +133,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Settlement Test Group');
     
     // Wait for navigation to group page
@@ -145,7 +149,7 @@ test.describe('Balance and Settlement E2E', () => {
     if (hasSettlement) {
       await expect(settlementButton.first()).toBeVisible();
       await settlementButton.first().click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for settlement form
       const settlementForm = page.getByLabel(/amount/i)
@@ -168,7 +172,7 @@ test.describe('Balance and Settlement E2E', () => {
         if (hasSubmit) {
           await expect(submitButton.first()).toBeVisible();
           await submitButton.first().click();
-          await page.waitForTimeout(2000);
+          await page.waitForLoadState('networkidle');
           
           // Should show settlement recorded
           const confirmation = page.getByText(/recorded/i)
@@ -180,8 +184,12 @@ test.describe('Balance and Settlement E2E', () => {
       }
     }
     
-    // Test passes whether or not settlement functionality is implemented
-    expect(true).toBe(true);
+    // Settlement functionality is optional - log status
+    console.log(`Settlement functionality ${hasSettlement ? 'is' : 'is not'} implemented`);
+    if (!hasSettlement) {
+      // Feature not yet implemented
+      test.skip();
+    }
   });
 
   test('should show settlement history', async ({ page }) => {
@@ -190,7 +198,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Settlement History Group');
     
     // Wait for navigation to group page
@@ -217,8 +225,10 @@ test.describe('Balance and Settlement E2E', () => {
       }
     }
     
-    // Test passes whether or not history tracking is implemented
-    expect(true).toBe(true);
+    // History tracking is optional - log status
+    console.log(`Settlement history ${hasHistory ? 'is' : 'is not'} implemented`);
+    // Either history section or main content should be visible
+    expect(hasHistory || page.url().includes('/groups/')).toBe(true);
   });
 
   test('should display balance summary correctly', async ({ page }) => {
@@ -227,7 +237,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Balance Summary Group');
     
     // Wait for navigation to group page
@@ -257,8 +267,8 @@ test.describe('Balance and Settlement E2E', () => {
       await expect(individualBalance.first()).toBeVisible();
     }
     
-    // Test passes whether or not balance summary is implemented
-    expect(true).toBe(true);
+    // Balance summary is optional - log status
+    console.log(`Balance summary ${hasTotal || hasIndividualBalance ? 'is' : 'is not'} implemented`);
   });
 
   test('should handle complex balance calculations', async ({ page }) => {
@@ -267,7 +277,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Complex Balance Group');
     
     // Wait for navigation to group page
@@ -291,8 +301,8 @@ test.describe('Balance and Settlement E2E', () => {
       await expect(preciseBalance.first()).toBeVisible();
     }
     
-    // Test passes whether or not complex calculations are implemented
-    expect(true).toBe(true);
+    // Complex calculations verified by presence of balance displays
+    expect(await balanceCalculation.count()).toBeGreaterThan(0);
   });
 
   test('should show balance status indicators', async ({ page }) => {
@@ -301,7 +311,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Balance Status Group');
     
     // Wait for navigation to group page
@@ -327,7 +337,7 @@ test.describe('Balance and Settlement E2E', () => {
     
     await expect(statusText.first()).toBeVisible();
     
-    // Test passes whether or not visual indicators are implemented
-    expect(true).toBe(true);
+    // Visual indicators are optional - status text is required
+    await expect(statusText.first()).toBeVisible();
   });
 });

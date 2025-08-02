@@ -32,7 +32,7 @@ test.describe('Multi-user group with expenses', () => {
       console.log(`Group created with ID: ${groupId}`);
       
       // Wait for page to stabilize after group creation
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // Generate share link
       console.log('Opening share modal...');
@@ -69,7 +69,7 @@ test.describe('Multi-user group with expenses', () => {
       
       // Close the share modal
       await page1.keyboard.press('Escape');
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       // User 2: Create account and join via share link
       const user2 = await createAndLoginTestUser(page2);

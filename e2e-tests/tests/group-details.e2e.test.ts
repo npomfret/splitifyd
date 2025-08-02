@@ -118,7 +118,7 @@ test.describe('Group Details E2E', () => {
     
     // Create a group
     await dashboardPage.openCreateGroupModal();
-    await page.waitForTimeout(500); // Wait for modal to fully load
+    await page.waitForLoadState('domcontentloaded'); // Wait for modal to fully load
     await createGroupModal.createGroup('Settings Test Group', 'Test description for settings');
     
     // Wait for navigation to group page
@@ -137,7 +137,8 @@ test.describe('Group Details E2E', () => {
       await expect(settingsElement.first()).toBeVisible();
     }
     
-    // Test passes regardless - this is exploratory testing
-    expect(true).toBe(true);
+    // Verify we explored the page elements
+    console.log(`Settings element found: ${hasSettings}`);
+    expect(await page.getByText('Settings Test Group').count()).toBeGreaterThan(0);
   });
 });

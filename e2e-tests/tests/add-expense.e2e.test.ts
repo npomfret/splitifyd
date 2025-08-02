@@ -16,7 +16,7 @@ test.describe('Add Expense E2E', () => {
     const createGroupModal = new CreateGroupModalPage(page);
     
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(100);
+    await page.waitForLoadState('domcontentloaded');
     
     await createGroupModal.createGroup('Expense Test Group', 'Testing expense creation');
     
@@ -32,7 +32,7 @@ test.describe('Add Expense E2E', () => {
     await addExpenseButton.first().click();
     
     // Should navigate to add expense page or open modal
-    await page.waitForTimeout(200); // Wait for navigation/modal
+    await page.waitForLoadState('domcontentloaded'); // Wait for navigation/modal
     
     // Fill expense form
     const descriptionField = page.getByPlaceholder('What was this expense for?');
@@ -58,7 +58,7 @@ test.describe('Add Expense E2E', () => {
     await submitButton.first().click();
     
     // Wait for expense to be added
-    await page.waitForTimeout(300);
+    await page.waitForLoadState('domcontentloaded');
     
     // Should show the expense in the list or navigate back to group
     await expect(page.getByText('Test Dinner')).toBeVisible();
@@ -73,7 +73,7 @@ test.describe('Add Expense E2E', () => {
     
     // Create a group first
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(100);
+    await page.waitForLoadState('domcontentloaded');
     const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
     await nameInput.fill('Validation Test Group');
     const descInput = page.getByPlaceholder(/details|description/i);
@@ -88,21 +88,23 @@ test.describe('Add Expense E2E', () => {
       .or(page.getByRole('link', { name: /add expense/i }));
     
     await addExpenseButton.first().click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     
     // Try to submit empty form - look specifically for Save Expense button
     const submitButton = page.getByRole('button', { name: /save expense/i });
     
     // Submit button should be disabled or show validation errors
     const isDisabled = await submitButton.isDisabled({ timeout: 5000 });
+    let hasValidationErrors = false;
+    
     if (!isDisabled) {
       await submitButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       
       // Should show validation errors or stay on form
-      const hasValidationErrors = await page.getByText(/required/i).count() > 0 ||
-                                  await page.getByText(/invalid/i).count() > 0 ||
-                                  await page.getByText(/error/i).count() > 0;
+      hasValidationErrors = await page.getByText(/required/i).count() > 0 ||
+                           await page.getByText(/invalid/i).count() > 0 ||
+                           await page.getByText(/error/i).count() > 0;
       
       if (!hasValidationErrors) {
         // Check if still on form (URL didn't change significantly)
@@ -111,8 +113,12 @@ test.describe('Add Expense E2E', () => {
       }
     }
     
-    // Test passes if validation is working in some form
-    expect(true).toBe(true);
+    // Verify that validation prevented submission
+    const currentUrl = page.url();
+    if (!isDisabled && !hasValidationErrors) {
+      // Check if we're still on the add expense page
+      expect(currentUrl).toMatch(/expense|add/);
+    }
   });
 
   test('should allow selecting expense category', async ({ page }) => {
@@ -120,7 +126,7 @@ test.describe('Add Expense E2E', () => {
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(100);
+    await page.waitForLoadState('domcontentloaded');
     const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
     await nameInput.fill('Category Test Group');
     const descInput = page.getByPlaceholder(/details|description/i);
@@ -133,7 +139,7 @@ test.describe('Add Expense E2E', () => {
     // Go to add expense
     const addExpenseButton = page.getByRole('button', { name: /add expense/i });
     await addExpenseButton.first().click();
-    await page.waitForTimeout(200);
+    await page.waitForLoadState('domcontentloaded');
     
     // Look for category selection
     const categoryField = page.getByLabel(/category/i)
@@ -151,7 +157,7 @@ test.describe('Add Expense E2E', () => {
       } else {
         // Might be a button or dropdown
         await categoryField.first().click();
-        await page.waitForTimeout(100);
+        await page.waitForLoadState('domcontentloaded');
         
         // Look for category options
         const categoryOption = page.getByText(/food|dining|restaurant|groceries|entertainment/i);
@@ -162,8 +168,8 @@ test.describe('Add Expense E2E', () => {
       }
     }
     
-    // Test passes whether or not categories are implemented
-    expect(true).toBe(true);
+    // Categories are optional - log whether implemented
+    console.log(`Category selection ${hasCategoryField ? 'is' : 'is not'} implemented`);
   });
 
   test('should show expense in group after creation', async ({ page }) => {
@@ -174,7 +180,7 @@ test.describe('Add Expense E2E', () => {
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(100);
+    await page.waitForLoadState('domcontentloaded');
     const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
     await nameInput.fill('Expense Display Group');
     const descInput = page.getByPlaceholder(/details|description/i);
@@ -186,7 +192,7 @@ test.describe('Add Expense E2E', () => {
     
     // Add expense directly without page object
     await page.getByRole('button', { name: /add expense/i }).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     
     // Fill expense form
     await page.getByPlaceholder('What was this expense for?').fill('Movie Tickets');
@@ -197,7 +203,7 @@ test.describe('Add Expense E2E', () => {
     
     // Wait for navigation back to group page or for expense to appear
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     // Should show expense - use more flexible matching
     await expect(page.getByText('Movie Tickets')).toBeVisible({ timeout: 5000 });
@@ -215,7 +221,7 @@ test.describe('Add Expense E2E', () => {
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(100);
+    await page.waitForLoadState('domcontentloaded');
     const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
     await nameInput.fill('Split Types Group');
     const descInput = page.getByPlaceholder(/details|description/i);
@@ -228,7 +234,7 @@ test.describe('Add Expense E2E', () => {
     // Go to add expense
     const addExpenseButton = page.getByRole('button', { name: /add expense/i });
     await addExpenseButton.first().click();
-    await page.waitForTimeout(200);
+    await page.waitForLoadState('domcontentloaded');
     
     // Look for split type options
     const splitTypeField = page.getByLabel(/split/i)
@@ -241,7 +247,7 @@ test.describe('Add Expense E2E', () => {
       
       // Try to change split type
       await splitTypeField.first().click();
-      await page.waitForTimeout(100);
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for split options
       const exactSplit = page.getByText(/exact/i).or(page.getByText(/custom/i));
@@ -249,15 +255,16 @@ test.describe('Add Expense E2E', () => {
       
       if (hasExactOption) {
         await exactSplit.first().click();
-        await page.waitForTimeout(100);
+        await page.waitForLoadState('domcontentloaded');
         
-        // Should show custom amount fields or similar
-        expect(true).toBe(true);
+        // Verify custom split UI appears
+        const customAmountFields = await page.locator('input[type="number"]').count();
+        expect(customAmountFields).toBeGreaterThan(1);
       }
+    } else {
+      // Split types are optional - log status
+      console.log('Split types not implemented');
     }
-    
-    // Test passes whether or not split types are fully implemented
-    expect(true).toBe(true);
   });
 
   test('should handle expense with date selection', async ({ page }) => {
@@ -265,7 +272,7 @@ test.describe('Add Expense E2E', () => {
     
     // Create a group
     await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForTimeout(100);
+    await page.waitForLoadState('domcontentloaded');
     const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
     await nameInput.fill('Date Test Group');
     const descInput = page.getByPlaceholder(/details|description/i);
@@ -287,7 +294,6 @@ test.describe('Add Expense E2E', () => {
     // Should show the expense
     await expect(page.getByText('Lunch')).toBeVisible();
     
-    // Test passes whether or not date selection is implemented
-    expect(true).toBe(true);
+    // Date selection is optional - we've verified the expense was created
   });
 });

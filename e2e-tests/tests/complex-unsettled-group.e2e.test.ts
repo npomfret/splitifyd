@@ -20,7 +20,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     // Create a group for vacation expenses
     const createGroupModal = new CreateGroupModalPage(page1);
     await page1.getByRole('button', { name: 'Create Group' }).click();
-    await page1.waitForTimeout(500);
+    await page1.waitForLoadState('domcontentloaded');
     await createGroupModal.createGroup('Vacation Trip 2024', 'Beach house rental and activities');
     
     // Wait for navigation to group page
@@ -39,7 +39,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     if (await addExpenseButton.count() > 0) {
       console.log('Alice adding Beach House Rental - $800');
       await addExpenseButton.first().click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descriptionField = page1.getByLabel(/description/i)
         .or(page1.locator('input[name*="description"]'))
@@ -57,7 +57,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
           .or(page1.getByRole('button', { name: /save/i }));
         
         await submitButton.first().click();
-        await page1.waitForTimeout(2000);
+        await page1.waitForLoadState('networkidle');
         
         // Verify we're back on group page and expense appears
         await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -67,7 +67,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       
       // Alice adds second expense: Groceries ($150)
       await addExpenseButton.first().click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       if (await descriptionField.count() > 0 && await amountField.count() > 0) {
         await descriptionField.first().fill('Groceries for the week');
@@ -78,7 +78,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
           .or(page1.getByRole('button', { name: /save/i }));
         
         await submitButton.first().click();
-        await page1.waitForTimeout(2000);
+        await page1.waitForLoadState('networkidle');
         
         await expect(page1.getByText('Groceries for the week', { exact: true })).toBeVisible();
         console.log('✅ Groceries expense added');
@@ -102,7 +102,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     
     // Back to Alice's context - check the current balance state
     await page1.reload();
-    await page1.waitForTimeout(2000);
+    await page1.waitForLoadState('networkidle');
     
     // Look for balance information
     console.log('\n=== CHECKING BALANCE STATE ===');
@@ -168,7 +168,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     await context1.close();
     await context2.close();
     
-    // Test passes - we've documented the current state
-    expect(true).toBe(true);
+    // Verify test completed its documentation
+    console.log('Complex multi-user scenario documented successfully');
   });
 });

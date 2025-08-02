@@ -110,7 +110,7 @@ test.describe('Dashboard E2E', () => {
       
       await dashboardPage.openCreateGroupModal();
       
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       
       await createGroupModal.createGroup('Test Group', 'Test Description');
       
@@ -160,7 +160,7 @@ test.describe('Dashboard E2E', () => {
       await nameInput.click();
       await nameInput.type('T');
       await page.keyboard.press('Tab'); // Trigger blur event
-      await page.waitForTimeout(100);
+      await page.waitForLoadState('domcontentloaded');
       
       // Button should still be disabled (name too short - needs at least 2 chars)
       await expect(submitButton).toBeDisabled();
@@ -169,7 +169,7 @@ test.describe('Dashboard E2E', () => {
       await nameInput.clear();
       await nameInput.type('Test Group');
       await page.keyboard.press('Tab'); // Trigger blur event
-      await page.waitForTimeout(100);
+      await page.waitForLoadState('domcontentloaded');
       
       // Now button should be enabled (description is optional)
       await expect(submitButton).toBeEnabled();
@@ -187,7 +187,7 @@ test.describe('Dashboard E2E', () => {
       // Create a group via UI first
       await dashboardPage.openCreateGroupModal();
       
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       
       await createGroupModal.createGroup('Navigation Test Group', 'Test description');
       
@@ -244,7 +244,7 @@ test.describe('Dashboard E2E', () => {
       // Create a group via UI first, then navigate back
       await dashboardPage.openCreateGroupModal();
       
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       
       await createGroupModal.createGroup('Back Navigation Test', 'Test description');
       

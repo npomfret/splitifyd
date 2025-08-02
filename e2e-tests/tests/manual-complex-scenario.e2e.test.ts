@@ -50,7 +50,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
         console.log(`Adding expense: ${expense.description} - $${expense.amount}`);
         
         await addExpenseButton.first().click();
-        await page1.waitForTimeout(1000);
+        await page1.waitForLoadState('domcontentloaded');
         
         // Fill expense form
         const descriptionField = page1.getByPlaceholder('What was this expense for?');
@@ -67,7 +67,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
             .or(page1.getByRole('button', { name: /save/i }));
           
           await submitButton.first().click();
-          await page1.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
           
           // Verify we're back on group page
           await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -131,7 +131,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
     if (hasAddMember) {
       console.log('Found member invitation functionality');
       await addMemberButton.first().click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       // Look for email input
       const emailInput = page1.getByLabel(/email/i)
@@ -149,7 +149,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
         const hasInviteButton = await inviteButton.count() > 0;
         if (hasInviteButton) {
           await inviteButton.first().click();
-          await page1.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
           console.log('Attempted to invite friend@example.com');
         }
       }
@@ -184,7 +184,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
       if (canAddExpense) {
         console.log('User 2 can add expenses');
         await addExpenseButton2.first().click();
-        await page2.waitForTimeout(1000);
+        await page2.waitForLoadState('domcontentloaded');
         
         const descriptionField = page2.getByPlaceholder('What was this expense for?');
         const amountField = page2.getByRole('spinbutton');
@@ -197,7 +197,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
           const submitButton = page2.getByRole('button', { name: 'Save Expense' });
           
           await submitButton.click();
-          await page2.waitForTimeout(2000);
+          await page2.waitForLoadState('networkidle');
           
           console.log('User 2 added expense: Restaurant Dinner - $120.00');
         }
@@ -209,7 +209,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
     // Go back to User 1 and check final state
     console.log('Checking final state from User 1 perspective...');
     await page1.goto(groupUrl);
-    await page1.waitForTimeout(2000);
+    await page1.waitForLoadState('networkidle');
     
     // Take final screenshot
     await page1.screenshot({ path: 'group-final-state.png', fullPage: true });
@@ -258,7 +258,8 @@ test.describe('Complex Multi-User Scenario Test', () => {
     await context1.close();
     await context2.close();
     
-    // Test passes - we've documented the current state
-    expect(true).toBe(true);
+    // Verify test completed successfully
+    console.log('Complex scenario test completed');
+    expect(groupUrl).toMatch(/\/groups\/[a-zA-Z0-9]+/);
   });
 });

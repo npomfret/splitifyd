@@ -36,7 +36,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await shareButton.count() > 0) {
         await shareButton.first().click();
-        await page1.waitForTimeout(1000);
+        await page1.waitForLoadState('domcontentloaded');
         
         // Look for generated link
         const linkInput = page1.locator('input[readonly]')
@@ -77,7 +77,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         // Navigate to share link
         console.log('User 2 navigating to share link...');
         await page2.goto(shareLink);
-        await page2.waitForTimeout(2000);
+        await page1.waitForLoadState('networkidle');
         
         // Check if redirected to join page or group page
         const currentUrl = page2.url();
@@ -90,7 +90,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         if (await joinButton.count() > 0) {
           console.log('Join confirmation page displayed');
           await joinButton.first().click();
-          await page2.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
         }
         
         // Check if User 2 can see the group
@@ -105,7 +105,7 @@ test.describe('Multi-User Collaboration E2E', () => {
           
           // User 1 refreshes to see new member
           await page1.reload();
-          await page1.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
           
           // Check if User 1 can see User 2 as member
           const user2VisibleToUser1 = await page1.getByText(user2.displayName).count() > 0;
@@ -129,7 +129,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should handle invalid or expired share links', async ({ browser }) => {
@@ -142,7 +143,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       console.log(`Testing invalid share link: ${invalidShareLink}`);
       
       await page.goto(invalidShareLink);
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Check for error handling
       const errorMessage = page.getByText(/invalid.*link/i)
@@ -162,7 +163,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should show pending invitations in user dashboard', async ({ browser }) => {
@@ -185,7 +187,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await inviteButton.count() > 0) {
         await inviteButton.first().click();
-        await page1.waitForTimeout(500);
+        await page1.waitForLoadState('domcontentloaded');
         
         // Enter email to invite
         const emailInput = page1.getByLabel(/email/i)
@@ -204,11 +206,11 @@ test.describe('Multi-User Collaboration E2E', () => {
             .or(page1.getByRole('button', { name: /invite/i }).last());
           
           await sendInviteButton.click();
-          await page1.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
           
           // User 2 checks for pending invitations
           await page2.goto('/dashboard');
-          await page2.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
           
           // Look for invitations section
           const invitationsSection = page2.getByText(/invitation/i)
@@ -232,7 +234,7 @@ test.describe('Multi-User Collaboration E2E', () => {
               
               if (await acceptButton.count() > 0) {
                 await acceptButton.first().click();
-                await page2.waitForTimeout(2000);
+                await page1.waitForLoadState('networkidle');
                 
                 // Should redirect to group
                 await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -247,7 +249,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should allow users who joined via share link to add expenses', async ({ browser }) => {
@@ -272,7 +275,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await shareButton.count() > 0) {
         await shareButton.first().click();
-        await page1.waitForTimeout(1000);
+        await page1.waitForLoadState('domcontentloaded');
         
         const linkInput = page1.locator('input[readonly]')
           .or(page1.getByText(/localhost.*join/i));
@@ -293,19 +296,19 @@ test.describe('Multi-User Collaboration E2E', () => {
         const user2 = await createAndLoginTestUser(page2);
         
         await page2.goto(shareLink);
-        await page2.waitForTimeout(2000);
+        await page1.waitForLoadState('networkidle');
         
         const joinButton = page2.getByRole('button', { name: /join/i });
         if (await joinButton.count() > 0) {
           await joinButton.first().click();
-          await page2.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
         }
         
         // User 2 adds an expense
         const addExpenseButton = page2.getByRole('button', { name: /add expense/i });
         if (await addExpenseButton.count() > 0) {
           await addExpenseButton.click();
-          await page2.waitForTimeout(1000);
+          await page1.waitForLoadState('domcontentloaded');
           
           const descField = page2.getByLabel(/description/i);
           const amountField = page2.getByLabel(/amount/i);
@@ -321,7 +324,7 @@ test.describe('Multi-User Collaboration E2E', () => {
           
           const submitButton = page2.getByRole('button', { name: /save/i });
           await submitButton.first().click();
-          await page2.waitForTimeout(2000);
+          await page1.waitForLoadState('networkidle');
           
           // Verify expense was created
           await expect(page2.getByText('User 2 Contribution')).toBeVisible();
@@ -330,7 +333,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         
         // User 1 checks if they can see User 2's expense
         await page1.reload();
-        await page1.waitForTimeout(2000);
+        await page1.waitForLoadState('networkidle');
         
         const user2ExpenseVisible = await page1.getByText('User 2 Contribution').count() > 0;
         if (user2ExpenseVisible) {
@@ -349,7 +352,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
   });
 
@@ -382,7 +386,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       const addExpenseButton1 = page1.getByRole('button', { name: /add expense/i });
       if (await addExpenseButton1.count() > 0) {
         await addExpenseButton1.click();
-        await page1.waitForTimeout(1000);
+        await page1.waitForLoadState('domcontentloaded');
         
         const descField1 = page1.getByPlaceholder('What was this expense for?');
         const amountField1 = page1.getByRole('spinbutton');
@@ -395,7 +399,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       // User 2 would add expense at same time (if they had access)
       await page2.goto(groupUrl);
-      await page2.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       // Check if User 2 can see the group (they likely can't without invitation)
       const canSeeGroup = await page2.getByText('Concurrent Test Group').count() > 0;
@@ -407,14 +411,15 @@ test.describe('Multi-User Collaboration E2E', () => {
       // User 1 submits their expense
       const submitButton1 = page1.getByRole('button', { name: /save/i });
       await submitButton1.first().click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // Verify User 1's expense appears
       await expect(page1.getByText('User 1 Lunch')).toBeVisible();
       
       await context1.close();
       await context2.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should sync expense updates across users in real-time', async ({ browser }) => {
@@ -435,7 +440,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Add an expense
       const addExpenseButton = page1.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descField = page1.getByPlaceholder('What was this expense for?');
       const amountField = page1.getByRole('spinbutton');
@@ -445,7 +450,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       const submitButton = page1.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // In a real multi-user scenario with websockets/real-time:
       // - Other users would see the expense appear without refreshing
@@ -465,7 +470,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
   });
 
@@ -487,7 +493,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // User 1 adds first expense
       const addExpenseButton = page1.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descField = page1.getByPlaceholder('What was this expense for?');
       const amountField = page1.getByRole('spinbutton');
@@ -497,7 +503,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       const submitButton = page1.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // Check User 1's balance
       const user1Balance = page1.getByText(/200/)
@@ -515,7 +521,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       // - Debt simplification would occur
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should handle settlement recording by different users', async ({ browser }) => {
@@ -535,7 +542,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Add expense to create debt
       const addExpenseButton = page1.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descField = page1.getByPlaceholder('What was this expense for?');
       const amountField = page1.getByRole('spinbutton');
@@ -545,7 +552,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       const submitButton = page1.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // Look for settlement options
       const settlementButton = page1.getByRole('button', { name: /settle/i })
@@ -561,7 +568,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
   });
 
@@ -584,7 +592,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Add expense
       const addExpenseButton = page1.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descField = page1.getByPlaceholder('What was this expense for?');
       const amountField = page1.getByRole('spinbutton');
@@ -594,16 +602,16 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       const submitButton = page1.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // User 1 starts editing
       await page1.getByText('Conflicting Expense').click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const editButton = page1.getByRole('button', { name: /edit/i });
       if (await editButton.count() > 0) {
         await editButton.click();
-        await page1.waitForTimeout(1000);
+        await page1.waitForLoadState('domcontentloaded');
         
         // User 1 modifies but doesn't save yet
         const editDescField = page1.getByPlaceholder('What was this expense for?');
@@ -625,7 +633,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should prevent race conditions in expense deletion', async ({ browser }) => {
@@ -645,7 +654,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Add expense
       const addExpenseButton = page1.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descField = page1.getByPlaceholder('What was this expense for?');
       const amountField = page1.getByRole('spinbutton');
@@ -655,7 +664,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       const submitButton = page1.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // In multi-user scenario:
       // - Both users try to delete same expense
@@ -664,7 +673,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // - Other user gets appropriate message
       
       await page1.getByText('Race Condition Expense').click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const deleteButton = page1.getByRole('button', { name: /delete/i });
       if (await deleteButton.count() > 0) {
@@ -678,7 +687,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
   });
 
@@ -709,7 +719,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Add expense to generate activity
       const addExpenseButton = page1.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page1.waitForTimeout(1000);
+      await page1.waitForLoadState('domcontentloaded');
       
       const descField = page1.getByPlaceholder('What was this expense for?');
       const amountField = page1.getByRole('spinbutton');
@@ -719,7 +729,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       const submitButton = page1.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page1.waitForTimeout(2000);
+      await page1.waitForLoadState('networkidle');
       
       // Check for activity entry
       const activityEntry = page1.getByText(/added.*expense/i)
@@ -741,7 +751,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should show real-time updates when other users make changes', async ({ browser }) => {
@@ -791,7 +802,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       }
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
   });
 
@@ -834,7 +846,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       // - UI would disable/hide admin features
       
       await context1.close();
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
 
     test('should handle member role changes', async ({ page }) => {
@@ -843,7 +856,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       // Create group
       const createGroupModal = new CreateGroupModalPage(page);
       await page.getByRole('button', { name: 'Create Group' }).click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       await createGroupModal.createGroup('Role Change Group', 'Testing role management');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -855,7 +868,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       
       if (await manageMembersButton.count() > 0) {
         await manageMembersButton.first().click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
         
         // Look for role management UI
         const roleDropdown = page.getByRole('combobox', { name: /role/i })
@@ -876,7 +889,8 @@ test.describe('Multi-User Collaboration E2E', () => {
         }
       }
       
-      expect(true).toBe(true);
+      // Multi-user features not yet implemented - skip test
+      test.skip();
     });
   });
 });

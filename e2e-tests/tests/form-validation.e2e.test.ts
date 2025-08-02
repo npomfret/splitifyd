@@ -84,7 +84,7 @@ test.describe('Form Validation E2E', () => {
       await loginPage.navigate();
       
       // Wait for any pre-filled data to load
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
       
       // Clear any pre-filled data first
       const emailInput = page.locator(loginPage.emailInput);

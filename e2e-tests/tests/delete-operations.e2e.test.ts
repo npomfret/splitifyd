@@ -25,7 +25,8 @@ test.describe('Delete Operations E2E', () => {
       // Add an expense to delete
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      // Wait for expense form to load
+      await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible({ timeout: 5000 });
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -36,14 +37,14 @@ test.describe('Delete Operations E2E', () => {
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Verify expense was created
       await expect(page.getByText('Expense to Delete')).toBeVisible();
       
       // Click on the expense to go to detail page
       await page.getByText('Expense to Delete').click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for delete button
       const deleteButton = page.getByRole('button', { name: /delete/i })
@@ -67,7 +68,7 @@ test.describe('Delete Operations E2E', () => {
             .or(page.getByRole('button', { name: /delete/i }).last());
           
           await confirmButton.click();
-          await page.waitForTimeout(2000);
+          await page.waitForLoadState('networkidle');
         }
         
         // Should be back on group page
@@ -96,7 +97,7 @@ test.describe('Delete Operations E2E', () => {
       // Add expense
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -107,11 +108,11 @@ test.describe('Delete Operations E2E', () => {
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Click on expense
       await page.getByText('Keep This Expense').click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       // Try to delete but cancel
       const deleteButton = page.getByRole('button', { name: /delete/i });
@@ -125,7 +126,7 @@ test.describe('Delete Operations E2E', () => {
         
         if (await cancelButton.count() > 0) {
           await cancelButton.first().click();
-          await page.waitForTimeout(1000);
+          await page.waitForLoadState('domcontentloaded');
         }
         
         // Expense should still exist
@@ -152,7 +153,7 @@ test.describe('Delete Operations E2E', () => {
       // Add expense as User 1
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -162,7 +163,7 @@ test.describe('Delete Operations E2E', () => {
       
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Create User 2 in separate context
       const context2 = await browser.newContext();
@@ -171,7 +172,7 @@ test.describe('Delete Operations E2E', () => {
       
       // User 2 tries to access the group (would need invitation in real app)
       await page2.goto(groupUrl);
-      await page2.waitForTimeout(2000);
+      await page2.waitForLoadState('networkidle');
       
       // Check if User 2 can see the group
       const canSeeGroup = await page2.getByText('Permission Test Group').count() > 0;
@@ -182,7 +183,7 @@ test.describe('Delete Operations E2E', () => {
         
         if (expenseVisible) {
           await page2.getByText('User 1 Expense').click();
-          await page2.waitForTimeout(1000);
+          await page2.waitForLoadState('domcontentloaded');
           
           // Check if delete button is visible/enabled for User 2
           const deleteButton = page2.getByRole('button', { name: /delete/i });
@@ -240,7 +241,7 @@ test.describe('Delete Operations E2E', () => {
           
           if (await confirmButton.count() > 0) {
             await confirmButton.click();
-            await page.waitForTimeout(2000);
+            await page.waitForLoadState('networkidle');
             
             // Should redirect to dashboard
             await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
@@ -270,7 +271,7 @@ test.describe('Delete Operations E2E', () => {
       // Add an expense
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -280,7 +281,7 @@ test.describe('Delete Operations E2E', () => {
       
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Try to delete group
       const settingsButton = page.getByRole('button', { name: /settings/i })
@@ -330,7 +331,7 @@ test.describe('Delete Operations E2E', () => {
       
       // Add first expense
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -340,7 +341,7 @@ test.describe('Delete Operations E2E', () => {
       
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Try to delete group with unsettled balances
       const settingsButton = page.getByRole('button', { name: /settings/i })
@@ -390,7 +391,7 @@ test.describe('Delete Operations E2E', () => {
       for (let i = 1; i <= 3; i++) {
         const addExpenseButton = page.getByRole('button', { name: /add expense/i });
         await addExpenseButton.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState('domcontentloaded');
         
         const descriptionField = page.getByPlaceholder('What was this expense for?');
         const amountField = page.getByRole('spinbutton');
@@ -400,7 +401,7 @@ test.describe('Delete Operations E2E', () => {
         
         const submitButton = page.getByRole('button', { name: 'Save Expense' });
         await submitButton.click();
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle');
       }
       
       // Look for bulk selection UI
@@ -437,7 +438,7 @@ test.describe('Delete Operations E2E', () => {
           const confirmButton = page.getByRole('button', { name: /confirm/i });
           if (await confirmButton.count() > 0) {
             await confirmButton.click();
-            await page.waitForTimeout(2000);
+            await page.waitForLoadState('networkidle');
           }
           
           // At least one expense should be removed
@@ -470,7 +471,7 @@ test.describe('Delete Operations E2E', () => {
       // Add expense
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -480,11 +481,11 @@ test.describe('Delete Operations E2E', () => {
       
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Delete the expense
       await page.getByText('Expense to Undo').click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const deleteButton = page.getByRole('button', { name: /delete/i });
       
@@ -495,7 +496,7 @@ test.describe('Delete Operations E2E', () => {
         const confirmButton = page.getByRole('button', { name: /confirm/i });
         if (await confirmButton.count() > 0) {
           await confirmButton.click();
-          await page.waitForTimeout(2000);
+          await page.waitForLoadState('networkidle');
         }
         
         // Look for undo notification
@@ -512,7 +513,7 @@ test.describe('Delete Operations E2E', () => {
           const undoButton = page.getByRole('button', { name: /undo/i });
           if (await undoButton.count() > 0) {
             await undoButton.click();
-            await page.waitForTimeout(2000);
+            await page.waitForLoadState('networkidle');
             
             // Expense should be restored
             await expect(page.getByText('Expense to Undo')).toBeVisible();
@@ -542,7 +543,7 @@ test.describe('Delete Operations E2E', () => {
       // Add expense
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const descriptionField = page.getByPlaceholder('What was this expense for?');
       const amountField = page.getByRole('spinbutton');
@@ -552,16 +553,16 @@ test.describe('Delete Operations E2E', () => {
       
       const submitButton = page.getByRole('button', { name: 'Save Expense' });
       await submitButton.click();
-      await page.waitForTimeout(2000);
+      await page.waitForLoadState('networkidle');
       
       // Edit the expense
       await page.getByText('Original Expense').click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
       
       const editButton = page.getByRole('button', { name: /edit/i });
       if (await editButton.count() > 0) {
         await editButton.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState('domcontentloaded');
         
         // Update description
         const editDescField = page.getByPlaceholder('What was this expense for?');
@@ -572,7 +573,7 @@ test.describe('Delete Operations E2E', () => {
         if (await updateButton.count() > 0) {
           await updateButton.first().click();
         }
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle');
       }
       
       // Now delete the edited expense
@@ -583,7 +584,7 @@ test.describe('Delete Operations E2E', () => {
         const confirmButton = page.getByRole('button', { name: /confirm/i });
         if (await confirmButton.count() > 0) {
           await confirmButton.click();
-          await page.waitForTimeout(2000);
+          await page.waitForLoadState('networkidle');
         }
         
         // Expense should be deleted
