@@ -51,35 +51,37 @@ test.describe('Delete Operations E2E', () => {
         .or(page.getByRole('button', { name: /remove/i }))
         .or(page.locator('[data-testid*="delete"]'));
       
+      // Verify delete button exists
       const hasDeleteButton = await deleteButton.count() > 0;
-      if (hasDeleteButton) {
-        await deleteButton.first().click();
-                
-        // Look for confirmation dialog
-        const confirmDialog = page.getByText(/are you sure/i)
-          .or(page.getByText(/confirm.*delete/i))
-          .or(page.getByRole('dialog'));
+      expect(hasDeleteButton).toBe(true);
+      
+      await deleteButton.first().click();
+      
+      // Look for confirmation dialog
+      const confirmDialog = page.getByText(/are you sure/i)
+        .or(page.getByText(/confirm.*delete/i))
+        .or(page.getByRole('dialog'));
+      
+      // Wait for any confirmation or direct deletion
+      await page.waitForLoadState('domcontentloaded');
+      
+      const hasConfirmation = await confirmDialog.count() > 0;
+      if (hasConfirmation) {
+        // Confirm deletion
+        const confirmButton = page.getByRole('button', { name: /confirm/i })
+          .or(page.getByRole('button', { name: /yes/i }))
+          .or(page.getByRole('button', { name: /delete/i }).last());
         
-        const hasConfirmation = await confirmDialog.count() > 0;
-        if (hasConfirmation) {
-          // Confirm deletion
-          const confirmButton = page.getByRole('button', { name: /confirm/i })
-            .or(page.getByRole('button', { name: /yes/i }))
-            .or(page.getByRole('button', { name: /delete/i }).last());
-          
-          await confirmButton.click();
-          await page.waitForLoadState('networkidle');
-        }
-        
-        // Should be back on group page
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
-        
-        // Expense should no longer be visible on the group page
-        await expect(page.getByText('Expense to Delete')).not.toBeVisible();
-      } else {
-        // Delete functionality not implemented - skip test
-        test.skip();
+        await expect(confirmButton.first()).toBeVisible();
+        await confirmButton.first().click();
+        await page.waitForLoadState('networkidle');
       }
+      
+      // Should be back on group page
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+      
+      // Expense should no longer be visible on the group page
+      await expect(page.getByText('Expense to Delete')).not.toBeVisible();
     });
 
     test('should cancel expense deletion', async ({ page }) => {
@@ -117,24 +119,21 @@ test.describe('Delete Operations E2E', () => {
       // Try to delete but cancel
       const deleteButton = page.getByRole('button', { name: /delete/i });
       
-      if (await deleteButton.count() > 0) {
-        await deleteButton.first().click();
-                
-        // Cancel deletion
-        const cancelButton = page.getByRole('button', { name: /cancel/i })
-          .or(page.getByRole('button', { name: /no/i }));
-        
-        if (await cancelButton.count() > 0) {
-          await cancelButton.first().click();
-          await page.waitForLoadState('domcontentloaded');
-        }
-        
-        // Expense should still exist
-        await expect(page.getByText('Keep This Expense')).toBeVisible();
-      } else {
-        // Cancel functionality not implemented - skip test
-        test.skip();
-      }
+      // Delete button should be present
+      await expect(deleteButton.first()).toBeVisible({ timeout: 5000 });
+      await deleteButton.first().click();
+      
+      // Cancel deletion
+      const cancelButton = page.getByRole('button', { name: /cancel/i })
+        .or(page.getByRole('button', { name: /no/i }));
+      
+      // Cancel button should be available
+      await expect(cancelButton.first()).toBeVisible({ timeout: 5000 });
+      await cancelButton.first().click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Expense should still exist
+      await expect(page.getByText('Keep This Expense')).toBeVisible();
     });
 
     test('should prevent deletion of expenses by non-creator', async ({ page, browser }) => {
@@ -194,7 +193,7 @@ test.describe('Delete Operations E2E', () => {
             const isHidden = await deleteButton.first().isHidden();
             
             // Delete button should be disabled or hidden for non-creator
-            expect(isDisabled || isHidden).toBeTruthy();
+            expect(isDisabled || isHidden).toBe(true);
           } else {
             // Delete button not present for non-creator - this is correct behavior
             expect(hasDeleteButton).toBe(false);
@@ -224,35 +223,42 @@ test.describe('Delete Operations E2E', () => {
         .or(page.getByRole('button', { name: /options/i }))
         .or(page.locator('[data-testid*="settings"]'));
       
-      if (await settingsButton.count() > 0) {
-        await settingsButton.first().click();
-                
-        // Look for delete group option
-        const deleteGroupOption = page.getByText(/delete.*group/i)
-          .or(page.getByRole('button', { name: /delete.*group/i }))
-          .or(page.getByRole('menuitem', { name: /delete/i }));
+      // Verify settings functionality exists
+      const hasSettings = await settingsButton.count() > 0;
+      expect(hasSettings).toBe(true);
+      
+      await settingsButton.first().click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Look for delete group option
+      const deleteGroupOption = page.getByText(/delete.*group/i)
+        .or(page.getByRole('button', { name: /delete.*group/i }))
+        .or(page.getByRole('menuitem', { name: /delete/i }));
+      
+      // Verify delete option exists
+      const hasDeleteOption = await deleteGroupOption.count() > 0;
+      expect(hasDeleteOption).toBe(true);
+      
+      await deleteGroupOption.first().click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Confirm deletion
+      const confirmButton = page.getByRole('button', { name: /confirm/i })
+        .or(page.getByRole('button', { name: /delete/i }).last());
+      
+      const hasConfirmButton = await confirmButton.count() > 0;
+      if (hasConfirmButton) {
+        await confirmButton.first().click();
+        await page.waitForLoadState('networkidle');
         
-        if (await deleteGroupOption.count() > 0) {
-          await deleteGroupOption.first().click();
-                    
-          // Confirm deletion
-          const confirmButton = page.getByRole('button', { name: /confirm/i })
-            .or(page.getByRole('button', { name: /delete/i }).last());
-          
-          if (await confirmButton.count() > 0) {
-            await confirmButton.click();
-            await page.waitForLoadState('networkidle');
-            
-            // Should redirect to dashboard
-            await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
-            
-            // Group should not appear in list
-            await expect(page.getByText('Empty Group to Delete')).not.toBeVisible();
-          }
-        }
+        // Should redirect to dashboard
+        await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+        
+        // Group should not appear in list
+        await expect(page.getByText('Empty Group to Delete')).not.toBeVisible();
       } else {
-        // Delete group functionality not implemented - skip test
-        test.skip();
+        // At minimum, verify we're still on a valid page
+        await expect(page).toHaveURL(/\/(groups|dashboard)/, { timeout: 5000 });
       }
     });
 
@@ -287,30 +293,37 @@ test.describe('Delete Operations E2E', () => {
       const settingsButton = page.getByRole('button', { name: /settings/i })
         .or(page.getByRole('button', { name: /menu/i }));
       
-      if (await settingsButton.count() > 0) {
-        await settingsButton.first().click();
-                
-        const deleteGroupOption = page.getByText(/delete.*group/i);
+      // Verify settings exists
+      const hasSettings = await settingsButton.count() > 0;
+      expect(hasSettings).toBe(true);
+      
+      await settingsButton.first().click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      const deleteGroupOption = page.getByText(/delete.*group/i);
+      
+      // Check if delete option exists
+      const hasDeleteOption = await deleteGroupOption.count() > 0;
+      if (hasDeleteOption) {
+        await deleteGroupOption.first().click();
+        await page.waitForLoadState('domcontentloaded');
         
-        if (await deleteGroupOption.count() > 0) {
-          await deleteGroupOption.first().click();
-                    
-          // Should show error or warning
-          const warningMessage = page.getByText(/cannot.*delete.*expenses/i)
-            .or(page.getByText(/remove.*expenses.*first/i))
-            .or(page.getByText(/group.*has.*expenses/i));
-          
-          const hasWarning = await warningMessage.count() > 0;
-          if (hasWarning) {
-            await expect(warningMessage.first()).toBeVisible();
-          }
-          
-          // Group should still exist
-          await expect(page.getByText('Group with Expenses')).toBeVisible();
+        // Should show error or warning
+        const warningMessage = page.getByText(/cannot.*delete.*expenses/i)
+          .or(page.getByText(/remove.*expenses.*first/i))
+          .or(page.getByText(/group.*has.*expenses/i));
+        
+        // Verify warning appears or deletion is prevented
+        const hasWarning = await warningMessage.count() > 0;
+        if (hasWarning) {
+          await expect(warningMessage.first()).toBeVisible();
         }
+        
+        // Group should still exist
+        await expect(page.getByText('Group with Expenses')).toBeVisible();
       } else {
-        // Delete settings not available - skip test
-        test.skip();
+        // If no delete option, verify group still exists
+        await expect(page.getByText('Group with Expenses')).toBeVisible();
       }
     });
 
@@ -347,30 +360,35 @@ test.describe('Delete Operations E2E', () => {
       const settingsButton = page.getByRole('button', { name: /settings/i })
         .or(page.getByRole('button', { name: /menu/i }));
       
-      if (await settingsButton.count() > 0) {
-        await settingsButton.first().click();
-                
-        const deleteGroupOption = page.getByText(/delete.*group/i);
+      // Verify settings exists
+      const hasSettings = await settingsButton.count() > 0;
+      expect(hasSettings).toBe(true);
+      
+      await settingsButton.first().click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      const deleteGroupOption = page.getByText(/delete.*group/i);
+      
+      // Check if delete option exists
+      const hasDeleteOption = await deleteGroupOption.count() > 0;
+      if (hasDeleteOption) {
+        await deleteGroupOption.first().click();
+        await page.waitForLoadState('domcontentloaded');
         
-        if (await deleteGroupOption.count() > 0) {
-          await deleteGroupOption.first().click();
-                    
-          // Look for warning about unsettled balances
-          const balanceWarning = page.getByText(/unsettled.*balance/i)
-            .or(page.getByText(/settle.*first/i))
-            .or(page.getByText(/outstanding.*debt/i));
-          
-          const hasBalanceWarning = await balanceWarning.count() > 0;
-          
-          // Either shows warning or prevents deletion
-          if (hasBalanceWarning) {
-            await expect(balanceWarning.first()).toBeVisible();
-          }
+        // Look for warning about unsettled balances
+        const balanceWarning = page.getByText(/unsettled.*balance/i)
+          .or(page.getByText(/settle.*first/i))
+          .or(page.getByText(/outstanding.*debt/i));
+        
+        // Verify warning appears
+        const hasBalanceWarning = await balanceWarning.count() > 0;
+        if (hasBalanceWarning) {
+          await expect(balanceWarning.first()).toBeVisible();
         }
-      } else {
-        // Delete settings not available - skip test
-        test.skip();
       }
+      
+      // Group should still exist regardless
+      await expect(page.getByText('Unsettled Group')).toBeVisible();
     });
   });
 
@@ -489,42 +507,38 @@ test.describe('Delete Operations E2E', () => {
       
       const deleteButton = page.getByRole('button', { name: /delete/i });
       
-      if (await deleteButton.count() > 0) {
-        await deleteButton.first().click();
-                
-        // Confirm deletion
-        const confirmButton = page.getByRole('button', { name: /confirm/i });
-        if (await confirmButton.count() > 0) {
-          await confirmButton.click();
+      // Delete button should be available
+      await expect(deleteButton.first()).toBeVisible({ timeout: 5000 });
+      await deleteButton.first().click();
+      
+      // Confirm deletion
+      const confirmButton = page.getByRole('button', { name: /confirm/i });
+      await expect(confirmButton.first()).toBeVisible({ timeout: 5000 });
+      await confirmButton.click();
+      await page.waitForLoadState('networkidle');
+      
+      // Look for undo notification
+      const undoNotification = page.getByText(/undo/i)
+        .or(page.getByRole('button', { name: /undo/i }))
+        .or(page.getByText(/deleted.*undo/i));
+      
+      const hasUndo = await undoNotification.count() > 0;
+      
+      if (hasUndo) {
+        await expect(undoNotification.first()).toBeVisible();
+        
+        // Try to undo
+        const undoButton = page.getByRole('button', { name: /undo/i });
+        if (await undoButton.count() > 0) {
+          await undoButton.click();
           await page.waitForLoadState('networkidle');
-        }
-        
-        // Look for undo notification
-        const undoNotification = page.getByText(/undo/i)
-          .or(page.getByRole('button', { name: /undo/i }))
-          .or(page.getByText(/deleted.*undo/i));
-        
-        const hasUndo = await undoNotification.count() > 0;
-        
-        if (hasUndo) {
-          await expect(undoNotification.first()).toBeVisible();
           
-          // Try to undo
-          const undoButton = page.getByRole('button', { name: /undo/i });
-          if (await undoButton.count() > 0) {
-            await undoButton.click();
-            await page.waitForLoadState('networkidle');
-            
-            // Expense should be restored
-            await expect(page.getByText('Expense to Undo')).toBeVisible();
-          }
-        } else {
-          // Undo feature not available - this is okay
-          console.log('Undo feature not implemented');
+          // Expense should be restored
+          await expect(page.getByText('Expense to Undo')).toBeVisible();
         }
       } else {
-        // Delete functionality not available - skip test
-        test.skip();
+        // Undo feature not available - this is okay for now
+        console.log('Undo feature not implemented');
       }
     });
 
@@ -578,22 +592,19 @@ test.describe('Delete Operations E2E', () => {
       
       // Now delete the edited expense
       const deleteButton = page.getByRole('button', { name: /delete/i });
-      if (await deleteButton.count() > 0) {
-        await deleteButton.first().click();
-                
-        const confirmButton = page.getByRole('button', { name: /confirm/i });
-        if (await confirmButton.count() > 0) {
-          await confirmButton.click();
-          await page.waitForLoadState('networkidle');
-        }
-        
-        // Expense should be deleted
-        await expect(page.getByText('Edited Expense')).not.toBeVisible();
-        await expect(page.getByText('Original Expense')).not.toBeVisible();
-      } else {
-        // Delete functionality not available - skip test  
-        test.skip();
-      }
+      
+      // Delete button should be available
+      await expect(deleteButton.first()).toBeVisible({ timeout: 5000 });
+      await deleteButton.first().click();
+      
+      const confirmButton = page.getByRole('button', { name: /confirm/i });
+      await expect(confirmButton.first()).toBeVisible({ timeout: 5000 });
+      await confirmButton.click();
+      await page.waitForLoadState('networkidle');
+      
+      // Expense should be deleted
+      await expect(page.getByText('Edited Expense')).not.toBeVisible();
+      await expect(page.getByText('Original Expense')).not.toBeVisible();
     });
   });
 });
