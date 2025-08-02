@@ -28,8 +28,8 @@ test.describe('Complex Multi-User Scenario Test', () => {
     const groupUrl = page1.url();
     console.log(`Group created at: ${groupUrl}`);
     
-    // Verify User 1 is in the group
-    await expect(page1.getByText(user1.displayName)).toBeVisible();
+    // Verify User 1 is in the group - be more specific to avoid duplicate matches
+    await expect(page1.getByRole('main').getByText(user1.displayName).first()).toBeVisible();
     await expect(page1.getByText('Vacation Group')).toBeVisible();
     
     // Try to add multiple expenses from User 1
