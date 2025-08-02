@@ -29,7 +29,25 @@ Based on a review of the e2e test suite, the following hacks and workarounds hav
 - **Impact**: The tests may pass even if the UI has changed in a way that negatively affects the user experience.
 - **Recommendation**: Use more specific selectors where possible and consider separate tests for different UI states if necessary.
 
-### 6. Weak Error Handling Assertions
+### 6. Non-Deterministic Tests
+
+- **Issue**: Many tests contain comments with "or" statements, indicating that the test author was unsure about the application's behavior. This leads to tests that are not reliable and may pass even when the application is in an incorrect state.
+- **Impact**: These tests do not provide a reliable signal about the health of the application. They can mask bugs and make it difficult to refactor with confidence.
+- **Recommendation**: Each test should have a single, deterministic outcome. The test setup should ensure that the application is in a known state, and the assertions should verify a specific, expected result.
+
+**Examples of Non-Deterministic Tests:**
+
+*   **`add-expense.e2e.test.ts`**
+    *   L34: `// Should navigate to add expense page or open modal`
+    *   L63: `// Should show the expense in the list or navigate back to group`
+    *   L96: `// Submit button should be disabled or show validation errors`
+*   **`balance-settlement.e2e.test.ts`**
+    *   L23: `// Should show balanced state or zero balances`
+*   **`member-management.e2e.test.ts`**
+    *   L195: `// Test passes whether or not expense splitting is implemented`
+    *   L230: `// Test passes whether or not removal functionality is implemented`
+
+### 7. Weak Error Handling Assertions
 - **Issue**: Error handling tests check for very generic error messages.
 - **Impact**: This may not catch cases where the wrong error message is displayed or the UI is not in the correct state after an error.
 - **Recommendation**: Make assertions more specific to the expected error message and UI state.
