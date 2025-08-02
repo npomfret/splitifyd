@@ -9,7 +9,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ page }) => {
-    test.setTimeout(8000);
+    test.setTimeout(10000);
     await createAndLoginTestUser(page);
     
     // Create a group first using the same pattern as dashboard tests
@@ -21,7 +21,7 @@ test.describe('Add Expense E2E', () => {
     await createGroupModal.createGroup('Expense Test Group', 'Testing expense creation');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
     
     // Look for Add Expense button
     const addExpenseButton = page.getByRole('button', { name: /add expense/i })
@@ -31,8 +31,8 @@ test.describe('Add Expense E2E', () => {
     await expect(addExpenseButton.first()).toBeVisible();
     await addExpenseButton.first().click();
     
-    // Should navigate to add expense page or open modal
-    await page.waitForLoadState('domcontentloaded'); // Wait for navigation/modal
+    // Wait for expense form to load
+    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible({ timeout: 5000 });
     
     // Fill expense form
     const descriptionField = page.getByPlaceholder('What was this expense for?');
@@ -60,28 +60,26 @@ test.describe('Add Expense E2E', () => {
     // Wait for expense to be added
     await page.waitForLoadState('domcontentloaded');
     
-    // Should show the expense in the list or navigate back to group
+    // Verify expense was created and we're back on group page
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
     await expect(page.getByText('Test Dinner')).toBeVisible();
     await expect(page.getByText('50')).toBeVisible();
   });
 
   test('should handle expense form validation', async ({ page }) => {
     // Increase timeout for this test
-    test.setTimeout(15000);
+    test.setTimeout(10000);
     
     await createAndLoginTestUser(page);
     
-    // Create a group first
+    // Create a group using the modal
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForLoadState('domcontentloaded');
-    const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
-    await nameInput.fill('Validation Test Group');
-    const descInput = page.getByPlaceholder(/details|description/i);
-    await descInput.fill('Testing form validation');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Validation Test Group', 'Testing form validation');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
     
     // Go to add expense
     const addExpenseButton = page.getByRole('button', { name: /add expense/i })
@@ -93,102 +91,91 @@ test.describe('Add Expense E2E', () => {
     // Try to submit empty form - look specifically for Save Expense button
     const submitButton = page.getByRole('button', { name: /save expense/i });
     
-    // Submit button should be disabled or show validation errors
-    const isDisabled = await submitButton.isDisabled({ timeout: 5000 });
-    let hasValidationErrors = false;
+    // Try to submit empty form
+    await submitButton.click();
+    await page.waitForLoadState('domcontentloaded');
     
-    if (!isDisabled) {
-      await submitButton.click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Should show validation errors or stay on form
-      hasValidationErrors = await page.getByText(/required/i).count() > 0 ||
-                           await page.getByText(/invalid/i).count() > 0 ||
-                           await page.getByText(/error/i).count() > 0;
-      
-      if (!hasValidationErrors) {
-        // Check if still on form (URL didn't change significantly)
-        const currentUrl = page.url();
-        expect(currentUrl).toMatch(/expense|add/);
-      }
-    }
+    // Should show validation errors for required fields
+    const descriptionError = page.getByText(/description.*required/i)
+      .or(page.getByText(/enter.*description/i))
+      .or(page.getByText(/please.*describe/i));
+    const amountError = page.getByText(/amount.*required/i)
+      .or(page.getByText(/enter.*amount/i))
+      .or(page.getByText(/valid.*amount/i));
     
-    // Verify that validation prevented submission
-    const currentUrl = page.url();
-    if (!isDisabled && !hasValidationErrors) {
-      // Check if we're still on the add expense page
-      expect(currentUrl).toMatch(/expense|add/);
-    }
+    // At least one validation error should be visible
+    const hasDescriptionError = await descriptionError.count() > 0;
+    const hasAmountError = await amountError.count() > 0;
+    expect(hasDescriptionError || hasAmountError).toBe(true);
+    
+    // Verify we're still on the expense form
+    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
   });
 
   test('should allow selecting expense category', async ({ page }) => {
     await createAndLoginTestUser(page);
     
-    // Create a group
+    // Create a group using the modal
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForLoadState('domcontentloaded');
-    const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
-    await nameInput.fill('Category Test Group');
-    const descInput = page.getByPlaceholder(/details|description/i);
-    await descInput.fill('Testing expense categories');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Category Test Group', 'Testing expense categories');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
     
     // Go to add expense
     const addExpenseButton = page.getByRole('button', { name: /add expense/i });
     await addExpenseButton.first().click();
-    await page.waitForLoadState('domcontentloaded');
     
-    // Look for category selection
-    const categoryField = page.getByLabel(/category/i)
-      .or(page.locator('select[name*="category"]'))
-      .or(page.locator('[data-testid*="category"]'));
+    // Wait for navigation or modal
+    await page.waitForLoadState('networkidle');
     
-    const hasCategoryField = await categoryField.count() > 0;
-    if (hasCategoryField) {
-      await expect(categoryField.first()).toBeVisible();
-      
-      // Try to select a category
-      const isSelect = await categoryField.first().evaluate(el => el.tagName === 'SELECT');
-      if (isSelect) {
-        await categoryField.first().selectOption({ index: 1 }); // Select first non-default option
-      } else {
-        // Might be a button or dropdown
-        await categoryField.first().click();
-        await page.waitForLoadState('domcontentloaded');
-        
-        // Look for category options
-        const categoryOption = page.getByText(/food|dining|restaurant|groceries|entertainment/i);
-        const hasOptions = await categoryOption.count() > 0;
-        if (hasOptions) {
-          await categoryOption.first().click();
-        }
-      }
-    }
+    // Wait for expense form to load
+    const descriptionField = page.getByPlaceholder('What was this expense for?');
+    await expect(descriptionField).toBeVisible({ timeout: 2000 });
     
-    // Categories are optional - log whether implemented
-    console.log(`Category selection ${hasCategoryField ? 'is' : 'is not'} implemented`);
+    // Find category combobox (it's a select element with role="combobox")
+    const categorySelect = page.getByRole('combobox');
+    await expect(categorySelect).toBeVisible({ timeout: 2000 });
+    
+    // Get initial category value
+    const initialCategory = await categorySelect.inputValue();
+    
+    // Select a different category
+    await categorySelect.selectOption({ index: 2 }); // Select third option
+    
+    // Verify category changed
+    const newCategory = await categorySelect.inputValue();
+    expect(newCategory).not.toBe(initialCategory);
+    
+    // Fill required fields to test full form submission with category
+    await page.getByPlaceholder('What was this expense for?').fill('Dinner with category');
+    await page.getByPlaceholder('0.00').fill('45.00');
+    
+    // Submit the form
+    await page.getByRole('button', { name: /save expense/i }).click();
+    await page.waitForLoadState('networkidle');
+    
+    // Verify expense was created
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
+    await expect(page.getByText('Dinner with category')).toBeVisible();
   });
 
   test('should show expense in group after creation', async ({ page }) => {
     // Increase timeout for this test
-    test.setTimeout(20000);
+    test.setTimeout(10000);
     
     await createAndLoginTestUser(page);
     
-    // Create a group
+    // Create a group using the modal
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForLoadState('domcontentloaded');
-    const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
-    await nameInput.fill('Expense Display Group');
-    const descInput = page.getByPlaceholder(/details|description/i);
-    await descInput.fill('Testing expense display');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Expense Display Group', 'Testing expense display');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 3000 });
     
     // Add expense directly without page object
     await page.getByRole('button', { name: /add expense/i }).click();
@@ -216,71 +203,81 @@ test.describe('Add Expense E2E', () => {
     await expect(page.getByText(/paid by|Paid:/i)).toBeVisible();
   });
 
-  test('should handle different split types if available', async ({ page }) => {
+  test('should handle split type selection UI', async ({ page }) => {
+    test.setTimeout(10000);
     await createAndLoginTestUser(page);
     
-    // Create a group
+    // Create a group using the modal
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForLoadState('domcontentloaded');
-    const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
-    await nameInput.fill('Split Types Group');
-    const descInput = page.getByPlaceholder(/details|description/i);
-    await descInput.fill('Testing split types');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Split Types Group', 'Testing split types');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
     
     // Go to add expense
     const addExpenseButton = page.getByRole('button', { name: /add expense/i });
     await addExpenseButton.first().click();
+    
+    // Wait for expense form to load
+    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible({ timeout: 5000 });
+    
+    // Fill basic expense details first
+    await page.getByPlaceholder('What was this expense for?').fill('Split type test');
+    await page.getByPlaceholder('0.00').fill('100.00');
+    
+    // Split type options should appear after basic details are filled
     await page.waitForLoadState('domcontentloaded');
     
-    // Look for split type options
-    const splitTypeField = page.getByLabel(/split/i)
-      .or(page.locator('[data-testid*="split"]'))
-      .or(page.getByText(/equal|exact|percentage/i).first());
+    // Look for split type section
+    const splitSection = page.getByText('How to split');
+    await expect(splitSection).toBeVisible({ timeout: 2000 });
     
-    const hasSplitTypes = await splitTypeField.count() > 0;
-    if (hasSplitTypes) {
-      await expect(splitTypeField.first()).toBeVisible();
-      
-      // Try to change split type
-      await splitTypeField.first().click();
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Look for split options
-      const exactSplit = page.getByText(/exact/i).or(page.getByText(/custom/i));
-      const hasExactOption = await exactSplit.count() > 0;
-      
-      if (hasExactOption) {
-        await exactSplit.first().click();
-        await page.waitForLoadState('domcontentloaded');
-        
-        // Verify custom split UI appears
-        const customAmountFields = await page.locator('input[type="number"]').count();
-        expect(customAmountFields).toBeGreaterThan(1);
-      }
-    } else {
-      // Split types are optional - log status
-      console.log('Split types not implemented');
-    }
+    // Verify all split type options are available
+    const equalSplit = page.getByText('Equal').first();
+    const exactSplit = page.getByText('Exact amounts');
+    const percentageSplit = page.getByText('Percentage');
+    
+    await expect(equalSplit).toBeVisible();
+    await expect(exactSplit).toBeVisible();
+    await expect(percentageSplit).toBeVisible();
+    
+    // Equal should be selected by default
+    const equalRadio = page.getByRole('radio', { name: 'Equal' });
+    await expect(equalRadio).toBeChecked();
+    
+    // Click on percentage split
+    await percentageSplit.click();
+    
+    // Verify percentage is now selected
+    const percentRadio = page.getByRole('radio', { name: 'Percentage' });
+    await expect(percentRadio).toBeChecked();
+    
+    // Switch back to equal split
+    await equalSplit.click();
+    await expect(equalRadio).toBeChecked();
+    
+    // Submit the expense with equal split
+    await page.getByRole('button', { name: /save expense/i }).click();
+    await page.waitForLoadState('networkidle');
+    
+    // Verify expense was created
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
+    await expect(page.getByText('Split type test')).toBeVisible();
   });
 
   test('should handle expense with date selection', async ({ page }) => {
     await createAndLoginTestUser(page);
     
-    // Create a group
+    // Create a group using page object
+    const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
     await page.waitForLoadState('domcontentloaded');
-    const nameInput = page.getByPlaceholder(/group.*name/i).or(page.getByLabel(/group.*name/i));
-    await nameInput.fill('Date Test Group');
-    const descInput = page.getByPlaceholder(/details|description/i);
-    await descInput.fill('Testing date selection');
-    await page.getByRole('button', { name: 'Create Group' }).last().click();
+    await createGroupModal.createGroup('Date Test Group', 'Testing date selection');
     
     // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 2000 });
     
     // Use page object to add expense
     const groupDetailPage = new GroupDetailPage(page);

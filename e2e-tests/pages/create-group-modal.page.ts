@@ -28,7 +28,10 @@ export class CreateGroupModalPage extends BasePage {
     
     // Click to focus the input first
     await nameInput.click();
-    await nameInput.clear();
+    
+    // Triple-click to select all text (works on all platforms)
+    await nameInput.click({ clickCount: 3 });
+    await nameInput.press('Delete');
     
     // Type the text character by character to ensure proper event triggering
     for (const char of name) {
@@ -48,7 +51,11 @@ export class CreateGroupModalPage extends BasePage {
       const descInput = this.page.getByPlaceholder('Add any details about this group...');
       
       await descInput.click();
-      await descInput.clear();
+      
+      // Triple-click to select all text
+      await descInput.click({ clickCount: 3 });
+      await descInput.press('Delete');
+      
       for (const char of description) {
         await descInput.press(char);
       }
