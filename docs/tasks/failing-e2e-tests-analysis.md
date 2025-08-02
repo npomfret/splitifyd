@@ -110,13 +110,13 @@ This task will systematically remove test hacks and workarounds to improve test 
     - Non-deterministic comments (L34, L63) - Fixed
     - console.log statements instead of assertions (L172, L266) - Fixed
     - Weak validation testing - Fixed
-- balance-settlement.e2e.test.ts: 7 instances - IN PROGRESS
-  - No expect(true).toBe(true) found, but has:
-    - Weak assertions: `expect(hasBalanceSection || hasSettledState).toBe(true)` (L127)
-    - Weak assertions: `expect(hasHistory || page.url().includes('/groups/')).toBe(true)` (L231)
-    - console.log statements (L188, L229, L271)
-    - test.skip() calls (L87, L191)
-    - Overly flexible selectors with multiple .or() chains
+- balance-settlement.e2e.test.ts: 7 instances - COMPLETED ✓
+  - No expect(true).toBe(true) found, but had:
+    - Weak assertions: `expect(hasBalanceSection || hasSettledState).toBe(true)` (L127) - Fixed
+    - Weak assertions: `expect(hasHistory || page.url().includes('/groups/')).toBe(true)` (L231) - Fixed
+    - console.log statements (L188, L229, L271) - Removed
+    - test.skip() calls (L87, L191) - Removed
+    - Overly flexible selectors with multiple .or() chains - Fixed with specific selectors
 - error-handling.e2e.test.ts: 6 instances
 - multi-user-collaboration.e2e.test.ts: 14 instances
 - And others...
