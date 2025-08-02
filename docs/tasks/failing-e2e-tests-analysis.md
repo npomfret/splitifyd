@@ -52,6 +52,34 @@ Based on a review of the e2e test suite, the following hacks and workarounds hav
 - **Impact**: This may not catch cases where the wrong error message is displayed or the UI is not in the correct state after an error.
 - **Recommendation**: Make assertions more specific to the expected error message and UI state.
 
+### 8. Overlapping and Redundant Tests
+
+- **Issue**: There is significant overlap between E2E tests, particularly in the areas of authentication, group creation, and static page navigation. This leads to a slow, inefficient, and hard-to-maintain test suite.
+- **Impact**: Increased test execution time, higher maintenance costs, and a test suite that is difficult to reason about.
+- **Recommendation**: Refactor the E2E tests to eliminate redundancy and ensure that each test has a clear, focused purpose.
+
+**Key Areas of Overlap and Recommendations:**
+
+*   **Authentication and Initial State**:
+    *   **Overlap**: Most tests repeat the login and group creation process.
+    *   **Recommendation**: Use the `authenticatedTest` fixture for all tests that require a logged-in user. Create a `beforeEach` hook within test files to handle repetitive setup like group creation.
+
+*   **Group Creation**:
+    *   **Overlap**: `dashboard.e2e.test.ts`, `add-expense.e2e.test.ts`, and others all test group creation.
+    *   **Recommendation**: Consolidate all group creation UI tests into `dashboard.e2e.test.ts`. For other tests, create groups via a helper function or API call to speed up setup.
+
+*   **Static Pages and Navigation**:
+    *   **Overlap**: `homepage.e2e.test.ts`, `static-pages.e2e.test.ts`, `navigation.e2e.test.ts`, and `seo.e2e.test.ts` all test similar aspects of static content.
+    *   **Recommendation**: Create a single `static-content.e2e.test.ts` to handle all static page loading, navigation, and SEO checks. Retire the other redundant test files.
+
+*   **Expense Creation**:
+    *   **Overlap**: `add-expense.e2e.test.ts`, `delete-operations.e2e.test.ts`, and `balance-settlement.e2e.test.ts` all create expenses through the UI.
+    *   **Recommendation**: Isolate expense form UI testing to `add-expense.e2e.test.ts`. Use a helper function to create expenses in other tests.
+
+*   **Multi-User Scenarios**:
+    *   **Overlap**: `multi-user-collaboration.e2e.test.ts`, `multi-user-expenses.e2e.test.ts`, and `complex-unsettled-group.e2e.test.ts` all attempt to test multi-user functionality with significant workarounds.
+    *   **Recommendation**: Consolidate these into a single `multi-user.e2e.test.ts` and focus on what is currently testable. Document the rest as pending features.
+
 ## IMPLEMENTATION PLAN
 
 ### Overview
