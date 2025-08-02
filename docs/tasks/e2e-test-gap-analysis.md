@@ -4,29 +4,27 @@
 
 ## 1. Executive Summary
 
-This report details the findings of a comprehensive analysis of the end-to-end (E2E) test suite against the documented features of the Splitifyd web application. The goal is to identify gaps in test coverage, areas of over-testing, and opportunities for test redesign to improve efficiency and effectiveness.
+This report details the findings of a comprehensive analysis of the end-to-end (E2E) test suite against the **actually implemented features** of the Splitifyd web application. The goal is to identify gaps in test coverage for existing functionality, areas of over-testing, and opportunities for test redesign to improve efficiency and effectiveness.
 
-The analysis reveals that the existing E2E tests provide a solid foundation, covering critical paths like user authentication, group creation, and basic expense adding. However, as the application has grown, several key areas remain untested, and some tests have become redundant or could be consolidated.
+The analysis reveals that the existing E2E tests provide a solid foundation, covering critical paths like user authentication, group creation, and basic expense adding. However, several key **implemented features** remain under-tested, and some tests have become redundant or could be consolidated.
 
 **Key Findings:**
-- **Good Coverage:** Core features like authentication, group creation, and the "add expense" form are well-tested.
-- **Major Gaps:** Significant gaps exist in testing for multi-currency support, advanced splitting options, and user profile settings.
+- **Good Coverage:** Core features like authentication, group creation, and the basic "add expense" form are well-tested.
+- **Major Gaps:** Significant gaps exist in testing for **existing features** like multi-user scenarios, group sharing workflows, and edge cases in the three implemented splitting methods (equal, exact amounts, percentages).
 - **Redundancy:** There is some overlap in tests for form validation and basic navigation, which could be streamlined.
 - **Opportunity:** The `manual-complex-scenario.e2e.test.ts` and `complex-unsettled-group.e2e.test.ts` tests are valuable but could be redesigned for better automation and clearer assertions.
+- **Scope Focus:** This analysis focuses exclusively on testing gaps for features that exist in the codebase, not on wishlist features.
 
 ## 2. Untested Features (Gaps)
 
-The following features have been identified as having little to no E2E test coverage. These represent the most significant risks and should be prioritized for new test development.
+The following features exist in the codebase but have little to no E2E test coverage. These represent the most significant risks and should be prioritized for new test development.
 
 | Feature | Priority | Recommended Test Scenarios |
 |---|---|---|
-| **Multi-currency Support** | **High** | - Create a group with a non-default currency. <br>- Add expenses in multiple currencies within the same group. <br>- Verify that balances are calculated and displayed correctly per currency. <br>- Test the "simplify debts" feature with multi-currency balances. |
-| **Advanced Splitting Options** | **High** | - Create an expense and split it by unequal shares. <br>- Test item-based splitting from a receipt. <br>- Verify tax and tip calculations are applied correctly. <br>- Set up and verify a recurring expense. |
-| **User Profile & Settings** | **Medium** | - Update user display name and profile photo. <br>- Change default currency and notification settings. <br>- Test theme selection (light/dark mode). |
-| **Settlement & Payment Recording** | **Medium** | - Record a cash payment between users. <br>- Mark a debt as fully settled. <br>- Verify that settlement history is accurately recorded. |
-| **Expense List View** | **Medium** | - Navigate to the all-expenses view. <br>- Filter expenses by date range, participants, and group. <br>- Test sorting functionality (by date, amount, etc.). |
-| **Export & Reports** | **Low** | - Generate and export a CSV of transactions. <br>- Create and view a PDF summary report. |
-| **Friends & Contacts Management** | **Low** | - Add a friend by email. <br>- View and search the contact list. <br>- Remove a friend from the contact list. |
+| **Multi-User Expense Scenarios** | **High** | - Test expenses with multiple participants (3+ users). <br>- Verify balance calculations across multiple users. <br>- Test complex debt relationships in larger groups. |
+| **Group Sharing & Joining** | **High** | - Create a shareable group link. <br>- Join a group via shareable link. <br>- Verify member permissions after joining. |
+| **Advanced Splitting Edge Cases** | **Medium** | - Test percentage splits that don't equal 100%. <br>- Test exact amount splits that don't equal total. <br>- Verify error handling for invalid split configurations. |
+| **Cross-Group Balance Scenarios** | **Medium** | - Create expenses across multiple groups with same users. <br>- Verify individual user balances across different groups. <br>- Test navigation between groups with pending balances. |
 
 ## 3. Over-tested Features & Redundancies
 
@@ -37,6 +35,7 @@ Some features are tested in multiple test files, leading to redundancy. While so
 | **Basic Form Validation** | `auth-flow.e2e.test.ts`, `form-validation.e2e.test.ts`, `add-expense.e2e.test.ts` | Consolidate detailed form validation tests into `form-validation.e2e.test.ts`. Other tests should assume basic validation works and focus on the success path. For example, `add-expense.e2e.test.ts` should focus on the successful creation of an expense, not on testing every validation rule of the form. |
 | **Navigation** | `homepage.e2e.test.ts`, `static-pages.e2e.test.ts`, `navigation.e2e.test.ts` | Merge `static-pages.e2e.test.ts` and `navigation.e2e.test.ts` into a single, more comprehensive navigation test file. The homepage test should focus on the elements of the homepage itself, not on navigating away from it. |
 | **Group Creation** | `dashboard.e2e.test.ts`, `add-expense.e2e.test.ts`, `group-details.e2e.test.ts`, etc. | Group creation is a necessary setup step for many tests. However, we should create a helper function or a fixture to handle group creation, rather than repeating the UI steps in every test file. This will make the tests faster and less brittle. |
+| **Basic Expense Creation** | Multiple test files | The basic "add expense with equal split" flow is tested in several files. Create a helper function for basic expense creation and focus individual tests on specific splitting methods or edge cases. |
 
 ## 4. Opportunities for Test Redesign
 
@@ -44,13 +43,13 @@ Certain tests, while valuable, could be improved to provide more reliable and me
 
 | Test File | Area for Improvement | Recommendation |
 |---|---|---|
-| `manual-complex-scenario.e2e.test.ts` | **Automation & Assertions** | This test performs many actions but has very few assertions. It should be broken down into smaller, more focused tests with clear `expect` statements. For example, create separate tests for multi-user expense submission, balance verification, and member invitation. |
-| `complex-unsettled-group.e2e.test.ts` | **Clarity & Focus** | Similar to the manual scenario, this test is long and complex. It should be refactored to test a specific complex scenario, such as a multi-user group with a mix of expenses and settlements, and then assert the final balance state is correct. |
+| `manual-complex-scenario.e2e.test.ts` | **Automation & Assertions** | This test performs many actions but has very few assertions. It should be broken down into smaller, more focused tests with clear `expect` statements. For example, create separate tests for multi-user expense submission, balance verification, and group sharing workflows. |
+| `complex-unsettled-group.e2e.test.ts` | **Clarity & Focus** | Similar to the manual scenario, this test is long and complex. It should be refactored to test a specific complex scenario, such as a multi-user group with multiple expenses using different split types, and then assert the final balance calculations are correct. |
 | `*-placeholder.e2e.test.ts` | **Implementation** | Several tests are placeholders that pass whether the feature is implemented or not. These should be updated with concrete assertions to verify the functionality they are intended to test. |
 
 ## 5. Recommendations & Action Plan
 
-1.  **Prioritize Gap Coverage:** Begin by writing E2E tests for the "High" priority untested features, starting with **Multi-currency Support**.
+1.  **Prioritize Gap Coverage:** Begin by writing E2E tests for the "High" priority untested features, starting with **Multi-User Expense Scenarios** and **Group Sharing & Joining**.
 2.  **Consolidate Redundant Tests:** Refactor the navigation and form validation tests as recommended above to reduce redundancy.
 3.  **Create Helper Functions:** Develop a helper function or fixture for common setup tasks like user login and group creation to streamline tests.
 4.  **Redesign Complex Scenarios:** Break down the `manual-complex-scenario` and `complex-unsettled-group` tests into smaller, more focused, and fully automated tests.
@@ -67,9 +66,10 @@ By addressing these gaps and opportunities, we can build a more robust, efficien
 **Purpose:** Reduce redundancy by creating reusable helper functions
 **Functions to implement:**
 - `createTestGroup(page, groupName, description?)` - Creates a group and returns group ID
-- `addTestExpense(page, groupId, amount, description, options?)` - Adds expense via UI
+- `addTestExpense(page, groupId, amount, description, splitType, splitData?)` - Adds expense via UI
 - `getGroupBalances(page, groupId)` - Retrieves current balance state
-- `inviteUserToGroup(page, groupId, email)` - Invites user (when implemented)
+- `createShareableLink(page, groupId)` - Creates shareable group link
+- `joinGroupViaLink(page, shareableLink)` - Joins group via link
 - `waitForBalanceUpdate(page)` - Waits for balance recalculation
 
 **Commit:** "test: add common helper functions for e2e tests"
@@ -79,80 +79,58 @@ By addressing these gaps and opportunities, we can build a more robust, efficien
 **Purpose:** Generate consistent test data following the builder pattern
 **Builders to implement:**
 - `GroupBuilder` - For creating test groups with various configurations
-- `ExpenseBuilder` - For creating expenses with different split types
+- `ExpenseBuilder` - For creating expenses with different split types (equal, exact, percentage)
 - `UserBuilder` - For creating test users with different roles
 
 **Commit:** "test: add test data builders for e2e tests"
 
 ### Phase 2: High Priority Feature Tests
 
-#### 2.1 Multi-Currency Support Tests
-**Note:** Since currency support is not implemented in the app, these tests will:
-- Document the expected behavior
-- Verify current behavior (no currency field)
-- Be marked as pending/skipped until feature is implemented
-
-**File:** `e2e-tests/tests/multi-currency.e2e.test.ts`
+#### 2.1 Multi-User Expense Scenarios Tests
+**File:** `e2e-tests/tests/multi-user-scenarios.e2e.test.ts`
 **Test scenarios:**
-1. ❌ Create group with non-default currency (EUR, GBP, JPY)
-2. ❌ Add expenses in different currencies within same group
-3. ❌ Verify balance calculations show per-currency totals
-4. ❌ Test currency conversion in settlement suggestions
-5. ✅ Verify current behavior (no currency options available)
+1. Create expenses with 3+ participants using equal split
+2. Create expenses with exact amounts for multiple users
+3. Create expenses with percentage splits across multiple users
+4. Verify complex balance calculations with multiple overlapping expenses
+5. Test edge cases with users who owe/are owed in different combinations
 
-**Commit:** "test: add multi-currency e2e tests (pending feature implementation)"
+**Commit:** "test: add multi-user expense scenarios e2e tests"
 
-#### 2.2 Advanced Splitting Options Tests
-**File:** `e2e-tests/tests/advanced-splitting.e2e.test.ts`
+#### 2.2 Group Sharing & Joining Tests
+**File:** `e2e-tests/tests/group-sharing.e2e.test.ts`
 **Test scenarios:**
-1. ✅ Create expense with equal split (already works)
-2. ✅ Create expense with exact amounts split
-3. ✅ Create expense with percentage split
-4. ❌ Create expense with unequal shares (custom ratios)
-5. ❌ Test item-based splitting from receipt
-6. ❌ Test tax and tip calculations
-7. ❌ Create and verify recurring expense
+1. Create a shareable group link
+2. Join a group via shareable link as a new user
+3. Verify new member can see existing expenses
+4. Verify new member can add expenses
+5. Test joining with invalid/expired links
+6. Verify member permissions after joining
 
-**Commit:** "test: add advanced splitting options e2e tests"
+**Commit:** "test: add group sharing and joining e2e tests"
 
-#### 2.3 Settlement & Payment Recording Tests
-**File:** `e2e-tests/tests/settlement-recording.e2e.test.ts`
+#### 2.3 Advanced Splitting Edge Cases Tests
+**File:** `e2e-tests/tests/splitting-edge-cases.e2e.test.ts`
 **Test scenarios:**
-1. Record cash payment between two users
-2. Record partial payment
-3. Mark debt as fully settled
-4. Verify settlement appears in transaction history
-5. Test settlement with multiple currencies (when available)
-6. Verify balance updates after settlement
+1. Test percentage splits that don't equal 100% (error handling)
+2. Test exact amount splits that don't equal total (error handling)
+3. Test splits with very small amounts (rounding behavior)
+4. Test splits with zero amounts for some participants
+5. Verify error messages for invalid split configurations
 
-**Commit:** "test: add settlement recording e2e tests"
+**Commit:** "test: add splitting edge cases e2e tests"
 
 ### Phase 3: Medium Priority Feature Tests
 
-#### 3.1 User Profile & Settings Tests
-**File:** `e2e-tests/tests/user-profile-settings.e2e.test.ts`
+#### 3.1 Cross-Group Balance Scenarios Tests
+**File:** `e2e-tests/tests/cross-group-balances.e2e.test.ts`
 **Test scenarios:**
-1. ❌ Update display name
-2. ❌ Upload and change profile photo
-3. ❌ Change default currency preference
-4. ❌ Toggle notification settings
-5. ❌ Switch between light/dark theme
-6. ✅ Verify current profile UI (minimal)
+1. Create expenses across multiple groups with same users
+2. Verify individual user balances are isolated per group
+3. Test navigation between groups with different balance states
+4. Verify group deletion doesn't affect other group balances
 
-**Commit:** "test: add user profile and settings e2e tests"
-
-#### 3.2 Expense Filtering & Sorting Tests
-**File:** `e2e-tests/tests/expense-list-filters.e2e.test.ts`
-**Test scenarios:**
-1. View all expenses across groups
-2. Filter expenses by date range
-3. Filter expenses by participant
-4. Filter expenses by group
-5. Sort by date (newest/oldest)
-6. Sort by amount (high/low)
-7. Test pagination with many expenses
-
-**Commit:** "test: add expense list filtering e2e tests"
+**Commit:** "test: add cross-group balance scenarios e2e tests"
 
 ### Phase 4: Test Consolidation
 
@@ -179,23 +157,11 @@ By addressing these gaps and opportunities, we can build a more robust, efficien
 
 **Action:** Break into smaller, focused tests with clear assertions
 - Extract multi-user balance verification test
-- Extract group member invitation test
-- Extract complex debt settlement test
+- Extract group sharing workflow test
+- Extract complex splitting scenarios test
 - Add specific assertions for each step
 
 **Commit:** "test: refactor complex scenario tests into focused tests"
-
-### Phase 5: Low Priority Features (Future)
-
-#### 5.1 Export & Reports Tests
-- CSV export functionality
-- PDF report generation
-- Data accuracy verification
-
-#### 5.2 Friends & Contacts Tests
-- Add friend by email
-- Search contacts
-- Remove friend
 
 ### Success Metrics
 - Test execution time reduced by 30% through helper functions
@@ -205,13 +171,19 @@ By addressing these gaps and opportunities, we can build a more robust, efficien
 - New features can be tested by combining existing helpers
 
 ### Implementation Order
-1. **Week 1:** Phase 1 (Infrastructure) + Phase 2.2 (Advanced Splitting)
-2. **Week 2:** Phase 2.1 (Multi-Currency) + Phase 2.3 (Settlement)
-3. **Week 3:** Phase 3 (User Profile + Expense Filters)
+1. **Week 1:** Phase 1 (Infrastructure) + Phase 2.1 (Multi-User Scenarios)
+2. **Week 2:** Phase 2.2 (Group Sharing) + Phase 2.3 (Edge Cases)
+3. **Week 3:** Phase 3 (Cross-Group Balances)
 4. **Week 4:** Phase 4 (Consolidation & Refactoring)
 
-### Notes
-- Tests for unimplemented features will be created but marked as pending
-- This provides documentation of expected behavior
-- Tests can be enabled as features are implemented
-- Focus on testing what EXISTS first, then document what SHOULD exist
+## Future Feature Development
+
+The following features were mentioned in the original analysis but are not currently implemented. These could be considered for future development:
+
+### Not Yet Implemented Features
+- **Multi-currency Support**: Currency selection, multi-currency balances, conversion rates
+- **Settlement & Payment Recording**: Recording cash payments, settlement history
+- **User Profile & Settings**: Display name changes, profile photos, preferences, themes
+- **Export & Reports**: CSV export, PDF reports
+- **Friends & Contacts Management**: Add/remove friends, contact management
+- **Advanced Splitting Options**: Unequal shares, item-based splitting, tax/tip calculations, recurring expenses
