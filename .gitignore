@@ -50,6 +50,7 @@ firebase/functions/*service-account-key.json
 dist
 firebase/public
 
+e2e-tests/playwright-report
 reports
 tmp
 
