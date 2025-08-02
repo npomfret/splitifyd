@@ -138,7 +138,7 @@ test.describe('Group Details E2E', () => {
     }
     
     // Verify we explored the page elements
-    console.log(`Settings element found: ${hasSettings}`);
+
     expect(await page.getByText('Settings Test Group').count()).toBeGreaterThan(0);
   });
 });
