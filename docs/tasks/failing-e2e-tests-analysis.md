@@ -117,7 +117,15 @@ This task will systematically remove test hacks and workarounds to improve test 
     - console.log statements (L188, L229, L271) - Removed
     - test.skip() calls (L87, L191) - Removed
     - Overly flexible selectors with multiple .or() chains - Fixed with specific selectors
-- error-handling.e2e.test.ts: 6 instances
+- error-handling.e2e.test.ts: 6 instances - IN PROGRESS
+  - Analysis shows:
+    - No expect(true).toBe(true) found, but has:
+    - Weak assertions: `expect(isDisabled || hasValidation || hasLengthError || finalUrl.includes('/groups/')).toBe(true)` (L148)
+    - Weak assertions: `expect(hasPermissionError || cannotAccessGroup).toBe(true)` (L206)
+    - console.log statements throughout (L51, L59-61, L79, L102, L105, L108, L127, L142, L163, L170, L180, L191, L197, L200, L248, L250, L255, L294, L296, L306, L311, L312, L346, L348, L357, L363)
+    - test.skip() calls (L80, L312, L364)
+    - skip-error-checking annotations (L15-17, L214-217, L260-263, L318-321)
+    - Overly flexible selectors with multiple .or() chains throughout
 - multi-user-collaboration.e2e.test.ts: 14 instances
 - And others...
 
@@ -199,6 +207,32 @@ const deleteButton = page.getByRole('button', { name: 'Delete Expense' });
 **Commits:**
 - "test: strengthen error assertions in form validation"
 - "test: improve permission error handling tests"
+
+#### error-handling.e2e.test.ts Plan
+Issues to fix:
+1. **Line 148**: `expect(isDisabled || hasValidation || hasLengthError || finalUrl.includes('/groups/')).toBe(true)`
+   - Weak assertion that passes if ANY condition is true
+   - Fix: Make specific assertions about what SHOULD happen (e.g., validation errors should appear)
+
+2. **Line 206**: `expect(hasPermissionError || cannotAccessGroup).toBe(true)`
+   - Weak assertion allowing either condition
+   - Fix: Assert specifically that unauthorized access is blocked
+
+3. **Multiple console.log statements** throughout
+   - Replace with proper assertions or remove entirely
+   - Only keep if they're replaced with meaningful test assertions
+
+4. **test.skip() calls** (Lines 80, 312, 364)
+   - Violates "never skip tests" principle
+   - Fix: Either make the tests work or remove them entirely
+
+5. **skip-error-checking annotations** (Lines 15-17, 214-217, 260-263, 318-321)
+   - These are for tests that intentionally trigger errors
+   - Need to determine if these are legitimate uses or hiding bugs
+
+6. **Overly flexible selectors with multiple .or() chains**
+   - Many selectors have 3-4 .or() conditions making tests unreliable
+   - Fix: Use specific selectors based on actual error UI implementation
 
 ### Phase 3: Address Architectural Issues (Lower Priority)
 
