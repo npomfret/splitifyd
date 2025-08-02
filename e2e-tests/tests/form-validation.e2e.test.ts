@@ -57,24 +57,23 @@ test.describe('Form Validation E2E', () => {
       // Fill only email
       await emailInput.fill('test@example.com');
       
-      // Try to submit without password
-      await loginPage.submitForm();
-      
-      // Check current behavior
-      const afterFirstClick = page.url();
-      
-      // Navigate back if needed
-      if (!afterFirstClick.includes('/login')) {
-        await loginPage.navigate();
-      }
+      // Submit button should be disabled without password
+      const submitButton = page.getByRole('button', { name: 'Sign In' });
+      await expect(submitButton).toBeDisabled();
       
       // Clear and try with only password
       await emailInput.clear();
       await passwordInput.clear();
       await passwordInput.fill('Password123');
       
-      // Try to submit without email
-      await loginPage.submitForm();
+      // Submit button should be disabled without email
+      await expect(submitButton).toBeDisabled();
+      
+      // Fill both fields
+      await emailInput.fill('test@example.com');
+      
+      // Submit button should now be enabled
+      await expect(submitButton).toBeEnabled();
       
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
@@ -84,10 +83,17 @@ test.describe('Form Validation E2E', () => {
       
       await loginPage.navigate();
       
-      // Fill form
+      // Wait for any pre-filled data to load
+      await page.waitForTimeout(500);
+      
+      // Clear any pre-filled data first
       const emailInput = page.locator(loginPage.emailInput);
       const passwordInput = page.locator(loginPage.passwordInput);
       
+      await emailInput.clear();
+      await passwordInput.clear();
+      
+      // Now fill form with our test data
       await emailInput.fill('test@example.com');
       await passwordInput.fill('Password123');
       
@@ -99,9 +105,13 @@ test.describe('Form Validation E2E', () => {
       await page.reload();
       await waitForApp(page);
       
-      // Form should be cleared
-      await expect(emailInput).toHaveValue('');
-      await expect(passwordInput).toHaveValue('');
+      // In dev, form may be pre-filled from config, but our custom values should be gone
+      const newEmailValue = await emailInput.inputValue();
+      const newPasswordValue = await passwordInput.inputValue();
+      
+      // Our custom values should not persist
+      expect(newEmailValue).not.toBe('test@example.com');
+      expect(newPasswordValue).not.toBe('Password123');
       
       // No console errors
       // Console errors are automatically captured by setupConsoleErrorReporting
@@ -124,11 +134,19 @@ test.describe('Form Validation E2E', () => {
       await passwordInputs.first().fill('Password123');
       await passwordInputs.last().fill('DifferentPassword123');
       
-      // Try to submit
-      await page.getByRole('button', { name: 'Create Account' }).click();
+      // Submit button should be disabled with mismatched passwords
+      const submitButton = page.getByRole('button', { name: 'Create Account' });
+      await expect(submitButton).toBeDisabled();
       
-      // Should stay on register page
-      await expect(page).toHaveURL(/\/register/);
+      // Fix password match
+      await passwordInputs.last().fill('Password123');
+      
+      // Also need to check terms checkbox
+      const termsCheckbox = page.getByRole('checkbox');
+      await termsCheckbox.check();
+      
+      // Now button should be enabled
+      await expect(submitButton).toBeEnabled();
       
       // No console errors
       // Console errors are automatically captured by setupConsoleErrorReporting
@@ -171,11 +189,26 @@ test.describe('Form Validation E2E', () => {
       await passwordInputs.first().fill('Password123');
       await passwordInputs.last().fill('Password123');
       
-      // Try to submit
-      await page.getByRole('button', { name: 'Create Account' }).click();
+      // Check terms
+      const termsCheckbox = page.getByRole('checkbox');
+      await termsCheckbox.check();
       
-      // Should stay on register page
+      // HTML5 email validation happens on submit, not before
+      const submitButton = page.getByRole('button', { name: 'Create Account' });
+      await expect(submitButton).toBeEnabled();
+      
+      // Try to submit with invalid email
+      await submitButton.click();
+      
+      // Should show browser's built-in validation message
+      // Check that we're still on register page (form not submitted)
       await expect(page).toHaveURL(/\/register/);
+      
+      // Fix email format
+      await emailInput.fill('test@example.com');
+      
+      // Now form should be valid
+      await expect(submitButton).toBeEnabled();
       
       // No console errors
       // Console errors are automatically captured by setupConsoleErrorReporting

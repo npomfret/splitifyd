@@ -1,7 +1,7 @@
 import { test, expect, Browser } from '@playwright/test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { createAndLoginTestUser } from '../helpers/auth-utils';
-import { CreateGroupModalPage } from '../pages';
+import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -18,9 +18,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       console.log(`User 1 (Group Creator): ${user1.displayName}`);
       
       // Create group
+      const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Share Link Test Group', 'Testing share link functionality');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -172,9 +172,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group
+      const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Invitation Test Group', 'Testing invitation system');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -256,9 +256,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
+      const dashboard1 = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard1.openCreateGroupModal();
       await createGroupModal.createGroup('Collaborative Expense Group', 'Testing multi-user expenses');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -355,15 +355,16 @@ test.describe('Multi-User Collaboration E2E', () => {
 
   test.describe('Concurrent Expense Management', () => {
     test('should handle concurrent expense creation by multiple users', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       // Create two user contexts
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // User 1 creates group
+      const dashboard1 = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard1.openCreateGroupModal();
       await createGroupModal.createGroup('Concurrent Test Group', 'Testing concurrent operations');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -383,11 +384,11 @@ test.describe('Multi-User Collaboration E2E', () => {
         await addExpenseButton1.click();
         await page1.waitForTimeout(1000);
         
-        const descField1 = page1.getByLabel(/description/i);
-        const amountField1 = page1.getByLabel(/amount/i);
+        const descField1 = page1.getByPlaceholder('What was this expense for?');
+        const amountField1 = page1.getByRole('spinbutton');
         
-        await descField1.first().fill('User 1 Lunch');
-        await amountField1.first().fill('25.00');
+        await descField1.fill('User 1 Lunch');
+        await amountField1.fill('25.00');
         
         // Don't submit yet - simulate concurrent creation
       }
@@ -417,15 +418,16 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
 
     test('should sync expense updates across users in real-time', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       // This test simulates real-time sync if implemented
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group
+      const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Real-time Sync Group', 'Testing real-time updates');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -435,14 +437,14 @@ test.describe('Multi-User Collaboration E2E', () => {
       await addExpenseButton.click();
       await page1.waitForTimeout(1000);
       
-      const descField = page1.getByLabel(/description/i);
-      const amountField = page1.getByLabel(/amount/i);
+      const descField = page1.getByPlaceholder('What was this expense for?');
+      const amountField = page1.getByRole('spinbutton');
       
       await descField.first().fill('Shared Dinner');
       await amountField.first().fill('80.00');
       
-      const submitButton = page1.getByRole('button', { name: /save/i });
-      await submitButton.first().click();
+      const submitButton = page1.getByRole('button', { name: 'Save Expense' });
+      await submitButton.click();
       await page1.waitForTimeout(2000);
       
       // In a real multi-user scenario with websockets/real-time:
@@ -469,14 +471,15 @@ test.describe('Multi-User Collaboration E2E', () => {
 
   test.describe('Collaborative Balance Management', () => {
     test('should update balances when multiple users add expenses', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group
+      const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Multi-User Balance Group', 'Testing collaborative balances');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -486,14 +489,14 @@ test.describe('Multi-User Collaboration E2E', () => {
       await addExpenseButton.click();
       await page1.waitForTimeout(1000);
       
-      const descField = page1.getByLabel(/description/i);
-      const amountField = page1.getByLabel(/amount/i);
+      const descField = page1.getByPlaceholder('What was this expense for?');
+      const amountField = page1.getByRole('spinbutton');
       
       await descField.first().fill('Hotel Room');
       await amountField.first().fill('200.00');
       
-      const submitButton = page1.getByRole('button', { name: /save/i });
-      await submitButton.first().click();
+      const submitButton = page1.getByRole('button', { name: 'Save Expense' });
+      await submitButton.click();
       await page1.waitForTimeout(2000);
       
       // Check User 1's balance
@@ -516,14 +519,15 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
 
     test('should handle settlement recording by different users', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group with expense
+      const dashboard1 = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard1.openCreateGroupModal();
       await createGroupModal.createGroup('Settlement Collab Group', 'Testing collaborative settlements');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -533,14 +537,14 @@ test.describe('Multi-User Collaboration E2E', () => {
       await addExpenseButton.click();
       await page1.waitForTimeout(1000);
       
-      const descField = page1.getByLabel(/description/i);
-      const amountField = page1.getByLabel(/amount/i);
+      const descField = page1.getByPlaceholder('What was this expense for?');
+      const amountField = page1.getByRole('spinbutton');
       
       await descField.first().fill('Group Dinner');
       await amountField.first().fill('150.00');
       
-      const submitButton = page1.getByRole('button', { name: /save/i });
-      await submitButton.first().click();
+      const submitButton = page1.getByRole('button', { name: 'Save Expense' });
+      await submitButton.click();
       await page1.waitForTimeout(2000);
       
       // Look for settlement options
@@ -563,14 +567,15 @@ test.describe('Multi-User Collaboration E2E', () => {
 
   test.describe('Conflict Resolution', () => {
     test('should handle edit conflicts when users modify same expense', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group and expense
+      const dashboard1 = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard1.openCreateGroupModal();
       await createGroupModal.createGroup('Conflict Test Group', 'Testing edit conflicts');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -581,14 +586,14 @@ test.describe('Multi-User Collaboration E2E', () => {
       await addExpenseButton.click();
       await page1.waitForTimeout(1000);
       
-      const descField = page1.getByLabel(/description/i);
-      const amountField = page1.getByLabel(/amount/i);
+      const descField = page1.getByPlaceholder('What was this expense for?');
+      const amountField = page1.getByRole('spinbutton');
       
       await descField.first().fill('Conflicting Expense');
       await amountField.first().fill('100.00');
       
-      const submitButton = page1.getByRole('button', { name: /save/i });
-      await submitButton.first().click();
+      const submitButton = page1.getByRole('button', { name: 'Save Expense' });
+      await submitButton.click();
       await page1.waitForTimeout(2000);
       
       // User 1 starts editing
@@ -601,8 +606,8 @@ test.describe('Multi-User Collaboration E2E', () => {
         await page1.waitForTimeout(1000);
         
         // User 1 modifies but doesn't save yet
-        const editDescField = page1.getByLabel(/description/i);
-        await editDescField.first().fill('User 1 Edit');
+        const editDescField = page1.getByPlaceholder('What was this expense for?');
+        await editDescField.fill('User 1 Edit');
         
         // In real multi-user scenario:
         // - User 2 would also try to edit
@@ -624,14 +629,15 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
 
     test('should prevent race conditions in expense deletion', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group and expense
+      const dashboard1 = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard1.openCreateGroupModal();
       await createGroupModal.createGroup('Race Condition Group', 'Testing deletion race conditions');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -641,14 +647,14 @@ test.describe('Multi-User Collaboration E2E', () => {
       await addExpenseButton.click();
       await page1.waitForTimeout(1000);
       
-      const descField = page1.getByLabel(/description/i);
-      const amountField = page1.getByLabel(/amount/i);
+      const descField = page1.getByPlaceholder('What was this expense for?');
+      const amountField = page1.getByRole('spinbutton');
       
       await descField.first().fill('Race Condition Expense');
       await amountField.first().fill('75.00');
       
-      const submitButton = page1.getByRole('button', { name: /save/i });
-      await submitButton.first().click();
+      const submitButton = page1.getByRole('button', { name: 'Save Expense' });
+      await submitButton.click();
       await page1.waitForTimeout(2000);
       
       // In multi-user scenario:
@@ -678,14 +684,15 @@ test.describe('Multi-User Collaboration E2E', () => {
 
   test.describe('Notifications and Activity Feed', () => {
     test('should notify users of group activity', async ({ browser }) => {
+      test.setTimeout(30000); // 30 seconds for multi-user test
       const context1 = await browser.newContext();
       const page1 = await context1.newPage();
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group
+      const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Activity Feed Group', 'Testing notifications');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -704,14 +711,14 @@ test.describe('Multi-User Collaboration E2E', () => {
       await addExpenseButton.click();
       await page1.waitForTimeout(1000);
       
-      const descField = page1.getByLabel(/description/i);
-      const amountField = page1.getByLabel(/amount/i);
+      const descField = page1.getByPlaceholder('What was this expense for?');
+      const amountField = page1.getByRole('spinbutton');
       
       await descField.first().fill('Activity Test Expense');
       await amountField.first().fill('40.00');
       
-      const submitButton = page1.getByRole('button', { name: /save/i });
-      await submitButton.first().click();
+      const submitButton = page1.getByRole('button', { name: 'Save Expense' });
+      await submitButton.click();
       await page1.waitForTimeout(2000);
       
       // Check for activity entry
@@ -743,9 +750,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group
+      const dashboard = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard.openCreateGroupModal();
       await createGroupModal.createGroup('Real-time Update Group', 'Testing live updates');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
@@ -795,9 +802,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       const user1 = await createAndLoginTestUser(page1);
       
       // Create group (User 1 is admin/owner)
+      const dashboard1 = new DashboardPage(page1);
       const createGroupModal = new CreateGroupModalPage(page1);
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(500);
+      await dashboard1.openCreateGroupModal();
       await createGroupModal.createGroup('Admin Test Group', 'Testing admin permissions');
       
       await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });

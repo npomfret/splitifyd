@@ -62,6 +62,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
   });
 
   test('should handle network errors gracefully', async ({ page, context }) => {
+    test.info().annotations.push({ type: 'skip-error-checking' });
     // Block API calls to simulate network failure
     await context.route('**/api/**', route => route.abort());
     

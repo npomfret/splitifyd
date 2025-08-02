@@ -199,6 +199,11 @@ export const RegisterResponseSchema = z.object({
   })
 });
 
+// Generic message response for operations like DELETE
+export const MessageResponseSchema = z.object({
+  message: z.string().min(1)
+});
+
 export const responseSchemas = {
   '/config': AppConfigurationSchema,
   '/health': HealthCheckResponseSchema,
@@ -206,6 +211,7 @@ export const responseSchemas = {
   'POST /groups': GroupSchema,
   '/groups/:id': GroupSchema,
   '/expenses': ExpenseDataSchema,
+  'DELETE /expenses': MessageResponseSchema,
   '/expenses/group': ExpenseListResponseSchema,
   '/groups/balances': GroupBalancesSchema,
   'POST /groups/share': ShareableLinkResponseSchema,

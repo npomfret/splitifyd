@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { createAndLoginTestUser } from '../helpers/auth-utils';
-import { GroupDetailPage } from '../pages';
+import { GroupDetailPage, DashboardPage, CreateGroupModalPage } from '../pages';
 
 test.describe('Multi-user group with expenses', () => {
   test('multiple users can join a group via share link and add expenses', async ({ browser }) => {
@@ -19,20 +19,11 @@ test.describe('Multi-user group with expenses', () => {
       const user1 = await createAndLoginTestUser(page1);
       console.log(`User 1 logged in: ${user1.displayName}`);
       
-      // Create a new group (use the same approach as debug test)
-      await page1.getByRole('button', { name: 'Create Group' }).click();
-      await page1.waitForTimeout(1000);
-      
-      // Fill form directly 
-      await page1.getByRole('textbox', { name: 'Group Name' }).fill('Multi-User Test Group');
-      await page1.getByPlaceholder('Add any details about this group...').fill('Testing expenses with multiple users');
-      
-      // Wait for validation
-      await page1.waitForTimeout(1000);
-      
-      // Submit using form-specific selector
-      const submitButton = page1.locator('form').getByRole('button', { name: 'Create Group' });
-      await submitButton.click();
+      // Create a new group using page objects
+      const dashboard = new DashboardPage(page1);
+      const createGroupModal = new CreateGroupModalPage(page1);
+      await dashboard.openCreateGroupModal();
+      await createGroupModal.createGroup('Multi-User Test Group', 'Testing expenses with multiple users');
       
       // Wait for navigation to group detail page
       await page1.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -160,42 +151,21 @@ test.describe('Multi-user group with expenses', () => {
       ]);
       
       // Check User 1's view
-      const expenses1 = await page1.locator('[data-testid="expense-item"]').all();
-      expect(expenses1.length).toBeGreaterThanOrEqual(3);
-      
-      const expenseTexts1 = await Promise.all(
-        expenses1.map(async (expense) => await expense.textContent())
-      );
-      
-      expect(expenseTexts1.some(text => text?.includes('Lunch for everyone'))).toBeTruthy();
-      expect(expenseTexts1.some(text => text?.includes('Movie tickets'))).toBeTruthy();
-      expect(expenseTexts1.some(text => text?.includes('Uber ride'))).toBeTruthy();
+      await expect(page1.getByText('Lunch for everyone')).toBeVisible();
+      await expect(page1.getByText('Movie tickets')).toBeVisible();
+      await expect(page1.getByText('Uber ride')).toBeVisible();
       console.log('✓ User 1 can see all 3 expenses');
       
       // Check User 2's view
-      const expenses2 = await page2.locator('[data-testid="expense-item"]').all();
-      expect(expenses2.length).toBeGreaterThanOrEqual(3);
-      
-      const expenseTexts2 = await Promise.all(
-        expenses2.map(async (expense) => await expense.textContent())
-      );
-      
-      expect(expenseTexts2.some(text => text?.includes('Lunch for everyone'))).toBeTruthy();
-      expect(expenseTexts2.some(text => text?.includes('Movie tickets'))).toBeTruthy();
-      expect(expenseTexts2.some(text => text?.includes('Uber ride'))).toBeTruthy();
+      await expect(page2.getByText('Lunch for everyone')).toBeVisible();
+      await expect(page2.getByText('Movie tickets')).toBeVisible();
+      await expect(page2.getByText('Uber ride')).toBeVisible();
       console.log('✓ User 2 can see all 3 expenses');
       
       // Check User 3's view
-      const expenses3 = await page3.locator('[data-testid="expense-item"]').all();
-      expect(expenses3.length).toBeGreaterThanOrEqual(3);
-      
-      const expenseTexts3 = await Promise.all(
-        expenses3.map(async (expense) => await expense.textContent())
-      );
-      
-      expect(expenseTexts3.some(text => text?.includes('Lunch for everyone'))).toBeTruthy();
-      expect(expenseTexts3.some(text => text?.includes('Movie tickets'))).toBeTruthy();
-      expect(expenseTexts3.some(text => text?.includes('Uber ride'))).toBeTruthy();
+      await expect(page3.getByText('Lunch for everyone')).toBeVisible();
+      await expect(page3.getByText('Movie tickets')).toBeVisible();
+      await expect(page3.getByText('Uber ride')).toBeVisible();
       console.log('✓ User 3 can see all 3 expenses');
       
       // Verify member count shows 3 users

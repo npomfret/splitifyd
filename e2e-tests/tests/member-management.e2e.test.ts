@@ -97,14 +97,13 @@ test.describe('Member Management E2E', () => {
     
     await expect(userIdentifier.first()).toBeVisible();
     
-    // Look for members section or member count
+    // Look for members section or member count - wait for it to appear
     const memberIndicator = page.getByText(/member/i)
       .or(page.getByRole('heading', { name: /member/i }))
       .or(page.getByText(/participant/i));
     
-    // Just check if any member-related text exists
-    const hasMemberInfo = await memberIndicator.count() > 0;
-    expect(hasMemberInfo).toBeTruthy();
+    // Wait for member information to be visible
+    await expect(memberIndicator.first()).toBeVisible();
   });
 
   test('should handle member permissions and roles', async ({ page }) => {

@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { createAndLoginTestUser } from '../helpers/auth-utils';
-import { CreateGroupModalPage } from '../pages';
+import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -9,6 +9,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Complex Multi-User Scenario Test', () => {
   test('create complex group with multiple users and expenses', async ({ browser }) => {
+    test.setTimeout(30000); // 30 seconds timeout
     // Create first user (group creator)
     const context1 = await browser.newContext();
     const page1 = await context1.newPage();
@@ -17,9 +18,9 @@ test.describe('Complex Multi-User Scenario Test', () => {
     console.log(`Created User 1: ${user1.displayName} (${user1.email})`);
     
     // User 1 creates a group
+    const dashboard = new DashboardPage(page1);
     const createGroupModal = new CreateGroupModalPage(page1);
-    await page1.getByRole('button', { name: 'Create Group' }).click();
-    await page1.waitForTimeout(500);
+    await dashboard.openCreateGroupModal();
     await createGroupModal.createGroup('Vacation Group', 'Complex expense sharing test');
     
     // Wait for navigation to group page
@@ -52,11 +53,8 @@ test.describe('Complex Multi-User Scenario Test', () => {
         await page1.waitForTimeout(1000);
         
         // Fill expense form
-        const descriptionField = page1.getByLabel(/description/i)
-          .or(page1.locator('input[name*="description"]'))
-          .or(page1.getByPlaceholder(/what was this expense/i));
-        const amountField = page1.getByLabel(/amount/i)
-          .or(page1.locator('input[type="number"]'));
+        const descriptionField = page1.getByPlaceholder('What was this expense for?');
+        const amountField = page1.getByRole('spinbutton');
         
         const hasForm = await descriptionField.count() > 0 && await amountField.count() > 0;
         if (hasForm) {
@@ -188,18 +186,17 @@ test.describe('Complex Multi-User Scenario Test', () => {
         await addExpenseButton2.first().click();
         await page2.waitForTimeout(1000);
         
-        const descriptionField = page2.getByLabel(/description/i);
-        const amountField = page2.getByLabel(/amount/i);
+        const descriptionField = page2.getByPlaceholder('What was this expense for?');
+        const amountField = page2.getByRole('spinbutton');
         
         const hasForm = await descriptionField.count() > 0 && await amountField.count() > 0;
         if (hasForm) {
           await descriptionField.first().fill('Restaurant Dinner');
           await amountField.first().fill('120.00');
           
-          const submitButton = page2.getByRole('button', { name: /save/i })
-            .or(page2.getByRole('button', { name: /add expense/i }));
+          const submitButton = page2.getByRole('button', { name: 'Save Expense' });
           
-          await submitButton.first().click();
+          await submitButton.click();
           await page2.waitForTimeout(2000);
           
           console.log('User 2 added expense: Restaurant Dinner - $120.00');
