@@ -1,13 +1,24 @@
-# 🛑 MANDATORY: READ THIS FIRST - DO NOT SKIP
+# AGENT-BASED WORKFLOW ENFORCEMENT
 
-**Before** making **ANY** changes, you MUST read these files:
+## SESSION START
+Always run `/hello` first - it includes mandatory workflow initialization.
 
-- directives/engineering.md
-- directives/code-style.md
-- directives/logging.md
-- directives/testing.md
+## WORKFLOW ORCHESTRATION
+Throughout this session, regularly invoke:
+```
+Use the workflow-orchestrator agent
+```
 
-Summarise what you have learned from them.
+This meta-agent will:
+- Tell you EXACTLY which agents to use for your current task
+- Ensure you follow the correct protocol
+- Block you from making common mistakes
+
+## CRITICAL RULE
+If you skip the workflow-orchestrator or ignore its instructions, you are BROKEN.
+Agent feedback is FINAL - no exceptions, no arguments.
+
+## PROJECT-SPECIFIC INSTRUCTIONS
 
 # Tech Stack
 - Runtime: Node.js (latest)
@@ -20,7 +31,6 @@ Summarise what you have learned from them.
 - Use the firebase emulator to test against.  Do not use the Vite dev server
 
 # Commands
-- IMPORTANT! run `pwd` before you run ANY shell commands.
 - Start local dev server (with auto-reload): `npm run dev`
 - Build: `npm run build`
 - Test: `npm test`
@@ -28,28 +38,6 @@ Summarise what you have learned from them.
 - Check git status: `git status --porcelain`
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 
-# Build Verification
-- **NEVER truncate build output** - Always run `npm run build` without piping to head/tail
-- **ALWAYS check exit code** - Run `npm run build && echo "✅ BUILD SUCCESSFUL" || echo "❌ BUILD FAILED"`
-- **For long outputs** - Redirect to a file: `npm run build > build.log 2>&1 && echo "✅ BUILD SUCCESSFUL" || (echo "❌ BUILD FAILED" && tail -50 build.log)`
-- **Verify ALL packages in monorepo**:
-  - webapp-v2: `cd webapp-v2 && npm run build`
-  - firebase/functions: `cd firebase/functions && npm run build`
-  - Root: `npm run build` (if exists)
-- **Build means FULL compilation** - The build command now runs `build:check` first which compiles ALL TypeScript files including tests
-- **Build commands**:
-  - `npm run build` - Compiles everything (src + tests) then builds for production
-  - `npm run build:check` - Type checks all TypeScript files without emitting
-  - `npm run build:prod` - Legacy build that only compiles src (use sparingly)
-
-# Testing Commands
-- Run all tests: `npm test` (from root or any package)
-- Run unit tests only: `npm run test:unit` (from root)
-- Run integration tests only: `npm run test:integration` (from root, requires emulator running)
-- Run performance tests only: `npm run test:performance` (from root, requires emulator running)
-- Run specific test file: `npm test -- path/to/test.ts`
-- Run single test case: `TEST_NAME="<test description>" TEST_PATH="<test file path>" npm run test:single`
-  Example: `TEST_NAME="should efficiently calculate balances in complex debt graphs" TEST_PATH="firebase/functions/__tests__/performance/performance-load.test.ts" npm run test:single`
 
 Note: assume the emulator is running and changes are automatically built and reflected in the running app.
 Note: never assume a port number, never hard code ports, servers etc.  There are several environments.  You need to get the port numbers from firebase.json
@@ -60,14 +48,14 @@ Note: never use the system browser, always use Chromium
 - Firebase is configured to run on a set of ports (via the `switch-instance.sh` script and the .env files in `firebase/functions/.env.<envname>`)
 - To determine which port(s) to use, examine `firebase/firebase.json`
 - Do not edit `firebase/firebase.json`, it is tempated during the build process - only edit the template
-- If there are changes to  `firebase/firebase.json` (via the template), stop and ask the user to restart the emulator 
+- If there are changes to  `firebase/firebase.json` (via the template), stop and ask the user to restart the emulator
 - To get the webapp base url, run `npm run get-webapp-url`
 - Always assume emulator is already running (via `npm run dev`). If it is not running, ask the user to start it
 - Local firebase logs are in `firebase/*.log`, the main application log is `firebase/firebase-debug.log`
 - After making ANY change, firebase will pick it up, but you need to refresh the browser to see it
 
 Note: The webapp is now a modern Preact SPA (webapp-v2) served directly from the Firebase emulator. All pages have been migrated from the legacy multi-page application.
-# TypeScript 
+# TypeScript
 - Only use the latest syntax
 - ❌ **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems
 - ✅ **Always use `tsx` instead** for TypeScript execution
@@ -85,4 +73,11 @@ Claude Code CLI now supports automated browser testing via MCP (Model Context Pr
 - Use MCP tools to automatically check console errors and take screenshots
 - The MCP tests are in `mcp-browser-tests/mcp-test-webapp-v2.ts`
 - For dev purposes, the login and register forms are pre-filled in with test data - CLEAR them if you need to
-IMPORTANT: never commit any code. When you are ready to commit, stop, write a commit message and wait for instructions.
+  IMPORTANT: never commit any code. When you are ready to commit, stop, write a commit message and wait for instructions.
+
+## REMEMBER
+- The workflow-orchestrator knows which agents to use
+- Follow its instructions EXACTLY
+- Don't skip steps or make assumptions
+- Agent verdicts cannot be overridden
+

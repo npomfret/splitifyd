@@ -3,11 +3,6 @@
 .idea/shelf
 
 # Claude stuff
-.claude/commands/hello.md
-.claude/commands/analyse.md
-.claude/commands/changes.md
-.claude/commands/next-task.md
-.claude/commands/fix.md
 /directives
 
 # Logs
@@ -57,3 +52,35 @@ firebase/public
 
 reports
 tmp
+
+
+# AI agents stuff
+CLAUDE.md
+GEMINI.md
+directives
+.claude/commands/analyse.md
+.claude/commands/changes.md
+.claude/commands/fix.md
+.claude/commands/hello.md
+.claude/commands/next-task.md
+.claude/agents/analyst.md
+.claude/agents/architect-advisor.md
+.claude/agents/auditor.md
+.claude/agents/backwards-compat-detector.md
+.claude/agents/build-system-analyzer.md
+.claude/agents/comment-detector.md
+.claude/agents/console-detector.md
+.claude/agents/duplicate-detector.md
+.claude/agents/engineering-guardian.md
+.claude/agents/error-suppressor-detector.md
+.claude/agents/hack-detector.md
+.claude/agents/modern-syntax-enforcer.md
+.claude/agents/mutable-state-detector.md
+.claude/agents/no-fallback-detector.md
+.claude/agents/pwd-checker.md
+.claude/agents/scope-creep-detector.md
+.claude/agents/style-enforcer.md
+.claude/agents/test-for-future-detector.md
+.claude/agents/test-quality-enforcer.md
+.claude/agents/test-runner.md
+.claude/agents/workflow-orchestrator.md
