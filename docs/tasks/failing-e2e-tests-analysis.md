@@ -105,12 +105,18 @@ This task will systematically remove test hacks and workarounds to improve test 
 #### 1.2 Replace No-Op Assertions  
 **Files with expect(true).toBe(true):** Found 67 instances across 12 files
 - delete-operations.e2e.test.ts: 10 instances - COMPLETED ✓
-- add-expense.e2e.test.ts: 5 instances - IN PROGRESS
+- add-expense.e2e.test.ts: 5 instances - COMPLETED ✓
+  - No expect(true).toBe(true) found, but had:
+    - Non-deterministic comments (L34, L63) - Fixed
+    - console.log statements instead of assertions (L172, L266) - Fixed
+    - Weak validation testing - Fixed
+- balance-settlement.e2e.test.ts: 7 instances - IN PROGRESS
   - No expect(true).toBe(true) found, but has:
-    - Non-deterministic comments (L34, L63)
-    - console.log statements instead of assertions (L172, L266)
-    - Weak validation testing
-- balance-settlement.e2e.test.ts: 7 instances
+    - Weak assertions: `expect(hasBalanceSection || hasSettledState).toBe(true)` (L127)
+    - Weak assertions: `expect(hasHistory || page.url().includes('/groups/')).toBe(true)` (L231)
+    - console.log statements (L188, L229, L271)
+    - test.skip() calls (L87, L191)
+    - Overly flexible selectors with multiple .or() chains
 - error-handling.e2e.test.ts: 6 instances
 - multi-user-collaboration.e2e.test.ts: 14 instances
 - And others...
@@ -258,3 +264,46 @@ Example transformations:
 - Deletion: Verify item removed from UI and returns 404
 - Navigation: Verify URL change and page content
 - Validation: Verify specific error messages and field states
+
+#### balance-settlement.e2e.test.ts Plan
+Issues to fix:
+1. **Line 23**: "Should show balanced state or zero balances" - Non-deterministic comment
+   - The test uses overly flexible selectors with 5 .or() conditions
+   - Fix: Assert specifically that the balance section shows "All settled up!" for new groups
+
+2. **Line 87**: `test.skip()` when add expense is not available
+   - Violates "never skip tests" principle
+   - Fix: Since add expense IS implemented, remove the skip and properly test expense creation
+
+3. **Line 127**: `expect(hasBalanceSection || hasSettledState).toBe(true)`
+   - Weak assertion that passes if either condition is true
+   - Fix: Assert that balance section exists AND shows settled state for single-member group
+
+4. **Line 188**: `console.log` for settlement functionality
+   - Should use proper assertions instead
+   - Fix: Test the actual settlement recording feature (appears to be implemented)
+
+5. **Line 191**: `test.skip()` when settlement not available
+   - Violates "never skip tests" principle
+   - Fix: Remove skip and test the feature properly
+
+6. **Line 229**: `console.log` for settlement history
+   - Should use proper assertions
+   - Fix: Assert that history/activity section exists, even if empty
+
+7. **Line 231**: `expect(hasHistory || page.url().includes('/groups/')).toBe(true)`
+   - Extremely weak assertion (URL check always passes on group page)
+   - Fix: Assert specific UI elements for history/activity
+
+8. **Line 271**: `console.log` for balance summary
+   - Should use proper assertions
+   - Fix: Assert that balance display exists and shows correct format
+
+9. **Multiple overly flexible selectors**
+   - Many selectors have 4-5 .or() conditions making tests unreliable
+   - Fix: Use specific selectors based on actual UI implementation
+
+Based on examining the actual UI components:
+- BalanceSummary component IS implemented and shows "All settled up!" or list of debts
+- Settlement recording appears to be implemented (need to verify)
+- Group detail page shows balances via the BalanceSummary component
