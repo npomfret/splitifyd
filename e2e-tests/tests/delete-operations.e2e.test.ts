@@ -75,10 +75,10 @@ test.describe('Delete Operations E2E', () => {
         
         // Expense should no longer be visible on the group page
         await expect(page.getByText('Expense to Delete')).not.toBeVisible();
+      } else {
+        // Delete functionality not implemented - skip test
+        test.skip();
       }
-      
-      // Test passes whether or not delete functionality is implemented
-      expect(true).toBe(true);
     });
 
     test('should cancel expense deletion', async ({ page }) => {
@@ -130,9 +130,10 @@ test.describe('Delete Operations E2E', () => {
         
         // Expense should still exist
         await expect(page.getByText('Keep This Expense')).toBeVisible();
+      } else {
+        // Cancel functionality not implemented - skip test
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
 
     test('should prevent deletion of expenses by non-creator', async ({ page, browser }) => {
@@ -193,12 +194,14 @@ test.describe('Delete Operations E2E', () => {
             
             // Delete button should be disabled or hidden for non-creator
             expect(isDisabled || isHidden).toBeTruthy();
+          } else {
+            // Delete button not present for non-creator - this is correct behavior
+            expect(hasDeleteButton).toBe(false);
           }
         }
       }
       
       await context2.close();
-      expect(true).toBe(true);
     });
   });
 
@@ -246,9 +249,10 @@ test.describe('Delete Operations E2E', () => {
             await expect(page.getByText('Empty Group to Delete')).not.toBeVisible();
           }
         }
+      } else {
+        // Delete group functionality not implemented - skip test
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
 
     test('should prevent deletion of group with expenses', async ({ page }) => {
@@ -303,9 +307,10 @@ test.describe('Delete Operations E2E', () => {
           // Group should still exist
           await expect(page.getByText('Group with Expenses')).toBeVisible();
         }
+      } else {
+        // Delete settings not available - skip test
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
 
     test('should handle group deletion with unsettled balances', async ({ page }) => {
@@ -361,9 +366,10 @@ test.describe('Delete Operations E2E', () => {
             await expect(balanceWarning.first()).toBeVisible();
           }
         }
+      } else {
+        // Delete settings not available - skip test
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
   });
 
@@ -437,10 +443,14 @@ test.describe('Delete Operations E2E', () => {
           // At least one expense should be removed
           const remainingExpenses = await page.getByText(/Expense \d/).count();
           expect(remainingExpenses).toBeLessThan(3);
+        } else {
+          // Bulk delete not available - skip test
+          test.skip();
         }
+      } else {
+        // Bulk operations not implemented - skip test
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
   });
 
@@ -507,15 +517,18 @@ test.describe('Delete Operations E2E', () => {
             // Expense should be restored
             await expect(page.getByText('Expense to Undo')).toBeVisible();
           }
+        } else {
+          // Undo feature not available - this is okay
+          console.log('Undo feature not implemented');
         }
+      } else {
+        // Delete functionality not available - skip test
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
 
     test('should handle deletion of recently edited expense', async ({ page }) => {
       test.setTimeout(20000);
-      test.info().annotations.push({ type: 'skip-error-checking' });
       await createAndLoginTestUser(page);
       
       // Create group and expense
@@ -576,9 +589,10 @@ test.describe('Delete Operations E2E', () => {
         // Expense should be deleted
         await expect(page.getByText('Edited Expense')).not.toBeVisible();
         await expect(page.getByText('Original Expense')).not.toBeVisible();
+      } else {
+        // Delete functionality not available - skip test  
+        test.skip();
       }
-      
-      expect(true).toBe(true);
     });
   });
 });
