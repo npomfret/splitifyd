@@ -9,7 +9,7 @@ export class GroupDetailPage extends BasePage {
     async openShareModal() {
         await this.page.getByRole('button', { name: 'Share Group' }).click();
         // Wait for modal to appear - using similar pattern as CreateGroupModalPage
-        await this.page.waitForSelector('.fixed.inset-0', { state: 'visible', timeout: 10000 });
+        await this.page.waitForSelector('.fixed.inset-0', { state: 'visible', timeout: 3000 });
     }
 
     async clickAddExpenseButton() {
@@ -21,7 +21,7 @@ export class GroupDetailPage extends BasePage {
         await addExpenseButton.first().click();
         
         // Wait for navigation to add expense page
-        await this.page.waitForURL(/\/groups\/[^\/]+\/add-expense/, { timeout: 5000 });
+        await this.page.waitForURL(/\/groups\/[^\/]+\/add-expense/, { timeout: 2000 });
     }
 
     async addExpense(expenseData: {
@@ -44,8 +44,8 @@ export class GroupDetailPage extends BasePage {
         await submitButton.first().click();
 
         // Wait for navigation back to group page
-        await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 10000 });
-        await this.page.waitForTimeout(500); // Allow time for expense to appear
+        await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 3000 });
+        await this.page.waitForTimeout(200); // Allow time for expense to appear
     }
 
     async getExpenseItems() {

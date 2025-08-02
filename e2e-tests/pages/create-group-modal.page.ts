@@ -62,7 +62,7 @@ export class CreateGroupModalPage extends BasePage {
     }
     
     // Wait for form validation to process
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(200);
   }
   
   async submitForm() {
@@ -71,7 +71,7 @@ export class CreateGroupModalPage extends BasePage {
     await submitButton.waitFor({ state: 'visible' });
     
     // Wait for button to be enabled (form validation may take a moment)
-    await expect(submitButton).toBeEnabled({ timeout: 5000 });
+    await expect(submitButton).toBeEnabled({ timeout: 2000 });
     
     await submitButton.click();
   }
