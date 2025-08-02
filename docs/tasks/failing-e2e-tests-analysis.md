@@ -117,15 +117,15 @@ This task will systematically remove test hacks and workarounds to improve test 
     - console.log statements (L188, L229, L271) - Removed
     - test.skip() calls (L87, L191) - Removed
     - Overly flexible selectors with multiple .or() chains - Fixed with specific selectors
-- error-handling.e2e.test.ts: 6 instances - IN PROGRESS
-  - Analysis shows:
-    - No expect(true).toBe(true) found, but has:
-    - Weak assertions: `expect(isDisabled || hasValidation || hasLengthError || finalUrl.includes('/groups/')).toBe(true)` (L148)
-    - Weak assertions: `expect(hasPermissionError || cannotAccessGroup).toBe(true)` (L206)
-    - console.log statements throughout (L51, L59-61, L79, L102, L105, L108, L127, L142, L163, L170, L180, L191, L197, L200, L248, L250, L255, L294, L296, L306, L311, L312, L346, L348, L357, L363)
-    - test.skip() calls (L80, L312, L364)
-    - skip-error-checking annotations (L15-17, L214-217, L260-263, L318-321)
-    - Overly flexible selectors with multiple .or() chains throughout
+- error-handling.e2e.test.ts: 6 instances - COMPLETED ✓
+  - No expect(true).toBe(true) found, but had:
+    - Weak assertions: `expect(isDisabled || hasValidation || hasLengthError || finalUrl.includes('/groups/')).toBe(true)` (L148) - Fixed
+    - Weak assertions: `expect(hasPermissionError || cannotAccessGroup).toBe(true)` (L206) - Fixed
+    - console.log statements throughout - All removed
+    - test.skip() calls (L80, L312, L364) - All removed
+    - Overly flexible selectors with multiple .or() chains - Improved where possible
+    - skip-error-checking annotations kept as they are legitimate (tests intentionally trigger errors)
+  - All 6 tests now pass without anti-patterns
 - multi-user-collaboration.e2e.test.ts: 14 instances
 - And others...
 
