@@ -1,9 +1,62 @@
 # Eliminate Adaptive Test Behavior Anti-Pattern
 
 ## Problem
-- **Location**: `e2e-tests/tests/multi-user-collaboration.e2e.test.ts:29-31, 40-42, 46-51, 175-177, 259-261, 263-268`
+- **Location**: `e2e-tests/tests/multi-user-collaboration.e2e.test.ts` - 45 instances of `.or()` chains
 - **Description**: Tests use complex element selection patterns that adapt to whatever UI elements they find, making tests non-deterministic and hiding UI inconsistencies
 - **Current vs Expected**: Adaptive selector chains with `.or()` vs specific, explicit element selection
+
+## Detailed Implementation Plan
+
+### Phase 1: Create Helper Infrastructure (Commit 1)
+1. **Create `e2e-tests/helpers/multi-user-elements.ts`**
+   - Element helper classes for each feature area
+   - Single source of truth for element selectors
+   - Throw descriptive errors when elements not found
+
+### Phase 2: Refactor by Feature Area (5 separate commits)
+
+#### Commit 2: Share Functionality
+- Lines 29-31, 40-42, 259-261: Share button variations
+- Replace with: `getByRole('button', { name: 'Share Group' })`
+- Add proper modal assertions
+
+#### Commit 3: Join Functionality  
+- Lines 79, 213: Join/Accept button variations
+- Replace with: `getByRole('button', { name: 'Join Group' })`
+- Add URL assertions after joining
+
+#### Commit 4: Invite Functionality
+- Lines 168, 176, 188, 199-200, 206: Invite flow variations
+- Replace with specific invite button and email input selectors
+- Add invitation status assertions
+
+#### Commit 5: Sync/Activity Features
+- Lines 439-440, 678-679, 738-739, 762-763: Status indicators
+- Replace with data-testid attributes where needed
+- Add explicit visibility assertions
+
+#### Commit 6: Admin/Settings Features
+- Lines 790-791, 800-801, 829-839: Admin controls
+- Replace with role-based selectors
+- Add permission-based assertions
+
+### Phase 3: Update Test Structure (Commit 7)
+1. **Restructure tests to fail fast**
+   - Remove all conditional test logic
+   - Add explicit feature expectations
+   - Use test.skip() for unimplemented features
+
+### Risks and Mitigations
+- **Risk**: Tests may fail if UI has changed
+- **Mitigation**: Run tests after each commit to identify actual UI
+- **Risk**: Some features may not be implemented
+- **Mitigation**: Use test.skip() with clear reasons
+
+### Success Criteria
+- Zero `.or()` chains remaining
+- Tests fail immediately when expected UI missing
+- Clear error messages indicating exactly what's missing
+- All existing tests still pass (or skip with reason)
 
 ## Solution
 Replace adaptive element selection with deterministic assertions:
