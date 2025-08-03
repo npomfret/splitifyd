@@ -23,23 +23,11 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Use label selector that includes the asterisk for required field
+    // Use the reliable clearAndFill method from BasePage
     const nameInput = this.page.getByLabel('Group Name*');
-    
-    // Click to focus the input first
     await nameInput.click();
-    
-    // Triple-click to select all text (works on all platforms)
-    await nameInput.click({ clickCount: 3 });
-    await nameInput.press('Delete');
-    
-    // Type the text character by character to ensure proper event triggering
-    for (const char of name) {
-      await nameInput.press(char);
-    }
-    
-    // Tab out to trigger blur event if needed
-    await this.page.keyboard.press('Tab');
+    await nameInput.clear();
+    await nameInput.fill(name);
     
     // Verify the name was actually filled
     const filledValue = await nameInput.inputValue();
@@ -49,16 +37,7 @@ export class CreateGroupModalPage extends BasePage {
     
     if (description) {
       const descInput = this.page.getByPlaceholder('Add any details about this group...');
-      
-      await descInput.click();
-      
-      // Triple-click to select all text
-      await descInput.click({ clickCount: 3 });
-      await descInput.press('Delete');
-      
-      for (const char of description) {
-        await descInput.press(char);
-      }
+      await descInput.fill(description);
     }
     
     // Wait for form validation to process
