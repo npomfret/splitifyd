@@ -315,6 +315,19 @@ export class ApiClient {
     });
   }
 
+  async previewGroupByLink(linkId: string): Promise<{
+    groupId: string;
+    groupName: string;
+    groupDescription: string;
+    memberCount: number;
+    isAlreadyMember: boolean;
+  }> {
+    return this.request('/groups/preview', {
+      method: 'POST',
+      body: { linkId }
+    });
+  }
+
   async joinGroupByLink(linkId: string): Promise<Group> {
     const response = await this.request('/groups/join', {
       method: 'POST',

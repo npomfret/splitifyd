@@ -168,13 +168,17 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 **Symptom**: Multiple elements match the same text selector
 **Solution Applied**: Use `.first()` selector
 
-### Pattern 3: Share Link Navigation 🔄 PENDING
+### Pattern 3: Share Link Navigation ✅ FIXED
 **Affected Tests**: 2 tests
 **Symptom**: Navigation to group page after join never completes
-**Possible Causes**:
-- Join endpoint not redirecting properly
-- Authentication issues
-- URL format mismatch
+**Root Cause**: 
+- The join-group-store was trying to join the group during the preview phase
+- Tests expected automatic navigation, but users need to click "Join Group" button
+**Solution Applied**:
+1. Created a new `/groups/preview` endpoint that returns group info without joining
+2. Updated join-group-store to use preview endpoint instead of join endpoint
+3. Updated tests to click the "Join Group" button before expecting navigation
+4. Tests now pass when run individually
 
 ### Pattern 4: Modal Dialog Detection 🔄 PENDING
 **Affected Tests**: 1 test
@@ -194,10 +198,11 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 
 1. ✅ ~~Fix Create Group Modal issue~~ COMPLETED
 2. ✅ ~~Fix expense detail selector issue~~ COMPLETED
-3. 🔄 Investigate and fix the share link join flow
+3. ✅ ~~Investigate and fix the share link join flow~~ COMPLETED
 4. 🔄 Update modal dialog selectors for share functionality
 5. 🔄 Add data-testid attributes to critical elements for more reliable selectors
 6. 🔄 Consider reducing test parallelism for more consistent results
+7. 🔄 Investigate intermittent Create Group Modal failures in parallel test runs
 
 ## Notes
 
@@ -207,3 +212,6 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 - The multi-user test scenarios are complex and may need special handling for timing
 - Server correctly handles duplicate user registrations with 409 status
 - Existing logout test confirmed in `dashboard.e2e.test.ts`
+- Join flow now requires explicit user action (clicking Join button) for security
+- Firebase functions auto-reload on changes but may need a few seconds to pick up new endpoints
+- Create Group Modal issue appears intermittently when tests run in parallel

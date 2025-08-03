@@ -73,6 +73,17 @@ test.describe('Basic Operations E2E', () => {
     const url = new URL(shareLink);
     const joinPath = url.pathname + url.search;
     await page2.goto(joinPath);
+    
+    // Wait for the join page to load
+    await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+    
+    // Click the Join Group button
+    await page2.getByRole('button', { name: 'Join Group' }).click();
+    
+    // Wait for success message
+    await expect(page2.getByText('Welcome to Shared Group!')).toBeVisible();
+    
+    // Now wait for navigation to the group page (includes 1.5s delay)
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 15000 });
     
     await expect(page2.getByText('Shared Expense')).toBeVisible();

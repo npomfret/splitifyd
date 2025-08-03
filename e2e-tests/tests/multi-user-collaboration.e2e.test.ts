@@ -41,6 +41,13 @@ test.describe('Multi-User Collaboration E2E', () => {
     const joinPath = url.pathname + url.search;
     await page2.goto(joinPath);
     
+    // Wait for the join page to load
+    await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+    
+    // Click the Join Group button
+    await page2.getByRole('button', { name: 'Join Group' }).click();
+    
+    // Now wait for navigation to the group page
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 15000 });
     
     await context2.close();

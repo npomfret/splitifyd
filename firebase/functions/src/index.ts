@@ -18,7 +18,7 @@ import {
   listUserExpenses,
   getExpenseHistory,
 } from './expenses/handlers';
-import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
+import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
 import {
   createGroup,
@@ -273,6 +273,7 @@ app.get('/groups', authenticate, asyncHandler(listGroups));
 // Specific group endpoints must come BEFORE :id routes
 app.get('/groups/balances', authenticate, asyncHandler(getGroupBalances));
 app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));
+app.post('/groups/preview', authenticate, asyncHandler(previewGroupByLink));
 app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
 
 // Parameterized routes come last
