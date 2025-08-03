@@ -17,10 +17,10 @@ export class RegisterPage extends BasePage {
   }
   
   async fillRegistrationForm(name: string, email: string, password: string) {
-    await this.clearAndFill(this.fullNameInput, name);
-    await this.clearAndFill(this.emailInput, email);
-    await this.clearAndFill(this.passwordInput, password);
-    await this.clearAndFill(this.confirmPasswordInput, password);
+    await this.fillPreactInput(this.fullNameInput, name);
+    await this.fillPreactInput(this.emailInput, email);
+    await this.fillPreactInput(this.passwordInput, password);
+    await this.fillPreactInput(this.confirmPasswordInput, password);
     await this.page.locator(this.termsCheckbox).check();
   }
   

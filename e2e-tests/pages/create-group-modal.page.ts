@@ -33,24 +33,12 @@ export class CreateGroupModalPage extends BasePage {
     await nameInput.waitFor({ state: 'visible' });
     await expect(nameInput).toBeEnabled();
     
-    // Clear and fill the input, then manually trigger change event
-    await nameInput.click();
-    await nameInput.fill('');
-    
-    // Type each character to ensure proper event triggering
-    for (const char of name) {
-      await nameInput.type(char);
-    }
-    
-    // Blur the field to ensure validation runs
-    await nameInput.blur();
-    
-    // Wait for the form validation to update
-    await this.page.waitForTimeout(200);
+    // Use the new fillPreactInput utility
+    await this.fillPreactInput(nameInput, name);
     
     if (description) {
       const descInput = this.page.getByPlaceholder('Add any details about this group...');
-      await descInput.fill(description);
+      await this.fillPreactInput(descInput, description);
     }
   }
   

@@ -2,43 +2,53 @@
 
 ## Executive Summary
 
-This document analyzes the systematic failures in the E2E test suite for the Splitifyd application. **As of 2025-08-03, 16 tests are failing** despite previous fixes. The failures indicate regression in previously fixed areas:
+This document analyzes the systematic failures in the E2E test suite for the Splitifyd application. **As of 2025-08-03, 15 tests are failing** after implementing the fillPreactInput utility fix.
 
-1. **Create Group Modal Input Issues** - Previously fixed but now failing again in multiple tests
-2. **Strict Mode Selector Violations** - Still occurring in some tests
-3. **Share Link Navigation Problems** - Join flow issues persist
-4. **Modal Dialog Detection** - Tests can't find modal dialogs with current selectors
-5. **Validation and Multi-User Scenarios** - New failures in duplicate registration and multi-user tests
+### Key Findings:
+1. **Root Cause Identified**: Playwright's `fill()` method doesn't trigger Preact signal updates
+2. **Solution Implemented**: `fillPreactInput` utility that types characters individually
+3. **Mixed Results**: Fixed balance-settlement tests but add-expense tests regressed
+4. **New Test Failures**: Dashboard and monitoring tests now failing
+5. **Persistent Issues**: Modal dialogs, multi-user flows, and navigation problems remain
 
-## Current Test Status (2025-08-03 - UPDATED)
+## Current Test Status (2025-08-03 - LATEST UPDATE)
 
-### Currently Failing Tests (14 total - down from 16)
+### Currently Failing Tests (15 total)
 
-1. **add-expense.e2e.test.ts** - **ALL FIXED ✅**
+1. **add-expense.e2e.test.ts** (4 tests) - **REGRESSION**
+   - `should add new expense with equal split`
+   - `should allow selecting expense category`
+   - `should show expense in group after creation`
+   - `should handle expense with date selection`
 
 2. **balance-settlement.e2e.test.ts** - **ALL FIXED ✅**
 
-3. **complex-unsettled-group.e2e.test.ts** (1 test) - **REGRESSION**
+3. **complex-unsettled-group.e2e.test.ts** (1 test)
    - `create group with multiple people and expenses that is NOT settled`
 
-4. **delete-operations.e2e.test.ts** (1 test) - **PERSISTING**
+4. **dashboard.e2e.test.ts** (1 test) - **NEW**
+   - `should navigate to group details after creating a group`
+
+5. **delete-operations.e2e.test.ts** (1 test)
    - `should handle multi-user expense visibility`
 
-5. **duplicate-registration.e2e.test.ts** (2 tests) - **NEW FAILURES**
+6. **duplicate-registration.e2e.test.ts** (2 tests)
    - `should show error immediately without clearing form`
    - `should allow registration with different email after duplicate attempt`
 
-6. **member-management.e2e.test.ts** (3 tests) - **MIXED**
-   - `should display current group members` - **REGRESSION**
-   - `should show member in expense split options` - **REGRESSION**
-   - `should show share functionality` - **PERSISTING**
+7. **member-management.e2e.test.ts** (2 tests)
+   - `should show member in expense split options`
+   - `should show share functionality`
 
-7. **multi-user-collaboration.e2e.test.ts** (2 tests) - **MIXED**
-   - `should handle group sharing via share link` - **PERSISTING**
-   - `should allow multiple users to add expenses to same group` - **REGRESSION**
+8. **monitoring.e2e.test.ts** (1 test) - **NEW**
+   - `should handle rapid navigation without errors`
 
-8. **multi-user-expenses.e2e.test.ts** (1 test) - **NEW**
-   - `multiple users can join a group via share link and add expenses`
+9. **multi-user-collaboration.e2e.test.ts** (2 tests)
+   - `should handle group sharing via share link`
+   - `should allow multiple users to add expenses to same group`
+
+10. **multi-user-expenses.e2e.test.ts** (1 test)
+    - `multiple users can join a group via share link and add expenses`
 
 ### Previously Fixed Tests Now Passing ✅
 
@@ -235,28 +245,94 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 3. **Error Annotations**: Use `skip-error-checking` annotation for expected errors (e.g., 409 conflicts)
 4. **Logout Flow**: Proper logout requires clicking user menu first, then the sign out button in dropdown
 
-## Root Cause Fixed
+## Root Cause Analysis & Solution
 
-The primary issue was that Playwright's `fill()` method wasn't properly triggering Preact signal updates. The solution was to:
-1. Fix selector from `getByLabel('Group Name*')` to `getByLabel('Group Name')` 
-2. Type each character individually to ensure onChange events fire
-3. Add proper waits for button enablement
+### The Problem
+The primary issue was that Playwright's `fill()` method wasn't properly triggering Preact signal updates. When `fill()` was used to set input values, the Preact signals that control form validation and button states weren't updating, causing submit buttons to remain disabled even with valid input.
 
-## Remaining Issues (14 tests)
+### The Solution: fillPreactInput Utility
+Created a reusable utility function that:
+1. **Clicks to focus** the input
+2. **Clears existing content** with `fill('')`
+3. **Types each character individually** using `type()` to trigger onChange events
+4. **Blurs the field** to ensure validation runs
+5. **Waits 100ms** for signal updates to propagate
 
-1. ✅ **Create Group Modal** - Fixed by typing characters individually
-2. 🔄 **Share functionality modal** - Modal dialog selectors still need fixing
-3. 🔄 **Multi-user join flow** - Missing "Join Group" button clicks
-4. 🔄 **Homepage/static pages** - Timeout issues with networkidle
-5. 🔄 **Duplicate registration** - Form validation timing issues
-6. 🔄 **Performance tests** - Page load exceeding 5s threshold
+```typescript
+async fillPreactInput(selector: string | Locator, value: string) {
+  const input = typeof selector === 'string' ? this.page.locator(selector) : selector;
+  await input.click();
+  await input.fill('');
+  for (const char of value) {
+    await input.type(char);
+  }
+  await input.blur();
+  await this.page.waitForTimeout(100);
+}
+```
 
-### Recommended Approach
-Given the widespread regression, consider:
-1. Rolling back recent changes to find a stable baseline
-2. Implementing more robust, permanent fixes rather than timing-based workarounds
-3. Adding integration tests that run against the actual UI components
-4. Creating a test stability tracking system to catch regressions early
+### Implementation
+1. Added `fillPreactInput` to `BasePage` class
+2. Updated all page objects to use the new utility:
+   - `CreateGroupModalPage`
+   - `RegisterPage` 
+   - `LoginPage`
+   - `GroupDetailPage`
+3. Updated tests with direct `fill()` calls to use the utility
+
+### Results
+- **Initial failing tests**: 16
+- **After fillPreactInput utility**: 15 (different set)
+- **Tests fixed**: balance-settlement (8 tests), some member-management
+- **New failures**: add-expense tests regressed, dashboard and monitoring tests added
+
+### Important Note
+The add-expense tests that were passing earlier have now regressed, suggesting the fillPreactInput utility may need refinement or there are other timing/state issues.
+
+## Remaining Issues (15 tests)
+
+### Category 1: Expense Creation Issues (4 tests) - REGRESSION
+- **add-expense**: All 4 tests now failing (were passing after initial fix)
+- Likely cause: Form submission or navigation timing issues
+
+### Category 2: Modal Dialog Issues (2 tests)
+- **member-management**: "should show share functionality" - Can't find dialog role
+- **member-management**: "should show member in expense split options" - Split section UI issue
+
+### Category 3: Multi-User Flow Issues (5 tests)
+- **multi-user-collaboration**: Both tests failing on share link navigation
+- **multi-user-expenses**: Join flow not completing
+- **delete-operations**: Multi-user expense visibility
+- **complex-unsettled-group**: Multi-user test builder issues
+
+### Category 4: Form/Navigation Issues (3 tests)
+- **duplicate-registration**: Both tests stuck on dashboard after logout
+- **dashboard**: Navigation after group creation
+
+### Category 5: Performance/Monitoring (1 test)
+- **monitoring**: Rapid navigation test failing
+
+## Key Learnings
+
+1. **Preact Signals & Playwright**: Playwright's `fill()` method doesn't trigger the onChange events that Preact signals rely on. This is a fundamental incompatibility that requires typing characters individually.
+
+2. **User-Like Testing**: The solution respects the principle of testing like a user - we're still interacting with the same UI elements users would, just ensuring the events fire properly.
+
+3. **Centralized Solutions**: Creating a utility function in the base class provides a single place to maintain the workaround, making it easy to update or remove when Playwright/Preact compatibility improves.
+
+4. **Test Categories**: The remaining failures fall into distinct categories that need different solutions:
+   - Modal selectors need updating
+   - Multi-user flows need proper navigation handling
+   - Form navigation issues need state management fixes
+   - Server errors need backend investigation
+
+## Next Steps
+
+1. **Fix Modal Selectors**: Update share modal to use proper selectors (not dialog role)
+2. **Fix Multi-User Navigation**: Ensure proper "Join Group" button clicks and navigation waits
+3. **Fix Duplicate Registration**: Ensure proper navigation to register page after logout
+4. **Investigate Server Error**: Check why expense creation returns 500 in one specific test
+5. **Consider Test Parallelism**: Some issues may be related to parallel test execution
 
 ## Regression Pattern Analysis
 

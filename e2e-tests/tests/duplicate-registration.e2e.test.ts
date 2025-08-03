@@ -116,19 +116,29 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.getByText('Sign out').click();
     await page.waitForURL(/\/(login|home|v2)?/, { timeout: 5000 });
     
-    // Second attempt
+    // Second attempt - navigate to register page
     await registerPage.navigate();
     
-    // Fill form
+    // Fill form using the helper to trigger Preact signals
+    const fillPreactInput = async (input: any, value: string) => {
+      await input.click();
+      await input.fill('');
+      for (const char of value) {
+        await input.type(char);
+      }
+      await input.blur();
+      await page.waitForTimeout(100);
+    };
+    
     const nameInput = page.getByPlaceholder('Enter your full name');
     const emailInput = page.getByPlaceholder('Enter your email');
     const passwordInput = page.getByPlaceholder('Create a strong password');
     const confirmPasswordInput = page.getByPlaceholder('Confirm your password');
     
-    await nameInput.fill(displayName);
-    await emailInput.fill(email);
-    await passwordInput.fill(password);
-    await confirmPasswordInput.fill(password);
+    await fillPreactInput(nameInput, displayName);
+    await fillPreactInput(emailInput, email);
+    await fillPreactInput(passwordInput, password);
+    await fillPreactInput(confirmPasswordInput, password);
     await page.locator('input[type="checkbox"]').check();
     
     // Submit
@@ -170,10 +180,22 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Try duplicate (should fail)
     await registerPage.navigate();
-    await page.getByPlaceholder('Enter your full name').fill(displayName);
-    await page.getByPlaceholder('Enter your email').fill(email1);
-    await page.getByPlaceholder('Create a strong password').fill(password);
-    await page.getByPlaceholder('Confirm your password').fill(password);
+    
+    // Create local helper for this test
+    const fillPreactInput = async (input: any, value: string) => {
+      await input.click();
+      await input.fill('');
+      for (const char of value) {
+        await input.type(char);
+      }
+      await input.blur();
+      await page.waitForTimeout(100);
+    };
+    
+    await fillPreactInput(page.getByPlaceholder('Enter your full name'), displayName);
+    await fillPreactInput(page.getByPlaceholder('Enter your email'), email1);
+    await fillPreactInput(page.getByPlaceholder('Create a strong password'), password);
+    await fillPreactInput(page.getByPlaceholder('Confirm your password'), password);
     await page.locator('input[type="checkbox"]').check();
     await page.getByRole('button', { name: 'Create Account' }).click();
     
@@ -183,8 +205,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(errorElement).toBeVisible();
     
     // Now change email and try again
-    await page.getByPlaceholder('Enter your email').clear();
-    await page.getByPlaceholder('Enter your email').fill(email2);
+    await fillPreactInput(page.getByPlaceholder('Enter your email'), email2);
     await page.getByRole('button', { name: 'Create Account' }).click();
     
     // Should succeed this time

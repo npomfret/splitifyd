@@ -38,8 +38,8 @@ export class GroupDetailPage extends BasePage {
         await this.clickAddExpenseButton();
 
         // Fill in expense details
-        await this.page.getByPlaceholder('What was this expense for?').fill(expenseData.description);
-        await this.page.getByPlaceholder('0.00').fill(expenseData.amount.toString());
+        await this.fillPreactInput(this.page.getByPlaceholder('What was this expense for?'), expenseData.description);
+        await this.fillPreactInput(this.page.getByPlaceholder('0.00'), expenseData.amount.toString());
 
         // Submit the form - look for Save Expense button
         const submitButton = this.page.getByRole('button', { name: /save expense/i })

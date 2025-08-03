@@ -17,8 +17,8 @@ export class LoginPage extends BasePage {
   }
   
   async fillLoginForm(email: string, password: string, rememberMe = false) {
-    await this.clearAndFill(this.emailInput, email);
-    await this.clearAndFill(this.passwordInput, password);
+    await this.fillPreactInput(this.emailInput, email);
+    await this.fillPreactInput(this.passwordInput, password);
     if (rememberMe) {
       await this.page.locator(this.rememberMeCheckbox).check();
     }
