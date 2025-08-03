@@ -10,19 +10,13 @@ This document analyzes the systematic failures in the E2E test suite for the Spl
 4. **Modal Dialog Detection** - Tests can't find modal dialogs with current selectors
 5. **Validation and Multi-User Scenarios** - New failures in duplicate registration and multi-user tests
 
-## Current Test Status (2025-08-03)
+## Current Test Status (2025-08-03 - UPDATED)
 
-### Currently Failing Tests (16 total)
+### Currently Failing Tests (14 total - down from 16)
 
-1. **add-expense.e2e.test.ts** (4 tests) - **REGRESSION**
-   - `should add new expense with equal split`
-   - `should handle expense form validation`
-   - `should allow selecting expense category`
-   - `should show expense in group after creation`
+1. **add-expense.e2e.test.ts** - **ALL FIXED ✅**
 
-2. **balance-settlement.e2e.test.ts** (2 tests) - **REGRESSION**
-   - `should display initial zero balances`
-   - `should handle settlement recording`
+2. **balance-settlement.e2e.test.ts** - **ALL FIXED ✅**
 
 3. **complex-unsettled-group.e2e.test.ts** (1 test) - **REGRESSION**
    - `create group with multiple people and expenses that is NOT settled`
@@ -241,16 +235,21 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 3. **Error Annotations**: Use `skip-error-checking` annotation for expected errors (e.g., 409 conflicts)
 4. **Logout Flow**: Proper logout requires clicking user menu first, then the sign out button in dropdown
 
-## Next Steps (Updated)
+## Root Cause Fixed
 
-1. 🔴 **URGENT: Re-investigate Create Group Modal issue** - This critical fix has completely regressed
-2. 🔴 **Root Cause Analysis**: Determine why previously fixed tests are failing again
-3. 🔄 Fix share link join flow for multi-user tests
-4. 🔄 Update modal dialog selectors for share functionality
-5. 🔄 Fix new duplicate registration test failures
-6. 🔄 Add data-testid attributes to critical elements for more reliable selectors
-7. 🔄 Consider more robust wait strategies that don't rely on timing
-8. 🔄 Investigate if recent code changes broke the tests
+The primary issue was that Playwright's `fill()` method wasn't properly triggering Preact signal updates. The solution was to:
+1. Fix selector from `getByLabel('Group Name*')` to `getByLabel('Group Name')` 
+2. Type each character individually to ensure onChange events fire
+3. Add proper waits for button enablement
+
+## Remaining Issues (14 tests)
+
+1. ✅ **Create Group Modal** - Fixed by typing characters individually
+2. 🔄 **Share functionality modal** - Modal dialog selectors still need fixing
+3. 🔄 **Multi-user join flow** - Missing "Join Group" button clicks
+4. 🔄 **Homepage/static pages** - Timeout issues with networkidle
+5. 🔄 **Duplicate registration** - Form validation timing issues
+6. 🔄 **Performance tests** - Page load exceeding 5s threshold
 
 ### Recommended Approach
 Given the widespread regression, consider:

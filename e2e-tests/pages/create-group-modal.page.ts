@@ -23,67 +23,43 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Wait for modal to be fully visible first
+    // Wait for modal to be fully visible
     await this.page.getByText(this.modalTitle).waitFor({ state: 'visible' });
     
-    // Wait for modal to be fully loaded
-    await this.page.waitForLoadState('domcontentloaded');
+    // Get the input using the correct selector - label text without asterisk
+    const nameInput = this.page.getByLabel('Group Name');
     
-    // Try multiple selectors for better reliability
-    let nameInput;
-    try {
-      // First try the label selector
-      nameInput = this.page.getByLabel('Group Name*');
-      await nameInput.waitFor({ state: 'visible', timeout: 1000 });
-    } catch {
-      // Fallback to placeholder
-      nameInput = this.page.getByPlaceholder('e.g., Apartment Expenses, Trip to Paris');
-      await nameInput.waitFor({ state: 'visible', timeout: 1000 });
-    }
+    // Wait for input to be visible and enabled
+    await nameInput.waitFor({ state: 'visible' });
+    await expect(nameInput).toBeEnabled();
     
-    // Wait for input to be enabled
-    await expect(nameInput).toBeEnabled({ timeout: 5000 });
-    
-    // Click to focus
+    // Clear and fill the input, then manually trigger change event
     await nameInput.click();
+    await nameInput.fill('');
     
-    // Clear any existing value
-    await nameInput.clear();
-    
-    // Fill the new value with force option
-    await nameInput.fill(name, { force: true });
-    
-    // Small delay to ensure fill completes
-    await this.page.waitForTimeout(300);
-    
-    // Trigger validation by pressing Tab (crucial for form validation)
-    await this.page.keyboard.press('Tab');
-    
-    // Verify the name was actually filled
-    const filledValue = await nameInput.inputValue();
-    if (filledValue !== name) {
-      // Log more debug info
-      const isVisible = await nameInput.isVisible();
-      const isEnabled = await nameInput.isEnabled();
-      throw new Error(`Failed to fill group name. Expected: "${name}", Got: "${filledValue}". Input visible: ${isVisible}, enabled: ${isEnabled}`);
+    // Type each character to ensure proper event triggering
+    for (const char of name) {
+      await nameInput.type(char);
     }
+    
+    // Blur the field to ensure validation runs
+    await nameInput.blur();
+    
+    // Wait for the form validation to update
+    await this.page.waitForTimeout(200);
     
     if (description) {
       const descInput = this.page.getByPlaceholder('Add any details about this group...');
       await descInput.fill(description);
     }
-    
-    // Wait for form validation to process
-    await this.page.waitForTimeout(200);
   }
   
   async submitForm() {
-    // Wait for button to be enabled before clicking (use form-specific selector)
+    // Get the submit button and wait for it to be enabled
     const submitButton = this.page.locator('form').getByRole('button', { name: 'Create Group' });
-    await submitButton.waitFor({ state: 'visible' });
     
-    // Wait for button to be enabled (form validation may take a moment)
-    await expect(submitButton).toBeEnabled({ timeout: 2000 });
+    // Wait up to 5 seconds for the button to become enabled
+    await expect(submitButton).toBeEnabled({ timeout: 5000 });
     
     await submitButton.click();
   }
@@ -102,6 +78,14 @@ export class CreateGroupModalPage extends BasePage {
     if (!isModalOpen) {
       throw new Error('Create Group modal is not open');
     }
+    
+    // Wait for any modal animation to complete
+    await this.page.waitForFunction(() => {
+      const modal = document.querySelector('.fixed.inset-0');
+      if (!modal) return false;
+      const style = window.getComputedStyle(modal);
+      return style.opacity === '1' && style.visibility === 'visible';
+    });
     
     await this.fillGroupForm(name, description);
     await this.submitForm();
