@@ -23,7 +23,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await expect(shareButton).toBeVisible();
     await shareButton.click();
     
-    const shareModal = page.locator('.fixed.inset-0').filter({ has: page.getByText(/share.*group/i) });
+    const shareModal = page.getByRole('dialog', { name: /share group/i });
     await expect(shareModal).toBeVisible();
     
     const shareLinkInput = shareModal.getByRole('textbox');
@@ -37,9 +37,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     const page2 = await context2.newPage();
     const user2 = await createAndLoginTestUser(page2);
     
-    const url = new URL(shareLink);
-    const joinPath = url.pathname + url.search;
-    await page2.goto(joinPath);
+    // Navigate to the share link directly - it contains the full path including query params
+    await page2.goto(shareLink);
     
     // Wait for the join page to load
     await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
@@ -66,7 +65,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     const shareButton = page.getByRole('button', { name: /share/i });
     await shareButton.click();
-    const shareModal = page.locator('.fixed.inset-0').filter({ has: page.getByText(/share.*group/i) });
+    const shareModal = page.getByRole('dialog', { name: /share group/i });
     const shareLinkInput = shareModal.getByRole('textbox');
     const shareLink = await shareLinkInput.inputValue();
     await page.keyboard.press('Escape');
@@ -74,9 +73,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
     const user2 = await createAndLoginTestUser(page2);
-    const url2 = new URL(shareLink);
-    const joinPath2 = url2.pathname + url2.search;
-    await page2.goto(joinPath2);
+    // Navigate to the share link directly - it contains the full path including query params
+    await page2.goto(shareLink);
     
     // Wait for the join page to load and click Join Group button
     await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();

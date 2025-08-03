@@ -56,16 +56,19 @@ test.describe('Member Management E2E', () => {
     await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
     
     // Member should be visible in split section
-    const splitSection = page.getByRole('heading', { name: /split between/i }).locator('..');
-    await expect(splitSection).toBeVisible();
+    const splitHeading = page.getByRole('heading', { name: /split between/i });
+    await expect(splitHeading).toBeVisible();
+    
+    // Find the card containing the split options by looking for checkboxes near the heading
+    const splitCard = splitHeading.locator('..').locator('..');
     
     // The current user should be included and checked by default (payer is auto-selected)
-    const userCheckbox = splitSection.getByRole('checkbox');
+    const userCheckbox = splitCard.getByRole('checkbox').first();
     await expect(userCheckbox).toBeVisible();
     await expect(userCheckbox).toBeChecked();
     
     // User name should be visible in split section
-    await expect(splitSection.getByText(user.displayName)).toBeVisible();
+    await expect(splitCard.getByText(user.displayName)).toBeVisible();
   });
 
   test('should show creator as admin', async ({ page }) => {
@@ -109,7 +112,7 @@ test.describe('Member Management E2E', () => {
     await shareButton.click();
     
     // Share modal should open with link
-    const shareModal = page.getByRole('dialog');
+    const shareModal = page.getByRole('dialog', { name: /share group/i });
     await expect(shareModal).toBeVisible();
     
     // Should show share link

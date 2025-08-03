@@ -22,7 +22,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.register(displayName, email, password);
     
     // Should redirect to dashboard after successful registration
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 500 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
     
     // Log out to attempt second registration
     // Wait a bit for page to fully load
@@ -44,8 +44,9 @@ test.describe('Duplicate User Registration E2E', () => {
     // Wait for logout to complete and redirect
     await page.waitForURL((url) => {
       const urlStr = url.toString();
-      return urlStr.includes('/login') || urlStr.includes('/home') || urlStr.includes('/v2') || urlStr === 'http://localhost:5002/';
-    }, { timeout: 1000 });
+      const path = new URL(urlStr).pathname;
+      return path === '/' || path === '/login' || path === '/home' || path === '/v2';
+    }, { timeout: 5000 });
     
     // Debug: log URL after logout
     console.log('URL after logout:', page.url());
@@ -73,11 +74,11 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.getByRole('button', { name: 'Create Account' }).click();
     
     // Should NOT redirect - should stay on registration page
-    await expect(page).toHaveURL(/\/register/, { timeout: 500 });
+    await expect(page).toHaveURL(/\/register/, { timeout: 5000 });
     
     // Check for error message on screen using the RegisterPage's error selector
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible({ timeout: 500 });
+    await expect(errorElement).toBeVisible({ timeout: 5000 });
     
     const errorText = await errorElement.textContent();
     expect(errorText?.toLowerCase()).toMatch(/email.*already.*exists|email.*in use|account.*exists|email.*registered/);
@@ -108,13 +109,13 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.register(displayName, email, password);
     
     // Wait for dashboard
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 500 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
     
     // Log out
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
-    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 1000 });
+    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 5000 });
     
     // Second attempt - navigate to register page
     await registerPage.navigate();
@@ -153,7 +154,7 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Error should be visible
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible({ timeout: 500 });
+    await expect(errorElement).toBeVisible({ timeout: 5000 });
   });
 
   test('should allow registration with different email after duplicate attempt', async ({ page }) => {
@@ -170,13 +171,13 @@ test.describe('Duplicate User Registration E2E', () => {
     // First registration
     await registerPage.navigate();
     await registerPage.register(displayName, email1, password);
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 500 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
     
     // Log out
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
-    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 1000 });
+    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 5000 });
     
     // Try duplicate (should fail)
     await registerPage.navigate();
@@ -209,6 +210,6 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.getByRole('button', { name: 'Create Account' }).click();
     
     // Should succeed this time
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 500 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
   });
 });

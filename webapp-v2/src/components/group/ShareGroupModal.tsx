@@ -83,11 +83,17 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     <div 
       class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
       onClick={handleBackdropClick}
+      role="presentation"
     >
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div 
+        class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-modal-title"
+      >
         {/* Modal Header */}
         <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-gray-900">Share Group</h3>
+          <h3 id="share-modal-title" class="text-lg font-semibold text-gray-900">Share Group</h3>
           <button
             onClick={onClose}
             class="text-gray-400 hover:text-gray-600 transition-colors"

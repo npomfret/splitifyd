@@ -301,7 +301,15 @@ export class MultiUserTestBuilder {
     for (let i = 1; i < this.users.length; i++) {
       const { page } = this.users[i];
       await page.goto(shareLink);
-      await page.waitForLoadState('networkidle');
+      
+      // Wait for the join page to load
+      await expect(page.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+      
+      // Click the Join Group button
+      await page.getByRole('button', { name: 'Join Group' }).click();
+      
+      // Wait for redirect to group page
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
     }
     
     return shareLink;

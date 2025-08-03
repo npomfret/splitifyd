@@ -71,12 +71,8 @@ test.describe('Multi-user group with expenses', () => {
       // User 2: Create account and join via share link
       const user2 = await createAndLoginTestUser(page2);
 
-      // Extract the path from the share link (same as real join flow test)
-      const url = new URL(shareLink);
-      const joinPath = url.pathname + url.search;
-
-      // Navigate to the join path  
-      await page2.goto(joinPath);
+      // Navigate to the share link directly - it contains the full path including query params
+      await page2.goto(shareLink);
       
       // Wait for automatic join and redirect to group page (no manual clicking needed)
       await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
@@ -85,7 +81,7 @@ test.describe('Multi-user group with expenses', () => {
       const user3 = await createAndLoginTestUser(page3);
 
 
-      await page3.goto(joinPath);
+      await page3.goto(shareLink);
       
       // Wait for automatic join and redirect to group page
       await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
