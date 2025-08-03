@@ -91,8 +91,16 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     let baseUrl: string;
     
     if (process.env.FUNCTIONS_EMULATOR === 'true') {
-      // Use the hosting port from firebase.json configuration
-      baseUrl = 'http://localhost:6002';
+      // Use the hosting port from environment configuration
+      const hostingPort = process.env.EMULATOR_HOSTING_PORT;
+      if (!hostingPort) {
+        throw new ApiError(
+          HTTP_STATUS.INTERNAL_ERROR,
+          'CONFIGURATION_ERROR',
+          'EMULATOR_HOSTING_PORT environment variable must be set in development'
+        );
+      }
+      baseUrl = `http://localhost:${hostingPort}`;
     } else {
       // In production, use the request's origin or referer
       const origin = req.get('origin') || req.get('referer');
