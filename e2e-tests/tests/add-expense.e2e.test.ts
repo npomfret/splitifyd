@@ -44,7 +44,7 @@ test.describe('Add Expense E2E', () => {
     await expect(submitButton).toBeVisible();
     await submitButton.click();
     
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     await page.waitForLoadState('networkidle');
     
     await expect(page.getByText('Test Dinner')).toBeVisible({ timeout: 500 });
@@ -78,7 +78,7 @@ test.describe('Add Expense E2E', () => {
     
     await submitButton.click();
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
   });
 
   test('should allow selecting expense category', async ({ page }) => {

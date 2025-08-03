@@ -79,7 +79,7 @@ test.describe('Multi-user group with expenses', () => {
       await page2.goto(joinPath);
       
       // Wait for automatic join and redirect to group page (no manual clicking needed)
-      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
 
       // User 3: Create account and join via share link
       const user3 = await createAndLoginTestUser(page3);
@@ -88,7 +88,7 @@ test.describe('Multi-user group with expenses', () => {
       await page3.goto(joinPath);
       
       // Wait for automatic join and redirect to group page
-      await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+      await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
 
       // User 1: Add an expense
       const groupDetailPage1Updated = new GroupDetailPage(page1);

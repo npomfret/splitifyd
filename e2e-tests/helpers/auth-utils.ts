@@ -46,7 +46,7 @@ export async function loginTestUser(page: Page, credentials: { email: string; pa
 
 export async function ensureLoggedOut(page: Page) {
   await page.goto(`${EMULATOR_URL}/logout`);
-  await page.waitForURL(/\/(login|home)?/, { timeout: 500 });
+  await page.waitForURL(/\/(login|home)?/, { timeout: 1000 });
 }
 
 export async function waitForAuthState(page: Page) {

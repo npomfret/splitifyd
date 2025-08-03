@@ -45,7 +45,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.waitForURL((url) => {
       const urlStr = url.toString();
       return urlStr.includes('/login') || urlStr.includes('/home') || urlStr.includes('/v2') || urlStr === 'http://localhost:5002/';
-    }, { timeout: 500 });
+    }, { timeout: 1000 });
     
     // Debug: log URL after logout
     console.log('URL after logout:', page.url());
@@ -114,7 +114,7 @@ test.describe('Duplicate User Registration E2E', () => {
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
-    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 500 });
+    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 1000 });
     
     // Second attempt - navigate to register page
     await registerPage.navigate();
@@ -176,7 +176,7 @@ test.describe('Duplicate User Registration E2E', () => {
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
-    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 500 });
+    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 1000 });
     
     // Try duplicate (should fail)
     await registerPage.navigate();

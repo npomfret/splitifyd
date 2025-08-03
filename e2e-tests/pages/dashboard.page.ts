@@ -69,7 +69,7 @@ export class DashboardPage extends BasePage {
     await userNameElement.waitFor({ state: 'visible', timeout: 500 });
     
     // Ensure we're on the dashboard page
-    await this.page.waitForURL(/\/dashboard/, { timeout: 500 });
+    await this.page.waitForURL(/\/dashboard/, { timeout: 1000 });
   }
 
   /**

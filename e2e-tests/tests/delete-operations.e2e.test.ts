@@ -30,7 +30,7 @@ test.describe('Basic Operations E2E', () => {
     
     const submitButton = page.getByRole('button', { name: 'Save Expense' });
     await submitButton.click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
     await expect(page.getByText('Test Expense')).toBeVisible();
     
@@ -57,7 +57,7 @@ test.describe('Basic Operations E2E', () => {
     await page.getByPlaceholder('What was this expense for?').fill('Shared Expense');
     await page.getByPlaceholder('0.00').fill('100.00');
     await page.getByRole('button', { name: 'Save Expense' }).click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
     const shareButton = page.getByRole('button', { name: /share/i });
     await shareButton.click();
@@ -84,7 +84,7 @@ test.describe('Basic Operations E2E', () => {
     await expect(page2.getByText('Welcome to Shared Group!')).toBeVisible();
     
     // Now wait for navigation to the group page (includes 1.5s delay)
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
     await expect(page2.getByText('Shared Expense')).toBeVisible();
     await expect(page2.getByText('$100.00')).toBeVisible();

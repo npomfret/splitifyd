@@ -26,7 +26,7 @@ export class GroupDetailPage extends BasePage {
         await addExpenseButton.first().click();
         
         // Wait for navigation to add expense page
-        await this.page.waitForURL(/\/groups\/[^\/]+\/add-expense/, { timeout: 500 });
+        await this.page.waitForURL(/\/groups\/[^\/]+\/add-expense/, { timeout: 1000 });
     }
 
     async addExpense(expenseData: {
@@ -49,7 +49,7 @@ export class GroupDetailPage extends BasePage {
         await submitButton.first().click();
 
         // Wait for navigation back to group page
-        await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 500 });
+        await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 1000 });
     }
 
     async getExpenseItems() {

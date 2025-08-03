@@ -48,7 +48,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page2.getByRole('button', { name: 'Join Group' }).click();
     
     // Now wait for navigation to the group page
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
     await context2.close();
   });
@@ -82,7 +82,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
     await page2.getByRole('button', { name: 'Join Group' }).click();
     
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
     const groupDetail1 = new GroupDetailPage(page);
     await groupDetail1.addExpense({

@@ -35,11 +35,17 @@ test.describe('Advanced Splitting Options', () => {
     await page.getByPlaceholder('What was this expense for?').fill('Pizza for everyone');
     await page.getByPlaceholder('0.00').fill('60');
     
+    // IMPORTANT: Select participants - the payer is auto-selected but we need at least one participant
+    // Since this is a single user test, the current user is the only participant
+    // The payer checkbox should already be checked and disabled
+    const splitSection = page.locator('text=Split between').locator('..');
+    await expect(splitSection).toBeVisible();
+    
     // Equal split is default - verify it's selected
     const equalRadio = page.getByRole('radio', { name: 'Equal' });
     await expect(equalRadio).toBeChecked();
     
-    // Submit expense (payer is auto-selected as participant)
+    // Submit expense
     await page.getByRole('button', { name: /save expense/i }).click();
     
     // Verify navigation back to group page and expense creation
