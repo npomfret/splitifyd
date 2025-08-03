@@ -54,12 +54,11 @@ e2e-tests/playwright-report
 reports
 tmp
 
-
-
 # AI agents stuff
 CLAUDE.md
 GEMINI.md
 directives
+.mcp.json
 .claude/commands/analyse.md
 .claude/commands/changes.md
 .claude/commands/fix.md
