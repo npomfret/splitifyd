@@ -6,7 +6,7 @@ Work independently and efficiently:
 1. **Analyze and implement** without constant agent checks
 2. **Make decisions** based on best practices
 3. **Fix issues** as you encounter them
-4. **Only use agents** when truly needed or before commits
+4. **Use agents** when appropriate 
 
 ## MANUAL VERIFICATION CHECKPOINT
 
