@@ -86,9 +86,27 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
       updatedAt: Timestamp.now(),
     });
 
-    const protocol = req.get('x-forwarded-proto') || (req.secure ? 'https' : 'http');
-    const host = req.get('host');
-    const baseUrl = `${protocol}://${host}`;
+    // In development, use the hosting port for the webapp URL
+    // In production, use the request's origin
+    let baseUrl: string;
+    
+    if (process.env.FUNCTIONS_EMULATOR === 'true') {
+      // Use the hosting port from firebase.json configuration
+      baseUrl = 'http://localhost:6002';
+    } else {
+      // In production, use the request's origin or referer
+      const origin = req.get('origin') || req.get('referer');
+      if (origin) {
+        // Extract base URL from origin/referer
+        const url = new URL(origin);
+        baseUrl = `${url.protocol}//${url.host}`;
+      } else {
+        // Fallback to request host if no origin/referer
+        const protocol = req.get('x-forwarded-proto') || (req.secure ? 'https' : 'http');
+        const host = req.get('host');
+        baseUrl = `${protocol}://${host}`;
+      }
+    }
     
     const shareableUrl = `${baseUrl}/join?linkId=${shareToken}`;
 

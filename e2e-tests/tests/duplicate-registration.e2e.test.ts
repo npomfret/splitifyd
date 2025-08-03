@@ -115,10 +115,17 @@ test.describe('Duplicate User Registration E2E', () => {
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
-    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 5000 });
+    
+    // Wait for navigation after logout
+    await page.waitForURL((url) => {
+      const urlStr = url.toString();
+      const path = new URL(urlStr).pathname;
+      return path === '/' || path === '/login' || path === '/home' || path === '/v2';
+    }, { timeout: 5000 });
     
     // Second attempt - navigate to register page
     await registerPage.navigate();
+    await page.waitForLoadState('networkidle');
     
     // Fill form using the helper to trigger Preact signals
     const fillPreactInput = async (input: any, value: string) => {
@@ -177,10 +184,17 @@ test.describe('Duplicate User Registration E2E', () => {
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
-    await page.waitForURL(/\/(login|home|v2)?/, { timeout: 5000 });
+    
+    // Wait for navigation after logout
+    await page.waitForURL((url) => {
+      const urlStr = url.toString();
+      const path = new URL(urlStr).pathname;
+      return path === '/' || path === '/login' || path === '/home' || path === '/v2';
+    }, { timeout: 5000 });
     
     // Try duplicate (should fail)
     await registerPage.navigate();
+    await page.waitForLoadState('networkidle');
     
     // Create local helper for this test
     const fillPreactInput = async (input: any, value: string) => {

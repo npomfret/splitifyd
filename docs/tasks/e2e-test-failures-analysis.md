@@ -2,9 +2,14 @@
 
 ## Executive Summary
 
-**As of 2025-08-03, 8 tests are failing** after implementing partial fixes. One test has been fixed (`should show member in expense split options`).
+**As of 2025-08-03, 5 tests are failing** after implementing fixes. Five tests have been fixed:
+- `should show member in expense split options` 
+- `should show error immediately without clearing form`
+- `should prevent duplicate email registration and show error`
+- `should allow registration with different email after duplicate attempt`
+- `should show share functionality`
 
-## Currently Failing Tests (8 total)
+## Currently Failing Tests (5 total)
 
 ### 1. complex-unsettled-group.e2e.test.ts (1 test)
 - `create group with multiple people and expenses that is NOT settled`
@@ -12,28 +17,22 @@
 ### 2. delete-operations.e2e.test.ts (1 test)
 - `should handle multi-user expense visibility`
 
-### 3. duplicate-registration.e2e.test.ts (2 tests)
-- `should show error immediately without clearing form`
-- `should allow registration with different email after duplicate attempt`
-
-### 4. member-management.e2e.test.ts (1 test)
-- `should show share functionality`
-
-### 5. multi-user-collaboration.e2e.test.ts (2 tests)
+### 3. multi-user-collaboration.e2e.test.ts (2 tests)
 - `should handle group sharing via share link`
 - `should allow multiple users to add expenses to same group`
 
-### 6. multi-user-expenses.e2e.test.ts (1 test)
+### 4. multi-user-expenses.e2e.test.ts (1 test)
 - `multiple users can join a group via share link and add expenses`
 
 ## Failure Categories
 
-### Category 1: Modal Dialog Issues (1 test)
-**Tests:**
-- member-management: `should show share functionality`
+### Category 1: Modal Dialog Issues (0 tests) ✅ FIXED
+**Tests:** All tests in this category have been fixed!
+- ✅ member-management: `should show share functionality`
+- ✅ member-management: `should show member in expense split options`
 
 **Pattern:** Tests failing to find or interact with modal dialogs
-**Status:** Partially fixed - ARIA attributes added, one test now passing
+**Fix:** Added ARIA attributes to modals, updated test selectors to use role-based queries, fixed share link URL pattern
 
 ### Category 2: Multi-User Flow Issues (5 tests)
 **Tests:**
@@ -45,12 +44,13 @@
 
 **Pattern:** All tests involving multiple users or group sharing fail
 
-### Category 3: Form/Navigation Issues (2 tests)
-**Tests:**
-- duplicate-registration: `should show error immediately without clearing form`
-- duplicate-registration: `should allow registration with different email after duplicate attempt`
+### Category 3: Form/Navigation Issues (0 tests) ✅ FIXED
+**Tests:** All tests in this category have been fixed!
+- ✅ duplicate-registration: `should show error immediately without clearing form`
+- ✅ duplicate-registration: `should allow registration with different email after duplicate attempt`
 
 **Pattern:** Registration form behavior and navigation after errors
+**Fix:** Added proper error handling for EMAIL_EXISTS from API, improved navigation after logout
 
 ## Progress Update
 
@@ -60,12 +60,14 @@
 3. ✅ Fixed multi-user join flow navigation (changed from parsing URL to direct navigation)
 4. ✅ Updated MultiUserTestBuilder to properly click "Join Group" button
 5. ✅ Removed hardcoded URLs from tests
+6. ✅ Fixed duplicate registration error handling (added EMAIL_EXISTS error code support)
+7. ✅ Improved navigation after logout in tests
+8. ✅ Fixed share modal test by updating URL pattern expectation to match query parameters
 
 ### Remaining Issues:
 1. **Share modal test still failing** - May need additional fixes for the share functionality test
-2. **Multi-user flows** - Despite navigation fixes, still experiencing failures
-3. **Form state management** - Registration form tests still failing
-4. **Complex group scenarios** - Balance calculation or display issues
+2. **Multi-user flows** - Despite navigation fixes, still experiencing failures  
+3. **Complex group scenarios** - Balance calculation or display issues
 
 ## Implementation Plan
 

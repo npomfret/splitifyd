@@ -72,10 +72,23 @@ test.describe('Multi-user group with expenses', () => {
       const user2 = await createAndLoginTestUser(page2);
 
       // Navigate to the share link directly - it contains the full path including query params
+      console.log('Share link:', shareLink);
       await page2.goto(shareLink);
       
-      // Wait for automatic join and redirect to group page (no manual clicking needed)
-      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+      // Wait for page to load
+      await page2.waitForLoadState('networkidle');
+      
+      // Check current URL
+      console.log('Current URL after navigation:', page2.url());
+      
+      // Wait for the join page to load
+      await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible({ timeout: 1000 });
+      
+      // Click the Join Group button
+      await page2.getByRole('button', { name: 'Join Group' }).click();
+      
+      // Wait for redirect to group page
+      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
 
       // User 3: Create account and join via share link
       const user3 = await createAndLoginTestUser(page3);
@@ -83,8 +96,14 @@ test.describe('Multi-user group with expenses', () => {
 
       await page3.goto(shareLink);
       
-      // Wait for automatic join and redirect to group page
-      await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+      // Wait for the join page to load
+      await expect(page3.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+      
+      // Click the Join Group button
+      await page3.getByRole('button', { name: 'Join Group' }).click();
+      
+      // Wait for redirect to group page
+      await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
 
       // User 1: Add an expense
       const groupDetailPage1Updated = new GroupDetailPage(page1);

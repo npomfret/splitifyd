@@ -129,6 +129,12 @@ class AuthStoreImpl implements AuthStore {
   }
 
   private getAuthErrorMessage(error: any): string {
+    // Handle API errors from our backend (e.g., EMAIL_EXISTS)
+    if (error?.code === 'EMAIL_EXISTS') {
+      return 'This email is already registered.';
+    }
+    
+    // Handle Firebase Auth errors
     if (error?.code) {
       switch (error.code) {
         case 'auth/user-not-found':

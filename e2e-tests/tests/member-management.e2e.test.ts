@@ -119,9 +119,9 @@ test.describe('Member Management E2E', () => {
     const shareLink = shareModal.getByRole('textbox');
     await expect(shareLink).toBeVisible();
     
-    // Link should contain the group URL
+    // Link should contain the join URL with linkId parameter
     const linkValue = await shareLink.inputValue();
-    expect(linkValue).toMatch(/\/join\//);
+    expect(linkValue).toMatch(/\/join\?linkId=/);
   });
 
   test('should handle member count display', async ({ page }) => {
