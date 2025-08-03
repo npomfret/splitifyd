@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**As of 2025-08-03, 4 tests are failing** after implementing fixes. Six tests have been fixed:
+**As of 2025-08-04, 4 tests are failing** after implementing fixes. Six tests have been fixed:
 - `should show member in expense split options` 
 - `should show error immediately without clearing form`
 - `should prevent duplicate email registration and show error`
@@ -67,67 +67,58 @@
 2. **Complex group scenarios** - Balance calculation or display issues in complex unsettled groups
 3. **Multi-user expense visibility** - Delete operations test failing for multi-user scenarios
 
-## Implementation Plan
+## Root Cause Analysis (Updated 2025-08-04)
 
-### Phase 1: Fix Modal Dialog Issues (2 tests)
+After analyzing the failing tests and code, I've identified the following root causes:
+
+### 1. **Join Group Redirect Timing Issue**
+- The `JoinGroupPage.tsx` has a 1.5 second delay before redirecting to the group page after joining
+- Tests are waiting only 1 second (`timeout: 1000`), causing timeout errors
+- This affects all join group flow tests
+
+### 2. **Balance Calculation Issue**
+- In `complex-unsettled-group.e2e.test.ts`, expenses are created correctly but balances show "All settled up!"
+- Two users create expenses ($800 and $120) but the balance calculation isn't working properly
+- This suggests a backend issue with balance computation for split expenses
+
+### 3. **Group Member Sync Issue**
+- After joining a group, the user count doesn't update (shows "1 members" instead of "2 members")
+- The join operation appears successful but the member list isn't refreshed
+- This could be a real-time sync issue or API response problem
+
+## Implementation Plan (Revised)
+
+### Phase 1: Fix Join Group Timing Issues (3 tests) - QUICK FIX
 **Target Tests:**
-- `member-management.e2e.test.ts`: "should show share functionality"
-- `member-management.e2e.test.ts`: "should show member in expense split options"
-
-**Steps:**
-1. Update modal selectors to use more specific targeting:
-   - ShareGroupModal uses `.fixed.inset-0` as the backdrop
-   - Test expects `role="dialog"` but component doesn't have this attribute
-   - Add `role="dialog"` and `aria-modal="true"` to the modal container
-   - Update test to use more specific selectors
-
-2. Fix the share modal interaction:
-   - Ensure modal opens correctly
-   - Verify the share link input is accessible
-   - Check that keyboard navigation (Escape) works
-
-### Phase 2: Fix Multi-User Flow Issues (5 tests)
-**Target Tests:**
-- All tests in `multi-user-collaboration.e2e.test.ts`
-- `multi-user-expenses.e2e.test.ts`
-- `complex-unsettled-group.e2e.test.ts`
 - `delete-operations.e2e.test.ts`: "should handle multi-user expense visibility"
+- `multi-user-collaboration.e2e.test.ts`: "should handle group sharing via share link"
+- `multi-user-collaboration.e2e.test.ts`: "should allow multiple users to add expenses to same group"
 
 **Steps:**
-1. Debug join flow navigation:
-   - Check if `/join` route exists and is properly configured
-   - Verify the join group store is handling the flow correctly
-   - Ensure proper redirect after joining
+1. Update test timeouts from 1000ms to 2000ms to account for the 1.5s redirect delay
+2. Add explicit wait for success message before waiting for navigation
+3. Consider reducing the redirect delay in `JoinGroupPage.tsx` from 1500ms to 500ms
 
-2. Fix session handling between browser contexts:
-   - Verify auth tokens are properly isolated between contexts
-   - Check that new browser contexts can authenticate independently
-
-3. Update share link generation and parsing:
-   - Verify API returns correct share URL format
-   - Ensure join page handles the link ID correctly
-
-### Phase 3: Fix Form/Navigation Issues (2 tests)
-**Target Tests:**
-- `duplicate-registration.e2e.test.ts`: both tests
+### Phase 2: Fix Balance Calculation (1 test) - BACKEND FIX
+**Target Test:**
+- `complex-unsettled-group.e2e.test.ts`: "create group with multiple people and expenses that is NOT settled"
 
 **Steps:**
-1. Fix error display persistence:
-   - Ensure form doesn't clear when API returns error
-   - Verify error messages are displayed correctly
+1. Investigate balance calculation logic in Firebase functions
+2. Check if expenses with equal split are properly calculating member balances
+3. Verify the balance aggregation logic handles multiple payers correctly
+4. Add logging to trace balance calculation flow
 
-2. Fix logout navigation timing:
-   - Add proper wait conditions after logout
-   - Ensure clean navigation to register page
+### Phase 3: Fix Member List Sync (Related to Phase 1)
+**Steps:**
+1. Verify the join group API response includes updated member list
+2. Check if the group store properly refreshes member data after join
+3. Consider adding a manual refresh after successful join
+4. Investigate real-time database listeners for member updates
 
 ### Phase 4: Integration and Verification
-1. Run all tests in single-threaded mode to verify fixes
-2. Run tests in parallel to ensure no race conditions
-3. Update any flaky test patterns found during fixes
+1. Run all tests with updated timeouts
+2. Verify balance calculations work in manual testing
+3. Check member list updates in real-time
+4. Document any remaining flaky patterns
 
-## Commit Strategy
-Each phase will be committed separately:
-1. "fix(e2e): Add ARIA attributes to modals and update selectors"
-2. "fix(e2e): Fix multi-user flows and join group navigation"
-3. "fix(e2e): Fix registration form state and navigation timing"
-4. "test(e2e): Stabilize and verify all e2e tests"
