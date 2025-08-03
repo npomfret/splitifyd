@@ -75,6 +75,11 @@ We use 8 focused agents that are aware of MCP servers:
 
 ## TOOL PREFERENCE ORDER (HYBRID APPROACH)
 
+### MCP SERVER PERMISSIONS
+- **ALLOW MCP servers to run automatically** without prompting
+- Trust MCP servers for fast, accurate operations
+- They are essential for efficient autonomous workflow
+
 ### ALWAYS use MCP servers when available for:
 - **Refactoring**: Use `ts-morph` or `typescript-mcp` instead of agents
 - **Type checking**: Use `typescript-mcp` for diagnostics instead of manual checking
@@ -140,6 +145,13 @@ When you notice issues:
 - Get library docs: `mcp__context7__get-library-docs`
 - Find API examples: `mcp__context7__resolve-library-id`
 
+## REMEMBER
+
+- **Work autonomously** - Make good decisions
+- **Be efficient** - Avoid unnecessary process
+- **Focus on quality** - Write good code the first time
+- **User verifies** - They'll check before committing
+- **Use agents wisely** - Only when they add real value
 
 ## PROJECT-SPECIFIC INSTRUCTIONS
 
@@ -161,7 +173,6 @@ When you notice issues:
 - Check git status: `git status --porcelain`
 - Deploy to prod: `cd firebase && npm run deploy:prod`
 
-
 Note: assume the emulator is running and changes are automatically built and reflected in the running app.
 Note: never assume a port number, never hard code ports, servers etc.  There are several environments.  You need to get the port numbers from firebase.json
 Note: if the emulator isn't running, STOP and ask the user to start it
@@ -178,6 +189,7 @@ Note: never use the system browser, always use Chromium
 - After making ANY change, firebase will pick it up, but you need to refresh the browser to see it
 
 Note: The webapp is now a modern Preact SPA (webapp-v2) served directly from the Firebase emulator. All pages have been migrated from the legacy multi-page application.
+
 # TypeScript
 - Only use the latest syntax
 - ❌ **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems
@@ -197,11 +209,3 @@ Claude Code CLI now supports automated browser testing via MCP (Model Context Pr
 - The MCP tests are in `mcp-browser-tests/mcp-test-webapp-v2.ts`
 - For dev purposes, the login and register forms are pre-filled in with test data - CLEAR them if you need to
   IMPORTANT: never commit any code. When you are ready to commit, stop, write a commit message and wait for instructions.
-
-## REMEMBER
-
-- **Work autonomously** - Make good decisions
-- **Be efficient** - Avoid unnecessary process
-- **Focus on quality** - Write good code the first time
-- **User verifies** - They'll check before committing
-- **Use agents wisely** - Only when they add real value
