@@ -6,6 +6,11 @@ export class GroupDetailPage extends BasePage {
         super(page);
     }
 
+    async navigate(groupId: string) {
+        await this.page.goto(`/groups/${groupId}`);
+        await this.page.waitForLoadState('networkidle');
+    }
+
     async openShareModal() {
         await this.page.getByRole('button', { name: 'Share Group' }).click();
         // Wait for modal to appear - using similar pattern as CreateGroupModalPage
@@ -45,7 +50,6 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for navigation back to group page
         await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 3000 });
-        await this.page.waitForTimeout(200); // Allow time for expense to appear
     }
 
     async getExpenseItems() {

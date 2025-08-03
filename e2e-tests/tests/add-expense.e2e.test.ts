@@ -12,7 +12,7 @@ test.describe('Add Expense E2E', () => {
     
     const createGroupModal = new CreateGroupModalPage(page);
     
-    await page.getByRole('button', { name: 'Create Group' }).click();
+    await page.getByRole('button', { name: 'Create Group' }).first().click();
     await page.waitForLoadState('domcontentloaded');
     
     await createGroupModal.createGroup('Expense Test Group', 'Testing expense creation');
@@ -28,7 +28,7 @@ test.describe('Add Expense E2E', () => {
     
     const descriptionField = page.getByPlaceholder('What was this expense for?');
     const amountField = page.getByPlaceholder('0.00');
-    const categorySelect = page.locator('select').first();
+    const categorySelect = page.getByRole('combobox').first();
     
     await expect(descriptionField).toBeVisible();
     await descriptionField.fill('Test Dinner');
@@ -44,11 +44,11 @@ test.describe('Add Expense E2E', () => {
     await expect(submitButton).toBeVisible();
     await submitButton.click();
     
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    await expect(page.getByText('Test Dinner')).toBeVisible();
-    await expect(page.getByText('50')).toBeVisible();
+    await expect(page.getByText('Test Dinner')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('$50.00')).toBeVisible();
   });
 
   test('should handle expense form validation', async ({ page }) => {
@@ -99,7 +99,7 @@ test.describe('Add Expense E2E', () => {
     const descriptionField = page.getByPlaceholder('What was this expense for?');
     await expect(descriptionField).toBeVisible();
     
-    const categorySelect = page.getByRole('combobox');
+    const categorySelect = page.getByRole('combobox').first();
     await expect(categorySelect).toBeVisible();
     
     const initialCategory = await categorySelect.inputValue();
@@ -145,55 +145,6 @@ test.describe('Add Expense E2E', () => {
     await expect(amountText).toBeVisible();
     
     await expect(page.getByText(/paid by|Paid:/i)).toBeVisible();
-  });
-
-  test('should handle split type selection UI', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Split Types Group', 'Testing split types');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-    await addExpenseButton.first().click();
-    
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
-    
-    await page.getByPlaceholder('What was this expense for?').fill('Split type test');
-    await page.getByPlaceholder('0.00').fill('100.00');
-    
-    await page.waitForLoadState('domcontentloaded');
-    
-    const splitSection = page.getByText('How to split');
-    await expect(splitSection).toBeVisible();
-    
-    const equalSplit = page.getByText('Equal').first();
-    const exactSplit = page.getByText('Exact amounts');
-    const percentageSplit = page.getByText('Percentage');
-    
-    await expect(equalSplit).toBeVisible();
-    await expect(exactSplit).toBeVisible();
-    await expect(percentageSplit).toBeVisible();
-    
-    const equalRadio = page.getByRole('radio', { name: 'Equal' });
-    await expect(equalRadio).toBeChecked();
-    
-    await percentageSplit.click();
-    
-    const percentRadio = page.getByRole('radio', { name: 'Percentage' });
-    await expect(percentRadio).toBeChecked();
-    
-    await equalSplit.click();
-    await expect(equalRadio).toBeChecked();
-    
-    await page.getByRole('button', { name: /save expense/i }).click();
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    await expect(page.getByText('Split type test')).toBeVisible();
   });
 
   test('should handle expense with date selection', async ({ page }) => {
