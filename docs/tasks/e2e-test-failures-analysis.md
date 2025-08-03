@@ -2,25 +2,70 @@
 
 ## Executive Summary
 
-This document analyzes the systematic failures in the E2E test suite for the Splitifyd application. Out of 24 tests run, 12 tests failed across 6 test files. The failures are primarily caused by:
+This document analyzes the systematic failures in the E2E test suite for the Splitifyd application. **As of 2025-08-03, 16 tests are failing** despite previous fixes. The failures indicate regression in previously fixed areas:
 
-1. **Create Group Modal Input Issues** - The most critical issue affecting 80% of failures
-2. **Strict Mode Selector Violations** - Multiple elements matching the same selector
-3. **Share Link Navigation Problems** - Join flow not working as expected
+1. **Create Group Modal Input Issues** - Previously fixed but now failing again in multiple tests
+2. **Strict Mode Selector Violations** - Still occurring in some tests
+3. **Share Link Navigation Problems** - Join flow issues persist
 4. **Modal Dialog Detection** - Tests can't find modal dialogs with current selectors
+5. **Validation and Multi-User Scenarios** - New failures in duplicate registration and multi-user tests
+
+## Current Test Status (2025-08-03)
+
+### Currently Failing Tests (16 total)
+
+1. **add-expense.e2e.test.ts** (4 tests) - **REGRESSION**
+   - `should add new expense with equal split`
+   - `should handle expense form validation`
+   - `should allow selecting expense category`
+   - `should show expense in group after creation`
+
+2. **balance-settlement.e2e.test.ts** (2 tests) - **REGRESSION**
+   - `should display initial zero balances`
+   - `should handle settlement recording`
+
+3. **complex-unsettled-group.e2e.test.ts** (1 test) - **REGRESSION**
+   - `create group with multiple people and expenses that is NOT settled`
+
+4. **delete-operations.e2e.test.ts** (1 test) - **PERSISTING**
+   - `should handle multi-user expense visibility`
+
+5. **duplicate-registration.e2e.test.ts** (2 tests) - **NEW FAILURES**
+   - `should show error immediately without clearing form`
+   - `should allow registration with different email after duplicate attempt`
+
+6. **member-management.e2e.test.ts** (3 tests) - **MIXED**
+   - `should display current group members` - **REGRESSION**
+   - `should show member in expense split options` - **REGRESSION**
+   - `should show share functionality` - **PERSISTING**
+
+7. **multi-user-collaboration.e2e.test.ts** (2 tests) - **MIXED**
+   - `should handle group sharing via share link` - **PERSISTING**
+   - `should allow multiple users to add expenses to same group` - **REGRESSION**
+
+8. **multi-user-expenses.e2e.test.ts** (1 test) - **NEW**
+   - `multiple users can join a group via share link and add expenses`
+
+### Previously Fixed Tests Now Passing ✅
+
+Based on the test results, the following tests that were documented as failing are now passing:
+- `delete-operations.e2e.test.ts`: "should create and view an expense" ✅
+- `balance-settlement.e2e.test.ts`: "should calculate balances after expenses" ✅
+- `balance-settlement.e2e.test.ts`: "should handle complex balance calculations" ✅
+- `duplicate-registration.e2e.test.ts`: Main duplicate registration test ✅
 
 ## Progress Update (2025-08-03)
 
 ### Completed Fixes
 
-#### ✅ Priority 1: Create Group Modal Input Issue (FIXED)
-**Solution Applied**: Added proper wait conditions and error handling in `create-group-modal.page.ts`
+#### ⚠️ Priority 1: Create Group Modal Input Issue (REGRESSED)
+**Previous Solution**: Added proper wait conditions and error handling in `create-group-modal.page.ts`
 - Added explicit wait for modal to be visible
 - Added fallback selectors for better reliability
 - Improved error messages with debugging info
-- Tests now pass when run individually or with limited parallelism
+- Tests passed when run individually or with limited parallelism
 
-**Key Changes**:
+**Key Changes Applied**:
 ```typescript
 // Wait for modal to be fully visible first
 await this.page.getByText(this.modalTitle).waitFor({ state: 'visible' });
@@ -31,6 +76,8 @@ await expect(nameInput).toBeEnabled({ timeout: 5000 });
 // Use force option for filling
 await nameInput.fill(name, { force: true });
 ```
+
+**Status**: This fix has REGRESSED - tests are failing again with the same create group modal issues
 
 #### ✅ Priority 2: Expense Detail Selector Violations (FIXED)
 **Solution Applied**: Updated selector in `delete-operations.e2e.test.ts` to use `.first()`
@@ -194,15 +241,37 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 3. **Error Annotations**: Use `skip-error-checking` annotation for expected errors (e.g., 409 conflicts)
 4. **Logout Flow**: Proper logout requires clicking user menu first, then the sign out button in dropdown
 
-## Next Steps
+## Next Steps (Updated)
 
-1. ✅ ~~Fix Create Group Modal issue~~ COMPLETED
-2. ✅ ~~Fix expense detail selector issue~~ COMPLETED
-3. ✅ ~~Investigate and fix the share link join flow~~ COMPLETED
+1. 🔴 **URGENT: Re-investigate Create Group Modal issue** - This critical fix has completely regressed
+2. 🔴 **Root Cause Analysis**: Determine why previously fixed tests are failing again
+3. 🔄 Fix share link join flow for multi-user tests
 4. 🔄 Update modal dialog selectors for share functionality
-5. 🔄 Add data-testid attributes to critical elements for more reliable selectors
-6. 🔄 Consider reducing test parallelism for more consistent results
-7. 🔄 Investigate intermittent Create Group Modal failures in parallel test runs
+5. 🔄 Fix new duplicate registration test failures
+6. 🔄 Add data-testid attributes to critical elements for more reliable selectors
+7. 🔄 Consider more robust wait strategies that don't rely on timing
+8. 🔄 Investigate if recent code changes broke the tests
+
+### Recommended Approach
+Given the widespread regression, consider:
+1. Rolling back recent changes to find a stable baseline
+2. Implementing more robust, permanent fixes rather than timing-based workarounds
+3. Adding integration tests that run against the actual UI components
+4. Creating a test stability tracking system to catch regressions early
+
+## Regression Pattern Analysis
+
+### Key Observations
+1. **Widespread Regression**: 10 out of 16 failing tests were previously marked as fixed
+2. **Create Group Modal**: The most critical fix has completely regressed
+3. **Parallel Execution Issues**: Tests that passed individually are now failing even in isolation
+4. **New Test Failures**: Additional tests are now failing that weren't documented before
+
+### Possible Causes of Regression
+1. **Recent Code Changes**: The commit history shows multiple "fixing tests" commits which may have introduced new issues
+2. **Timing/Race Conditions**: The fixes may have been fragile and dependent on specific timing
+3. **Environmental Changes**: Changes to the Firebase emulator or test environment
+4. **Incomplete Fixes**: The original fixes may have addressed symptoms rather than root causes
 
 ## Notes
 
@@ -215,3 +284,4 @@ Created comprehensive tests to ensure the server properly handles duplicate user
 - Join flow now requires explicit user action (clicking Join button) for security
 - Firebase functions auto-reload on changes but may need a few seconds to pick up new endpoints
 - Create Group Modal issue appears intermittently when tests run in parallel
+- **Major regression observed**: Previously fixed tests are failing again, indicating unstable fixes
