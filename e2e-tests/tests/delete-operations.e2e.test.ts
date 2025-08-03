@@ -39,7 +39,7 @@ test.describe('Basic Operations E2E', () => {
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
     await expect(page.getByText('Test Expense')).toBeVisible();
-    await expect(page.getByText('$50.00')).toBeVisible();
+    await expect(page.getByText('$50.00').first()).toBeVisible();
   });
 
   test('should handle multi-user expense visibility', async ({ page, browser }) => {
