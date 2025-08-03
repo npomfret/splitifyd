@@ -23,11 +23,23 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Use the reliable clearAndFill method from BasePage
+    // Use Playwright's getByLabel which correctly finds the input
     const nameInput = this.page.getByLabel('Group Name*');
+    
+    // Click to focus
     await nameInput.click();
+    
+    // Clear any existing value
     await nameInput.clear();
+    
+    // Fill the new value
     await nameInput.fill(name);
+    
+    // Small delay to ensure fill completes
+    await this.page.waitForTimeout(100);
+    
+    // Trigger validation by pressing Tab (crucial for form validation)
+    await this.page.keyboard.press('Tab');
     
     // Verify the name was actually filled
     const filledValue = await nameInput.inputValue();
