@@ -44,7 +44,9 @@ class JoinGroupStore {
           userBalance: null,
           totalOwed: 0,
           totalOwing: 0
-        }
+        },
+        lastActivity: 'Never',
+        lastActivityRaw: new Date().toISOString()
       };
       
       groupSignal.value = group;
