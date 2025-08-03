@@ -15,7 +15,7 @@ export class CreateGroupModalPage extends BasePage {
   async isOpen(): Promise<boolean> {
     try {
       // Check if modal title is visible
-      await this.page.getByText(this.modalTitle).waitFor({ state: 'visible', timeout: 1000 });
+      await this.page.getByText(this.modalTitle).waitFor({ state: 'visible', timeout: 500 });
       return true;
     } catch {
       return false;
@@ -47,7 +47,7 @@ export class CreateGroupModalPage extends BasePage {
     const submitButton = this.page.locator('form').getByRole('button', { name: 'Create Group' });
     
     // Wait up to 5 seconds for the button to become enabled
-    await expect(submitButton).toBeEnabled({ timeout: 5000 });
+    await expect(submitButton).toBeEnabled({ timeout: 500 });
     
     await submitButton.click();
   }

@@ -51,7 +51,7 @@ test.describe('Multi-user group with expenses', () => {
       const shareLinkInput = page1.locator('input[type="text"][readonly]');
       
       // Wait for the input to be visible and have a value
-      await shareLinkInput.waitFor({ state: 'visible', timeout: 10000 });
+      await shareLinkInput.waitFor({ state: 'visible', timeout: 500 });
       
       // Wait for the value to be populated (it starts empty)
       await page1.waitForFunction(
@@ -59,7 +59,7 @@ test.describe('Multi-user group with expenses', () => {
           const input = document.querySelector('input[type="text"][readonly]') as HTMLInputElement;
           return input && input.value && input.value.includes('http');
         },
-        { timeout: 10000 }
+        { timeout: 500 }
       );
       
       const shareLink = await shareLinkInput.inputValue();
@@ -79,7 +79,7 @@ test.describe('Multi-user group with expenses', () => {
       await page2.goto(joinPath);
       
       // Wait for automatic join and redirect to group page (no manual clicking needed)
-      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 15000 });
+      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
 
       // User 3: Create account and join via share link
       const user3 = await createAndLoginTestUser(page3);
@@ -88,7 +88,7 @@ test.describe('Multi-user group with expenses', () => {
       await page3.goto(joinPath);
       
       // Wait for automatic join and redirect to group page
-      await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 15000 });
+      await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
 
       // User 1: Add an expense
       const groupDetailPage1Updated = new GroupDetailPage(page1);

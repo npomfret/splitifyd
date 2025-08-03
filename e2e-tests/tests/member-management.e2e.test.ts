@@ -32,7 +32,7 @@ test.describe('Member Management E2E', () => {
       .or(page.getByRole('heading', { name: /member/i }));
     
     // Wait for at least one member indicator to be visible
-    await expect(memberIndicator.first()).toBeVisible({ timeout: 5000 });
+    await expect(memberIndicator.first()).toBeVisible({ timeout: 500 });
   });
 
   test('should show member in expense split options', async ({ page }) => {

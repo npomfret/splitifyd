@@ -62,14 +62,14 @@ export class DashboardPage extends BasePage {
   async ensureLoggedIn(): Promise<void> {
     // Wait for and validate login indicators
     const welcomeText = this.page.getByText(/Welcome back/i);
-    await welcomeText.waitFor({ state: 'visible', timeout: 3000 });
+    await welcomeText.waitFor({ state: 'visible', timeout: 500 });
     
     // Additional validation - check for user name display
     const userNameElement = this.page.locator(this.userNameText).first();
-    await userNameElement.waitFor({ state: 'visible', timeout: 2000 });
+    await userNameElement.waitFor({ state: 'visible', timeout: 500 });
     
     // Ensure we're on the dashboard page
-    await this.page.waitForURL(/\/dashboard/, { timeout: 2000 });
+    await this.page.waitForURL(/\/dashboard/, { timeout: 500 });
   }
 
   /**
@@ -82,14 +82,14 @@ export class DashboardPage extends BasePage {
       ? this.page.getByRole('button', { name: this.createGroupButton })
       : this.page.getByRole('button', { name: this.createFirstGroupButton });
     
-    await createButton.waitFor({ state: 'visible', timeout: 2000 });
+    await createButton.waitFor({ state: 'visible', timeout: 500 });
     await createButton.click();
     
     // Validate modal opened - wait for modal overlay
-    await this.page.waitForSelector('.fixed.inset-0', { state: 'visible', timeout: 3000 });
+    await this.page.waitForSelector('.fixed.inset-0', { state: 'visible', timeout: 500 });
     
     const nameField = this.page.getByLabel('Group Name*');
     
-    await nameField.waitFor({ state: 'visible', timeout: 2000 });
+    await nameField.waitFor({ state: 'visible', timeout: 500 });
   }
 }

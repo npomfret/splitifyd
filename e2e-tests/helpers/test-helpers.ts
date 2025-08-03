@@ -126,7 +126,7 @@ export async function getGroupBalances(
   
   // Wait for balance section to load
   await page.waitForSelector('[data-testid="balance-summary"], .balance-summary, [class*="balance"]', {
-    timeout: 2000
+    timeout: 500
   });
   
   // Check if group is settled
@@ -182,11 +182,11 @@ export async function waitForBalanceUpdate(
   // Wait for any loading indicators to disappear
   await page.waitForSelector('.loading, [data-testid="loading"], [class*="spinner"]', {
     state: 'hidden',
-    timeout: options?.timeout || 2000
+    timeout: options?.timeout || 500
   }).catch(() => {});
   
   // Wait for network to be idle (no ongoing balance calculations)
-  await page.waitForLoadState('networkidle', { timeout: options?.timeout || 2000 });
+  await page.waitForLoadState('networkidle', { timeout: options?.timeout || 500 });
   
   // Additional wait for any animations
   await page.waitForTimeout(200);
@@ -214,7 +214,7 @@ export async function getGroupExpenses(
   
   // Wait for expenses list to load
   await page.waitForSelector('[data-testid="expenses-list"], [class*="expense"]', {
-    timeout: 2000
+    timeout: 500
   });
   
   const expenses: Array<{

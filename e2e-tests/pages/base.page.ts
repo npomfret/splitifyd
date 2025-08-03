@@ -40,7 +40,7 @@ export abstract class BasePage {
     await this.page.waitForLoadState('networkidle');
   }
   
-  async waitForNavigation(urlPattern: RegExp, timeout = 2000) {
+  async waitForNavigation(urlPattern: RegExp, timeout = 500) {
     await this.page.waitForURL(urlPattern, { timeout });
   }
   
@@ -48,7 +48,7 @@ export abstract class BasePage {
     await this.page.getByRole('button', { name: text }).click();
   }
   
-  async isVisible(selector: string, timeout = 2000): Promise<boolean> {
+  async isVisible(selector: string, timeout = 500): Promise<boolean> {
     try {
       await this.page.locator(selector).waitFor({ state: 'visible', timeout });
       return true;

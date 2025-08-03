@@ -161,7 +161,7 @@ describe('RESTful Group Endpoints', () => {
         testGroup.id,
         users[0].token,
         (group) => group.balance && group.balance.userBalance !== null,
-        { timeout: 5000 }
+        { timeout: 500 }
       );
 
       expect(groupWithBalance.balance).toBeDefined();
@@ -475,7 +475,7 @@ describe('RESTful Group Endpoints', () => {
         testGroup.id,
         users[0].token,
         (b) => b.userBalances && Object.keys(b.userBalances).length > 0,
-        { timeout: 5000 }
+        { timeout: 500 }
       );
 
       // Verify response structure
@@ -530,7 +530,7 @@ describe('RESTful Group Endpoints', () => {
         testGroup.id,
         users[0].token,
         (b) => b.userBalances && Object.keys(b.userBalances).length >= 2,
-        { timeout: 5000 }
+        { timeout: 500 }
       );
 
       // Verify both users have balances
@@ -634,7 +634,7 @@ describe('RESTful Group Endpoints', () => {
         testGroup.id,
         users[0].token,
         (b) => b.userBalances && Object.keys(b.userBalances).length >= 3,
-        { timeout: 5000 }
+        { timeout: 500 }
       );
 
       // Should have simplified debts

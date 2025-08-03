@@ -22,7 +22,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
     await createGroupModal.createGroup('Vacation Group', 'Complex expense sharing test');
     
     // Wait for navigation to group page
-    await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 500 });
     const groupUrl = page1.url();
 
     // Verify User 1 is in the group - be more specific to avoid duplicate matches
@@ -65,7 +65,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
           await page1.waitForLoadState('networkidle');
           
           // Verify we're back on group page
-          await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+          await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 500 });
           
           // Check if expense appears
           const expenseText = page1.getByText(expense.description);

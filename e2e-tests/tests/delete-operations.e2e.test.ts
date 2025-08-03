@@ -84,7 +84,7 @@ test.describe('Basic Operations E2E', () => {
     await expect(page2.getByText('Welcome to Shared Group!')).toBeVisible();
     
     // Now wait for navigation to the group page (includes 1.5s delay)
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 15000 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 500 });
     
     await expect(page2.getByText('Shared Expense')).toBeVisible();
     await expect(page2.getByText('$100.00')).toBeVisible();
