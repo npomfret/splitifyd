@@ -235,3 +235,147 @@ No `.skip()`, `xit()`, or commented out tests were found.
 3. Audit and remove tests for non-existent features
 4. Refactor tests to remove conditional logic
 5. Add data-testid attributes to the application for reliable selection
+
+## Implementation Plan
+
+### Phase 1: Create Test Infrastructure (Foundation)
+
+#### 1.1 Enhanced Test Helpers
+Create `/e2e-tests/helpers/group-helpers.ts`:
+- `createGroupAndNavigate(page, name, description)` - standardized group creation
+- `navigateToGroup(page, groupId)` - consistent navigation
+- `expectGroupUrl(page)` - reusable URL assertion
+- `getGroupIdFromUrl(page)` - extract group ID utility
+
+#### 1.2 Enhanced Expense Helpers
+Create `/e2e-tests/helpers/expense-helpers.ts`:
+- `addExpenseStandardFlow(page, description, amount)` - standard expense creation
+- `fillExpenseForm(page, data)` - form filling utility
+- `expectExpenseVisible(page, description)` - assertion helper
+
+#### 1.3 Selector Constants
+Create `/e2e-tests/helpers/selectors.ts`:
+- Define constants for common selectors
+- Single source of truth for UI element targeting
+- Easy to update when UI changes
+
+### Phase 2: Fix Critical Files (Highest Impact)
+
+#### 2.1 Fix `manual-complex-scenario.e2e.test.ts`
+- Remove ALL conditional logic (if/else blocks)
+- Replace .or() chains with specific selectors
+- Split into multiple focused tests:
+  - `test('user can create group and add expense')`
+  - `test('multiple users can collaborate on expenses')`
+  - `test('balances update correctly with multiple expenses')`
+- Use helpers instead of inline logic
+
+#### 2.2 Fix `error-handling.e2e.test.ts`
+- Replace 20+ .or() chains with specific error selectors
+- Remove uncertainty about permissions:
+  - Either test permissions properly OR remove the test
+  - No "may not be implemented" comments
+- Simplify error expectations to specific messages
+
+### Phase 3: Eliminate Duplication (11 files)
+
+#### 3.1 Group Creation Pattern
+For each of these files, replace duplicated code with helper:
+- `add-expense.e2e.test.ts`
+- `advanced-splitting.e2e.test.ts`
+- `balance-settlement.e2e.test.ts`
+- `dashboard.e2e.test.ts`
+- `delete-operations.e2e.test.ts`
+- `group-details.e2e.test.ts`
+- `member-management.e2e.test.ts`
+- `multi-user-collaboration.e2e.test.ts`
+- `multi-user-expenses.e2e.test.ts`
+
+Change from:
+```typescript
+const dashboard = new DashboardPage(page);
+const createGroupModal = new CreateGroupModalPage(page);
+await dashboard.openCreateGroupModal();
+await createGroupModal.createGroup('Test Group', 'Description');
+await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+```
+
+To:
+```typescript
+const groupId = await createGroupAndNavigate(page, 'Test Group', 'Description');
+```
+
+### Phase 4: Remove .or() Chains (8 files)
+
+#### 4.1 Strategy for Each File
+- Identify what the test is actually trying to verify
+- Choose the most specific selector
+- If multiple valid states exist, create separate tests
+- Never use .or() for uncertainty - be explicit
+
+#### 4.2 Files to Fix
+1. `homepage.e2e.test.ts` - Simplify navigation selectors
+2. `advanced-splitting.e2e.test.ts` - Clear split type selection
+3. `balance-settlement.e2e.test.ts` - Specific balance assertions
+4. `member-management.e2e.test.ts` - Clear member UI elements
+5. `multi-user-collaboration.e2e.test.ts` - Explicit state checks
+6. `complex-unsettled-group.e2e.test.ts` - Direct assertions
+
+### Phase 5: Feature Audit
+
+#### 5.1 Verify Features Exist
+- Check `advanced-splitting.e2e.test.ts` - verify percentage splits work
+- Check `member-management.e2e.test.ts` - verify invitation system exists
+- Check `error-handling.e2e.test.ts` - verify permission system
+
+#### 5.2 Remove or Fix Non-Existent Feature Tests
+- If feature doesn't exist: DELETE the test
+- If feature partially exists: TEST only what works
+- If unsure: Ask user before proceeding
+
+### Phase 6: Add data-testid Attributes (Future)
+
+#### 6.1 Webapp Updates Needed
+This requires updating the React components:
+- Add `data-testid="create-group-button"` to buttons
+- Add `data-testid="expense-description"` to form fields
+- Add `data-testid="group-balance-{userId}"` to balance displays
+- Add `data-testid="expense-item-{expenseId}"` to expense list items
+
+### Commit Strategy
+
+Small, focused commits in this order:
+
+1. **"test: add shared test utilities for common e2e operations"**
+   - Create helper files
+   - No test changes yet
+
+2. **"test: refactor manual-complex-scenario test to remove conditionals"**
+   - Fix the worst offender first
+   - Demonstrate the pattern
+
+3. **"test: refactor error-handling tests to use specific assertions"**
+   - Remove .or() chains
+   - Clear error expectations
+
+4. **"test: extract duplicated group creation to shared helper"**
+   - Update all 11 files
+   - Big impact on test speed
+
+5. **"test: remove .or() chains from remaining test files"**
+   - Fix remaining 6 files
+   - One commit per file if needed
+
+6. **"test: remove tests for non-existent features"**
+   - Clean up after verification
+   - Document why removed
+
+### Success Metrics
+
+- ✅ Zero .or() chains in test code
+- ✅ Zero if/else conditional logic in tests
+- ✅ Common patterns extracted to helpers
+- ✅ Each test has single, clear purpose
+- ✅ Test execution time reduced by 30%+
+- ✅ No "may not be implemented" comments
+- ✅ All tests pass reliably
