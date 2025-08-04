@@ -2,18 +2,9 @@ import { test, expect } from '../fixtures/base-test';
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure,
-  createAndLoginTestUser,
-  createGroupAndNavigate,
-  addExpenseStandardFlow,
-  expectExpenseVisible,
-  expectUserInGroup,
-  getGroupShareLink,
-  joinGroupViaShareLink,
-  expectGroupUrl,
-  getGroupIdFromUrl,
-  SELECTORS,
-  URL_PATTERNS
+  createAndLoginTestUser
 } from '../helpers';
+import { DashboardPage, GroupDetailPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -25,10 +16,12 @@ test.describe('Multi-User Group Collaboration', () => {
     const user = await createAndLoginTestUser(page);
     
     // Create group
-    const groupId = await createGroupAndNavigate(page, 'Vacation Group', 'Trip expense sharing');
+    const dashboard = new DashboardPage(page);
+    const groupId = await dashboard.createGroupAndNavigate('Vacation Group', 'Trip expense sharing');
     
     // Verify user is in the group
-    await expectUserInGroup(page, user.displayName);
+    const groupDetail = new GroupDetailPage(page);
+    await groupDetail.expectUserInGroup(user.displayName);
     await expect(page.getByText('Vacation Group')).toBeVisible();
     
     // Add multiple expenses
@@ -39,16 +32,16 @@ test.describe('Multi-User Group Collaboration', () => {
     ];
     
     for (const expense of expenses) {
-      await addExpenseStandardFlow(page, expense.description, expense.amount);
+      await groupDetail.addExpenseStandardFlow(expense.description, expense.amount);
     }
     
     // Verify all expenses are visible
     for (const expense of expenses) {
-      await expectExpenseVisible(page, expense.description);
+      await groupDetail.expectExpenseVisible(expense.description);
     }
     
     // Verify we're on the group page with expenses
-    await expectGroupUrl(page);
+    await groupDetail.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
     
     // The fact that all expenses are visible proves the test succeeded
     // No need to check for specific UI elements that might not exist
@@ -60,36 +53,39 @@ test.describe('Multi-User Group Collaboration', () => {
     const page1 = await context1.newPage();
     const user1 = await createAndLoginTestUser(page1);
     
-    const groupId = await createGroupAndNavigate(page1, 'Shared Expenses', 'Multi-user test');
+    const dashboard1 = new DashboardPage(page1);
+    const groupId = await dashboard1.createGroupAndNavigate('Shared Expenses', 'Multi-user test');
     
     // Get share link
-    const shareLink = await getGroupShareLink(page1);
+    const groupDetail1 = new GroupDetailPage(page1);
+    const shareLink = await groupDetail1.getShareLink();
     
     // Create second user and join group
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
     const user2 = await createAndLoginTestUser(page2);
     
-    await joinGroupViaShareLink(page2, shareLink);
+    await GroupDetailPage.joinViaShareLink(page2, shareLink);
     
     // User 1 adds expense
-    await addExpenseStandardFlow(page1, 'Lunch', '50.00');
+    await groupDetail1.addExpenseStandardFlow('Lunch', '50.00');
     
     // User 2 adds expense
-    await addExpenseStandardFlow(page2, 'Dinner', '75.00');
+    const groupDetail2 = new GroupDetailPage(page2);
+    await groupDetail2.addExpenseStandardFlow('Dinner', '75.00');
     
     // Verify both users see all expenses
     await page1.reload();
-    await expectExpenseVisible(page1, 'Lunch');
-    await expectExpenseVisible(page1, 'Dinner');
+    await groupDetail1.expectExpenseVisible('Lunch');
+    await groupDetail1.expectExpenseVisible('Dinner');
     
     await page2.reload();
-    await expectExpenseVisible(page2, 'Lunch');
-    await expectExpenseVisible(page2, 'Dinner');
+    await groupDetail2.expectExpenseVisible('Lunch');
+    await groupDetail2.expectExpenseVisible('Dinner');
     
     // Verify both users are listed as members
-    await expectUserInGroup(page1, user1.displayName);
-    await expectUserInGroup(page1, user2.displayName);
+    await groupDetail1.expectUserInGroup(user1.displayName);
+    await groupDetail1.expectUserInGroup(user2.displayName);
     
     // Clean up
     await context1.close();
@@ -102,19 +98,21 @@ test.describe('Multi-User Group Collaboration', () => {
     const page1 = await context1.newPage();
     const user1 = await createAndLoginTestUser(page1);
     
-    const groupId = await createGroupAndNavigate(page1, 'Balance Test Group', 'Testing balance calculations');
+    const dashboard1 = new DashboardPage(page1);
+    const groupId = await dashboard1.createGroupAndNavigate('Balance Test Group', 'Testing balance calculations');
     
     // Get share link and have second user join
-    const shareLink = await getGroupShareLink(page1);
+    const groupDetail1 = new GroupDetailPage(page1);
+    const shareLink = await groupDetail1.getShareLink();
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
     const user2 = await createAndLoginTestUser(page2);
     
-    await joinGroupViaShareLink(page2, shareLink);
+    await GroupDetailPage.joinViaShareLink(page2, shareLink);
     
     // User 1 pays for shared expense
-    await addExpenseStandardFlow(page1, 'Shared Meal', '100.00');
+    await groupDetail1.addExpenseStandardFlow('Shared Meal', '100.00');
     
     // Verify balance shows User 2 owes User 1 something
     await page1.reload();
@@ -123,7 +121,8 @@ test.describe('Multi-User Group Collaboration', () => {
     await expect(owesText).toBeVisible();
     
     // User 2 pays for another shared expense
-    await addExpenseStandardFlow(page2, 'Movie Tickets', '40.00');
+    const groupDetail2 = new GroupDetailPage(page2);
+    await groupDetail2.addExpenseStandardFlow('Movie Tickets', '40.00');
     
     // Verify balance still exists (don't check exact amount as calculation might vary)
     await page1.reload();
@@ -141,36 +140,40 @@ test.describe('Multi-User Group Collaboration', () => {
     const page1 = await context1.newPage();
     const user1 = await createAndLoginTestUser(page1);
     
-    const groupId = await createGroupAndNavigate(page1, 'Statistics Test', 'Testing group statistics');
-    const shareLink = await getGroupShareLink(page1);
+    const dashboard1 = new DashboardPage(page1);
+    const groupId = await dashboard1.createGroupAndNavigate('Statistics Test', 'Testing group statistics');
+    const groupDetail1 = new GroupDetailPage(page1);
+    const shareLink = await groupDetail1.getShareLink();
     
     // Add two more users
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
     const user2 = await createAndLoginTestUser(page2);
-    await joinGroupViaShareLink(page2, shareLink);
+    await GroupDetailPage.joinViaShareLink(page2, shareLink);
     
     const context3 = await browser.newContext();
     const page3 = await context3.newPage();
     const user3 = await createAndLoginTestUser(page3);
-    await joinGroupViaShareLink(page3, shareLink);
+    await GroupDetailPage.joinViaShareLink(page3, shareLink);
     
     // Each user adds an expense
-    await addExpenseStandardFlow(page1, 'Breakfast', '30.00');
-    await addExpenseStandardFlow(page2, 'Lunch', '45.00');
-    await addExpenseStandardFlow(page3, 'Dinner', '60.00');
+    await groupDetail1.addExpenseStandardFlow('Breakfast', '30.00');
+    const groupDetail2 = new GroupDetailPage(page2);
+    await groupDetail2.addExpenseStandardFlow('Lunch', '45.00');
+    const groupDetail3 = new GroupDetailPage(page3);
+    await groupDetail3.addExpenseStandardFlow('Dinner', '60.00');
     
     // Verify total expenses - look for any dollar amount
     await page1.reload();
     // Just verify we see expense amounts, not specific totals
-    await expectExpenseVisible(page1, 'Breakfast');
-    await expectExpenseVisible(page1, 'Lunch');
-    await expectExpenseVisible(page1, 'Dinner');
+    await groupDetail1.expectExpenseVisible('Breakfast');
+    await groupDetail1.expectExpenseVisible('Lunch');
+    await groupDetail1.expectExpenseVisible('Dinner');
     
     // Verify all members are visible
-    await expectUserInGroup(page1, user1.displayName);
-    await expectUserInGroup(page1, user2.displayName);
-    await expectUserInGroup(page1, user3.displayName);
+    await groupDetail1.expectUserInGroup(user1.displayName);
+    await groupDetail1.expectUserInGroup(user2.displayName);
+    await groupDetail1.expectUserInGroup(user3.displayName);
     
     // Clean up
     await context1.close();

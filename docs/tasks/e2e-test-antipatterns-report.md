@@ -240,18 +240,10 @@ No `.skip()`, `xit()`, or commented out tests were found.
 
 ### Phase 1: Create Test Infrastructure (Foundation) ✅ COMPLETED
 
-#### 1.1 Enhanced Test Helpers
-Create `/e2e-tests/helpers/group-helpers.ts`:
-- `createGroupAndNavigate(page, name, description)` - standardized group creation
-- `navigateToGroup(page, groupId)` - consistent navigation
-- `expectGroupUrl(page)` - reusable URL assertion
-- `getGroupIdFromUrl(page)` - extract group ID utility
+```#### 1.1 Enhanced Test Helpers
 
 #### 1.2 Enhanced Expense Helpers
 Create `/e2e-tests/helpers/expense-helpers.ts`:
-- `addExpenseStandardFlow(page, description, amount)` - standard expense creation
-- `fillExpenseForm(page, data)` - form filling utility
-- `expectExpenseVisible(page, description)` - assertion helper
 
 #### 1.3 Selector Constants
 Create `/e2e-tests/helpers/selectors.ts`:
@@ -386,18 +378,6 @@ Small, focused commits in this order:
 
 #### Phase 1: Test Infrastructure ✅
 Created three new helper files to standardize test operations:
-
-1. **`/e2e-tests/helpers/group-helpers.ts`**
-   - `createGroupAndNavigate()` - Replaces duplicated group creation in 11+ files
-   - `getGroupShareLink()`, `joinGroupViaShareLink()` - Multi-user collaboration
-   - `expectGroupUrl()`, `getGroupIdFromUrl()` - Consistent URL assertions
-   - `expectUserInGroup()` - User membership verification
-
-2. **`/e2e-tests/helpers/expense-helpers.ts`**
-   - `addExpenseStandardFlow()` - Single function for complete expense creation
-   - `fillExpenseForm()` - Consistent form field handling
-   - `submitExpenseForm()` - Fixed to use correct "Save Expense" button
-   - `expectExpenseVisible()` - Reliable expense verification
 
 3. **`/e2e-tests/helpers/selectors.ts`**
    - Centralized all UI selectors by feature area

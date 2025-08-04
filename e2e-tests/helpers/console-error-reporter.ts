@@ -157,16 +157,3 @@ export function setupConsoleErrorReporting() {
     }
   });
 }
-
-/**
- * Returns a function that captures console errors for a specific page.
- * This is for backwards compatibility with existing tests that use setupConsoleErrorListener.
- * @deprecated Use setupConsoleErrorReporting() instead for automatic error reporting
- */
-export function setupConsoleErrorListener(page: any): string[] {
-  const errors: string[] = [];
-  page.on('console', (msg: any) => {
-    if (msg.type() === 'error') errors.push(msg.text());
-  });
-  return errors;
-}

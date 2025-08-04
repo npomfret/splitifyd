@@ -12,6 +12,7 @@
       <excludeFolder url="file://$MODULE_DIR$/reports" />
       <excludeFolder url="file://$MODULE_DIR$/directives" />
       <excludeFolder url="file://$MODULE_DIR$/webapp/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/e2e-tests/playwright-report" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

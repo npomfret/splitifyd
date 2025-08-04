@@ -34,21 +34,3 @@ export async function createAndLoginTestUser(page: Page): Promise<TestUser> {
     displayName
   };
 }
-
-export async function loginTestUser(page: Page, credentials: { email: string; password: string }) {
-  const loginPage = new LoginPage(page);
-  await loginPage.navigate();
-  await loginPage.login(credentials.email, credentials.password);
-  
-  const dashboardPage = new DashboardPage(page);
-  await dashboardPage.waitForDashboard();
-}
-
-export async function ensureLoggedOut(page: Page) {
-  await page.goto(`${EMULATOR_URL}/logout`);
-  await page.waitForURL(/\/(login|home)?/, { timeout: 1000 });
-}
-
-export async function waitForAuthState(page: Page) {
-  await page.waitForLoadState('networkidle');
-}

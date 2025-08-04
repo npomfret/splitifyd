@@ -32,15 +32,7 @@ export class LoginPage extends BasePage {
     await this.fillLoginForm(email, password, rememberMe);
     await this.submitForm();
   }
-  
-  async getErrorMessage(): Promise<string | null> {
-    const error = this.page.locator(this.errorMessage);
-    if (await error.isVisible()) {
-      return await error.textContent();
-    }
-    return null;
-  }
-  
+
   async clickSignUp() {
     await this.page.getByRole('link', { name: this.signUpLink }).first().click();
   }

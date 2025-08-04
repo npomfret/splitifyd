@@ -14,33 +14,6 @@ export interface UserProfile {
  */
 export class UserService {
   private cache = new Map<string, UserProfile>();
-
-  /**
-   * Get a single user profile by UID
-   */
-  async getUser(uid: string): Promise<UserProfile> {
-    // Check cache first
-    if (this.cache.has(uid)) {
-      return this.cache.get(uid)!;
-    }
-
-    const userRecord = await admin.auth().getUser(uid);
-    
-    if (!userRecord.email || !userRecord.displayName) {
-      throw new Error(`User ${uid} missing required fields: email and displayName are mandatory`);
-    }
-    
-    const profile: UserProfile = {
-      uid: userRecord.uid,
-      email: userRecord.email,
-      displayName: userRecord.displayName
-    };
-
-    // Cache the result
-    this.cache.set(uid, profile);
-    return profile;
-  }
-
   /**
    * Get multiple user profiles by UIDs (batch operation)
    */
@@ -98,23 +71,6 @@ export class UserService {
     if (getUsersResult.notFound.length > 0) {
       throw new Error(`Users not found: ${getUsersResult.notFound.length} users`);
     }
-  }
-
-  /**
-   * Clear the cache (useful for testing or memory management)
-   */
-  clearCache(): void {
-    this.cache.clear();
-  }
-
-  /**
-   * Get cache statistics for monitoring
-   */
-  getCacheStats(): { size: number; keys: string[] } {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys())
-    };
   }
 }
 

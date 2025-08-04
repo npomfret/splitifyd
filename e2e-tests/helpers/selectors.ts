@@ -117,47 +117,4 @@ export function getByPlaceholder(page: any, selector: { placeholder: string }) {
  */
 export function getByText(page: any, selector: { text: string | RegExp }) {
   return page.getByText(selector.text);
-}
-
-/**
- * URL patterns for assertions
- */
-export const URL_PATTERNS = {
-  dashboard: /\/dashboard$/,
-  group: /\/groups\/[a-zA-Z0-9]+$/,
-  addExpense: /\/groups\/[a-zA-Z0-9]+\/add-expense$/,
-  login: /\/login$/,
-  register: /\/register$/,
-  pricing: /\/pricing$/
-};
-
-/**
- * Common timeout values
- */
-export const TIMEOUTS = {
-  navigation: 5000,
-  networkIdle: 3000,
-  elementVisible: 2000,
-  animation: 200
-};
-
-/**
- * Test data patterns
- */
-export const TEST_DATA = {
-  groupName: {
-    valid: 'Test Group',
-    tooShort: 'A',
-    tooLong: 'A'.repeat(100),
-    withSpecialChars: 'Test & Group!'
-  },
-  expense: {
-    description: 'Test Expense',
-    amounts: {
-      small: '10.00',
-      medium: '100.00',
-      large: '1000.00'
-    },
-    categories: ['Food', 'Transport', 'Entertainment', 'Other']
-  }
-};
+}'A'.repeat(100);

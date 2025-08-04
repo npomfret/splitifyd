@@ -1,15 +1,7 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 
 export abstract class BasePage {
   constructor(protected page: Page) {}
-  
-  async clearAndFill(selector: string, value: string) {
-    const input = this.page.locator(selector);
-    await input.click();
-    await input.clear();
-    await input.fill(value);
-  }
-
   /**
    * Fill an input field in a way that properly triggers Preact signal updates.
    * This is necessary because Playwright's fill() method doesn't always trigger
@@ -47,13 +39,32 @@ export abstract class BasePage {
   async clickButtonWithText(text: string) {
     await this.page.getByRole('button', { name: text }).click();
   }
+
+  /**
+   * Expects the page to match a URL pattern
+   */
+  async expectUrl(pattern: RegExp, timeout = 5000): Promise<void> {
+    await expect(this.page).toHaveURL(pattern, { timeout });
+  }
   
-  async isVisible(selector: string, timeout = 500): Promise<boolean> {
-    try {
-      await this.page.locator(selector).waitFor({ state: 'visible', timeout });
-      return true;
-    } catch {
-      return false;
+  /**
+   * Extracts a parameter from the current URL
+   */
+  getUrlParam(paramName: string): string | null {
+    const url = new URL(this.page.url());
+    const pathParts = url.pathname.split('/');
+    const paramIndex = pathParts.indexOf(paramName);
+    
+    if (paramIndex !== -1 && paramIndex < pathParts.length - 1) {
+      return pathParts[paramIndex + 1];
     }
+    
+    // For group IDs, extract from /groups/{id} pattern
+    if (paramName === 'groupId') {
+      const match = url.pathname.match(/\/groups\/([a-zA-Z0-9]+)/);
+      return match ? match[1] : null;
+    }
+    
+    return null;
   }
 }

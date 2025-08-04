@@ -32,12 +32,4 @@ export class RegisterPage extends BasePage {
     await this.fillRegistrationForm(name, email, password);
     await this.submitForm();
   }
-  
-  async getErrorMessage(): Promise<string | null> {
-    const error = this.page.locator(this.errorMessage);
-    if (await error.isVisible()) {
-      return await error.textContent();
-    }
-    return null;
-  }
 }

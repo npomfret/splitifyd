@@ -1,5 +1,6 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { BasePage } from './base.page';
+import { SELECTORS } from '../helpers/selectors';
 
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
@@ -18,12 +19,9 @@ export class GroupDetailPage extends BasePage {
     }
 
     async clickAddExpenseButton() {
-        // Click add expense button - try multiple selectors
-        const addExpenseButton = this.page.getByRole('button', { name: /add expense/i })
-            .or(this.page.getByRole('link', { name: /add expense/i }))
-            .or(this.page.getByText(/add expense/i));
-        
-        await addExpenseButton.first().click();
+        // Click add expense button - use specific selector
+        const addExpenseButton = this.page.getByRole('button', { name: 'Add Expense' });
+        await addExpenseButton.click();
         
         // Wait for navigation to add expense page
         await this.page.waitForURL(/\/groups\/[^\/]+\/add-expense/, { timeout: 5000 });
@@ -41,24 +39,81 @@ export class GroupDetailPage extends BasePage {
         await this.fillPreactInput(this.page.getByPlaceholder('What was this expense for?'), expenseData.description);
         await this.fillPreactInput(this.page.getByPlaceholder('0.00'), expenseData.amount.toString());
 
-        // Submit the form - look for Save Expense button
-        const submitButton = this.page.getByRole('button', { name: /save expense/i })
-            .or(this.page.getByRole('button', { name: /create/i }))
-            .or(this.page.getByRole('button', { name: /add expense/i }));
-        
-        await submitButton.first().click();
+        // Submit the form - use specific button
+        const submitButton = this.page.getByRole('button', { name: /save expense/i });
+        await submitButton.click();
 
         // Wait for navigation back to group page
         await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 5000 });
     }
 
-    async getExpenseItems() {
-        return this.page.locator('[data-testid="expense-item"]').all();
+    /**
+     * Enhanced expense creation with better flow
+     */
+    async addExpenseStandardFlow(description: string, amount: string | number): Promise<void> {
+        await this.clickAddExpenseButton();
+        
+        // Fill the form
+        await this.fillPreactInput(this.page.getByPlaceholder('What was this expense for?'), description);
+        await this.fillPreactInput(this.page.getByPlaceholder('0.00'), amount.toString());
+        
+        // Submit
+        const submitButton = this.page.getByRole('button', { name: /save expense/i });
+        await submitButton.click();
+        
+        // Wait for navigation back to group page
+        await this.page.waitForURL(/\/groups\/[^\/]+$/, { timeout: 5000 });
+        
+        // Note: Don't verify expense immediately - let the caller do it after reload if needed
+    }
+    
+    /**
+     * Verifies an expense is visible on the page
+     */
+    async expectExpenseVisible(description: string): Promise<void> {
+        const expense = this.page.getByText(description);
+        await expect(expense).toBeVisible();
+    }
+    
+    /**
+     * Gets the share link for the current group
+     */
+    async getShareLink(): Promise<string> {
+        await this.openShareModal();
+        
+        // Get share link from dialog
+        const shareLinkInput = this.page.getByRole('dialog').getByRole('textbox');
+        await shareLinkInput.waitFor({ state: 'visible' });
+        const shareLink = await shareLinkInput.inputValue();
+        
+        // Close dialog
+        await this.page.keyboard.press('Escape');
+        
+        return shareLink;
+    }
+    
+    /**
+     * Verifies a user is visible as a group member
+     */
+    async expectUserInGroup(userName: string): Promise<void> {
+        // Look for user in the members section
+        const memberSection = this.page.getByRole('main');
+        await expect(memberSection.getByText(userName).first()).toBeVisible();
     }
 
-    async getExpenseTexts() {
-        const expenses = await this.getExpenseItems();
-        return Promise.all(expenses.map(expense => expense.textContent()));
+    /**
+     * Joins a group via share link
+     */
+    static async joinViaShareLink(page: Page, shareLink: string): Promise<void> {
+        await page.goto(shareLink);
+        
+        // Wait for join page
+        await expect(page.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+        
+        // Click join button
+        await page.getByRole('button', { name: 'Join Group' }).click();
+        
+        // Wait for redirect to group page
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
     }
-
 }
