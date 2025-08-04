@@ -1,7 +1,6 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { HomepagePage, LoginPage, RegisterPage } from '../pages';
 import { SELECTORS } from '../constants/selectors';
 import { TIMEOUTS } from '../config/timeouts';
 
@@ -26,19 +25,17 @@ test.describe('Performance and Error Monitoring E2E', () => {
     const { page } = pricingPageNavigated;
   });
 
-  test('should load terms page without JavaScript errors', async ({ page }) => {
-    const homepagePage = new HomepagePage(page);
+  pageTest('should load terms page without JavaScript errors', async ({ page, homepagePage }) => {
     await homepagePage.navigateToStaticPath('/terms');
     await waitForApp(page);
   });
 
-  test('should load privacy page without JavaScript errors', async ({ page }) => {
-    const homepagePage = new HomepagePage(page);
+  pageTest('should load privacy page without JavaScript errors', async ({ page, homepagePage }) => {
     await homepagePage.navigateToStaticPath('/privacy');
     await waitForApp(page);
   });
 
-  test('should not have any 404 resources', async ({ page }) => {
+  pageTest('should not have any 404 resources', async ({ page, homepagePage, loginPage, registerPage }) => {
     const failed404s: string[] = [];
     
     // Listen for failed requests
@@ -49,9 +46,6 @@ test.describe('Performance and Error Monitoring E2E', () => {
     });
 
     // Visit main pages using page objects
-    const homepagePage = new HomepagePage(page);
-    const loginPage = new LoginPage(page);
-    const registerPage = new RegisterPage(page);
     
     await homepagePage.navigate();
     await loginPage.navigate();
@@ -61,10 +55,9 @@ test.describe('Performance and Error Monitoring E2E', () => {
     expect(failed404s).toHaveLength(0);
   });
 
-  test('should load pages within acceptable time', async ({ page }) => {
+  pageTest('should load pages within acceptable time', async ({ page, homepagePage }) => {
     const startTime = Date.now();
     
-    const homepagePage = new HomepagePage(page);
     await homepagePage.navigate();
     
     const loadTime = Date.now() - startTime;
@@ -73,13 +66,12 @@ test.describe('Performance and Error Monitoring E2E', () => {
     expect(loadTime).toBeLessThan(5000);
   });
 
-  test('should handle network errors gracefully', async ({ page, context }) => {
+  pageTest('should handle network errors gracefully', async ({ page, context, loginPage }) => {
     test.info().annotations.push({ type: 'skip-error-checking' });
     // Block API calls to simulate network failure
     await context.route('**/api/**', route => route.abort());
     
     // Try to load login page (which might make API calls)
-    const loginPage = new LoginPage(page);
     await loginPage.navigate();
     
     // Page should still render even if API calls fail
@@ -89,8 +81,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     // This is a basic check - app should handle network failures gracefully
   });
 
-  test('should have proper meta tags for SEO', async ({ page }) => {
-    const homepagePage = new HomepagePage(page);
+  pageTest('should have proper meta tags for SEO', async ({ page, homepagePage }) => {
     await homepagePage.navigate();
     
     // Check for essential meta tags
@@ -107,7 +98,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     expect(viewport).toContain('width=device-width');
   });
 
-  test('should not expose sensitive information in console', async ({ page }) => {
+  pageTest('should not expose sensitive information in console', async ({ page, loginPage, registerPage }) => {
     const consoleLogs: string[] = [];
     
     // Capture all console messages
@@ -116,8 +107,6 @@ test.describe('Performance and Error Monitoring E2E', () => {
     });
     
     // Navigate through auth pages using page objects
-    const loginPage = new LoginPage(page);
-    const registerPage = new RegisterPage(page);
     
     await loginPage.navigate();
     await registerPage.navigate();
@@ -139,12 +128,9 @@ test.describe('Performance and Error Monitoring E2E', () => {
     expect(sensitiveLogs).toHaveLength(0);
   });
 
-  test('should handle rapid navigation without errors', async ({ page }) => {
+  pageTest('should handle rapid navigation without errors', async ({ page, homepagePage, loginPage, registerPage }) => {
     
     // Rapidly navigate between pages using page objects
-    const homepagePage = new HomepagePage(page);
-    const loginPage = new LoginPage(page);
-    const registerPage = new RegisterPage(page);
     
     for (let i = 0; i < 5; i++) {
       await loginPage.navigate();
@@ -162,14 +148,13 @@ test.describe('Performance and Error Monitoring E2E', () => {
     // Console errors are automatically captured by setupConsoleErrorReporting
   });
 
-  test('should maintain functionality with slow network', async ({ page, context }) => {
+  pageTest('should maintain functionality with slow network', async ({ page, context, loginPage }) => {
     
     // Simulate slow 3G
     await context.route('**/*', route => {
       setTimeout(() => route.continue(), TIMEOUTS.QUICK / 5);
     });
     
-    const loginPage = new LoginPage(page);
     await loginPage.navigate();
     
     // Page should still be functional on slow network

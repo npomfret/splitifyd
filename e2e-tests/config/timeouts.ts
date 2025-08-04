@@ -43,4 +43,7 @@ export const TIMEOUT_CONTEXTS = {
   // Error handling timeouts
   ERROR_DISPLAY: TIMEOUTS.EXTENDED,
   NETWORK_ERROR: TIMEOUTS.LONG,
+  
+  // Test simulation timeouts
+  SIMULATED_TIMEOUT_DELAY: 10000, // For tests that simulate timeout scenarios
 } as const;

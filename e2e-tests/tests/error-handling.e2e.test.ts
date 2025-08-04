@@ -189,8 +189,8 @@ test.describe('Error Handling', () => {
     
     // Intercept API calls to simulate timeout
     await context.route('**/api/groups', async route => {
-      // Wait 10 seconds then respond with timeout
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      // Wait for configured timeout delay then respond with timeout
+      await new Promise(resolve => setTimeout(resolve, TIMEOUT_CONTEXTS.SIMULATED_TIMEOUT_DELAY));
       await route.fulfill({ status: 408, body: 'Request Timeout' });
     });
     

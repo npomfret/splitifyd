@@ -1,67 +1,46 @@
 import { test, expect } from '../fixtures/base-test';
 import { authenticatedTest } from '../fixtures/authenticated-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { DashboardPage, CreateGroupModalPage, GroupDetailPage } from '../pages';
+import { CreateGroupModalPage, GroupDetailPage, DashboardPage } from '../pages';
+import { pageTest } from '../fixtures/page-fixtures';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Dashboard E2E', () => {
-  authenticatedTest('should display user info after login', async ({ authenticatedPage }) => {
+  authenticatedTest('should display dashboard with user info and groups section', async ({ authenticatedPage }) => {
     const { page, user } = authenticatedPage;
     const dashboardPage = new DashboardPage(page);
     
+    // Verify navigation to dashboard
     await expect(page).toHaveURL(/\/dashboard/);
     
+    // Verify user is logged in and info is displayed
     await expect(dashboardPage.isLoggedIn()).resolves.toBe(true);
-    
     const displayName = await dashboardPage.getUserDisplayName();
     expect(displayName).toBe(user.displayName);
-    
     await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
-  });
-
-  authenticatedTest('should display user groups section', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
     
-    await expect(page).toHaveURL(/\/dashboard/);
-    
-    const dashboardPage = new DashboardPage(page);
-    
+    // Verify groups section is displayed
     await expect(dashboardPage.getGroupsHeading()).toBeVisible();
     
-    await expect(dashboardPage.getCreateGroupButton()).toBeVisible();
-    
+    // Verify create group button is present and enabled
+    const createGroupButton = dashboardPage.getCreateGroupButton();
+    await expect(createGroupButton).toBeVisible();
+    await expect(createGroupButton).toBeEnabled();
   });
 
-  authenticatedTest('should show create group button', async ({ authenticatedPage }) => {
+  authenticatedTest('should persist authentication on reload', async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
-    
-    await expect(page).toHaveURL(/\/dashboard/);
-    
     const dashboardPage = new DashboardPage(page);
     
-    await expect(dashboardPage.getCreateGroupButton()).toBeVisible();
-    await expect(dashboardPage.getCreateGroupButton()).toBeEnabled();
-    
-  });
-
-  authenticatedTest('should navigate to dashboard after login', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
-    
-    await expect(page).toHaveURL(/\/dashboard/);
-    
-    await page.reload();
-    await expect(page).toHaveURL(/\/dashboard/);
-  });
-
-  authenticatedTest('should show navigation elements', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
-    
-    const dashboardPage = new DashboardPage(page);
-    
+    // Verify user menu is visible (indicates authenticated state)
     await expect(dashboardPage.getUserMenuButton()).toBeVisible();
     
+    // Reload and verify authentication persists
+    await page.reload();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(dashboardPage.getUserMenuButton()).toBeVisible();
   });
 
   test.describe('Create Group Modal', () => {
