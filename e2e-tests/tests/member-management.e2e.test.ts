@@ -57,11 +57,9 @@ test.describe('Member Management E2E', () => {
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Creator should have admin badge
-    const adminIndicator = page.getByText(/admin/i)
-      .or(page.locator('[data-testid="admin-badge"]'));
-    
-    await expect(adminIndicator.first()).toBeVisible();
+    // Creator should have admin badge - we expect a specific UI element
+    // The UI must show "admin" text for the group creator
+    await expect(page.getByText(/admin/i).first()).toBeVisible();
   });
 
   test('should show share functionality', async ({ page }) => {

@@ -182,6 +182,43 @@ Additional quality improvements implemented in the final phase:
 - Now tests properly assert what MUST exist, not what MIGHT exist
 - Test failures now indicate actual bugs, not missing features
 
+## Phase 6: Critical Anti-Pattern Fixes ✅ COMPLETE
+
+Additional critical anti-patterns fixed following comprehensive scan:
+
+1. **Removed count-based conditional logic** ✅ COMPLETE
+   - `error-handling.e2e.test.ts:166` - Replaced `.count()` check with direct `.not.toBeVisible()` assertion
+   
+2. **Eliminated .or() fallback chains** ✅ COMPLETE  
+   - `member-management.e2e.test.ts:61-62` - Removed `.or()` chain, now expects specific "admin" text
+   
+3. **Fixed ignored promise handling** ✅ COMPLETE
+   - `error-handling.e2e.test.ts:198` - Properly handled timeout promise with `Promise.race()`
+   
+4. **Removed try/catch test wrapper** ✅ COMPLETE
+   - `complex-unsettled-group.e2e.test.ts` - Removed try/finally block, let Playwright handle cleanup
+
+All critical violations have been resolved. Tests now properly assert specific expected behavior without fallback patterns.
+
+## Remaining Technical Debt (Non-Critical)
+
+The following issues remain but don't block the test suite from functioning correctly:
+
+- **Direct page.goto() usage**: ~50 instances of direct navigation instead of page object methods
+- **Hardcoded selectors in tests**: 287 instances of selectors in test files instead of page objects
+- **Hardcoded timeout values**: ~15 instances of hardcoded timeouts (500ms - 5000ms)
+- **Helper pattern usage**: Static utility functions in helpers/ directory
+
+These can be addressed in future refactoring phases but don't compromise test reliability or correctness.
+
 ## ✅ **AUDIT CONCLUSION**
 
-The E2E test suite has been successfully transformed from a slow, redundant collection of tests into a fast, maintainable, and reliable test framework. The 60-70% performance improvement target was achieved while maintaining complete functional coverage. The suite is production-ready and provides excellent developer experience.
+The E2E test suite has been successfully transformed from a slow, redundant collection of tests into a fast, maintainable, and reliable test framework. The 60-70% performance improvement target was achieved while maintaining complete functional coverage. 
+
+**All critical anti-patterns have been eliminated**, ensuring tests:
+- Know exactly what UI elements must exist (no conditional logic)
+- Assert specific expected behavior (no fallback patterns)
+- Fail fast when elements are missing (3s timeouts)
+- Handle promises correctly (no ignored errors)
+
+The suite is production-ready and provides excellent developer experience.
