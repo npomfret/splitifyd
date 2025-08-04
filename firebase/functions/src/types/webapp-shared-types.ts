@@ -107,20 +107,6 @@ export interface CreateGroupRequest {
   members?: User[];
 }
 
-export interface ShareableLinkResponse {
-  linkId: string;
-  groupId: string;
-  shareUrl: string;
-  expiresAt: string;
-}
-
-export interface JoinGroupResponse {
-  success: boolean;
-  groupId: string;
-  groupName: string;
-  message: string;
-}
-
 // List groups response
 export interface ListGroupsResponse {
   groups: Group[];
@@ -200,11 +186,6 @@ export interface UpdateExpenseRequest {
   receiptUrl?: string;
 }
 
-// Firestore Timestamp type (for frontend compatibility)
-export interface FirestoreTimestamp {
-  _seconds: number;
-  _nanoseconds: number;
-}
 
 // Balance calculation types
 export interface SimplifiedDebt {
