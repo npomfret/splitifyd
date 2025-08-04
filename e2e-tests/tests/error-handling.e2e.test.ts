@@ -7,6 +7,7 @@ import {
 } from '../helpers';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
+import { SELECTORS } from '../constants/selectors';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -58,7 +59,7 @@ test.describe('Error Handling', () => {
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
     
     // Try to submit empty form
-    const submitButton = page.locator('form').getByRole('button', { name: 'Create Group' });
+    const submitButton = page.locator(SELECTORS.FORM).getByRole('button', { name: 'Create Group' });
     await expect(submitButton).toBeVisible();
     
     // Submit button should be disabled for empty form
@@ -193,16 +194,16 @@ test.describe('Error Handling', () => {
     
     // Start the submission (will timeout) and wait for expected UI state changes
     const submitPromise = createGroupModal.submitForm();
-    const buttonReenabledPromise = page.waitForFunction(() => {
-      const button = document.querySelector('button[type="submit"]:not([disabled])');
+    const buttonReenabledPromise = page.waitForFunction((selector) => {
+      const button = document.querySelector(`${selector}:not([disabled])`);
       return button && button.textContent?.includes('Create Group');
-    }, { timeout: TIMEOUTS.LONG });
+    }, SELECTORS.SUBMIT_BUTTON, { timeout: TIMEOUTS.LONG });
 
     // Wait for either submission to complete or button to be re-enabled
     await Promise.race([submitPromise, buttonReenabledPromise]);
 
     // Verify the expected state: form submission should fail and modal should remain open
-    const isSubmitButtonEnabled = await page.locator('button[type="submit"]').isEnabled();
+    const isSubmitButtonEnabled = await page.locator(SELECTORS.SUBMIT_BUTTON).isEnabled();
     expect(isSubmitButtonEnabled).toBe(true); // Button should be re-enabled after timeout
 
     // Modal should still be open

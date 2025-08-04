@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { LoginPage, RegisterPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import { SELECTORS } from '../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -246,7 +246,7 @@ test.describe('Form Validation E2E', () => {
       const { page, loginPage } = loginPageNavigated;
       
       // Check form has proper structure
-      const form = page.locator('form');
+      const form = page.locator(SELECTORS.FORM);
       // Form MUST exist on login page - this is not optional
       await expect(form).toBeVisible();
       

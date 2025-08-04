@@ -1,9 +1,8 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
+import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../constants/selectors';
 
 export class CreateGroupModalPage extends BasePage {
-  // Selectors
-  readonly modal = '.fixed.inset-0'; // Modal backdrop
   readonly modalTitle = 'Create New Group';
 
   async isOpen(): Promise<boolean> {
@@ -26,14 +25,14 @@ export class CreateGroupModalPage extends BasePage {
     await this.fillPreactInput(nameInput, name);
     
     if (description) {
-      const descInput = this.page.getByPlaceholder('Add any details about this group...');
+      const descInput = this.page.getByPlaceholder(PLACEHOLDERS.GROUP_DESCRIPTION);
       await this.fillPreactInput(descInput, description);
     }
   }
   
   async submitForm() {
     // Get the submit button and wait for it to be enabled
-    const submitButton = this.page.locator('form').getByRole('button', { name: 'Create Group' });
+    const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
     
     // Wait up to 5 seconds for the button to become enabled
     await expect(submitButton).toBeEnabled({ timeout: 500 });
@@ -44,7 +43,7 @@ export class CreateGroupModalPage extends BasePage {
   async cancel() {
     // Modal MUST have a cancel/close button - this is basic UX
     // Use a regex that matches either "Cancel" or "Close"
-    const cancelButton = this.page.getByRole('button', { name: /(Cancel|Close)/i });
+    const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: /(Cancel|Close)/i });
     await cancelButton.click();
   }
   
@@ -57,11 +56,11 @@ export class CreateGroupModalPage extends BasePage {
     
     // Wait for any modal animation to complete
     await this.page.waitForFunction(() => {
-      const modal = document.querySelector('.fixed.inset-0');
+      const modal = document.querySelector(SELECTORS.MODAL_OVERLAY);
       if (!modal) return false;
       const style = window.getComputedStyle(modal);
       return style.opacity === '1' && style.visibility === 'visible';
-    });
+    }, { timeout: 5000 }, SELECTORS.MODAL_OVERLAY);
     
     await this.fillGroupForm(name, description);
     await this.submitForm();
@@ -85,6 +84,6 @@ export class CreateGroupModalPage extends BasePage {
   }
 
   getSubmitButton() {
-    return this.page.locator('.fixed.inset-0').filter({ has: this.page.getByText('Create New Group') }).getByRole('button', { name: 'Create Group' });
+    return this.page.locator(SELECTORS.MODAL_OVERLAY).filter({ has: this.page.getByText('Create New Group') }).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
   }
 }

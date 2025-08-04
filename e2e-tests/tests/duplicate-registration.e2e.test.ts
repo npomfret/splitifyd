@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, fillPreactInput } from '../helpers';
 import { RegisterPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import { SELECTORS } from '../constants/selectors';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -27,7 +28,7 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Log out to attempt second registration
     // Wait for user menu button to be visible
-    const userMenuButton = page.locator('button').filter({ hasText: displayName });
+    const userMenuButton = page.getByRole('button', { name: displayName });
     await expect(userMenuButton.first()).toBeVisible();
     
     await userMenuButton.first().click();
@@ -73,7 +74,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(page).toHaveURL(/\/register/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Check for error message on screen using the RegisterPage's error selector
-    const errorElement = page.locator('.text-red-600');
+    const errorElement = page.locator(SELECTORS.ERROR_MESSAGE);
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     const errorText = await errorElement.textContent();
@@ -108,7 +109,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Log out
-    const userMenuButton = page.locator('button').filter({ hasText: displayName });
+    const userMenuButton = page.getByRole('button', { name: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
     
@@ -149,7 +150,7 @@ test.describe('Duplicate User Registration E2E', () => {
     expect(passwordValue.length).toBeGreaterThanOrEqual(0); // Allow it to be cleared or retained
     
     // Error should be visible
-    const errorElement = page.locator('.text-red-600');
+    const errorElement = page.locator(SELECTORS.ERROR_MESSAGE);
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
   });
 
@@ -170,7 +171,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
     
     // Log out
-    const userMenuButton = page.locator('button').filter({ hasText: displayName });
+    const userMenuButton = page.getByRole('button', { name: displayName });
     await userMenuButton.click();
     await page.getByText('Sign out').click();
     
@@ -201,7 +202,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await submitButton.click();
     
     // Should see error
-    const errorElement = page.locator('.text-red-600');
+    const errorElement = page.locator(SELECTORS.ERROR_MESSAGE);
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     // Now change email and try again using page object

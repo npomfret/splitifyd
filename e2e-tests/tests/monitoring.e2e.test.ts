@@ -1,7 +1,8 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { HomepagePage, LoginPage, RegisterPage, PricingPage } from '../pages';
+import { HomepagePage, LoginPage, RegisterPage } from '../pages';
+import { SELECTORS } from '../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -97,11 +98,11 @@ test.describe('Performance and Error Monitoring E2E', () => {
     expect(title.length).toBeGreaterThan(10);
     
     // Check for description meta tag
-    const description = await page.locator('meta[name="description"]').getAttribute('content');
+    const description = await page.locator(SELECTORS.META_DESCRIPTION).getAttribute('content');
     expect(description).toBeTruthy();
     
     // Check for viewport meta tag (mobile responsiveness)
-    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+    const viewport = await page.locator(SELECTORS.META_VIEWPORT).getAttribute('content');
     expect(viewport).toContain('width=device-width');
   });
 
@@ -175,7 +176,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
     
     // Form should be interactive
-    const emailInput = page.locator('input[type="email"]');
+    const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
     await emailInput.fill('test@example.com');
     await expect(emailInput).toHaveValue('test@example.com');
     

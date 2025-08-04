@@ -3,9 +3,7 @@ import {
   LoginPage, 
   RegisterPage, 
   HomepagePage, 
-  DashboardPage,
-  PricingPage,
-  GroupDetailPage
+  PricingPage
 } from '../pages';
 
 // Define fixtures for pre-navigated pages

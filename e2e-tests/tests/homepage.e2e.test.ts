@@ -1,7 +1,8 @@
 import {test} from '@playwright/test';
 import {pageTest, expect} from '../fixtures/page-fixtures';
 import {setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL} from '../helpers';
-import {HomepagePage, PricingPage} from '../pages';
+import {PricingPage} from '../pages';
+import {SELECTORS} from '../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -67,7 +68,7 @@ test.describe('Homepage E2E', () => {
     const { page } = homepageNavigated;
     
     // Check footer exists
-    const footer = page.locator('footer');
+    const footer = page.locator(SELECTORS.FOOTER);
     await expect(footer).toBeVisible();
     
     // Check terms link

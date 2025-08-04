@@ -1,4 +1,5 @@
 import { BasePage } from './base.page';
+import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
 export class RegisterPage extends BasePage {
   // Selectors
@@ -7,7 +8,6 @@ export class RegisterPage extends BasePage {
   readonly emailInput = 'input[placeholder="Enter your email"]';
   readonly passwordInput = 'input[placeholder="Create a strong password"]';
   readonly confirmPasswordInput = 'input[placeholder="Confirm your password"]';
-  readonly termsCheckbox = 'input[type="checkbox"]';
   readonly createAccountButton = 'Create Account';
 
   async navigate() {
@@ -19,7 +19,7 @@ export class RegisterPage extends BasePage {
     await this.fillPreactInput(this.emailInput, email);
     await this.fillPreactInput(this.passwordInput, password);
     await this.fillPreactInput(this.confirmPasswordInput, password);
-    await this.page.locator(this.termsCheckbox).check();
+    await this.page.locator(SELECTORS.CHECKBOX).check();
   }
   
   async submitForm() {
@@ -49,29 +49,29 @@ export class RegisterPage extends BasePage {
   }
 
   getPasswordInputs() {
-    return this.page.locator('input[type="password"]');
+    return this.page.locator(SELECTORS.PASSWORD_INPUT);
   }
 
   getTermsCheckbox() {
-    return this.page.locator(this.termsCheckbox);
+    return this.page.locator(SELECTORS.CHECKBOX);
   }
 
   getSubmitButton() {
-    return this.page.getByRole('button', { name: this.createAccountButton });
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.createAccountButton });
   }
 
   // Alternative selector methods for fallback
   getNameInputByType() {
-    return this.page.locator('input[type="text"]').first();
+    return this.page.locator(SELECTORS.TEXT_INPUT).first();
   }
 
   getEmailInputByType() {
-    return this.page.locator('input[type="email"]');
+    return this.page.locator(SELECTORS.EMAIL_INPUT);
   }
 
   // Form element labels and headings
   getCreateAccountHeading() {
-    return this.page.getByRole('heading', { name: 'Create Account' });
+    return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.CREATE_ACCOUNT });
   }
 
   getFullNameLabel() {
@@ -91,6 +91,6 @@ export class RegisterPage extends BasePage {
   }
 
   getSignInLink() {
-    return this.page.getByRole('link', { name: 'Sign in' });
+    return this.page.getByRole(ARIA_ROLES.LINK, { name: 'Sign in' });
   }
 }
