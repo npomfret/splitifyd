@@ -103,9 +103,11 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     const groupWithBalance = await driver.getGroup(group.id, alice.token);
     console.log('Group with balance:', JSON.stringify(groupWithBalance, null, 2));
     
-    // The group balance should not show "All settled up!"
+    // The group balance should show that there are unsettled amounts
     expect(groupWithBalance.balance).toBeDefined();
-    expect(groupWithBalance.balance.simplifiedDebts).toBeDefined();
-    expect(groupWithBalance.balance.simplifiedDebts.length).toBeGreaterThan(0);
+    expect(groupWithBalance.balance.userBalance).toBeDefined();
+    expect(groupWithBalance.balance.userBalance!.netBalance).toBe(34000); // Alice is owed $340
+    expect(groupWithBalance.balance.totalOwed).toBe(34000); // Total Alice is owed
+    expect(groupWithBalance.balance.totalOwing).toBe(0); // Alice owes nothing
   });
 });
