@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { RegisterPage } from '../pages/register.page';
+import { LoginPage } from '../pages/login.page';
 import { DashboardPage } from '../pages/dashboard.page';
 import { TestUser } from '../helpers/auth-utils';
 
@@ -42,6 +43,22 @@ export class AuthenticationWorkflow {
       email,
       displayName
     };
+  }
+
+  /**
+   * Logs in an existing test user (for use with user pool)
+   */
+  async loginExistingUser(user: TestUser): Promise<void> {
+    const loginPage = new LoginPage(this.page);
+    await loginPage.navigate();
+    
+    // Extract password from user creation pattern - all pool users use same password
+    const password = 'TestPassword123!';
+    await loginPage.login(user.email, password);
+    
+    // Wait for successful login and redirect to dashboard
+    const dashboardPage = new DashboardPage(this.page);
+    await dashboardPage.waitForDashboard();
   }
 
   /**

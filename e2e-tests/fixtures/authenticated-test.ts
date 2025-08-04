@@ -2,6 +2,7 @@ import { test as base } from './base-test';
 import { Page } from '@playwright/test';
 import { AuthenticationWorkflow } from '../workflows';
 import { TestUser } from '../helpers/auth-utils';
+import { getUserPool } from './user-pool.fixture';
 
 export interface AuthenticatedFixtures {
   authenticatedPage: {
@@ -11,10 +12,22 @@ export interface AuthenticatedFixtures {
 }
 
 export const authenticatedTest = base.extend<AuthenticatedFixtures>({
-  authenticatedPage: async ({ page }, use) => {
+  authenticatedPage: async ({ page }, use, testInfo) => {
+    const userPool = await getUserPool();
+    
+    // Claim user from pool - fail fast if pool is broken
+    const user = await userPool.claimUser(testInfo.testId);
+    
+    // Authenticate the existing user via login
     const authWorkflow = new AuthenticationWorkflow(page);
-    const user = await authWorkflow.createAndLoginTestUser();
-    await use({ page, user });
+    await authWorkflow.loginExistingUser(user);
+    
+    try {
+      await use({ page, user });
+    } finally {
+      // Release user back to pool
+      await userPool.releaseUser(user.uid, testInfo.testId);
+    }
   }
 });
 

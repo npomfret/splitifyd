@@ -76,3 +76,6 @@ directives
 .claude/commands/agent-list.md
 .claude/commands/mcp-list.md
 .claude/commands/p.md
+
+# Playwright user pool persistence
+.playwright-user-pool.json

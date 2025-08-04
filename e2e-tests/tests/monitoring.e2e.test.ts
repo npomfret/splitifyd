@@ -7,40 +7,36 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Performance and Error Monitoring E2E', () => {
-  test('should load all pages without JavaScript errors', async ({ page }) => {
-    const pagesToTest = [
-      { path: '', name: 'Homepage' },
-      { path: '/login', name: 'Login' },
-      { path: '/register', name: 'Register' },
-      { path: '/pricing', name: 'Pricing' },
-      { path: '/terms', name: 'Terms' },
-      { path: '/privacy', name: 'Privacy' }
-    ];
-
+  test('should load homepage without JavaScript errors', async ({ page }) => {
     const homepagePage = new HomepagePage(page);
-    const loginPage = new LoginPage(page);
-    const registerPage = new RegisterPage(page);
-    const pricingPage = new PricingPage(page);
+    await homepagePage.navigate();
+  });
 
-    for (const pageInfo of pagesToTest) {
-      
-      // Navigate using page objects
-      if (pageInfo.path === '') {
-        await homepagePage.navigate();
-      } else if (pageInfo.path === '/login') {
-        await loginPage.navigate();
-      } else if (pageInfo.path === '/register') {
-        await registerPage.navigate();
-      } else if (pageInfo.path === '/pricing') {
-        await pricingPage.navigate();
-      } else {
-        // For static pages (terms, privacy), use base navigation
-        await homepagePage.navigateToStaticPath(pageInfo.path);
-        await waitForApp(page);
-      }
-      
-      // Check for any console errors
-    }
+  test('should load login page without JavaScript errors', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.navigate();
+  });
+
+  test('should load register page without JavaScript errors', async ({ page }) => {
+    const registerPage = new RegisterPage(page);
+    await registerPage.navigate();
+  });
+
+  test('should load pricing page without JavaScript errors', async ({ page }) => {
+    const pricingPage = new PricingPage(page);
+    await pricingPage.navigate();
+  });
+
+  test('should load terms page without JavaScript errors', async ({ page }) => {
+    const homepagePage = new HomepagePage(page);
+    await homepagePage.navigateToStaticPath('/terms');
+    await waitForApp(page);
+  });
+
+  test('should load privacy page without JavaScript errors', async ({ page }) => {
+    const homepagePage = new HomepagePage(page);
+    await homepagePage.navigateToStaticPath('/privacy');
+    await waitForApp(page);
   });
 
   test('should not have any 404 resources', async ({ page }) => {

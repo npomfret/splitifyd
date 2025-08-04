@@ -8,8 +8,8 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Dashboard E2E', () => {
-  test('should display user info after login', async ({ page }) => {
-    const user = await AuthenticationWorkflow.createTestUser(page);
+  authenticatedTest('should display user info after login', async ({ authenticatedPage }) => {
+    const { page, user } = authenticatedPage;
     const dashboardPage = new DashboardPage(page);
     
     await expect(page).toHaveURL(/\/dashboard/);
@@ -47,17 +47,13 @@ test.describe('Dashboard E2E', () => {
     
   });
 
-  test('should navigate to dashboard after login', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.navigate();
-    
-    await AuthenticationWorkflow.createTestUser(page);
+  authenticatedTest('should navigate to dashboard after login', async ({ authenticatedPage }) => {
+    const { page } = authenticatedPage;
     
     await expect(page).toHaveURL(/\/dashboard/);
     
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard/);
-    
   });
 
   authenticatedTest('should show navigation elements', async ({ authenticatedPage }) => {
