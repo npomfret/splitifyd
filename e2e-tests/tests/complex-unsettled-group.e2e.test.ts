@@ -33,7 +33,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
       
       await alicePage.reload();
       await alicePage.waitForLoadState('networkidle');
-      await alicePage.waitForTimeout(2000); // Wait for balances to update
+      // Wait for balance section to be visible - indicates data loaded
+      await expect(alicePage.getByRole('heading', { name: /balance/i })).toBeVisible();
       
       // Verify both expenses are visible
       const expenses = workflow.getExpenses();
