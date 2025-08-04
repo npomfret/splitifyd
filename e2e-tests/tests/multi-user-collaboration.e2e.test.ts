@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow, AuthenticationWorkflow } from '../helpers';
 import { GroupDetailPage } from '../pages';
-import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();

@@ -1,4 +1,5 @@
-import {expect, test} from '@playwright/test';
+import {test} from '@playwright/test';
+import {pageTest, expect} from '../fixtures/page-fixtures';
 import {setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL} from '../helpers';
 import {HomepagePage, PricingPage} from '../pages';
 
@@ -7,9 +8,8 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Homepage E2E', () => {
-  test('should load homepage with all key elements', async ({ page }) => {
-    const homepage = new HomepagePage(page);
-    await homepage.navigate();
+  pageTest('should load homepage with all key elements', async ({ homepageNavigated }) => {
+    const { page } = homepageNavigated;
     
     // Verify main heading
     await expect(page.getByRole('heading', { 
@@ -24,9 +24,8 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  test('should navigate to pricing page from homepage', async ({ page }) => {
-    const homepage = new HomepagePage(page);
-    await homepage.navigate();
+  pageTest('should navigate to pricing page from homepage', async ({ homepageNavigated }) => {
+    const { page } = homepageNavigated;
     
     // Click pricing link
     await page.getByRole('link', { name: 'Pricing' }).click();
@@ -38,9 +37,8 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  test('should navigate to login from homepage header', async ({ page }) => {
-    const homepage = new HomepagePage(page);
-    await homepage.navigate();
+  pageTest('should navigate to login from homepage header', async ({ homepageNavigated }) => {
+    const { page } = homepageNavigated;
     
     // Click login link in header
     await page.getByRole('link', { name: 'Login' }).click();
@@ -52,9 +50,8 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  test('should navigate to register from homepage header', async ({ page }) => {
-    const homepage = new HomepagePage(page);
-    await homepage.navigate();
+  pageTest('should navigate to register from homepage header', async ({ homepageNavigated }) => {
+    const { page } = homepageNavigated;
     
     // Click sign up link in header (exact match to avoid ambiguity)
     await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
@@ -66,9 +63,8 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  test('should have working footer links', async ({ page }) => {
-    const homepage = new HomepagePage(page);
-    await homepage.navigate();
+  pageTest('should have working footer links', async ({ homepageNavigated }) => {
+    const { page } = homepageNavigated;
     
     // Check footer exists
     const footer = page.locator('footer');

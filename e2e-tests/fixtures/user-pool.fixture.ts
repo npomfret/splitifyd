@@ -1,6 +1,5 @@
 import { Page } from '@playwright/test';
 import { TestUser } from '../helpers/auth-utils';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 
 export interface PooledUser {
   id: string;

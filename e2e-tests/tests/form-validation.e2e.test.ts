@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { pageTest, expect } from '../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 import { LoginPage, RegisterPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
@@ -9,10 +10,8 @@ setupConsoleErrorReporting();
 
 test.describe('Form Validation E2E', () => {
   test.describe('Login Form', () => {
-    test('should show validation for invalid email format', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      
-      await loginPage.navigate();
+    pageTest('should show validation for invalid email format', async ({ loginPageNavigated }) => {
+      const { page, loginPage } = loginPageNavigated;
       
       // Clear any pre-filled data
       const emailInput = loginPage.getEmailInput();
@@ -34,10 +33,8 @@ test.describe('Form Validation E2E', () => {
       
     });
 
-    test('should require both email and password', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      
-      await loginPage.navigate();
+    pageTest('should require both email and password', async ({ loginPageNavigated }) => {
+      const { page, loginPage } = loginPageNavigated;
       
       // Clear any pre-filled data
       const emailInput = loginPage.getEmailInput();
@@ -69,10 +66,8 @@ test.describe('Form Validation E2E', () => {
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
-    test('should clear form on page refresh', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      
-      await loginPage.navigate();
+    pageTest('should clear form on page refresh', async ({ loginPageNavigated }) => {
+      const { page, loginPage } = loginPageNavigated;
       
       // Wait for any pre-filled data to load
       await page.waitForLoadState('domcontentloaded');
@@ -110,9 +105,8 @@ test.describe('Form Validation E2E', () => {
   });
 
   test.describe('Register Form', () => {
-    test('should validate password confirmation match', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
-      await registerPage.navigate();
+    pageTest('should validate password confirmation match', async ({ registerPageNavigated }) => {
+      const { page, registerPage } = registerPageNavigated;
       
       // Fill form with mismatched passwords
       const nameInput = registerPage.getNameInputByType();
@@ -142,9 +136,8 @@ test.describe('Form Validation E2E', () => {
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
-    test('should require all fields', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
-      await registerPage.navigate();
+    pageTest('should require all fields', async ({ registerPageNavigated }) => {
+      const { page, registerPage } = registerPageNavigated;
       
       // The Create Account button should be disabled with empty form
       const submitButton = registerPage.getSubmitButton();
@@ -163,9 +156,8 @@ test.describe('Form Validation E2E', () => {
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
-    test('should validate email format on register', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
-      await registerPage.navigate();
+    pageTest('should validate email format on register', async ({ registerPageNavigated }) => {
+      const { page, registerPage } = registerPageNavigated;
       
       // Fill form with invalid email
       const nameInput = registerPage.getNameInputByType();
@@ -202,9 +194,8 @@ test.describe('Form Validation E2E', () => {
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
-    test('should trim whitespace from inputs', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
-      await registerPage.navigate();
+    pageTest('should trim whitespace from inputs', async ({ registerPageNavigated }) => {
+      const { page, registerPage } = registerPageNavigated;
       
       // Fill form with extra spaces
       const nameInput = registerPage.getNameInputByType();
@@ -225,9 +216,8 @@ test.describe('Form Validation E2E', () => {
   });
 
   test.describe('Form Accessibility', () => {
-    test('should navigate login form with keyboard', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.navigate();
+    pageTest('should navigate login form with keyboard', async ({ loginPageNavigated }) => {
+      const { page, loginPage } = loginPageNavigated;
       
       // Focus should start at first input or be tabbable to it
       await page.keyboard.press('Tab');
@@ -252,9 +242,8 @@ test.describe('Form Validation E2E', () => {
       // Console errors are automatically captured by setupConsoleErrorReporting
     });
 
-    test('should have proper ARIA labels', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.navigate();
+    pageTest('should have proper ARIA labels', async ({ loginPageNavigated }) => {
+      const { page, loginPage } = loginPageNavigated;
       
       // Check form has proper structure
       const form = page.locator('form');

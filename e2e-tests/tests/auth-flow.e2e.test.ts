@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { pageTest, expect } from '../fixtures/page-fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { LoginPage, RegisterPage } from '../pages';
 
@@ -32,10 +33,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(loginPage.getSignInHeading()).toBeVisible();
   });
 
-  test('should show form fields on login page', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    await loginPage.navigate();
+  pageTest('should show form fields on login page', async ({ loginPageNavigated }) => {
+    const { loginPage } = loginPageNavigated;
     
     // Verify form fields are present
     await expect(loginPage.getEmailLabel()).toBeVisible();
@@ -43,10 +42,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(loginPage.getSubmitButton()).toBeVisible();
   });
 
-  test('should show form fields on register page', async ({ page }) => {
-    const registerPage = new RegisterPage(page);
-    
-    await registerPage.navigate();
+  pageTest('should show form fields on register page', async ({ registerPageNavigated }) => {
+    const { registerPage } = registerPageNavigated;
     
     // Verify form fields are present
     await expect(registerPage.getFullNameLabel()).toBeVisible();
@@ -56,10 +53,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(registerPage.getSubmitButton()).toBeVisible();
   });
 
-  test('should disable submit button with empty form on login', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    await loginPage.navigate();
+  pageTest('should disable submit button with empty form on login', async ({ loginPageNavigated }) => {
+    const { page, loginPage } = loginPageNavigated;
     
     // Clear any pre-filled data using page object methods
     const emailInput = loginPage.getEmailInput();
@@ -75,10 +70,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('should handle empty form submission on register', async ({ page }) => {
-    const registerPage = new RegisterPage(page);
-    
-    await registerPage.navigate();
+  pageTest('should handle empty form submission on register', async ({ registerPageNavigated }) => {
+    const { page, registerPage } = registerPageNavigated;
     
     // The Create Account button should be disabled when form is empty
     const submitButton = registerPage.getSubmitButton();
@@ -92,10 +85,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(registerPage.getEmailLabel()).toBeVisible();
   });
 
-  test('should allow typing in login form fields', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    await loginPage.navigate();
+  pageTest('should allow typing in login form fields', async ({ loginPageNavigated }) => {
+    const { loginPage } = loginPageNavigated;
     
     // Find and fill email input using page object methods
     const emailInput = loginPage.getEmailInput();
@@ -108,10 +99,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(passwordInput).toHaveValue('TestPassword123');
   });
 
-  test('should allow typing in register form fields', async ({ page }) => {
-    const registerPage = new RegisterPage(page);
-    
-    await registerPage.navigate();
+  pageTest('should allow typing in register form fields', async ({ registerPageNavigated }) => {
+    const { registerPage } = registerPageNavigated;
     
     // Find and fill name input using page object methods
     const nameInput = registerPage.getFullNameInput();
@@ -133,10 +122,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(confirmPasswordInput).toHaveValue('TestPassword123');
   });
 
-  test('should show forgot password link on login page', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    await loginPage.navigate();
+  pageTest('should show forgot password link on login page', async ({ loginPageNavigated }) => {
+    const { page, loginPage } = loginPageNavigated;
     
     // Check for forgot password link
     await expect(loginPage.getForgotPasswordLink()).toBeVisible();

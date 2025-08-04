@@ -1,8 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { authenticatedTest } from '../fixtures/authenticated-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { DashboardPage, CreateGroupModalPage, LoginPage, GroupDetailPage } from '../pages';
+import { DashboardPage, CreateGroupModalPage, GroupDetailPage } from '../pages';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();

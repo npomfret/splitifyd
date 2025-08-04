@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { pageTest, expect } from '../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { HomepagePage, LoginPage, RegisterPage, PricingPage } from '../pages';
 
@@ -7,24 +8,20 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Performance and Error Monitoring E2E', () => {
-  test('should load homepage without JavaScript errors', async ({ page }) => {
-    const homepagePage = new HomepagePage(page);
-    await homepagePage.navigate();
+  pageTest('should load homepage without JavaScript errors', async ({ homepageNavigated }) => {
+    const { page } = homepageNavigated;
   });
 
-  test('should load login page without JavaScript errors', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.navigate();
+  pageTest('should load login page without JavaScript errors', async ({ loginPageNavigated }) => {
+    const { page } = loginPageNavigated;
   });
 
-  test('should load register page without JavaScript errors', async ({ page }) => {
-    const registerPage = new RegisterPage(page);
-    await registerPage.navigate();
+  pageTest('should load register page without JavaScript errors', async ({ registerPageNavigated }) => {
+    const { page } = registerPageNavigated;
   });
 
-  test('should load pricing page without JavaScript errors', async ({ page }) => {
-    const pricingPage = new PricingPage(page);
-    await pricingPage.navigate();
+  pageTest('should load pricing page without JavaScript errors', async ({ pricingPageNavigated }) => {
+    const { page } = pricingPageNavigated;
   });
 
   test('should load terms page without JavaScript errors', async ({ page }) => {

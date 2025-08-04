@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting } from '../helpers';
+import { waitForApp, setupConsoleErrorReporting } from '../helpers';
 import { HomepagePage } from '../pages';
 
 setupConsoleErrorReporting();
