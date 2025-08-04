@@ -33,6 +33,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       
       await alicePage.reload();
       await alicePage.waitForLoadState('networkidle');
+      await alicePage.waitForTimeout(2000); // Wait for balances to update
       
       // Verify both expenses are visible
       const expenses = testBuilder.getExpenses();

@@ -163,7 +163,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             createdBy={group.value!.createdBy || ''}
           />
 
-          <BalanceSummary balances={balances.value} />
+          <BalanceSummary balances={balances.value} members={members.value} />
 
           <ExpensesList 
             expenses={expenses.value}

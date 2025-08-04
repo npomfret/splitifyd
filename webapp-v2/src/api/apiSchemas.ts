@@ -135,14 +135,15 @@ export const ExpenseListResponseSchema = z.object({
 
 // Balance schemas - Updated to match server response structure
 export const UserBalanceSchema = z.object({
+  userId: z.string(),
   netBalance: z.number(),
   owes: z.record(z.string(), z.number()),
   owedBy: z.record(z.string(), z.number())
 });
 
 export const SimplifiedDebtSchema = z.object({
-  from: z.string(),
-  to: z.string(),
+  from: z.object({ userId: z.string() }),
+  to: z.object({ userId: z.string() }),
   amount: z.number()
 });
 

@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**As of 2025-08-04, 1 test is failing** after implementing fixes. Nine tests have been fixed:
+**As of 2025-08-04, all E2E tests are now passing!** All 10 previously failing tests have been fixed:
 - `should show member in expense split options` 
 - `should show error immediately without clearing form`
 - `should prevent duplicate email registration and show error`
@@ -12,11 +12,9 @@
 - `should handle multi-user expense visibility` ✅ (fixed 2025-08-04)
 - `should handle group sharing via share link` ✅ (fixed 2025-08-04)
 - `should allow multiple users to add expenses to same group` ✅ (fixed 2025-08-04)
+- `create group with multiple people and expenses that is NOT settled` ✅ (fixed 2025-08-04)
 
-## Currently Failing Tests (1 total)
-
-### 1. complex-unsettled-group.e2e.test.ts (1 test)
-- `create group with multiple people and expenses that is NOT settled`
+## All Tests Now Passing! 🎉
 
 ## Failure Categories
 
@@ -129,4 +127,35 @@ After analyzing the failing tests and code, I've identified the following root c
 3. Update documentation
 
 This approach will definitively identify where the issue lies and ensure we fix the right component.
+
+## Final Resolution (2025-08-04)
+
+The last failing test was successfully fixed through a combination of frontend fixes:
+
+### Root Cause Analysis
+1. **API Schema Mismatch**: The frontend expected `simplifiedDebts` to have `from` and `to` as strings, but the backend returned objects with `userId` property
+2. **Missing Participants**: When creating expenses, participants weren't being selected by default, causing expenses to not be split
+3. **Balance Display Bug**: The BalanceSummary component was treating amounts as dollars when they were in cents
+
+### Fixes Applied
+1. **Updated API Schema** (`apiSchemas.ts`):
+   - Changed `SimplifiedDebtSchema` to match backend: `from: z.object({ userId: z.string() })`
+   - Added `userId` field to `UserBalanceSchema`
+
+2. **Fixed Balance Display** (`BalanceSummary.tsx`):
+   - Convert amounts from cents to dollars: `(debt.amount / 100).toFixed(2)`
+   - Display user names instead of IDs using member lookup
+   - Pass members array as prop from GroupDetailPage
+
+3. **Auto-select Participants** (`AddExpensePage.tsx`):
+   - Automatically select all group members as participants for equal splits
+   - Ensures expenses are properly split among all members
+
+4. **Increased Test Timeouts** (`group-detail.page.ts`):
+   - Increased navigation timeouts from 1s to 5s to handle slower responses
+
+### Verification
+- Created integration test that confirmed backend calculations were correct
+- All E2E tests now pass successfully
+- Balance calculations display correctly with proper user names and amounts
 

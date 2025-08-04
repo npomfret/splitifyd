@@ -1,13 +1,20 @@
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import type { GroupBalances } from '@shared/types/webapp-shared-types';
+import type { GroupBalances, User } from '@shared/types/webapp-shared-types';
 
 interface BalanceSummaryProps {
   balances: GroupBalances | null;
+  members?: User[];
 }
 
-export function BalanceSummary({ balances }: BalanceSummaryProps) {
+export function BalanceSummary({ balances, members = [] }: BalanceSummaryProps) {
   if (!balances) return null;
+
+  // Helper to get user display name
+  const getUserName = (userId: string) => {
+    const member = members.find(m => m.uid === userId);
+    return member?.displayName || 'Unknown';
+  };
 
   return (
     <Card className="p-6">
@@ -19,11 +26,11 @@ export function BalanceSummary({ balances }: BalanceSummaryProps) {
           {balances.simplifiedDebts.map((debt, index: number) => (
             <div key={index} className="flex justify-between items-center py-2">
               <span className="text-sm">
-                <span className="font-medium">{debt.from.userId}</span> owes{' '}
-                <span className="font-medium">{debt.to.userId}</span>
+                <span className="font-medium">{getUserName(debt.from.userId)}</span> owes{' '}
+                <span className="font-medium">{getUserName(debt.to.userId)}</span>
               </span>
               <span className="font-semibold text-red-600">
-                ${debt.amount.toFixed(2)}
+                ${(debt.amount / 100).toFixed(2)}
               </span>
             </div>
           ))}
