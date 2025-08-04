@@ -87,8 +87,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
       }
     }
     
-    // Take a screenshot of the current state
-    await page1.screenshot({ path: 'group-state-user1.png', fullPage: true });
+    // Screenshot removed - not needed for test verification
 
     // Check for balance information
 
@@ -163,7 +162,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
     const user2CanAccess = await page2.getByText('Vacation Group').count() > 0;
 
     if (user2CanAccess) {
-      await page2.screenshot({ path: 'group-state-user2.png', fullPage: true });
+      // Screenshot removed - not needed for test verification
 
       // User 2 tries to add an expense
       const addExpenseButton2 = page2.getByRole('button', { name: /add expense/i });
@@ -198,8 +197,7 @@ test.describe('Complex Multi-User Scenario Test', () => {
     await page1.goto(groupUrl);
     await page1.waitForLoadState('networkidle');
     
-    // Take final screenshot
-    await page1.screenshot({ path: 'group-final-state.png', fullPage: true });
+    // Screenshot removed - not needed for test verification
 
     // Log all expenses that are visible
     const allExpenses = page1.getByText(/hotel|car|groceries|restaurant|dinner/i);

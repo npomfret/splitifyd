@@ -41,8 +41,6 @@ test.describe('Multi-user group with expenses', () => {
 
       } catch (error) {
         console.error('Failed to open share modal:', error);
-        // Take a screenshot for debugging
-        await page1.screenshot({ path: 'share-modal-error.png' });
         throw error;
       }
       
@@ -172,10 +170,7 @@ test.describe('Multi-user group with expenses', () => {
       const memberCount1 = await page1.locator('text=/3 members?/i').first();
       await expect(memberCount1).toBeVisible();
 
-      // Take screenshots for debugging
-      await page1.screenshot({ path: 'multi-user-test-user1.png', fullPage: true });
-      await page2.screenshot({ path: 'multi-user-test-user2.png', fullPage: true });
-      await page3.screenshot({ path: 'multi-user-test-user3.png', fullPage: true });
+      // Screenshots removed - not needed for test verification
 
     } finally {
       // Clean up contexts
