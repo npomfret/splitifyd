@@ -4,6 +4,7 @@ import { mapFirebaseUser } from '../../types/auth';
 import { firebaseService } from '../firebase';
 import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '../../constants';
+import { logError } from '../../utils/error-logger';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -37,7 +38,7 @@ class AuthStoreImpl implements AuthStore {
             apiClient.setAuthToken(idToken);
             localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
           } catch (error) {
-            console.error('Failed to get ID token:', error);
+            logError('Failed to get ID token', error);
           }
         } else {
           userSignal.value = null;

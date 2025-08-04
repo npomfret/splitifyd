@@ -8,6 +8,7 @@ import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
 import { firebaseConfigManager } from '../app/firebase-config';
+import { logError } from '../utils/error-logger';
 
 const emailSignal = signal('');
 const passwordSignal = signal('');
@@ -26,7 +27,7 @@ export function LoginPage() {
       }
       formDefaultsLoadedSignal.value = true;
     }).catch(error => {
-      console.error('Failed to load form defaults:', error);
+      logError('Failed to load form defaults', error);
       formDefaultsLoadedSignal.value = true;
     });
   }, []);

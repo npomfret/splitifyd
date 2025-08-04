@@ -8,6 +8,7 @@ import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
 import { firebaseConfigManager } from '../app/firebase-config';
+import { logError } from '../utils/error-logger';
 
 const nameSignal = signal('');
 const emailSignal = signal('');
@@ -37,7 +38,7 @@ export function RegisterPage() {
         }
       }
     }).catch(error => {
-      console.error('Failed to load form defaults:', error);
+      logError('Failed to load form defaults', error);
     });
   }, []);
 

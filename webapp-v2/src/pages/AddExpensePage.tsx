@@ -9,6 +9,7 @@ import { apiClient } from '../app/apiClient';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
+import { logError } from '../utils/error-logger';
 
 interface AddExpensePageProps {
   groupId?: string;
@@ -91,7 +92,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
               throw new Error('Expense not found');
             }
           } catch (error) {
-            console.error('Failed to load expense for editing:', error);
+            logError('Failed to load expense for editing', error);
             route(`/groups/${groupId}`);
             return;
           }
@@ -114,7 +115,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         
         isInitialized.value = true;
       } catch (error) {
-        console.error('Failed to initialize add expense form:', error);
+        logError('Failed to initialize add expense form', error);
         route(`/groups/${groupId}`);
       }
     };
@@ -171,7 +172,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
       }
     } catch (error) {
       // Error is handled by the store
-      console.error('Failed to save expense:', error);
+      logError('Failed to save expense', error);
     }
   };
   

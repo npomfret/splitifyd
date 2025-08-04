@@ -14,6 +14,7 @@ import {
   BalanceSummary,
   ShareGroupModal 
 } from '../components/group';
+import { logError } from '../utils/error-logger';
 
 interface GroupDetailPageProps {
   id?: string;
@@ -42,7 +43,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         await groupDetailStore.fetchGroup(groupId);
         isInitialized.value = true;
       } catch (error) {
-        console.error('Failed to load group:', error);
+        logError('Failed to load group', error);
         isInitialized.value = true;
       }
     };
