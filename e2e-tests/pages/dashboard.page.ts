@@ -15,7 +15,8 @@ export class DashboardPage extends BasePage {
   }
   
   async isLoggedIn(): Promise<boolean> {
-    return await this.page.getByText(/Welcome back/i).isVisible();
+    const welcomeTextCount = await this.page.getByText(/Welcome back/i).count();
+    return welcomeTextCount > 0;
   }
   
   async getUserDisplayName(): Promise<string> {
@@ -25,7 +26,8 @@ export class DashboardPage extends BasePage {
   }
 
   async openCreateGroupModal() {
-    const createButton = await this.page.getByRole('button', { name: this.createGroupButton }).isVisible()
+    const createButtonCount = await this.page.getByRole('button', { name: this.createGroupButton }).count();
+    const createButton = createButtonCount > 0
       ? this.page.getByRole('button', { name: this.createGroupButton })
       : this.page.getByRole('button', { name: this.createFirstGroupButton });
     

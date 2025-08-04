@@ -43,7 +43,8 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async cancel() {
-    const cancelButton = await this.page.getByRole('button', { name: /Cancel/i }).isVisible()
+    const cancelButtonCount = await this.page.getByRole('button', { name: /Cancel/i }).count();
+    const cancelButton = cancelButtonCount > 0
       ? this.page.getByRole('button', { name: /Cancel/i })
       : this.page.getByRole('button', { name: /Close/i });
     
