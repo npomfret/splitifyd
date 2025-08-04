@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../constants/selectors';
+import { TIMEOUTS } from '../config/timeouts';
 
 export class CreateGroupModalPage extends BasePage {
   readonly modalTitle = 'Create New Group';
@@ -34,8 +35,8 @@ export class CreateGroupModalPage extends BasePage {
     // Get the submit button and wait for it to be enabled
     const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
     
-    // Wait up to 5 seconds for the button to become enabled
-    await expect(submitButton).toBeEnabled({ timeout: 500 });
+    // Wait for the button to become enabled
+    await expect(submitButton).toBeEnabled({ timeout: TIMEOUTS.QUICK });
     
     await submitButton.click();
   }
@@ -55,12 +56,12 @@ export class CreateGroupModalPage extends BasePage {
     }
     
     // Wait for any modal animation to complete
-    await this.page.waitForFunction(() => {
-      const modal = document.querySelector(SELECTORS.MODAL_OVERLAY);
+    await this.page.waitForFunction((selector: string) => {
+      const modal = document.querySelector(selector);
       if (!modal) return false;
       const style = window.getComputedStyle(modal);
       return style.opacity === '1' && style.visibility === 'visible';
-    }, { timeout: 5000 }, SELECTORS.MODAL_OVERLAY);
+    }, SELECTORS.MODAL_OVERLAY, { timeout: TIMEOUTS.EXTENDED });
     
     await this.fillGroupForm(name, description);
     await this.submitForm();

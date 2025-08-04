@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { AuthenticationWorkflow, TestUser } from './authentication.workflow';
 import { GroupDetailPage, DashboardPage } from '../pages';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 /**
  * Multi-user workflow class that handles complex multi-user test scenarios.
@@ -71,7 +72,7 @@ export class MultiUserWorkflow {
       await page.getByRole('button', { name: 'Join Group' }).click();
 
       // Wait for redirect to group page
-      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
     }
 
     return this.shareLink;

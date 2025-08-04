@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { TestUser } from '../helpers/auth-utils';
+import { TIMEOUTS } from '../config/timeouts';
 
 export interface PooledUser {
   id: string;
@@ -200,7 +201,7 @@ export class UserPool {
     console.log(`Current URL: ${currentUrl}`);
     
     // Wait for form to be visible
-    await this.creationPage.waitForSelector('input[placeholder="Enter your full name"]', { timeout: 10000 });
+    await this.creationPage.waitForSelector('input[placeholder="Enter your full name"]', { timeout: TIMEOUTS.EXTENDED * 2 });
     
     // Clear any existing form data and fill registration form
     await this.creationPage.fill('input[placeholder="Enter your full name"]', '');
@@ -222,15 +223,15 @@ export class UserPool {
     await this.creationPage.click('button:has-text("Create Account")');
     
     // Wait for redirect to dashboard
-    await this.creationPage.waitForURL(/\/dashboard/, { timeout: 10000 });
+    await this.creationPage.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
     
     // Logout the user so the next user creation can work
     await this.creationPage.click('button:has-text("' + displayName + '")');
-    await this.creationPage.waitForSelector('text=Sign out', { timeout: 5000 });
+    await this.creationPage.waitForSelector('text=Sign out', { timeout: TIMEOUTS.EXTENDED });
     await this.creationPage.click('text=Sign out');
     
     // Wait for logout to complete - should redirect to login or home
-    await this.creationPage.waitForURL(url => !url.toString().includes('/dashboard'), { timeout: 10000 });
+    await this.creationPage.waitForURL(url => !url.toString().includes('/dashboard'), { timeout: TIMEOUTS.EXTENDED * 2 });
     
     const user: TestUser = {
       uid: uniqueId,

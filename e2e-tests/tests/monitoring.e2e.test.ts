@@ -3,6 +3,7 @@ import { pageTest, expect } from '../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { HomepagePage, LoginPage, RegisterPage } from '../pages';
 import { SELECTORS } from '../constants/selectors';
+import { TIMEOUTS } from '../config/timeouts';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -165,7 +166,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
     
     // Simulate slow 3G
     await context.route('**/*', route => {
-      setTimeout(() => route.continue(), 100);
+      setTimeout(() => route.continue(), TIMEOUTS.QUICK / 5);
     });
     
     const loginPage = new LoginPage(page);

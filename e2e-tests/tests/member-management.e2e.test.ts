@@ -44,7 +44,7 @@ test.describe('Member Management E2E', () => {
     const splitCard = splitHeading.locator('..').locator('..');
     
     // The current user should be included and checked by default (payer is auto-selected)
-    const userCheckbox = splitCard.getByRole(SELECTORS.CHECKBOX).first();
+    const userCheckbox = splitCard.locator(SELECTORS.CHECKBOX).first();
     await expect(userCheckbox).toBeVisible();
     await expect(userCheckbox).toBeChecked();
     
