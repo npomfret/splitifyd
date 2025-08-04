@@ -191,19 +191,20 @@ test.describe('Error Handling', () => {
     await dashboard.openCreateGroupModal();
     await createGroupModal.fillGroupForm('Timeout Test Group');
     
-    // Start the submission (will timeout)
-    // This promise is expected to fail due to the simulated timeout
-    await Promise.race([
-      createGroupModal.submitForm().catch(() => {
-        // Expected failure due to timeout - UI should handle this gracefully
-      }),
-      // Wait for the submit button to be re-enabled (indicates submission attempt completed)
-      page.waitForFunction(() => {
-        const button = document.querySelector('button[type="submit"]:not([disabled])');
-        return button && button.textContent?.includes('Create Group');
-      }, { timeout: TIMEOUTS.LONG })
-    ]);
-    
+    // Start the submission (will timeout) and wait for expected UI state changes
+    const submitPromise = createGroupModal.submitForm();
+    const buttonReenabledPromise = page.waitForFunction(() => {
+      const button = document.querySelector('button[type="submit"]:not([disabled])');
+      return button && button.textContent?.includes('Create Group');
+    }, { timeout: TIMEOUTS.LONG });
+
+    // Wait for either submission to complete or button to be re-enabled
+    await Promise.race([submitPromise, buttonReenabledPromise]);
+
+    // Verify the expected state: form submission should fail and modal should remain open
+    const isSubmitButtonEnabled = await page.locator('button[type="submit"]').isEnabled();
+    expect(isSubmitButtonEnabled).toBe(true); // Button should be re-enabled after timeout
+
     // Modal should still be open
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
     

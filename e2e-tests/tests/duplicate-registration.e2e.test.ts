@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, fillPreactInput } from '../helpers';
 import { RegisterPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
@@ -123,26 +123,16 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.navigate();
     await page.waitForLoadState('networkidle');
     
-    // Fill form using the helper to trigger Preact signals
-    const fillPreactInput = async (input: any, value: string) => {
-      await input.click();
-      await input.fill('');
-      for (const char of value) {
-        await input.type(char);
-      }
-      await input.blur();
-      await page.waitForLoadState('domcontentloaded');
-    };
-    
+    // Fill form using the shared helper to trigger Preact signals
     const nameInput = registerPage.getFullNameInput();
     const emailInput = registerPage.getEmailInput();
     const passwordInput = registerPage.getPasswordInput();
     const confirmPasswordInput = registerPage.getConfirmPasswordInput();
     
-    await fillPreactInput(nameInput, displayName);
-    await fillPreactInput(emailInput, email);
-    await fillPreactInput(passwordInput, password);
-    await fillPreactInput(confirmPasswordInput, password);
+    await fillPreactInput(nameInput, displayName, page);
+    await fillPreactInput(emailInput, email, page);
+    await fillPreactInput(passwordInput, password, page);
+    await fillPreactInput(confirmPasswordInput, password, page);
     const termsCheckbox = registerPage.getTermsCheckbox();
     const submitButton = registerPage.getSubmitButton();
     
@@ -195,17 +185,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.navigate();
     await page.waitForLoadState('networkidle');
     
-    // Create local helper for this test
-    const fillPreactInput = async (input: any, value: string) => {
-      await input.click();
-      await input.fill('');
-      for (const char of value) {
-        await input.type(char);
-      }
-      await input.blur();
-      await page.waitForLoadState('domcontentloaded');
-    };
-    
+    // Use shared helper for Preact input handling
     const nameInput = registerPage.getFullNameInput();
     const emailInput = registerPage.getEmailInput();
     const passwordInput = registerPage.getPasswordInput();
@@ -213,10 +193,10 @@ test.describe('Duplicate User Registration E2E', () => {
     const termsCheckbox = registerPage.getTermsCheckbox();
     const submitButton = registerPage.getSubmitButton();
     
-    await fillPreactInput(nameInput, displayName);
-    await fillPreactInput(emailInput, email1);
-    await fillPreactInput(passwordInput, password);
-    await fillPreactInput(confirmPasswordInput, password);
+    await fillPreactInput(nameInput, displayName, page);
+    await fillPreactInput(emailInput, email1, page);
+    await fillPreactInput(passwordInput, password, page);
+    await fillPreactInput(confirmPasswordInput, password, page);
     await termsCheckbox.check();
     await submitButton.click();
     
@@ -225,7 +205,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     // Now change email and try again using page object
-    await fillPreactInput(emailInput, email2);
+    await fillPreactInput(emailInput, email2, page);
     await submitButton.click();
     
     // Should succeed this time
