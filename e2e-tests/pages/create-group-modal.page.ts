@@ -7,13 +7,9 @@ export class CreateGroupModalPage extends BasePage {
   readonly modalTitle = 'Create New Group';
 
   async isOpen(): Promise<boolean> {
-    try {
-      // Check if modal title is visible
-      await this.page.getByText(this.modalTitle).waitFor({ state: 'visible', timeout: 500 });
-      return true;
-    } catch {
-      return false;
-    }
+    // Check if modal title is visible using count pattern
+    const modalTitleCount = await this.page.getByText(this.modalTitle).count();
+    return modalTitleCount > 0;
   }
   
   async fillGroupForm(name: string, description?: string) {

@@ -25,25 +25,19 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
     
     // Log out to attempt second registration
-    // Wait a bit for page to fully load
-    await page.waitForTimeout(1000);
-    
-    // Look for the user menu button - it contains the display name
-    // The user menu shows the full name and email
+    // Wait for user menu button to be visible
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
+    await expect(userMenuButton.first()).toBeVisible();
     
     await userMenuButton.first().click();
-    await page.waitForTimeout(500); // Wait for dropdown to open
+    // Wait for dropdown menu to appear
+    await expect(page.getByText('Sign out')).toBeVisible();
     
     // Click sign out in the dropdown
     await page.getByText('Sign out').click();
     
-    // Wait for logout to complete and redirect
-    await page.waitForURL((url) => {
-      const urlStr = url.toString();
-      const path = new URL(urlStr).pathname;
-      return path === '/' || path === '/login' || path === '/home' || path === '/v2';
-    }, { timeout: 5000 });
+    // Wait for logout to complete and redirect to login page
+    await page.waitForURL(/\/login/, { timeout: 5000 });
     
     // Navigate to register page
     await registerPage.navigate();
@@ -129,7 +123,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await input.type(char);
       }
       await input.blur();
-      await page.waitForTimeout(100);
+      await page.waitForLoadState('domcontentloaded');
     };
     
     const nameInput = page.getByPlaceholder('Enter your full name');
@@ -198,7 +192,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await input.type(char);
       }
       await input.blur();
-      await page.waitForTimeout(100);
+      await page.waitForLoadState('domcontentloaded');
     };
     
     await fillPreactInput(page.getByPlaceholder('Enter your full name'), displayName);
@@ -209,9 +203,8 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.getByRole('button', { name: 'Create Account' }).click();
     
     // Should see error
-    await page.waitForTimeout(1000); // Wait for error to appear
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible();
+    await expect(errorElement).toBeVisible({ timeout: 3000 });
     
     // Now change email and try again
     await fillPreactInput(page.getByPlaceholder('Enter your email'), email2);

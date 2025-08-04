@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { AuthenticationWorkflow, TestUser } from './authentication.workflow';
-import { GroupDetailPage } from '../pages';
-import { createTestGroup } from '../helpers/test-helpers';
+import { GroupDetailPage, DashboardPage } from '../pages';
+
 /**
  * Multi-user workflow class that handles complex multi-user test scenarios.
  * Encapsulates the creation of multiple users, groups, and collaborative operations.
@@ -37,7 +37,8 @@ export class MultiUserWorkflow {
     }
 
     const { page } = this.users[0];
-    this.groupId = await createTestGroup(page, name, description);
+    const dashboardPage = new DashboardPage(page);
+    this.groupId = await dashboardPage.createGroupAndNavigate(name, description);
     return this.groupId;
   }
 
@@ -125,5 +126,4 @@ export class MultiUserWorkflow {
       await page.context().close();
     }
   }
-
 }

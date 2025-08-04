@@ -162,10 +162,11 @@ test.describe('Error Handling', () => {
     expect(pageLoaded).toBe(true);
     
     // Verify that access control works - non-members should not see group details
-    const groupNameVisible = await page2.getByText('Test Access Group').isVisible().catch(() => false);
+    // Use count() instead of isVisible() to avoid throwing errors
+    const groupNameElements = await page2.getByText('Test Access Group').count();
     
     // Expected behavior: non-members should not see group details
-    expect(groupNameVisible).toBe(false);
+    expect(groupNameElements).toBe(0);
     
     await context2.close();
   });
@@ -196,8 +197,9 @@ test.describe('Error Handling', () => {
     const submitPromise = createGroupModal.submitForm();
     // todo: why is this promise ignored???
 
-    // Wait a bit for potential timeout handling
-    await page.waitForTimeout(2000);
+    // Wait for the submit button to be re-enabled (indicates submission attempt completed)
+    const submitButton = page.getByRole('button', { name: 'Create Group' });
+    await expect(submitButton).toBeEnabled({ timeout: 3000 });
     
     // Modal should still be open
     await expect(createGroupModal.isOpen()).resolves.toBe(true);

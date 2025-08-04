@@ -24,8 +24,8 @@ export abstract class BasePage {
     // Blur the field to ensure validation runs
     await input.blur();
     
-    // Small wait to ensure signal updates
-    await this.page.waitForTimeout(100);
+    // Wait for any validation state change after blur
+    await this.page.waitForLoadState('domcontentloaded');
   }
   
   async waitForNetworkIdle() {
