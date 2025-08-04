@@ -15,8 +15,8 @@ export class DashboardPage extends BasePage {
   }
   
   async isLoggedIn(): Promise<boolean> {
-    const welcomeTextCount = await this.page.getByText(/Welcome back/i).count();
-    return welcomeTextCount > 0;
+    // We KNOW the welcome text exists when logged in
+    return await this.page.getByText(/Welcome back/i).isVisible();
   }
   
   async getUserDisplayName(): Promise<string> {
@@ -26,11 +26,12 @@ export class DashboardPage extends BasePage {
   }
 
   async openCreateGroupModal() {
-    const createButtonCount = await this.page.getByRole('button', { name: this.createGroupButton }).count();
-    const createButton = createButtonCount > 0
-      ? this.page.getByRole('button', { name: this.createGroupButton })
-      : this.page.getByRole('button', { name: this.createFirstGroupButton });
-    
+    // Click whichever create button is visible - the UI determines this
+    // Both buttons open the same modal, so we can use .first() to get whichever is present
+    const createButton = this.page
+      .getByRole('button')
+      .filter({ hasText: /Create.*Group/i })
+      .first();
     await createButton.click();
   }
 
