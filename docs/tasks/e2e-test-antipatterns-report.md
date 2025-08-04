@@ -1,0 +1,301 @@
+# E2E Test Antipatterns Report
+
+## Executive Summary
+
+This report documents antipatterns found in the e2e test suite at `/e2e-tests`. The analysis reveals several critical issues that violate testing best practices and should be addressed to improve test reliability, maintainability, and execution speed.
+
+## Critical Findings
+
+### 1. Console Errors Not Failing Tests Consistently
+
+**Issue**: While we have `setupConsoleErrorReporting()` that should fail tests on console errors, tests are using `skip-error-checking` annotation inappropriately.
+
+**Specific violations**:
+
+1. **advanced-splitting.e2e.test.ts**:
+   - Line 153: `test('should validate exact amount totals match expense amount'` - Skip not justified
+   - Line 204: `test('should validate percentage totals equal 100'` - Skip not justified
+
+2. **duplicate-registration.e2e.test.ts**:
+   - Line 11: `test('should prevent duplicate email registration and show error'` - Questionable, error might be shown in UI not console
+   - Line 99: `test('should show error immediately without clearing form'` - Questionable
+   - Line 168: `test('should allow registration with different email after duplicate attempt'` - Questionable
+
+3. **error-handling.e2e.test.ts** (Appropriate use - testing error scenarios):
+   - Line 18: `test('displays error message when network fails during group creation'`
+   - Line 89: `test('handles server errors gracefully'`
+   - Line 124: `test('handles malformed API responses'`
+   - Line 196: `test('handles API timeouts appropriately'`
+
+4. **monitoring.e2e.test.ts** (Appropriate use):
+   - Line 65: `test('should handle network errors gracefully'`
+
+**Recommendation**: Remove skip-error-checking from advanced-splitting tests and review duplicate-registration tests.
+
+### 2. Console.log Usage in Tests
+
+**Issue**: Tests contain console.log statements that pollute test output.
+
+**Specific violations**:
+
+1. **multi-user-expenses.e2e.test.ts**:
+   - Line 43: `console.error('Failed to open share modal:', error);` in `test('multiple users can join a group via share link and add expenses'`
+   - Line 73: `console.log('Share link:', shareLink);`
+   - Line 80: `console.log('Current URL after navigation:', page2.url());`
+
+2. **duplicate-registration.e2e.test.ts**:
+   - Line 36: `console.log('Current URL before logout:', page.url());` in `test('should prevent duplicate email registration and show error'`
+   - Line 52: `console.log('URL after logout:', page.url());`
+
+3. **accessibility.test.ts**:
+   - Line 21: `console.log('Accessibility violations found:', accessibilityScanResults.violations);` in `test('should not have critical accessibility issues'`
+
+**Recommendation**: Remove all console.log statements. Use proper test reporters or assertions instead.
+
+### 3. Extensive Use of .or() Chains (If/Or Logic)
+
+**Issue**: Tests use `.or()` chains indicating uncertainty about app state. This makes tests brittle and masks real issues.
+
+**Specific violations**:
+
+1. **balance-settlement.e2e.test.ts**:
+   - Line 63: `await expect(page.getByText('$20.00').or(page.getByText('20.00'))).toBeVisible();` in `test('should calculate balances after expenses'`
+
+2. **member-management.e2e.test.ts**:
+   - Line 26: `page.getByText(user.displayName).or(page.getByText(user.email))` in `test('should display current group members'`
+   - Line 32: `page.getByText(/1 member/i).or(page.getByRole('heading', { name: /member/i }))` in same test
+   - Line 89: `page.getByText(/admin/i).or(page.locator('[data-testid="admin-badge"]'))` in `test('should show creator as admin'`
+
+3. **error-handling.e2e.test.ts**:
+   - Lines 66-69: `if (isDisabled) { ... } else { ... }` in `test('prevents form submission with invalid data'`
+   - Lines 182-185: `if (groupNameVisible) { ... } else { ... }` in `test('verifies group access control behavior'`
+
+4. **advanced-splitting.e2e.test.ts**:
+   - Line 54: `await expect(page.getByText('$60.00').or(page.getByText('60.00'))).toBeVisible();` in `test('should create expense with equal split'`
+
+5. **multi-user-collaboration.e2e.test.ts**:
+   - Line 123: `await expect(page.getByText(/page not found/i).or(page.getByText(/404/)).first()).toBeVisible();` in `test('should handle invalid share links'`
+
+6. **duplicate-registration.e2e.test.ts**:
+   - Line 48: `return path === '/' || path === '/login' || path === '/home' || path === '/v2';` in `test('should prevent duplicate email registration and show error'`
+   - Line 90-91: `return lowerMsg.includes('409') || (lowerMsg.includes('error') && lowerMsg.includes('conflict'));`
+   - Lines 123, 192: Same path checking pattern repeated
+
+7. **homepage.e2e.test.ts**:
+   - Line 98: `page.locator('#pricing').or(page.locator('[data-section="pricing"]'))` in `test('should scroll to pricing section if exists'`
+   - Line 102: `if (sectionExists) { ... }` - conditional logic
+   - Lines 119-120: `page.getByRole('button', { name: /menu/i }).or(page.locator('[aria-label*="menu"]').or(page.locator('.hamburger, .mobile-menu-toggle')))`
+   - Line 127: `if (hasMobileMenu) { ... }` - conditional logic
+
+8. **complex-unsettled-group.e2e.test.ts**:
+   - Line 50: `balanceSection.getByText(/owes|owed/i).or(balanceSection.getByText(/\$/))` in `test('create group with multiple people and expenses that is NOT settled'`
+
+**Example**:
+```typescript
+// Bad - uncertain about what text to expect
+await expect(page.getByText('$20.00').or(page.getByText('20.00'))).toBeVisible();
+
+// Good - know exactly what to expect
+await expect(page.getByText('$20.00')).toBeVisible();
+```
+
+### 4. Tests for Non-Existent Features
+
+**Issue**: Some tests appear to be testing features that don't exist in the application.
+
+**Specific violations**:
+
+1. **add-expense.e2e.test.ts**:
+   - Line 150: `test('should handle expense with date selection'` 
+   - The test creates a group called "Date Test Group" for "Testing date selection"
+   - But the test body doesn't interact with any date picker or date field
+   - It only calls `groupDetailPage.addExpense()` with standard fields (description, amount, paidBy, splitType)
+   - No date is actually selected or tested
+
+**Recommendation**: Remove this test as it provides false confidence about a feature that doesn't exist.
+
+### 5. Code Duplication
+
+**Issue**: Massive duplication in test setup code.
+
+**Statistics**:
+- `createGroupModal.createGroup()` - called in almost every test
+- `new CreateGroupModalPage()` - instantiated 173 times across 11 files
+- `createAndLoginTestUser()` - called in most tests
+
+**Files with highest duplication**:
+1. **member-management.e2e.test.ts** - 20 instances
+2. **add-expense.e2e.test.ts** - 15 instances  
+3. **balance-settlement.e2e.test.ts** - 24 instances
+4. **advanced-splitting.e2e.test.ts** - 24 instances
+5. **error-handling.e2e.test.ts** - 18 instances
+
+**Common duplicated pattern** (appears in nearly every test):
+```typescript
+// This exact sequence appears 50+ times
+await createAndLoginTestUser(page);
+const createGroupModal = new CreateGroupModalPage(page);
+await page.getByRole('button', { name: 'Create Group' }).click();
+await createGroupModal.createGroup('Test Group', 'Description');
+```
+
+**Specific examples**:
+- `add-expense.e2e.test.ts`: Lines 11-18, 55-60, 85-90, 123-128, 151-156
+- `balance-settlement.e2e.test.ts`: Lines 12-17, 36-41, 74-79, 98-103
+- `member-management.e2e.test.ts`: Lines 12-17, 39-44, 78-83, 98-103
+
+**Recommendation**: Create a single `createTestGroupWithUser()` helper to eliminate this duplication.
+
+### 6. No Skipped/Commented Tests Found
+
+**Good**: No tests are skipped or commented out. This is positive.
+
+### 7. Conditional Test Logic
+
+**Issue**: Tests contain if/else logic that handles multiple scenarios.
+
+**Specific violations**:
+
+1. **error-handling.e2e.test.ts**:
+   - Lines 66-69: `test('prevents form submission with invalid data'`
+     ```typescript
+     if (isDisabled) {
+       expect(isDisabled).toBe(true);
+     } else {
+       // click and check for validation error
+     }
+     ```
+   - Lines 182-185: `test('verifies group access control behavior'`
+     ```typescript
+     if (groupNameVisible) {
+       expect(groupNameVisible).toBe(true);
+     } else {
+       // Access is blocked - also acceptable
+     }
+     ```
+
+2. **form-validation.e2e.test.ts**:
+   - Line 36: `test('should show validation for invalid email format'`
+     ```typescript
+     if (stayedOnLogin) {
+       await expect(page).toHaveURL(/\/login/);
+     } else {
+       // App allowed invalid email - this might be a bug
+     }
+     ```
+
+3. **accessibility.test.ts**:
+   - Line 20: `test('should not have critical accessibility issues'`
+     ```typescript
+     if (accessibilityScanResults.violations.length > 0) {
+       console.log('Accessibility violations found:', ...);
+     }
+     ```
+
+4. **homepage.e2e.test.ts**:
+   - Line 102: `test('should scroll to pricing section if exists'`
+     ```typescript
+     if (sectionExists) {
+       await pricingSection.scrollIntoViewIfNeeded();
+     }
+     ```
+   - Line 127: `test('should have responsive navigation on mobile'`
+     ```typescript
+     if (hasMobileMenu) {
+       await expect(mobileMenuButton).toBeVisible();
+     }
+     ```
+
+5. **monitoring.e2e.test.ts**:
+   - Line 33: `test('should not have any 404 resources'`
+     ```typescript
+     if (response.status() === 404) {
+       failed404s.push(`${response.status()} - ${response.url()}`);
+     }
+     ```
+
+**Recommendation**: Each test should assert one expected behavior. Split these into separate tests or make assertions deterministic.
+
+## Severity Assessment
+
+1. **CRITICAL**: Console errors not consistently failing tests
+2. **HIGH**: Extensive .or() chains and conditional logic
+3. **HIGH**: Code duplication affecting maintainability
+4. **MEDIUM**: Console.log statements in tests
+5. **LOW**: Tests for non-existent features (only 1 found)
+
+## Recommended Action Plan
+
+### Phase 1: Immediate Actions
+1. Remove all console.log statements from tests
+2. Review and fix inappropriate use of `skip-error-checking`
+3. Remove test for date selection feature that doesn't exist
+
+### Phase 2: Test Infrastructure
+1. Create proper test helpers to reduce duplication:
+   - `createGroupWithUser()` helper
+   - `setupAuthenticatedTest()` fixture
+   - Centralized selectors for common elements
+
+### Phase 3: Fix Conditional Logic
+1. Replace all .or() chains with specific assertions
+2. Split tests with if/else logic into separate tests
+3. Make each test deterministic
+
+### Phase 4: Long-term Improvements
+1. Implement Page Object Model consistently
+2. Create data-testid attributes for reliable element selection
+3. Add test execution time monitoring
+4. Consider parallel test execution for speed
+
+## Impact on Test Suite
+
+- **Reliability**: Tests with .or() chains can pass when they shouldn't
+- **Speed**: Duplication means slower execution and maintenance
+- **Debugging**: Conditional logic makes failures hard to diagnose
+- **False Positives**: Console errors being ignored can hide real issues
+
+## Summary of Tests Requiring Fixes
+
+### Tests to Fix Immediately (Critical):
+
+1. **Remove inappropriate skip-error-checking**:
+   - `advanced-splitting.e2e.test.ts`: 
+     - Line 153: `test('should validate exact amount totals match expense amount'`
+     - Line 204: `test('should validate percentage totals equal 100'`
+
+2. **Remove console.log statements**:
+   - `multi-user-expenses.e2e.test.ts`: Lines 43, 73, 80
+   - `duplicate-registration.e2e.test.ts`: Lines 36, 52
+   - `accessibility.test.ts`: Line 21
+
+3. **Remove non-existent feature test**:
+   - `add-expense.e2e.test.ts`: Line 150: `test('should handle expense with date selection'`
+
+### Tests to Refactor (High Priority):
+
+**Replace .or() chains**:
+- `balance-settlement.e2e.test.ts`: Line 63
+- `member-management.e2e.test.ts`: Lines 26, 32, 89
+- `advanced-splitting.e2e.test.ts`: Line 54
+- `multi-user-collaboration.e2e.test.ts`: Line 123
+- `homepage.e2e.test.ts`: Lines 98, 119-120
+- `complex-unsettled-group.e2e.test.ts`: Line 50
+
+**Split conditional tests**:
+- `error-handling.e2e.test.ts`: Lines 66-69, 182-185
+- `form-validation.e2e.test.ts`: Line 36
+- `homepage.e2e.test.ts`: Lines 102, 127
+
+### Tests with Duplication (Medium Priority):
+Every test file needs the duplicated setup code extracted into a helper function.
+
+## Conclusion
+
+The test suite has good coverage but suffers from poor practices that reduce its effectiveness. The most critical issue is tests not failing on console errors consistently. The extensive use of .or() chains and conditional logic indicates the tests don't have confident assertions about app behavior.
+
+Addressing these issues will result in:
+- Faster test execution
+- More reliable failure detection
+- Easier debugging when tests fail
+- Better confidence in test results
