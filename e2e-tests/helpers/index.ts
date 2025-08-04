@@ -4,3 +4,6 @@ export * from './auth-utils';
 export * from './console-error-reporter';
 export * from './test-helpers';
 export * from './test-data-builders';
+export * from './group-helpers';
+export * from './expense-helpers';
+export * from './selectors';
