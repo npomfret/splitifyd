@@ -132,18 +132,6 @@ export interface ExpenseCategory {
   icon: string;
 }
 
-export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
-  { name: 'transport', displayName: 'Transportation', icon: '🚗' },  
-  { name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡' },
-  { name: 'entertainment', displayName: 'Entertainment', icon: '🎬' },
-  { name: 'shopping', displayName: 'Shopping', icon: '🛍️' },
-  { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
-  { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
-  { name: 'education', displayName: 'Education', icon: '📚' },
-  { name: 'other', displayName: 'Other', icon: '❓' }
-];
-
 export interface ExpenseData {
   id: string;
   groupId: string;

@@ -1,13 +1,21 @@
 import { signal } from '@preact/signals';
-import type { CreateExpenseRequest, ExpenseData, ExpenseSplit } from '@shared/types/webapp-shared-types';
-import { EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
+import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit} from '@shared/types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
 import { logWarning } from '../../utils/error-logger';
 
-// Re-export categories for easy access
-export { EXPENSE_CATEGORIES };
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
+  { name: 'transport', displayName: 'Transportation', icon: '🚗' },
+  { name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡' },
+  { name: 'entertainment', displayName: 'Entertainment', icon: '🎬' },
+  { name: 'shopping', displayName: 'Shopping', icon: '🛍️' },
+  { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
+  { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
+  { name: 'education', displayName: 'Education', icon: '📚' },
+  { name: 'other', displayName: 'Other', icon: '❓' }
+];
 
 export interface ExpenseFormStore {
   // Form fields
