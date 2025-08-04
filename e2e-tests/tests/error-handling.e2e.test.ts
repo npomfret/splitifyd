@@ -2,9 +2,9 @@ import { authenticatedTest as test, expect } from '../fixtures/authenticated-tes
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure,
-  GroupWorkflow,
   AuthenticationWorkflow
 } from '../helpers';
+import { GroupWorkflow } from '../workflows';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
 import { SELECTORS } from '../constants/selectors';
@@ -149,7 +149,8 @@ test.describe('Error Handling', () => {
   test('verifies group access control behavior', async ({ authenticatedPage, browser }) => {
     const { page } = authenticatedPage;
     // Create a group with User 1 (already authenticated)
-    await GroupWorkflow.createTestGroup(page, 'Test Access Group', 'Testing access control');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroup('Test Access Group', 'Testing access control');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     const groupUrl = page.url();
