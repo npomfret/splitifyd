@@ -4,6 +4,7 @@ import { EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
+import { logWarning } from '../../utils/error-logger';
 
 // Re-export categories for easy access
 export { EXPENSE_CATEGORIES };
@@ -494,7 +495,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         ]);
       } catch (refreshError) {
         // Log refresh error but don't fail the expense creation
-        console.warn('Failed to refresh data after creating expense:', refreshError);
+        logWarning('Failed to refresh data after creating expense', { error: refreshError });
       }
       
       // Clear draft and reset form after successful save
@@ -549,7 +550,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         ]);
       } catch (refreshError) {
         // Log refresh error but don't fail the expense update
-        console.warn('Failed to refresh data after updating expense:', refreshError);
+        logWarning('Failed to refresh data after updating expense', { error: refreshError });
       }
       
       // Clear draft after successful update
@@ -613,7 +614,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       localStorage.setItem(draftKey, JSON.stringify(draftData));
     } catch (error) {
       // Silently ignore localStorage errors (privacy mode, storage full, etc.)
-      console.warn('Failed to save expense draft:', error);
+      logWarning('Failed to save expense draft to localStorage', { error });
     }
   }
 
@@ -647,7 +648,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       return true;
     } catch (error) {
-      console.warn('Failed to load expense draft:', error);
+      logWarning('Failed to load expense draft from localStorage', { error });
       return false;
     }
   }
@@ -657,7 +658,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const draftKey = `expense-draft-${groupId}`;
       localStorage.removeItem(draftKey);
     } catch (error) {
-      console.warn('Failed to clear expense draft:', error);
+      logWarning('Failed to clear expense draft from localStorage', { error });
     }
   }
 

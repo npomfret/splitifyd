@@ -10,6 +10,7 @@ import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow } from '../utils/dateUtils';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
+import { logError } from '../utils/error-logger';
 
 interface ExpenseDetailPageProps {
   groupId?: string;
@@ -62,7 +63,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
           throw new Error('Expense not found');
         }
       } catch (err) {
-        console.error('Failed to load expense:', err);
+        logError('Failed to load expense', err);
         error.value = err instanceof Error ? err.message : 'Failed to load expense';
       } finally {
         loading.value = false;
@@ -88,7 +89,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
       // Navigate back to group after successful deletion
       route(`/groups/${groupId}`);
     } catch (error) {
-      console.error('Failed to delete expense:', error);
+      logError('Failed to delete expense', error);
       // Error is handled by ExpenseActions component
       throw error;
     }
@@ -122,7 +123,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
       // TODO: Add toast notification for successful copy
       console.log('URL copied to clipboard');
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      logError('Failed to copy to clipboard', error);
       // Fallback: select text for manual copy
       const textArea = document.createElement('textarea');
       textArea.value = text;

@@ -6,8 +6,6 @@ export class DashboardPage extends BasePage {
   // Selectors
   readonly url = '/v2/dashboard';
   readonly userNameText = '.text-sm.font-medium.text-gray-700';
-  readonly createGroupButton = 'Create Group';
-  readonly createFirstGroupButton = 'Create Your First Group';
 
   async navigate() {
     await this.page.goto(this.url);

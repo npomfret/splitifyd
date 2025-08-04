@@ -8,6 +8,7 @@ import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { authStore } from '../app/stores/auth-store';
 import { firebaseConfigManager } from '../app/firebase-config';
+import { logError } from '../utils/error-logger';
 
 const emailSignal = signal('');
 const passwordSignal = signal('');
@@ -26,7 +27,7 @@ export function LoginPage() {
       }
       formDefaultsLoadedSignal.value = true;
     }).catch(error => {
-      console.error('Failed to load form defaults:', error);
+      logError('Failed to load form defaults', error);
       formDefaultsLoadedSignal.value = true;
     });
   }, []);
@@ -52,7 +53,7 @@ export function LoginPage() {
       await authStore.login(email, password);
       // Redirect will happen via useEffect when user state updates
     } catch (error) {
-      // Error is handled by the auth store
+      logError('Login attempt failed', error, { email });
     }
   };
 

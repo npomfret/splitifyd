@@ -1,5 +1,6 @@
 import { JSX } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
+import { logError } from '../../utils/error-logger';
 
 interface FormProps {
   onSubmit: (e: Event) => void | Promise<void>;
@@ -22,7 +23,7 @@ export function Form({ onSubmit, children, className = '', id }: FormProps) {
       try {
         await onSubmit(e);
       } catch (error) {
-        console.error('Form submission error:', error instanceof Error ? error.toString() : JSON.stringify(error, null, 2));
+        logError('Form submission error', error, { formId: id });
         throw error;
       } finally {
         setIsSubmitting(false);

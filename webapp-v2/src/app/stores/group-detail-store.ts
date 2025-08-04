@@ -58,7 +58,6 @@ class GroupDetailStoreImpl implements GroupDetailStore {
         this.fetchExpenses()
       ]);
     } catch (error) {
-      console.error('Error in fetchGroup:', error);
       errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch group';
       throw error;
     } finally {

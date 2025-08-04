@@ -55,10 +55,28 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: unknown
+    public details?: unknown,
+    public requestContext?: {
+      url: string;
+      method: string;
+      status?: number;
+      statusText?: string;
+    }
   ) {
     super(message);
     this.name = 'ApiError';
+  }
+  
+  // Override toString to include request context in error message
+  toString(): string {
+    let msg = `ApiError: ${this.message} (code: ${this.code})`;
+    if (this.requestContext) {
+      msg += `\n  Request: ${this.requestContext.method} ${this.requestContext.url}`;
+      if (this.requestContext.status) {
+        msg += `\n  Status: ${this.requestContext.status}${this.requestContext.statusText ? ` ${this.requestContext.statusText}` : ''}`;
+      }
+    }
+    return msg;
   }
 }
 
@@ -167,7 +185,13 @@ export class ApiClient {
           throw new ApiError(
             errorResult.data.error.message,
             errorResult.data.error.code,
-            errorResult.data.error.details
+            errorResult.data.error.details,
+            {
+              url,
+              method: options.method,
+              status: response.status,
+              statusText: response.statusText
+            }
           );
         }
         
@@ -175,7 +199,13 @@ export class ApiClient {
         throw new ApiError(
           `Request failed with status ${response.status}`,
           'UNKNOWN_ERROR',
-          errorData
+          errorData,
+          {
+            url,
+            method: options.method,
+            status: response.status,
+            statusText: response.statusText
+          }
         );
       }
 
@@ -230,14 +260,22 @@ export class ApiClient {
         throw new ApiError(
           error.message,
           'NETWORK_ERROR',
-          error
+          error,
+          {
+            url,
+            method: options.method
+          }
         );
       }
       
       throw new ApiError(
         'Unknown error occurred',
         'UNKNOWN_ERROR',
-        error
+        error,
+        {
+          url,
+          method: options.method
+        }
       );
     }
   }
