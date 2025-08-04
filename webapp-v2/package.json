@@ -7,7 +7,7 @@
     "build": "npm run build:check && vite build && node scripts/post-build.js",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
     "build:prod": "tsc && vite build && node scripts/post-build.js",
-    "watch": "mkdir -p ../webapp/dist/v2 && vite build --watch",
+    "watch": "vite build --watch",
     "preview": "vite preview",
     "typecheck": "npm run build:check",
     "clean": "rm -rf dist",
