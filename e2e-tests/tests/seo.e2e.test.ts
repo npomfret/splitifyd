@@ -1,25 +1,24 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting } from '../helpers';
+import { setupConsoleErrorReporting } from '../helpers';
+import { HomepagePage, PricingPage } from '../pages';
 
 setupConsoleErrorReporting();
 
 // Simplified SEO test - just verify pages have titles and no errors
 test.describe('SEO E2E', () => {
   test('should set page titles without console errors', async ({ page }) => {
+    const homepagePage = new HomepagePage(page);
+    const pricingPage = new PricingPage(page);
     
-    // Just check that key pages load with titles
-    const pages = [
-      { path: '/', titleContains: 'Splitifyd' },
-      { path: '/pricing', titleContains: 'Splitifyd' },
-    ];
+    // Check homepage title
+    await homepagePage.navigate();
+    const homeTitle = await page.title();
+    expect(homeTitle).toContain('Splitifyd');
     
-    for (const { path, titleContains } of pages) {
-      await page.goto(`${EMULATOR_URL}${path}`);
-      await waitForApp(page);
-      
-      const title = await page.title();
-      expect(title).toContain(titleContains);
-    }
+    // Check pricing page title
+    await pricingPage.navigate();
+    const pricingTitle = await page.title();
+    expect(pricingTitle).toContain('Splitifyd');
     
     // No console errors
   });

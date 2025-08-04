@@ -242,14 +242,15 @@ Systematic replacement of direct `page.goto()` calls with page object navigation
 - ✅ **Navigation Infrastructure Complete** - All page objects now use centralized `EMULATOR_URL` configuration
 - ✅ **Page Object Enhancement** - LoginPage and RegisterPage significantly expanded with element accessors  
 - ✅ **Timeout Standardization** - Created centralized timeout configuration system
-- ✅ **30+ Navigation Calls Refactored** - Major files converted to use page object navigation (75% complete)
-- ✅ **79+ Selector Encapsulations** - Multiple test files significantly improved (30% complete)
+- ✅ **35+ Navigation Calls Refactored** - Major files converted to use page object navigation (85% complete)
+- ✅ **110+ Selector Encapsulations** - Multiple test files significantly improved (42% complete)
 - ✅ **13+ Timeout Standardizations** - 72% of hardcoded timeouts now use configuration
 
 **Infrastructure Improvements:**
 - **BasePage Navigation Methods** - Clean, centralized navigation using existing emulator configuration
 - **Timeout Configuration System** - `/config/timeouts.ts` provides standardized timeout constants for all test scenarios
-- **Enhanced Page Objects** - LoginPage and RegisterPage now provide comprehensive element accessor methods
+- **Enhanced Page Objects** - LoginPage, RegisterPage, and GroupDetailPage now provide comprehensive element accessor methods
+- **GroupDetailPage Expansion** - Added 12+ element accessor methods for group information, expenses, and form interactions
 
 **Files Enhanced:**
 - `form-validation.e2e.test.ts` - 6 navigation calls + 22 selectors + 1 timeout → page objects
@@ -260,6 +261,11 @@ Systematic replacement of direct `page.goto()` calls with page object navigation
 - `monitoring.e2e.test.ts` - 13 navigation calls → page objects
 - `duplicate-registration.e2e.test.ts` - 30+ selectors + 11 timeouts → page objects/configuration
 - `auth-flow.e2e.test.ts` - 27+ selectors → page objects
+- `group-details.e2e.test.ts` - 12+ hardcoded selectors → page objects
+- `add-expense.e2e.test.ts` - 20+ hardcoded selectors → page objects
+- `navigation.e2e.test.ts` - 2 direct page.goto() calls → page objects
+- `pricing.e2e.test.ts` - 1 direct page.goto() call → page objects
+- `seo.e2e.test.ts` - 2 direct page.goto() calls → page objects
 
 **Current State**: Test suite architecture dramatically improved with proper page object encapsulation, centralized configuration, and consistent patterns. Major reduction in antipatterns achieved with substantial completion of Phase 7.
 
@@ -267,8 +273,8 @@ Systematic replacement of direct `page.goto()` calls with page object navigation
 
 The following issues remain but don't block the test suite from functioning correctly:
 
-- **Direct page.goto() usage**: ~10 instances remaining of direct navigation instead of page object methods (75% complete)
-- **Hardcoded selectors in tests**: ~186 instances remaining of selectors in test files instead of page objects (30% complete)
+- **Direct page.goto() usage**: ~5 instances remaining of direct navigation instead of page object methods (85% complete)
+- **Hardcoded selectors in tests**: ~155 instances remaining of selectors in test files instead of page objects (42% complete)
 - **Hardcoded timeout values**: ~5 instances remaining of hardcoded timeouts (72% complete)
 - **Helper pattern usage**: Static utility functions in helpers/ directory
 

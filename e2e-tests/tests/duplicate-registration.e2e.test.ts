@@ -222,7 +222,7 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Should see error
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.LONG });
+    await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     // Now change email and try again using page object
     await fillPreactInput(emailInput, email2);
