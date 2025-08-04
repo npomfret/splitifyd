@@ -1,20 +1,14 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { CreateGroupModalPage, DashboardPage, GroupDetailPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow, AuthenticationWorkflow } from '../helpers';
+import { GroupDetailPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Multi-User Collaboration E2E', () => {
   test('should handle group sharing via share link', async ({ page, browser }) => {
-    const user1 = await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Shared Test Group', 'Testing group sharing');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Shared Test Group', 'Testing group sharing');
+    const user1 = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
@@ -52,13 +46,8 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('should allow multiple users to add expenses to same group', async ({ page, browser }) => {
-    const user1 = await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Multi-User Expense Group', 'Testing concurrent expenses');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Multi-User Expense Group', 'Testing concurrent expenses');
+    const user1 = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -126,13 +115,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('should show group creator as admin', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Admin Test Group', 'Testing admin badge');
+    await GroupWorkflow.createTestGroup(page, 'Admin Test Group', 'Testing admin badge');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     

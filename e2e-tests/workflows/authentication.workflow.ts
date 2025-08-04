@@ -1,12 +1,7 @@
 import { Page } from '@playwright/test';
 import { RegisterPage } from '../pages/register.page';
 import { DashboardPage } from '../pages/dashboard.page';
-
-export interface TestUser {
-  uid: string;
-  email: string;
-  displayName: string;
-}
+import { TestUser } from '../helpers/auth-utils';
 
 /**
  * Authentication workflow class that handles user creation and login flows.

@@ -1,9 +1,10 @@
 import { test, expect } from '../fixtures/base-test';
 import { 
   setupConsoleErrorReporting, 
-  setupMCPDebugOnFailure
+  setupMCPDebugOnFailure,
+  GroupWorkflow,
+  AuthenticationWorkflow
 } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -141,12 +142,7 @@ test.describe('Error Handling', () => {
 
   test('verifies group access control behavior', async ({ page, browser }) => {
     // Create User 1 and a group
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Test Access Group', 'Testing access control');
+    await GroupWorkflow.createTestGroup(page, 'Test Access Group', 'Testing access control');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     const groupUrl = page.url();

@@ -1,7 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { CreateGroupModalPage, DashboardPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -10,14 +8,7 @@ setupMCPDebugOnFailure();
 test.describe('Advanced Splitting Options', () => {
 
   test('should create expense with equal split', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group using modal
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Equal Split Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Equal Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -55,14 +46,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should create expense with exact amounts split', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Exact Split Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Exact Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -103,14 +87,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should create expense with percentage split', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Percentage Split Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Percentage Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -152,14 +129,7 @@ test.describe('Advanced Splitting Options', () => {
   test('should validate split amounts equal total', {
     annotation: { type: 'skip-error-checking', description: 'Test intentionally triggers validation errors to verify form validation behavior' }
   }, async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Split Validation Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Split Validation Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -203,14 +173,7 @@ test.describe('Advanced Splitting Options', () => {
   test('should validate percentage split equals 100%', {
     annotation: { type: 'skip-error-checking', description: 'Test intentionally triggers validation errors to verify form validation behavior' }
   }, async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Percentage Validation Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Percentage Validation Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -252,14 +215,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should handle split type changes correctly', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Split Type Change Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Split Type Change Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

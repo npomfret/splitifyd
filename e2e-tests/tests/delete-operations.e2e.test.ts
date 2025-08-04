@@ -1,19 +1,14 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { CreateGroupModalPage, DashboardPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow, AuthenticationWorkflow } from '../helpers';
+import { DashboardPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Basic Operations E2E', () => {
   test('should create and view an expense', async ({ page }) => {
-    const user = await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Test Group', 'Testing expense creation');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group', 'Testing expense creation');
+    const user = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -43,12 +38,8 @@ test.describe('Basic Operations E2E', () => {
   });
 
   test('should handle multi-user expense visibility', async ({ page, browser }) => {
-    const user1 = await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Shared Group', 'Testing multi-user');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Shared Group', 'Testing multi-user');
+    const user1 = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 

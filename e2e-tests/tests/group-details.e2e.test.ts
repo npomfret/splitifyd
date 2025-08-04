@@ -1,20 +1,13 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { DashboardPage, CreateGroupModalPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Group Details E2E', () => {
   test('should display group information', async ({ page }) => {
-    const user = await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboardPage = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboardPage.openCreateGroupModal();
-    await createGroupModal.createGroup('Test Group Details', 'Test group for details page');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group Details', 'Test group for details page');
+    const user = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -29,13 +22,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should display empty expense list', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboardPage = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboardPage.openCreateGroupModal();
-    await createGroupModal.createGroup('Empty Expenses Group', 'Group with no expenses');
+    await GroupWorkflow.createTestGroup(page, 'Empty Expenses Group', 'Group with no expenses');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -45,13 +32,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should show group balances section', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboardPage = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboardPage.openCreateGroupModal();
-    await createGroupModal.createGroup('Balance Test Group', 'Group for testing balances');
+    await GroupWorkflow.createTestGroup(page, 'Balance Test Group', 'Group for testing balances');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -59,13 +40,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should have navigation back to dashboard', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboardPage = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboardPage.openCreateGroupModal();
-    await createGroupModal.createGroup('Navigation Test Group', 'Test description');
+    await GroupWorkflow.createTestGroup(page, 'Navigation Test Group', 'Test description');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -74,14 +49,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should show group settings or options', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const dashboardPage = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboardPage.openCreateGroupModal();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Settings Test Group', 'Test description for settings');
+    await GroupWorkflow.createTestGroup(page, 'Settings Test Group', 'Test description for settings');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     

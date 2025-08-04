@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { GroupDetailPage, DashboardPage, CreateGroupModalPage } from '../pages';
+import { AuthenticationWorkflow, GroupWorkflow } from '../helpers';
+import { GroupDetailPage } from '../pages';
 
 test.describe('Multi-user group with expenses', () => {
   test('multiple users can join a group via share link and add expenses', async ({ browser }) => {
@@ -16,13 +16,8 @@ test.describe('Multi-user group with expenses', () => {
     
     try {
       // User 1: Create account and group
-      const user1 = await AuthenticationWorkflow.createTestUser(page1);
-
-      // Create a new group using page objects
-      const dashboard = new DashboardPage(page1);
-      const createGroupModal = new CreateGroupModalPage(page1);
-      await dashboard.openCreateGroupModal();
-      await createGroupModal.createGroup('Multi-User Test Group', 'Testing expenses with multiple users');
+      const groupInfo = await GroupWorkflow.createTestGroup(page1, 'Multi-User Test Group', 'Testing expenses with multiple users');
+      const user1 = groupInfo.user;
       
       // Wait for navigation to group detail page
       await page1.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);

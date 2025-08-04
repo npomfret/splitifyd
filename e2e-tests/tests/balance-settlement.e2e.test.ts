@@ -1,7 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { CreateGroupModalPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -9,13 +7,8 @@ setupMCPDebugOnFailure();
 
 test.describe('Balance and Settlement E2E', () => {
   test('should display initial zero balances', async ({ page }) => {
-    const user = await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Balance Test Group');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Balance Test Group');
+    const user = groupInfo.user;
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -30,13 +23,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should calculate balances after expenses', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Expense Balance Group');
+    await GroupWorkflow.createTestGroup(page, 'Expense Balance Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -68,13 +55,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should show who owes whom', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Debt Tracking Group');
+    await GroupWorkflow.createTestGroup(page, 'Debt Tracking Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -92,13 +73,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should handle settlement recording', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Settlement Test Group');
+    await GroupWorkflow.createTestGroup(page, 'Settlement Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -115,13 +90,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should show settlement history', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Settlement History Group');
+    await GroupWorkflow.createTestGroup(page, 'Settlement History Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -141,13 +110,8 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should display balance summary correctly', async ({ page }) => {
-    const user = await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Balance Summary Group');
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Balance Summary Group');
+    const user = groupInfo.user;
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -166,13 +130,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should handle complex balance calculations', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Complex Balance Group');
+    await GroupWorkflow.createTestGroup(page, 'Complex Balance Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -192,13 +150,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should show balance status indicators', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    // Create a group
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Balance Status Group');
+    await GroupWorkflow.createTestGroup(page, 'Balance Status Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );

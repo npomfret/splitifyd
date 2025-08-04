@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, AuthenticationWorkflow } from '../helpers';
-import { CreateGroupModalPage, DashboardPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { DashboardPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -43,12 +43,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should handle expense form validation', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Validation Test Group', 'Testing form validation');
+    await GroupWorkflow.createTestGroup(page, 'Validation Test Group', 'Testing form validation');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
@@ -73,12 +68,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should allow selecting expense category', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Category Test Group', 'Testing expense categories');
+    await GroupWorkflow.createTestGroup(page, 'Category Test Group', 'Testing expense categories');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
@@ -111,12 +101,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should show expense in group after creation', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
-    
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Expense Display Group', 'Testing expense display');
+    await GroupWorkflow.createTestGroup(page, 'Expense Display Group', 'Testing expense display');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
