@@ -73,3 +73,6 @@ directives
 .claude/agents/test-guardian.md
 .claude/agents/workflow-orchestrator.md
 .mcp.local.json
+.claude/commands/agent-list.md
+.claude/commands/mcp-list.md
+.claude/commands/p.md
