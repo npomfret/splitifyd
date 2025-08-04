@@ -117,6 +117,31 @@ interface RequestOptions {
   headers?: Record<string, string>;
 }
 
+// Retry configuration
+const RETRY_CONFIG = {
+  maxAttempts: 3,
+  retryableHttpMethods: ['GET', 'PUT'] as const,
+  baseDelayMs: 100,
+  backoffMultiplier: 2
+};
+
+// Helper functions for retry logic
+function isRetryableMethod(method: string): boolean {
+  return RETRY_CONFIG.retryableHttpMethods.includes(method as any);
+}
+
+function shouldRetryError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.code === 'NETWORK_ERROR';
+}
+
+function calculateRetryDelay(attemptNumber: number): number {
+  return RETRY_CONFIG.baseDelayMs * Math.pow(RETRY_CONFIG.backoffMultiplier, attemptNumber - 1);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Main API client class
 export class ApiClient {
   private authToken: string | null = null;
@@ -139,10 +164,19 @@ export class ApiClient {
     }
   }
 
-  // Main request method with runtime validation
+  // Main request method with runtime validation and retry logic
   async request<T = any>(
     endpoint: string,
     options: RequestOptions
+  ): Promise<T> {
+    return this.requestWithRetry(endpoint, options, 1);
+  }
+
+  // Internal method that handles the actual request with retry logic
+  private async requestWithRetry<T = any>(
+    endpoint: string,
+    options: RequestOptions,
+    attemptNumber: number
   ): Promise<T> {
     const url = buildUrl(
       `${API_BASE_URL}${endpoint}`,
@@ -250,14 +284,30 @@ export class ApiClient {
 
       return result.data as T;
     } catch (error) {
-      // Re-throw our custom errors
-      if (error instanceof ApiError || error instanceof ApiValidationError) {
+      // Re-throw our custom errors that aren't retryable
+      if (error instanceof ApiValidationError) {
         throw error;
       }
       
-      // Wrap other errors
+      // Handle API errors - check if we should retry
+      if (error instanceof ApiError) {
+        if (shouldRetryError(error) && 
+            isRetryableMethod(options.method) && 
+            attemptNumber < RETRY_CONFIG.maxAttempts) {
+          
+          const delayMs = calculateRetryDelay(attemptNumber);
+          console.warn(`{"timestamp":"${new Date().toISOString()}","level":"warn","message":"API request failed, retrying","context":{"endpoint":"${endpoint}","method":"${options.method}","attempt":${attemptNumber},"maxAttempts":${RETRY_CONFIG.maxAttempts},"retryDelayMs":${delayMs},"error":"${error.message}"}}`);
+          
+          await sleep(delayMs);
+          return this.requestWithRetry(endpoint, options, attemptNumber + 1);
+        }
+        throw error;
+      }
+      
+      // Wrap other errors as network errors
+      let networkError: ApiError;
       if (error instanceof Error) {
-        throw new ApiError(
+        networkError = new ApiError(
           error.message,
           'NETWORK_ERROR',
           error,
@@ -266,17 +316,31 @@ export class ApiClient {
             method: options.method
           }
         );
+      } else {
+        networkError = new ApiError(
+          'Unknown error occurred',
+          'UNKNOWN_ERROR',
+          error,
+          {
+            url,
+            method: options.method
+          }
+        );
       }
       
-      throw new ApiError(
-        'Unknown error occurred',
-        'UNKNOWN_ERROR',
-        error,
-        {
-          url,
-          method: options.method
-        }
-      );
+      // Check if we should retry this network error
+      if (shouldRetryError(networkError) && 
+          isRetryableMethod(options.method) && 
+          attemptNumber < RETRY_CONFIG.maxAttempts) {
+        
+        const delayMs = calculateRetryDelay(attemptNumber);
+        console.warn(`{"timestamp":"${new Date().toISOString()}","level":"warn","message":"API request failed, retrying","context":{"endpoint":"${endpoint}","method":"${options.method}","attempt":${attemptNumber},"maxAttempts":${RETRY_CONFIG.maxAttempts},"retryDelayMs":${delayMs},"error":"${networkError.message}"}}`);
+        
+        await sleep(delayMs);
+        return this.requestWithRetry(endpoint, options, attemptNumber + 1);
+      }
+      
+      throw networkError;
     }
   }
 
