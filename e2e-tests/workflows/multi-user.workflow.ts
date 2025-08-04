@@ -150,38 +150,4 @@ export class MultiUserWorkflow {
     }
   }
 
-  /**
-   * Static factory method for creating a complete multi-user group scenario.
-   * This is a convenience method for the most common use case.
-   */
-  static async createMultiUserGroup(
-    browser: any,
-    userCount: number = 3,
-    groupName: string = 'Multi-User Test Group',
-    groupDescription?: string
-  ): Promise<MultiUserGroup> {
-    const workflow = new MultiUserWorkflow(browser);
-
-    // Add users
-    const users: Array<{ page: Page; user: TestUser }> = [];
-    for (let i = 0; i < userCount; i++) {
-      const userInfo = await workflow.addUser();
-      users.push(userInfo);
-    }
-
-    // Create group with first user
-    const groupId = await workflow.createGroupWithFirstUser(groupName, groupDescription);
-
-    // Add other users to group
-    const shareLink = await workflow.addUsersToGroup();
-
-    return {
-      id: groupId,
-      name: groupName,
-      description: groupDescription,
-      users,
-      expenses: [],
-      shareLink
-    };
-  }
 }
