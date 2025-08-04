@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { HomepagePage, LoginPage, RegisterPage, PricingPage } from '../pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -16,10 +17,28 @@ test.describe('Performance and Error Monitoring E2E', () => {
       { path: '/privacy', name: 'Privacy' }
     ];
 
+    const homepagePage = new HomepagePage(page);
+    const loginPage = new LoginPage(page);
+    const registerPage = new RegisterPage(page);
+    const pricingPage = new PricingPage(page);
+
     for (const pageInfo of pagesToTest) {
       
-      await page.goto(`${EMULATOR_URL}${pageInfo.path}`);
-      await waitForApp(page);
+      // Navigate using page objects
+      if (pageInfo.path === '') {
+        await homepagePage.navigate();
+      } else if (pageInfo.path === '/login') {
+        await loginPage.navigate();
+      } else if (pageInfo.path === '/register') {
+        await registerPage.navigate();
+      } else if (pageInfo.path === '/pricing') {
+        await pricingPage.navigate();
+      } else {
+        // For static pages (terms, privacy), use base navigation
+        await homepagePage.navigateToHomepage();
+        await page.goto(page.url() + pageInfo.path);
+        await waitForApp(page);
+      }
       
       // Check for any console errors
     }
@@ -35,15 +54,14 @@ test.describe('Performance and Error Monitoring E2E', () => {
       }
     });
 
-    // Visit main pages
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    // Visit main pages using page objects
+    const homepagePage = new HomepagePage(page);
+    const loginPage = new LoginPage(page);
+    const registerPage = new RegisterPage(page);
     
-    await page.goto(`${EMULATOR_URL}/login`);
-    await waitForApp(page);
-    
-    await page.goto(`${EMULATOR_URL}/register`);
-    await waitForApp(page);
+    await homepagePage.navigate();
+    await loginPage.navigate();
+    await registerPage.navigate();
     
     // No 404s should have occurred
     expect(failed404s).toHaveLength(0);
@@ -52,8 +70,8 @@ test.describe('Performance and Error Monitoring E2E', () => {
   test('should load pages within acceptable time', async ({ page }) => {
     const startTime = Date.now();
     
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepagePage = new HomepagePage(page);
+    await homepagePage.navigate();
     
     const loadTime = Date.now() - startTime;
     
@@ -67,7 +85,8 @@ test.describe('Performance and Error Monitoring E2E', () => {
     await context.route('**/api/**', route => route.abort());
     
     // Try to load login page (which might make API calls)
-    await page.goto(`${EMULATOR_URL}/login`);
+    const loginPage = new LoginPage(page);
+    await loginPage.navigate();
     
     // Page should still render even if API calls fail
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
@@ -77,8 +96,8 @@ test.describe('Performance and Error Monitoring E2E', () => {
   });
 
   test('should have proper meta tags for SEO', async ({ page }) => {
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepagePage = new HomepagePage(page);
+    await homepagePage.navigate();
     
     // Check for essential meta tags
     const title = await page.title();
@@ -102,12 +121,12 @@ test.describe('Performance and Error Monitoring E2E', () => {
       consoleLogs.push(msg.text());
     });
     
-    // Navigate through auth pages
-    await page.goto(`${EMULATOR_URL}/login`);
-    await waitForApp(page);
+    // Navigate through auth pages using page objects
+    const loginPage = new LoginPage(page);
+    const registerPage = new RegisterPage(page);
     
-    await page.goto(`${EMULATOR_URL}/register`);
-    await waitForApp(page);
+    await loginPage.navigate();
+    await registerPage.navigate();
     
     // Check logs don't contain sensitive patterns
     const sensitivePatterns = [
@@ -128,11 +147,15 @@ test.describe('Performance and Error Monitoring E2E', () => {
 
   test('should handle rapid navigation without errors', async ({ page }) => {
     
-    // Rapidly navigate between pages
+    // Rapidly navigate between pages using page objects
+    const homepagePage = new HomepagePage(page);
+    const loginPage = new LoginPage(page);
+    const registerPage = new RegisterPage(page);
+    
     for (let i = 0; i < 5; i++) {
-      await page.goto(`${EMULATOR_URL}/login`);
-      await page.goto(`${EMULATOR_URL}/register`);
-      await page.goto(EMULATOR_URL);
+      await loginPage.navigate();
+      await registerPage.navigate();
+      await homepagePage.navigate();
     }
     
     // Final page should load correctly
@@ -152,7 +175,8 @@ test.describe('Performance and Error Monitoring E2E', () => {
       setTimeout(() => route.continue(), 100);
     });
     
-    await page.goto(`${EMULATOR_URL}/login`);
+    const loginPage = new LoginPage(page);
+    await loginPage.navigate();
     
     // Page should still be functional on slow network
     await waitForApp(page);

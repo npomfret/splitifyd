@@ -24,7 +24,7 @@ test.describe('Auth Flow E2E', () => {
     await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
     
-    // Click "Sign in" link
+    // Click "Sign in" link using page object method
     await page.getByRole('link', { name: 'Sign in' }).click();
     
     // Back on login page
@@ -60,14 +60,14 @@ test.describe('Auth Flow E2E', () => {
     
     await loginPage.navigate();
     
-    // Clear any pre-filled data
-    const emailInput = page.locator(loginPage.emailInput);
-    const passwordInput = page.locator(loginPage.passwordInput);
+    // Clear any pre-filled data using page object methods
+    const emailInput = loginPage.getEmailInput();
+    const passwordInput = loginPage.getPasswordInput();
     await emailInput.clear();
     await passwordInput.clear();
     
     // The Sign In button should be disabled when form is empty
-    const submitButton = page.getByRole('button', { name: 'Sign In' });
+    const submitButton = loginPage.getSubmitButton();
     await expect(submitButton).toBeDisabled();
     
     // Should still be on login page
@@ -80,7 +80,7 @@ test.describe('Auth Flow E2E', () => {
     await registerPage.navigate();
     
     // The Create Account button should be disabled when form is empty
-    const submitButton = page.getByRole('button', { name: 'Create Account' });
+    const submitButton = registerPage.getSubmitButton();
     await expect(submitButton).toBeDisabled();
     
     // Should still be on register page
@@ -96,13 +96,13 @@ test.describe('Auth Flow E2E', () => {
     
     await loginPage.navigate();
     
-    // Find and fill email input
-    const emailInput = page.locator(loginPage.emailInput);
+    // Find and fill email input using page object methods
+    const emailInput = loginPage.getEmailInput();
     await emailInput.fill('test@example.com');
     await expect(emailInput).toHaveValue('test@example.com');
     
-    // Find and fill password input
-    const passwordInput = page.locator(loginPage.passwordInput);
+    // Find and fill password input using page object methods
+    const passwordInput = loginPage.getPasswordInput();
     await passwordInput.fill('TestPassword123');
     await expect(passwordInput).toHaveValue('TestPassword123');
   });
@@ -112,22 +112,22 @@ test.describe('Auth Flow E2E', () => {
     
     await registerPage.navigate();
     
-    // Find and fill name input
-    const nameInput = page.locator(registerPage.fullNameInput);
+    // Find and fill name input using page object methods
+    const nameInput = registerPage.getFullNameInput();
     await nameInput.fill('Test User');
     await expect(nameInput).toHaveValue('Test User');
     
-    // Find and fill email input
-    const emailInput = page.locator(registerPage.emailInput);
+    // Find and fill email input using page object methods
+    const emailInput = registerPage.getEmailInput();
     await emailInput.fill('test@example.com');
     await expect(emailInput).toHaveValue('test@example.com');
     
-    // Find and fill password inputs
-    const passwordInput = page.locator(registerPage.passwordInput);
+    // Find and fill password inputs using page object methods
+    const passwordInput = registerPage.getPasswordInput();
     await passwordInput.fill('TestPassword123');
     await expect(passwordInput).toHaveValue('TestPassword123');
     
-    const confirmPasswordInput = page.locator(registerPage.confirmPasswordInput);
+    const confirmPasswordInput = registerPage.getConfirmPasswordInput();
     await confirmPasswordInput.fill('TestPassword123');
     await expect(confirmPasswordInput).toHaveValue('TestPassword123');
   });
