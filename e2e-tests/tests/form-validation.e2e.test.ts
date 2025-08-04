@@ -310,9 +310,8 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should validate split totals for exact amounts', async ({ page }) => {
-      test.slow(); // Split validation tests take longer
       
-      const groupInfo = await GroupWorkflow.createTestGroup(page, 'Split Validation Group');
+      await GroupWorkflow.createTestGroup(page, 'Split Validation Group');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
       
@@ -325,7 +324,7 @@ test.describe('Form Validation E2E', () => {
       await page.getByPlaceholder('0.00').fill('100.00');
       
       // Select exact split type
-      await page.getByRole('radio', { name: 'Exact amounts' }).click();
+      await page.getByText('Exact amounts').click();
       
       // Try to submit with incorrect split total
       const submitButton = page.getByRole('button', { name: /save expense/i });
@@ -336,7 +335,6 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should validate percentage totals', async ({ page }) => {
-      test.slow(); // Split validation tests take longer
       
       await GroupWorkflow.createTestGroup(page, 'Percentage Validation Group');
       
@@ -351,7 +349,7 @@ test.describe('Form Validation E2E', () => {
       await page.getByPlaceholder('0.00').fill('100.00');
       
       // Select percentage split type
-      await page.getByRole('radio', { name: 'Percentage' }).click();
+      await page.getByText('Percentage', { exact: true }).click();
       
       // Try to submit with incorrect percentage total
       const submitButton = page.getByRole('button', { name: /save expense/i });
