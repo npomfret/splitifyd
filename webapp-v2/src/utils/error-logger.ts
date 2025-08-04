@@ -5,18 +5,6 @@
 import { ApiError } from '../app/apiClient';
 
 /**
- * Determines if an error is "expected" and should be logged as a warning instead of error
- */
-function isExpectedError(error: unknown): boolean {
-  if (error instanceof ApiError) {
-    // Common expected errors that shouldn't be loud in console
-    const expectedCodes = ['NOT_FOUND', 'UNAUTHORIZED', 'PERMISSION_DENIED'];
-    return expectedCodes.includes(error.code);
-  }
-  return false;
-}
-
-/**
  * Destructures an error object to extract all enumerable properties
  */
 function destructureError(error: Error): Record<string, any> {
@@ -100,22 +88,4 @@ export function logWarning(message: string, data?: Record<string, any>): void {
 
   // Single line log with message followed by JSON
   console.warn(`${message}:`, JSON.stringify(logData));
-}
-
-/**
- * Helper to get a user-friendly error message from an error object
- * @param error - The error object
- * @returns A user-friendly error message
- */
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    // ApiError already has user-friendly messages
-    return error.message;
-  }
-  
-  if (error instanceof Error) {
-    return error.message;
-  }
-  
-  return 'An unexpected error occurred';
 }
