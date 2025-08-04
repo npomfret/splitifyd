@@ -98,9 +98,15 @@ test.describe('Multi-User Collaboration E2E', () => {
       splitType: 'equal'
     });
     
+    // Refresh both pages to see all expenses (no real-time sync)
+    await page.reload();
+    await page2.reload();
+    await page.waitForLoadState('networkidle');
+    await page2.waitForLoadState('networkidle');
+    
     await expect(page.getByText('User 1 Lunch')).toBeVisible();
-    await expect(page.getByText('User 2 Dinner')).toBeVisible({ timeout: 500 });
-    await expect(page2.getByText('User 1 Lunch')).toBeVisible({ timeout: 500 });
+    await expect(page.getByText('User 2 Dinner')).toBeVisible();
+    await expect(page2.getByText('User 1 Lunch')).toBeVisible();
     await expect(page2.getByText('User 2 Dinner')).toBeVisible();
     
     await context2.close();

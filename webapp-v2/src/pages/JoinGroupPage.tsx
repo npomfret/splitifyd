@@ -68,7 +68,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
       // Navigate to the group detail page
       setTimeout(() => {
         route(`/groups/${group.id}`);
-      }, 1500); // Small delay to show success message
+      }, 500); // Small delay to show success message
     }
   }, [joinSuccess, group]);
 

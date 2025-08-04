@@ -103,6 +103,11 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
             if (currentUser.value) {
               expenseFormStore.updateField('paidBy', currentUser.value.uid);
             }
+            
+            // Set all group members as participants by default for equal split
+            if (group.value && group.value.memberIds) {
+              expenseFormStore.setParticipants(group.value.memberIds);
+            }
           }
         }
         
