@@ -111,3 +111,22 @@ After analyzing the failing tests and code, I've identified the following root c
 3. Check if the balance calculator is properly including all expenses
 4. Test balance calculation with manual API calls
 
+## Implementation Plan (2025-08-04)
+
+### Phase 1: Create API Integration Test
+1. **Analyze the E2E test scenario** - Understand exactly what the complex-unsettled-group test is doing
+2. **Write equivalent API integration test** - Reproduce the same scenario using direct API calls
+3. **Compare results** - Determine if backend returns correct balances or if it's a frontend/test issue
+
+### Phase 2: Fix Based on Findings
+- **If backend issue**: Fix balance calculation logic in Firebase functions
+- **If frontend issue**: Fix how expenses are submitted or balances displayed
+- **If test issue**: Update test expectations to match correct behavior
+
+### Phase 3: Verify and Clean Up
+1. Ensure both integration and E2E tests pass
+2. Remove any debugging code
+3. Update documentation
+
+This approach will definitively identify where the issue lies and ensure we fix the right component.
+
