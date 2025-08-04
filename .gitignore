@@ -72,3 +72,4 @@ directives
 .claude/agents/scope-guardian.md
 .claude/agents/test-guardian.md
 .claude/agents/workflow-orchestrator.md
+.mcp.local.json
