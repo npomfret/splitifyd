@@ -53,7 +53,7 @@ export function LoginPage() {
       await authStore.login(email, password);
       // Redirect will happen via useEffect when user state updates
     } catch (error) {
-      // Error is handled by the auth store
+      logError('Login attempt failed', error, { email });
     }
   };
 

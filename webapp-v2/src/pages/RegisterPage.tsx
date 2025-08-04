@@ -90,7 +90,7 @@ export function RegisterPage() {
       );
       // Redirect will happen via useEffect when user state updates
     } catch (error) {
-      // Error is handled by the auth store
+      logError('Registration attempt failed', error, { email: emailSignal.value.trim(), displayName: nameSignal.value.trim() });
     }
   };
 

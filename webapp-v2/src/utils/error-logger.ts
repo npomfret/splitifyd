@@ -5,6 +5,18 @@
 import { ApiError } from '../app/apiClient';
 
 /**
+ * Determines if an error is "expected" and should be logged as a warning instead of error
+ */
+function isExpectedError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    // Common expected errors that shouldn't be loud in console
+    const expectedCodes = ['NOT_FOUND', 'UNAUTHORIZED', 'PERMISSION_DENIED'];
+    return expectedCodes.includes(error.code);
+  }
+  return false;
+}
+
+/**
  * Destructures an error object to extract all enumerable properties
  */
 function destructureError(error: Error): Record<string, any> {

@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { Button, ConfirmDialog, Alert } from '../ui';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
+import { logError } from '../../utils/error-logger';
 
 interface ExpenseActionsProps {
   expense: ExpenseData;
@@ -26,7 +27,7 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare }: ExpenseAc
       await onDelete();
       setShowDeleteConfirm(false);
     } catch (error) {
-      console.error('Failed to delete expense:', error);
+      logError('Failed to delete expense', error, { expenseId: expense.id });
       setDeleteError(error instanceof Error ? error.message : 'Failed to delete expense');
     } finally {
       setIsDeleting(false);

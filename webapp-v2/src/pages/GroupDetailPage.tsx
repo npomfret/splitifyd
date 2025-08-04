@@ -43,7 +43,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         await groupDetailStore.fetchGroup(groupId);
         isInitialized.value = true;
       } catch (error) {
-        logError('Failed to load group', error);
+        logError('Failed to load group page', error, { groupId });
         isInitialized.value = true;
       }
     };
