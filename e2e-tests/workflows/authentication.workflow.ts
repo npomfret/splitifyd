@@ -3,6 +3,9 @@ import { RegisterPage } from '../pages/register.page';
 import { DashboardPage } from '../pages/dashboard.page';
 import { TestUser } from '../helpers/auth-utils';
 
+// Re-export TestUser for other workflow files
+export type { TestUser };
+
 /**
  * Authentication workflow class that handles user creation and login flows.
  * Encapsulates the multi-step process of creating and authenticating test users.
