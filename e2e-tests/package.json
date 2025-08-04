@@ -11,7 +11,7 @@
     "test:debug": "npm run build && playwright test --debug",
     "test:headed": "npm run build && playwright test --headed",
     "test:chromium": "npm run build && playwright test --project=chromium",
-    "test:e2e": "npm run build && PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html",
+    "test:e2e": "npm run build && PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=4 --project=chromium --reporter=html",
     "install-browsers": "playwright install --with-deps"
   },
   "dependencies": {
