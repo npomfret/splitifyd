@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { RegisterPage } from '../pages';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -22,7 +23,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.register(displayName, email, password);
     
     // Should redirect to dashboard after successful registration
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Log out to attempt second registration
     // Wait for user menu button to be visible
@@ -37,7 +38,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.getByText('Sign out').click();
     
     // Wait for logout to complete and redirect to login page
-    await page.waitForURL(/\/login/, { timeout: 5000 });
+    await page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Navigate to register page
     await registerPage.navigate();
@@ -51,22 +52,29 @@ test.describe('Duplicate User Registration E2E', () => {
     // Wait for register page to load
     await page.waitForLoadState('networkidle');
     
-    // Fill form again with same email
-    await page.getByPlaceholder('Enter your full name').fill(displayName);
-    await page.getByPlaceholder('Enter your email').fill(email);
-    await page.getByPlaceholder('Create a strong password').fill(password);
-    await page.getByPlaceholder('Confirm your password').fill(password);
-    await page.locator('input[type="checkbox"]').check();
+    // Fill form again with same email using page object methods
+    const nameInput = registerPage.getFullNameInput();
+    const emailInput = registerPage.getEmailInput();
+    const passwordInput = registerPage.getPasswordInput();
+    const confirmPasswordInput = registerPage.getConfirmPasswordInput();
+    const termsCheckbox = registerPage.getTermsCheckbox();
+    const submitButton = registerPage.getSubmitButton();
+    
+    await nameInput.fill(displayName);
+    await emailInput.fill(email);
+    await passwordInput.fill(password);
+    await confirmPasswordInput.fill(password);
+    await termsCheckbox.check();
     
     // Click register button
-    await page.getByRole('button', { name: 'Create Account' }).click();
+    await submitButton.click();
     
     // Should NOT redirect - should stay on registration page
-    await expect(page).toHaveURL(/\/register/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/register/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Check for error message on screen using the RegisterPage's error selector
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible({ timeout: 5000 });
+    await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     const errorText = await errorElement.textContent();
     expect(errorText?.toLowerCase()).toMatch(/email.*already.*exists|email.*in use|account.*exists|email.*registered/);
@@ -97,7 +105,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.register(displayName, email, password);
     
     // Wait for dashboard
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Log out
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
@@ -109,7 +117,7 @@ test.describe('Duplicate User Registration E2E', () => {
       const urlStr = url.toString();
       const path = new URL(urlStr).pathname;
       return path === '/' || path === '/login' || path === '/home' || path === '/v2';
-    }, { timeout: 5000 });
+    }, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Second attempt - navigate to register page
     await registerPage.navigate();
@@ -126,19 +134,22 @@ test.describe('Duplicate User Registration E2E', () => {
       await page.waitForLoadState('domcontentloaded');
     };
     
-    const nameInput = page.getByPlaceholder('Enter your full name');
-    const emailInput = page.getByPlaceholder('Enter your email');
-    const passwordInput = page.getByPlaceholder('Create a strong password');
-    const confirmPasswordInput = page.getByPlaceholder('Confirm your password');
+    const nameInput = registerPage.getFullNameInput();
+    const emailInput = registerPage.getEmailInput();
+    const passwordInput = registerPage.getPasswordInput();
+    const confirmPasswordInput = registerPage.getConfirmPasswordInput();
     
     await fillPreactInput(nameInput, displayName);
     await fillPreactInput(emailInput, email);
     await fillPreactInput(passwordInput, password);
     await fillPreactInput(confirmPasswordInput, password);
-    await page.locator('input[type="checkbox"]').check();
+    const termsCheckbox = registerPage.getTermsCheckbox();
+    const submitButton = registerPage.getSubmitButton();
+    
+    await termsCheckbox.check();
     
     // Submit
-    await page.getByRole('button', { name: 'Create Account' }).click();
+    await submitButton.click();
     
     // Form fields should still contain the values
     await expect(nameInput).toHaveValue(displayName);
@@ -149,7 +160,7 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Error should be visible
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible({ timeout: 5000 });
+    await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
   });
 
   test('should allow registration with different email after duplicate attempt', async ({ page }) => {
@@ -178,7 +189,7 @@ test.describe('Duplicate User Registration E2E', () => {
       const urlStr = url.toString();
       const path = new URL(urlStr).pathname;
       return path === '/' || path === '/login' || path === '/home' || path === '/v2';
-    }, { timeout: 5000 });
+    }, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Try duplicate (should fail)
     await registerPage.navigate();
@@ -195,22 +206,29 @@ test.describe('Duplicate User Registration E2E', () => {
       await page.waitForLoadState('domcontentloaded');
     };
     
-    await fillPreactInput(page.getByPlaceholder('Enter your full name'), displayName);
-    await fillPreactInput(page.getByPlaceholder('Enter your email'), email1);
-    await fillPreactInput(page.getByPlaceholder('Create a strong password'), password);
-    await fillPreactInput(page.getByPlaceholder('Confirm your password'), password);
-    await page.locator('input[type="checkbox"]').check();
-    await page.getByRole('button', { name: 'Create Account' }).click();
+    const nameInput = registerPage.getFullNameInput();
+    const emailInput = registerPage.getEmailInput();
+    const passwordInput = registerPage.getPasswordInput();
+    const confirmPasswordInput = registerPage.getConfirmPasswordInput();
+    const termsCheckbox = registerPage.getTermsCheckbox();
+    const submitButton = registerPage.getSubmitButton();
+    
+    await fillPreactInput(nameInput, displayName);
+    await fillPreactInput(emailInput, email1);
+    await fillPreactInput(passwordInput, password);
+    await fillPreactInput(confirmPasswordInput, password);
+    await termsCheckbox.check();
+    await submitButton.click();
     
     // Should see error
     const errorElement = page.locator('.text-red-600');
-    await expect(errorElement).toBeVisible({ timeout: 3000 });
+    await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.LONG });
     
-    // Now change email and try again
-    await fillPreactInput(page.getByPlaceholder('Enter your email'), email2);
-    await page.getByRole('button', { name: 'Create Account' }).click();
+    // Now change email and try again using page object
+    await fillPreactInput(emailInput, email2);
+    await submitButton.click();
     
     // Should succeed this time
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
   });
 });
