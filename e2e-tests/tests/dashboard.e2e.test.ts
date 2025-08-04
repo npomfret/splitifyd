@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { authenticatedTest } from '../fixtures/authenticated-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { createTestGroup } from '../helpers/test-helpers';
 import { DashboardPage, CreateGroupModalPage } from '../pages';
 
@@ -10,7 +10,7 @@ setupConsoleErrorReporting();
 
 test.describe('Dashboard E2E', () => {
   test('should display user info after login', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    const user = await AuthenticationWorkflow.createTestUser(page);
     const dashboardPage = new DashboardPage(page);
     
     await expect(page).toHaveURL(/\/dashboard/);
@@ -50,7 +50,7 @@ test.describe('Dashboard E2E', () => {
     
     await page.goto(`${EMULATOR_URL}/login`);
     
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     await expect(page).toHaveURL(/\/dashboard/);
     

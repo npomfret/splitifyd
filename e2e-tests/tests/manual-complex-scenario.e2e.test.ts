@@ -1,9 +1,9 @@
 import { test, expect } from '../fixtures/base-test';
 import { 
   setupConsoleErrorReporting, 
-  setupMCPDebugOnFailure,
-  createAndLoginTestUser
+  setupMCPDebugOnFailure
 } from '../helpers';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { DashboardPage, GroupDetailPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -13,7 +13,7 @@ setupMCPDebugOnFailure();
 test.describe('Multi-User Group Collaboration', () => {
   test('user can create group and add multiple expenses', async ({ page }) => {
     // Setup
-    const user = await createAndLoginTestUser(page);
+    const user = await AuthenticationWorkflow.createTestUser(page);
     
     // Create group
     const dashboard = new DashboardPage(page);
@@ -51,7 +51,7 @@ test.describe('Multi-User Group Collaboration', () => {
     // Create first user and group
     const context1 = await browser.newContext();
     const page1 = await context1.newPage();
-    const user1 = await createAndLoginTestUser(page1);
+    const user1 = await AuthenticationWorkflow.createTestUser(page1);
     
     const dashboard1 = new DashboardPage(page1);
     const groupId = await dashboard1.createGroupAndNavigate('Shared Expenses', 'Multi-user test');
@@ -63,7 +63,7 @@ test.describe('Multi-User Group Collaboration', () => {
     // Create second user and join group
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    const user2 = await createAndLoginTestUser(page2);
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
     
     await GroupDetailPage.joinViaShareLink(page2, shareLink);
     
@@ -96,7 +96,7 @@ test.describe('Multi-User Group Collaboration', () => {
     // Create first user and group
     const context1 = await browser.newContext();
     const page1 = await context1.newPage();
-    const user1 = await createAndLoginTestUser(page1);
+    const user1 = await AuthenticationWorkflow.createTestUser(page1);
     
     const dashboard1 = new DashboardPage(page1);
     const groupId = await dashboard1.createGroupAndNavigate('Balance Test Group', 'Testing balance calculations');
@@ -107,7 +107,7 @@ test.describe('Multi-User Group Collaboration', () => {
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    const user2 = await createAndLoginTestUser(page2);
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
     
     await GroupDetailPage.joinViaShareLink(page2, shareLink);
     
@@ -138,7 +138,7 @@ test.describe('Multi-User Group Collaboration', () => {
     // Create group with multiple users
     const context1 = await browser.newContext();
     const page1 = await context1.newPage();
-    const user1 = await createAndLoginTestUser(page1);
+    const user1 = await AuthenticationWorkflow.createTestUser(page1);
     
     const dashboard1 = new DashboardPage(page1);
     const groupId = await dashboard1.createGroupAndNavigate('Statistics Test', 'Testing group statistics');
@@ -148,12 +148,12 @@ test.describe('Multi-User Group Collaboration', () => {
     // Add two more users
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    const user2 = await createAndLoginTestUser(page2);
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
     await GroupDetailPage.joinViaShareLink(page2, shareLink);
     
     const context3 = await browser.newContext();
     const page3 = await context3.newPage();
-    const user3 = await createAndLoginTestUser(page3);
+    const user3 = await AuthenticationWorkflow.createTestUser(page3);
     await GroupDetailPage.joinViaShareLink(page3, shareLink);
     
     // Each user adds an expense

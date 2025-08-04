@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { CreateGroupModalPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -9,7 +9,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Balance and Settlement E2E', () => {
   test('should display initial zero balances', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    const user = await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -30,7 +30,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should calculate balances after expenses', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -68,7 +68,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should show who owes whom', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -92,7 +92,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should handle settlement recording', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -115,7 +115,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should show settlement history', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -141,7 +141,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should display balance summary correctly', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    const user = await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -166,7 +166,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should handle complex balance calculations', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);
@@ -192,7 +192,7 @@ test.describe('Balance and Settlement E2E', () => {
   });
 
   test('should show balance status indicators', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const createGroupModal = new CreateGroupModalPage(page);

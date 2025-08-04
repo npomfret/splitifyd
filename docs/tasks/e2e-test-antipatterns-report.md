@@ -60,11 +60,32 @@ All critical and high-priority antipatterns have been addressed:
 - **DEMONSTRATED**: Clear migration path from helpers to workflow classes
 - **MAINTAINED**: Backward compatibility with static convenience methods
 
+### Phase 8 - Authentication Migration Complete ✅
+- **MIGRATED**: All 9 test files to use `AuthenticationWorkflow.createTestUser()` (48 total usages)
+- **UPDATED**: Import statements in all test files to use workflow classes
+- **VERIFIED**: No remaining usage of `createAndLoginTestUser()` in test files
+- **FILES UPDATED**: 
+  - dashboard.e2e.test.ts (2 usages)
+  - multi-user-expenses.e2e.test.ts (3 usages)  
+  - delete-operations.e2e.test.ts (3 usages)
+  - error-handling.e2e.test.ts (7 usages)
+  - advanced-splitting.e2e.test.ts (6 usages)
+  - balance-settlement.e2e.test.ts (8 usages)
+  - multi-user-collaboration.e2e.test.ts (6 usages)
+  - group-details.e2e.test.ts (5 usages)
+  - manual-complex-scenario.e2e.test.ts (8 usages)
+
+### Phase 9 - Group Workflow Migration In Progress 🔄
+- **IDENTIFIED**: Multiple patterns where tests create user + group manually
+- **TARGET**: Replace `AuthenticationWorkflow.createTestUser() + CreateGroupModalPage` with `GroupWorkflow.createTestGroup()`
+- **PATTERNS FOUND**: 40+ locations across multiple test files that follow this anti-pattern
+- **FILES TO UPDATE**: add-expense.e2e.test.ts, advanced-splitting.e2e.test.ts, balance-settlement.e2e.test.ts, delete-operations.e2e.test.ts, error-handling.e2e.test.ts, group-details.e2e.test.ts, multi-user-collaboration.e2e.test.ts, multi-user-expenses.e2e.test.ts
+
 ## Next Steps
 
 To complete the workflow refactoring:
-1. **Migrate remaining test files** to use `AuthenticationWorkflow.createTestUser()` instead of `createAndLoginTestUser()`
-2. **Migrate to `GroupWorkflow.createTestGroup()`** for tests that need user + group setup
+1. ✅ **Migrate remaining test files** to use `AuthenticationWorkflow.createTestUser()` instead of `createAndLoginTestUser()`
+2. 🔄 **Migrate to `GroupWorkflow.createTestGroup()`** for tests that need user + group setup
 3. **Create `MultiUserWorkflow`** class to replace `createMultiUserGroup()` and `MultiUserTestBuilder`
 4. **Update helper exports** to deprecate old functions and promote new workflows
 5. **Run full test suite** to ensure all tests pass with new architecture

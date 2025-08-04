@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { DashboardPage, CreateGroupModalPage } from '../pages';
 
 setupConsoleErrorReporting();
@@ -8,7 +8,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Group Details E2E', () => {
   test('should display group information', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    const user = await AuthenticationWorkflow.createTestUser(page);
     
     const dashboardPage = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -29,7 +29,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should display empty expense list', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboardPage = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -45,7 +45,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should show group balances section', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboardPage = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -59,7 +59,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should have navigation back to dashboard', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboardPage = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -74,7 +74,7 @@ test.describe('Group Details E2E', () => {
   });
 
   test('should show group settings or options', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboardPage = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);

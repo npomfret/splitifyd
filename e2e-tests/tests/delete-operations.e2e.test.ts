@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 setupConsoleErrorReporting();
@@ -8,7 +8,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Basic Operations E2E', () => {
   test('should create and view an expense', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
+    const user = await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -43,7 +43,7 @@ test.describe('Basic Operations E2E', () => {
   });
 
   test('should handle multi-user expense visibility', async ({ page, browser }) => {
-    const user1 = await createAndLoginTestUser(page);
+    const user1 = await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -67,7 +67,7 @@ test.describe('Basic Operations E2E', () => {
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    const user2 = await createAndLoginTestUser(page2);
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
     
     // Navigate to the share link directly - it contains the full path including query params
     await page2.goto(shareLink);

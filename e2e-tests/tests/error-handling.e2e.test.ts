@@ -1,9 +1,9 @@
 import { test, expect } from '../fixtures/base-test';
 import { 
   setupConsoleErrorReporting, 
-  setupMCPDebugOnFailure,
-  createAndLoginTestUser
+  setupMCPDebugOnFailure
 } from '../helpers';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -18,7 +18,7 @@ test.describe('Error Handling', () => {
       description: 'Network errors are intentionally triggered to test error handling' 
     });
     
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Intercept API calls to simulate network failure
     await context.route('**/api/groups', route => route.abort());
@@ -47,7 +47,7 @@ test.describe('Error Handling', () => {
   });
 
   test('prevents form submission with invalid data', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -80,7 +80,7 @@ test.describe('Error Handling', () => {
       description: 'Server errors are intentionally triggered to test error handling' 
     });
     
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Intercept API calls to simulate server error
     await context.route('**/api/groups', route => {
@@ -115,7 +115,7 @@ test.describe('Error Handling', () => {
       description: 'JSON parse errors are intentionally triggered to test error handling' 
     });
     
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Intercept API calls to return malformed JSON
     await context.route('**/api/groups', route => {
@@ -141,7 +141,7 @@ test.describe('Error Handling', () => {
 
   test('verifies group access control behavior', async ({ page, browser }) => {
     // Create User 1 and a group
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -154,7 +154,7 @@ test.describe('Error Handling', () => {
     // Create User 2 in separate context
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    await createAndLoginTestUser(page2);
+    await AuthenticationWorkflow.createTestUser(page2);
     
     // User 2 tries to access User 1's group
     await page2.goto(groupUrl);
@@ -181,7 +181,7 @@ test.describe('Error Handling', () => {
       description: 'Timeout errors are intentionally triggered to test error handling' 
     });
     
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Intercept API calls to simulate timeout
     await context.route('**/api/groups', async route => {

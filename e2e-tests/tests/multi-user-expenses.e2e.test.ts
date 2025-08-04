@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { GroupDetailPage, DashboardPage, CreateGroupModalPage } from '../pages';
 
 test.describe('Multi-user group with expenses', () => {
@@ -16,7 +16,7 @@ test.describe('Multi-user group with expenses', () => {
     
     try {
       // User 1: Create account and group
-      const user1 = await createAndLoginTestUser(page1);
+      const user1 = await AuthenticationWorkflow.createTestUser(page1);
 
       // Create a new group using page objects
       const dashboard = new DashboardPage(page1);
@@ -64,7 +64,7 @@ test.describe('Multi-user group with expenses', () => {
       await page1.waitForLoadState('domcontentloaded');
       
       // User 2: Create account and join via share link
-      const user2 = await createAndLoginTestUser(page2);
+      const user2 = await AuthenticationWorkflow.createTestUser(page2);
 
       // Navigate to the share link directly - it contains the full path including query params
       await page2.goto(shareLink);
@@ -82,7 +82,7 @@ test.describe('Multi-user group with expenses', () => {
       await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
 
       // User 3: Create account and join via share link
-      const user3 = await createAndLoginTestUser(page3);
+      const user3 = await AuthenticationWorkflow.createTestUser(page3);
 
 
       await page3.goto(shareLink);

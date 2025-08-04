@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -10,7 +10,7 @@ setupMCPDebugOnFailure();
 test.describe('Advanced Splitting Options', () => {
 
   test('should create expense with equal split', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group using modal
     const dashboard = new DashboardPage(page);
@@ -55,7 +55,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should create expense with exact amounts split', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const dashboard = new DashboardPage(page);
@@ -103,7 +103,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should create expense with percentage split', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const dashboard = new DashboardPage(page);
@@ -152,7 +152,7 @@ test.describe('Advanced Splitting Options', () => {
   test('should validate split amounts equal total', {
     annotation: { type: 'skip-error-checking', description: 'Test intentionally triggers validation errors to verify form validation behavior' }
   }, async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const dashboard = new DashboardPage(page);
@@ -203,7 +203,7 @@ test.describe('Advanced Splitting Options', () => {
   test('should validate percentage split equals 100%', {
     annotation: { type: 'skip-error-checking', description: 'Test intentionally triggers validation errors to verify form validation behavior' }
   }, async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const dashboard = new DashboardPage(page);
@@ -252,7 +252,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should handle split type changes correctly', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     // Create a group
     const dashboard = new DashboardPage(page);

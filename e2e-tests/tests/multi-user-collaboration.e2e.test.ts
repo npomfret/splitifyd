@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 import { CreateGroupModalPage, DashboardPage, GroupDetailPage } from '../pages';
 
 setupConsoleErrorReporting();
@@ -8,7 +8,7 @@ setupMCPDebugOnFailure();
 
 test.describe('Multi-User Collaboration E2E', () => {
   test('should handle group sharing via share link', async ({ page, browser }) => {
-    const user1 = await createAndLoginTestUser(page);
+    const user1 = await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -34,7 +34,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    const user2 = await createAndLoginTestUser(page2);
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
     
     // Navigate to the share link directly - it contains the full path including query params
     await page2.goto(shareLink);
@@ -52,7 +52,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('should allow multiple users to add expenses to same group', async ({ page, browser }) => {
-    const user1 = await createAndLoginTestUser(page);
+    const user1 = await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -71,7 +71,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
-    const user2 = await createAndLoginTestUser(page2);
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
     // Navigate to the share link directly - it contains the full path including query params
     await page2.goto(shareLink);
     
@@ -112,7 +112,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('should handle invalid share links', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const invalidShareLink = `${page.url().split('/dashboard')[0]}/join/invalid-group-id`;
     
@@ -126,7 +126,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('should show group creator as admin', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
