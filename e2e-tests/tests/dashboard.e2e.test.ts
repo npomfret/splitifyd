@@ -1,8 +1,8 @@
 import { test, expect } from '../fixtures/base-test';
 import { authenticatedTest } from '../fixtures/authenticated-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../helpers';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
 import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
-import { DashboardPage, CreateGroupModalPage, LoginPage } from '../pages';
+import { DashboardPage, CreateGroupModalPage, LoginPage, GroupDetailPage } from '../pages';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
@@ -19,7 +19,7 @@ test.describe('Dashboard E2E', () => {
     const displayName = await dashboardPage.getUserDisplayName();
     expect(displayName).toBe(user.displayName);
     
-    await expect(page.getByText(/Welcome back/i)).toBeVisible();
+    await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
   });
 
   authenticatedTest('should display user groups section', async ({ authenticatedPage }) => {
@@ -27,10 +27,11 @@ test.describe('Dashboard E2E', () => {
     
     await expect(page).toHaveURL(/\/dashboard/);
     
-    await expect(page.getByRole('heading', { name: /Your Groups|My Groups/i })).toBeVisible();
+    const dashboardPage = new DashboardPage(page);
     
-    const createGroupButton = page.getByRole('button', { name: /Create.*Group/i }).first();
-    await expect(createGroupButton).toBeVisible();
+    await expect(dashboardPage.getGroupsHeading()).toBeVisible();
+    
+    await expect(dashboardPage.getCreateGroupButton()).toBeVisible();
     
   });
 
@@ -39,9 +40,10 @@ test.describe('Dashboard E2E', () => {
     
     await expect(page).toHaveURL(/\/dashboard/);
     
-    const createGroupButton = page.getByRole('button', { name: /Create.*Group/i }).first();
-    await expect(createGroupButton).toBeVisible();
-    await expect(createGroupButton).toBeEnabled();
+    const dashboardPage = new DashboardPage(page);
+    
+    await expect(dashboardPage.getCreateGroupButton()).toBeVisible();
+    await expect(dashboardPage.getCreateGroupButton()).toBeEnabled();
     
   });
 
@@ -61,8 +63,9 @@ test.describe('Dashboard E2E', () => {
   authenticatedTest('should show navigation elements', async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
     
-    const userMenuButton = page.getByRole('button', { name: /Profile|Account|User|Menu|^[A-Z]$/i }).first();
-    await expect(userMenuButton).toBeVisible();
+    const dashboardPage = new DashboardPage(page);
+    
+    await expect(dashboardPage.getUserMenuButton()).toBeVisible();
     
   });
 
@@ -76,10 +79,10 @@ test.describe('Dashboard E2E', () => {
       await dashboardPage.openCreateGroupModal();
       
       await expect(createGroupModal.isOpen()).resolves.toBe(true);
-      await expect(page.getByText(/Create.*New.*Group|New Group/i)).toBeVisible();
+      await expect(createGroupModal.getModalTitle()).toBeVisible();
       
-      await expect(page.getByLabel('Group Name*')).toBeVisible();
-      await expect(page.getByPlaceholder(/Add any details/i)).toBeVisible();
+      await expect(createGroupModal.getGroupNameInput()).toBeVisible();
+      await expect(createGroupModal.getDescriptionInput()).toBeVisible();
       
       });
 
@@ -90,7 +93,8 @@ test.describe('Dashboard E2E', () => {
       const groupId = await dashboardPage.createGroupAndNavigate('Test Group', 'Test Description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      await expect(page.getByRole('heading', { name: 'Test Group' })).toBeVisible();
+      const groupDetailPage = new GroupDetailPage(page);
+      await expect(groupDetailPage.getGroupTitleByName('Test Group')).toBeVisible();
       expect(groupId).toBeTruthy();
     });
 
@@ -122,12 +126,11 @@ test.describe('Dashboard E2E', () => {
       
       await expect(createGroupModal.isOpen()).resolves.toBe(true);
       
-      const modalElement = page.locator('.fixed.inset-0').filter({ has: page.getByText('Create New Group') });
-      const submitButton = modalElement.getByRole('button', { name: 'Create Group' });
+      const submitButton = createGroupModal.getSubmitButton();
       
       await expect(submitButton).toBeDisabled();
       
-      const nameInput = page.getByLabel('Group Name*');
+      const nameInput = createGroupModal.getGroupNameInput();
       await nameInput.click();
       await nameInput.type('T');
       await page.keyboard.press('Tab');
@@ -153,7 +156,8 @@ test.describe('Dashboard E2E', () => {
       const groupId = await dashboardPage.createGroupAndNavigate('Navigation Test Group', 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-      await expect(page.getByText('Navigation Test Group')).toBeVisible();
+      const groupDetailPage = new GroupDetailPage(page);
+      await expect(groupDetailPage.getGroupTextByName('Navigation Test Group')).toBeVisible();
       expect(groupId).toBeTruthy();
       
       });
@@ -161,15 +165,15 @@ test.describe('Dashboard E2E', () => {
     authenticatedTest('should sign out successfully', async ({ authenticatedPage }) => {
       const { page } = authenticatedPage;
         
-      const userMenu = page.getByRole('button', { name: /Profile|Account|User|Menu|^[A-Z]$/i }).first();
-      await userMenu.click();
+      const dashboardPage = new DashboardPage(page);
       
-      const signOutButton = page.getByRole('button', { name: /Sign Out|Logout/i });
-      await signOutButton.click();
+      await dashboardPage.getUserMenuButton().click();
+      
+      await dashboardPage.getSignOutButton().click();
       
       await expect(page).toHaveURL(/\/login/);
       
-      await expect(page.getByRole('button', { name: /Sign In|Login/i })).toBeVisible();
+      await expect(dashboardPage.getSignInButton()).toBeVisible();
       
       });
 

@@ -14,21 +14,22 @@ test.describe('Auth Flow E2E', () => {
     await loginPage.navigate();
     
     // Verify login page loaded
-    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
+    await expect(loginPage.getSignInHeading()).toBeVisible();
+    await expect(loginPage.getSubmitButton()).toBeVisible();
     
     // Click "Sign up" link
     await loginPage.clickSignUp();
     
     // Verify register page loaded
-    await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
+    const registerPage = new RegisterPage(page);
+    await expect(registerPage.getCreateAccountHeading()).toBeVisible();
+    await expect(registerPage.getSubmitButton()).toBeVisible();
     
     // Click "Sign in" link using page object method
-    await page.getByRole('link', { name: 'Sign in' }).click();
+    await registerPage.getSignInLink().click();
     
     // Back on login page
-    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
+    await expect(loginPage.getSignInHeading()).toBeVisible();
   });
 
   test('should show form fields on login page', async ({ page }) => {
@@ -37,9 +38,9 @@ test.describe('Auth Flow E2E', () => {
     await loginPage.navigate();
     
     // Verify form fields are present
-    await expect(page.getByText('Email address *')).toBeVisible();
-    await expect(page.getByText('Password *')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
+    await expect(loginPage.getEmailLabel()).toBeVisible();
+    await expect(loginPage.getPasswordLabel()).toBeVisible();
+    await expect(loginPage.getSubmitButton()).toBeVisible();
   });
 
   test('should show form fields on register page', async ({ page }) => {
@@ -48,11 +49,11 @@ test.describe('Auth Flow E2E', () => {
     await registerPage.navigate();
     
     // Verify form fields are present
-    await expect(page.getByText('Full Name *')).toBeVisible();
-    await expect(page.getByText('Email address *')).toBeVisible();
-    await expect(page.getByText('Password *', { exact: true })).toBeVisible();
-    await expect(page.getByText('Confirm Password *')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible();
+    await expect(registerPage.getFullNameLabel()).toBeVisible();
+    await expect(registerPage.getEmailLabel()).toBeVisible();
+    await expect(registerPage.getPasswordLabel()).toBeVisible();
+    await expect(registerPage.getConfirmPasswordLabel()).toBeVisible();
+    await expect(registerPage.getSubmitButton()).toBeVisible();
   });
 
   test('should disable submit button with empty form on login', async ({ page }) => {
@@ -87,8 +88,8 @@ test.describe('Auth Flow E2E', () => {
     await expect(page).toHaveURL(/\/register/);
     
     // Form fields should still be visible
-    await expect(page.getByText('Full Name *')).toBeVisible();
-    await expect(page.getByText('Email address *')).toBeVisible();
+    await expect(registerPage.getFullNameLabel()).toBeVisible();
+    await expect(registerPage.getEmailLabel()).toBeVisible();
   });
 
   test('should allow typing in login form fields', async ({ page }) => {
@@ -138,8 +139,7 @@ test.describe('Auth Flow E2E', () => {
     await loginPage.navigate();
     
     // Check for forgot password link
-    const forgotPasswordLink = page.getByRole('link', { name: /forgot.*password/i });
-    await expect(forgotPasswordLink).toBeVisible();
+    await expect(loginPage.getForgotPasswordLink()).toBeVisible();
     
     // Click it and verify navigation
     await loginPage.clickForgotPassword();

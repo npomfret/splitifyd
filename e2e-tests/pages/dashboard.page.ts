@@ -23,6 +23,31 @@ export class DashboardPage extends BasePage {
     return textContent ?? '';
   }
 
+  // Element accessors
+  getWelcomeMessage() {
+    return this.page.getByText(/Welcome back/i);
+  }
+
+  getGroupsHeading() {
+    return this.page.getByRole('heading', { name: /Your Groups|My Groups/i });
+  }
+
+  getCreateGroupButton() {
+    return this.page.getByRole('button', { name: /Create.*Group/i }).first();
+  }
+
+  getUserMenuButton() {
+    return this.page.getByRole('button', { name: /Profile|Account|User|Menu|^[A-Z]$/i }).first();
+  }
+
+  getSignOutButton() {
+    return this.page.getByRole('button', { name: /Sign Out|Logout/i });
+  }
+
+  getSignInButton() {
+    return this.page.getByRole('button', { name: /Sign In|Login/i });
+  }
+
   async openCreateGroupModal() {
     // Click whichever create button is visible - the UI determines this
     // Both buttons open the same modal, so we can use .first() to get whichever is present

@@ -1,5 +1,4 @@
 import { BasePage } from './base.page';
-import { EMULATOR_URL } from '../helpers';
 
 export class RegisterPage extends BasePage {
   // Selectors
@@ -68,5 +67,30 @@ export class RegisterPage extends BasePage {
 
   getEmailInputByType() {
     return this.page.locator('input[type="email"]');
+  }
+
+  // Form element labels and headings
+  getCreateAccountHeading() {
+    return this.page.getByRole('heading', { name: 'Create Account' });
+  }
+
+  getFullNameLabel() {
+    return this.page.getByText('Full Name *');
+  }
+
+  getEmailLabel() {
+    return this.page.getByText('Email address *');
+  }
+
+  getPasswordLabel() {
+    return this.page.getByText('Password *', { exact: true });
+  }
+
+  getConfirmPasswordLabel() {
+    return this.page.getByText('Confirm Password *');
+  }
+
+  getSignInLink() {
+    return this.page.getByRole('link', { name: 'Sign in' });
   }
 }

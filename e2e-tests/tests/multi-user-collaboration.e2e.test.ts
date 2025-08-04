@@ -8,35 +8,34 @@ setupMCPDebugOnFailure();
 test.describe('Multi-User Collaboration E2E', () => {
   test('should handle group sharing via share link', async ({ page, browser }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Shared Test Group', 'Testing group sharing');
+    const groupDetailPage = new GroupDetailPage(page);
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
-    const shareButton = page.getByRole('button', { name: /share/i });
-    await expect(shareButton).toBeVisible();
-    await shareButton.click();
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
     
-    const shareModal = page.getByRole('dialog', { name: /share group/i });
-    await expect(shareModal).toBeVisible();
+    await expect(groupDetailPage.getShareModal()).toBeVisible();
     
-    const shareLinkInput = shareModal.getByRole('textbox');
-    await expect(shareLinkInput).toBeVisible();
-    const shareLink = await shareLinkInput.inputValue();
+    await expect(groupDetailPage.getShareLinkInput()).toBeVisible();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     expect(shareLink).toMatch(/\/join(\?|\/)/);
     
     await page.keyboard.press('Escape');
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const user2 = await AuthenticationWorkflow.createTestUser(page2);
     
     // Navigate to the share link directly - it contains the full path including query params
     await page2.goto(shareLink);
     
     // Wait for the join page to load
-    await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
     
     // Click the Join Group button
-    await page2.getByRole('button', { name: 'Join Group' }).click();
+    await groupDetailPage2.getJoinGroupButton().click();
     
     // Now wait for navigation to the group page
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
@@ -46,39 +45,36 @@ test.describe('Multi-User Collaboration E2E', () => {
 
   test('should allow multiple users to add expenses to same group', async ({ page, browser }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Multi-User Expense Group', 'Testing concurrent expenses');
+    const groupDetailPage = new GroupDetailPage(page);
     const user1 = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    const shareButton = page.getByRole('button', { name: /share/i });
-    await shareButton.click();
-    const shareModal = page.getByRole('dialog', { name: /share group/i });
-    const shareLinkInput = shareModal.getByRole('textbox');
-    const shareLink = await shareLinkInput.inputValue();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const user2 = await AuthenticationWorkflow.createTestUser(page2);
     // Navigate to the share link directly - it contains the full path including query params
     await page2.goto(shareLink);
     
     // Wait for the join page to load and click Join Group button
-    await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
-    await page2.getByRole('button', { name: 'Join Group' }).click();
+    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
+    await groupDetailPage2.getJoinGroupButton().click();
     
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
-    const groupDetail1 = new GroupDetailPage(page);
-    await groupDetail1.addExpense({
+    await groupDetailPage.addExpense({
       description: 'User 1 Lunch',
       amount: 25,
       paidBy: user1.displayName,
       splitType: 'equal'
     });
     
-    const groupDetail2 = new GroupDetailPage(page2);
-    await groupDetail2.addExpense({
+    await groupDetailPage2.addExpense({
       description: 'User 2 Dinner',
       amount: 40,
       paidBy: user2.displayName,
@@ -91,10 +87,10 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page.waitForLoadState('networkidle');
     await page2.waitForLoadState('networkidle');
     
-    await expect(page.getByText('User 1 Lunch')).toBeVisible();
-    await expect(page.getByText('User 2 Dinner')).toBeVisible();
-    await expect(page2.getByText('User 1 Lunch')).toBeVisible();
-    await expect(page2.getByText('User 2 Dinner')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('User 1 Lunch')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('User 2 Dinner')).toBeVisible();
+    await expect(groupDetailPage2.getExpenseByDescription('User 1 Lunch')).toBeVisible();
+    await expect(groupDetailPage2.getExpenseByDescription('User 2 Dinner')).toBeVisible();
     
     await context2.close();
   });
@@ -145,36 +141,34 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     // Verify all expenses are visible
     for (const expense of expenses) {
-      await expect(page.getByText(expense.description)).toBeVisible();
+      await expect(groupDetail.getExpenseByDescription(expense.description)).toBeVisible();
     }
   });
 
   test('balances update correctly with multiple users and expenses', async ({ page, browser }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Balance Test Group', 'Testing balance calculations');
+    const groupDetailPage = new GroupDetailPage(page);
     const user1 = groupInfo.user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Get share link
-    const shareButton = page.getByRole('button', { name: /share/i });
-    await shareButton.click();
-    const shareModal = page.getByRole('dialog', { name: /share group/i });
-    const shareLinkInput = shareModal.getByRole('textbox');
-    const shareLink = await shareLinkInput.inputValue();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
     // Second user joins
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const user2 = await AuthenticationWorkflow.createTestUser(page2);
     await page2.goto(shareLink);
-    await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
-    await page2.getByRole('button', { name: 'Join Group' }).click();
+    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
+    await groupDetailPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
     
     // User 1 pays for shared expense
-    const groupDetail1 = new GroupDetailPage(page);
-    await groupDetail1.addExpense({
+    await groupDetailPage.addExpense({
       description: 'Shared Meal',
       amount: 100,
       paidBy: user1.displayName,

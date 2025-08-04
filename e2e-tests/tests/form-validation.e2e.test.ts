@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 import { LoginPage, RegisterPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 

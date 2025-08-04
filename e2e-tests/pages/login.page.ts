@@ -1,5 +1,4 @@
 import { BasePage } from './base.page';
-import { EMULATOR_URL } from '../helpers';
 
 export class LoginPage extends BasePage {
   // Selectors
@@ -63,5 +62,18 @@ export class LoginPage extends BasePage {
 
   getForgotPasswordLink() {
     return this.page.getByRole('link', { name: this.forgotPasswordLink });
+  }
+
+  // Form element labels and headings
+  getSignInHeading() {
+    return this.page.getByRole('heading', { name: 'Sign In' });
+  }
+
+  getEmailLabel() {
+    return this.page.getByText('Email address *');
+  }
+
+  getPasswordLabel() {
+    return this.page.getByText('Password *');
   }
 }

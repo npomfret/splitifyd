@@ -70,4 +70,21 @@ export class CreateGroupModalPage extends BasePage {
   async waitForModalToClose() {
     await this.page.getByText(this.modalTitle).waitFor({ state: 'hidden' });
   }
+
+  // Element accessors
+  getModalTitle() {
+    return this.page.getByText(/Create.*New.*Group|New Group/i);
+  }
+
+  getGroupNameInput() {
+    return this.page.getByLabel('Group Name*');
+  }
+
+  getDescriptionInput() {
+    return this.page.getByPlaceholder(/Add any details/i);
+  }
+
+  getSubmitButton() {
+    return this.page.locator('.fixed.inset-0').filter({ has: this.page.getByText('Create New Group') }).getByRole('button', { name: 'Create Group' });
+  }
 }

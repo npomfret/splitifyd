@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { GroupDetailPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -9,170 +10,169 @@ test.describe('Advanced Splitting Options', () => {
 
   test('should create expense with equal split', async ({ page }) => {
     await GroupWorkflow.createTestGroup(page, 'Equal Split Test Group');
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Click add expense button
-    await page.getByRole('button', { name: /add expense/i }).click();
+    await groupDetailPage.getAddExpenseButton().click();
     
     // Wait for navigation to add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Wait for expense form to load
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
+    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill expense form
-    await page.getByPlaceholder('What was this expense for?').fill('Pizza for everyone');
-    await page.getByPlaceholder('0.00').fill('60');
+    await groupDetailPage.getExpenseDescriptionField().fill('Pizza for everyone');
+    await groupDetailPage.getExpenseAmountField().fill('60');
     
     // IMPORTANT: Select participants - the payer is auto-selected but we need at least one participant
     // Since this is a single user test, the current user is the only participant
     // The payer checkbox should already be checked and disabled
-    const splitSection = page.locator('text=Split between').locator('..');
-    await expect(splitSection).toBeVisible();
+    await expect(groupDetailPage.getSplitSection()).toBeVisible();
     
     // Equal split is default - verify it's selected
-    const equalRadio = page.getByRole('radio', { name: 'Equal' });
-    await expect(equalRadio).toBeChecked();
+    await expect(groupDetailPage.getEqualRadio()).toBeChecked();
     
     // Submit expense
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     
     // Verify navigation back to group page and expense creation
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    await expect(page.getByText('Pizza for everyone')).toBeVisible();
-    await expect(page.getByText('$60.00')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Pizza for everyone')).toBeVisible();
+    await expect(groupDetailPage.getExpenseAmount('$60.00')).toBeVisible();
   });
 
   test('should create expense with exact amounts split', async ({ page }) => {
     await GroupWorkflow.createTestGroup(page, 'Exact Split Test Group');
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: /add expense/i }).click();
+    await groupDetailPage.getAddExpenseButton().click();
     
     // Wait for navigation to add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Wait for expense form to load
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
+    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic details
-    await page.getByPlaceholder('What was this expense for?').fill('Shared groceries with exact amounts');
-    await page.getByPlaceholder('0.00').fill('75.50');
+    await groupDetailPage.getExpenseDescriptionField().fill('Shared groceries with exact amounts');
+    await groupDetailPage.getExpenseAmountField().fill('75.50');
     
     await expect(page.getByText('Split between')).toBeVisible();
     
     // Change split type to exact
-    await page.getByText('Exact amounts').click();
-    await expect(page.getByRole('radio', { name: 'Exact amounts' })).toBeChecked();
+    await groupDetailPage.getExactAmountsText().click();
+    await expect(groupDetailPage.getExactAmountsRadio()).toBeChecked();
     
     // Verify exact amount input appears
-    await expect(page.getByText('Enter exact amounts for each person:')).toBeVisible();
+    await expect(groupDetailPage.getExactAmountsInstructions()).toBeVisible();
     
     // The exact amount input for the current user should be visible
-    const exactAmountInput = page.locator('input[type="number"][step="0.01"]').first();
-    await expect(exactAmountInput).toBeVisible();
-    await exactAmountInput.fill('75.50');
+    await expect(groupDetailPage.getExactAmountInput()).toBeVisible();
+    await groupDetailPage.getExactAmountInput().fill('75.50');
     
     // Submit expense
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     
     // Verify navigation back to group
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    await expect(page.getByText('Shared groceries with exact amounts')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Shared groceries with exact amounts')).toBeVisible();
   });
 
   test('should create expense with percentage split', async ({ page }) => {
     await GroupWorkflow.createTestGroup(page, 'Percentage Split Test Group');
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: /add expense/i }).click();
+    await groupDetailPage.getAddExpenseButton().click();
     
     // Wait for navigation to add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Wait for expense form to load
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
+    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic details
-    await page.getByPlaceholder('What was this expense for?').fill('Consulting project split by percentage');
-    await page.getByPlaceholder('0.00').fill('1000');
+    await groupDetailPage.getExpenseDescriptionField().fill('Consulting project split by percentage');
+    await groupDetailPage.getExpenseAmountField().fill('1000');
     
     await expect(page.getByText('Split between')).toBeVisible();
     
     // Change split type to percentage
-    await page.getByText('Percentage', { exact: true }).click();
-    await expect(page.getByRole('radio', { name: 'Percentage' })).toBeChecked();
+    await groupDetailPage.getPercentageText().click();
+    await expect(groupDetailPage.getPercentageRadio()).toBeChecked();
     
     // Verify percentage input appears
-    await expect(page.getByText('Enter percentage for each person:')).toBeVisible();
+    await expect(groupDetailPage.getPercentageInstructions()).toBeVisible();
     
     // In single user scenario, should default to 100%
-    const percentageInput = page.locator('input[type="number"][max="100"]').first();
-    await expect(percentageInput).toHaveValue('100');
+    await expect(groupDetailPage.getPercentageInput()).toHaveValue('100');
     
     // Submit expense
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     
     // Verify navigation and expense creation
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    await expect(page.getByText('Consulting project split by percentage')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Consulting project split by percentage')).toBeVisible();
   });
 
 
 
   test('should handle split type changes correctly', async ({ page }) => {
     await GroupWorkflow.createTestGroup(page, 'Split Type Change Test Group');
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: /add expense/i }).click();
+    await groupDetailPage.getAddExpenseButton().click();
     
     // Wait for navigation to add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Wait for expense form to load
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
+    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic details
-    await page.getByPlaceholder('What was this expense for?').fill('Testing split type changes');
-    await page.getByPlaceholder('0.00').fill('150');
+    await groupDetailPage.getExpenseDescriptionField().fill('Testing split type changes');
+    await groupDetailPage.getExpenseAmountField().fill('150');
     
     await expect(page.getByText('Split between')).toBeVisible();
     
     // Start with equal split (default)
-    const equalRadio = page.getByRole('radio', { name: 'Equal' });
-    await expect(equalRadio).toBeChecked();
+    await expect(groupDetailPage.getEqualRadio()).toBeChecked();
     
     // Change to exact amount
-    await page.getByText('Exact amounts').click();
-    await expect(page.getByRole('radio', { name: 'Exact amounts' })).toBeChecked();
+    await groupDetailPage.getExactAmountsText().click();
+    await expect(groupDetailPage.getExactAmountsRadio()).toBeChecked();
     
     // Verify UI updates for exact amount
-    await expect(page.getByText('Enter exact amounts for each person:')).toBeVisible();
+    await expect(groupDetailPage.getExactAmountsInstructions()).toBeVisible();
     
     // Change to percentage
-    await page.getByText('Percentage', { exact: true }).click();
-    await expect(page.getByRole('radio', { name: 'Percentage' })).toBeChecked();
+    await groupDetailPage.getPercentageText().click();
+    await expect(groupDetailPage.getPercentageRadio()).toBeChecked();
     
     // Verify UI updates for percentage
-    await expect(page.getByText('Enter percentage for each person:')).toBeVisible();
+    await expect(groupDetailPage.getPercentageInstructions()).toBeVisible();
     
     // Change back to equal
-    await page.getByText('Equal').click();
-    await expect(page.getByRole('radio', { name: 'Equal' })).toBeChecked();
+    await groupDetailPage.getEqualText().click();
+    await expect(groupDetailPage.getEqualRadio()).toBeChecked();
     
     // Submit should work after changes (payer is auto-selected)
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
   });
 });

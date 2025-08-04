@@ -14,6 +14,14 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('heading').first();
   }
 
+  getGroupTitleByName(name: string) {
+    return this.page.getByRole('heading', { name });
+  }
+
+  getGroupTextByName(name: string) {
+    return this.page.getByText(name);
+  }
+
   getGroupDescription() {
     return this.page.getByText(/test|description/i).first();
   }
@@ -58,6 +66,72 @@ export class GroupDetailPage extends BasePage {
 
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
+  }
+
+  // Split type accessors
+  getSplitSection() {
+    return this.page.locator('text=Split between').locator('..');
+  }
+
+  getEqualRadio() {
+    return this.page.getByRole('radio', { name: 'Equal' });
+  }
+
+  getExactAmountsRadio() {
+    return this.page.getByRole('radio', { name: 'Exact amounts' });
+  }
+
+  getPercentageRadio() {
+    return this.page.getByRole('radio', { name: 'Percentage' });
+  }
+
+  getExactAmountsText() {
+    return this.page.getByText('Exact amounts');
+  }
+
+  getPercentageText() {
+    return this.page.getByText('Percentage', { exact: true });
+  }
+
+  getEqualText() {
+    return this.page.getByText('Equal');
+  }
+
+  getExactAmountsInstructions() {
+    return this.page.getByText('Enter exact amounts for each person:');
+  }
+
+  getPercentageInstructions() {
+    return this.page.getByText('Enter percentage for each person:');
+  }
+
+  getExactAmountInput() {
+    return this.page.locator('input[type="number"][step="0.01"]').first();
+  }
+
+  getPercentageInput() {
+    return this.page.locator('input[type="number"][max="100"]').first();
+  }
+
+  // Share functionality accessors
+  getShareButton() {
+    return this.page.getByRole('button', { name: /share/i });
+  }
+
+  getShareModal() {
+    return this.page.getByRole('dialog', { name: /share group/i });
+  }
+
+  getShareLinkInput() {
+    return this.getShareModal().getByRole('textbox');
+  }
+
+  getJoinGroupHeading() {
+    return this.page.getByRole('heading', { name: 'Join Group' });
+  }
+
+  getJoinGroupButton() {
+    return this.page.getByRole('button', { name: 'Join Group' });
   }
 
   // User-related accessors
