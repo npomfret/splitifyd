@@ -20,12 +20,12 @@ export interface SimplifiedDebt {
     amount: number;
 }
 
-export function simplifyDebts(balances: Record<string, UserBalance>, userNames: Map<string, string>): SimplifiedDebt[] {
-    const netBalances = calculateNetBalances(balances, userNames);
+export function simplifyDebts(balances: Record<string, UserBalance>): SimplifiedDebt[] {
+    const netBalances = calculateNetBalances(balances);
     return createOptimalTransactions(netBalances);
 }
 
-function calculateNetBalances(balances: Record<string, UserBalance>, userNames: Map<string, string>): Record<string, NetBalance> {
+function calculateNetBalances(balances: Record<string, UserBalance>): Record<string, NetBalance> {
     const netBalances: Record<string, NetBalance> = {};
     
     Object.values(balances).forEach(user => {

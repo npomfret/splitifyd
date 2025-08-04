@@ -9,8 +9,7 @@ setupConsoleErrorReporting();
 test.describe('Auth Flow E2E', () => {
   test('should navigate between login and register pages', async ({ page }) => {
     const loginPage = new LoginPage(page);
-    const registerPage = new RegisterPage(page);
-    
+
     // Go to login page
     await loginPage.navigate();
     

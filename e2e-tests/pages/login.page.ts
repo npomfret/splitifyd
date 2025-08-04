@@ -9,8 +9,7 @@ export class LoginPage extends BasePage {
   readonly signInButton = 'Sign In';
   readonly signUpLink = 'Sign up';
   readonly forgotPasswordLink = 'Forgot your password?';
-  readonly errorMessage = '.text-red-600';
-  
+
   async navigate() {
     await this.page.goto(this.url);
     await this.waitForNetworkIdle();

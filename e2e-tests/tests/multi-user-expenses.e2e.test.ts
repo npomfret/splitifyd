@@ -26,8 +26,6 @@ test.describe('Multi-user group with expenses', () => {
       
       // Wait for navigation to group detail page
       await page1.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-      const groupUrl = page1.url();
-      const groupId = groupUrl.split('/').pop()!;
 
       // Wait for page to stabilize after group creation
       await page1.waitForLoadState('networkidle');

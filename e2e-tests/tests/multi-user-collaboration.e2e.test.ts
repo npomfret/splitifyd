@@ -17,8 +17,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await createGroupModal.createGroup('Shared Test Group', 'Testing group sharing');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    const groupUrl = page.url();
-    
+
     const shareButton = page.getByRole('button', { name: /share/i });
     await expect(shareButton).toBeVisible();
     await shareButton.click();

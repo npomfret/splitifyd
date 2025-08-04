@@ -124,7 +124,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         userNames.set(userId, profile.displayName);
     }
     
-    const simplifiedDebts = simplifyDebts(userBalances, userNames);
+    const simplifiedDebts = simplifyDebts(userBalances);
 
     return {
         groupId,

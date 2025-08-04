@@ -319,7 +319,6 @@ async function createTestExpense(
   try {
     const participantIds = participants.map(p => p.uid);
     
-    // Use ExpenseBuilder to ensure proper structure
     const expenseData = new ExpenseBuilder()
       .withGroupId(groupId)
       .withAmount(expense.amount)

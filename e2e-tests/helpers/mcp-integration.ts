@@ -1,27 +1,6 @@
 import { test } from '@playwright/test';
 
 /**
- * MCP Integration for Playwright E2E Tests
- * 
- * This module bridges Playwright e2e tests with MCP browser tests,
- * allowing failed tests to be debugged using Claude Code's MCP tools.
- */
-
-export interface MCPTestInstructions {
-  testName: string;
-  testFile: string;
-  failureMessage: string;
-  url: string;
-  mcpSteps: MCPStep[];
-}
-
-export interface MCPStep {
-  description: string;
-  tool: string;
-  parameters: Record<string, any>;
-}
-
-/**
  * Hook to generate MCP debug instructions on test failure
  */
 export function setupMCPDebugOnFailure() {

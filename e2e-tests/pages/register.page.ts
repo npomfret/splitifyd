@@ -9,8 +9,7 @@ export class RegisterPage extends BasePage {
   readonly confirmPasswordInput = 'input[placeholder="Confirm your password"]';
   readonly termsCheckbox = 'input[type="checkbox"]';
   readonly createAccountButton = 'Create Account';
-  readonly errorMessage = '.text-red-600';
-  
+
   async navigate() {
     await this.page.goto(this.url);
     await this.waitForNetworkIdle();

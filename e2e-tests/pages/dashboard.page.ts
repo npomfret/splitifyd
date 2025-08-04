@@ -5,14 +5,9 @@ export class DashboardPage extends BasePage {
   // Selectors
   readonly url = '/v2/dashboard';
   readonly userNameText = '.text-sm.font-medium.text-gray-700';
-  readonly welcomeHeading = 'h2:has-text("Welcome back")';
-  readonly signOutButton = 'Sign out';
   readonly createGroupButton = 'Create Group';
   readonly createFirstGroupButton = 'Create Your First Group';
-  readonly groupCard = '[data-testid="group-card"]';
-  readonly emptyStateMessage = 'No groups yet';
-  readonly yourGroupsHeading = 'Your Groups';
-  
+
   async navigate() {
     await this.page.goto(this.url);
     await this.waitForNetworkIdle();

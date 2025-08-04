@@ -213,7 +213,8 @@ test.describe('Error Handling', () => {
     
     // Start the submission (will timeout)
     const submitPromise = createGroupModal.submitForm();
-    
+    // todo: why is this promise ignored???
+
     // Wait a bit for potential timeout handling
     await page.waitForTimeout(2000);
     

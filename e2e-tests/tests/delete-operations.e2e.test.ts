@@ -51,8 +51,7 @@ test.describe('Basic Operations E2E', () => {
     await createGroupModal.createGroup('Shared Group', 'Testing multi-user');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    const groupUrl = page.url();
-    
+
     await page.getByRole('button', { name: /add expense/i }).click();
     await page.getByPlaceholder('What was this expense for?').fill('Shared Expense');
     await page.getByPlaceholder('0.00').fill('100.00');

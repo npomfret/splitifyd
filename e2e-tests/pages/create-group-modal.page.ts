@@ -4,14 +4,8 @@ import { BasePage } from './base.page';
 export class CreateGroupModalPage extends BasePage {
   // Selectors
   readonly modal = '.fixed.inset-0'; // Modal backdrop
-  readonly modalContent = '.bg-white.rounded-lg'; // Modal content
   readonly modalTitle = 'Create New Group';
-  readonly groupNameInput = 'input[aria-label*="Group Name"], input[aria-label*="Name"]';
-  readonly descriptionInput = 'textarea[aria-label*="Description"], input[aria-label*="Description"]';
-  readonly createButton = 'Create';
-  readonly cancelButton = 'Cancel';
-  readonly closeButton = 'Close';
-  
+
   async isOpen(): Promise<boolean> {
     try {
       // Check if modal title is visible
