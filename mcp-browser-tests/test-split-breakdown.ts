@@ -7,7 +7,7 @@
  * color coding, and percentage displays
  */
 
-import { BrowserTestBase, V2_BASE_URL, SELECTORS, TEST_CREDENTIALS } from './lib/browser-test-base';
+import { BrowserTestBase, V2_BASE_URL, TEST_CREDENTIALS } from './lib/browser-test-base';
 import { ApiDriver, User } from '../firebase/functions/__tests__/support/ApiDriver';
 
 class SplitBreakdownTests extends BrowserTestBase {

@@ -1,6 +1,5 @@
 import { Page, expect } from '@playwright/test';
 import { BasePage } from './base.page';
-import { SELECTORS } from '../helpers/selectors';
 
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {

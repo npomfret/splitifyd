@@ -1,6 +1,5 @@
 import { Page, expect } from '@playwright/test';
 import { CreateGroupModalPage, GroupDetailPage, DashboardPage } from '../pages';
-import { EMULATOR_URL } from './emulator-utils';
 import { createAndLoginTestUser, TestUser } from './auth-utils';
 
 /**

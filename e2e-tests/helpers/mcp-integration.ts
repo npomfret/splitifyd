@@ -1,5 +1,4 @@
 import { test } from '@playwright/test';
-import { EMULATOR_URL } from './emulator-utils';
 
 /**
  * MCP Integration for Playwright E2E Tests

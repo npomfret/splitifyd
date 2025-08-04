@@ -1,6 +1,5 @@
 import { Page } from '@playwright/test';
-import { EMULATOR_URL } from './emulator-utils';
-import { RegisterPage, LoginPage, DashboardPage } from '../pages';
+import { RegisterPage, DashboardPage } from '../pages';
 
 export interface TestUser {
   uid: string;

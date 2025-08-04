@@ -2,8 +2,7 @@ import { test, expect } from '../fixtures/base-test';
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure,
-  createAndLoginTestUser,
-  SELECTORS
+  createAndLoginTestUser
 } from '../helpers';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 
