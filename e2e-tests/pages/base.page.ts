@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { EMULATOR_URL } from '../helpers/emulator-utils';
 
 export abstract class BasePage {
   constructor(protected page: Page) {}
@@ -66,5 +67,33 @@ export abstract class BasePage {
     }
     
     return null;
+  }
+
+  /**
+   * Navigation helper methods to replace direct page.goto() calls
+   */
+  async navigateToHomepage(): Promise<void> {
+    await this.page.goto(EMULATOR_URL);
+    await this.waitForNetworkIdle();
+  }
+
+  async navigateToLogin(): Promise<void> {
+    await this.page.goto(`${EMULATOR_URL}/login`);
+    await this.waitForNetworkIdle();
+  }
+
+  async navigateToRegister(): Promise<void> {
+    await this.page.goto(`${EMULATOR_URL}/register`);
+    await this.waitForNetworkIdle();
+  }
+
+  async navigateToPricing(): Promise<void> {
+    await this.page.goto(`${EMULATOR_URL}/pricing`);
+    await this.waitForNetworkIdle();
+  }
+
+  async navigateToShareLink(shareLink: string): Promise<void> {
+    await this.page.goto(shareLink);
+    await this.waitForNetworkIdle();
   }
 }

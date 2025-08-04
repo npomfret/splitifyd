@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -17,7 +18,7 @@ test.describe('Member Management E2E', () => {
     await expect(page.getByRole('main').getByText(groupInfo.user.displayName)).toBeVisible();
     
     // Look for members section showing 1 member
-    await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: 500 });
+    await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
   });
 
   test('should show member in expense split options', async ({ page }) => {
@@ -57,11 +58,9 @@ test.describe('Member Management E2E', () => {
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Creator should have admin badge
-    const adminIndicator = page.getByText(/admin/i)
-      .or(page.locator('[data-testid="admin-badge"]'));
-    
-    await expect(adminIndicator.first()).toBeVisible();
+    // Creator should have admin badge - we expect a specific UI element
+    // The UI must show "admin" text for the group creator
+    await expect(page.getByText(/admin/i).first()).toBeVisible();
   });
 
   test('should show share functionality', async ({ page }) => {

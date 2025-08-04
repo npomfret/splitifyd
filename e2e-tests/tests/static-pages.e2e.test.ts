@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { LoginPage, HomepagePage } from '../pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -7,9 +8,8 @@ setupConsoleErrorReporting();
 
 test.describe('Static Pages E2E', () => {
   test('should navigate to terms of service', async ({ page }) => {
-    
-    await page.goto(`${EMULATOR_URL}/login`);
-    await waitForApp(page);
+    const loginPage = new LoginPage(page);
+    await loginPage.navigate();
     
     // Click Terms link in footer
     await page.getByRole('link', { name: 'Terms' }).click();
@@ -21,9 +21,8 @@ test.describe('Static Pages E2E', () => {
   });
 
   test('should navigate to privacy policy', async ({ page }) => {
-    
-    await page.goto(`${EMULATOR_URL}/login`);
-    await waitForApp(page);
+    const loginPage = new LoginPage(page);
+    await loginPage.navigate();
     
     // Click Privacy link in footer
     await page.getByRole('link', { name: 'Privacy' }).click();
@@ -35,9 +34,8 @@ test.describe('Static Pages E2E', () => {
   });
 
   test('should navigate from login back to home', async ({ page }) => {
-    
-    await page.goto(`${EMULATOR_URL}/login`);
-    await waitForApp(page);
+    const loginPage = new LoginPage(page);
+    await loginPage.navigate();
     
     // Click logo to go back to home (logo serves as home link)
     await page.getByAltText('Splitifyd').click();
@@ -51,17 +49,15 @@ test.describe('Static Pages E2E', () => {
   });
 
   test('should have working links on homepage', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepage = new HomepagePage(page);
+    await homepage.navigate();
     
     // Test Login link
     await page.getByRole('link', { name: 'Login' }).click();
     await expect(page).toHaveURL(/\/login/);
     
     // Go back to home
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    await homepage.navigate();
     
     // Test Sign Up link (use exact match to avoid ambiguity)
     await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
