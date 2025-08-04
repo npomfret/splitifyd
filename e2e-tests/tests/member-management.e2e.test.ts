@@ -102,8 +102,6 @@ test.describe('Member Management E2E', () => {
     const memberCount = page.getByText(/1 member/i);
     await expect(memberCount).toBeVisible();
     
-    // Verify balance section shows settled state for single member
-    const balanceSection = page.getByRole('heading', { name: /balance/i }).locator('..');
-    await expect(balanceSection.getByText(/all settled up/i)).toBeVisible();
+    // Note: Balance display testing is centralized in balance-settlement.e2e.test.ts
   });
 });

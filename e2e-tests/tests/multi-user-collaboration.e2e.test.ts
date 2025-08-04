@@ -120,4 +120,73 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     await expect(page.getByText('Admin', { exact: true })).toBeVisible();
   });
+
+  test('single user can create group and add multiple expenses', async ({ page }) => {
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Solo Expense Group', 'Testing multiple expenses');
+    const groupDetail = new GroupDetailPage(page);
+    
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    
+    // Add multiple expenses
+    const expenses = [
+      { description: 'Hotel Booking', amount: 300 },
+      { description: 'Car Rental', amount: 150 },
+      { description: 'Groceries', amount: 80 }
+    ];
+    
+    for (const expense of expenses) {
+      await groupDetail.addExpense({
+        description: expense.description,
+        amount: expense.amount,
+        paidBy: groupInfo.user.displayName,
+        splitType: 'equal'
+      });
+    }
+    
+    // Verify all expenses are visible
+    for (const expense of expenses) {
+      await expect(page.getByText(expense.description)).toBeVisible();
+    }
+  });
+
+  test('balances update correctly with multiple users and expenses', async ({ page, browser }) => {
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Balance Test Group', 'Testing balance calculations');
+    const user1 = groupInfo.user;
+    
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    
+    // Get share link
+    const shareButton = page.getByRole('button', { name: /share/i });
+    await shareButton.click();
+    const shareModal = page.getByRole('dialog', { name: /share group/i });
+    const shareLinkInput = shareModal.getByRole('textbox');
+    const shareLink = await shareLinkInput.inputValue();
+    await page.keyboard.press('Escape');
+    
+    // Second user joins
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    const user2 = await AuthenticationWorkflow.createTestUser(page2);
+    await page2.goto(shareLink);
+    await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible();
+    await page2.getByRole('button', { name: 'Join Group' }).click();
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+    
+    // User 1 pays for shared expense
+    const groupDetail1 = new GroupDetailPage(page);
+    await groupDetail1.addExpense({
+      description: 'Shared Meal',
+      amount: 100,
+      paidBy: user1.displayName,
+      splitType: 'equal'
+    });
+    
+    // Verify balance shows User 2 owes User 1
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    const owesPattern = new RegExp(`${user2.displayName}.*owes.*${user1.displayName}`, 'i');
+    await expect(page.getByText(owesPattern)).toBeVisible();
+    
+    await context2.close();
+  });
 });

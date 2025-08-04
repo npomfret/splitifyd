@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 import { LoginPage } from '../pages';
 
 // Enable MCP debugging for failed tests
@@ -278,6 +278,87 @@ test.describe('Form Validation E2E', () => {
       
       // No console errors
       // Console errors are automatically captured by setupConsoleErrorReporting
+    });
+  });
+
+  test.describe('Expense Form', () => {
+    test('should require description and amount', async ({ page }) => {
+      await GroupWorkflow.createTestGroup(page, 'Expense Validation Group', 'Testing expense form validation');
+      
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+      
+      // Navigate to add expense form
+      const addExpenseButton = page.getByRole('button', { name: /add expense/i });
+      await addExpenseButton.click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Try to submit empty form
+      const submitButton = page.getByRole('button', { name: /save expense/i });
+      await submitButton.click();
+      
+      // Should remain on form page (validation prevents submission)
+      await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
+      await expect(page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+      
+      // Fill required fields
+      await page.getByPlaceholder('What was this expense for?').fill('Test expense');
+      await page.getByPlaceholder('0.00').fill('25.00');
+      
+      // Should now allow submission
+      await submitButton.click();
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+    });
+
+    test('should validate split totals for exact amounts', async ({ page }) => {
+      test.slow(); // Split validation tests take longer
+      
+      const groupInfo = await GroupWorkflow.createTestGroup(page, 'Split Validation Group');
+      
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+      
+      // Navigate to add expense form
+      await page.getByRole('button', { name: /add expense/i }).click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Fill basic expense details
+      await page.getByPlaceholder('What was this expense for?').fill('Split Test Expense');
+      await page.getByPlaceholder('0.00').fill('100.00');
+      
+      // Select exact split type
+      await page.getByRole('radio', { name: 'Exact amounts' }).click();
+      
+      // Try to submit with incorrect split total
+      const submitButton = page.getByRole('button', { name: /save expense/i });
+      await submitButton.click();
+      
+      // Should remain on form due to validation (splits don't total 100.00)
+      await expect(page.getByPlaceholder('What was this expense for?')).toHaveValue('Split Test Expense');
+    });
+
+    test('should validate percentage totals', async ({ page }) => {
+      test.slow(); // Split validation tests take longer
+      
+      await GroupWorkflow.createTestGroup(page, 'Percentage Validation Group');
+      
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+      
+      // Navigate to add expense form  
+      await page.getByRole('button', { name: /add expense/i }).click();
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Fill basic expense details
+      await page.getByPlaceholder('What was this expense for?').fill('Percentage Test Expense');
+      await page.getByPlaceholder('0.00').fill('100.00');
+      
+      // Select percentage split type
+      await page.getByRole('radio', { name: 'Percentage' }).click();
+      
+      // Try to submit with incorrect percentage total
+      const submitButton = page.getByRole('button', { name: /save expense/i });
+      await submitButton.click();
+      
+      // Should remain on form due to validation (percentages don't total 100%)
+      await expect(page.getByPlaceholder('What was this expense for?')).toHaveValue('Percentage Test Expense');
     });
   });
 });

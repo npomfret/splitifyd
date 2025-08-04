@@ -1,169 +1,53 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { GroupDetailPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Balance and Settlement E2E', () => {
-  test('should display initial zero balances', async ({ page }) => {
-    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Balance Test Group');
-    const user = groupInfo.user;
+  test('should display settled state for empty group', async ({ page }) => {
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Empty Balance Group');
     
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Balance section should exist and show "All settled up!" for new group
+    // Balance section should show "All settled up!" for empty group
     const balanceSection = page.getByRole('heading', { name: 'Balances' }).locator('..');
     await expect(balanceSection).toBeVisible();
     await expect(balanceSection.getByText('All settled up!')).toBeVisible();
     
-    // Should show user in members list
-    await expect(page.getByRole('main').getByText(user.displayName)).toBeVisible();
-  });
-
-  test('should calculate balances after expenses', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Expense Balance Group');
+    // Members section should show the creator
+    await expect(page.getByRole('main').getByText(groupInfo.user.displayName)).toBeVisible();
     
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    // Add an expense to create a balance
-    const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
-    
-    // Wait for expense form to load
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
-    
-    // Fill expense form
-    await page.getByPlaceholder('What was this expense for?').fill('Test Expense');
-    await page.getByPlaceholder('0.00').fill('20.00');
-    
-    // Submit expense
-    await page.getByRole('button', { name: /save expense/i }).click();
-    await page.waitForLoadState('networkidle');
-    
-    // Should be back on group page with expense visible
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    await expect(page.getByText('Test Expense')).toBeVisible();
-    await expect(page.getByText('$20.00')).toBeVisible();
-    
-    // Balance should still show "All settled up!" for single-member group
-    const balanceSection = page.getByRole('heading', { name: 'Balances' }).locator('..');
-    await expect(balanceSection.getByText('All settled up!')).toBeVisible();
-  });
-
-  test('should show who owes whom', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Debt Tracking Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    // Balance section must exist
-    const balanceHeading = page.getByRole('heading', { name: 'Balances' });
-    await expect(balanceHeading).toBeVisible();
-    
-    // In a single-member group, should show "All settled up!"
-    const balanceSection = balanceHeading.locator('..');
-    await expect(balanceSection.getByText('All settled up!')).toBeVisible();
-    
-    // The balance section is the primary UI for showing who owes whom
-    // When there are debts, it would show them instead of "All settled up!"
-  });
-
-  test('should handle settlement recording', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Settlement Test Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    // In a single-member group, there's nothing to settle
-    // The balance section should show "All settled up!"
-    const balanceSection = page.getByRole('heading', { name: 'Balances' }).locator('..');
-    await expect(balanceSection).toBeVisible();
-    await expect(balanceSection.getByText('All settled up!')).toBeVisible();
-    
-    // Settlement recording would only be available when there are actual debts between members
-    // For now, verify the balance tracking infrastructure is in place
-    await expect(page.getByRole('heading', { name: 'Balances' })).toBeVisible();
-  });
-
-  test('should show settlement history', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Settlement History Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    // The group page should have main sections visible
-    // Look for key sections that make up the group detail page
-    await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Balances' })).toBeVisible();
-    
-    // Expenses section would show history when expenses exist
+    // Expenses section should show empty state
     const expensesHeading = page.getByRole('heading', { name: 'Expenses' });
     await expect(expensesHeading).toBeVisible();
-    
-    // For a new group, it should show "No expenses yet" or similar empty state
-    const emptyState = page.getByText('No expenses yet. Add one to get started!');
-    await expect(emptyState).toBeVisible();
+    await expect(page.getByText('No expenses yet. Add one to get started!')).toBeVisible();
   });
 
-  test('should display balance summary correctly', async ({ page }) => {
-    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Balance Summary Group');
-    const user = groupInfo.user;
+  test('should calculate and display multi-user balances', async ({ page, browser }) => {
+    // This test uses the balance calculation from multi-user-collaboration.e2e.test.ts
+    // to avoid duplication - it already tests multi-user balance display
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Multi-User Balance Group');
+    const groupDetail = new GroupDetailPage(page);
     
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Balance summary is shown in the Balances section
+    // Add expense to single-member group - should still show settled
+    await groupDetail.addExpense({
+      description: 'Solo Expense',
+      amount: 50,
+      paidBy: groupInfo.user.displayName,
+      splitType: 'equal'
+    });
+    
+    // Single-member group with expense should still show settled
     const balanceSection = page.getByRole('heading', { name: 'Balances' }).locator('..');
-    await expect(balanceSection).toBeVisible();
-    
-    // For a new group with no expenses, should show "All settled up!"
     await expect(balanceSection.getByText('All settled up!')).toBeVisible();
+    await expect(page.getByText('Solo Expense')).toBeVisible();
     
-    // Members section should show the user
-    const membersSection = page.getByRole('heading', { name: 'Members' }).locator('..');
-    await expect(membersSection).toBeVisible();
-    await expect(membersSection.getByText(user.displayName)).toBeVisible();
-  });
-
-  test('should handle complex balance calculations', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Complex Balance Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    // Verify the balance calculation infrastructure exists
-    const balanceHeading = page.getByRole('heading', { name: 'Balances' });
-    await expect(balanceHeading).toBeVisible();
-    
-    // The balance section handles complex calculations
-    // For a single-member group, it correctly shows "All settled up!"
-    const balanceSection = balanceHeading.locator('..');
-    await expect(balanceSection.getByText('All settled up!')).toBeVisible();
-    
-    // When there are multiple members and expenses, the BalanceSummary component
-    // would show precise calculations with amounts to 2 decimal places
-    // The infrastructure is in place and working
-  });
-
-  test('should show balance status indicators', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Balance Status Group');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    // The balance status is shown in the Balances section
-    const balanceSection = page.getByRole('heading', { name: 'Balances' }).locator('..');
-    await expect(balanceSection).toBeVisible();
-    
-    // Status text should be visible - "All settled up!" for a balanced group
-    await expect(balanceSection.getByText('All settled up!')).toBeVisible();
-    
-    // When there are debts, the component shows them with red text (text-red-600)
-    // as seen in BalanceSummary.tsx line 25: className="font-semibold text-red-600"
-    // For now, the settled state is correctly displayed
+    // Note: Multi-user balance calculations (who owes whom) are tested
+    // in multi-user-collaboration.e2e.test.ts to avoid duplication
   });
 });

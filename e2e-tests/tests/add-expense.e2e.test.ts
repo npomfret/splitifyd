@@ -42,30 +42,7 @@ test.describe('Add Expense E2E', () => {
     await expect(page.getByText('$50.00')).toBeVisible();
   });
 
-  test('should handle expense form validation', async ({ page }) => {
-    await GroupWorkflow.createTestGroup(page, 'Validation Test Group', 'Testing form validation');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    const addExpenseButton = page.getByRole('button', { name: /add expense/i });
-    
-    await addExpenseButton.click();
-    await page.waitForLoadState('domcontentloaded');
-    
-    const submitButton = page.getByRole('button', { name: /save expense/i });
-    
-    await submitButton.click();
-    
-    await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
-    await expect(page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
-    await page.getByPlaceholder('What was this expense for?').fill('Test expense');
-    await page.getByPlaceholder('0.00').fill('25.00');
-    
-    await submitButton.click();
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
-  });
+  // Form validation tests moved to form-validation.e2e.test.ts
 
   test('should allow selecting expense category', async ({ page }) => {
     await GroupWorkflow.createTestGroup(page, 'Category Test Group', 'Testing expense categories');
