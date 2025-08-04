@@ -1,0 +1,145 @@
+{
+  "description": "Inventory of available subagents and their capabilities",
+  "agents": {
+    "workflow-orchestrator": {
+      "type": "meta",
+      "purpose": "Tells you which agents to use for your current task",
+      "when_to_use": "FIRST in every session and after major actions",
+      "trigger_keywords": ["complex", "multi-step", "workflow", "which agents"],
+      "order": "always_first"
+    },
+    "architect-advisor": {
+      "type": "planning",
+      "purpose": "Analyzes system architecture to advise WHERE changes should be made",
+      "when_to_use": "BEFORE implementing any feature or fix",
+      "trigger_keywords": ["feature", "fix", "implement", "add", "modify", "refactor"],
+      "order": "before_code_changes"
+    },
+    "analyst": {
+      "type": "analysis",
+      "purpose": "Comprehensive codebase analysis and improvement identification",
+      "when_to_use": "For analysis tasks or after major changes",
+      "trigger_keywords": ["analyze", "analysis", "review", "assess", "evaluate", "understand"],
+      "creates": "docs/tasks/*.md files"
+    },
+    "test-runner": {
+      "type": "verification",
+      "purpose": "Actually runs tests and waits for completion",
+      "when_to_use": "After any code changes",
+      "trigger_keywords": ["test", "verify", "check", "run tests"],
+      "order": "after_code_changes"
+    },
+    "test-guardian": {
+      "type": "enforcement",
+      "purpose": "Comprehensive test management and quality enforcement",
+      "when_to_use": "When dealing with test failures or test code",
+      "trigger_keywords": ["test fail", "skip test", "test error", "fix test"],
+      "combines": ["test-runner", "test-quality-enforcer", "test-cleanup", "test-for-future-detector"]
+    },
+    "auditor": {
+      "type": "finalization",
+      "purpose": "Final review and commit message creation",
+      "when_to_use": "Before commits",
+      "trigger_keywords": ["commit", "review changes", "git commit"],
+      "order": "final"
+    },
+    "anti-pattern-detector": {
+      "type": "quality",
+      "purpose": "Detects all anti-patterns in code",
+      "when_to_use": "After code changes for quality check",
+      "trigger_keywords": ["quality", "anti-pattern", "code smell"],
+      "combines": ["no-fallback-detector", "hack-detector", "error-suppressor-detector", "backwards-compat-detector"],
+      "parallel": true
+    },
+    "scope-guardian": {
+      "type": "discipline",
+      "purpose": "Enforces scope discipline and prevents scope creep",
+      "when_to_use": "After implementing features",
+      "trigger_keywords": ["scope", "minimal", "focused"],
+      "combines": ["scope-creep-detector", "engineering-guardian"],
+      "parallel": true
+    },
+    "code-quality-enforcer": {
+      "type": "style",
+      "purpose": "Enforces code style and modern patterns",
+      "when_to_use": "After code changes",
+      "trigger_keywords": ["style", "format", "quality", "modern"],
+      "combines": ["style-enforcer", "modern-syntax-enforcer", "console-detector", "comment-detector", "duplicate-detector", "mutable-state-detector"],
+      "parallel": true
+    },
+    "no-fallback-detector": {
+      "type": "detector",
+      "purpose": "Detects fallback patterns",
+      "trigger_keywords": ["fallback", "default", "|| operator"],
+      "parallel": true
+    },
+    "hack-detector": {
+      "type": "detector",
+      "purpose": "Identifies dirty hacks",
+      "trigger_keywords": ["hack", "workaround", "temporary"],
+      "parallel": true
+    },
+    "comment-detector": {
+      "type": "detector",
+      "purpose": "Finds code comments",
+      "trigger_keywords": ["comment", "//", "/*"],
+      "parallel": true
+    },
+    "scope-creep-detector": {
+      "type": "detector",
+      "purpose": "Catches scope creep",
+      "trigger_keywords": ["extra", "additional", "beyond"],
+      "parallel": true
+    },
+    "duplicate-detector": {
+      "type": "detector",
+      "purpose": "Finds code duplication",
+      "trigger_keywords": ["duplicate", "copy", "similar"],
+      "parallel": true
+    },
+    "error-suppressor-detector": {
+      "type": "detector",
+      "purpose": "Catches try/catch anti-patterns",
+      "trigger_keywords": ["try", "catch", "suppress"],
+      "parallel": true
+    },
+    "backwards-compat-detector": {
+      "type": "detector",
+      "purpose": "Finds backward compatibility code",
+      "trigger_keywords": ["legacy", "compatibility", "deprecated"],
+      "parallel": true
+    },
+    "test-for-future-detector": {
+      "type": "detector",
+      "purpose": "Detects tests for non-existent features",
+      "trigger_keywords": ["future", "upcoming", "planned"],
+      "parallel": true
+    }
+  },
+  "workflow_patterns": {
+    "new_feature": [
+      "architect-advisor",
+      "implement",
+      ["anti-pattern-detector", "scope-guardian", "code-quality-enforcer"],
+      "test-runner",
+      "auditor"
+    ],
+    "bug_fix": [
+      "architect-advisor",
+      "fix",
+      ["anti-pattern-detector", "code-quality-enforcer"],
+      "test-runner",
+      "auditor"
+    ],
+    "analysis": [
+      "analyst"
+    ],
+    "refactoring": [
+      "architect-advisor",
+      "refactor",
+      ["anti-pattern-detector", "scope-guardian", "code-quality-enforcer"],
+      "test-runner",
+      "auditor"
+    ]
+  }
+}
