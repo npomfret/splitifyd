@@ -1,6 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, AuthenticationWorkflow, GroupWorkflow } from '../helpers';
-import { CreateGroupModalPage, DashboardPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
