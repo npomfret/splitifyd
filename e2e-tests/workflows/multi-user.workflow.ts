@@ -2,16 +2,6 @@ import { Page, expect } from '@playwright/test';
 import { AuthenticationWorkflow, TestUser } from './authentication.workflow';
 import { GroupDetailPage } from '../pages';
 import { createTestGroup } from '../helpers/test-helpers';
-
-export interface MultiUserGroup {
-  id: string;
-  name: string;
-  description?: string;
-  users: Array<{ page: Page; user: TestUser }>;
-  expenses: Array<{ description: string; amount: number; paidBy: string }>;
-  shareLink: string;
-}
-
 /**
  * Multi-user workflow class that handles complex multi-user test scenarios.
  * Encapsulates the creation of multiple users, groups, and collaborative operations.
@@ -120,24 +110,10 @@ export class MultiUserWorkflow {
   }
 
   /**
-   * Gets the group ID if a group has been created.
-   */
-  getGroupId(): string | undefined {
-    return this.groupId;
-  }
-
-  /**
    * Gets all expenses added through this workflow.
    */
   getExpenses(): Array<{ description: string; amount: number; paidBy: string }> {
     return this.expenses;
-  }
-
-  /**
-   * Gets the share link if users have been added to the group.
-   */
-  getShareLink(): string | undefined {
-    return this.shareLink;
   }
 
   /**

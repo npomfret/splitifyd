@@ -1,6 +1,5 @@
-import { Page, expect } from '@playwright/test';
-import { CreateGroupModalPage, GroupDetailPage, DashboardPage } from '../pages';
-import { createAndLoginTestUser, TestUser } from './auth-utils';
+import { Page } from '@playwright/test';
+import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 /**
  * Creates a test group via the UI and returns the group ID

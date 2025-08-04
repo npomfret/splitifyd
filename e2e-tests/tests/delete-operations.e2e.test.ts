@@ -1,6 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow, AuthenticationWorkflow } from '../helpers';
-import { DashboardPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -8,8 +7,7 @@ setupMCPDebugOnFailure();
 test.describe('Basic Operations E2E', () => {
   test('should create and view an expense', async ({ page }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group', 'Testing expense creation');
-    const user = groupInfo.user;
-    
+
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     const addExpenseButton = page.getByRole('button', { name: /add expense/i });
@@ -39,8 +37,7 @@ test.describe('Basic Operations E2E', () => {
 
   test('should handle multi-user expense visibility', async ({ page, browser }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Shared Group', 'Testing multi-user');
-    const user1 = groupInfo.user;
-    
+
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
     await page.getByRole('button', { name: /add expense/i }).click();

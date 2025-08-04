@@ -8,8 +8,7 @@ setupMCPDebugOnFailure();
 test.describe('Multi-User Collaboration E2E', () => {
   test('should handle group sharing via share link', async ({ page, browser }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Shared Test Group', 'Testing group sharing');
-    const user1 = groupInfo.user;
-    
+
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
     const shareButton = page.getByRole('button', { name: /share/i });
