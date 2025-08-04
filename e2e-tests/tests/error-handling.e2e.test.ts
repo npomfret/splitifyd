@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base-test';
+import { authenticatedTest as test, expect } from '../fixtures/authenticated-test';
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure,
@@ -14,14 +14,15 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Error Handling', () => {
-  test('displays error message when network fails during group creation', async ({ page, context }) => {
+  test('displays error message when network fails during group creation', async ({ authenticatedPage, context }) => {
+    const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers network errors
     test.info().annotations.push({ 
       type: 'skip-error-checking', 
       description: 'Network errors are intentionally triggered to test error handling' 
     });
     
-    await AuthenticationWorkflow.createTestUser(page);
+    // Already authenticated via fixture
     
     // Intercept API calls to simulate network failure
     await context.route('**/api/groups', route => route.abort());
@@ -49,8 +50,9 @@ test.describe('Error Handling', () => {
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
   });
 
-  test('prevents form submission with invalid data', async ({ page }) => {
-    await AuthenticationWorkflow.createTestUser(page);
+  test('prevents form submission with invalid data', async ({ authenticatedPage }) => {
+    const { page } = authenticatedPage;
+    // Already authenticated via fixture
     
     const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
@@ -76,14 +78,15 @@ test.describe('Error Handling', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
   });
 
-  test('handles server errors gracefully', async ({ page, context }) => {
+  test('handles server errors gracefully', async ({ authenticatedPage, context }) => {
+    const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers server errors
     test.info().annotations.push({ 
       type: 'skip-error-checking', 
       description: 'Server errors are intentionally triggered to test error handling' 
     });
     
-    await AuthenticationWorkflow.createTestUser(page);
+    // Already authenticated via fixture
     
     // Intercept API calls to simulate server error
     await context.route('**/api/groups', route => {
@@ -111,14 +114,15 @@ test.describe('Error Handling', () => {
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
   });
 
-  test('handles malformed API responses', async ({ page, context }) => {
+  test('handles malformed API responses', async ({ authenticatedPage, context }) => {
+    const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers JSON parse errors
     test.info().annotations.push({ 
       type: 'skip-error-checking', 
       description: 'JSON parse errors are intentionally triggered to test error handling' 
     });
     
-    await AuthenticationWorkflow.createTestUser(page);
+    // Already authenticated via fixture
     
     // Intercept API calls to return malformed JSON
     await context.route('**/api/groups', route => {
@@ -142,8 +146,9 @@ test.describe('Error Handling', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test('verifies group access control behavior', async ({ page, browser }) => {
-    // Create User 1 and a group
+  test('verifies group access control behavior', async ({ authenticatedPage, browser }) => {
+    const { page } = authenticatedPage;
+    // Create a group with User 1 (already authenticated)
     await GroupWorkflow.createTestGroup(page, 'Test Access Group', 'Testing access control');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -152,6 +157,7 @@ test.describe('Error Handling', () => {
     // Create User 2 in separate context
     const context2 = await browser.newContext();
     const page2 = await context2.newPage();
+    // Note: This test requires a second user, so we need to use createTestUser for User 2
     await AuthenticationWorkflow.createTestUser(page2);
     
     // User 2 tries to access User 1's group
@@ -170,14 +176,15 @@ test.describe('Error Handling', () => {
     await context2.close();
   });
 
-  test('handles API timeouts appropriately', async ({ page, context }) => {
+  test('handles API timeouts appropriately', async ({ authenticatedPage, context }) => {
+    const { page } = authenticatedPage;
     // NOTE: This test simulates timeout scenarios
     test.info().annotations.push({ 
       type: 'skip-error-checking', 
       description: 'Timeout errors are intentionally triggered to test error handling' 
     });
     
-    await AuthenticationWorkflow.createTestUser(page);
+    // Already authenticated via fixture
     
     // Intercept API calls to simulate timeout
     await context.route('**/api/groups', async route => {
