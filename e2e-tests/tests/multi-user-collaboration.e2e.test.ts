@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow, AuthenticationWorkflow } from '../helpers';
 import { GroupDetailPage } from '../pages';
+import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -38,7 +39,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage2.getJoinGroupButton().click();
     
     // Now wait for navigation to the group page
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     await context2.close();
   });
@@ -65,7 +66,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
     await groupDetailPage2.getJoinGroupButton().click();
     
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     await groupDetailPage.addExpense({
       description: 'User 1 Lunch',
@@ -100,7 +101,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     const invalidShareLink = `${page.url().split('/dashboard')[0]}/join/invalid-group-id`;
     
-    await page.goto(invalidShareLink);
+    const basePage = new GroupDetailPage(page);
+    await basePage.navigateToShareLink(invalidShareLink);
     await page.waitForLoadState('networkidle');
     
     await expect(page.getByText(/404/)).toBeVisible();
@@ -165,7 +167,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page2.goto(shareLink);
     await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
     await groupDetailPage2.getJoinGroupButton().click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // User 1 pays for shared expense
     await groupDetailPage.addExpense({

@@ -6,6 +6,7 @@ import {
   AuthenticationWorkflow
 } from '../helpers';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
+import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -71,7 +72,7 @@ test.describe('Error Handling', () => {
     
     // Now submit button should work
     await submitButton.click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: 5000 });
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
   });
 
   test('handles server errors gracefully', async ({ page, context }) => {
@@ -200,7 +201,7 @@ test.describe('Error Handling', () => {
       page.waitForFunction(() => {
         const button = document.querySelector('button[type="submit"]:not([disabled])');
         return button && button.textContent?.includes('Create Group');
-      }, { timeout: 3000 })
+      }, { timeout: TIMEOUTS.LONG })
     ]);
     
     // Modal should still be open

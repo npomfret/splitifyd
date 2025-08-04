@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
 import { DashboardPage, GroupDetailPage } from '../pages';
+import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -36,10 +37,10 @@ test.describe('Add Expense E2E', () => {
     await expect(submitButton).toBeVisible();
     await submitButton.click();
     
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await page.waitForLoadState('networkidle');
     
-    await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible({ timeout: 500 });
+    await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     await expect(groupDetailPage.getExpenseAmount('$50.00')).toBeVisible();
   });
 

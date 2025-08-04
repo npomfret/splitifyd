@@ -177,7 +177,7 @@ test.describe('Duplicate User Registration E2E', () => {
     // First registration
     await registerPage.navigate();
     await registerPage.register(displayName, email1, password);
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
     
     // Log out
     const userMenuButton = page.locator('button').filter({ hasText: displayName });

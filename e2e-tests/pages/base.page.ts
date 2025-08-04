@@ -96,4 +96,9 @@ export abstract class BasePage {
     await this.page.goto(shareLink);
     await this.waitForNetworkIdle();
   }
+
+  async navigateToStaticPath(path: string): Promise<void> {
+    await this.page.goto(`${EMULATOR_URL}${path}`);
+    await this.waitForNetworkIdle();
+  }
 }

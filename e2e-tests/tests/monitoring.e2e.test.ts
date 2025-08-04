@@ -35,8 +35,7 @@ test.describe('Performance and Error Monitoring E2E', () => {
         await pricingPage.navigate();
       } else {
         // For static pages (terms, privacy), use base navigation
-        await homepagePage.navigateToHomepage();
-        await page.goto(page.url() + pageInfo.path);
+        await homepagePage.navigateToStaticPath(pageInfo.path);
         await waitForApp(page);
       }
       
