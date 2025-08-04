@@ -51,7 +51,7 @@ test.describe('Advanced Splitting Options', () => {
     // Verify navigation back to group page and expense creation
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(page.getByText('Pizza for everyone')).toBeVisible();
-    await expect(page.getByText('$60.00').or(page.getByText('60.00'))).toBeVisible();
+    await expect(page.getByText('$60.00')).toBeVisible();
   });
 
   test('should create expense with exact amounts split', async ({ page }) => {
@@ -150,7 +150,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should validate split amounts equal total', {
-    annotation: { type: 'skip-error-checking', description: 'Expected console errors for validation testing' }
+    annotation: { type: 'skip-error-checking', description: 'Test intentionally triggers validation errors to verify form validation behavior' }
   }, async ({ page }) => {
     await createAndLoginTestUser(page);
     
@@ -201,7 +201,7 @@ test.describe('Advanced Splitting Options', () => {
   });
 
   test('should validate percentage split equals 100%', {
-    annotation: { type: 'skip-error-checking', description: 'Expected console errors for validation testing' }
+    annotation: { type: 'skip-error-checking', description: 'Test intentionally triggers validation errors to verify form validation behavior' }
   }, async ({ page }) => {
     await createAndLoginTestUser(page);
     

@@ -33,70 +33,7 @@ export async function createTestGroup(
   
   return groupId;
 }
-/**
- * Retrieves the current balance state for a group
- */
-export async function getGroupBalances(
-  page: Page,
-  groupId: string
-): Promise<{
-  totalOwed: number;
-  totalOwing: number;
-  balances: Array<{ from: string; to: string; amount: number }>;
-}> {
-  const groupDetailPage = new GroupDetailPage(page);
-  
-  // Navigate to group if not already there
-  if (!page.url().includes(`/groups/${groupId}`)) {
-    await groupDetailPage.navigate(groupId);
-  }
-  
-  // Wait for balance section to load
-  await page.waitForSelector('[data-testid="balance-summary"], .balance-summary, [class*="balance"]', {
-    timeout: 500
-  });
-  
-  // Check if group is settled
-  const settledText = await page.getByText(/all.*settled.*up/i).isVisible().catch(() => false);
-  if (settledText) {
-    return {
-      totalOwed: 0,
-      totalOwing: 0,
-      balances: []
-    };
-  }
-  
-  // Extract balance information
-  const balances: Array<{ from: string; to: string; amount: number }> = [];
-  
-  // Look for balance items (e.g., "Alice owes Bob $10.00")
-  const balanceElements = await page.locator('[data-testid*="balance-item"], [class*="balance-item"]').all();
-  
-  for (const element of balanceElements) {
-    const text = await element.textContent();
-    if (text) {
-      // Parse balance text (format: "Person1 owes Person2 $X.XX")
-      const match = text.match(/(.+?)\s+owes?\s+(.+?)\s+\$?([\d,]+\.?\d*)/i);
-      if (match) {
-        balances.push({
-          from: match[1].trim(),
-          to: match[2].trim(),
-          amount: parseFloat(match[3].replace(/,/g, ''))
-        });
-      }
-    }
-  }
-  
-  // Calculate totals
-  const totalOwed = balances.reduce((sum, b) => sum + b.amount, 0);
-  const totalOwing = totalOwed; // In a balanced system, these should match
-  
-  return {
-    totalOwed,
-    totalOwing,
-    balances
-  };
-}
+
 /**
  * Builder pattern for complex multi-user test scenarios
  */

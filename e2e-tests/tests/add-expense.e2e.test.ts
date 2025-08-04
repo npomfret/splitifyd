@@ -1,23 +1,14 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
-import { CreateGroupModalPage, GroupDetailPage } from '../pages';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, AuthenticationWorkflow } from '../helpers';
+import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await page.getByRole('button', { name: 'Create Group' }).first().click();
-    await page.waitForLoadState('domcontentloaded');
-    
-    await createGroupModal.createGroup('Expense Test Group', 'Testing expense creation');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    const dashboard = new DashboardPage(page);
+    await dashboard.createGroupWithUser('Expense Test Group', 'Testing expense creation');
     
     const addExpenseButton = page.getByRole('button', { name: /add expense/i });
     
@@ -52,7 +43,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should handle expense form validation', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -82,7 +73,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should allow selecting expense category', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -120,7 +111,7 @@ test.describe('Add Expense E2E', () => {
   });
 
   test('should show expense in group after creation', async ({ page }) => {
-    await createAndLoginTestUser(page);
+    await AuthenticationWorkflow.createTestUser(page);
     
     const createGroupModal = new CreateGroupModalPage(page);
     await page.getByRole('button', { name: 'Create Group' }).click();
@@ -147,24 +138,4 @@ test.describe('Add Expense E2E', () => {
     await expect(page.getByText(/paid by|Paid:/i)).toBeVisible();
   });
 
-  test('should handle expense with date selection', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    const createGroupModal = new CreateGroupModalPage(page);
-    await page.getByRole('button', { name: 'Create Group' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await createGroupModal.createGroup('Date Test Group', 'Testing date selection');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
-    const groupDetailPage = new GroupDetailPage(page);
-    await groupDetailPage.addExpense({
-      description: 'Lunch',
-      amount: 12.50,
-      paidBy: 'testuser@example.com',
-      splitType: 'equal'
-    });
-    
-    await expect(page.getByText('Lunch')).toBeVisible();
-  });
 });

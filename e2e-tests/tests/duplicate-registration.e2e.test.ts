@@ -32,9 +32,6 @@ test.describe('Duplicate User Registration E2E', () => {
     // The user menu shows the full name and email
     const userMenuButton = page.locator('button').filter({ hasText: displayName });
     
-    // Debug: log current URL before logout
-    console.log('Current URL before logout:', page.url());
-    
     await userMenuButton.first().click();
     await page.waitForTimeout(500); // Wait for dropdown to open
     
@@ -47,9 +44,6 @@ test.describe('Duplicate User Registration E2E', () => {
       const path = new URL(urlStr).pathname;
       return path === '/' || path === '/login' || path === '/home' || path === '/v2';
     }, { timeout: 5000 });
-    
-    // Debug: log URL after logout
-    console.log('URL after logout:', page.url());
     
     // Navigate to register page
     await registerPage.navigate();

@@ -1,6 +1,5 @@
 import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, AuthenticationWorkflow, GroupWorkflow } from '../helpers';
 import { CreateGroupModalPage, DashboardPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
@@ -9,41 +8,22 @@ setupMCPDebugOnFailure();
 
 test.describe('Member Management E2E', () => {
   test('should display current group members', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
-    
-    // Create a group using page objects
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Members Display Group');
+    // Use the new GroupWorkflow to create user and group in one step
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Members Display Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Should show the current user as a member
-    const userIdentifier = page.getByText(user.displayName)
-      .or(page.getByText(user.email));
+    // Should show the current user as a member in the main content area
+    await expect(page.getByRole('main').getByText(groupInfo.user.displayName)).toBeVisible();
     
-    await expect(userIdentifier.first()).toBeVisible();
-    
-    // Look for members section or member count
-    const memberIndicator = page.getByText(/1 member/i)
-      .or(page.getByRole('heading', { name: /member/i }));
-    
-    // Wait for at least one member indicator to be visible
-    await expect(memberIndicator.first()).toBeVisible({ timeout: 500 });
+    // Look for members section showing 1 member
+    await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: 500 });
   });
 
   test('should show member in expense split options', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Split Test Group');
+    // Use GroupWorkflow to create user and group in one step
+    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -68,18 +48,12 @@ test.describe('Member Management E2E', () => {
     await expect(userCheckbox).toBeChecked();
     
     // User name should be visible in split section
-    await expect(splitCard.getByText(user.displayName)).toBeVisible();
+    await expect(splitCard.getByText(groupInfo.user.displayName)).toBeVisible();
   });
 
   test('should show creator as admin', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Admin Test Group');
+    // Use GroupWorkflow to create user and group in one step
+    await GroupWorkflow.createTestGroup(page, 'Admin Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -92,14 +66,8 @@ test.describe('Member Management E2E', () => {
   });
 
   test('should show share functionality', async ({ page }) => {
-    await createAndLoginTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Share Test Group');
+    // Use GroupWorkflow to create user and group in one step
+    await GroupWorkflow.createTestGroup(page, 'Share Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -125,14 +93,8 @@ test.describe('Member Management E2E', () => {
   });
 
   test('should handle member count display', async ({ page }) => {
-    const user = await createAndLoginTestUser(page);
-    
-    // Create a group
-    const dashboard = new DashboardPage(page);
-    const createGroupModal = new CreateGroupModalPage(page);
-    
-    await dashboard.openCreateGroupModal();
-    await createGroupModal.createGroup('Member Count Group');
+    // Use GroupWorkflow to create user and group in one step
+    await GroupWorkflow.createTestGroup(page, 'Member Count Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

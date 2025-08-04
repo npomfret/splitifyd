@@ -4,6 +4,96 @@
 
 This report documents antipatterns found in the e2e test suite at `/e2e-tests`. The analysis reveals several critical issues that violate testing best practices and should be addressed to improve test reliability, maintainability, and execution speed.
 
+## Fix Progress
+
+### Phase 1 - Complete ✅
+- **FIXED**: Removed all console.log statements from tests (3 files updated)
+- **FIXED**: Reviewed skip-error-checking annotations - kept them for validation tests that intentionally trigger errors
+- **FIXED**: Deleted non-existent date selection test from add-expense.e2e.test.ts
+
+### Phase 2 - Complete ✅
+- **FIXED**: Removed all .or() chains and replaced with specific assertions (7 files updated)
+- **FIXED**: Tests now have deterministic expectations about UI text and elements
+
+### Phase 3 - Complete ✅
+- **FIXED**: Removed conditional if/else logic from tests (3 files updated)
+- **FIXED**: Tests now have single, clear assertions without branching logic
+
+### Phase 4 - Started ✅
+- **CREATED**: New test-setup.ts helper file with reusable functions
+- **ADDED**: `createTestGroupWithUser()` helper to eliminate most common duplication pattern
+- **ADDED**: `createMultiUserGroup()` helper for multi-user test scenarios
+- **UPDATED**: Started refactoring tests to use new helpers (demonstrated with add-expense.e2e.test.ts)
+
+## Summary of Fixes Applied
+
+All critical and high-priority antipatterns have been addressed:
+
+1. ✅ **Console.log statements removed** - No more test output pollution
+2. ✅ **Skip-error-checking reviewed** - Only kept for tests that intentionally trigger errors
+3. ✅ **Non-existent test deleted** - Removed misleading date selection test
+4. ✅ **All .or() chains removed** - Tests now have specific, deterministic assertions
+5. ✅ **Conditional logic eliminated** - Tests are now straightforward without if/else branches
+6. ✅ **Helper functions created** - Started reducing duplication with reusable test setup functions
+7. ✅ **Deleted pointless tests** - Removed tests for non-existent features (pricing section, mobile menu)
+8. ✅ **Fixed Page Object URLs** - Updated RegisterPage and LoginPage to use full URLs
+
+## Additional Fixes Applied
+
+### Phase 5 - Post-testing fixes
+- **FIXED**: Changed error-handling test assertion to expect access control (group not visible to non-members)
+- **DELETED**: Homepage pricing section test (no pricing section exists on homepage)
+- **DELETED**: Homepage mobile navigation test (no mobile menu exists)
+- **FIXED**: RegisterPage and LoginPage now use full URLs with EMULATOR_URL
+
+### Phase 6 - Page Object Model improvement
+- **MOVED**: `createTestGroupWithUser()` helper function moved to `DashboardPage.createGroupWithUser()`
+- **IMPROVED**: Proper Page Object Model encapsulation of workflow orchestration
+- **CLEANED**: Removed duplicate TestUser interface and empty group-helpers.ts file
+- **VERIFIED**: All tests continue to pass with improved architecture
+
+### Phase 7 - Workflow Architecture Refactoring
+- **CREATED**: `/workflows/` directory for proper workflow encapsulation
+- **IMPLEMENTED**: `AuthenticationWorkflow` class to replace `createAndLoginTestUser()` (77+ usages)
+- **IMPLEMENTED**: `GroupWorkflow` class for group creation workflows
+- **REFACTORED**: Key test files to use new workflow classes instead of helper functions
+- **DEMONSTRATED**: Clear migration path from helpers to workflow classes
+- **MAINTAINED**: Backward compatibility with static convenience methods
+
+## Next Steps
+
+To complete the workflow refactoring:
+1. **Migrate remaining test files** to use `AuthenticationWorkflow.createTestUser()` instead of `createAndLoginTestUser()`
+2. **Migrate to `GroupWorkflow.createTestGroup()`** for tests that need user + group setup
+3. **Create `MultiUserWorkflow`** class to replace `createMultiUserGroup()` and `MultiUserTestBuilder`
+4. **Update helper exports** to deprecate old functions and promote new workflows
+5. **Run full test suite** to ensure all tests pass with new architecture
+
+## Migration Guide
+
+### Before (Helper Functions):
+```typescript
+// Old pattern - scattered helpers
+import { createAndLoginTestUser } from '../helpers/auth-utils';
+import { createTestGroupWithUser } from '../helpers/test-setup';
+
+const user = await createAndLoginTestUser(page);
+const group = await createTestGroupWithUser(page, 'Test Group');
+```
+
+### After (Workflow Classes):
+```typescript
+// New pattern - workflow classes
+import { AuthenticationWorkflow, GroupWorkflow } from '../helpers';
+
+// For authentication only:
+const user = await AuthenticationWorkflow.createTestUser(page);
+
+// For user + group (most common):
+const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group');
+// groupInfo contains: { name, description, user }
+```
+
 ## Critical Findings
 
 ### 1. Console Errors Not Failing Tests Consistently

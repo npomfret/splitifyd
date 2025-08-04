@@ -16,10 +16,7 @@ test.describe('Accessibility Tests', () => {
       .disableRules(['color-contrast']) // Disable while design is in flux
       .analyze();
     
-    // Log violations for debugging but don't fail on minor issues
-    if (accessibilityScanResults.violations.length > 0) {
-      console.log('Accessibility violations found:', accessibilityScanResults.violations);
-    }
+    // Store violations for assertion but don't log them
     
     // Only fail on critical violations
     const criticalViolations = accessibilityScanResults.violations.filter(

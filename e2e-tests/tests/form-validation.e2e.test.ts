@@ -28,18 +28,8 @@ test.describe('Form Validation E2E', () => {
       // Try to submit
       await loginPage.submitForm();
       
-      // Check if HTML5 validation or server validation prevented submission
-      // If we're still on login page, validation worked
-      const currentUrl = page.url();
-      const stayedOnLogin = currentUrl.includes('/login');
-      
-      if (stayedOnLogin) {
-        // Validation prevented submission - good
-        await expect(page).toHaveURL(/\/login/);
-      } else {
-        // App allowed invalid email - this might be a bug
-        // For now, we just ensure no console errors
-      }
+      // Validation should prevent submission - we should stay on login page
+      await expect(page).toHaveURL(/\/login/);
       
     });
 

@@ -60,7 +60,7 @@ test.describe('Balance and Settlement E2E', () => {
     // Should be back on group page with expense visible
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     await expect(page.getByText('Test Expense')).toBeVisible();
-    await expect(page.getByText('$20.00').or(page.getByText('20.00'))).toBeVisible();
+    await expect(page.getByText('$20.00')).toBeVisible();
     
     // Balance should still show "All settled up!" for single-member group
     const balanceSection = page.getByRole('heading', { name: 'Balances' }).locator('..');

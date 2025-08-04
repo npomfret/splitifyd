@@ -119,7 +119,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page.goto(invalidShareLink);
     await page.waitForLoadState('networkidle');
     
-    await expect(page.getByText(/page not found/i).or(page.getByText(/404/)).first()).toBeVisible();
+    await expect(page.getByText(/404/)).toBeVisible();
     
     const goHomeLink = page.getByRole('link', { name: /go home/i });
     await expect(goHomeLink).toBeVisible();

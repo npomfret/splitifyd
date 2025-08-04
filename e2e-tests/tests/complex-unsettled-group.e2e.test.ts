@@ -45,10 +45,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
       const balanceSection = alicePage.getByRole('heading', { name: /balance/i }).locator('..');
       await expect(balanceSection).toBeVisible();
       
-      // With Alice paying $800 and Bob paying $120, there should be a balance
-      const balanceText = balanceSection.getByText(/owes|owed/i)
-        .or(balanceSection.getByText(/\$/));
-      await expect(balanceText.first()).toBeVisible();
+      // With Alice paying $800 and Bob paying $120, there should be a balance showing
+      await expect(balanceSection.getByText(/\$/)).toBeVisible();
       
       // Verify member count shows 2 members
       await expect(alicePage.getByText(/2 members/i)).toBeVisible();

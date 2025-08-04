@@ -1,4 +1,5 @@
 import { BasePage } from './base.page';
+import { EMULATOR_URL } from '../helpers';
 
 export class LoginPage extends BasePage {
   // Selectors
@@ -11,7 +12,7 @@ export class LoginPage extends BasePage {
   readonly forgotPasswordLink = 'Forgot your password?';
 
   async navigate() {
-    await this.page.goto(this.url);
+    await this.page.goto(`${EMULATOR_URL}${this.url}`);
     await this.waitForNetworkIdle();
   }
   

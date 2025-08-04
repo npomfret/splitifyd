@@ -89,53 +89,6 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  test('should scroll to pricing section if exists', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
-    
-    // Look for pricing section on homepage
-    const pricingSection = page.locator('#pricing').or(page.locator('[data-section="pricing"]'));
-    
-    // If pricing section exists on homepage, check if it's visible after scroll
-    const sectionExists = await pricingSection.count() > 0;
-    if (sectionExists) {
-      await pricingSection.scrollIntoViewIfNeeded();
-      await expect(pricingSection).toBeInViewport();
-    }
-    
-    // No console errors
-  });
-
-  test('should have responsive navigation on mobile', async ({ page }) => {
-    
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
-    
-    // Check if mobile menu exists (hamburger icon)
-    const mobileMenuButton = page.getByRole('button', { name: /menu/i }).or(
-      page.locator('[aria-label*="menu"]').or(
-        page.locator('.hamburger, .mobile-menu-toggle')
-      )
-    );
-    
-    // If mobile menu exists, it should be visible
-    const hasMobileMenu = await mobileMenuButton.count() > 0;
-    if (hasMobileMenu) {
-      await expect(mobileMenuButton).toBeVisible();
-    }
-    
-    // Main heading should still be visible on mobile
-    await expect(page.getByRole('heading', { 
-      name: 'Effortless Bill Splitting, Simplified & Smart.' 
-    })).toBeVisible();
-    
-    // No console errors
-  });
-
   test('should handle logo click navigation', async ({ page }) => {
     
     // Start from a different page

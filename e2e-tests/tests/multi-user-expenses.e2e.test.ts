@@ -38,7 +38,6 @@ test.describe('Multi-user group with expenses', () => {
         await groupDetailPage1.openShareModal();
 
       } catch (error) {
-        console.error('Failed to open share modal:', error);
         throw error;
       }
       
@@ -68,14 +67,10 @@ test.describe('Multi-user group with expenses', () => {
       const user2 = await createAndLoginTestUser(page2);
 
       // Navigate to the share link directly - it contains the full path including query params
-      console.log('Share link:', shareLink);
       await page2.goto(shareLink);
       
       // Wait for page to load
       await page2.waitForLoadState('networkidle');
-      
-      // Check current URL
-      console.log('Current URL after navigation:', page2.url());
       
       // Wait for the join page to load
       await expect(page2.getByRole('heading', { name: 'Join Group' })).toBeVisible({ timeout: 1000 });

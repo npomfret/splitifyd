@@ -59,23 +59,14 @@ test.describe('Error Handling', () => {
     const submitButton = page.locator('form').getByRole('button', { name: 'Create Group' });
     await expect(submitButton).toBeVisible();
     
-    // Check if button is disabled (common validation pattern)
-    const isDisabled = await submitButton.isDisabled();
-    
-    if (isDisabled) {
-      // Button is disabled when form is invalid - this is expected
-      expect(isDisabled).toBe(true);
-    } else {
-      // If button is not disabled, click it and check for validation error
-      await submitButton.click();
-      await page.waitForTimeout(500); // Brief wait for validation
-      
-      // Should still be on the modal (form not submitted)
-      await expect(createGroupModal.isOpen()).resolves.toBe(true);
-    }
+    // Submit button should be disabled for empty form
+    await expect(submitButton).toBeDisabled();
     
     // Fill with valid data and verify form can be submitted
     await createGroupModal.fillGroupForm('Valid Group Name', 'Valid description');
+    
+    // Button should now be enabled
+    await expect(submitButton).toBeEnabled();
     
     // Now submit button should work
     await submitButton.click();
@@ -174,17 +165,11 @@ test.describe('Error Handling', () => {
     const pageLoaded = await page2.evaluate(() => document.readyState === 'complete');
     expect(pageLoaded).toBe(true);
     
-    // If we can see the group name, verify basic functionality works
+    // Verify that access control works - non-members should not see group details
     const groupNameVisible = await page2.getByText('Test Access Group').isVisible().catch(() => false);
     
-    // Either way is acceptable - just document the behavior
-    if (groupNameVisible) {
-      // Access is allowed - this is current behavior
-      expect(groupNameVisible).toBe(true);
-    } else {
-      // Access is blocked or redirected - also acceptable
-      expect(groupNameVisible).toBe(false);
-    }
+    // Expected behavior: non-members should not see group details
+    expect(groupNameVisible).toBe(false);
     
     await context2.close();
   });

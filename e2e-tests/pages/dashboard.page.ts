@@ -1,5 +1,6 @@
 import { BasePage } from './base.page';
 import { CreateGroupModalPage } from './create-group-modal.page';
+import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 
 export class DashboardPage extends BasePage {
   // Selectors
@@ -54,5 +55,31 @@ export class DashboardPage extends BasePage {
     
     // Extract and return group ID
     return this.getUrlParam('groupId') || '';
+  }
+
+  /**
+   * Creates a test user, logs them in, and creates a group.
+   * This is a common workflow for tests that need a user with a group.
+   */
+  async createGroupWithUser(
+    groupName: string = 'Test Group',
+    groupDescription?: string
+  ): Promise<{
+    name: string;
+    description?: string;
+    user: { uid: string; email: string; displayName: string };
+  }> {
+    // Create and login user
+    const authWorkflow = new AuthenticationWorkflow(this.page);
+    const user = await authWorkflow.createAndLoginTestUser();
+    
+    // Create group using existing method
+    await this.createGroupAndNavigate(groupName, groupDescription);
+    
+    return {
+      name: groupName,
+      description: groupDescription,
+      user
+    };
   }
 }
