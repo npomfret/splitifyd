@@ -1,5 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {HOSTING_PORT, setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL, waitForApp} from '../helpers';
+import {HomepagePage, PricingPage} from '../pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -7,9 +8,8 @@ setupConsoleErrorReporting();
 
 test.describe('Homepage E2E', () => {
   test('should load homepage with all key elements', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepage = new HomepagePage(page);
+    await homepage.navigate();
     
     // Verify main heading
     await expect(page.getByRole('heading', { 
@@ -25,9 +25,8 @@ test.describe('Homepage E2E', () => {
   });
 
   test('should navigate to pricing page from homepage', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepage = new HomepagePage(page);
+    await homepage.navigate();
     
     // Click pricing link
     await page.getByRole('link', { name: 'Pricing' }).click();
@@ -40,9 +39,8 @@ test.describe('Homepage E2E', () => {
   });
 
   test('should navigate to login from homepage header', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepage = new HomepagePage(page);
+    await homepage.navigate();
     
     // Click login link in header
     await page.getByRole('link', { name: 'Login' }).click();
@@ -55,9 +53,8 @@ test.describe('Homepage E2E', () => {
   });
 
   test('should navigate to register from homepage header', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepage = new HomepagePage(page);
+    await homepage.navigate();
     
     // Click sign up link in header (exact match to avoid ambiguity)
     await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
@@ -70,9 +67,8 @@ test.describe('Homepage E2E', () => {
   });
 
   test('should have working footer links', async ({ page }) => {
-    
-    await page.goto(EMULATOR_URL);
-    await waitForApp(page);
+    const homepage = new HomepagePage(page);
+    await homepage.navigate();
     
     // Check footer exists
     const footer = page.locator('footer');
@@ -90,10 +86,9 @@ test.describe('Homepage E2E', () => {
   });
 
   test('should handle logo click navigation', async ({ page }) => {
-    
     // Start from a different page
-    await page.goto(`http://localhost:${HOSTING_PORT}/pricing`);
-    await waitForApp(page);
+    const pricingPage = new PricingPage(page);
+    await pricingPage.navigate();
     
     // Click on logo/home link
     const logoLink = page.getByRole('link', { name: /splitifyd|home/i }).first();

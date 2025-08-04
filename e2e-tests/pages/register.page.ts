@@ -12,8 +12,7 @@ export class RegisterPage extends BasePage {
   readonly createAccountButton = 'Create Account';
 
   async navigate() {
-    await this.page.goto(`${EMULATOR_URL}${this.url}`);
-    await this.waitForNetworkIdle();
+    await this.navigateToRegister();
   }
   
   async fillRegistrationForm(name: string, email: string, password: string) {
@@ -31,5 +30,43 @@ export class RegisterPage extends BasePage {
   async register(name: string, email: string, password: string) {
     await this.fillRegistrationForm(name, email, password);
     await this.submitForm();
+  }
+
+  // Element accessors for direct interaction in tests
+  getFullNameInput() {
+    return this.page.locator(this.fullNameInput);
+  }
+
+  getEmailInput() {
+    return this.page.locator(this.emailInput);
+  }
+
+  getPasswordInput() {
+    return this.page.locator(this.passwordInput);
+  }
+
+  getConfirmPasswordInput() {
+    return this.page.locator(this.confirmPasswordInput);
+  }
+
+  getPasswordInputs() {
+    return this.page.locator('input[type="password"]');
+  }
+
+  getTermsCheckbox() {
+    return this.page.locator(this.termsCheckbox);
+  }
+
+  getSubmitButton() {
+    return this.page.getByRole('button', { name: this.createAccountButton });
+  }
+
+  // Alternative selector methods for fallback
+  getNameInputByType() {
+    return this.page.locator('input[type="text"]').first();
+  }
+
+  getEmailInputByType() {
+    return this.page.locator('input[type="email"]');
   }
 }

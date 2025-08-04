@@ -12,8 +12,7 @@ export class LoginPage extends BasePage {
   readonly forgotPasswordLink = 'Forgot your password?';
 
   async navigate() {
-    await this.page.goto(`${EMULATOR_URL}${this.url}`);
-    await this.waitForNetworkIdle();
+    await this.navigateToLogin();
   }
   
   async fillLoginForm(email: string, password: string, rememberMe = false) {
@@ -39,5 +38,30 @@ export class LoginPage extends BasePage {
   
   async clickForgotPassword() {
     await this.page.getByRole('link', { name: this.forgotPasswordLink }).click();
+  }
+
+  // Element accessors for direct interaction in tests
+  getEmailInput() {
+    return this.page.locator(this.emailInput);
+  }
+
+  getPasswordInput() {
+    return this.page.locator(this.passwordInput);
+  }
+
+  getRememberMeCheckbox() {
+    return this.page.locator(this.rememberMeCheckbox);
+  }
+
+  getSubmitButton() {
+    return this.page.getByRole('button', { name: this.signInButton });
+  }
+
+  getSignUpLink() {
+    return this.page.getByRole('link', { name: this.signUpLink });
+  }
+
+  getForgotPasswordLink() {
+    return this.page.getByRole('link', { name: this.forgotPasswordLink });
   }
 }

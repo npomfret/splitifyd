@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { EMULATOR_URL, waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { LoginPage } from '../pages';
+import { LoginPage, RegisterPage } from '../pages';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -14,8 +15,8 @@ test.describe('Form Validation E2E', () => {
       await loginPage.navigate();
       
       // Clear any pre-filled data
-      const emailInput = page.locator(loginPage.emailInput);
-      const passwordInput = page.locator(loginPage.passwordInput);
+      const emailInput = loginPage.getEmailInput();
+      const passwordInput = loginPage.getPasswordInput();
       await emailInput.clear();
       await passwordInput.clear();
       
@@ -39,8 +40,8 @@ test.describe('Form Validation E2E', () => {
       await loginPage.navigate();
       
       // Clear any pre-filled data
-      const emailInput = page.locator(loginPage.emailInput);
-      const passwordInput = page.locator(loginPage.passwordInput);
+      const emailInput = loginPage.getEmailInput();
+      const passwordInput = loginPage.getPasswordInput();
       await emailInput.clear();
       await passwordInput.clear();
       
@@ -48,7 +49,7 @@ test.describe('Form Validation E2E', () => {
       await emailInput.fill('test@example.com');
       
       // Submit button should be disabled without password
-      const submitButton = page.getByRole('button', { name: 'Sign In' });
+      const submitButton = loginPage.getSubmitButton();
       await expect(submitButton).toBeDisabled();
       
       // Clear and try with only password
@@ -77,8 +78,8 @@ test.describe('Form Validation E2E', () => {
       await page.waitForLoadState('domcontentloaded');
       
       // Clear any pre-filled data first
-      const emailInput = page.locator(loginPage.emailInput);
-      const passwordInput = page.locator(loginPage.passwordInput);
+      const emailInput = loginPage.getEmailInput();
+      const passwordInput = loginPage.getPasswordInput();
       
       await emailInput.clear();
       await passwordInput.clear();
@@ -110,14 +111,13 @@ test.describe('Form Validation E2E', () => {
 
   test.describe('Register Form', () => {
     test('should validate password confirmation match', async ({ page }) => {
-      
-      await page.goto(`${EMULATOR_URL}/register`);
-      await waitForApp(page);
+      const registerPage = new RegisterPage(page);
+      await registerPage.navigate();
       
       // Fill form with mismatched passwords
-      const nameInput = page.locator('input[type="text"]').first();
-      const emailInput = page.locator('input[type="email"]');
-      const passwordInputs = page.locator('input[type="password"]');
+      const nameInput = registerPage.getNameInputByType();
+      const emailInput = registerPage.getEmailInputByType();
+      const passwordInputs = registerPage.getPasswordInputs();
       
       await nameInput.fill('Test User');
       await emailInput.fill('test@example.com');
@@ -125,14 +125,14 @@ test.describe('Form Validation E2E', () => {
       await passwordInputs.last().fill('DifferentPassword123');
       
       // Submit button should be disabled with mismatched passwords
-      const submitButton = page.getByRole('button', { name: 'Create Account' });
+      const submitButton = registerPage.getSubmitButton();
       await expect(submitButton).toBeDisabled();
       
       // Fix password match
       await passwordInputs.last().fill('Password123');
       
       // Also need to check terms checkbox
-      const termsCheckbox = page.getByRole('checkbox');
+      const termsCheckbox = registerPage.getTermsCheckbox();
       await termsCheckbox.check();
       
       // Now button should be enabled
@@ -143,12 +143,11 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should require all fields', async ({ page }) => {
-      
-      await page.goto(`${EMULATOR_URL}/register`);
-      await waitForApp(page);
+      const registerPage = new RegisterPage(page);
+      await registerPage.navigate();
       
       // The Create Account button should be disabled with empty form
-      const submitButton = page.getByRole('button', { name: 'Create Account' });
+      const submitButton = registerPage.getSubmitButton();
       await expect(submitButton).toBeDisabled();
       
       // Should stay on register page
@@ -165,14 +164,13 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should validate email format on register', async ({ page }) => {
-      
-      await page.goto(`${EMULATOR_URL}/register`);
-      await waitForApp(page);
+      const registerPage = new RegisterPage(page);
+      await registerPage.navigate();
       
       // Fill form with invalid email
-      const nameInput = page.locator('input[type="text"]').first();
-      const emailInput = page.locator('input[type="email"]');
-      const passwordInputs = page.locator('input[type="password"]');
+      const nameInput = registerPage.getNameInputByType();
+      const emailInput = registerPage.getEmailInputByType();
+      const passwordInputs = registerPage.getPasswordInputs();
       
       await nameInput.fill('Test User');
       await emailInput.fill('invalid-email-format');
@@ -180,11 +178,11 @@ test.describe('Form Validation E2E', () => {
       await passwordInputs.last().fill('Password123');
       
       // Check terms
-      const termsCheckbox = page.getByRole('checkbox');
+      const termsCheckbox = registerPage.getTermsCheckbox();
       await termsCheckbox.check();
       
       // HTML5 email validation happens on submit, not before
-      const submitButton = page.getByRole('button', { name: 'Create Account' });
+      const submitButton = registerPage.getSubmitButton();
       await expect(submitButton).toBeEnabled();
       
       // Try to submit with invalid email
@@ -205,13 +203,12 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should trim whitespace from inputs', async ({ page }) => {
-      
-      await page.goto(`${EMULATOR_URL}/register`);
-      await waitForApp(page);
+      const registerPage = new RegisterPage(page);
+      await registerPage.navigate();
       
       // Fill form with extra spaces
-      const nameInput = page.locator('input[type="text"]').first();
-      const emailInput = page.locator('input[type="email"]');
+      const nameInput = registerPage.getNameInputByType();
+      const emailInput = registerPage.getEmailInputByType();
       
       await nameInput.fill('  Test User  ');
       await emailInput.fill('  test@example.com  ');
@@ -229,9 +226,8 @@ test.describe('Form Validation E2E', () => {
 
   test.describe('Form Accessibility', () => {
     test('should navigate login form with keyboard', async ({ page }) => {
-      
-      await page.goto(`${EMULATOR_URL}/login`);
-      await waitForApp(page);
+      const loginPage = new LoginPage(page);
+      await loginPage.navigate();
       
       // Focus should start at first input or be tabbable to it
       await page.keyboard.press('Tab');
@@ -257,9 +253,8 @@ test.describe('Form Validation E2E', () => {
     });
 
     test('should have proper ARIA labels', async ({ page }) => {
-      
-      await page.goto(`${EMULATOR_URL}/login`);
-      await waitForApp(page);
+      const loginPage = new LoginPage(page);
+      await loginPage.navigate();
       
       // Check form has proper structure
       const form = page.locator('form');
@@ -267,8 +262,8 @@ test.describe('Form Validation E2E', () => {
       await expect(form).toBeVisible();
       
       // Inputs should be associated with labels
-      const emailInput = page.locator('input[type="email"]');
-      const passwordInput = page.locator('input[type="password"]');
+      const emailInput = loginPage.getEmailInput();
+      const passwordInput = loginPage.getPasswordInput();
       
       // Verify inputs exist
       await expect(emailInput).toBeVisible();
@@ -304,7 +299,7 @@ test.describe('Form Validation E2E', () => {
       
       // Should now allow submission
       await submitButton.click();
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 1000 });
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     });
 
     test('should validate split totals for exact amounts', async ({ page }) => {

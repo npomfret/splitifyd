@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -17,7 +18,7 @@ test.describe('Member Management E2E', () => {
     await expect(page.getByRole('main').getByText(groupInfo.user.displayName)).toBeVisible();
     
     // Look for members section showing 1 member
-    await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: 500 });
+    await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
   });
 
   test('should show member in expense split options', async ({ page }) => {
