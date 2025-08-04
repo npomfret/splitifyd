@@ -33,7 +33,7 @@ test.describe('Basic Expense Operations E2E', () => {
     await expect(page.getByText('$50.00').first()).toBeVisible();
   });
 
-  test('should handle expense deletion', async ({ page }) => {
+  test('should delete an expense', async ({ page }) => {
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Delete Test Group', 'Testing expense deletion');
     const groupDetail = new GroupDetailPage(page);
 
@@ -54,25 +54,18 @@ test.describe('Basic Expense Operations E2E', () => {
     await page.getByText('Expense to Delete').click();
     await page.waitForLoadState('domcontentloaded');
     
-    // Look for delete button (if implemented)
+    // Click delete button
     const deleteButton = page.getByRole('button', { name: /delete/i });
-    if (await deleteButton.isVisible()) {
-      await deleteButton.click();
-      
-      // Handle confirmation if exists
-      const confirmButton = page.getByRole('button', { name: /confirm|yes|delete/i });
-      if (await confirmButton.isVisible()) {
-        await confirmButton.click();
-      }
-      
-      // Should redirect back to group
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
-      
-      // Expense should no longer be visible
-      await expect(page.getByText('Expense to Delete')).not.toBeVisible();
-    } else {
-      // If delete functionality not implemented, just verify we're on detail page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
-    }
+    await deleteButton.click();
+    
+    // Confirm deletion - click the second delete button in the confirmation dialog
+    const confirmButton = page.getByRole('button', { name: 'Delete' }).nth(1);
+    await confirmButton.click();
+    
+    // Should redirect back to group
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+    
+    // Expense should no longer be visible
+    await expect(page.getByText('Expense to Delete')).not.toBeVisible();
   });
 });

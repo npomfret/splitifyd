@@ -15,6 +15,7 @@ export class DashboardPage extends BasePage {
   }
   
   async isLoggedIn(): Promise<boolean> {
+    // We KNOW the welcome text exists when logged in
     return await this.page.getByText(/Welcome back/i).isVisible();
   }
   
@@ -25,10 +26,12 @@ export class DashboardPage extends BasePage {
   }
 
   async openCreateGroupModal() {
-    const createButton = await this.page.getByRole('button', { name: this.createGroupButton }).isVisible()
-      ? this.page.getByRole('button', { name: this.createGroupButton })
-      : this.page.getByRole('button', { name: this.createFirstGroupButton });
-    
+    // Click whichever create button is visible - the UI determines this
+    // Both buttons open the same modal, so we can use .first() to get whichever is present
+    const createButton = this.page
+      .getByRole('button')
+      .filter({ hasText: /Create.*Group/i })
+      .first();
     await createButton.click();
   }
 

@@ -7,9 +7,8 @@ export class CreateGroupModalPage extends BasePage {
   readonly modalTitle = 'Create New Group';
 
   async isOpen(): Promise<boolean> {
-    // Check if modal title is visible using count pattern
-    const modalTitleCount = await this.page.getByText(this.modalTitle).count();
-    return modalTitleCount > 0;
+    // Modal either exists or it doesn't - no ambiguity
+    return await this.page.getByText(this.modalTitle).isVisible();
   }
   
   async fillGroupForm(name: string, description?: string) {
@@ -43,10 +42,9 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async cancel() {
-    const cancelButton = await this.page.getByRole('button', { name: /Cancel/i }).isVisible()
-      ? this.page.getByRole('button', { name: /Cancel/i })
-      : this.page.getByRole('button', { name: /Close/i });
-    
+    // Modal MUST have a cancel/close button - this is basic UX
+    // Use a regex that matches either "Cancel" or "Close"
+    const cancelButton = this.page.getByRole('button', { name: /(Cancel|Close)/i });
     await cancelButton.click();
   }
   

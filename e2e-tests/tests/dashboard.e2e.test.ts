@@ -167,7 +167,7 @@ test.describe('Dashboard E2E', () => {
       const signOutButton = page.getByRole('button', { name: /Sign Out|Logout/i });
       await signOutButton.click();
       
-      await expect(page).toHaveURL(/\/(login|home|$)/, );
+      await expect(page).toHaveURL(/\/login/);
       
       await expect(page.getByRole('button', { name: /Sign In|Login/i })).toBeVisible();
       

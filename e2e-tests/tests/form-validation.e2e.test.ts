@@ -263,10 +263,8 @@ test.describe('Form Validation E2E', () => {
       
       // Check form has proper structure
       const form = page.locator('form');
-      const formCount = await form.count();
-      
-      // Should have at least one form element
-      expect(formCount).toBeGreaterThan(0);
+      // Form MUST exist on login page - this is not optional
+      await expect(form).toBeVisible();
       
       // Inputs should be associated with labels
       const emailInput = page.locator('input[type="email"]');
