@@ -10,6 +10,14 @@ export class LoginPage extends BasePage {
 
   async navigate() {
     await this.navigateToLogin();
+    
+    // Fail fast if we're not on the login page
+    // This ensures tests start from a known state
+    try {
+      await this.expectUrl(/\/login/, 5000);
+    } catch (error) {
+      throw new Error('Expected to navigate to login page but was redirected. Test requires clean authentication state.');
+    }
   }
   
   async fillLoginForm(email: string, password: string, rememberMe = false) {

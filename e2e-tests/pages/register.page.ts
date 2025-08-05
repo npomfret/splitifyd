@@ -12,6 +12,14 @@ export class RegisterPage extends BasePage {
 
   async navigate() {
     await this.navigateToRegister();
+    
+    // Fail fast if we're not on the register page
+    // This ensures tests start from a known state
+    try {
+      await this.expectUrl(/\/register/, 5000);
+    } catch (error) {
+      throw new Error('Expected to navigate to register page but was redirected. Test requires clean authentication state.');
+    }
   }
   
   async fillRegistrationForm(name: string, email: string, password: string) {
