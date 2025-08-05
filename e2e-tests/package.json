@@ -7,8 +7,6 @@
     "build": "npx tsc --noEmit --skipLibCheck",
     "test:unit": "echo 'No unit tests for e2e-tests'",
     "test:integration": "npm run build && playwright test",
-    "test:ui": "npm run build && playwright test --ui",
-    "test:debug": "npm run build && playwright test --debug",
     "test:headed": "npm run build && playwright test --headed",
     "test:chromium": "npm run build && playwright test --project=chromium",
     "test:e2e": "npm run build && PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=2 --project=chromium --reporter=html",
