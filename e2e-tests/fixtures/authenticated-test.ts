@@ -12,8 +12,12 @@ export interface AuthenticatedFixtures {
 }
 
 export const authenticatedTest = base.extend<AuthenticatedFixtures>({
-  authenticatedPage: async ({ page }, use, testInfo) => {
+  authenticatedPage: async ({ page, context }, use, testInfo) => {
     const userPool = await getUserPool();
+    
+    // Clear any existing auth state to ensure clean test environment
+    await context.clearCookies();
+    await page.goto('about:blank');
     
     // Claim user from pool - fail fast if pool is broken
     const user = await userPool.claimUser(testInfo.testId);
