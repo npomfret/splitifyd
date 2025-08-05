@@ -65,6 +65,7 @@
       "Bash(vite:*)",
       "Bash(vitest:*)",
       "Bash(xargs:*)",
+      "Task",
       "WebFetch",
       "mcp__context-provider__*",
       "mcp__context7__*",
