@@ -1,13 +1,16 @@
 import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { GroupWorkflow } from '../workflows';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Basic Expense Operations E2E', () => {
   test('should create and view an expense', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page } = authenticatedPage;
-    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group', 'Testing expense creation');
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroup('Test Group', 'Testing expense creation');
+    const groupInfo = { user };
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -33,8 +36,10 @@ test.describe('Basic Expense Operations E2E', () => {
   });
 
   test('should delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page } = authenticatedPage;
-    const groupInfo = await GroupWorkflow.createTestGroup(page, 'Delete Test Group', 'Testing expense deletion');
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroup('Delete Test Group', 'Testing expense deletion');
+    const groupInfo = { user };
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
