@@ -1,22 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { pageTest as test, expect } from "../fixtures/page-fixtures";
 import { waitForApp, setupConsoleErrorReporting } from '../helpers';
-import { HomepagePage } from '../pages';
 
 setupConsoleErrorReporting();
 
 // Simplified performance test - just basic load time check
 test.describe('Performance Tests', () => {
-  test('should load within reasonable time', async ({ page }) => {
-    
+  test('should load within reasonable time', async ({ homepageNavigated }) => {
     const startTime = Date.now();
-    const homepagePage = new HomepagePage(page);
-    await homepagePage.navigate();
+    const { page, homepagePage } = homepageNavigated;
     await waitForApp(page);
     const loadTime = Date.now() - startTime;
     
-    // Page should load within 5 seconds (generous for emulator)
-    expect(loadTime).toBeLessThan(5000);
-    
-    // No console errors
+    expect(loadTime).toBeLessThan(1000);
   });
 });

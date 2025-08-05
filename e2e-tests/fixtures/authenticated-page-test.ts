@@ -5,7 +5,8 @@ import {
   HomepagePage, 
   PricingPage,
   DashboardPage,
-  GroupDetailPage
+  GroupDetailPage,
+  CreateGroupModalPage
 } from '../pages';
 
 // Extend authenticated test with page object fixtures
@@ -17,6 +18,7 @@ export interface AuthenticatedPageFixtures {
   pricingPage: PricingPage;
   dashboardPage: DashboardPage;
   groupDetailPage: GroupDetailPage;
+  createGroupModalPage: CreateGroupModalPage;
 }
 
 export const authenticatedPageTest = authenticatedTest.extend<AuthenticatedPageFixtures>({
@@ -42,6 +44,10 @@ export const authenticatedPageTest = authenticatedTest.extend<AuthenticatedPageF
   
   groupDetailPage: async ({ authenticatedPage }, use) => {
     await use(new GroupDetailPage(authenticatedPage.page));
+  },
+  
+  createGroupModalPage: async ({ authenticatedPage }, use) => {
+    await use(new CreateGroupModalPage(authenticatedPage.page));
   }
 });
 

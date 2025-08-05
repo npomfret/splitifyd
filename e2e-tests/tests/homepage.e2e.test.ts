@@ -1,15 +1,14 @@
-import {test} from '@playwright/test';
-import {pageTest, expect} from '../fixtures/page-fixtures';
-import {setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL} from '../helpers';
-import {PricingPage} from '../pages';
-import {SELECTORS} from '../constants/selectors';
+
+import { pageTest as test, expect } from '../fixtures/page-fixtures';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../helpers';
+import { SELECTORS } from '../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Homepage E2E', () => {
-  pageTest('should load homepage with all key elements', async ({ homepageNavigated }) => {
+  test('should load homepage with all key elements', async ({ homepageNavigated }) => {
     const { page } = homepageNavigated;
     
     // Verify main heading
@@ -25,7 +24,7 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  pageTest('should navigate to pricing page from homepage', async ({ homepageNavigated }) => {
+  test('should navigate to pricing page from homepage', async ({ homepageNavigated }) => {
     const { page } = homepageNavigated;
     
     // Click pricing link
@@ -38,7 +37,7 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  pageTest('should navigate to login from homepage header', async ({ homepageNavigated }) => {
+  test('should navigate to login from homepage header', async ({ homepageNavigated }) => {
     const { page } = homepageNavigated;
     
     // Click login link in header
@@ -51,7 +50,7 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  pageTest('should navigate to register from homepage header', async ({ homepageNavigated }) => {
+  test('should navigate to register from homepage header', async ({ homepageNavigated }) => {
     const { page } = homepageNavigated;
     
     // Click sign up link in header (exact match to avoid ambiguity)
@@ -64,7 +63,7 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  pageTest('should have working footer links', async ({ homepageNavigated }) => {
+  test('should have working footer links', async ({ homepageNavigated }) => {
     const { page } = homepageNavigated;
     
     // Check footer exists
@@ -82,9 +81,9 @@ test.describe('Homepage E2E', () => {
     // No console errors
   });
 
-  test('should handle logo click navigation', async ({ page }) => {
+  test('should handle logo click navigation', async ({ page, pricingPage }) => {
     // Start from a different page
-    const pricingPage = new PricingPage(page);
+    
     await pricingPage.navigate();
     
     // Click on logo/home link

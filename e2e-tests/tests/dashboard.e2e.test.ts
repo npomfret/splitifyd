@@ -1,12 +1,10 @@
-import { test } from '../fixtures/base-test';
 import { authenticatedPageTest, expect } from '../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { CreateGroupModalPage } from '../pages';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
-test.describe('Dashboard E2E', () => {
+authenticatedPageTest.describe('Dashboard E2E', () => {
   authenticatedPageTest('should display dashboard with user info and groups section', async ({ authenticatedPage, dashboardPage }) => {
     const { page, user } = authenticatedPage;
     
@@ -40,20 +38,18 @@ test.describe('Dashboard E2E', () => {
     await expect(dashboardPage.getUserMenuButton()).toBeVisible();
   });
 
-  test.describe('Create Group Modal', () => {
-    authenticatedPageTest('should open create group modal', async ({ authenticatedPage, dashboardPage }) => {
+  authenticatedPageTest.describe('Create Group Modal', () => {
+    authenticatedPageTest('should open create group modal', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
       const { page } = authenticatedPage;
-      const createGroupModal = new CreateGroupModalPage(page);
       
       await dashboardPage.openCreateGroupModal();
       
-      await expect(createGroupModal.isOpen()).resolves.toBe(true);
-      await expect(createGroupModal.getModalTitle()).toBeVisible();
+      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+      await expect(createGroupModalPage.getModalTitle()).toBeVisible();
       
-      await expect(createGroupModal.getGroupNameInput()).toBeVisible();
-      await expect(createGroupModal.getDescriptionInput()).toBeVisible();
-      
-      });
+      await expect(createGroupModalPage.getGroupNameInput()).toBeVisible();
+      await expect(createGroupModalPage.getDescriptionInput()).toBeVisible();
+    });
 
     authenticatedPageTest('should create a new group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
@@ -64,35 +60,32 @@ test.describe('Dashboard E2E', () => {
       expect(groupId).toBeTruthy();
     });
 
-    authenticatedPageTest('should close modal on cancel', async ({ authenticatedPage, dashboardPage }) => {
+    authenticatedPageTest('should close modal on cancel', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
       const { page } = authenticatedPage;
-      const createGroupModal = new CreateGroupModalPage(page);
       
       await dashboardPage.openCreateGroupModal();
       
-      await expect(createGroupModal.isOpen()).resolves.toBe(true);
+      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
       
-      await createGroupModal.cancel();
+      await createGroupModalPage.cancel();
       
-      await createGroupModal.waitForModalToClose();
+      await createGroupModalPage.waitForModalToClose();
       
       await expect(page).toHaveURL(/\/dashboard/);
-      
-      });
+    });
 
-    authenticatedPageTest('should validate group form fields', async ({ authenticatedPage, dashboardPage }) => {
+    authenticatedPageTest('should validate group form fields', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
       const { page } = authenticatedPage;
-      const createGroupModal = new CreateGroupModalPage(page);
       
       await dashboardPage.openCreateGroupModal();
       
-      await expect(createGroupModal.isOpen()).resolves.toBe(true);
+      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
       
-      const submitButton = createGroupModal.getSubmitButton();
+      const submitButton = createGroupModalPage.getSubmitButton();
       
       await expect(submitButton).toBeDisabled();
       
-      const nameInput = createGroupModal.getGroupNameInput();
+      const nameInput = createGroupModalPage.getGroupNameInput();
       await nameInput.click();
       await nameInput.type('T');
       await page.keyboard.press('Tab');
@@ -106,11 +99,10 @@ test.describe('Dashboard E2E', () => {
       await page.waitForLoadState('domcontentloaded');
       
       await expect(submitButton).toBeEnabled();
-      
-      });
+    });
   });
 
-  test.describe('Dashboard Navigation', () => {
+  authenticatedPageTest.describe('Dashboard Navigation', () => {
     authenticatedPageTest('should navigate to group details after creating a group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
       const groupId = await dashboardPage.createGroupAndNavigate('Navigation Test Group', 'Test description');
