@@ -80,3 +80,5 @@ directives
 .claude/commands/mcp-list.md
 .claude/commands/p.md
 .claude/agents/meta-prompt.md
+.claude/agent-inventory.json
+.claude/mcp-inventory.json
