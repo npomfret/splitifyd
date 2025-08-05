@@ -1,16 +1,16 @@
 import {defineConfig, devices} from '@playwright/test';
-import {HOSTING_PORT} from './helpers';
+import {HOSTING_PORT} from './src/helpers/index';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './src/tests',
   /* Output directory for test results */
   outputDir: '../tmp/playwright-test-results',
   /* Global setup and teardown for user pool management */
-  globalSetup: './fixtures/global-setup.ts',
-  globalTeardown: './fixtures/global-teardown.ts',
+  globalSetup: './src/fixtures/global-setup.ts',
+  globalTeardown: './src/fixtures/global-teardown.ts',
   /* Global test timeout - 10 seconds to handle slower operations */
   timeout: 10000,
   /* Run tests in files in parallel */

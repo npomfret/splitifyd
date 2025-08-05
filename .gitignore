@@ -82,3 +82,6 @@ directives
 .claude/agents/meta-prompt.md
 .claude/agent-inventory.json
 .claude/mcp-inventory.json
+.claude/commands/p2.md
+.claude/agents/agent-advisor.md
+.claude/agents/mcp-advisor.md
