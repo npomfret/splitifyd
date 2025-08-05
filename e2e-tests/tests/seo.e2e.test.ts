@@ -1,14 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { pageTest as test, expect } from '../fixtures/page-fixtures';
 import { setupConsoleErrorReporting } from '../helpers';
-import { HomepagePage, PricingPage } from '../pages';
 
 setupConsoleErrorReporting();
 
 // Simplified SEO test - just verify pages have titles and no errors
 test.describe('SEO E2E', () => {
-  test('should set page titles without console errors', async ({ page }) => {
-    const homepagePage = new HomepagePage(page);
-    const pricingPage = new PricingPage(page);
+  test('should set page titles without console errors', async ({ page, homepagePage, pricingPage }) => {
     
     // Check homepage title
     await homepagePage.navigate();

@@ -1,14 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { pageTest as test, expect } from '../fixtures/page-fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { LoginPage, HomepagePage } from '../pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Static Pages E2E', () => {
-  test('should navigate to terms of service', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+  test('should navigate to terms of service', async ({ page, loginPage }) => {
     await loginPage.navigate();
     
     // Click Terms link in footer
@@ -20,8 +18,7 @@ test.describe('Static Pages E2E', () => {
     // No console errors
   });
 
-  test('should navigate to privacy policy', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+  test('should navigate to privacy policy', async ({ page, loginPage }) => {
     await loginPage.navigate();
     
     // Click Privacy link in footer
@@ -33,8 +30,7 @@ test.describe('Static Pages E2E', () => {
     // No console errors
   });
 
-  test('should navigate from login back to home', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+  test('should navigate from login back to home', async ({ page, loginPage }) => {
     await loginPage.navigate();
     
     // Click logo to go back to home (logo serves as home link)
@@ -48,16 +44,15 @@ test.describe('Static Pages E2E', () => {
     // No console errors
   });
 
-  test('should have working links on homepage', async ({ page }) => {
-    const homepage = new HomepagePage(page);
-    await homepage.navigate();
+  test('should have working links on homepage', async ({ page, homepagePage }) => {
+    await homepagePage.navigate();
     
     // Test Login link
     await page.getByRole('link', { name: 'Login' }).click();
     await expect(page).toHaveURL(/\/login/);
     
     // Go back to home
-    await homepage.navigate();
+    await homepagePage.navigate();
     
     // Test Sign Up link (use exact match to avoid ambiguity)
     await page.getByRole('link', { name: 'Sign Up', exact: true }).click();

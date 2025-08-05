@@ -1,15 +1,14 @@
-import { test, expect } from '../fixtures/base-test';
+import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { GroupDetailPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Group Details E2E', () => {
-  test('should display group information', async ({ page }) => {
+  test('should display group information', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group Details', 'Test group for details page');
     const user = groupInfo.user;
-    const groupDetailPage = new GroupDetailPage(page);
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -23,9 +22,9 @@ test.describe('Group Details E2E', () => {
     await expect(groupDetailPage.getMembersCount()).toBeVisible();
   });
 
-  test('should display empty expense list', async ({ page }) => {
+  test('should display empty expense list', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Empty Expenses Group', 'Group with no expenses');
-    const groupDetailPage = new GroupDetailPage(page);
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -34,16 +33,17 @@ test.describe('Group Details E2E', () => {
     await expect(groupDetailPage.getAddExpenseButton()).toBeVisible();
   });
 
-  test('should show group balances section', async ({ page }) => {
+  test('should show group balances section', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Balance Test Group', 'Group for testing balances');
-    const groupDetailPage = new GroupDetailPage(page);
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
   });
 
-  test('should have navigation back to dashboard', async ({ page }) => {
+  test('should have navigation back to dashboard', async ({ authenticatedPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Navigation Test Group', 'Test description');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -52,9 +52,9 @@ test.describe('Group Details E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test('should show group settings or options', async ({ page }) => {
+  test('should show group settings or options', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Settings Test Group', 'Test description for settings');
-    const groupDetailPage = new GroupDetailPage(page);
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     

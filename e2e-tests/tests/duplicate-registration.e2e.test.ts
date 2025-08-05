@@ -1,6 +1,5 @@
-import { test, expect } from '../fixtures/base-test';
+import { pageTest as test, expect } from '../fixtures/page-fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, fillPreactInput } from '../helpers';
-import { RegisterPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import { SELECTORS } from '../constants/selectors';
 
@@ -8,7 +7,7 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Duplicate User Registration E2E', () => {
-  test('should prevent duplicate email registration and show error', async ({ page }) => {
+  test('should prevent duplicate email registration and show error', async ({ page, registerPage }) => {
     // This test expects a 409 error when trying to register duplicate email
     test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
     const timestamp = Date.now();
@@ -17,7 +16,6 @@ test.describe('Duplicate User Registration E2E', () => {
     const displayName = `Duplicate Test User ${timestamp}`;
 
     // First registration - should succeed
-    const registerPage = new RegisterPage(page);
     await registerPage.navigate();
     
     // Fill registration form
@@ -92,7 +90,7 @@ test.describe('Duplicate User Registration E2E', () => {
     expect(errorInConsole).toBe(true);
   });
 
-  test('should show error immediately without clearing form', async ({ page }) => {
+  test('should show error immediately without clearing form', async ({ page, registerPage }) => {
     test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
     
     const timestamp = Date.now();
@@ -101,7 +99,6 @@ test.describe('Duplicate User Registration E2E', () => {
     const displayName = `Persist Test User ${timestamp}`;
 
     // First registration
-    const registerPage = new RegisterPage(page);
     await registerPage.navigate();
     await registerPage.register(displayName, email, password);
     
@@ -154,7 +151,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
   });
 
-  test('should allow registration with different email after duplicate attempt', async ({ page }) => {
+  test('should allow registration with different email after duplicate attempt', async ({ page, registerPage }) => {
     test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
     
     const timestamp = Date.now();
@@ -163,8 +160,6 @@ test.describe('Duplicate User Registration E2E', () => {
     const password = 'TestPassword123!';
     const displayName = `Recovery Test User ${timestamp}`;
 
-    const registerPage = new RegisterPage(page);
-    
     // First registration
     await registerPage.navigate();
     await registerPage.register(displayName, email1, password);

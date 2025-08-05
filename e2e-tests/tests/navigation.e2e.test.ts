@@ -1,14 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { pageTest as test, expect } from '../fixtures/page-fixtures';
 import { setupConsoleErrorReporting } from '../helpers';
-import { HomepagePage, PricingPage } from '../pages';
 
 setupConsoleErrorReporting();
 
 // Simplified navigation tests - just verify pages load without errors
 test.describe('Navigation E2E', () => {
-  test('should load key pages without console errors', async ({ page }) => {
-    const homepagePage = new HomepagePage(page);
-    const pricingPage = new PricingPage(page);
+  test('should load key pages without console errors', async ({ page, homepagePage, pricingPage }) => {
     
     // Test homepage loads correctly
     await homepagePage.navigate();

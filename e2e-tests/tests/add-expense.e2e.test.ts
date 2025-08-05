@@ -1,16 +1,14 @@
-import { test, expect } from '../fixtures/base-test';
+import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { DashboardPage, GroupDetailPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Add Expense E2E', () => {
-  test('should add new expense with equal split', async ({ page }) => {
-    const dashboard = new DashboardPage(page);
-    await dashboard.createGroupWithUser('Expense Test Group', 'Testing expense creation');
-    const groupDetailPage = new GroupDetailPage(page);
+  test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
+    await dashboardPage.createGroupWithUser('Expense Test Group', 'Testing expense creation');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     
@@ -46,9 +44,9 @@ test.describe('Add Expense E2E', () => {
 
   // Form validation tests moved to form-validation.e2e.test.ts
 
-  test('should allow selecting expense category', async ({ page }) => {
+  test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Category Test Group', 'Testing expense categories');
-    const groupDetailPage = new GroupDetailPage(page);
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
@@ -80,9 +78,9 @@ test.describe('Add Expense E2E', () => {
     await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
   });
 
-  test('should show expense in group after creation', async ({ page }) => {
+  test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Expense Display Group', 'Testing expense display');
-    const groupDetailPage = new GroupDetailPage(page);
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     

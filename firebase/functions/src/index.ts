@@ -162,7 +162,7 @@ function setupRoutes(app: express.Application): void {
   
   // List files in current directory
   const currentDir = process.cwd();
-  let files: any[] = [];
+  let files: any[];
   
   try {
     const entries = fs.readdirSync(currentDir);

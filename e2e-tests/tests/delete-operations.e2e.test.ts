@@ -1,19 +1,18 @@
-import { test, expect } from '../fixtures/base-test';
+import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { GroupDetailPage } from '../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Basic Expense Operations E2E', () => {
-  test('should create and view an expense', async ({ page }) => {
+  test('should create and view an expense', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Test Group', 'Testing expense creation');
-    const groupDetail = new GroupDetailPage(page);
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add expense using page object
-    await groupDetail.addExpense({
+    await groupDetailPage.addExpense({
       description: 'Test Expense',
       amount: 50,
       paidBy: groupInfo.user.displayName,
@@ -33,14 +32,14 @@ test.describe('Basic Expense Operations E2E', () => {
     await expect(page.getByText('$50.00').first()).toBeVisible();
   });
 
-  test('should delete an expense', async ({ page }) => {
+  test('should delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     const groupInfo = await GroupWorkflow.createTestGroup(page, 'Delete Test Group', 'Testing expense deletion');
-    const groupDetail = new GroupDetailPage(page);
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add expense to delete
-    await groupDetail.addExpense({
+    await groupDetailPage.addExpense({
       description: 'Expense to Delete',
       amount: 75,
       paidBy: groupInfo.user.displayName,

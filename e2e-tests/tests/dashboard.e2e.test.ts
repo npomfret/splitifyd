@@ -1,16 +1,14 @@
-import { test, expect } from '../fixtures/base-test';
-import { authenticatedTest } from '../fixtures/authenticated-test';
+import { test } from '../fixtures/base-test';
+import { authenticatedPageTest, expect } from '../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { CreateGroupModalPage, GroupDetailPage, DashboardPage } from '../pages';
-import { pageTest } from '../fixtures/page-fixtures';
+import { CreateGroupModalPage } from '../pages';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 test.describe('Dashboard E2E', () => {
-  authenticatedTest('should display dashboard with user info and groups section', async ({ authenticatedPage }) => {
+  authenticatedPageTest('should display dashboard with user info and groups section', async ({ authenticatedPage, dashboardPage }) => {
     const { page, user } = authenticatedPage;
-    const dashboardPage = new DashboardPage(page);
     
     // Verify navigation to dashboard
     await expect(page).toHaveURL(/\/dashboard/);
@@ -30,9 +28,8 @@ test.describe('Dashboard E2E', () => {
     await expect(createGroupButton).toBeEnabled();
   });
 
-  authenticatedTest('should persist authentication on reload', async ({ authenticatedPage }) => {
+  authenticatedPageTest('should persist authentication on reload', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
-    const dashboardPage = new DashboardPage(page);
     
     // Verify user menu is visible (indicates authenticated state)
     await expect(dashboardPage.getUserMenuButton()).toBeVisible();
@@ -44,10 +41,8 @@ test.describe('Dashboard E2E', () => {
   });
 
   test.describe('Create Group Modal', () => {
-    authenticatedTest('should open create group modal', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should open create group modal', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
-        
-      const dashboardPage = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       
       await dashboardPage.openCreateGroupModal();
@@ -60,22 +55,17 @@ test.describe('Dashboard E2E', () => {
       
       });
 
-    authenticatedTest('should create a new group', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should create a new group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      
-      const dashboardPage = new DashboardPage(page);
       const groupId = await dashboardPage.createGroupAndNavigate('Test Group', 'Test Description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      const groupDetailPage = new GroupDetailPage(page);
       await expect(groupDetailPage.getGroupTitleByName('Test Group')).toBeVisible();
       expect(groupId).toBeTruthy();
     });
 
-    authenticatedTest('should close modal on cancel', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should close modal on cancel', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
-        
-      const dashboardPage = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       
       await dashboardPage.openCreateGroupModal();
@@ -90,10 +80,8 @@ test.describe('Dashboard E2E', () => {
       
       });
 
-    authenticatedTest('should validate group form fields', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should validate group form fields', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
-        
-      const dashboardPage = new DashboardPage(page);
       const createGroupModal = new CreateGroupModalPage(page);
       
       await dashboardPage.openCreateGroupModal();
@@ -123,23 +111,18 @@ test.describe('Dashboard E2E', () => {
   });
 
   test.describe('Dashboard Navigation', () => {
-    authenticatedTest('should navigate to group details after creating a group', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should navigate to group details after creating a group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-  
-      const dashboardPage = new DashboardPage(page);
       const groupId = await dashboardPage.createGroupAndNavigate('Navigation Test Group', 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-      const groupDetailPage = new GroupDetailPage(page);
       await expect(groupDetailPage.getGroupTextByName('Navigation Test Group')).toBeVisible();
       expect(groupId).toBeTruthy();
       
       });
 
-    authenticatedTest('should sign out successfully', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should sign out successfully', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
-        
-      const dashboardPage = new DashboardPage(page);
       
       await dashboardPage.getUserMenuButton().click();
       
@@ -151,10 +134,8 @@ test.describe('Dashboard E2E', () => {
       
       });
 
-    authenticatedTest('should return to dashboard from group page', async ({ authenticatedPage }) => {
+    authenticatedPageTest('should return to dashboard from group page', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
-        
-      const dashboardPage = new DashboardPage(page);
       const groupId = await dashboardPage.createGroupAndNavigate('Back Navigation Test', 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
@@ -166,19 +147,5 @@ test.describe('Dashboard E2E', () => {
       
       });
 
-    authenticatedTest('should persist authentication on page reload', async ({ authenticatedPage }) => {
-      const { page } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-      
-      await expect(page).toHaveURL(/\/dashboard/);
-      
-      await page.reload();
-      
-      await expect(page).toHaveURL(/\/dashboard/);
-      
-      const displayName = await dashboardPage.getUserDisplayName();
-      expect(displayName).toBe(authenticatedPage.user.displayName);
-      
-      });
   });
 });

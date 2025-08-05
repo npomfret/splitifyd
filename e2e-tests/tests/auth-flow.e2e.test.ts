@@ -1,15 +1,12 @@
-import { test } from '@playwright/test';
 import { pageTest, expect } from '../fixtures/page-fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { LoginPage, RegisterPage } from '../pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
-test.describe('Auth Flow E2E', () => {
-  test('should navigate between login and register pages', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+pageTest.describe('Auth Flow E2E', () => {
+  pageTest('should navigate between login and register pages', async ({ page, loginPage, registerPage }) => {
 
     // Go to login page
     await loginPage.navigate();
@@ -22,7 +19,6 @@ test.describe('Auth Flow E2E', () => {
     await loginPage.clickSignUp();
     
     // Verify register page loaded
-    const registerPage = new RegisterPage(page);
     await expect(registerPage.getCreateAccountHeading()).toBeVisible();
     await expect(registerPage.getSubmitButton()).toBeVisible();
     

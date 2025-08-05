@@ -1,11 +1,11 @@
-import { authenticatedTest as test, expect } from '../fixtures/authenticated-test';
+import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure,
   AuthenticationWorkflow
 } from '../helpers';
 import { GroupWorkflow } from '../workflows';
-import { CreateGroupModalPage, DashboardPage } from '../pages';
+import { CreateGroupModalPage } from '../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
 import { SELECTORS } from '../constants/selectors';
 
@@ -14,7 +14,7 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Error Handling', () => {
-  test('displays error message when network fails during group creation', async ({ authenticatedPage, context }) => {
+  test('displays error message when network fails during group creation', async ({ authenticatedPage, dashboardPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers network errors
     test.info().annotations.push({ 
@@ -29,10 +29,9 @@ test.describe('Error Handling', () => {
     await context.route('**/groups', route => route.abort());
     
     // Try to create group while network is failing
-    const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
-    await dashboard.openCreateGroupModal();
+    await dashboardPage.openCreateGroupModal();
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
     
     // Fill and submit form
@@ -50,14 +49,12 @@ test.describe('Error Handling', () => {
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
   });
 
-  test('prevents form submission with invalid data', async ({ authenticatedPage }) => {
+  test('prevents form submission with invalid data', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
     // Already authenticated via fixture
-    
-    const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
-    await dashboard.openCreateGroupModal();
+    await dashboardPage.openCreateGroupModal();
     await expect(createGroupModal.isOpen()).resolves.toBe(true);
     
     // Try to submit empty form
@@ -78,7 +75,7 @@ test.describe('Error Handling', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
   });
 
-  test('handles server errors gracefully', async ({ authenticatedPage, context }) => {
+  test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers server errors
     test.info().annotations.push({ 
@@ -97,10 +94,9 @@ test.describe('Error Handling', () => {
       });
     });
     
-    const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
-    await dashboard.openCreateGroupModal();
+    await dashboardPage.openCreateGroupModal();
     await createGroupModal.fillGroupForm('Server Error Test', 'Testing 500 error');
     await createGroupModal.submitForm();
     
@@ -177,7 +173,7 @@ test.describe('Error Handling', () => {
     await context2.close();
   });
 
-  test('handles API timeouts appropriately', async ({ authenticatedPage, context }) => {
+  test('handles API timeouts appropriately', async ({ authenticatedPage, dashboardPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test simulates timeout scenarios
     test.info().annotations.push({ 
@@ -194,10 +190,9 @@ test.describe('Error Handling', () => {
       await route.fulfill({ status: 408, body: 'Request Timeout' });
     });
     
-    const dashboard = new DashboardPage(page);
     const createGroupModal = new CreateGroupModalPage(page);
     
-    await dashboard.openCreateGroupModal();
+    await dashboardPage.openCreateGroupModal();
     await createGroupModal.fillGroupForm('Timeout Test Group');
     
     // Start the submission (will timeout) and wait for expected UI state changes

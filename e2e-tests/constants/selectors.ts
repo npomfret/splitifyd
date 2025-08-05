@@ -45,13 +45,6 @@ export const ARIA_ROLES = {
   MAIN: 'main',
 } as const;
 
-export const TEST_IDS = {
-  // Add data-testid constants here as needed
-  FEATURES_SECTION: 'features-section',
-  FREE_PLAN: 'free-plan',
-  PREMIUM_PLAN: 'premium-plan',
-} as const;
-
 export const PLACEHOLDERS = {
   EXPENSE_DESCRIPTION: 'What was this expense for?',
   EXPENSE_AMOUNT: '0.00',

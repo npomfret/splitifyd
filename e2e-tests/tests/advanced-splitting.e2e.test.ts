@@ -1,6 +1,5 @@
-import { test, expect } from '../fixtures/base-test';
+import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { GroupDetailPage } from '../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -8,9 +7,9 @@ setupMCPDebugOnFailure();
 
 test.describe('Advanced Splitting Options', () => {
 
-  test('should create expense with equal split', async ({ page }) => {
+  test('should create expense with equal split', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Equal Split Test Group');
-    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -45,9 +44,9 @@ test.describe('Advanced Splitting Options', () => {
     await expect(groupDetailPage.getExpenseAmount('$60.00')).toBeVisible();
   });
 
-  test('should create expense with exact amounts split', async ({ page }) => {
+  test('should create expense with exact amounts split', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Exact Split Test Group');
-    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -86,9 +85,9 @@ test.describe('Advanced Splitting Options', () => {
     await expect(groupDetailPage.getExpenseByDescription('Shared groceries with exact amounts')).toBeVisible();
   });
 
-  test('should create expense with percentage split', async ({ page }) => {
+  test('should create expense with percentage split', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Percentage Split Test Group');
-    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -128,9 +127,9 @@ test.describe('Advanced Splitting Options', () => {
 
 
 
-  test('should handle split type changes correctly', async ({ page }) => {
+  test('should handle split type changes correctly', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
     await GroupWorkflow.createTestGroup(page, 'Split Type Change Test Group');
-    const groupDetailPage = new GroupDetailPage(page);
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
