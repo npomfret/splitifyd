@@ -1,7 +1,7 @@
-import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { GroupWorkflow } from '../workflows';
-import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupWorkflow } from '../../workflows';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();

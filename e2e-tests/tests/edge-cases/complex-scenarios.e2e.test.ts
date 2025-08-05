@@ -1,6 +1,6 @@
-import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { MultiUserWorkflow } from '../workflows/multi-user.workflow';
+import { test, expect } from '../../fixtures/base-test';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();

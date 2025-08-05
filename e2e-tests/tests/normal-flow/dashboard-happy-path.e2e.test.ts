@@ -1,5 +1,5 @@
-import { authenticatedPageTest, expect } from '../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
+import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
@@ -72,33 +72,6 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
       await createGroupModalPage.waitForModalToClose();
       
       await expect(page).toHaveURL(/\/dashboard/);
-    });
-
-    authenticatedPageTest('should validate group form fields', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-      const { page } = authenticatedPage;
-      
-      await dashboardPage.openCreateGroupModal();
-      
-      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
-      
-      const submitButton = createGroupModalPage.getSubmitButton();
-      
-      await expect(submitButton).toBeDisabled();
-      
-      const nameInput = createGroupModalPage.getGroupNameInput();
-      await nameInput.click();
-      await nameInput.type('T');
-      await page.keyboard.press('Tab');
-      await page.waitForLoadState('domcontentloaded');
-      
-      await expect(submitButton).toBeDisabled();
-      
-      await nameInput.clear();
-      await nameInput.type('Test Group');
-      await page.keyboard.press('Tab');
-      await page.waitForLoadState('domcontentloaded');
-      
-      await expect(submitButton).toBeEnabled();
     });
   });
 

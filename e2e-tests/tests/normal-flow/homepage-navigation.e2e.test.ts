@@ -1,7 +1,7 @@
 
-import { pageTest as test, expect } from '../fixtures/page-fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../helpers';
-import { SELECTORS } from '../constants/selectors';
+import { pageTest as test, expect } from '../../fixtures/page-fixtures';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
+import { SELECTORS } from '../../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();

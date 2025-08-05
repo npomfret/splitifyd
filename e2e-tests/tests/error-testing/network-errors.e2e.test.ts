@@ -1,12 +1,12 @@
-import { authenticatedPageTest as test, expect } from '../fixtures/authenticated-page-test';
+import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure,
   AuthenticationWorkflow
-} from '../helpers';
-import { GroupWorkflow } from '../workflows';
-import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
-import { SELECTORS } from '../constants/selectors';
+} from '../../helpers';
+import { GroupWorkflow } from '../../workflows';
+import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
+import { SELECTORS } from '../../constants/selectors';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();

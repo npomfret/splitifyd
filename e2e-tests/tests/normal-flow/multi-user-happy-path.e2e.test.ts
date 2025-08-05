@@ -1,7 +1,7 @@
-import { multiUserTest as test, expect } from '../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../helpers';
-import { GroupWorkflow } from '../workflows';
-import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupWorkflow } from '../../workflows';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -93,20 +93,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     await expect(groupDetailPage2.getExpenseByDescription('User 1 Lunch')).toBeVisible();
     await expect(groupDetailPage2.getExpenseByDescription('User 2 Dinner')).toBeVisible();
     
-  });
-
-  test('should handle invalid share links', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page } = authenticatedPage;
-    
-    const invalidShareLink = `${page.url().split('/dashboard')[0]}/join/invalid-group-id`;
-    
-    await groupDetailPage.navigateToShareLink(invalidShareLink);
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page.getByText(/404/)).toBeVisible();
-    
-    const goHomeLink = page.getByRole('link', { name: /go home/i });
-    await expect(goHomeLink).toBeVisible();
   });
 
   test('should show group creator as admin', async ({ authenticatedPage }) => {

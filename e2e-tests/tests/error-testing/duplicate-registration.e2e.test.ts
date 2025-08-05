@@ -1,7 +1,7 @@
-import { pageTest as test, expect } from '../fixtures/page-fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, fillPreactInput } from '../helpers';
-import { TIMEOUT_CONTEXTS } from '../config/timeouts';
-import { SELECTORS } from '../constants/selectors';
+import { pageTest as test, expect } from '../../fixtures/page-fixtures';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, fillPreactInput } from '../../helpers';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { SELECTORS } from '../../constants/selectors';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();

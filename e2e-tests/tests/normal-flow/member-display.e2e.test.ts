@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../helpers';
-import { TIMEOUT_CONTEXTS } from '../config/timeouts';
-import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../constants/selectors';
+import { test, expect } from '../../fixtures/base-test';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../../helpers';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();

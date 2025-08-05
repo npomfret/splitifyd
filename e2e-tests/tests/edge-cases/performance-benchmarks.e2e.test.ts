@@ -1,5 +1,5 @@
-import { pageTest as test, expect } from "../fixtures/page-fixtures";
-import { waitForApp, setupConsoleErrorReporting } from '../helpers';
+import { pageTest as test, expect } from "../../fixtures/page-fixtures";
+import { waitForApp, setupConsoleErrorReporting } from '../../helpers';
 
 setupConsoleErrorReporting();
 
