@@ -54,6 +54,9 @@ e2e-tests/playwright-report
 reports
 tmp
 
+
+# Playwright user pool persistence
+.playwright-user-pool.json
 # AI agents stuff
 CLAUDE.md
 GEMINI.md
@@ -76,6 +79,4 @@ directives
 .claude/commands/agent-list.md
 .claude/commands/mcp-list.md
 .claude/commands/p.md
-
-# Playwright user pool persistence
-.playwright-user-pool.json
+.claude/agents/meta-prompt.md
