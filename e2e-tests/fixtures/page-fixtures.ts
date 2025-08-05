@@ -5,7 +5,8 @@ import {
   HomepagePage, 
   PricingPage,
   DashboardPage,
-  GroupDetailPage
+  GroupDetailPage,
+  CreateGroupModalPage
 } from '../pages';
 
 // Define fixtures for pre-navigated pages
@@ -21,6 +22,7 @@ export interface PageFixtures {
   pricingPage: PricingPage;
   dashboardPage: DashboardPage;
   groupDetailPage: GroupDetailPage;
+  createGroupModalPage: CreateGroupModalPage;
 }
 
 export const pageTest = base.extend<PageFixtures>({
@@ -72,6 +74,10 @@ export const pageTest = base.extend<PageFixtures>({
   
   groupDetailPage: async ({ page }, use) => {
     await use(new GroupDetailPage(page));
+  },
+  
+  createGroupModalPage: async ({ page }, use) => {
+    await use(new CreateGroupModalPage(page));
   }
 });
 

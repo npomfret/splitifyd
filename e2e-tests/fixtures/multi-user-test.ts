@@ -9,7 +9,8 @@ import {
   HomepagePage, 
   PricingPage,
   DashboardPage,
-  GroupDetailPage
+  GroupDetailPage,
+  CreateGroupModalPage
 } from '../pages';
 
 export interface MultiUserFixtures {
@@ -23,6 +24,7 @@ export interface MultiUserFixtures {
     pricingPage: PricingPage;
     dashboardPage: DashboardPage;
     groupDetailPage: GroupDetailPage;
+    createGroupModalPage: CreateGroupModalPage;
   };
 }
 
@@ -46,6 +48,7 @@ export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
     const pricingPage = new PricingPage(page);
     const dashboardPage = new DashboardPage(page);
     const groupDetailPage = new GroupDetailPage(page);
+    const createGroupModalPage = new CreateGroupModalPage(page);
     
     try {
       await use({
@@ -56,7 +59,8 @@ export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
         homepagePage,
         pricingPage,
         dashboardPage,
-        groupDetailPage
+        groupDetailPage,
+        createGroupModalPage
       });
     } finally {
       // Clean up: release user and close context

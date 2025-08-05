@@ -5,7 +5,6 @@ import {
   AuthenticationWorkflow
 } from '../helpers';
 import { GroupWorkflow } from '../workflows';
-import { CreateGroupModalPage } from '../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../config/timeouts';
 import { SELECTORS } from '../constants/selectors';
 
@@ -14,7 +13,7 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Error Handling', () => {
-  test('displays error message when network fails during group creation', async ({ authenticatedPage, dashboardPage, context }) => {
+  test('displays error message when network fails during group creation', async ({ authenticatedPage, dashboardPage, createGroupModalPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers network errors
     test.info().annotations.push({ 
@@ -29,14 +28,14 @@ test.describe('Error Handling', () => {
     await context.route('**/groups', route => route.abort());
     
     // Try to create group while network is failing
-    const createGroupModal = new CreateGroupModalPage(page);
+    
     
     await dashboardPage.openCreateGroupModal();
-    await expect(createGroupModal.isOpen()).resolves.toBe(true);
+    await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
     
     // Fill and submit form
-    await createGroupModal.fillGroupForm('Network Test Group', 'Testing network error handling');
-    await createGroupModal.submitForm();
+    await createGroupModalPage.fillGroupForm('Network Test Group', 'Testing network error handling');
+    await createGroupModalPage.submitForm();
     
     // Wait for error handling
     await page.waitForLoadState('networkidle');
@@ -46,16 +45,16 @@ test.describe('Error Handling', () => {
     await expect(errorText.first()).toBeVisible();
     
     // Verify modal is still open (error didn't crash the UI)
-    await expect(createGroupModal.isOpen()).resolves.toBe(true);
+    await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
   });
 
-  test('prevents form submission with invalid data', async ({ authenticatedPage, dashboardPage }) => {
+  test('prevents form submission with invalid data', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
     const { page } = authenticatedPage;
     // Already authenticated via fixture
-    const createGroupModal = new CreateGroupModalPage(page);
+    
     
     await dashboardPage.openCreateGroupModal();
-    await expect(createGroupModal.isOpen()).resolves.toBe(true);
+    await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
     
     // Try to submit empty form
     const submitButton = page.locator(SELECTORS.FORM).getByRole('button', { name: 'Create Group' });
@@ -65,7 +64,7 @@ test.describe('Error Handling', () => {
     await expect(submitButton).toBeDisabled();
     
     // Fill with valid data and verify form can be submitted
-    await createGroupModal.fillGroupForm('Valid Group Name', 'Valid description');
+    await createGroupModalPage.fillGroupForm('Valid Group Name', 'Valid description');
     
     // Button should now be enabled
     await expect(submitButton).toBeEnabled();
@@ -75,7 +74,7 @@ test.describe('Error Handling', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
   });
 
-  test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, context }) => {
+  test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, createGroupModalPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers server errors
     test.info().annotations.push({ 
@@ -94,11 +93,11 @@ test.describe('Error Handling', () => {
       });
     });
     
-    const createGroupModal = new CreateGroupModalPage(page);
+    
     
     await dashboardPage.openCreateGroupModal();
-    await createGroupModal.fillGroupForm('Server Error Test', 'Testing 500 error');
-    await createGroupModal.submitForm();
+    await createGroupModalPage.fillGroupForm('Server Error Test', 'Testing 500 error');
+    await createGroupModalPage.submitForm();
     
     await page.waitForLoadState('networkidle');
     
@@ -107,7 +106,7 @@ test.describe('Error Handling', () => {
     await expect(errorIndication.first()).toBeVisible();
     
     // Modal should remain open
-    await expect(createGroupModal.isOpen()).resolves.toBe(true);
+    await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
   });
 
   test('handles malformed API responses', async ({ authenticatedPage, context }) => {
@@ -173,7 +172,7 @@ test.describe('Error Handling', () => {
     await context2.close();
   });
 
-  test('handles API timeouts appropriately', async ({ authenticatedPage, dashboardPage, context }) => {
+  test('handles API timeouts appropriately', async ({ authenticatedPage, dashboardPage, createGroupModalPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test simulates timeout scenarios
     test.info().annotations.push({ 
@@ -190,13 +189,13 @@ test.describe('Error Handling', () => {
       await route.fulfill({ status: 408, body: 'Request Timeout' });
     });
     
-    const createGroupModal = new CreateGroupModalPage(page);
+    
     
     await dashboardPage.openCreateGroupModal();
-    await createGroupModal.fillGroupForm('Timeout Test Group');
+    await createGroupModalPage.fillGroupForm('Timeout Test Group');
     
     // Start the submission (will timeout) and wait for expected UI state changes
-    const submitPromise = createGroupModal.submitForm();
+    const submitPromise = createGroupModalPage.submitForm();
     const buttonReenabledPromise = page.waitForFunction((selector) => {
       const button = document.querySelector(`${selector}:not([disabled])`);
       return button && button.textContent?.includes('Create Group');
@@ -210,7 +209,7 @@ test.describe('Error Handling', () => {
     expect(isSubmitButtonEnabled).toBe(true); // Button should be re-enabled after timeout
 
     // Modal should still be open
-    await expect(createGroupModal.isOpen()).resolves.toBe(true);
+    await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
     
     // Cancel the test to avoid waiting 10 seconds
     await page.keyboard.press('Escape');

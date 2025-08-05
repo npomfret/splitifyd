@@ -48,6 +48,7 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(rm:*)",
+      "Task",
       "WebFetch",
       "mcp__context-provider__*",
       "mcp__context7__*",
