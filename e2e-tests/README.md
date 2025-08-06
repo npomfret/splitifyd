@@ -254,25 +254,33 @@ src/tests/
 
 ## Best Practices
 
-### DO ✅
+### ✅ Encouraged Practices
 
-- Use fixtures for authentication and page objects
-- Verify page state before and after actions
-- Use semantic selectors (role, label, text)
-- Handle Preact inputs with `fillPreactInput()`
-- Clean up resources in test teardown
-- Write descriptive test names
-- Group related tests with `describe` blocks
+- **Use Fixtures**: Always use fixtures for authentication, page objects, and managing test state.
+- **Verify State**: Explicitly verify page state (e.g., URL, visibility of elements) before and after every action.
+- **Semantic Selectors**: Prefer user-facing selectors like `getByRole`, `getByLabel`, `getByText`.
+- **Use `fillPreactInput()`**: Always use the custom `fillPreactInput()` method for form fields to ensure Preact's signal-based state updates correctly.
+- **Atomic & Idempotent Tests**: Each test should be self-contained, create its own data, and clean up after itself to ensure it can run independently and in parallel.
+- **Descriptive Naming**: Write clear, descriptive test names that explain what the test does.
+- **Logical Grouping**: Group related tests using `describe` blocks.
+- **Single, Deterministic Path**: A test should have one clear purpose and a single execution path.
 
-### DON'T ❌
+### ❌ Prohibited Practices
 
-- Use bare `test()` - always use fixtures
-- Assume browser state from previous tests
-- Hard-code timeouts - use `waitFor` conditions
-- Manually authenticate - use fixtures
-- Create page objects inside tests - use fixtures
-- Use arbitrary selectors - prefer semantic ones
-- Leave console.log statements in production code
+- **Ignoring Console Errors**: Console errors MUST fail every test, except for tests specifically designed to assert those errors.
+- **Code Duplication**:
+    - **Redundant Setup**: Abstract common setup or user "journeys" into shared fixtures or page object methods.
+    - **Redundant Behavior**: Avoid re-testing the same feature repeatedly. Focus on distinct scenarios.
+- **State Dependency & Ambiguity**:
+    - **Test Inter-dependence**: Tests MUST set up their own state completely and MUST NOT rely on the state left by another test.
+    - **Conditional Logic**: A test must be deterministic. The following are strictly forbidden as they indicate a test is confused about the application's state:
+        - `if/else` blocks.
+        - `try/catch` blocks to try one action and then another.
+        - Regex patterns with `|` (OR) to match multiple possible outcomes.
+- **Skipped or Commented-Out Tests**: `test.skip()` or commented-out tests are NOT ALLOWED. All checked-in tests must run.
+- **Future-Facing Tests**: Tests for features that do not yet exist in the application are NOT ALLOWED.
+- **Manual State Management**: Do not manually authenticate or create page objects inside tests; use the provided fixtures.
+- **Hard-coded Waits**: Do not use `waitForTimeout()`. Use web-first assertions and explicit `waitFor` conditions.
 
 ## Debugging
 
