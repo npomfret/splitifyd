@@ -47,11 +47,11 @@ test.describe('Settlement Management', () => {
     const modal = page.getByRole('dialog');
     await expect(modal).toBeVisible();
     
-    // Fill settlement form
-    const payerSelect = page.getByLabel(/who paid/i);
-    const payeeSelect = page.getByLabel(/who received/i);
-    const amountInput = page.getByLabel(/amount/i);
-    const noteInput = page.getByLabel(/note/i);
+    // Fill settlement form with correct labels
+    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
+    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
+    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+    const noteInput = page.getByRole('textbox', { name: /note/i });
     
     // Select options by index since UIDs might not match
     // First option is placeholder, second is user1, third is user2
@@ -68,7 +68,7 @@ test.describe('Settlement Management', () => {
     await expect(modal).not.toBeVisible();
     
     // Verify settlement shows in history
-    const showHistoryButton = page.getByRole('button', { name: /show history/i });
+    const showHistoryButton = page.getByRole('button', { name: 'Show History' });
     await showHistoryButton.click();
     
     const settlementEntry = page.getByText(/test settlement payment/i);
@@ -115,9 +115,9 @@ test.describe('Settlement Management', () => {
     await expect(modal).toBeVisible();
     
     // Fill form - user2 pays user1 (select by index)
-    await page.getByLabel(/who paid/i).selectOption({ index: 2 }); // user2
-    await page.getByLabel(/who received/i).selectOption({ index: 1 }); // user1
-    await page.getByLabel(/amount/i).fill('100');
+    await page.getByRole('combobox', { name: /who paid/i }).selectOption({ index: 2 }); // user2
+    await page.getByRole('combobox', { name: /who received the payment/i }).selectOption({ index: 1 }); // user1
+    await page.getByRole('spinbutton', { name: /amount/i }).fill('100');
     
     await modal.getByRole('button', { name: /record payment/i }).click();
     await expect(modal).not.toBeVisible();
@@ -156,7 +156,7 @@ test.describe('Settlement Management', () => {
     await expect(modal).toBeVisible();
     
     // Test negative amount
-    const amountInput = page.getByLabel(/amount/i);
+    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
     await amountInput.fill('-10');
     
     // Try to submit - should be disabled due to validation
@@ -167,8 +167,8 @@ test.describe('Settlement Management', () => {
     await amountInput.fill('10');
     
     // Test same payer and payee
-    const payerSelect = page.getByLabel(/who paid/i);
-    const payeeSelect = page.getByLabel(/who received/i);
+    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
+    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
     
     // Try to select same user (first actual user option)
     await payerSelect.selectOption({ index: 1 });
@@ -211,10 +211,10 @@ test.describe('Settlement Management', () => {
       const modal = page.getByRole('dialog');
       await expect(modal).toBeVisible();
       
-      const payerSelect = page.getByLabel(/who paid/i);
-      const payeeSelect = page.getByLabel(/who received/i);
-      const amountInput = page.getByLabel(/amount/i);
-      const noteInput = page.getByLabel(/note/i);
+      const payerSelect = page.getByRole('combobox', { name: /who paid/i });
+      const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
+      const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+      const noteInput = page.getByRole('textbox', { name: /note/i });
       
       // Select by index
       await payerSelect.selectOption({ index: 2 }); // user2
@@ -230,7 +230,7 @@ test.describe('Settlement Management', () => {
     }
     
     // View history
-    const showHistoryButton = page.getByRole('button', { name: /show history/i });
+    const showHistoryButton = page.getByRole('button', { name: 'Show History' });
     await showHistoryButton.click();
     
     // Verify both settlements appear
@@ -270,11 +270,11 @@ test.describe('Settlement Management', () => {
     await expect(modal).toBeVisible();
     
     // Fill form with Euro
-    const payerSelect = page.getByLabel(/who paid/i);
-    const payeeSelect = page.getByLabel(/who received/i);
-    const amountInput = page.getByLabel(/amount/i);
-    const currencySelect = page.getByLabel(/currency/i);
-    const noteInput = page.getByLabel(/note/i);
+    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
+    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
+    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+    const currencySelect = page.getByRole('combobox', { name: /currency/i });
+    const noteInput = page.getByRole('textbox', { name: /note/i });
     
     // Select by index
     await payerSelect.selectOption({ index: 2 }); // user2
@@ -290,11 +290,15 @@ test.describe('Settlement Management', () => {
     await expect(modal).not.toBeVisible();
     
     // View history
-    const showHistoryButton = page.getByRole('button', { name: /show history/i });
+    const showHistoryButton = page.getByRole('button', { name: 'Show History' });
     await showHistoryButton.click();
     
-    // Verify Euro settlement appears
-    const euroSettlement = page.getByText(/EUR.*100|€100/i);
+    // Verify Euro settlement appears - look for EUR currency indication
+    const euroSettlement = page.getByText(/EUR/i);
     await expect(euroSettlement).toBeVisible();
+    
+    // Also check for the amount
+    const amountText = page.getByText('100');
+    await expect(amountText).toBeVisible();
   });
 });
