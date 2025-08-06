@@ -37,19 +37,12 @@ export abstract class BasePage {
   async fillPreactInput(selector: string | Locator, value: string) {
     const input = typeof selector === 'string' ? this.page.locator(selector) : selector;
     
-    // Focus the input
     await input.click();
-    
-    // Clear existing content
     await input.fill('');
-    
-    // Validate that the field was successfully cleared
     await this.validateInputValue(input, '');
     
-    // Use pressSequentially which is more reliable than typing character by character
+    await input.click();
     await input.pressSequentially(value);
-    
-    // Validate that the field contains the expected value
     await this.validateInputValue(input, value);
   }
   

@@ -2,10 +2,7 @@ import { Page } from '@playwright/test';
 import { RegisterPage } from '../pages/register.page';
 import { LoginPage } from '../pages/login.page';
 import { DashboardPage } from '../pages/dashboard.page';
-import { TestUser } from '../helpers/auth-utils';
-
-// Re-export TestUser for other workflow files
-export type { TestUser };
+import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
 /**
  * Authentication workflow class that handles user creation and login flows.
@@ -18,7 +15,7 @@ export class AuthenticationWorkflow {
    * Creates a new test user and logs them in.
    * This replaces the createAndLoginTestUser helper function.
    */
-  async createAndLoginTestUser(): Promise<TestUser> {
+  async createAndLoginTestUser(): Promise<BaseUser> {
     // Generate test user data with high uniqueness including process-level randomness
     const timestamp = Date.now();
     const randomSuffix = Math.floor(Math.random() * 10000);
@@ -49,7 +46,7 @@ export class AuthenticationWorkflow {
    * Logs in an existing test user (for use with user pool)
    * Expects to start from a clean state - will fail fast if not
    */
-  async loginExistingUser(user: TestUser): Promise<void> {
+  async loginExistingUser(user: BaseUser): Promise<void> {
     const loginPage = new LoginPage(this.page);
     await loginPage.navigate();
     
@@ -66,7 +63,7 @@ export class AuthenticationWorkflow {
    * Static convenience method for backward compatibility.
    * Use instance method for better testability and page object encapsulation.
    */
-  static async createTestUser(page: Page): Promise<TestUser> {
+  static async createTestUser(page: Page): Promise<BaseUser> {
     const workflow = new AuthenticationWorkflow(page);
     return workflow.createAndLoginTestUser();
   }

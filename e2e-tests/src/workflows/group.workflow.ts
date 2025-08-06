@@ -1,11 +1,12 @@
 import { Page } from '@playwright/test';
 import { DashboardPage } from '../pages/dashboard.page';
-import { AuthenticationWorkflow, TestUser } from './authentication.workflow';
+import { AuthenticationWorkflow } from './authentication.workflow';
+import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
 export interface TestGroup {
   name: string;
   description?: string;
-  user: TestUser;
+  user: BaseUser;
 }
 
 /**

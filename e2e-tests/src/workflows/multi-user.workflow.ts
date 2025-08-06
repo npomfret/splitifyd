@@ -1,14 +1,15 @@
 import { Page, expect } from '@playwright/test';
-import { AuthenticationWorkflow, TestUser } from './authentication.workflow';
+import { AuthenticationWorkflow } from './authentication.workflow';
 import { GroupDetailPage, DashboardPage } from '../pages/index';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
 /**
  * Multi-user workflow class that handles complex multi-user test scenarios.
  * Encapsulates the creation of multiple users, groups, and collaborative operations.
  */
 export class MultiUserWorkflow {
-  private users: Array<{ page: Page; user: TestUser }> = [];
+  private users: Array<{ page: Page; user: BaseUser }> = [];
   private groupId?: string;
   private expenses: Array<{ description: string; amount: number; paidBy: string }> = [];
   private shareLink?: string;
@@ -19,7 +20,7 @@ export class MultiUserWorkflow {
    * Adds a new test user to the workflow.
    * Creates a new browser context and authenticates the user.
    */
-  async addUser(): Promise<{ page: Page; user: TestUser }> {
+  async addUser(): Promise<{ page: Page; user: BaseUser }> {
     const context = await this.browser.newContext();
     const page = await context.newPage();
     const user = await AuthenticationWorkflow.createTestUser(page);
@@ -107,7 +108,7 @@ export class MultiUserWorkflow {
   /**
    * Gets all users in the workflow.
    */
-  getUsers(): Array<{ page: Page; user: TestUser }> {
+  getUsers(): Array<{ page: Page; user: BaseUser }> {
     return this.users;
   }
 

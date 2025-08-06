@@ -8,7 +8,7 @@ describe('Hardcoded Values Validation', () => {
     
     // Exceptions: this test file and documentation/IDE files
     const exceptions = [
-      'firebase/functions/__tests__/hardcoded-values.test.ts',
+      'e2e-tests/src/__tests__/hardcoded-values.test.ts',
       'firebase/.firebaserc',
       'webapp/esbuild.config.js',
       'package.json',

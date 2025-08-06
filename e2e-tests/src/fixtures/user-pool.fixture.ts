@@ -1,10 +1,10 @@
 import { Page } from '@playwright/test';
-import { TestUser } from '../helpers/auth-utils';
 import { TIMEOUTS } from '../config/timeouts';
+import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
 export interface PooledUser {
   id: string;
-  user: TestUser;
+  user: BaseUser;
   inUse: boolean;
   claimedBy?: string;
   claimedAt?: Date;
@@ -41,7 +41,7 @@ export class UserPool {
     if (process.env.PLAYWRIGHT_USER_POOL) {
       try {
         console.log('Loading user pool from environment variable...');
-        const users = JSON.parse(process.env.PLAYWRIGHT_USER_POOL) as TestUser[];
+        const users = JSON.parse(process.env.PLAYWRIGHT_USER_POOL) as BaseUser[];
         
         for (let i = 0; i < users.length; i++) {
           const pooledUser: PooledUser = {
@@ -82,7 +82,7 @@ export class UserPool {
     console.log(`Pre-warming user pool with ${this.config.preWarmCount} users...`);
     
     // Create users sequentially to avoid resource contention
-    const createdUsers: TestUser[] = [];
+    const createdUsers: BaseUser[] = [];
     for (let i = 0; i < this.config.preWarmCount; i++) {
       const pooledUser = await this.createPooledUser(`prewarm-${i}`);
       createdUsers.push(pooledUser.user);
@@ -100,7 +100,7 @@ export class UserPool {
   /**
    * Atomically claim a user from the pool
    */
-  async claimUser(testId: string): Promise<TestUser> {
+  async claimUser(testId: string): Promise<BaseUser> {
     // Find available user
     const availableUser = this.findAvailableUser();
     
@@ -233,7 +233,7 @@ export class UserPool {
     // Wait for logout to complete - should redirect to login or home
     await this.creationPage.waitForURL(url => !url.toString().includes('/dashboard'), { timeout: TIMEOUTS.EXTENDED * 2 });
     
-    const user: TestUser = {
+    const user: BaseUser = {
       uid: uniqueId,
       email,
       displayName
