@@ -175,6 +175,50 @@ export interface UpdateExpenseRequest {
 }
 
 
+// Settlement Types
+export interface Settlement {
+  id: string;
+  groupId: string;
+  payerId: string;
+  payeeId: string;
+  amount: number;
+  currency: string;
+  date: string;  // ISO string
+  note?: string | undefined;
+  createdBy: string;
+  createdAt: string;  // ISO string
+  updatedAt: string;  // ISO string
+}
+
+export interface CreateSettlementRequest {
+  groupId: string;
+  payerId: string;
+  payeeId: string;
+  amount: number;
+  currency: string;
+  date?: string;  // ISO string, defaults to today
+  note?: string;
+}
+
+export interface UpdateSettlementRequest {
+  amount?: number;
+  currency?: string;
+  date?: string;
+  note?: string;
+}
+
+export interface SettlementListItem {
+  id: string;
+  groupId: string;
+  payer: User;
+  payee: User;
+  amount: number;
+  currency: string;
+  date: string;
+  note?: string;
+  createdAt: string;
+}
+
 // Balance calculation types
 export interface SimplifiedDebt {
   from: {
@@ -184,6 +228,7 @@ export interface SimplifiedDebt {
     userId: string;
   };
   amount: number;
+  currency?: string;  // Add currency support for multi-currency groups
 }
 
 export interface GroupBalances {

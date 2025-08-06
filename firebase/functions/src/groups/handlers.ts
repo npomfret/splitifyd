@@ -173,6 +173,8 @@ const fetchGroupWithAccess = async (
   }
 
   // User doesn't have access to this group
+  // SECURITY: Return 404 instead of 403 to prevent information disclosure.
+  // This prevents attackers from enumerating valid group IDs.
   throw Errors.NOT_FOUND('Group');
 };
 

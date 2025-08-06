@@ -15,7 +15,10 @@ import type {
   GroupBalances,
   ExpenseData,
   AppConfiguration,
-  CreateExpenseRequest
+  CreateExpenseRequest,
+  CreateSettlementRequest,
+  Settlement,
+  SettlementListItem
 } from '@shared/types/webapp-shared-types';
 
 // Define HealthCheckResponse locally since it's not in shared types
@@ -406,6 +409,63 @@ export class ApiClient {
     return this.request('/expenses', {
       method: 'DELETE',
       query: { id: expenseId }
+    });
+  }
+
+  async createSettlement(data: CreateSettlementRequest): Promise<Settlement> {
+    const response = await this.request<{ success: boolean; data: Settlement }>('/settlements', {
+      method: 'POST',
+      body: data
+    });
+    return response.data;
+  }
+
+  async getSettlement(settlementId: string): Promise<SettlementListItem> {
+    return this.request('/settlements/:settlementId', {
+      method: 'GET',
+      params: { settlementId }
+    });
+  }
+
+  async listSettlements(
+    groupId: string, 
+    limit?: number, 
+    cursor?: string,
+    userId?: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<{ 
+    settlements: SettlementListItem[]; 
+    count: number;
+    hasMore: boolean; 
+    nextCursor?: string 
+  }> {
+    const query: Record<string, string> = { groupId };
+    if (limit !== undefined) query.limit = limit.toString();
+    if (cursor !== undefined) query.cursor = cursor;
+    if (userId !== undefined) query.userId = userId;
+    if (startDate !== undefined) query.startDate = startDate;
+    if (endDate !== undefined) query.endDate = endDate;
+    
+    const response = await this.request<{ success: boolean; data: { settlements: SettlementListItem[]; count: number; hasMore: boolean; nextCursor?: string } }>('/settlements', {
+      method: 'GET',
+      query
+    });
+    return response.data;
+  }
+
+  async updateSettlement(settlementId: string, data: Partial<CreateSettlementRequest>): Promise<Settlement> {
+    return this.request('/settlements/:settlementId', {
+      method: 'PUT',
+      params: { settlementId },
+      body: data
+    });
+  }
+
+  async deleteSettlement(settlementId: string): Promise<{ message: string }> {
+    return this.request('/settlements/:settlementId', {
+      method: 'DELETE',
+      params: { settlementId }
     });
   }
 
