@@ -114,7 +114,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     
     // Refresh first user's page to see new member
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     // Add expense paid by first user
     await groupDetailPage.addExpense({
@@ -151,8 +151,8 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     try {
       // Try waiting for either condition (5 second timeout)
       await Promise.race([
-        balanceSection.getByText(/owes/, { exact: false }).first().waitFor({ timeout: 5000 }),
-        balanceSection.getByText('All settled up!').waitFor({ timeout: 5000 })
+        balanceSection.getByText(/owes/, { exact: false }).first().waitFor(),
+        balanceSection.getByText('All settled up!').waitFor()
       ]);
     } catch {
       // If neither appears, let's see what's actually in the balance section
@@ -193,7 +193,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     // Add large expense
     await groupDetailPage.addExpense({
@@ -216,8 +216,8 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     // Wait for balance state to appear
     try {
       await Promise.race([
-        balanceSection.getByText(/owes/, { exact: false }).first().waitFor({ timeout: 5000 }),
-        balanceSection.getByText('All settled up!').waitFor({ timeout: 5000 })
+        balanceSection.getByText(/owes/, { exact: false }).first().waitFor(),
+        balanceSection.getByText('All settled up!').waitFor()
       ]);
     } catch {
       // Continue if neither appears - let test verify the counts
@@ -269,13 +269,9 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
       splitType: 'equal'
     });
     
-    // After first expense, should show some balance state
-    const balanceSection = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Balances' }) });
-    
-    // Get initial balance state (could be debts or settled up)
-    const initialDebts = await balanceSection.getByText(/owes/, { exact: false }).count();
-    const initialSettled = await balanceSection.getByText('All settled up!').count();
-    const initialState = `debts:${initialDebts},settled:${initialSettled}`;
+    // Verify balances heading is visible after first expense
+    const balancesHeading = page.getByRole('heading', { name: 'Balances' });
+    await multiUserExpected(balancesHeading).toBeVisible();
     
     // Add another expense to see balance update
     await groupDetailPage.addExpense({
@@ -289,20 +285,20 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
     
+    // Verify balances heading is still visible after reload
+    await multiUserExpected(balancesHeading).toBeVisible();
+    
+    const balanceSection = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Balances' }) });
+    
     // Wait for balance state to appear after reload (not loading)
-    try {
-      await Promise.race([
-        balanceSection.getByText(/owes/, { exact: false }).first().waitFor({ timeout: 5000 }),
-        balanceSection.getByText('All settled up!').waitFor({ timeout: 5000 })
-      ]);
-    } catch {
-      // Continue if neither appears immediately
-    }
+    await Promise.race([
+      balanceSection.getByText(/owes/, { exact: false }).first().waitFor(),
+      balanceSection.getByText('All settled up!').waitFor()
+    ]);
     
     const updatedDebts = await balanceSection.getByText(/owes/, { exact: false }).count();
     const updatedSettled = await balanceSection.getByText('All settled up!').count();
-    const updatedState = `debts:${updatedDebts},settled:${updatedSettled}`;
-    
+
     // Balance system should be functional (show either debts or settled up, not loading)
     multiUserExpected(updatedDebts + updatedSettled).toBeGreaterThan(0);
     
@@ -332,7 +328,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     // Add expense
     await groupDetailPage.addExpense({
@@ -356,8 +352,8 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     // Wait for balance state to appear (not loading)
     try {
       await Promise.race([
-        balanceSection.getByText(/owes/, { exact: false }).first().waitFor({ timeout: 5000 }),
-        balanceSection.getByText('All settled up!').waitFor({ timeout: 5000 })
+        balanceSection.getByText(/owes/, { exact: false }).first().waitFor(),
+        balanceSection.getByText('All settled up!').waitFor()
       ]);
     } catch {
       // Continue if neither appears immediately

@@ -75,6 +75,11 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
 
   const expense = doc.data() as Expense;
 
+  // Check if the expense is soft-deleted
+  if (expense.deletedAt) {
+    throw Errors.NOT_FOUND('Expense');
+  }
+
   // Single authorization check: fetch group once and verify access
   const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
   

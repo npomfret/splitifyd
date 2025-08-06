@@ -114,21 +114,27 @@ test.describe('Settlement Management', () => {
     const modal = page.getByRole('dialog');
     await expect(modal).toBeVisible();
     
-    // Fill form - user2 pays user1 (be explicit about amounts and users)
+    // Fill form - user2 pays user1 (user2 owes money from the expense)
     const payerSelect = page.getByRole('combobox', { name: /who paid/i });
     const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
     const amountInput = page.getByRole('spinbutton', { name: /amount/i });
     
-    // Select the users properly (payer should be the one who owes money)
-    await payerSelect.selectOption({ index: 1 }); // First actual user option
-    await payeeSelect.selectOption({ index: 1 }); // First available option (different from payer due to filtering)
+    // Select the users properly: user2 (who owes money) pays user1 (who is owed money)
+    await payerSelect.selectOption({ index: 2 }); // user2 (second user)
+    await payeeSelect.selectOption({ index: 1 }); // user1 (first user)
     await amountInput.fill('100');
     
     await modal.getByRole('button', { name: /record payment/i }).click();
     await expect(modal).not.toBeVisible();
     
-    // Verify balance changed
+    // Verify balance changed after settlement
     await page.reload();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for balance data to load after settlement
+    const balanceSection = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Balances' }) });
+    await expect(balanceSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 10000 });
+    
     const updatedBalanceText = await page.getByText(/owes|owed|settled/i).first().textContent();
     expect(updatedBalanceText).not.toBe(initialBalanceText);
   });
