@@ -10,6 +10,7 @@ import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar, CategorySuggestionInput } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { logError } from '../utils/error-logger';
+import { BaseLayout } from '../components/layout/BaseLayout';
 
 interface AddExpensePageProps {
   groupId?: string;
@@ -218,13 +219,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   // Show loading while initializing
   if (!isInitialized.value || loading.value) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <LoadingSpinner size="lg" />
-      </div>
+      <BaseLayout title="Loading... - Splitifyd">
+        <div className="container mx-auto px-4 py-8">
+          <LoadingSpinner size="lg" />
+        </div>
+      </BaseLayout>
     );
   }
   
-  // Redirect if no group found
   if (!group.value) {
     route('/dashboard');
     return null;
@@ -237,25 +239,32 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   }, {} as Record<string, typeof members[0]>);
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex flex-row items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {isEditMode ? 'Edit Expense' : 'Add Expense'}
-            </h1>
-            <Button variant="ghost" onClick={handleCancel}>
-              Cancel
-            </Button>
+    <BaseLayout
+      title={`${isEditMode ? 'Edit Expense' : 'Add Expense'} - ${group.value.name} - Splitifyd`}
+      description={`${isEditMode ? 'Edit expense' : 'Add a new expense'} in ${group.value.name}`}
+      headerVariant="dashboard"
+    >
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Page Header Section */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {isEditMode ? 'Edit Expense' : 'Add Expense'}
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {group.value.name}
+                </p>
+              </div>
+              <Button variant="ghost" onClick={handleCancel}>
+                Cancel
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {group.value.name}
-          </p>
         </div>
-      </div>
-      
-      {/* Form */}
+        
+        {/* Form Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         <form onSubmit={handleSubmit}>
           <Stack spacing="md">
@@ -742,5 +751,6 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         </form>
       </div>
     </div>
+    </BaseLayout>
   );
 }
