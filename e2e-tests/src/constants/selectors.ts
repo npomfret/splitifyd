@@ -28,9 +28,6 @@ export const SELECTORS = {
   MAIN: 'main',
   NAV: 'nav',
   MODAL_OVERLAY: '.fixed.inset-0',
-  
-  // User interface
-  USER_MENU_BUTTON: (displayName: string) => `button:has-text("${displayName}")`,
 } as const;
 
 export const ARIA_ROLES = {

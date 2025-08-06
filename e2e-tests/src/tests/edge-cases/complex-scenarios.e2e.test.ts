@@ -7,7 +7,7 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Complex Unsettled Group Scenario', () => {
-  test('create group with multiple people and expenses that is NOT settled', async ({ page, browser }) => {
+  test('create group with multiple people and expenses that is NOT settled', async ({ browser }) => {
     // Initialize multi-user workflow with clean browser state
     const workflow = new MultiUserWorkflow(browser);
     
@@ -22,7 +22,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     await expect(bobPage).toHaveURL(/\/dashboard/);
     
     // Create group with Alice
-    const groupId = await workflow.createGroupWithFirstUser('Vacation Trip 2024', 'Beach house rental and activities');
+    await workflow.createGroupWithFirstUser('Vacation Trip 2024', 'Beach house rental and activities');
     
     // Verify Alice navigated to the new group page
     await expect(alicePage).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

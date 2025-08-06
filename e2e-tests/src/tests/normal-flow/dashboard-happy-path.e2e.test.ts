@@ -39,9 +39,7 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
   });
 
   authenticatedPageTest.describe('Create Group Modal', () => {
-    authenticatedPageTest('should open create group modal', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-      const { page } = authenticatedPage;
-      
+    authenticatedPageTest('should open create group modal', async ({ dashboardPage, createGroupModalPage }) => {
       await dashboardPage.openCreateGroupModal();
       
       await expect(createGroupModalPage.isOpen()).resolves.toBe(true);

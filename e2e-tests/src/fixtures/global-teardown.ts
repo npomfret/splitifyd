@@ -1,7 +1,7 @@
 import { FullConfig } from '@playwright/test';
 import { getUserPool, resetUserPool } from './user-pool.fixture';
 
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown() {
   console.log('🧹 Starting e2e test global teardown...');
 
   try {

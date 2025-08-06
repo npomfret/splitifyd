@@ -1,4 +1,4 @@
-import { pageTest, expect } from '../../fixtures/page-fixtures';
+import { pageTest } from '../../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 
 // Enable MCP debugging for failed tests

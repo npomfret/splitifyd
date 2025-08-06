@@ -59,7 +59,7 @@ test.describe('Group Details E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test('should show group settings or options', async ({ authenticatedPage, groupDetailPage }) => {
+  test('should show group settings or options', async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

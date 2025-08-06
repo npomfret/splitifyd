@@ -6,7 +6,7 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   base: '/',
   plugins: [
     preact(),

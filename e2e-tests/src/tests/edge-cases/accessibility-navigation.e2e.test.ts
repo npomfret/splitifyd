@@ -8,7 +8,7 @@ setupConsoleErrorReporting();
 
 pageTest.describe('Form Accessibility', () => {
   pageTest('should navigate login form with keyboard', async ({ loginPageNavigated }) => {
-    const { page, loginPage } = loginPageNavigated;
+    const { page } = loginPageNavigated;
     
     // Focus should start at first input or be tabbable to it
     await page.keyboard.press('Tab');

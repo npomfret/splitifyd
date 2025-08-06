@@ -7,7 +7,7 @@ setupConsoleErrorReporting();
 test.describe('Performance Tests', () => {
   test('should load within reasonable time', async ({ homepageNavigated }) => {
     const startTime = Date.now();
-    const { page, homepagePage } = homepageNavigated;
+    const { page } = homepageNavigated;
     await waitForApp(page);
     const loadTime = Date.now() - startTime;
     

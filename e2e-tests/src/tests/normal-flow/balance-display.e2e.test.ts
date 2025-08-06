@@ -7,7 +7,7 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Balance and Settlement E2E', () => {
-  test('should display settled state for empty group', async ({ authenticatedPage, groupDetailPage }) => {
+  test('should display settled state for empty group', async ({ authenticatedPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup('Empty Balance Group');
@@ -28,7 +28,7 @@ test.describe('Balance and Settlement E2E', () => {
     await expect(page.getByText('No expenses yet. Add one to get started!')).toBeVisible();
   });
 
-  test('should calculate and display multi-user balances', async ({ authenticatedPage, groupDetailPage, browser }) => {
+  test('should calculate and display multi-user balances', async ({ authenticatedPage, groupDetailPage }) => {
     // This test uses the balance calculation from multi-user-collaboration.e2e.test.ts
     // to avoid duplication - it already tests multi-user balance display
     const { page, user } = authenticatedPage;

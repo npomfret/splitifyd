@@ -27,8 +27,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
-    const user2 = secondUser.user;
-    
+
     // Navigate to the share link directly - it contains the full path including query params
     await page2.goto(shareLink);
     

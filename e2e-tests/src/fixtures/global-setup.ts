@@ -2,7 +2,7 @@ import { chromium, FullConfig } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { HOSTING_PORT } from '../helpers/emulator-utils';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   console.log('🚀 Starting e2e test global setup...');
 
   // Create a browser for user pool initialization with same config as tests

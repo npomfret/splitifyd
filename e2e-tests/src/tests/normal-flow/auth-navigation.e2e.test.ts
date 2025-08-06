@@ -6,7 +6,7 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 pageTest.describe('Auth Navigation E2E', () => {
-  pageTest('should navigate between login and register pages', async ({ page, loginPage, registerPage }) => {
+  pageTest('should navigate between login and register pages', async ({ loginPage, registerPage }) => {
 
     // Go to login page
     await loginPage.navigate();

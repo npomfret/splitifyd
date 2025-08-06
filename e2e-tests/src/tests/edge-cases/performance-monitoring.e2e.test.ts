@@ -1,4 +1,3 @@
-import { test } from '@playwright/test';
 import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { SELECTORS } from '../../constants/selectors';
@@ -9,7 +8,7 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 pageTest.describe('Performance Monitoring E2E', () => {
-  pageTest('should load pages within acceptable time', async ({ page, homepagePage }) => {
+  pageTest('should load pages within acceptable time', async ({ homepagePage }) => {
     const startTime = Date.now();
     
     await homepagePage.navigate();

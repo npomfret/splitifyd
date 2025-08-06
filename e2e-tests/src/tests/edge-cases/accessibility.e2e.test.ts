@@ -7,7 +7,7 @@ setupConsoleErrorReporting();
 // Simplified accessibility test - just basic axe scan
 test.describe('Accessibility Tests', () => {
   test('should not have critical accessibility issues', async ({ homepageNavigated }) => {
-    const { page, homepagePage } = homepageNavigated;
+    const { page } = homepageNavigated;
     await waitForApp(page);
     
     // Run basic accessibility scan

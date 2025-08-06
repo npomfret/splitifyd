@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
-import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../../helpers/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 
 // Enable MCP debugging for failed tests
@@ -34,7 +34,7 @@ test.describe('Form Validation E2E', () => {
     });
 
     pageTest('should require both email and password', async ({ loginPageNavigated }) => {
-      const { page, loginPage } = loginPageNavigated;
+      const { loginPage } = loginPageNavigated;
       
       // Clear any pre-filled data
       const emailInput = loginPage.getEmailInput();
@@ -69,7 +69,7 @@ test.describe('Form Validation E2E', () => {
 
   test.describe('Register Form', () => {
     pageTest('should validate password confirmation match', async ({ registerPageNavigated }) => {
-      const { page, registerPage } = registerPageNavigated;
+      const { registerPage } = registerPageNavigated;
       
       // Fill form with mismatched passwords
       const nameInput = registerPage.getNameInputByType();

@@ -44,7 +44,7 @@ pageTest.describe('Form Behavior Edge Cases', () => {
   });
 
   pageTest('should trim whitespace from inputs', async ({ registerPageNavigated }) => {
-    const { page, registerPage } = registerPageNavigated;
+    const { registerPage } = registerPageNavigated;
     
     // Fill form with extra spaces
     const nameInput = registerPage.getNameInputByType();
