@@ -147,6 +147,8 @@ export interface ExpenseData {
   receiptUrl?: string;
   createdAt: string;  // ISO string
   updatedAt: string;  // ISO string
+  deletedAt: string | null;  // ISO string
+  deletedBy: string | null;
 }
 
 export interface CreateExpenseRequest {

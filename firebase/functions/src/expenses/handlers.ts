@@ -148,6 +148,8 @@ export const createExpense = async (
     memberIds,
     createdAt: Timestamp.fromDate(now),
     updatedAt: Timestamp.fromDate(now),
+    deletedAt: null,
+    deletedBy: null,
   };
 
   // Only add receiptUrl if it's defined
@@ -381,8 +383,11 @@ export const deleteExpense = async (
         throw new Error(`Group ${expense.groupId} not found`);
       }
       
-      // Delete the expense
-      transaction.delete(docRef);
+      // Soft delete the expense
+      transaction.update(docRef, {
+        deletedAt: Timestamp.now(),
+        deletedBy: userId
+      });
       
       const groupData = groupDoc.data();
       if (!groupData?.data) {
@@ -391,16 +396,18 @@ export const deleteExpense = async (
       
       // Note: Group metadata will be updated by the balance aggregation trigger
       
-      logger.info('Transaction: Deleting expense', {
+      logger.info('Transaction: Soft deleting expense', {
         expenseId,
-        groupId: expense.groupId
+        groupId: expense.groupId,
+        deletedBy: userId
       });
     });
 
-    logger.info('Expense deleted', {
+    logger.info('Expense soft deleted', {
       expenseId,
       groupId: expense.groupId,
-      userId
+      userId,
+      deletedBy: userId
     });
 
     res.json({
@@ -431,13 +438,19 @@ export const listGroupExpenses = async (
 
   const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
   const cursor = req.query.cursor as string;
+  const includeDeleted = req.query.includeDeleted === 'true';
 
   let query = getExpensesCollection()
     .where('groupId', '==', groupId)
-    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt')
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
+
+  // Filter out deleted expenses by default
+  if (!includeDeleted) {
+    query = query.where('deletedAt', '==', null);
+  }
 
   if (cursor) {
     try {
@@ -477,6 +490,8 @@ export const listGroupExpenses = async (
         receiptUrl: data.receiptUrl,
         createdAt: toISOString(data.createdAt),
         updatedAt: toISOString(data.updatedAt),
+        deletedAt: data.deletedAt ? toISOString(data.deletedAt) : null,
+        deletedBy: data.deletedBy || null,
       };
     });
 
@@ -507,13 +522,19 @@ export const listUserExpenses = async (
   const userId = validateUserAuth(req);
   const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
   const cursor = req.query.cursor as string;
+  const includeDeleted = req.query.includeDeleted === 'true';
 
   let query = getExpensesCollection()
     .where('memberIds', 'array-contains', userId)
-    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt')
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
+
+  // Filter out deleted expenses by default
+  if (!includeDeleted) {
+    query = query.where('deletedAt', '==', null);
+  }
 
   if (cursor) {
     try {
@@ -553,6 +574,8 @@ export const listUserExpenses = async (
         receiptUrl: data.receiptUrl,
         createdAt: toISOString(data.createdAt),
         updatedAt: toISOString(data.updatedAt),
+        deletedAt: data.deletedAt ? toISOString(data.deletedAt) : null,
+        deletedBy: data.deletedBy || null,
       };
     });
 

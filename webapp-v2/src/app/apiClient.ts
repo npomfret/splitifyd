@@ -377,13 +377,16 @@ export class ApiClient {
     });
   }
 
-  async getExpenses(groupId: string, limit?: number, cursor?: string): Promise<{ expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string }> {
+  async getExpenses(groupId: string, limit?: number, cursor?: string, includeDeleted?: boolean): Promise<{ expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string }> {
     const query: Record<string, string> = { groupId };
     if (limit !== undefined) {
       query.limit = limit.toString();
     }
     if (cursor !== undefined) {
       query.cursor = cursor;
+    }
+    if (includeDeleted !== undefined) {
+      query.includeDeleted = includeDeleted.toString();
     }
     return this.request('/expenses/group', {
       method: 'GET',

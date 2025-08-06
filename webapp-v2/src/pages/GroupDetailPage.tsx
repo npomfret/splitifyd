@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-// import { authStore } from '../app/stores/auth-store';
+import { authStore } from '../app/stores/auth-store';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
@@ -26,6 +26,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const showShareModal = useSignal(false);
   const showSettlementForm = useSignal(false);
   const showSettlementHistory = useSignal(false);
+  const showDeletedExpenses = useSignal(false);
 
   // Computed values from store
   const group = useComputed(() => groupDetailStore.group);
@@ -34,7 +35,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const members = useComputed(() => group.value?.members || []);
   const loading = useComputed(() => groupDetailStore.loading);
   const error = useComputed(() => groupDetailStore.error);
-  // const currentUser = useComputed(() => authStore.user);
+  const currentUser = useComputed(() => authStore.user);
+  const isGroupOwner = useComputed(() => 
+    currentUser.value && group.value && group.value.createdBy === currentUser.value.uid
+  );
 
 
   // Fetch group data on mount
@@ -176,6 +180,12 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             loading={groupDetailStore.loadingExpenses}
             onLoadMore={() => groupDetailStore.loadMoreExpenses()}
             onExpenseClick={handleExpenseClick}
+            isGroupOwner={isGroupOwner.value ?? false}
+            showDeletedExpenses={showDeletedExpenses.value}
+            onShowDeletedChange={(show) => {
+              showDeletedExpenses.value = show;
+              groupDetailStore.refetchExpenses(show);
+            }}
           />
 
           {/* Settlement History Section */}

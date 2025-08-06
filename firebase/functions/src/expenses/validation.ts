@@ -26,6 +26,8 @@ export interface Expense {
   receiptUrl?: string;
   createdAt: admin.firestore.Timestamp | Date;
   updatedAt: admin.firestore.Timestamp | Date;
+  deletedAt: admin.firestore.Timestamp | null;
+  deletedBy: string | null;
 }
 
 const expenseSplitSchema = Joi.object({

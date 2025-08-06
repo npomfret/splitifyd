@@ -14,9 +14,10 @@ export interface GroupDetailStore {
   expenseCursor: string | null;
   
   fetchGroup(id: string): Promise<void>;
-  fetchExpenses(cursor?: string): Promise<void>;
+  fetchExpenses(cursor?: string, includeDeleted?: boolean): Promise<void>;
   fetchBalances(): Promise<void>;
   loadMoreExpenses(): Promise<void>;
+  refetchExpenses(includeDeleted?: boolean): Promise<void>;
   reset(): void;
   refreshAll(): Promise<void>;
 }
@@ -65,7 +66,7 @@ class GroupDetailStoreImpl implements GroupDetailStore {
     }
   }
 
-  async fetchExpenses(cursor?: string): Promise<void> {
+  async fetchExpenses(cursor?: string, includeDeleted?: boolean): Promise<void> {
     if (!groupSignal.value) return;
 
     loadingExpensesSignal.value = true;
@@ -75,7 +76,8 @@ class GroupDetailStoreImpl implements GroupDetailStore {
       const response = await apiClient.getExpenses(
         groupSignal.value.id,
         20, // Load 20 expenses at a time
-        cursor
+        cursor,
+        includeDeleted
       );
 
       if (cursor) {
@@ -117,6 +119,15 @@ class GroupDetailStoreImpl implements GroupDetailStore {
     if (!hasMoreExpensesSignal.value || !expenseCursorSignal.value) return;
     
     await this.fetchExpenses(expenseCursorSignal.value);
+  }
+
+  async refetchExpenses(includeDeleted?: boolean): Promise<void> {
+    // Reset cursor and expenses to refetch from beginning
+    expenseCursorSignal.value = null;
+    expensesSignal.value = [];
+    hasMoreExpensesSignal.value = true;
+    
+    await this.fetchExpenses(undefined, includeDeleted);
   }
 
   reset(): void {
