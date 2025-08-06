@@ -77,3 +77,4 @@ directives
 .claude/agents/test-guardian.md
 .mcp.local.json
 .claude/mcp-inventory.json
+.claude/agents/prompt-advisor.md
