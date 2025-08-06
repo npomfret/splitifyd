@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.1",
+    "@splitifyd/test-support": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/preact": "^3.2.4",
     "@testing-library/user-event": "^14.6.1",
