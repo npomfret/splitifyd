@@ -57,14 +57,6 @@ export interface Config {
 function getEnv(): z.infer<typeof envSchema> {
   if (cachedEnv) return cachedEnv;
   
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
-  
-  // Load environment variables from .env file for local development
-  if (isEmulator) {
-    require('dotenv').config();
-  }
-  
-  // Parse environment variables
   try {
     cachedEnv = envSchema.parse(process.env);
     return cachedEnv;

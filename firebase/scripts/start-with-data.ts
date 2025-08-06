@@ -4,6 +4,7 @@ import { spawn } from 'child_process';
 import * as http from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 
 import { generateTestData } from '../functions/scripts/generate-test-data';
 import { logger } from './logger';
@@ -18,16 +19,36 @@ const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8
 const UI_PORT: string = firebaseConfig.emulators.ui.port || '4000';
 const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port || '5001';
 
+// Load .env file to get dev form defaults
+const envPath = path.join(__dirname, '../functions/.env');
+if (!fs.existsSync(envPath)) {
+  logger.error('❌ .env file not found. Run switch-instance script first to set up environment.');
+  process.exit(1);
+}
+
+// Load environment variables from .env file
+dotenv.config({ path: envPath });
+
+const devFormEmail = process.env.DEV_FORM_EMAIL || '';
+const devFormPassword = process.env.DEV_FORM_PASSWORD || '';
+
 logger.info('🚀 Starting Firebase emulator with test data generation...', {
   uiPort: UI_PORT,
-  functionsPort: FUNCTIONS_PORT
+  functionsPort: FUNCTIONS_PORT,
+  devFormEmail: devFormEmail ? '✓' : '✗',
+  devFormPassword: devFormPassword ? '✓' : '✗'
 });
 
 const emulatorProcess = spawn('firebase', [
   'emulators:start'
 ], {
   stdio: 'pipe',
-  env: { ...process.env, NODE_ENV: 'development' }
+  env: { 
+    ...process.env, 
+    NODE_ENV: 'development',
+    DEV_FORM_EMAIL: devFormEmail,
+    DEV_FORM_PASSWORD: devFormPassword
+  }
 });
 
 let emulatorsReady = false;
