@@ -280,7 +280,7 @@ src/tests/
 - **Skipped or Commented-Out Tests**: `test.skip()` or commented-out tests are NOT ALLOWED. All checked-in tests must run.
 - **Future-Facing Tests**: Tests for features that do not yet exist in the application are NOT ALLOWED.
 - **Manual State Management**: Do not manually authenticate or create page objects inside tests; use the provided fixtures.
-- **Hard-coded Waits**: Do not use `waitForTimeout()`. Use web-first assertions and explicit `waitFor` conditions.
+- **Hard-coded Waits**: Do not use `await this.page.waitForTimeout()`. Use web-first assertions and explicit `waitFor` conditions instead.
 
 ## Debugging
 
