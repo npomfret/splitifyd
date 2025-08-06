@@ -7,11 +7,21 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Advanced Splitting Options', () => {
+  // Simply let each test create its own group - this is safer for parallel execution
+  // The authenticatedPageTest fixture already handles user authentication
+  
+  test.beforeEach(async ({ authenticatedPage }) => {
+    const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    const groupId = await groupWorkflow.createGroup('Advanced Splitting Test Group');
+    
+    // Navigate to the created group
+    await page.goto(`/groups/${groupId}`);
+    await expect(page).toHaveURL(`/groups/${groupId}`);
+  });
 
   test('should create expense with equal split', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Equal Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -48,8 +58,6 @@ test.describe('Advanced Splitting Options', () => {
 
   test('should create expense with exact amounts split', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Exact Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -90,8 +98,6 @@ test.describe('Advanced Splitting Options', () => {
 
   test('should create expense with percentage split', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Percentage Split Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -133,8 +139,6 @@ test.describe('Advanced Splitting Options', () => {
 
   test('should handle split type changes correctly', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Split Type Change Test Group');
     
     // Wait for navigation to group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

@@ -78,9 +78,9 @@ export class DashboardPage extends BasePage {
     
     // Wait for navigation and verify URL
     await this.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
-    
+
     // Extract and return group ID
-    return this.getUrlParam('groupId') || '';
+    return this.getUrlParam('groupId')!;
   }
 
   /**

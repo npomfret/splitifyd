@@ -6,10 +6,19 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Group Details E2E', () => {
+  // Each test creates its own group for proper isolation in parallel execution
+  test.beforeEach(async ({ authenticatedPage }) => {
+    const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    const groupId = await groupWorkflow.createGroup('Test Group Details', 'Test group for details page');
+    
+    // Navigate to the created group
+    await page.goto(`/groups/${groupId}`);
+    await expect(page).toHaveURL(`/groups/${groupId}`);
+  });
+
   test('should display group information', async ({ authenticatedPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Test Group Details', 'Test group for details page');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -25,8 +34,6 @@ test.describe('Group Details E2E', () => {
 
   test('should display empty expense list', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Empty Expenses Group', 'Group with no expenses');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -37,8 +44,6 @@ test.describe('Group Details E2E', () => {
 
   test('should show group balances section', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Balance Test Group', 'Group for testing balances');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -47,8 +52,6 @@ test.describe('Group Details E2E', () => {
 
   test('should have navigation back to dashboard', async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Navigation Test Group', 'Test description');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -58,8 +61,6 @@ test.describe('Group Details E2E', () => {
 
   test('should show group settings or options', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Settings Test Group', 'Test description for settings');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     

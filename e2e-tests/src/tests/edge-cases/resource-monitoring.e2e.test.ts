@@ -7,13 +7,15 @@ setupConsoleErrorReporting();
 
 pageTest.describe('Resource Monitoring E2E', () => {
   pageTest('should not have any 404 resources', async ({ page, homepagePage, loginPage, registerPage }) => {
-    const failed404s: string[] = [];
+    const failedRequests: string[] = [];
     
-    // Listen for failed requests
+    // Listen for failed requests and assert no 404s
     page.on('response', response => {
       if (response.status() === 404) {
-        failed404s.push(`${response.status()} - ${response.url()}`);
+        failedRequests.push(`${response.status()} - ${response.url()}`);
       }
+      // Assert each response is not a 404
+      expect(response.status()).not.toBe(404);
     });
 
     // Visit main pages using page objects
@@ -22,7 +24,7 @@ pageTest.describe('Resource Monitoring E2E', () => {
     await loginPage.navigate();
     await registerPage.navigate();
     
-    // No 404s should have occurred
-    expect(failed404s).toHaveLength(0);
+    // Verify no 404s were collected (redundant with inline assertions but provides clear final check)
+    expect(failedRequests).toHaveLength(0);
   });
 });

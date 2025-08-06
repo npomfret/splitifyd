@@ -14,7 +14,7 @@ export class LoginPage extends BasePage {
     // Fail fast if we're not on the login page
     // This ensures tests start from a known state
     try {
-      await this.expectUrl(/\/login/, 5000);
+      await this.expectUrl(/\/login/);
     } catch (error) {
       throw new Error('Expected to navigate to login page but was redirected. Test requires clean authentication state.');
     }

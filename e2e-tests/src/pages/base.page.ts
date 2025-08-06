@@ -61,8 +61,8 @@ export abstract class BasePage {
   /**
    * Expects the page to match a URL pattern
    */
-  async expectUrl(pattern: RegExp, timeout = 5000): Promise<void> {
-    await expect(this.page).toHaveURL(pattern, { timeout });
+  async expectUrl(pattern: RegExp): Promise<void> {
+    await expect(this.page).toHaveURL(pattern);
   }
   
   /**
