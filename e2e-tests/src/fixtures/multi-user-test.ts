@@ -1,6 +1,5 @@
 import { authenticatedPageTest } from './authenticated-page-test';
 import { Page } from '@playwright/test';
-import { TestUser } from '../helpers/auth-utils';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../helpers/index';
 import { 
@@ -12,11 +11,12 @@ import {
   GroupDetailPage,
   CreateGroupModalPage
 } from '../pages/index';
+import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
 export interface MultiUserFixtures {
   secondUser: {
     page: Page;
-    user: TestUser;
+    user: BaseUser;
     // Page objects for the second user
     loginPage: LoginPage;
     registerPage: RegisterPage;
