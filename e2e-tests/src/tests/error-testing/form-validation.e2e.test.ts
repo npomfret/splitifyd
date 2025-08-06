@@ -3,6 +3,7 @@ import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -43,7 +44,7 @@ test.describe('Form Validation E2E', () => {
       await passwordInput.clear();
       
       // Fill only email
-      await emailInput.fill('test@example.com');
+      await emailInput.fill(generateTestEmail());
       
       // Submit button should be disabled without password
       const submitButton = loginPage.getSubmitButton();
@@ -58,7 +59,7 @@ test.describe('Form Validation E2E', () => {
       await expect(submitButton).toBeDisabled();
       
       // Fill both fields
-      await emailInput.fill('test@example.com');
+      await emailInput.fill(generateTestEmail());
       
       // Submit button should now be enabled
       await expect(submitButton).toBeEnabled();
@@ -76,8 +77,8 @@ test.describe('Form Validation E2E', () => {
       const emailInput = registerPage.getEmailInputByType();
       const passwordInputs = registerPage.getPasswordInputs();
       
-      await nameInput.fill('Test User');
-      await emailInput.fill('test@example.com');
+      await nameInput.fill(generateTestUserName());
+      await emailInput.fill(generateTestEmail());
       await passwordInputs.first().fill('Password123');
       await passwordInputs.last().fill('DifferentPassword123');
       
@@ -127,7 +128,7 @@ test.describe('Form Validation E2E', () => {
       const emailInput = registerPage.getEmailInputByType();
       const passwordInputs = registerPage.getPasswordInputs();
       
-      await nameInput.fill('Test User');
+      await nameInput.fill(generateTestUserName());
       await emailInput.fill('invalid-email-format');
       await passwordInputs.first().fill('Password123');
       await passwordInputs.last().fill('Password123');
@@ -148,7 +149,7 @@ test.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/register/);
       
       // Fix email format
-      await emailInput.fill('test@example.com');
+      await emailInput.fill(generateTestEmail());
       
       // Now form should be valid
       await expect(submitButton).toBeEnabled();

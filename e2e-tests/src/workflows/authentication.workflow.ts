@@ -3,6 +3,7 @@ import { RegisterPage } from '../pages/register.page';
 import { LoginPage } from '../pages/login.page';
 import { DashboardPage } from '../pages/dashboard.page';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 
 /**
  * Authentication workflow class that handles user creation and login flows.
@@ -16,14 +17,10 @@ export class AuthenticationWorkflow {
    * This replaces the createAndLoginTestUser helper function.
    */
   async createAndLoginTestUser(): Promise<BaseUser> {
-    // Generate test user data with high uniqueness including process-level randomness
-    const timestamp = Date.now();
-    const randomSuffix = Math.floor(Math.random() * 10000);
-    const processId = process.pid || Math.floor(Math.random() * 10000);
-    const uniqueId = `${timestamp}-${randomSuffix}-${processId}`;
-    
-    const displayName = `Test User ${uniqueId}`;
-    const email = `testuser-${uniqueId}@example.com`;
+    // Generate test user data with short unique ID
+    const uniqueId = generateShortId();
+    const displayName = generateTestUserName();
+    const email = generateTestEmail('user');
     const password = 'TestPassword123!';
 
     // Use RegisterPage for registration

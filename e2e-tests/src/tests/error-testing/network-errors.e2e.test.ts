@@ -7,6 +7,7 @@ import {
 import { GroupWorkflow } from '../../workflows/index';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -64,7 +65,7 @@ test.describe('Error Handling', () => {
     await expect(submitButton).toBeDisabled();
     
     // Fill with valid data and verify form can be submitted
-    await createGroupModalPage.fillGroupForm('Valid Group Name', 'Valid description');
+    await createGroupModalPage.fillGroupForm(generateTestGroupName('Valid'), 'Valid description');
     
     // Button should now be enabled
     await expect(submitButton).toBeEnabled();

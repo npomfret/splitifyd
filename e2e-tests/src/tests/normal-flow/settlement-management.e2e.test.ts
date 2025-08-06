@@ -1,6 +1,7 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { GroupWorkflow } from '../../workflows/index';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -11,7 +12,7 @@ test.describe('Settlement Management', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group with first user
-    await groupWorkflow.createGroup('Settlement Test Group', 'Testing settlements');
+    await groupWorkflow.createGroup(generateTestGroupName('Settlement'), 'Testing settlements');
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Get share link and have second user join
@@ -79,7 +80,7 @@ test.describe('Settlement Management', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
-    await groupWorkflow.createGroup('Balance Update Test', 'Testing balance updates');
+    await groupWorkflow.createGroup(generateTestGroupName('BalanceUpd'), 'Testing balance updates');
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Share and join
@@ -142,7 +143,7 @@ test.describe('Settlement Management', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
-    await groupWorkflow.createGroup('Validation Test Group', 'Testing form validation');
+    await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Share and join

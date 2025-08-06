@@ -1,5 +1,6 @@
 import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -54,8 +55,9 @@ pageTest.describe('Auth Navigation E2E', () => {
     
     // Find and fill email input using page object methods
     const emailInput = loginPage.getEmailInput();
-    await emailInput.fill('test@example.com');
-    await expect(emailInput).toHaveValue('test@example.com');
+    const testEmail = generateTestEmail();
+    await emailInput.fill(testEmail);
+    await expect(emailInput).toHaveValue(testEmail);
     
     // Find and fill password input using page object methods
     const passwordInput = loginPage.getPasswordInput();
@@ -68,13 +70,15 @@ pageTest.describe('Auth Navigation E2E', () => {
     
     // Find and fill name input using page object methods
     const nameInput = registerPage.getFullNameInput();
-    await nameInput.fill('Test User');
-    await expect(nameInput).toHaveValue('Test User');
+    const testName = generateTestUserName();
+    await nameInput.fill(testName);
+    await expect(nameInput).toHaveValue(testName);
     
     // Find and fill email input using page object methods
     const emailInput = registerPage.getEmailInput();
-    await emailInput.fill('test@example.com');
-    await expect(emailInput).toHaveValue('test@example.com');
+    const testEmail2 = generateTestEmail();
+    await emailInput.fill(testEmail2);
+    await expect(emailInput).toHaveValue(testEmail2);
     
     // Find and fill password inputs using page object methods
     const passwordInput = registerPage.getPasswordInput();

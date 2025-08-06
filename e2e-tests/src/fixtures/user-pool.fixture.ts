@@ -1,6 +1,7 @@
 import { Page } from '@playwright/test';
 import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 
 export interface PooledUser {
   id: string;
@@ -182,13 +183,9 @@ export class UserPool {
     }
 
     // Create user directly without going through AuthenticationWorkflow to avoid page object issues
-    const timestamp = Date.now();
-    const randomSuffix = Math.floor(Math.random() * 10000);
-    const processId = process.pid || Math.floor(Math.random() * 10000);
-    const uniqueId = `${timestamp}-${randomSuffix}-${processId}-${id}`;
-    
-    const displayName = `Pool User ${uniqueId}`;
-    const email = `pool-user-${uniqueId}@example.com`;
+    const uniqueId = generateShortId();
+    const displayName = generateTestUserName('Pool');
+    const email = generateTestEmail('pool');
     const password = 'TestPassword123!';
 
     // Navigate to register page (or back to register if we're on dashboard)

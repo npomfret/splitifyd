@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { GroupWorkflow } from '../../workflows/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -9,7 +10,7 @@ setupMCPDebugOnFailure();
 test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate('Expense Test Group', 'Testing expense creation');
+    await dashboardPage.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     
@@ -48,7 +49,7 @@ test.describe('Add Expense E2E', () => {
   test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Category Test Group', 'Testing expense categories');
+    await groupWorkflow.createGroup(generateTestGroupName('Category'), 'Testing expense categories');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
@@ -83,7 +84,7 @@ test.describe('Add Expense E2E', () => {
   test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Expense Display Group', 'Testing expense display');
+    await groupWorkflow.createGroup(generateTestGroupName('Display'), 'Testing expense display');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     

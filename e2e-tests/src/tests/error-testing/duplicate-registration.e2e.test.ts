@@ -2,6 +2,7 @@ import { pageTest as test, expect } from '../../fixtures/page-fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
+import { generateShortId, generateTestEmail, generateTestUserName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -10,10 +11,9 @@ test.describe('Duplicate User Registration E2E', () => {
   test('should prevent duplicate email registration and show error', async ({ page, registerPage }) => {
     // This test expects a 409 error when trying to register duplicate email
     test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
-    const timestamp = Date.now();
-    const email = `duplicate-test-${timestamp}@example.com`;
+    const email = generateTestEmail('duplicate');
     const password = 'TestPassword123!';
-    const displayName = `Duplicate Test User ${timestamp}`;
+    const displayName = generateTestUserName('Duplicate');
 
     // First registration - should succeed
     await registerPage.navigate();
@@ -93,10 +93,9 @@ test.describe('Duplicate User Registration E2E', () => {
   test('should show error immediately without clearing form', async ({ page, registerPage }) => {
     test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
     
-    const timestamp = Date.now();
-    const email = `persist-test-${timestamp}@example.com`;
+    const email = generateTestEmail('persist');
     const password = 'TestPassword123!';
-    const displayName = `Persist Test User ${timestamp}`;
+    const displayName = generateTestUserName('Persist');
 
     // First registration
     await registerPage.navigate();
@@ -154,11 +153,10 @@ test.describe('Duplicate User Registration E2E', () => {
   test('should allow registration with different email after duplicate attempt', async ({ page, registerPage }) => {
     test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
     
-    const timestamp = Date.now();
-    const email1 = `first-${timestamp}@example.com`;
-    const email2 = `second-${timestamp}@example.com`;
+    const email1 = generateTestEmail('first');
+    const email2 = generateTestEmail('second');
     const password = 'TestPassword123!';
-    const displayName = `Recovery Test User ${timestamp}`;
+    const displayName = generateTestUserName('Recovery');
 
     // First registration
     await registerPage.navigate();

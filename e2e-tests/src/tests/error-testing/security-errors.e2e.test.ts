@@ -5,6 +5,7 @@ import {
   AuthenticationWorkflow
 } from '../../helpers/index';
 import { GroupWorkflow } from '../../workflows/index';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -15,7 +16,8 @@ test.describe('Security and Access Control', () => {
     const { page } = authenticatedPage;
     // Create a group with User 1 (already authenticated)
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Test Access Group', 'Testing access control');
+    const groupName = generateTestGroupName('Access');
+    await groupWorkflow.createGroup(groupName, 'Testing access control');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     const groupUrl = page.url();
@@ -37,7 +39,7 @@ test.describe('Security and Access Control', () => {
     
     // Verify that access control works - non-members should not see group details
     // The group name should NOT be visible to unauthorized users
-    await expect(page2.getByText('Test Access Group')).not.toBeVisible();
+    await expect(page2.getByText(groupName)).not.toBeVisible();
     
     await context2.close();
   });

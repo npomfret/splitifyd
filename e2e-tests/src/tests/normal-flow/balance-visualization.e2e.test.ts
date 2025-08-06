@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { multiUserTest, expect as multiUserExpected } from '../../fixtures/multi-user-test';
 import { GroupWorkflow } from '../../workflows/index';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -11,7 +12,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page, user } = authenticatedPage;
     
     // Create test group using dashboard page object
-    const groupName = `Single User Test ${Date.now()}`;
+    const groupName = generateTestGroupName('Single');
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing single user balance');
     
     // Verify navigation succeeded
@@ -50,7 +51,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page } = authenticatedPage;
     
     // Create test group
-    const groupName = `Zero Balance Test ${Date.now()}`;
+    const groupName = generateTestGroupName('ZeroBalance');
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing zero balance state');
     
     // Verify navigation
@@ -68,7 +69,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page, user } = authenticatedPage;
     
     // Create test group
-    const groupName = `Currency Display Test ${Date.now()}`;
+    const groupName = generateTestGroupName('Currency');
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing currency display');
     
     // Verify navigation
@@ -100,7 +101,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group with first user
-    await groupWorkflow.createGroup('Multi-User Balance Test', 'Testing multi-user balances');
+    await groupWorkflow.createGroup(generateTestGroupName('MultiBalance'), 'Testing multi-user balances');
     await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Share and join with second user
@@ -180,7 +181,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create and setup group
-    await groupWorkflow.createGroup('Debt Simplification Test', 'Testing debt simplification');
+    await groupWorkflow.createGroup(generateTestGroupName('DebtSimple'), 'Testing debt simplification');
     await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add second user
@@ -243,7 +244,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create and setup group  
-    await groupWorkflow.createGroup('Dynamic Balance Test', 'Testing balance updates');
+    await groupWorkflow.createGroup(generateTestGroupName('Dynamic'), 'Testing balance updates');
     await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add second user
@@ -315,7 +316,7 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create and setup group
-    await groupWorkflow.createGroup('Currency Display Test', 'Testing currency display');
+    await groupWorkflow.createGroup(generateTestGroupName('CurrencyDsp'), 'Testing currency display');
     await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add second user
@@ -385,7 +386,7 @@ multiUserTest.describe('Balance with Settlements', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
-    await groupWorkflow.createGroup('Settlement Balance Test', 'Testing settlement balances');
+    await groupWorkflow.createGroup(generateTestGroupName('SettleBal'), 'Testing settlement balances');
     await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Share and join

@@ -1,16 +1,19 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { GroupWorkflow } from '../../workflows/index';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Group Details E2E', () => {
   // Each test creates its own group for proper isolation in parallel execution
+  let groupName: string;
   test.beforeEach(async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const groupId = await groupWorkflow.createGroup('Test Group Details', 'Test group for details page');
+    groupName = generateTestGroupName('Details');
+    const groupId = await groupWorkflow.createGroup(groupName, 'Test group for details page');
     
     // Navigate to the created group
     await page.goto(`/groups/${groupId}`);
@@ -22,7 +25,7 @@ test.describe('Group Details E2E', () => {
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    await expect(groupDetailPage.getGroupTitle()).toContainText('Test Group Details');
+    await expect(groupDetailPage.getGroupTitle()).toContainText(groupName);
     
     await expect(groupDetailPage.getGroupDescription()).toBeVisible();
     

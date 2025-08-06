@@ -1,5 +1,6 @@
 import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
@@ -25,7 +26,7 @@ authenticatedPageTest.describe('Dashboard Validation E2E', () => {
     await expect(submitButton).toBeDisabled();
     
     await nameInput.clear();
-    await nameInput.type('Test Group');
+    await nameInput.type(generateTestGroupName());
     await page.keyboard.press('Tab');
     await page.waitForLoadState('domcontentloaded');
     

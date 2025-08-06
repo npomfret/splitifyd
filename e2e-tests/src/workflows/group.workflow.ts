@@ -2,6 +2,7 @@ import { Page } from '@playwright/test';
 import { DashboardPage } from '../pages/dashboard.page';
 import { AuthenticationWorkflow } from './authentication.workflow';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import { generateTestGroupName } from '../utils/test-helpers';
 
 export interface TestGroup {
   name: string;
@@ -21,7 +22,7 @@ export class GroupWorkflow {
    * This replaces the createTestGroupWithUser helper function.
    */
   async createGroupWithUser(
-    groupName: string = 'Test Group',
+    groupName: string = generateTestGroupName(),
     groupDescription?: string
   ): Promise<TestGroup> {
     // Create and login user first
@@ -44,7 +45,7 @@ export class GroupWorkflow {
    * Use this when you need to create multiple groups for the same user.
    */
   async createGroup(
-    groupName: string = 'Test Group',
+    groupName: string = generateTestGroupName(),
     groupDescription?: string
   ): Promise<string> {
     const dashboard = new DashboardPage(this.page);

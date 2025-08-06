@@ -1,5 +1,6 @@
 import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
@@ -51,10 +52,11 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
 
     authenticatedPageTest('should create a new group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupId = await dashboardPage.createGroupAndNavigate('Test Group', 'Test Description');
+      const groupName = generateTestGroupName();
+      const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Test Description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      await expect(groupDetailPage.getGroupTitleByName('Test Group')).toBeVisible();
+      await expect(groupDetailPage.getGroupTitleByName(groupName)).toBeVisible();
       expect(groupId).toBeTruthy();
     });
 
@@ -76,7 +78,7 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
   authenticatedPageTest.describe('Dashboard Navigation', () => {
     authenticatedPageTest('should navigate to group details after creating a group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupId = await dashboardPage.createGroupAndNavigate('Navigation Test Group', 'Test description');
+      const groupId = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Navigation'), 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
       await expect(groupDetailPage.getGroupTextByName('Navigation Test Group')).toBeVisible();
@@ -99,7 +101,7 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
 
     authenticatedPageTest('should return to dashboard from group page', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
-      const groupId = await dashboardPage.createGroupAndNavigate('Back Navigation Test', 'Test description');
+      const groupId = await dashboardPage.createGroupAndNavigate(generateTestGroupName('BackNav'), 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
       

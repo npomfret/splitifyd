@@ -2,6 +2,7 @@ import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { GroupWorkflow } from '../../workflows/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -10,7 +11,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('should handle group sharing via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Shared Test Group', 'Testing group sharing');
+    await groupWorkflow.createGroup(generateTestGroupName('Shared'), 'Testing group sharing');
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
@@ -45,7 +46,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('should allow multiple users to add expenses to same group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Multi-User Expense Group', 'Testing concurrent expenses');
+    await groupWorkflow.createGroup(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
     const groupInfo = { user };
     const user1 = groupInfo.user;
     
@@ -97,7 +98,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('should show group creator as admin', async ({ authenticatedPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Admin Test Group', 'Testing admin badge');
+    await groupWorkflow.createGroup(generateTestGroupName('Admin'), 'Testing admin badge');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -107,7 +108,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('single user can create group and add multiple expenses', async ({ authenticatedPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Solo Expense Group', 'Testing multiple expenses');
+    await groupWorkflow.createGroup(generateTestGroupName('Solo'), 'Testing multiple expenses');
     const groupInfo = { user };
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -137,7 +138,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('balances update correctly with multiple users and expenses', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup('Balance Test Group', 'Testing balance calculations');
+    await groupWorkflow.createGroup(generateTestGroupName('Balance'), 'Testing balance calculations');
     const groupInfo = { user };
     const user1 = groupInfo.user;
     
