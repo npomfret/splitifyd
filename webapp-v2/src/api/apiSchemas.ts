@@ -205,6 +205,49 @@ export const MessageResponseSchema = z.object({
   message: z.string().min(1)
 });
 
+// Settlement schemas
+export const SettlementSchema = z.object({
+  id: z.string().min(1),
+  groupId: z.string().min(1),
+  payerId: z.string().min(1),
+  payeeId: z.string().min(1),
+  amount: z.number().positive(),
+  currency: z.string().min(1).max(3),
+  date: z.string(),
+  note: z.string().optional(),
+  createdBy: z.string().min(1),
+  createdAt: z.string(),
+  updatedAt: z.string()
+});
+
+export const SettlementListItemSchema = z.object({
+  id: z.string().min(1),
+  groupId: z.string().min(1),
+  payer: z.object({
+    uid: z.string().min(1),
+    displayName: z.string().min(1),
+    email: z.string().email().optional()
+  }),
+  payee: z.object({
+    uid: z.string().min(1),
+    displayName: z.string().min(1),
+    email: z.string().email().optional()
+  }),
+  amount: z.number().positive(),
+  currency: z.string().min(1).max(3),
+  date: z.string(),
+  note: z.string().optional(),
+  createdBy: z.string().min(1).optional(),
+  createdAt: z.string()
+});
+
+export const ListSettlementsResponseSchema = z.object({
+  settlements: z.array(SettlementListItemSchema),
+  count: z.number(),
+  hasMore: z.boolean(),
+  nextCursor: z.string().optional()
+});
+
 export const responseSchemas = {
   '/config': AppConfigurationSchema,
   '/health': HealthCheckResponseSchema,
@@ -218,5 +261,14 @@ export const responseSchemas = {
   'POST /groups/share': ShareableLinkResponseSchema,
   '/groups/share': ShareableLinkResponseSchema,
   '/groups/join': JoinGroupResponseSchema,
-  '/register': RegisterResponseSchema
+  '/register': RegisterResponseSchema,
+  'POST /settlements': z.object({
+    success: z.boolean(),
+    data: SettlementSchema
+  }),
+  '/settlements': z.object({
+    success: z.boolean(),
+    data: ListSettlementsResponseSchema
+  }),
+  '/settlements/:settlementId': SettlementListItemSchema
 } as const;

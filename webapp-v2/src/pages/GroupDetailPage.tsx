@@ -14,6 +14,7 @@ import {
   BalanceSummary,
   ShareGroupModal 
 } from '../components/group';
+import { SettlementForm, SettlementHistory } from '../components/settlements';
 import { logError } from '../utils/error-logger';
 
 interface GroupDetailPageProps {
@@ -23,6 +24,8 @@ interface GroupDetailPageProps {
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const isInitialized = useSignal(false);
   const showShareModal = useSignal(false);
+  const showSettlementForm = useSignal(false);
+  const showSettlementHistory = useSignal(false);
 
   // Computed values from store
   const group = useComputed(() => groupDetailStore.group);
@@ -128,7 +131,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   };
 
   const handleSettleUp = () => {
-    console.log('Settle up clicked');
+    showSettlementForm.value = true;
   };
 
   const handleShare = () => {
@@ -174,6 +177,26 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             onLoadMore={() => groupDetailStore.loadMoreExpenses()}
             onExpenseClick={handleExpenseClick}
           />
+
+          {/* Settlement History Section */}
+          <Card className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Payment History</h2>
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={() => showSettlementHistory.value = !showSettlementHistory.value}
+              >
+                {showSettlementHistory.value ? 'Hide History' : 'Show History'}
+              </Button>
+            </div>
+            {showSettlementHistory.value && (
+              <SettlementHistory 
+                groupId={groupId!} 
+                limit={5}
+              />
+            )}
+          </Card>
         </Stack>
       </div>
 
@@ -183,6 +206,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         onClose={() => showShareModal.value = false}
         groupId={groupId!}
         groupName={group.value!.name}
+      />
+
+      {/* Settlement Form Modal */}
+      <SettlementForm
+        isOpen={showSettlementForm.value}
+        onClose={() => showSettlementForm.value = false}
+        groupId={groupId!}
+        onSuccess={() => {
+          // Refresh balances after successful settlement
+          groupDetailStore.fetchBalances();
+        }}
       />
     </BaseLayout>
   );

@@ -24,6 +24,21 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         nonDeletedExpenses: expenses.length 
     });
 
+    const settlementsSnapshot = await db
+        .collection('settlements')
+        .where('groupId', '==', groupId)
+        .get();
+
+    const settlements = settlementsSnapshot.docs
+        .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }) as any);
+    
+    logger.info('[BalanceCalculator] Found settlements', { 
+        totalSettlements: settlements.length
+    });
+
     const groupDoc = await db
         .collection('documents')
         .doc(groupId)
@@ -42,7 +57,6 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         throw new Error(`Group ${groupId} has no members for balance calculation`);
     }
     
-    // Fetch user profiles dynamically
     const memberProfiles = await userService.getUsers(memberIds);
     
     logger.info('[BalanceCalculator] Group members', { 
@@ -99,6 +113,78 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         }
     }
 
+    for (const settlement of settlements) {
+        const payerId = settlement.payerId;
+        const payeeId = settlement.payeeId;
+        const amount = settlement.amount;
+        
+        logger.info('[BalanceCalculator] Processing settlement', {
+            settlementId: settlement.id,
+            payerId,
+            payeeId,
+            amount,
+            currency: settlement.currency,
+            date: settlement.date
+        });
+        
+        if (!userBalances[payerId]) {
+            userBalances[payerId] = {
+                userId: payerId,
+                owes: {},
+                owedBy: {},
+                netBalance: 0
+            };
+        }
+        
+        if (!userBalances[payeeId]) {
+            userBalances[payeeId] = {
+                userId: payeeId,
+                owes: {},
+                owedBy: {},
+                netBalance: 0
+            };
+        }
+        
+        if (userBalances[payerId].owes[payeeId]) {
+            const reduction = Math.min(userBalances[payerId].owes[payeeId], amount);
+            userBalances[payerId].owes[payeeId] -= reduction;
+            
+            if (userBalances[payerId].owes[payeeId] <= 0.01) {
+                delete userBalances[payerId].owes[payeeId];
+            }
+            
+            if (userBalances[payeeId].owedBy[payerId]) {
+                userBalances[payeeId].owedBy[payerId] -= reduction;
+                if (userBalances[payeeId].owedBy[payerId] <= 0.01) {
+                    delete userBalances[payeeId].owedBy[payerId];
+                }
+            }
+            
+            const excess = amount - reduction;
+            if (excess > 0.01) {
+                if (!userBalances[payeeId].owes[payerId]) {
+                    userBalances[payeeId].owes[payerId] = 0;
+                }
+                userBalances[payeeId].owes[payerId] += excess;
+                
+                if (!userBalances[payerId].owedBy[payeeId]) {
+                    userBalances[payerId].owedBy[payeeId] = 0;
+                }
+                userBalances[payerId].owedBy[payeeId] += excess;
+            }
+        } else {
+            if (!userBalances[payeeId].owes[payerId]) {
+                userBalances[payeeId].owes[payerId] = 0;
+            }
+            userBalances[payeeId].owes[payerId] += amount;
+            
+            if (!userBalances[payerId].owedBy[payeeId]) {
+                userBalances[payerId].owedBy[payeeId] = 0;
+            }
+            userBalances[payerId].owedBy[payeeId] += amount;
+        }
+    }
+
     const netBalances: Record<string, number> = {};
     for (const userId in userBalances) {
         const user = userBalances[userId];
@@ -116,9 +202,8 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         userBalances[userId].netBalance = netBalance;
     }
 
-    logger.info('[BalanceCalculator] Final userBalances', { userBalances });
+    logger.info('[BalanceCalculator] Final userBalances after settlements', { userBalances });
     
-    // Create user names map for debt simplification
     const userNames = new Map<string, string>();
     for (const [userId, profile] of memberProfiles) {
         userNames.set(userId, profile.displayName);

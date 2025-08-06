@@ -27,6 +27,13 @@ import {
   deleteGroup,
   listGroups,
 } from './groups/handlers';
+import {
+  createSettlement,
+  getSettlement,
+  updateSettlement,
+  deleteSettlement,
+  listSettlements,
+} from './settlements/handlers';
 import { admin } from './firebase';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
@@ -280,6 +287,13 @@ app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
 app.get('/groups/:id', authenticate, asyncHandler(getGroup));
 app.put('/groups/:id', authenticate, asyncHandler(updateGroup));
 app.delete('/groups/:id', authenticate, asyncHandler(deleteGroup));
+
+// Settlement endpoints (requires auth)
+app.post('/settlements', authenticate, asyncHandler(createSettlement));
+app.get('/settlements', authenticate, asyncHandler(listSettlements));
+app.get('/settlements/:settlementId', authenticate, asyncHandler(getSettlement));
+app.put('/settlements/:settlementId', authenticate, asyncHandler(updateSettlement));
+app.delete('/settlements/:settlementId', authenticate, asyncHandler(deleteSettlement));
 
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({

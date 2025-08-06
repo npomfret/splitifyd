@@ -123,6 +123,45 @@ export class ApiDriver {
     return await this.apiRequest(`/expenses?id=${expenseId}`, 'GET', null, token);
   }
 
+  async createSettlement(settlementData: any, token: string): Promise<any> {
+    const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
+    return response.data;
+  }
+
+  async getSettlement(settlementId: string, token: string): Promise<any> {
+    const response = await this.apiRequest(`/settlements/${settlementId}`, 'GET', null, token);
+    return response.data;
+  }
+
+  async updateSettlement(settlementId: string, updateData: any, token: string): Promise<any> {
+    const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
+    return response.data;
+  }
+
+  async deleteSettlement(settlementId: string, token: string): Promise<void> {
+    await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
+  }
+
+  async listSettlements(token: string, params?: { 
+    groupId: string; 
+    limit?: number; 
+    cursor?: string; 
+    userId?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params?.groupId) queryParams.append('groupId', params.groupId);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.cursor) queryParams.append('cursor', params.cursor);
+    if (params?.userId) queryParams.append('userId', params.userId);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    const queryString = queryParams.toString();
+    const response = await this.apiRequest(`/settlements${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
+    return response.data;
+  }
+
   createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<ExpenseData> {
     return {
       groupId,
