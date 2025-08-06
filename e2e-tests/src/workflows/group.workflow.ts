@@ -46,9 +46,9 @@ export class GroupWorkflow {
   async createGroup(
     groupName: string = 'Test Group',
     groupDescription?: string
-  ): Promise<void> {
+  ): Promise<string> {
     const dashboard = new DashboardPage(this.page);
-    await dashboard.createGroupAndNavigate(groupName, groupDescription);
+    return dashboard.createGroupAndNavigate(groupName, groupDescription);
   }
 
   /**

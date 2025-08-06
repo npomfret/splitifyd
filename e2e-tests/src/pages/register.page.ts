@@ -16,7 +16,7 @@ export class RegisterPage extends BasePage {
     // Fail fast if we're not on the register page
     // This ensures tests start from a known state
     try {
-      await this.expectUrl(/\/register/, 5000);
+      await this.expectUrl(/\/register/);
     } catch (error) {
       throw new Error('Expected to navigate to register page but was redirected. Test requires clean authentication state.');
     }

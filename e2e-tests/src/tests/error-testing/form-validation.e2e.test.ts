@@ -1,5 +1,6 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../../fixtures/page-fixtures';
+import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
 import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure, GroupWorkflow } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 
@@ -158,10 +159,18 @@ test.describe('Form Validation E2E', () => {
   });
 
   test.describe('Expense Form', () => {
-    test('should require description and amount', async ({ page }) => {
-      await GroupWorkflow.createTestGroup(page, 'Expense Validation Group', 'Testing expense form validation');
+    authenticatedPageTest('should require description and amount', async ({ authenticatedPage, dashboardPage }) => {
+      const { page } = authenticatedPage;
       
+      // Verify we start on dashboard
+      await expect(page).toHaveURL(/\/dashboard/);
+      
+      // Create a group
+      await dashboardPage.createGroupAndNavigate('Expense Validation Group', 'Testing expense form validation');
+      
+      // Assert we're on the correct group page
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+      await expect(page.getByText('Expense Validation Group')).toBeVisible();
       
       // Navigate to add expense form
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
@@ -185,11 +194,18 @@ test.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     });
 
-    test('should validate split totals for exact amounts', async ({ page }) => {
+    authenticatedPageTest('should validate split totals for exact amounts', async ({ authenticatedPage, dashboardPage }) => {
+      const { page } = authenticatedPage;
       
-      await GroupWorkflow.createTestGroup(page, 'Split Validation Group');
+      // Verify we start on dashboard
+      await expect(page).toHaveURL(/\/dashboard/);
       
+      // Create a group
+      await dashboardPage.createGroupAndNavigate('Split Validation Group', 'Testing split validation');
+      
+      // Assert we're on the correct group page
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+      await expect(page.getByText('Split Validation Group')).toBeVisible();
       
       // Navigate to add expense form
       await page.getByRole('button', { name: /add expense/i }).click();
@@ -210,11 +226,18 @@ test.describe('Form Validation E2E', () => {
       await expect(page.getByPlaceholder('What was this expense for?')).toHaveValue('Split Test Expense');
     });
 
-    test('should validate percentage totals', async ({ page }) => {
+    authenticatedPageTest('should validate percentage totals', async ({ authenticatedPage, dashboardPage }) => {
+      const { page } = authenticatedPage;
       
-      await GroupWorkflow.createTestGroup(page, 'Percentage Validation Group');
+      // Verify we start on dashboard
+      await expect(page).toHaveURL(/\/dashboard/);
       
+      // Create a group
+      await dashboardPage.createGroupAndNavigate('Percentage Validation Group', 'Testing percentage validation');
+      
+      // Assert we're on the correct group page
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+      await expect(page.getByText('Percentage Validation Group')).toBeVisible();
       
       // Navigate to add expense form  
       await page.getByRole('button', { name: /add expense/i }).click();
