@@ -7,7 +7,7 @@
     "build": "npx tsc --noEmit --skipLibCheck",
     "test:unit": "npm run build && jest",
     "test:integration": "npm run test:e2e:normal-flow && npm run test:e2e:error-testing && npm run test:e2e:edge-cases",
-    "_test:e2e": "npm run build && PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=6 --project=chromium",
+    "_test:e2e": "npm run build && PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=4 --project=chromium",
     "test:e2e:normal-flow": "PLAYWRIGHT_HTML_REPORT=playwright-report/normal npm run _test:e2e -- --reporter=html src/tests/normal-flow",
     "test:e2e:error-testing": "PLAYWRIGHT_HTML_REPORT=playwright-report/errors npm run _test:e2e -- --reporter=html src/tests/error-testing",
     "test:e2e:edge-cases": "PLAYWRIGHT_HTML_REPORT=playwright-report/edge npm run _test:e2e -- --reporter=html src/tests/edge-cases",
