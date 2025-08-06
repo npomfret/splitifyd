@@ -1,6 +1,5 @@
 import { BasePage } from './base.page';
 import { CreateGroupModalPage } from './create-group-modal.page';
-import { AuthenticationWorkflow } from '../workflows/authentication.workflow';
 
 export class DashboardPage extends BasePage {
   // Selectors

@@ -1,4 +1,4 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { HOSTING_PORT } from '../helpers/emulator-utils';
 

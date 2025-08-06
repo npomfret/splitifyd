@@ -1,4 +1,3 @@
-import { FullConfig } from '@playwright/test';
 import { getUserPool, resetUserPool } from './user-pool.fixture';
 
 async function globalTeardown() {
