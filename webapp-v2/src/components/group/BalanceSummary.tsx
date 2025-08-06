@@ -30,7 +30,7 @@ export function BalanceSummary({ balances, members = [] }: BalanceSummaryProps) 
                 <span className="font-medium">{getUserName(debt.to.userId)}</span>
               </span>
               <span className="font-semibold text-red-600">
-                ${(debt.amount / 100).toFixed(2)}
+                ${debt.amount.toFixed(2)}
               </span>
             </div>
           ))}

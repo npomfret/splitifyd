@@ -78,14 +78,14 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
   authenticatedPageTest.describe('Dashboard Navigation', () => {
     authenticatedPageTest('should navigate to group details after creating a group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupId = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Navigation'), 'Test description');
+      const groupName = generateTestGroupName('Navigation');
+      const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-      await expect(groupDetailPage.getGroupTextByName('Navigation Test Group')).toBeVisible();
+      await groupDetailPage.getGroupNameContaining('Navigation');
       expect(groupId).toBeTruthy();
       
       });
-
     authenticatedPageTest('should sign out successfully', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
       

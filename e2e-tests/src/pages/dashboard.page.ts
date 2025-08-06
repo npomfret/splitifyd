@@ -36,9 +36,12 @@ export class DashboardPage extends BasePage {
   }
 
   getUserMenuButton() {
-    return this.page.getByRole('button', { name: /Profile|Account|User|Menu|^[A-Z]$/i }).first();
+    // Try multiple strategies to find the user menu button
+    // Strategy 1: Look for button with user info/avatar  
+    const userButton = this.page.getByRole('button').filter({ hasText: /Pool|@/ }).first();
+    const avatarButton = this.page.locator('button').filter({ has: this.page.locator('img') }).first();
+    return userButton.or(avatarButton).or(this.page.getByRole('button', { name: /Profile|Account|User|Menu/i }).first());
   }
-
   getSignOutButton() {
     return this.page.getByRole('button', { name: /Sign Out|Logout/i });
   }
@@ -48,8 +51,7 @@ export class DashboardPage extends BasePage {
   }
 
   async openCreateGroupModal() {
-    // Click whichever create button is visible - the UI determines this
-    // Both buttons open the same modal, so we can use .first() to get whichever is present
+    // Simply click the first visible create group button
     const createButton = this.page
       .getByRole('button')
       .filter({ hasText: /Create.*Group/i })

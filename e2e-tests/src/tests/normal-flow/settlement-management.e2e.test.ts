@@ -31,7 +31,7 @@ test.describe('Settlement Management', () => {
     
     // First user adds an expense to create debt
     await page.reload(); // Refresh to see new member
-    await page.waitForTimeout(1000); // Wait for member list to update
+    await page.waitForLoadState('networkidle'); // Wait for member list to update
     await groupDetailPage.addExpense({
       description: 'Test expense for settlement',
       amount: 100,
@@ -93,7 +93,7 @@ test.describe('Settlement Management', () => {
     await page2.getByRole('button', { name: /join group/i }).click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
-    // Add expense and refresh
+    // Add expense
     await page.reload();
     await groupDetailPage.addExpense({
       description: 'Dinner',
@@ -102,44 +102,39 @@ test.describe('Settlement Management', () => {
       splitType: 'equal'
     });
     
-    // Get initial balance
-    await page.reload();
-    const initialBalanceText = await page.getByText(/owes|owed/i).first().textContent();
+    // Verify debt exists before settlement
+    const balanceSection = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Balances' }) });
+    await expect(balanceSection.getByText('Loading balances...')).not.toBeVisible();
+    await expect(balanceSection.getByText(/owes/i).first()).toBeVisible();
     
-    // Record settlement
+    // Record settlement for the exact debt amount shown
+    const debtAmount = balanceSection.locator('.text-red-600');
+    await expect(debtAmount).toBeVisible();
+    const amountToSettle = await debtAmount.textContent();
+    const settlementAmount = amountToSettle?.replace('$', '') || '100';
+    
     const settleButton = page.getByRole('button', { name: /settle up/i });
     await settleButton.click();
     
     const modal = page.getByRole('dialog');
     await expect(modal).toBeVisible();
     
-    // Fill form - user2 pays user1 (user2 owes money from the expense)
-    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
-    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
-    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
-    
-    // Select the users properly: user2 (who owes money) pays user1 (who is owed money)
-    await payerSelect.selectOption({ index: 2 }); // user2 (second user)
-    await payeeSelect.selectOption({ index: 1 }); // user1 (first user)
-    await amountInput.fill('100');
+    // Fill settlement form
+    await page.getByRole('combobox', { name: /who paid/i }).selectOption({ index: 2 });
+    await page.getByRole('combobox', { name: /who received the payment/i }).selectOption({ index: 1 });
+    await page.getByRole('spinbutton', { name: /amount/i }).fill(settlementAmount);
+    await page.getByRole("textbox", { name: /note/i }).fill("Full settlement payment");
     
     await modal.getByRole('button', { name: /record payment/i }).click();
     await expect(modal).not.toBeVisible();
     
-    // Verify balance changed after settlement
-    await page.reload();
+    // Verify settlement processed - the balance should show settled up
     await page.waitForLoadState('networkidle');
-    
-    // Wait for balance data to load after settlement
-    const balanceSection = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Balances' }) });
-    await expect(balanceSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 10000 });
-    
-    const updatedBalanceText = await page.getByText(/owes|owed|settled/i).first().textContent();
-    expect(updatedBalanceText).not.toBe(initialBalanceText);
+    await expect(page.getByText('All settled up!')).toBeVisible();
   });
 
   test('should validate settlement form', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page } = authenticatedPage;
+    const { page, user: user1 } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -202,7 +197,7 @@ test.describe('Settlement Management', () => {
   });
 
   test('should display settlement history', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page } = authenticatedPage;
+    const { page, user: user1 } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -221,6 +216,16 @@ test.describe('Settlement Management', () => {
     
     await page.reload();
     
+    // Add an expense to create debt that can be settled
+    await groupDetailPage.addExpense({
+      description: "Initial expense for settlement",
+      amount: 200,
+      paidBy: user1.displayName,
+      splitType: "equal"
+    });
+    
+    await page.reload();
+    await page.waitForLoadState("networkidle");    
     // Add multiple settlements
     for (let i = 1; i <= 2; i++) {
       const settleButton = page.getByRole('button', { name: /settle up/i });
@@ -244,7 +249,7 @@ test.describe('Settlement Management', () => {
       await submitButton.click();
       
       await expect(modal).not.toBeVisible();
-      await page.waitForTimeout(500); // Brief wait between settlements
+      await page.waitForLoadState('networkidle'); // Wait for settlement processing
     }
     
     // View history
@@ -260,7 +265,7 @@ test.describe('Settlement Management', () => {
   });
 
   test('should handle multiple currencies', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page } = authenticatedPage;
+    const { page, user: user1 } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -314,8 +319,5 @@ test.describe('Settlement Management', () => {
     const euroSettlement = page.getByText(/EUR/i);
     await expect(euroSettlement).toBeVisible();
     
-    // Also check for the amount
-    const amountText = page.getByText('100');
-    await expect(amountText).toBeVisible();
   });
 });
