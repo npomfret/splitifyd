@@ -18,6 +18,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
   useEffect(() => {
     if (isOpen && groupId) {
+      // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
       generateLink();
     }
   }, [isOpen, groupId]);

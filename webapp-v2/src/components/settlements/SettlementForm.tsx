@@ -8,7 +8,7 @@ import type {
 } from '@shared/types/webapp-shared-types';
 import { apiClient } from '../../app/apiClient';
 import { groupDetailStore } from '../../app/stores/group-detail-store';
-import { authStore } from '../../app/stores/auth-store';
+import { useAuth } from '../../app/hooks/useAuth';
 
 const payerIdSignal = signal('');
 const payeeIdSignal = signal('');
@@ -32,6 +32,7 @@ export function SettlementForm({
   preselectedDebt,
   onSuccess 
 }: SettlementFormProps) {
+  const authStore = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);

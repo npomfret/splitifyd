@@ -22,8 +22,7 @@ test.describe('Settlement Management', () => {
     // Second user joins the group
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
-    const user2 = secondUser.user;
-    
+
     await page2.goto(shareLink);
     await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
     await groupDetailPage2.getJoinGroupButton().click();
@@ -89,7 +88,6 @@ test.describe('Settlement Management', () => {
     await page.keyboard.press('Escape');
     
     const page2 = secondUser.page;
-    const user2 = secondUser.user;
     await page2.goto(shareLink);
     await page2.getByRole('button', { name: /join group/i }).click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -140,7 +138,7 @@ test.describe('Settlement Management', () => {
   });
 
   test('should validate settlement form', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -203,7 +201,7 @@ test.describe('Settlement Management', () => {
   });
 
   test('should display settlement history', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -216,7 +214,6 @@ test.describe('Settlement Management', () => {
     await page.keyboard.press('Escape');
     
     const page2 = secondUser.page;
-    const user2 = secondUser.user;
     await page2.goto(shareLink);
     await page2.getByRole('button', { name: /join group/i }).click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -262,7 +259,7 @@ test.describe('Settlement Management', () => {
   });
 
   test('should handle multiple currencies', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -275,7 +272,6 @@ test.describe('Settlement Management', () => {
     await page.keyboard.press('Escape');
     
     const page2 = secondUser.page;
-    const user2 = secondUser.user;
     await page2.goto(shareLink);
     await page2.getByRole('button', { name: /join group/i }).click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);

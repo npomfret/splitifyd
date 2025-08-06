@@ -7,7 +7,7 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { joinGroupStore } from '../app/stores/join-group-store';
-import { authStore } from '../app/stores/auth-store';
+import { useAuth } from '../app/hooks/useAuth';
 import { Card } from '../components/ui/Card';
 import { Stack } from '../components/ui/Stack';
 import { Button } from '../components/ui/Button';
@@ -22,6 +22,7 @@ interface JoinGroupPageProps {
 }
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
+  const authStore = useAuth();
   const isAuthenticated = !!authStore.user;
   const {
     group,
@@ -58,7 +59,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
       return;
     }
 
-    // Load group preview
+    // Load group preview - intentionally not awaited (useEffect cannot be async)
     joinGroupStore.loadGroupPreview(actualLinkId);
   }, [actualLinkId, isAuthenticated]);
 

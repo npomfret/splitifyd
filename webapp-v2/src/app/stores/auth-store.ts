@@ -19,8 +19,14 @@ class AuthStoreImpl implements AuthStore {
   get error() { return errorSignal.value; }
   get initialized() { return initializedSignal.value; }
 
-  constructor() {
-    this.initializeAuth();
+  private constructor() {
+    // Private constructor - use static create() method instead
+  }
+
+  static async create(): Promise<AuthStoreImpl> {
+    const store = new AuthStoreImpl();
+    await store.initializeAuth();
+    return store;
   }
 
   private async initializeAuth() {
@@ -159,4 +165,16 @@ class AuthStoreImpl implements AuthStore {
   }
 }
 
-export const authStore = new AuthStoreImpl();
+// Singleton instance promise
+let authStoreInstance: Promise<AuthStoreImpl> | null = null;
+
+export const createAuthStore = async (): Promise<AuthStoreImpl> => {
+  return await AuthStoreImpl.create();
+};
+
+export const getAuthStore = (): Promise<AuthStoreImpl> => {
+  if (!authStoreInstance) {
+    authStoreInstance = AuthStoreImpl.create();
+  }
+  return authStoreInstance;
+};

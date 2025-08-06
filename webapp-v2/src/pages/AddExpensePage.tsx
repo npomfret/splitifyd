@@ -4,7 +4,7 @@ import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
 import type { ExpenseCategory } from '@shared/types/webapp-shared-types';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-import { authStore } from '../app/stores/auth-store';
+import { useAuth } from '../app/hooks/useAuth';
 import { apiClient } from '../app/apiClient';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
@@ -24,6 +24,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const isEditMode = urlParams.get('edit') === 'true' && !!expenseId;
   
   // Computed values from stores
+  const authStore = useAuth();
   const currentUser = useComputed(() => authStore.user);
   const group = useComputed(() => groupDetailStore.group);
   const loading = useComputed(() => groupDetailStore.loading);
@@ -120,6 +121,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
       }
     };
     
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     initializeForm();
     
     // Cleanup on unmount

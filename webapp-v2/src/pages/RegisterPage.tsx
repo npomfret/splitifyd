@@ -6,7 +6,7 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { authStore } from '../app/stores/auth-store';
+import { useAuth } from '../app/hooks/useAuth';
 import { firebaseConfigManager } from '../app/firebase-config';
 import { logError } from '../utils/error-logger';
 
@@ -18,6 +18,7 @@ const agreeToTermsSignal = signal(false);
 const localErrorSignal = signal<string | null>(null);
 
 export function RegisterPage() {
+  const authStore = useAuth();
   // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {
     authStore.clearError();

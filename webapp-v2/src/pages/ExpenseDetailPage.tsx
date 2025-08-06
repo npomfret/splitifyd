@@ -70,6 +70,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
       }
     };
     
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     loadExpense();
   }, [groupId, expenseId]);
   
@@ -108,11 +109,12 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
         url: url
       }).catch((error) => {
         // Fallback to clipboard if share fails
-        console.log('Share API failed, falling back to clipboard:', error);
+        logError('Share API failed, falling back to clipboard', error);
+        // Intentionally not awaited - fire-and-forget fallback operation
         copyToClipboard(url);
       });
     } else {
-      // Fallback to clipboard
+      // Fallback to clipboard - intentionally not awaited (fire-and-forget)
       copyToClipboard(url);
     }
   };
@@ -121,7 +123,6 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     try {
       await navigator.clipboard.writeText(text);
       // TODO: Add toast notification for successful copy
-      console.log('URL copied to clipboard');
     } catch (error) {
       logError('Failed to copy to clipboard', error);
       // Fallback: select text for manual copy

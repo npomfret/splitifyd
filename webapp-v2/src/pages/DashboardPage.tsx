@@ -1,39 +1,31 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
-import { authStore } from '../app/stores/auth-store';
+import { useAuth } from '../app/hooks/useAuth';
 import { groupsStore } from '../app/stores/groups-store';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { Container } from '../components/ui';
-import { LoadingSpinner } from '../components/ui';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 
 export function DashboardPage() {
+  const authStore = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated  
   useEffect(() => {
-    if (authStore.initialized && !authStore.user) {
+    if (!authStore.user) {
       route('/login', true);
       return;
     }
-  }, [authStore.initialized, authStore.user]);
+  }, [authStore.user]);
 
   // Fetch groups when component mounts and user is authenticated
   useEffect(() => {
     if (authStore.user && !groupsStore.initialized) {
+      // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
       groupsStore.fetchGroups();
     }
   }, [authStore.user, groupsStore.initialized]);
-
-  // Show loading spinner while auth is initializing
-  if (!authStore.initialized) {
-    return (
-      <div class="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
 
   // Redirect if user is not authenticated (will happen in useEffect)
   if (!authStore.user) {
@@ -85,7 +77,6 @@ export function DashboardPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(groupId) => {
-          console.log('Successfully created group:', groupId);
           setIsCreateModalOpen(false);
           route(`/groups/${groupId}`);
         }}

@@ -1,5 +1,5 @@
 import { useComputed } from '@preact/signals';
-import { authStore } from '../../app/stores/auth-store';
+import { useAuth } from '../../app/hooks/useAuth';
 import { UserMenu } from './UserMenu';
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
 }
 
 export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
+  const authStore = useAuth();
   const user = useComputed(() => authStore.user);
   const isAuthenticated = useComputed(() => !!user.value);
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { LoadingSpinner } from '../ui';
 import type { SettlementListItem } from '@shared/types/webapp-shared-types';
 import { apiClient } from '../../app/apiClient';
-import { authStore } from '../../app/stores/auth-store';
+import { useAuth } from '../../app/hooks/useAuth';
 
 interface SettlementHistoryProps {
   groupId: string;
@@ -11,6 +11,7 @@ interface SettlementHistoryProps {
 }
 
 export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHistoryProps) {
+  const authStore = useAuth();
   const [settlements, setSettlements] = useState<SettlementListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
   };
 
   useEffect(() => {
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     loadSettlements();
   }, [groupId, userId]);
 

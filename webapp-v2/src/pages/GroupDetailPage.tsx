@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-import { authStore } from '../app/stores/auth-store';
+import { useAuth } from '../app/hooks/useAuth';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
@@ -35,11 +35,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const members = useComputed(() => group.value?.members || []);
   const loading = useComputed(() => groupDetailStore.loading);
   const error = useComputed(() => groupDetailStore.error);
+  
+  // Auth store via hook
+  const authStore = useAuth();
   const currentUser = useComputed(() => authStore.user);
   const isGroupOwner = useComputed(() => 
     currentUser.value && group.value && group.value.createdBy === currentUser.value.uid
   );
-
 
   // Fetch group data on mount
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
       }
     };
 
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     loadGroup();
 
     // Cleanup on unmount
@@ -143,7 +146,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   };
 
   const handleSettings = () => {
-    console.log('Settings clicked');
+    // TODO: Implement group settings functionality
   };
 
   // Render group detail
