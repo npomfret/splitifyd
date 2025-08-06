@@ -64,6 +64,27 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('combobox').first();
   }
 
+  getCategoryInput() {
+    return this.page.getByRole('combobox').first();
+  }
+
+  getCategorySuggestion(text: string) {
+    return this.page.getByRole('option', { name: new RegExp(text, 'i') });
+  }
+
+  async selectCategoryFromSuggestions(categoryText: string) {
+    const categoryInput = this.getCategoryInput();
+    await categoryInput.focus();
+    await this.page.waitForSelector('[role="listbox"]');
+    const suggestion = this.getCategorySuggestion(categoryText);
+    await suggestion.click();
+  }
+
+  async typeCategoryText(text: string) {
+    const categoryInput = this.getCategoryInput();
+    await categoryInput.fill(text);
+  }
+
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
   }

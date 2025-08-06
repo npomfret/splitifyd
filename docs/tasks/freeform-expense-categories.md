@@ -1,6 +1,6 @@
 # Task: Free-form Expense Categories with Suggestions
 
-**Status:** In Progress
+**Status:** Completed
 
 ## Description
 

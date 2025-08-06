@@ -7,7 +7,7 @@ import { groupDetailStore } from '../app/stores/group-detail-store';
 import { useAuth } from '../app/hooks/useAuth';
 import { apiClient } from '../app/apiClient';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
-import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
+import { LoadingSpinner, Card, Button, Avatar, CategorySuggestionInput } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { logError } from '../utils/error-logger';
 
@@ -348,20 +348,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   
                   {/* Category */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Category
-                    </label>
-                    <select
+                    <CategorySuggestionInput
                       value={category.value}
-                      onChange={(e) => expenseFormStore.updateField('category', (e.target as HTMLSelectElement).value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    >
-                      {EXPENSE_CATEGORIES.map((cat: ExpenseCategory) => (
-                        <option key={cat.name} value={cat.name}>
-                          {cat.icon} {cat.displayName}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => expenseFormStore.updateField('category', value)}
+                      suggestions={EXPENSE_CATEGORIES}
+                      label="Category"
+                      placeholder="Enter or select a category..."
+                      className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                    />
                   </div>
                 </div>
                 

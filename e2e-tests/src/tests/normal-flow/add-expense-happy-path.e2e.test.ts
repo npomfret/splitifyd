@@ -1,6 +1,5 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
-import { GroupWorkflow } from '../../workflows/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
@@ -30,7 +29,7 @@ test.describe('Add Expense E2E', () => {
     await amountField.fill('50.00');
     
     await expect(categorySelect).toBeVisible();
-    await categorySelect.selectOption({ index: 1 });
+    await groupDetailPage.selectCategoryFromSuggestions('Transportation');
     
     const submitButton = groupDetailPage.getSaveExpenseButton();
     
@@ -46,10 +45,9 @@ test.describe('Add Expense E2E', () => {
 
   // Form validation tests moved to form-validation.e2e.test.ts
 
-  test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
+  test('should allow selecting expense category', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Category'), 'Testing expense categories');
+    await dashboardPage.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
@@ -66,7 +64,7 @@ test.describe('Add Expense E2E', () => {
     
     const initialCategory = await categorySelect.inputValue();
     
-    await categorySelect.selectOption({ index: 2 });
+    await groupDetailPage.selectCategoryFromSuggestions('Bills & Utilities');
     
     const newCategory = await categorySelect.inputValue();
     expect(newCategory).not.toBe(initialCategory);
@@ -81,10 +79,9 @@ test.describe('Add Expense E2E', () => {
     await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
   });
 
-  test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
+  test('should show expense in group after creation', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Display'), 'Testing expense display');
+    await dashboardPage.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
@@ -104,6 +101,33 @@ test.describe('Add Expense E2E', () => {
     await expect(amountText).toBeVisible();
     
     await expect(page.getByText(/paid by|Paid:/i)).toBeVisible();
+  });
+
+  test('should allow custom category input', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { page } = authenticatedPage;
+    await dashboardPage.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
+    
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    
+    const addExpenseButton = groupDetailPage.getAddExpenseButton();
+    await addExpenseButton.first().click();
+    
+    await page.waitForLoadState('networkidle');
+    
+    const descriptionField = groupDetailPage.getExpenseDescriptionField();
+    await expect(descriptionField).toBeVisible();
+    
+    // Test custom category input
+    await groupDetailPage.typeCategoryText('Custom Office Supplies');
+    
+    await groupDetailPage.getExpenseDescriptionField().fill('Custom category expense');
+    await groupDetailPage.getExpenseAmountField().fill('15.99');
+    
+    await groupDetailPage.getSaveExpenseButton().click();
+    await page.waitForLoadState('networkidle');
+    
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();
   });
 
 });

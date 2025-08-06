@@ -8,7 +8,6 @@ import {
   CreateExpenseRequest, 
   UpdateExpenseRequest
 } from '../types/webapp-shared-types';
-import { EXPENSE_CATEGORIES } from '../types/firebase-config-types';
 
 export interface Expense {
   id: string;
@@ -41,7 +40,7 @@ const createExpenseSchema = Joi.object({
   paidBy: Joi.string().required(),
   amount: Joi.number().positive().required(),
   description: Joi.string().trim().min(1).max(200).required(),
-  category: Joi.string().valid(...EXPENSE_CATEGORIES).required(),
+  category: Joi.string().trim().min(1).max(50).required(),
   date: Joi.string().required(),
   splitType: Joi.string().valid('equal', 'exact', 'percentage').required(),
   participants: Joi.array().items(Joi.string()).min(1).required(),
@@ -52,7 +51,7 @@ const createExpenseSchema = Joi.object({
 const updateExpenseSchema = Joi.object({
   amount: Joi.number().positive().optional(),
   description: Joi.string().trim().min(1).max(200).optional(),
-  category: Joi.string().valid(...EXPENSE_CATEGORIES).optional(),
+  category: Joi.string().trim().min(1).max(50).optional(),
   date: Joi.string().optional(),
   splitType: Joi.string().valid('equal', 'exact', 'percentage').optional(),
   participants: Joi.array().items(Joi.string()).min(1).optional(),
@@ -107,7 +106,7 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
       errorMessage = 'Description is required';
     } else if (firstError.path.includes('category')) {
       errorCode = 'INVALID_CATEGORY';
-      errorMessage = `Category must be one of: ${EXPENSE_CATEGORIES.join(', ')}`;
+      errorMessage = 'Category must be between 1 and 50 characters';
     } else if (firstError.path.includes('date')) {
       errorCode = 'INVALID_DATE';
       errorMessage = 'Date is required';
@@ -204,7 +203,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
       errorMessage = 'Description cannot be empty';
     } else if (firstError.path.includes('category')) {
       errorCode = 'INVALID_CATEGORY';
-      errorMessage = `Category must be one of: ${EXPENSE_CATEGORIES.join(', ')}`;
+      errorMessage = 'Category must be between 1 and 50 characters';
     } else if (firstError.path.includes('date')) {
       errorCode = 'INVALID_DATE';
       errorMessage = 'Date is required';
