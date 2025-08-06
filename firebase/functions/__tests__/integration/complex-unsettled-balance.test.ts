@@ -56,9 +56,8 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
       .withParticipants([alice.uid, bob.uid]) // Both participants
       .build();
     
-    const expense1 = await driver.createExpense(expense1Data, alice.token);
-    console.log('Created expense 1:', JSON.stringify(expense1, null, 2));
-    
+    await driver.createExpense(expense1Data, alice.token);
+
     // Bob adds restaurant expense ($120) - paid by Bob, split equally among all
     const expense2Data = new ExpenseBuilder()
       .withGroupId(group.id)
@@ -69,13 +68,11 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
       .withParticipants([alice.uid, bob.uid]) // Both participants
       .build();
     
-    const expense2 = await driver.createExpense(expense2Data, bob.token);
-    console.log('Created expense 2:', JSON.stringify(expense2, null, 2));
-    
+    await driver.createExpense(expense2Data, bob.token);
+
     // Get the group balance
     const balances = await driver.getGroupBalances(group.id, alice.token);
-    console.log('Group balances:', JSON.stringify(balances, null, 2));
-    
+
     // Verify the balance calculation
     // Alice paid $800, Bob paid $120, total = $920
     // Each person's share = $920 / 2 = $460
@@ -101,8 +98,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     
     // Also check via the group endpoint to see what the frontend receives
     const groupWithBalance = await driver.getGroup(group.id, alice.token);
-    console.log('Group with balance:', JSON.stringify(groupWithBalance, null, 2));
-    
+
     // The group balance should show that there are unsettled amounts
     expect(groupWithBalance.balance).toBeDefined();
     expect(groupWithBalance.balance.userBalance).toBeDefined();
