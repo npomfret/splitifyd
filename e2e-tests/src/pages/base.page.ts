@@ -3,30 +3,47 @@ import { EMULATOR_URL } from '../helpers/emulator-utils';
 
 export abstract class BasePage {
   constructor(protected page: Page) {}
+  
   /**
-   * Fill an input field in a way that properly triggers Preact signal updates.
-   * This is necessary because Playwright's fill() method doesn't always trigger
-   * the onChange events that Preact signals rely on.
+   * Validates that an input field contains the expected value.
+   * Triggers blur event to ensure validation runs and waits for any state changes.
    */
-  async fillPreactInput(selector: string | Locator, value: string) {
-    const input = typeof selector === 'string' ? this.page.locator(selector) : selector;
-    
-    // Focus the input
-    await input.click();
-    
-    // Clear existing content
-    await input.fill('');
-    
-    // Type each character to ensure proper event triggering
-    for (const char of value) {
-      await input.type(char);
-    }
-    
+  private async validateInputValue(input: Locator, expectedValue: string): Promise<void> {
     // Blur the field to ensure validation runs
     await input.blur();
     
     // Wait for any validation state change after blur
     await this.page.waitForLoadState('domcontentloaded');
+    
+    // Verify the field contains the expected value
+    const actualValue = await input.inputValue();
+    if (actualValue !== expectedValue) {
+      // Get field attributes for better error reporting
+      const fieldName = await input.getAttribute('name').catch(() => null);
+      const fieldId = await input.getAttribute('id').catch(() => null);
+      const placeholder = await input.getAttribute('placeholder').catch(() => null);
+      
+      const fieldIdentifier = fieldName || fieldId || placeholder || 'unknown field';
+      throw new Error(`Input validation failed for field "${fieldIdentifier}": expected "${expectedValue}" but got "${actualValue}"`);
+    }
+  }
+  
+  /**
+   * Fill an input field in a way that properly triggers Preact signal updates.
+   * This is necessary because Playwright's fill() method doesn't always trigger
+   * the onChange events that Preact signals rely on.
+   * Uses the more reliable pressSequentially method with validation.
+   */
+  async fillPreactInput(selector: string | Locator, value: string) {
+    const input = typeof selector === 'string' ? this.page.locator(selector) : selector;
+    
+    await input.click();
+    await input.fill('');
+    await this.validateInputValue(input, '');
+    
+    await input.click();
+    await input.pressSequentially(value);
+    await this.validateInputValue(input, value);
   }
   
   async waitForNetworkIdle() {
