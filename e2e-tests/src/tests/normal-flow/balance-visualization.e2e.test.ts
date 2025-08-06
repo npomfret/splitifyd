@@ -289,21 +289,21 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
     
-    // Wait for balance state to appear after reload
+    // Wait for balance state to appear after reload (not loading)
     try {
       await Promise.race([
         balanceSection.getByText(/owes/, { exact: false }).first().waitFor({ timeout: 5000 }),
         balanceSection.getByText('All settled up!').waitFor({ timeout: 5000 })
       ]);
     } catch {
-      // Continue if neither appears
+      // Continue if neither appears immediately
     }
     
     const updatedDebts = await balanceSection.getByText(/owes/, { exact: false }).count();
     const updatedSettled = await balanceSection.getByText('All settled up!').count();
     const updatedState = `debts:${updatedDebts},settled:${updatedSettled}`;
     
-    // Balance system should still be functional (show either debts or settled up)
+    // Balance system should be functional (show either debts or settled up, not loading)
     multiUserExpected(updatedDebts + updatedSettled).toBeGreaterThan(0);
     
     // Verify both expenses were recorded
@@ -353,26 +353,26 @@ multiUserTest.describe('Multi-User Balance Visualization', () => {
     // Should show either debts or settled up state in balances section
     const balanceSection = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Balances' }) });
     
-    // Wait for balance state to appear
+    // Wait for balance state to appear (not loading)
     try {
       await Promise.race([
         balanceSection.getByText(/owes/, { exact: false }).first().waitFor({ timeout: 5000 }),
         balanceSection.getByText('All settled up!').waitFor({ timeout: 5000 })
       ]);
     } catch {
-      // Continue if neither appears
+      // Continue if neither appears immediately
     }
     
     // Check for either debt display or settled up message
     const hasDebts = await balanceSection.getByText(/owes/, { exact: false }).count();
     const hasSettledUp = await balanceSection.getByText('All settled up!').count();
     
-    // Should have either debts OR settled up message
+    // Should have either debts OR settled up message (not loading)
     multiUserExpected(hasDebts + hasSettledUp).toBeGreaterThan(0);
     
     // If there are debts, verify currency formatting
     if (hasDebts > 0) {
-      const currencyAmount = balanceSection.getByText(/\$\d+\.\d{2}/);
+      const currencyAmount = balanceSection.getByText(/\$\d+\.\d{2}/).first();
       await multiUserExpected(currencyAmount).toBeVisible();
     }
     

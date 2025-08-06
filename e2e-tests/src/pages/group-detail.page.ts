@@ -140,8 +140,9 @@ export class GroupDetailPage extends BasePage {
   }
 
   async addExpense(expense: ExpenseData): Promise<void> {
-    // Click add expense button
+    // Wait for add expense button to be available and click it
     const addExpenseButton = this.getAddExpenseButton();
+    await expect(addExpenseButton).toBeVisible();
     await addExpenseButton.click();
     
     // Wait for form to be visible

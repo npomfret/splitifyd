@@ -160,8 +160,6 @@ export function SettlementForm({
   };
 
   if (!isOpen) return null;
-
-  const isFormValid = !validateForm();
   
   const getMemberName = (userId: string): string => {
     const member = members.find((m: User) => m.uid === userId);
@@ -356,7 +354,7 @@ export function SettlementForm({
               <Button
                 type="submit"
                 variant="primary"
-                disabled={!isFormValid || isSubmitting}
+                disabled={!!validateForm() || isSubmitting}
                 loading={isSubmitting}
                 className="flex-1"
               >

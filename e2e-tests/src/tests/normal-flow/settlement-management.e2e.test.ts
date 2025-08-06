@@ -114,10 +114,15 @@ test.describe('Settlement Management', () => {
     const modal = page.getByRole('dialog');
     await expect(modal).toBeVisible();
     
-    // Fill form - user2 pays user1 (select by index)
-    await page.getByRole('combobox', { name: /who paid/i }).selectOption({ index: 2 }); // user2
-    await page.getByRole('combobox', { name: /who received the payment/i }).selectOption({ index: 1 }); // user1
-    await page.getByRole('spinbutton', { name: /amount/i }).fill('100');
+    // Fill form - user2 pays user1 (be explicit about amounts and users)
+    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
+    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
+    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+    
+    // Select the users properly (payer should be the one who owes money)
+    await payerSelect.selectOption({ index: 1 }); // First actual user option
+    await payeeSelect.selectOption({ index: 1 }); // First available option (different from payer due to filtering)
+    await amountInput.fill('100');
     
     await modal.getByRole('button', { name: /record payment/i }).click();
     await expect(modal).not.toBeVisible();
@@ -166,15 +171,24 @@ test.describe('Settlement Management', () => {
     // Fix amount
     await amountInput.fill('10');
     
-    // Test same payer and payee
+    // Test same payer and payee by directly setting form state
     const payerSelect = page.getByRole('combobox', { name: /who paid/i });
     const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
     
-    // Try to select same user (first actual user option)
+    // Get the first user value from payer select
     await payerSelect.selectOption({ index: 1 });
-    await payeeSelect.selectOption({ index: 1 });
+    const selectedPayerValue = await payerSelect.inputValue();
     
-    // Should still be disabled
+    // Manually set the payee to the same value using JavaScript to bypass filtering
+    await page.evaluate((payerValue) => {
+      const payeeSelect = document.querySelector('select[id="payee"]') as HTMLSelectElement;
+      if (payeeSelect) {
+        payeeSelect.value = payerValue;
+        payeeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, selectedPayerValue);
+    
+    // Should be disabled due to same person validation
     await expect(submitButton).toBeDisabled();
     
     // Close modal

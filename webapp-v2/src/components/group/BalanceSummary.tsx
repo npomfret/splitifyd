@@ -8,8 +8,6 @@ interface BalanceSummaryProps {
 }
 
 export function BalanceSummary({ balances, members = [] }: BalanceSummaryProps) {
-  if (!balances) return null;
-
   // Helper to get user display name
   const getUserName = (userId: string) => {
     const member = members.find(m => m.uid === userId);
@@ -19,7 +17,9 @@ export function BalanceSummary({ balances, members = [] }: BalanceSummaryProps) 
   return (
     <Card className="p-6">
       <h2 className="text-lg font-semibold mb-4">Balances</h2>
-      {balances.simplifiedDebts.length === 0 ? (
+      {!balances ? (
+        <p className="text-gray-600">Loading balances...</p>
+      ) : balances.simplifiedDebts.length === 0 ? (
         <p className="text-gray-600">All settled up!</p>
       ) : (
         <Stack spacing="sm">
