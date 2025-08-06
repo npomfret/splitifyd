@@ -1,5 +1,5 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, fillPreactInput } from '../../helpers/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 
@@ -127,10 +127,10 @@ test.describe('Duplicate User Registration E2E', () => {
     const passwordInput = registerPage.getPasswordInput();
     const confirmPasswordInput = registerPage.getConfirmPasswordInput();
     
-    await fillPreactInput(nameInput, displayName, page);
-    await fillPreactInput(emailInput, email, page);
-    await fillPreactInput(passwordInput, password, page);
-    await fillPreactInput(confirmPasswordInput, password, page);
+    await registerPage.fillPreactInput(nameInput, displayName);
+    await registerPage.fillPreactInput(emailInput, email);
+    await registerPage.fillPreactInput(passwordInput, password);
+    await registerPage.fillPreactInput(confirmPasswordInput, password);
     const termsCheckbox = registerPage.getTermsCheckbox();
     const submitButton = registerPage.getSubmitButton();
     
@@ -189,10 +189,10 @@ test.describe('Duplicate User Registration E2E', () => {
     const termsCheckbox = registerPage.getTermsCheckbox();
     const submitButton = registerPage.getSubmitButton();
     
-    await fillPreactInput(nameInput, displayName, page);
-    await fillPreactInput(emailInput, email1, page);
-    await fillPreactInput(passwordInput, password, page);
-    await fillPreactInput(confirmPasswordInput, password, page);
+    await registerPage.fillPreactInput(nameInput, displayName);
+    await registerPage.fillPreactInput(emailInput, email1);
+    await registerPage.fillPreactInput(passwordInput, password);
+    await registerPage.fillPreactInput(confirmPasswordInput, password);
     await termsCheckbox.check();
     await submitButton.click();
     
@@ -201,7 +201,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     // Now change email and try again using page object
-    await fillPreactInput(emailInput, email2, page);
+    await registerPage.fillPreactInput(emailInput, email2);
     await submitButton.click();
     
     // Should succeed this time
