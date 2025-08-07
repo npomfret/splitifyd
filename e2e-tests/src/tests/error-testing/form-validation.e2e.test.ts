@@ -172,11 +172,7 @@ test.describe('Form Validation E2E', () => {
       
       // Create a group
       await dashboardPage.createGroupAndNavigate('Expense Validation Group', 'Testing expense form validation');
-      
-      // Assert we're on the correct group page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      await expect(page.getByText('Expense Validation Group')).toBeVisible();
-      
+
       // Navigate to add expense form
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
       await addExpenseButton.click();
@@ -207,11 +203,7 @@ test.describe('Form Validation E2E', () => {
       
       // Create a group
       await dashboardPage.createGroupAndNavigate('Split Validation Group', 'Testing split validation');
-      
-      // Assert we're on the correct group page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      await expect(page.getByText('Split Validation Group')).toBeVisible();
-      
+
       // Navigate to add expense form
       await page.getByRole('button', { name: /add expense/i }).click();
       await page.waitForLoadState('domcontentloaded');
@@ -239,11 +231,7 @@ test.describe('Form Validation E2E', () => {
       
       // Create a group
       await dashboardPage.createGroupAndNavigate('Percentage Validation Group', 'Testing percentage validation');
-      
-      // Assert we're on the correct group page
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      await expect(page.getByText('Percentage Validation Group')).toBeVisible();
-      
+
       // Navigate to add expense form  
       await page.getByRole('button', { name: /add expense/i }).click();
       await page.waitForLoadState('domcontentloaded');

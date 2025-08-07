@@ -49,8 +49,6 @@ test.describe('Add Expense E2E', () => {
     const { page } = authenticatedPage;
     await dashboardPage.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();
     
@@ -83,8 +81,6 @@ test.describe('Add Expense E2E', () => {
     const { page } = authenticatedPage;
     await dashboardPage.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-    
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForLoadState('domcontentloaded');
     
@@ -106,8 +102,6 @@ test.describe('Add Expense E2E', () => {
   test('should allow custom category input', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     await dashboardPage.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();

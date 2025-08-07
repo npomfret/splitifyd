@@ -1,5 +1,6 @@
 import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
+import { HEADINGS, BUTTON_TEXTS, MESSAGES, FORM_LABELS, ARIA_ROLES, CLASS_SELECTORS } from '../constants/selectors';
 
 interface ExpenseData {
   description: string;
@@ -637,5 +638,81 @@ export class GroupDetailPage extends BasePage {
     
     // Wait for settlement to be processed
     await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * New getter methods using centralized constants
+   */
+  
+  // Headings
+  getExpensesHeading() {
+    return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.EXPENSES });
+  }
+
+  // Buttons
+  getSettleUpButton() {
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SETTLE_UP });
+  }
+
+  getShowHistoryButton() {
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SHOW_HISTORY });
+  }
+
+  getSelectAllButton() {
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SELECT_ALL });
+  }
+
+  getRecordPaymentButton() {
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.RECORD_PAYMENT });
+  }
+
+  // Modal and form elements
+  getSettlementModal() {
+    return this.page.getByRole(ARIA_ROLES.DIALOG);
+  }
+
+  getSettlementAmountInput() {
+    return this.page.getByRole('spinbutton', { name: FORM_LABELS.AMOUNT });
+  }
+
+  getPayerSelect() {
+    return this.page.getByRole(ARIA_ROLES.COMBOBOX, { name: FORM_LABELS.WHO_PAID });
+  }
+
+  getPayeeSelect() {
+    return this.page.getByRole(ARIA_ROLES.COMBOBOX, { name: FORM_LABELS.WHO_RECEIVED_PAYMENT });
+  }
+
+  getNoteInput() {
+    return this.page.getByRole(ARIA_ROLES.TEXTBOX, { name: FORM_LABELS.NOTE });
+  }
+
+  // Messages
+  getSettledUpMessage() {
+    return this.page.getByText(MESSAGES.ALL_SETTLED_UP);
+  }
+
+  getNoExpensesText() {
+    return this.page.getByText(MESSAGES.NO_EXPENSES_YET);
+  }
+
+  getLoadingBalancesText() {
+    return this.page.getByText(MESSAGES.LOADING_BALANCES);
+  }
+
+  // Utility method for member count
+  getMemberCountText(count: number) {
+    const memberText = count === 1 ? 'member' : 'members';
+    return this.page.getByText(`${count} ${memberText}`);
+  }
+
+  // Utility method for currency amounts
+  getCurrencyAmount(amount: string) {
+    return this.page.getByText(`$${amount}`);
+  }
+
+  // Utility method for debt messages
+  getDebtMessage(debtorName: string, creditorName: string) {
+    return this.page.getByText(`${debtorName} owes ${creditorName}`);
   }
 }

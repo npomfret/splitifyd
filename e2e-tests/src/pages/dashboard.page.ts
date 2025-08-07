@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { CreateGroupModalPage } from './create-group-modal.page';
+import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 
 export class DashboardPage extends BasePage {
   // Selectors
@@ -14,7 +15,7 @@ export class DashboardPage extends BasePage {
   
   async isLoggedIn(): Promise<boolean> {
     // We KNOW the welcome text exists when logged in
-    return await this.page.getByText(/Welcome back/i).isVisible();
+    return await this.page.getByText(MESSAGES.WELCOME_BACK).isVisible();
   }
   
   async getUserDisplayName(): Promise<string> {
@@ -25,11 +26,11 @@ export class DashboardPage extends BasePage {
 
   // Element accessors
   getWelcomeMessage() {
-    return this.page.getByText(/Welcome back/i);
+    return this.page.getByText(MESSAGES.WELCOME_BACK);
   }
 
   getGroupsHeading() {
-    return this.page.getByRole('heading', { name: /Your Groups|My Groups/i });
+    return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.YOUR_GROUPS });
   }
 
   getCreateGroupButton() {
@@ -56,11 +57,11 @@ export class DashboardPage extends BasePage {
     await expect(this.getUserMenuButton(displayName)).toBeVisible();
   }
   getSignOutButton() {
-    return this.page.getByRole('button', { name: /Sign Out|Logout/i });
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_OUT });
   }
 
   getSignInButton() {
-    return this.page.getByRole('button', { name: /Sign In|Login/i });
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_IN });
   }
 
   async openCreateGroupModal() {
@@ -94,6 +95,11 @@ export class DashboardPage extends BasePage {
     await this.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
 
     // Extract and return group ID
-    return this.getUrlParam('groupId')!;
+    const groupId = this.getUrlParam('groupId')!;
+    // await this.expectUrl(`/groups/${groupId}`);// todo
+
+    await expect(this.page.getByText(name)).toBeVisible();
+
+    return groupId;
   }
 }

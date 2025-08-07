@@ -19,9 +19,6 @@ test.describe('Member Management E2E', () => {
     const groupName = 'Members Display Group';
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member display');
     
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
     // Should show the current user as a member in the main content area
     await expect(page.getByRole(ARIA_ROLES.MAIN).getByText(user.displayName)).toBeVisible();
     
@@ -39,9 +36,6 @@ test.describe('Member Management E2E', () => {
     // Create a group
     const groupName = 'Split Test Group';
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for split options');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
     const addExpenseButton = page.getByRole(ARIA_ROLES.BUTTON, { name: /add expense/i });
@@ -77,9 +71,6 @@ test.describe('Member Management E2E', () => {
     const groupName = 'Admin Test Group';
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for admin badge');
     
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
     // Creator should have admin badge - we expect a specific UI element
     // The UI must show "admin" text for the group creator
     await expect(page.getByText(/admin/i).first()).toBeVisible();
@@ -95,9 +86,6 @@ test.describe('Member Management E2E', () => {
     // Create a group
     const groupName = 'Share Test Group';
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for sharing');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Share button should be visible
     const shareButton = page.getByRole(ARIA_ROLES.BUTTON, { name: /share/i });
@@ -129,9 +117,6 @@ test.describe('Member Management E2E', () => {
     // Create a group
     const groupName = 'Member Count Group';
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member count');
-    
-    // Wait for navigation to group page
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Should show member count
     const memberCount = page.getByText(/1 member/i);

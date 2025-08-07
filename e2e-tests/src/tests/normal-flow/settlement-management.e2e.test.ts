@@ -31,14 +31,14 @@ test.describe('Settlement Management', () => {
     await page.reload();
     
     // Open settlement form
-    const settleButton = page.getByRole('button', { name: /settle up/i });
+    const settleButton = groupDetailPage.getSettleUpButton();
     await settleButton.click();
     
-    const modal = page.getByRole('dialog');
+    const modal = groupDetailPage.getSettlementModal();
     await expect(modal).toBeVisible();
     
     // Test negative amount
-    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+    const amountInput = groupDetailPage.getSettlementAmountInput();
     await amountInput.fill('-10');
     
     // Try to submit - should be disabled due to validation
@@ -49,8 +49,8 @@ test.describe('Settlement Management', () => {
     await amountInput.fill('10');
     
     // Test same payer and payee by directly setting form state
-    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
-    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
+    const payerSelect = groupDetailPage.getPayerSelect();
+    const payeeSelect = groupDetailPage.getPayeeSelect();
     
     // Get the first user value from payer select
     await payerSelect.selectOption({ index: 1 });
@@ -96,10 +96,10 @@ test.describe('Settlement Management', () => {
     await page.reload();
     
     // Open settlement form
-    const settleButton = page.getByRole('button', { name: /settle up/i });
+    const settleButton = groupDetailPage.getSettleUpButton();
     await settleButton.click();
     
-    const modal = page.getByRole('dialog');
+    const modal = groupDetailPage.getSettlementModal();
     await expect(modal).toBeVisible();
     
     // Fill form with Euro

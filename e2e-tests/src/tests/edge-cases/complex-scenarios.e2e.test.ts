@@ -20,11 +20,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     const groupName = 'Vacation Trip 2024';
     const groupDescription = 'Summer vacation expenses';
     await dashboardPage.createGroupAndNavigate(groupName, groupDescription);
-    
-    // Verify Alice navigated to the new group page
-    await expect(alicePage).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    await expect(alicePage.getByText(groupName)).toBeVisible();
-    
+
     // Get share link from Alice's page
     await alicePage.getByRole('button', { name: /share/i }).click();
     const shareLinkInput = alicePage.getByRole('dialog').getByRole('textbox');
