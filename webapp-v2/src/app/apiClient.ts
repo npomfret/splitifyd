@@ -431,7 +431,8 @@ export class ApiClient {
   async updateExpense(expenseId: string, data: CreateExpenseRequest): Promise<ExpenseData> {
     return this.request('/expenses', {
       method: 'PUT',
-      body: { ...data, id: expenseId }
+      query: { id: expenseId },
+      body: data
     });
   }
 

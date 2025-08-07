@@ -205,7 +205,7 @@ test.describe('Freeform Categories E2E', () => {
     await expect(groupDetailPage.getExpenseAmount('$33.33')).toBeVisible();
   });
 
-  test.skip('should edit expense and change category from predefined to custom', async ({ 
+  test('should edit expense and change category from predefined to custom', async ({ 
     authenticatedPage, 
     dashboardPage, 
     groupDetailPage 
@@ -237,23 +237,24 @@ test.describe('Freeform Categories E2E', () => {
     await page.waitForLoadState('networkidle');
     
     // Look for edit button and click it
-    const editButton = page.getByRole('button', { name: /edit|modify/i });
-    if (await editButton.isVisible()) {
-      await editButton.click();
-      await page.waitForLoadState('networkidle');
-    }
+    const editButton = page.getByRole('button', { name: /edit/i });
+    await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await editButton.click();
+    
+    // Wait for navigation to the edit page
+    await page.waitForURL(/\/add-expense\?.*edit=true/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Now we should be on the edit expense page
     // Change the category to a custom one
     const categoryInput = groupDetailPage.getCategoryInput();
-    await expect(categoryInput).toBeVisible();
+    await expect(categoryInput).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     const customCategory = 'Corporate Client Meeting';
     await categoryInput.fill(customCategory);
     
-    // Save the changes
-    const saveButton = groupDetailPage.getSaveExpenseButton();
-    await saveButton.click();
+    // Save the changes - in edit mode the button says "Update Expense"
+    const updateButton = page.getByRole('button', { name: /update expense/i });
+    await updateButton.click();
     
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/);
     

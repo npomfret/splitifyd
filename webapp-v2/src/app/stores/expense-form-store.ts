@@ -530,11 +530,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const dateTime = new Date(dateSignal.value);
       dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
       
-      const request: CreateExpenseRequest = {
-        groupId,
+      // For updates, only include fields that can be changed
+      // Backend doesn't allow changing: groupId, paidBy
+      const updateRequest = {
         description: descriptionSignal.value.trim(),
         amount: amountSignal.value,
-        paidBy: paidBySignal.value,
         category: categorySignal.value,
         date: dateTime.toISOString(),
         splitType: splitTypeSignal.value,
@@ -542,7 +542,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         splits: splitsSignal.value
       };
       
-      const expense = await apiClient.updateExpense(expenseId, request);
+      const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
       
       // Track recent category and amount
       addRecentCategory(categorySignal.value);

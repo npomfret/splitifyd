@@ -348,8 +348,28 @@ export const updateExpense = async (
       updates: Object.keys(updateData)
     });
 
+    // Fetch the updated expense to return the full object
+    const updatedExpenseDoc = await docRef.get();
+    const updatedExpense = { 
+      id: updatedExpenseDoc.id, 
+      ...updatedExpenseDoc.data() 
+    } as Expense;
+
     res.json({
-      message: 'Expense updated successfully',
+      id: updatedExpense.id,
+      groupId: updatedExpense.groupId,
+      createdBy: updatedExpense.createdBy,
+      paidBy: updatedExpense.paidBy,
+      amount: updatedExpense.amount,
+      category: updatedExpense.category,
+      description: updatedExpense.description,
+      date: toISOString(updatedExpense.date),
+      splitType: updatedExpense.splitType,
+      participants: updatedExpense.participants,
+      splits: updatedExpense.splits,
+      receiptUrl: updatedExpense.receiptUrl || undefined,
+      createdAt: toISOString(updatedExpense.createdAt),
+      updatedAt: toISOString(updatedExpense.updatedAt),
     });
   } catch (error) {
     logger.error('Failed to update expense', {
