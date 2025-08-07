@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import { waitForURLWithContext, groupDetailUrlPattern } from '../../helpers/wait-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -36,7 +37,7 @@ test.describe('Add Expense E2E', () => {
     await expect(submitButton).toBeVisible();
     await submitButton.click();
     
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await page.waitForLoadState('networkidle');
     
     await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
@@ -73,7 +74,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.getSaveExpenseButton().click();
     await page.waitForLoadState('networkidle');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
   });
 
@@ -120,7 +121,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.getSaveExpenseButton().click();
     await page.waitForLoadState('networkidle');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();
   });
 

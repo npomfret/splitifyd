@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -44,7 +45,7 @@ test.describe('Freeform Categories E2E', () => {
     
     // Submit expense
     await groupDetailPage.getSaveExpenseButton().click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created
     await expect(groupDetailPage.getExpenseByDescription('Grocery shopping')).toBeVisible();
@@ -82,7 +83,7 @@ test.describe('Freeform Categories E2E', () => {
     
     // Submit expense
     await groupDetailPage.getSaveExpenseButton().click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created with custom category
     await expect(groupDetailPage.getExpenseByDescription('Team building activity')).toBeVisible();
@@ -198,7 +199,7 @@ test.describe('Freeform Categories E2E', () => {
     
     // Submit expense
     await groupDetailPage.getSaveExpenseButton().click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created with special character category
     await expect(groupDetailPage.getExpenseByDescription('Special characters test')).toBeVisible();
@@ -224,7 +225,7 @@ test.describe('Freeform Categories E2E', () => {
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
     await groupDetailPage.getSaveExpenseButton().click();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    await waitForURLWithContext(page, groupDetailUrlPattern());
     
     // Verify expense was created
     await expect(groupDetailPage.getExpenseByDescription('Business lunch')).toBeVisible();
@@ -242,7 +243,7 @@ test.describe('Freeform Categories E2E', () => {
     await editButton.click();
     
     // Wait for navigation to the edit page
-    await page.waitForURL(/\/add-expense\?.*edit=true/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Now we should be on the edit expense page
     // Change the category to a custom one
@@ -256,10 +257,12 @@ test.describe('Freeform Categories E2E', () => {
     const updateButton = page.getByRole('button', { name: /update expense/i });
     await updateButton.click();
     
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/);
+    // After updating, we navigate to the expense detail page, not group detail
+    await waitForURLWithContext(page, expenseDetailUrlPattern());
     
-    // Verify the expense still exists (category change is internal)
-    await expect(groupDetailPage.getExpenseByDescription('Business lunch')).toBeVisible();
+    // Verify we're on the expense detail page with the updated category
+    await expect(page.getByText('Business lunch')).toBeVisible();
+    await expect(page.getByText(customCategory)).toBeVisible();
   });
 
   test('should prevent submission with empty category', async ({ 

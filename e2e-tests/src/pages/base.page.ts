@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers/emulator-utils';
+import { waitForURLWithContext } from '../helpers/wait-helpers';
 
 export abstract class BasePage {
   constructor(protected page: Page) {}
@@ -94,7 +95,7 @@ export abstract class BasePage {
   }
   
   async waitForNavigation(urlPattern: RegExp, timeout = 2000) {
-    await this.page.waitForURL(urlPattern, { timeout });
+    await waitForURLWithContext(this.page, urlPattern, { timeout });
   }
   
   async clickButtonWithText(text: string) {
