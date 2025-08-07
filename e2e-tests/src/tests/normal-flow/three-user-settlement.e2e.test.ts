@@ -23,6 +23,29 @@ test.describe('Three User Settlement Management', () => {
     
     console.log('🧪 Starting 3-user partial settlement test');
     
+    // Verify all 3 users are distinct to prevent flaky test failures
+    console.log(`🔍 Verifying user distinctness:`);
+    console.log(`User 1: ${user1.email} (${user1.displayName})`);
+    console.log(`User 2: ${user2.email} (${user2.displayName})`);
+    console.log(`User 3: ${user3.email} (${user3.displayName})`);
+    
+    // Assert all users have different emails
+    expect(user1.email).not.toBe(user2.email);
+    expect(user1.email).not.toBe(user3.email);
+    expect(user2.email).not.toBe(user3.email);
+    
+    // Assert all users have different display names
+    expect(user1.displayName).not.toBe(user2.displayName);
+    expect(user1.displayName).not.toBe(user3.displayName);
+    expect(user2.displayName).not.toBe(user3.displayName);
+    
+    // Verify correct users are shown in UI (top-right corner)
+    await expect(page.getByRole('button', { name: user1.displayName })).toBeVisible();
+    await expect(page2.getByRole('button', { name: user2.displayName })).toBeVisible();
+    await expect(page3.getByRole('button', { name: user3.displayName })).toBeVisible();
+    
+    console.log('✅ All 3 users are distinct - proceeding with test');
+    
     // 1. Create a group with 3 users
     await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
