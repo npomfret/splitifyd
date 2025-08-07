@@ -13,9 +13,9 @@ export interface AuthenticatedRequest extends Request {
     uid: string;
     email: string;
     displayName: string;
+    role?: "admin" | "user";
   };
 }
-
 /**
  * Simple in-memory rate limiter
  */
@@ -137,13 +137,22 @@ export const authenticate = async (
       throw new Error('User missing required fields: email and displayName are mandatory');
     }
     
+    // Fetch user role from Firestore
+    const userDocRef = admin.firestore().collection("users").doc(userRecord.uid);
+    const userDoc = await userDocRef.get();
+    const userData = userDoc.data();
+    
+    // Default to "user" role for existing users without role field (backward compatibility)
+    // New users should always have role field set during registration
+    const userRole = userData?.role ?? "user";
+    
     // Attach user information to request
     req.user = {
       uid: userRecord.uid,
       email: userRecord.email,
       displayName: userRecord.displayName,
+      role: userRole,
     };
-
     // Check rate limit
     const isAllowed = getRateLimiter().isAllowed(decodedToken.uid);
     if (!isAllowed) {
@@ -158,3 +167,68 @@ export const authenticate = async (
   }
 };
 
+
+/**
+ * Admin middleware - requires user to be authenticated and have admin role
+ * Must be used after authenticate middleware
+ */
+export const requireAdmin = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  // Skip for OPTIONS requests (CORS preflight)
+  if (req.method === 'OPTIONS') {
+    next();
+    return;
+  }
+
+  const correlationId = req.headers['x-correlation-id'] as string;
+  
+  // Check if user is authenticated (should be set by authenticate middleware)
+  if (!req.user) {
+    logger.warn('Admin access attempted without authentication', { correlationId });
+    sendError(res, Errors.UNAUTHORIZED(), correlationId);
+    return;
+  }
+
+  // Check if user has admin role
+  if (req.user.role !== 'admin') {
+    logger.warn('Admin access denied - insufficient permissions', { 
+      userId: req.user.uid,
+      role: req.user.role,
+      correlationId 
+    });
+    sendError(res, Errors.FORBIDDEN(), correlationId);
+    return;
+  }
+
+  logger.info('Admin access granted', { 
+    userId: req.user.uid,
+    email: req.user.email,
+    correlationId 
+  });
+
+  next();
+};
+
+/**
+ * Combined middleware for admin endpoints - authenticates and checks admin role
+ */
+export const authenticateAdmin = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    await authenticate(req, res, async (error?: any) => {
+      if (error) {
+        next(error);
+        return;
+      }
+      await requireAdmin(req, res, next);
+    });
+  } catch (error) {
+    next(error);
+  }
+};

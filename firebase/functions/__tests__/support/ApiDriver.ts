@@ -319,7 +319,13 @@ export class ApiDriver {
   }
 
   async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean }): Promise<any> {
-    return await this.apiRequest('/register', 'POST', userData);
+    // Ensure required policy acceptance fields are provided with defaults
+    const registrationData = {
+      ...userData,
+      termsAccepted: userData.termsAccepted ?? true,
+      cookiePolicyAccepted: userData.cookiePolicyAccepted ?? true
+    };
+    return await this.apiRequest('/register', 'POST', registrationData);
   }
 
   async makeInvalidApiCall(endpoint: string, method: string = 'GET', body: unknown = null, token: string | null = null): Promise<any> {

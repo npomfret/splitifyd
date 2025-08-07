@@ -1,5 +1,6 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
+import * as admin from 'firebase-admin';
 
 // Configuration Types - Used by webapp for API client
 /**
@@ -58,10 +59,45 @@ export interface User {
   uid: string;
   email: string;
   displayName: string;
-  termsAcceptedAt?: any; // admin.firestore.Timestamp on server, Date on client
-  cookiePolicyAcceptedAt?: any; // admin.firestore.Timestamp on server, Date on client
+  role?: "admin" | "user"; // Role field for admin access control
+  termsAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
+  cookiePolicyAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
+  acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
 }
 
+// Policy Types - For versioned terms and cookie policy acceptance
+export interface PolicyVersion {
+  text: string;
+  createdAt: string; // ISO string
+}
+
+export interface Policy {
+  policyName: string;
+  currentVersionHash: string;
+  versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
+}
+
+export interface PolicyDocument {
+  id: string;
+  policyName: string;
+  currentVersionHash: string;
+  versions: Record<string, PolicyVersion>;
+}
+
+// Admin Policy Management Types
+export interface CreatePolicyRequest {
+  policyName: string;
+  text: string;
+}
+
+export interface UpdatePolicyRequest {
+  text: string;
+  publish?: boolean; // If true, immediately set as current version
+}
+
+export interface PublishPolicyRequest {
+  versionHash: string;
+}
 // Balance Types
 export interface UserBalance {
   userId: string;

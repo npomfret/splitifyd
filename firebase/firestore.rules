@@ -28,6 +28,12 @@ service cloud.firestore {
              data.data.members is list &&
              data.data.memberIds is list;
     }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
 
     // Documents collection (groups)
     match /documents/{documentId} {
@@ -89,6 +95,28 @@ service cloud.firestore {
     match /_processing_events/{eventId} {
       // Deny all access - server functions only
       allow read, write: if false;
+    }
+    
+    // Users collection - users can read/update their own documents
+    match /users/{userId} {
+      // Allow read if user is reading their own document
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow update if user is updating their own document
+      // (users can update acceptedPolicies, but not role)
+      allow update: if request.auth != null && 
+        request.auth.uid == userId &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(["role"]) ||
+         isAdmin());
+    }
+    
+    // Policies collection - admin only access
+    match /policies/{policyId} {
+      // Only admins can read policies
+      allow read: if isAdmin();
+      
+      // Only admins can write policies
+      allow write: if isAdmin();
     }
     
     // Default deny rule for any other collections

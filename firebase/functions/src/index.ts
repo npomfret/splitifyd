@@ -1,6 +1,7 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import express from 'express';
 import { authenticate } from './auth/middleware';
+import { authenticateAdmin } from "./auth/middleware";
 import { register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
@@ -20,6 +21,7 @@ import {
 } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
+import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import {
   createGroup,
   getGroup,
@@ -35,6 +37,15 @@ import {
   listSettlements,
 } from './settlements/handlers';
 import { admin } from './firebase';
+import {
+  listPolicies,
+  getPolicy,
+  getPolicyVersion,
+  updatePolicy,
+  publishPolicy,
+  createPolicy,
+  deletePolicyVersion,
+} from "./policies/handlers";
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -260,6 +271,10 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
   }
 });
 
+// Public policy endpoints (no auth required)
+app.get('/policies/current', asyncHandler(getCurrentPolicies));
+app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
+
 // Auth endpoints (no auth required)
 app.post('/register', asyncHandler(register));
 
@@ -295,6 +310,15 @@ app.get('/settlements/:settlementId', authenticate, asyncHandler(getSettlement))
 app.put('/settlements/:settlementId', authenticate, asyncHandler(updateSettlement));
 app.delete('/settlements/:settlementId', authenticate, asyncHandler(deleteSettlement));
 
+
+// Admin Policy endpoints (requires admin auth)
+app.post("/admin/policies", authenticateAdmin, asyncHandler(createPolicy));
+app.get("/admin/policies", authenticateAdmin, asyncHandler(listPolicies));
+app.get("/admin/policies/:id", authenticateAdmin, asyncHandler(getPolicy));
+app.get("/admin/policies/:id/versions/:hash", authenticateAdmin, asyncHandler(getPolicyVersion));
+app.put("/admin/policies/:id", authenticateAdmin, asyncHandler(updatePolicy));
+app.post("/admin/policies/:id/publish", authenticateAdmin, asyncHandler(publishPolicy));
+app.delete("/admin/policies/:id/versions/:hash", authenticateAdmin, asyncHandler(deletePolicyVersion));
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
     error: {

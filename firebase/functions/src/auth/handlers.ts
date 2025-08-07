@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
+import { getCurrentPolicyVersions } from './policy-helpers';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(req.body);
@@ -16,13 +17,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       displayName,
     });
 
+    // Get current policy versions for user acceptance
+    const currentPolicyVersions = await getCurrentPolicyVersions();
+
     // Create user document in Firestore
     const firestore = admin.firestore();
     const userDoc: any = {
       email,
       displayName,
+      role: "user", // Default role for new users
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      acceptedPolicies: currentPolicyVersions // Capture current policy versions
     };
     
     // Only set acceptance timestamps if the user actually accepted the terms
@@ -34,7 +40,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
     
     await firestore.collection('users').doc(userRecord.uid).set(userDoc);
-
     logger.info('User registration completed', { 
       email,
       userId: userRecord.uid 
