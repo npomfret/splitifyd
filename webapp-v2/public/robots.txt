@@ -1,0 +1,50 @@
+# Splitifyd robots.txt
+# https://splitifyd.com
+# Last updated: 2025-01-07
+
+User-agent: *
+
+# === PRIVATE/AUTHENTICATED AREAS ===
+# Block user-specific content and dashboards
+Disallow: /dashboard
+Disallow: /groups/
+Disallow: /group/
+Disallow: /add-expense
+Disallow: /expenses/
+Disallow: /join
+
+# === PRODUCTION PATHS (v2) ===
+# Block private areas served under /v2/ prefix
+Disallow: /v2/dashboard
+Disallow: /v2/groups/
+Disallow: /v2/group/
+Disallow: /v2/add-expense
+Disallow: /v2/expenses/
+Disallow: /v2/join
+
+# === API ENDPOINTS ===
+Disallow: /api/
+
+# === DEVELOPMENT/BUILD FILES ===
+# Block source code and build artifacts
+Disallow: /*.js
+Disallow: /*.json
+Disallow: /*.map
+Disallow: /node_modules/
+Disallow: /src/
+Disallow: /.git/
+Disallow: /dist/
+Disallow: /build/
+
+# === SYSTEM PATHS ===
+# Block Firebase and system directories
+Disallow: /__/
+Disallow: /.well-known/
+
+# === CRAWL RATE ===
+# Respectful crawl delay (in seconds)
+Crawl-delay: 1
+
+# === SITEMAP ===
+# Uncomment when sitemap.xml is deployed
+# Sitemap: https://splitifyd.com/sitemap.xml
