@@ -6,104 +6,6 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
-/**
- * Balance Test Scenario Builder - Creates precise, deterministic balance states
- * Key insight: In 2-person groups, if only 1 person adds expense → NEVER settled up
- * If both add equal expenses → ALWAYS settled up
- */
-class BalanceTestScenarios {
-  constructor(private page: any, private groupDetailPage: any, private user1: any, private user2: any) {}
-
-  /**
-   * Creates guaranteed settled scenario: both users pay equal amounts
-   */
-  async createSettledScenario() {
-    await this.groupDetailPage.addExpense({
-      description: 'User1 Equal Payment',
-      amount: 100,
-      paidBy: this.user1.displayName,
-      splitType: 'equal'
-    });
-    
-    // Wait for first expense to be fully processed
-    await this.groupDetailPage.waitForBalanceUpdate();
-
-    await this.groupDetailPage.addExpense({
-      description: 'User2 Equal Payment', 
-      amount: 100,
-      paidBy: this.user2.displayName,
-      splitType: 'equal'
-    });
-    
-    // Wait for second expense to be fully processed
-    await this.groupDetailPage.waitForBalanceUpdate();
-
-    return { expectedState: 'settled' };
-  }
-
-  /**
-   * Creates guaranteed debt scenario: only 1 person pays
-   * In 2-person group: debt = amount / 2
-   */
-  async createDebtScenario(amount: number, payer: any) {
-    await this.groupDetailPage.addExpense({
-      description: 'One Person Pays',
-      amount: amount,
-      paidBy: payer.displayName,
-      splitType: 'equal'
-    });
-    
-    // Wait for expense to be fully processed and balance to update
-    await this.groupDetailPage.waitForBalanceUpdate();
-
-    const debtor = payer === this.user1 ? this.user2 : this.user1;
-    const creditor = payer;
-
-    return {
-      expectedState: 'owes',
-      expectedAmount: amount / 2,
-      expectedDebtor: debtor.displayName,
-      expectedCreditor: creditor.displayName
-    };
-  }
-
-  /**
-   * Creates complex but predictable debt scenario
-   */
-  async createComplexDebtScenario() {
-    // User1 pays $300, User2 pays $100
-    // User1 owes: $200 (half of total $400)
-    // User2 owes: $200 (half of total $400)  
-    // User1 paid: $300, User2 paid: $100
-    // Net: User2 owes User1 $100
-    await this.groupDetailPage.addExpense({
-      description: 'Large User1 Payment',
-      amount: 300,
-      paidBy: this.user1.displayName,
-      splitType: 'equal'
-    });
-    
-    // Wait for first expense to be fully processed
-    await this.groupDetailPage.waitForBalanceUpdate();
-
-    await this.groupDetailPage.addExpense({
-      description: 'Small User2 Payment',
-      amount: 100,
-      paidBy: this.user2.displayName,
-      splitType: 'equal'
-    });
-    
-    // Wait for second expense to be fully processed
-    await this.groupDetailPage.waitForBalanceUpdate();
-
-    return {
-      expectedState: 'owes',
-      expectedAmount: 100, // (300-100)/2 = 100
-      expectedDebtor: this.user2.displayName,
-      expectedCreditor: this.user1.displayName
-    };
-  }
-}
 
 test.describe('Single User Balance Visualization', () => {
   test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
@@ -217,8 +119,26 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.waitForLoadState('networkidle');
     
     // Both users pay equal amounts → GUARANTEED settled up
-    const scenarios = new BalanceTestScenarios(page, groupDetailPage, user1, user2);
-    await scenarios.createSettledScenario();
+    // Key insight: If both users add equal expenses → ALWAYS settled up
+    await groupDetailPage.addExpense({
+      description: 'User1 Equal Payment',
+      amount: 100,
+      paidBy: user1.displayName,
+      splitType: 'equal'
+    });
+    
+    // Wait for first expense to be fully processed
+    await groupDetailPage.waitForBalanceUpdate();
+
+    await groupDetailPage.addExpense({
+      description: 'User2 Equal Payment', 
+      amount: 100,
+      paidBy: user2.displayName,
+      splitType: 'equal'
+    });
+    
+    // Wait for second expense to be fully processed
+    await groupDetailPage.waitForBalanceUpdate();
     
     await page.reload();
     await page.waitForLoadState('networkidle');
@@ -255,8 +175,16 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.waitForLoadState('networkidle');
     
     // Only User1 pays $200 → User2 MUST owe User1 $100 (never settled up)
-    const scenarios = new BalanceTestScenarios(page, groupDetailPage, user1, user2);
-    await scenarios.createDebtScenario(200, user1);
+    // Key insight: In 2-person groups, if only 1 person adds expense → NEVER settled up
+    await groupDetailPage.addExpense({
+      description: 'One Person Pays',
+      amount: 200,
+      paidBy: user1.displayName,
+      splitType: 'equal'
+    });
+    
+    // Wait for expense to be fully processed and balance to update
+    await groupDetailPage.waitForBalanceUpdate();
     
     await page.reload();
     await page.waitForLoadState('networkidle');
@@ -297,8 +225,27 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.waitForLoadState('networkidle');
     
     // User1 pays $300, User2 pays $100 → User2 owes User1 exactly $100
-    const scenarios = new BalanceTestScenarios(page, groupDetailPage, user1, user2);
-    await scenarios.createComplexDebtScenario();
+    // Complex but predictable: User1 paid $300, User2 paid $100
+    // Total: $400, each owes $200, net: User2 owes User1 $100
+    await groupDetailPage.addExpense({
+      description: 'Large User1 Payment',
+      amount: 300,
+      paidBy: user1.displayName,
+      splitType: 'equal'
+    });
+    
+    // Wait for first expense to be fully processed
+    await groupDetailPage.waitForBalanceUpdate();
+
+    await groupDetailPage.addExpense({
+      description: 'Small User2 Payment',
+      amount: 100,
+      paidBy: user2.displayName,
+      splitType: 'equal'
+    });
+    
+    // Wait for second expense to be fully processed
+    await groupDetailPage.waitForBalanceUpdate();
     
     await page.reload();
     await page.waitForLoadState('networkidle');
@@ -458,7 +405,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Step 5: Verify no expenses yet
     await multiUserExpected(page.getByText('No expenses yet')).toBeVisible();
     
-    // Step 6: Create expense directly (not using BalanceTestScenarios)
+    // Step 6: Create expense directly
     await groupDetailPage.addExpense({
       description: 'Test Expense for Settlement',
       amount: 200,
@@ -588,8 +535,16 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Create known debt: User1 pays $150 → User2 owes $75
-    const scenarios = new BalanceTestScenarios(page, groupDetailPage, user1, user2);
-    await scenarios.createDebtScenario(150, user1);
+    // In 2-person group: debt = amount / 2
+    await groupDetailPage.addExpense({
+      description: 'One Person Pays',
+      amount: 150,
+      paidBy: user1.displayName,
+      splitType: 'equal'
+    });
+    
+    // Wait for expense to be fully processed and balance to update
+    await groupDetailPage.waitForBalanceUpdate();
     
     // Wait for expense to appear and balance to calculate
     await multiUserExpected(page.getByText('One Person Pays')).toBeVisible();
