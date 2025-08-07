@@ -1,8 +1,9 @@
 # Task: Fix Race Condition in E2E Test User Pool
 
-**Status:** Not Started
+**Status:** In Progress
 **Priority:** High
 **Effort:** Medium
+**Updated:** 2025-08-07
 
 ## Executive Summary
 
@@ -49,12 +50,53 @@ This is a simpler, more robust, and more performant solution that leverages Play
     -   **Simpler Code**: Removes all logic for claiming, releasing, and locking users.
 -   **Cons**: Requires creating a number of users sufficient for the maximum number of parallel workers.
 
+## Implementation Plan
+
+### Phase 1: Core User Pool Refactoring
+1. **Modify `user-pool.fixture.ts`**:
+   - Remove all file I/O operations in `claimUser()` and `releaseUser()` methods
+   - Implement deterministic user assignment using `testInfo.workerIndex`
+   - Keep pre-warming logic but eliminate complex state management
+   - Increase default `preWarmCount` from 3 to 10 users
+
+2. **Update `authenticated-test.ts`**:
+   - Replace `claimUser(testId)` with `getUserByIndex(workerIndex)`
+   - Remove `releaseUser()` calls since assignment is now deterministic
+   - Add validation to ensure worker index doesn't exceed pool size
+
+3. **Update `multi-user-test.ts`**:
+   - Assign first user using `workerIndex * 2`
+   - Assign second user using `(workerIndex * 2) + 1`
+   - Ensure no overlap between workers' user assignments
+
+4. **Simplify `global-setup.ts`**:
+   - Keep user creation logic
+   - Remove complex persistence mechanisms
+   - Store users in simple JSON format for worker consumption
+
+### Phase 2: Test Refactoring
+5. **Fix tests that manually create users**:
+   - Convert `security-errors.e2e.test.ts` to use `multiUserTest` fixture
+   - Remove duplicate test in `network-errors.e2e.test.ts`
+   - Refactor all tests in `member-display.e2e.test.ts` to use `authenticatedPageTest`
+   - Update `complex-scenarios.e2e.test.ts` to use fixture-provided users
+
+6. **Update workflow classes**:
+   - Modify `GroupWorkflow` to accept authenticated pages/users from fixtures
+   - Update `MultiUserWorkflow` to work with fixture-provided users
+
+### Phase 3: Validation
+7. **Testing**:
+   - Run full test suite with 4 parallel workers
+   - Verify no user collision errors
+   - Monitor for any flaky test behavior
+   - Validate all refactored tests pass consistently
+
 ## Next Steps
 
-1.  Prioritize the refactoring of the `user-pool.fixture.ts`.
-2.  Implement the **Playwright Worker Index** (Option 2) approach, as it is the superior and more idiomatic solution for Playwright.
-3.  Update the `authenticatedTest` and `multiUserTest` fixtures to use the new worker-index-based user assignment.
-4.  Remove the file-writing logic from the `claimUser` and `releaseUser` methods in the user pool.
+1. Begin implementation of Phase 1 immediately (highest priority)
+2. Phase 2 can proceed in parallel once Phase 1 is complete
+3. Phase 3 validation should run continuously during development
 
 ---
 
@@ -85,8 +127,64 @@ The following files and workflows instantiate their own users instead of using t
     -   **Issue**: This test correctly uses a `MultiUserWorkflow` but it creates brand new users (`await workflow.addUser();`) instead of drawing from the pool.
     -   **Recommendation**: The `MultiUserWorkflow` itself should be refactored to integrate with the `multiUserTest` fixture, allowing it to orchestrate actions for the two pre-authenticated users provided by the fixture.
 
-### Next Steps (Addendum)
+---
 
-5.  Refactor the tests listed above to use the `authenticatedPageTest` and `multiUserTest` fixtures.
-6.  Modify the `GroupWorkflow` and `MultiUserWorkflow` classes to operate on pages and users provided by fixtures, rather than creating new ones.
+## Technical Implementation Details
+
+### Worker Index User Assignment Strategy
+
+For a pool of 10 users with up to 4 parallel workers:
+
+**Single User Tests (`authenticatedPageTest`)**:
+- Worker 0: Uses User[0]
+- Worker 1: Uses User[1]
+- Worker 2: Uses User[2]
+- Worker 3: Uses User[3]
+
+**Multi-User Tests (`multiUserTest`)**:
+- Worker 0: Uses User[0] and User[4]
+- Worker 1: Uses User[1] and User[5]
+- Worker 2: Uses User[2] and User[6]
+- Worker 3: Uses User[3] and User[7]
+
+This ensures no collision between workers and supports both single and multi-user test scenarios.
+
+### Code Example for New Implementation
+
+```typescript
+// user-pool.fixture.ts
+class UserPool {
+  private users: BaseUser[] = [];
+  
+  async initialize(): Promise<void> {
+    // Load users from JSON created during global setup
+    const poolData = JSON.parse(fs.readFileSync('.playwright-users.json', 'utf8'));
+    this.users = poolData.users;
+  }
+  
+  getUserByIndex(workerIndex: number): BaseUser {
+    if (workerIndex >= this.users.length) {
+      throw new Error(`Worker index ${workerIndex} exceeds pool size ${this.users.length}`);
+    }
+    return this.users[workerIndex];
+  }
+  
+  getSecondUserByIndex(workerIndex: number): BaseUser {
+    const secondUserIndex = workerIndex + Math.ceil(this.users.length / 2);
+    if (secondUserIndex >= this.users.length) {
+      throw new Error(`Second user index ${secondUserIndex} exceeds pool size`);
+    }
+    return this.users[secondUserIndex];
+  }
+}
+```
+
+### Validation Criteria
+
+The implementation will be considered successful when:
+1. No race condition errors occur during parallel test execution
+2. All tests pass consistently with 4 parallel workers
+3. Test execution time improves due to elimination of file I/O
+4. No tests manually create users outside of fixtures
+5. Code complexity is reduced by ~30% in user pool management
 
