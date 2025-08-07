@@ -130,6 +130,22 @@ export class UserPool {
   }
 
   /**
+   * Get a third user for three-user tests - deterministic assignment
+   */
+  getThirdUserByIndex(workerIndex: number): BaseUser {
+    const users = Array.from(this.pool.values());
+    const thirdUserIndex = workerIndex + Math.floor(users.length * 2 / 3);
+    
+    if (thirdUserIndex >= users.length) {
+      throw new Error(`Third user index ${thirdUserIndex} exceeds pool size ${users.length}. Increase preWarmCount in UserPoolConfig.`);
+    }
+    
+    const pooledUser = users[thirdUserIndex];
+    console.log(`Worker ${workerIndex} assigned third user: ${pooledUser.user.email}`);
+    return pooledUser.user;
+  }
+
+  /**
    * Legacy claim method - deprecated, use getUserByIndex instead
    * @deprecated
    */
