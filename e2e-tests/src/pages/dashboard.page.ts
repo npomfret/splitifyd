@@ -96,7 +96,9 @@ export class DashboardPage extends BasePage {
 
     // Extract and return group ID
     const groupId = this.getUrlParam('groupId')!;
-    // await this.expectUrl(`/groups/${groupId}`);// todo
+    
+    // Verify we're on the correct group page by checking the exact URL
+    await expect(this.page).toHaveURL(`/groups/${groupId}`);
 
     await expect(this.page.getByText(name)).toBeVisible();
 
