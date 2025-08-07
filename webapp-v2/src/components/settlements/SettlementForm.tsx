@@ -39,7 +39,7 @@ export function SettlementForm({
   
   const currentUser = authStore.user;
   const groupData = groupDetailStore.group;
-  const members = groupData?.members || [];
+  const members = groupDetailStore.members || [];
 
   useEffect(() => {
     if (isOpen) {

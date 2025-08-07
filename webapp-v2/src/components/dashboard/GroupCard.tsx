@@ -54,7 +54,7 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  {group.memberCount} member{group.memberCount !== 1 ? 's' : ''}
+                  {group.memberIds.length} member{group.memberIds.length !== 1 ? 's' : ''}
                 </span>
                 <span class="flex items-center">
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,36 +82,12 @@ export function GroupCard({ group, onClick }: GroupCardProps) {
         </div>
       </div>
 
-      {/* Member avatars */}
-      {group.members && group.members.length > 0 && (
-        <div class="flex items-center mt-4 pt-4 border-t border-gray-100">
-          <span class="text-sm text-gray-600 mr-2">Members:</span>
-          <div class="flex -space-x-2">
-            {group.members.slice(0, 5).map((member: User, index: number) => (
-              <div 
-                key={member.uid}
-                class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center border-2 border-white z-10"
-                style={{ zIndex: 10 - index }}
-                title={member.displayName || member.email}
-              >
-                <span class="text-xs font-medium text-purple-700">
-                  {member.displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
-                </span>
-              </div>
-            ))}
-            {group.members.length > 5 && (
-              <div 
-                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white"
-                title={`+${group.members.length - 5} more members`}
-              >
-                <span class="text-xs font-medium text-gray-600">
-                  +{group.members.length - 5}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Member count */}
+      <div class="flex items-center mt-4 pt-4 border-t border-gray-100">
+        <span class="text-sm text-gray-600">
+          {group.memberIds.length} {group.memberIds.length === 1 ? 'member' : 'members'}
+        </span>
+      </div>
     </Card>
   );
 }

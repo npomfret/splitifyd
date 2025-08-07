@@ -21,6 +21,7 @@ import {
 } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
+import { getGroupMembers } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import {
   createGroup,
@@ -300,6 +301,7 @@ app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
 
 // Parameterized routes come last
 app.get('/groups/:id', authenticate, asyncHandler(getGroup));
+app.get('/groups/:id/members', authenticate, asyncHandler(getGroupMembers));
 app.put('/groups/:id', authenticate, asyncHandler(updateGroup));
 app.delete('/groups/:id', authenticate, asyncHandler(deleteGroup));
 

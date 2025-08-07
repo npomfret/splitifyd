@@ -29,7 +29,7 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
       
       <div className="flex gap-6 text-sm text-gray-600">
         <div>
-          <span className="font-medium">{group.members!.length}</span> members
+          <span className="font-medium">{group.memberIds.length}</span> members
         </div>
         <div>
           <span className="font-medium">Recent</span> expenses

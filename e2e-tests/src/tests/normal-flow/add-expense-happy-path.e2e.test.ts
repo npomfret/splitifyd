@@ -119,10 +119,11 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.getExpenseAmountField().fill('15.99');
     
     await groupDetailPage.getSaveExpenseButton().click();
+    
+    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await page.waitForLoadState('networkidle');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
   });
 
 });

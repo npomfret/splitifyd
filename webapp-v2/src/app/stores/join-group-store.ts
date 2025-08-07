@@ -39,7 +39,7 @@ class JoinGroupStore {
         id: preview.groupId,
         name: preview.groupName,
         description: preview.groupDescription,
-        memberCount: preview.memberCount,
+        memberIds: [],  // Preview doesn't provide member IDs
         balance: {
           userBalance: null,
           totalOwed: 0,

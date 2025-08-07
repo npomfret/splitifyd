@@ -62,7 +62,7 @@ export const GroupSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
-  memberCount: z.number(),
+  memberIds: z.array(z.string()),
   balance: z.object({
     userBalance: z.object({
       userId: z.string().min(1),

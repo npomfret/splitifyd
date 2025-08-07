@@ -25,7 +25,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
   
   // Get group data from store if available
   const group = useComputed(() => groupDetailStore.group);
-  const members = useComputed(() => group.value?.members || []);
+  const members = useComputed(() => groupDetailStore.members);
   
   // Create member lookup map
   const memberMap = useComputed(() => {

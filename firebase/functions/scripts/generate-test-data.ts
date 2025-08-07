@@ -363,7 +363,7 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
     await Promise.all(groupBatch.map(async (group) => {
       // Get all members of this group
       const groupMembers = users.filter(user => 
-        group.members?.some((member: any) => member.uid === user.uid)
+        group.memberIds?.includes(user.uid)
       );
       
       if (groupMembers.length === 0) return;
@@ -418,7 +418,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
   
   // Get all members of this group from the refreshed data
   const groupMembers = users.filter(user => 
-    settledGroup.members?.some((member: any) => member.uid === user.uid)
+    settledGroup.memberIds?.includes(user.uid)
   );
   
   if (groupMembers.length < 2) return;
@@ -479,7 +479,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
   
   // Get all members of this group from the refreshed data
   const groupMembers = users.filter(user => 
-    largeGroup.members?.some((member: any) => member.uid === user.uid)
+    largeGroup.memberIds?.includes(user.uid)
   );
   
   if (groupMembers.length === 0) return;

@@ -12,7 +12,6 @@ export {
 
 export {
   GroupWithBalance,
-  GroupDocument,
   UpdateGroupRequest,
   GroupData,
 } from './server-types';

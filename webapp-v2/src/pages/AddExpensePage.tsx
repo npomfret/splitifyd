@@ -27,6 +27,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const authStore = useAuthRequired();
   const currentUser = useComputed(() => authStore.user);
   const group = useComputed(() => groupDetailStore.group);
+  const members = useComputed(() => groupDetailStore.members);
   const loading = useComputed(() => groupDetailStore.loading);
   const saving = useComputed(() => expenseFormStore.saving);
   const formError = useComputed(() => expenseFormStore.error);
@@ -107,9 +108,8 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
             }
             
             // For equal splits, select all group members by default
-            if (group.value?.members) {
-              const allMemberIds = group.value.members.map(m => m.uid);
-              expenseFormStore.setParticipants(allMemberIds);
+            if (group.value?.memberIds) {
+              expenseFormStore.setParticipants(group.value.memberIds);
             }
           }
         }
@@ -206,7 +206,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   };
   
   const handleSelectAll = () => {
-    const allMemberIds = members.map(m => m.uid);
+    const allMemberIds = members.value.map(m => m.uid);
     expenseFormStore.setParticipants(allMemberIds);
   };
   
@@ -231,11 +231,11 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     return null;
   }
   
-  const members = group.value.members || [];
-  const memberMap = members.reduce((acc, member) => {
+  // Use members from store instead of group.members
+  const memberMap = members.value.reduce((acc, member) => {
     acc[member.uid] = member;
     return acc;
-  }, {} as Record<string, typeof members[0]>);
+  }, {} as Record<string, typeof members.value[0]>);
   
   return (
     <BaseLayout
@@ -399,7 +399,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   Who paid? <span className="text-red-500">*</span>
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {members.map(member => (
+                  {members.value.map(member => (
                     <label
                       key={member.uid}
                       className={`
@@ -464,7 +464,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {members.map(member => {
+                  {members.value.map(member => {
                     const isSelected = participants.value.includes(member.uid);
                     const isPayer = paidBy.value === member.uid;
                     return (

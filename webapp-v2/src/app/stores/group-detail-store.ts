@@ -1,12 +1,14 @@
 import { signal } from '@preact/signals';
-import type { Group, ExpenseData, GroupBalances } from '@shared/types/webapp-shared-types';
+import type { Group, ExpenseData, GroupBalances, User } from '@shared/types/webapp-shared-types';
 import { apiClient } from '../apiClient';
 
 export interface GroupDetailStore {
   group: Group | null;
+  members: User[];
   expenses: ExpenseData[];
   balances: GroupBalances | null;
   loading: boolean;
+  loadingMembers: boolean;
   loadingExpenses: boolean;
   loadingBalances: boolean;
   error: string | null;
@@ -14,6 +16,7 @@ export interface GroupDetailStore {
   expenseCursor: string | null;
   
   fetchGroup(id: string): Promise<void>;
+  fetchMembers(): Promise<void>;
   fetchExpenses(cursor?: string, includeDeleted?: boolean): Promise<void>;
   fetchBalances(): Promise<void>;
   loadMoreExpenses(): Promise<void>;
@@ -24,9 +27,11 @@ export interface GroupDetailStore {
 
 // Signals for group detail state
 const groupSignal = signal<Group | null>(null);
+const membersSignal = signal<User[]>([]);
 const expensesSignal = signal<ExpenseData[]>([]);
 const balancesSignal = signal<GroupBalances | null>(null);
 const loadingSignal = signal<boolean>(false);
+const loadingMembersSignal = signal<boolean>(false);
 const loadingExpensesSignal = signal<boolean>(false);
 const loadingBalancesSignal = signal<boolean>(false);
 const errorSignal = signal<string | null>(null);
@@ -36,9 +41,11 @@ const expenseCursorSignal = signal<string | null>(null);
 class GroupDetailStoreImpl implements GroupDetailStore {
   // State getters
   get group() { return groupSignal.value; }
+  get members() { return membersSignal.value; }
   get expenses() { return expensesSignal.value; }
   get balances() { return balancesSignal.value; }
   get loading() { return loadingSignal.value; }
+  get loadingMembers() { return loadingMembersSignal.value; }
   get loadingExpenses() { return loadingExpensesSignal.value; }
   get loadingBalances() { return loadingBalancesSignal.value; }
   get error() { return errorSignal.value; }
@@ -53,8 +60,9 @@ class GroupDetailStoreImpl implements GroupDetailStore {
       const group = await apiClient.getGroup(id) as Group;
       groupSignal.value = group;
 
-      // Fetch balances and expenses in parallel
+      // Fetch members, balances and expenses in parallel
       await Promise.all([
+        this.fetchMembers(),
         this.fetchBalances(),
         this.fetchExpenses()
       ]);
@@ -63,6 +71,24 @@ class GroupDetailStoreImpl implements GroupDetailStore {
       throw error;
     } finally {
       loadingSignal.value = false;
+    }
+  }
+
+  async fetchMembers(): Promise<void> {
+    if (!groupSignal.value) return;
+
+    loadingMembersSignal.value = true;
+    errorSignal.value = null;
+
+    try {
+      const response = await apiClient.getGroupMembers(groupSignal.value.id);
+      membersSignal.value = response.members;
+    } catch (error) {
+      errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch members';
+      // Don't throw - members are not critical for basic functionality
+      console.error('Failed to fetch group members:', error);
+    } finally {
+      loadingMembersSignal.value = false;
     }
   }
 
@@ -132,9 +158,11 @@ class GroupDetailStoreImpl implements GroupDetailStore {
 
   reset(): void {
     groupSignal.value = null;
+    membersSignal.value = [];
     expensesSignal.value = [];
     balancesSignal.value = null;
     loadingSignal.value = false;
+    loadingMembersSignal.value = false;
     loadingExpensesSignal.value = false;
     loadingBalancesSignal.value = false;
     errorSignal.value = null;
@@ -145,9 +173,10 @@ class GroupDetailStoreImpl implements GroupDetailStore {
   async refreshAll(): Promise<void> {
     if (!groupSignal.value) return;
     
-    // Refresh group, expenses, and balances
+    // Refresh group, members, expenses, and balances
     await Promise.all([
       this.fetchGroup(groupSignal.value.id),
+      this.fetchMembers(),
       this.fetchBalances(),
       this.fetchExpenses() // Reset expenses to first page
     ]);

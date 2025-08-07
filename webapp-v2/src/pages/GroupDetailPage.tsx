@@ -32,8 +32,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const group = useComputed(() => groupDetailStore.group);
   const expenses = useComputed(() => groupDetailStore.expenses);
   const balances = useComputed(() => groupDetailStore.balances);
-  const members = useComputed(() => group.value?.members || []);
+  const members = useComputed(() => groupDetailStore.members);
   const loading = useComputed(() => groupDetailStore.loading);
+  const loadingMembers = useComputed(() => groupDetailStore.loadingMembers);
   const error = useComputed(() => groupDetailStore.error);
   
   // Auth store via hook
@@ -170,8 +171,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
           />
 
           <MembersList 
-            members={group.value!.members || []} 
+            members={members.value} 
             createdBy={group.value!.createdBy || ''}
+            loading={loadingMembers.value}
           />
 
           <BalanceSummary balances={balances.value} members={members.value} />

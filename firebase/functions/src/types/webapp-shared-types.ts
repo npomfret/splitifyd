@@ -112,26 +112,24 @@ export interface GroupBalance {
   totalOwing: number;
 }
 
-// Group Types - Single unified interface for both list and detail views
+// Group Types - Single unified interface for both storage and API
 export interface Group {
   // Always present
   id: string;
   name: string;
   description?: string;
-  memberCount: number;
-  balance: {
+  memberIds: string[];  // Array of user IDs - use memberIds.length for count
+  createdBy: string;
+  createdAt: string;  // ISO string
+  updatedAt: string;  // ISO string
+  // Computed fields (only in API responses)
+  balance?: {
     userBalance: UserBalance | null;
     totalOwed: number;
     totalOwing: number;
   };
-  lastActivity: string;
-  lastActivityRaw: string;
-  
-  // Optional - only in detail view
-  members?: User[];
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  lastActivity?: string;
+  lastActivityRaw?: string;
 }
 
 
@@ -155,6 +153,14 @@ export interface ListGroupsResponse {
     limit: number;
     order: string;
   };
+}
+
+// Group members response
+export interface GroupMembersResponse {
+  members: User[];
+  totalCount: number;
+  hasMore: boolean;
+  nextCursor?: string;
 }
 
 // Expense Types

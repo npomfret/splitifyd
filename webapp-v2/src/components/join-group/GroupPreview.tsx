@@ -34,10 +34,10 @@ export function GroupPreview({ group }: GroupPreviewProps) {
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
                 <div className="text-2xl font-semibold text-primary-600">
-                  {group.memberCount || 1}
+                  {group.memberIds?.length || 1}
                 </div>
                 <div className="text-sm text-gray-600">
-                  {group.memberCount === 1 ? 'Member' : 'Members'}
+                  {(group.memberIds?.length || 1) === 1 ? 'Member' : 'Members'}
                 </div>
               </div>
               <div>

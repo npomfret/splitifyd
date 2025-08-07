@@ -13,6 +13,7 @@ import type {
   CreateGroupRequest,
   Group,
   ListGroupsResponse,
+  GroupMembersResponse,
   GroupBalances,
   ExpenseData,
   AppConfiguration,
@@ -390,6 +391,13 @@ export class ApiClient {
     });
   }
 
+  async getGroupMembers(id: string): Promise<GroupMembersResponse> {
+    return this.request('/groups/:id/members', {
+      method: 'GET',
+      params: { id }
+    });
+  }
+
   async createGroup(data: CreateGroupRequest): Promise<Group> {
     return this.request('/groups', {
       method: 'POST',
@@ -512,7 +520,7 @@ export class ApiClient {
     groupId: string;
     groupName: string;
     groupDescription: string;
-    memberCount: number;
+    memberCount: number;  // Still returned by preview endpoint for display
     isAlreadyMember: boolean;
   }> {
     return this.request('/groups/preview', {
@@ -532,7 +540,7 @@ export class ApiClient {
       id: response.groupId,
       name: response.groupName,
       description: '',
-      memberCount: 1,
+      memberIds: [],  // Will be populated after join
       balance: {
         userBalance: null,
         totalOwed: 0,
