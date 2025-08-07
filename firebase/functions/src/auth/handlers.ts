@@ -23,6 +23,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       displayName,
       createdAt: new Date(),
       updatedAt: new Date(),
+      termsAcceptedAt: new Date(),
+      cookiePolicyAcceptedAt: new Date()
     });
 
     logger.info('User registration completed', { 

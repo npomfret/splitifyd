@@ -24,13 +24,33 @@ const registerSchema = Joi.object({
       'string.empty': 'Password is required',
       'any.required': 'Password is required'
     }),
-  displayName: displayNameSchema
+  displayName: displayNameSchema,
+  termsAccepted: Joi.boolean()
+    .strict()
+    .valid(true)
+    .required()
+    .messages({
+      'any.only': 'You must accept the Terms of Service',
+      'any.required': 'Terms acceptance is required',
+      'boolean.base': 'Terms acceptance must be a boolean value'
+    }),
+  cookiePolicyAccepted: Joi.boolean()
+    .strict()
+    .valid(true)
+    .required()
+    .messages({
+      'any.only': 'You must accept the Cookie Policy',
+      'any.required': 'Cookie policy acceptance is required',
+      'boolean.base': 'Cookie policy acceptance must be a boolean value'
+    })
 });
 
 export interface RegisterRequest {
   email: string;
   password: string;
   displayName: string;
+  termsAccepted: boolean;
+  cookiePolicyAccepted: boolean;
 }
 
 export const validateRegisterRequest = (body: any): RegisterRequest => {
@@ -54,6 +74,10 @@ export const validateRegisterRequest = (body: any): RegisterRequest => {
       } else {
         errorCode = 'MISSING_DISPLAY_NAME';
       }
+    } else if (firstError.path.includes('termsAccepted')) {
+      errorCode = firstError.message.includes('accept') ? 'TERMS_NOT_ACCEPTED' : 'MISSING_TERMS_ACCEPTANCE';
+    } else if (firstError.path.includes('cookiePolicyAccepted')) {
+      errorCode = firstError.message.includes('accept') ? 'COOKIE_POLICY_NOT_ACCEPTED' : 'MISSING_COOKIE_POLICY_ACCEPTANCE';
     }
     
     throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, firstError.message);
@@ -62,6 +86,8 @@ export const validateRegisterRequest = (body: any): RegisterRequest => {
   return {
     email: value.email.trim().toLowerCase(),
     password: value.password,
-    displayName: value.displayName.trim()
+    displayName: value.displayName.trim(),
+    termsAccepted: value.termsAccepted,
+    cookiePolicyAccepted: value.cookiePolicyAccepted
   };
 };

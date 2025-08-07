@@ -129,8 +129,11 @@ export class UserPool {
     await page.fill('input[placeholder="Create a strong password"]', password);
     await page.fill('input[placeholder="Confirm your password"]', password);
     
-    // Check terms checkbox
-    await page.check('input[type="checkbox"]');
+    // Check both terms and cookie policy checkboxes
+    const checkboxes = await page.locator('input[type="checkbox"]').all();
+    for (const checkbox of checkboxes) {
+      await checkbox.check();
+    }
     
     // Submit form
     await page.click('button:has-text("Create Account")');

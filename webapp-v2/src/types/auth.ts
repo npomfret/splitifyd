@@ -17,7 +17,7 @@ export interface AuthState {
 
 export interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, displayName: string) => Promise<void>;
+  register: (email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;

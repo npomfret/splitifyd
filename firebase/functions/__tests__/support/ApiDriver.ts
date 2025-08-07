@@ -61,7 +61,9 @@ export class ApiDriver {
       await this.apiRequest('/register', 'POST', {
         email: userInfo.email,
         password: userInfo.password,
-        displayName: userInfo.displayName
+        displayName: userInfo.displayName,
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       });
     } catch (error) {
       // Ignore "already exists" errors
@@ -316,7 +318,7 @@ export class ApiDriver {
     return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
   }
 
-  async register(userData: { email: string; password: string; displayName: string }): Promise<any> {
+  async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean }): Promise<any> {
     return await this.apiRequest('/register', 'POST', userData);
   }
 

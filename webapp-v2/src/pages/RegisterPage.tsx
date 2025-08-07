@@ -15,6 +15,7 @@ const emailSignal = signal('');
 const passwordSignal = signal('');
 const confirmPasswordSignal = signal('');
 const agreeToTermsSignal = signal(false);
+const agreeToCookiesSignal = signal(false);
 const localErrorSignal = signal<string | null>(null);
 
 export function RegisterPage() {
@@ -67,7 +68,10 @@ export function RegisterPage() {
       return 'Passwords do not match';
     }
     if (!agreeToTermsSignal.value) {
-      return 'You must agree to the Terms of Service';
+      return 'You must accept the Terms of Service';
+    }
+    if (!agreeToCookiesSignal.value) {
+      return 'You must accept the Cookie Policy';
     }
     return null;
   };
@@ -87,7 +91,9 @@ export function RegisterPage() {
       await authStore.register(
         emailSignal.value.trim(),
         passwordSignal.value,
-        nameSignal.value.trim()
+        nameSignal.value.trim(),
+        agreeToTermsSignal.value,
+        agreeToCookiesSignal.value
       );
       // Redirect will happen via useEffect when user state updates
     } catch (error) {
@@ -99,7 +105,8 @@ export function RegisterPage() {
                      emailSignal.value.trim() && 
                      passwordSignal.value && 
                      confirmPasswordSignal.value &&
-                     agreeToTermsSignal.value;
+                     agreeToTermsSignal.value &&
+                     agreeToCookiesSignal.value;
   const isSubmitting = authStore.loading;
   const displayError = authStore.error || localErrorSignal.value;
 
@@ -154,7 +161,7 @@ export function RegisterPage() {
           autoComplete="new-password"
         />
 
-        <div class="space-y-4">
+        <div class="space-y-3">
           <label class="flex items-start">
             <input
               type="checkbox"
@@ -165,7 +172,7 @@ export function RegisterPage() {
               required
             />
             <span class="ml-2 block text-sm text-gray-700">
-              I agree to the{' '}
+              I accept the{' '}
               <a 
                 href="/v2/terms" 
                 target="_blank"
@@ -173,13 +180,26 @@ export function RegisterPage() {
               >
                 Terms of Service
               </a>
-              {' '}and{' '}
+            </span>
+          </label>
+          
+          <label class="flex items-start">
+            <input
+              type="checkbox"
+              checked={agreeToCookiesSignal.value}
+              onChange={(e) => agreeToCookiesSignal.value = (e.target as HTMLInputElement).checked}
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0"
+              disabled={isSubmitting}
+              required
+            />
+            <span class="ml-2 block text-sm text-gray-700">
+              I accept the{' '}
               <a 
-                href="/v2/privacy" 
+                href="/v2/cookies" 
                 target="_blank"
                 class="text-blue-600 hover:text-blue-500 transition-colors"
               >
-                Privacy Policy
+                Cookie Policy
               </a>
             </span>
           </label>

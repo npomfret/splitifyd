@@ -83,13 +83,13 @@ class AuthStoreImpl implements AuthStore {
     }
   }
 
-  async register(email: string, password: string, displayName: string): Promise<void> {
+  async register(email: string, password: string, displayName: string, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
     loadingSignal.value = true;
     errorSignal.value = null;
 
     try {
       // Use server-side registration which creates both Firebase Auth user and Firestore document
-      await apiClient.register(email, password, displayName);
+      await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
       
       // Now sign in the user to get the Firebase Auth state
       await this.login(email, password);

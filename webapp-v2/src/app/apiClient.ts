@@ -542,10 +542,10 @@ export class ApiClient {
     } as Group;
   }
 
-  async register(email: string, password: string, displayName: string): Promise<{ success: boolean; message: string; user: { uid: string; email: string; displayName: string } }> {
+  async register(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<{ success: boolean; message: string; user: { uid: string; email: string; displayName: string } }> {
     return this.request('/register', {
       method: 'POST',
-      body: { email, password, displayName }
+      body: { email, password, displayName, termsAccepted, cookiePolicyAccepted }
     });
   }
 

@@ -58,6 +58,8 @@ export interface User {
   uid: string;
   email: string;
   displayName: string;
+  termsAcceptedAt?: any; // admin.firestore.Timestamp on server, Date on client
+  cookiePolicyAcceptedAt?: any; // admin.firestore.Timestamp on server, Date on client
 }
 
 // Balance Types
