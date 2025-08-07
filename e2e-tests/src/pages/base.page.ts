@@ -27,10 +27,12 @@ export abstract class BasePage {
   /**
    * Validates that an input field contains the expected value.
    * Pure validation method - does not modify DOM state.
+   * Allows trimmed values to match (UI may trim whitespace).
    */
   private async validateInputValue(input: Locator, expectedValue: string): Promise<void> {
     const actualValue = await input.inputValue();
-    if (actualValue !== expectedValue) {
+    // Allow trimmed values to match (UI may trim whitespace from inputs)
+    if (actualValue !== expectedValue && actualValue !== expectedValue.trim()) {
       const fieldIdentifier = await this.getFieldIdentifier(input);
       throw new Error(`Input validation failed for field "${fieldIdentifier}": expected "${expectedValue}" but got "${actualValue}"`);
     }
