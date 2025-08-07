@@ -23,8 +23,8 @@ test.describe('Advanced Splitting Options', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
-    await groupDetailPage.getExpenseDescriptionField().fill('Pizza for everyone');
-    await groupDetailPage.getExpenseAmountField().fill('60');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Pizza for everyone');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '60');
     
     // Equal split is default - verify it's selected
     await expect(groupDetailPage.getSplitSection()).toBeVisible();
@@ -41,8 +41,8 @@ test.describe('Advanced Splitting Options', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
-    await groupDetailPage.getExpenseDescriptionField().fill('Shared groceries with exact amounts');
-    await groupDetailPage.getExpenseAmountField().fill('75.50');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Shared groceries with exact amounts');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '75.50');
     
     // Change split type to exact amounts
     await expect(page.getByText('Split between')).toBeVisible();
@@ -51,7 +51,7 @@ test.describe('Advanced Splitting Options', () => {
     await expect(groupDetailPage.getExactAmountsInstructions()).toBeVisible();
     
     await expect(groupDetailPage.getExactAmountInput()).toBeVisible();
-    await groupDetailPage.getExactAmountInput().fill('75.50');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExactAmountInput(), '75.50');
     
     await groupDetailPage.getSaveExpenseButton().click();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -63,8 +63,8 @@ test.describe('Advanced Splitting Options', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
-    await groupDetailPage.getExpenseDescriptionField().fill('Consulting project split by percentage');
-    await groupDetailPage.getExpenseAmountField().fill('1000');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Consulting project split by percentage');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '1000');
     
     // Change split type to percentage
     await expect(page.getByText('Split between')).toBeVisible();
@@ -85,8 +85,8 @@ test.describe('Advanced Splitting Options', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
-    await groupDetailPage.getExpenseDescriptionField().fill('Testing split type changes');
-    await groupDetailPage.getExpenseAmountField().fill('150');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Testing split type changes');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '150');
     
     await expect(page.getByText('Split between')).toBeVisible();
     

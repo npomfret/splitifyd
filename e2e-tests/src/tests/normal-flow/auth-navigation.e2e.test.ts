@@ -56,12 +56,12 @@ pageTest.describe('Auth Navigation E2E', () => {
     // Find and fill email input using page object methods
     const emailInput = loginPage.getEmailInput();
     const testEmail = generateTestEmail();
-    await emailInput.fill(testEmail);
+    await loginPage.fillPreactInput(emailInput, testEmail);
     await expect(emailInput).toHaveValue(testEmail);
     
     // Find and fill password input using page object methods
     const passwordInput = loginPage.getPasswordInput();
-    await passwordInput.fill('TestPassword123');
+    await loginPage.fillPreactInput(passwordInput, 'TestPassword123');
     await expect(passwordInput).toHaveValue('TestPassword123');
   });
 
@@ -71,22 +71,22 @@ pageTest.describe('Auth Navigation E2E', () => {
     // Find and fill name input using page object methods
     const nameInput = registerPage.getFullNameInput();
     const testName = generateTestUserName();
-    await nameInput.fill(testName);
+    await registerPage.fillPreactInput(nameInput, testName);
     await expect(nameInput).toHaveValue(testName);
     
     // Find and fill email input using page object methods
     const emailInput = registerPage.getEmailInput();
     const testEmail2 = generateTestEmail();
-    await emailInput.fill(testEmail2);
+    await registerPage.fillPreactInput(emailInput, testEmail2);
     await expect(emailInput).toHaveValue(testEmail2);
     
     // Find and fill password inputs using page object methods
     const passwordInput = registerPage.getPasswordInput();
-    await passwordInput.fill('TestPassword123');
+    await registerPage.fillPreactInput(passwordInput, 'TestPassword123');
     await expect(passwordInput).toHaveValue('TestPassword123');
     
     const confirmPasswordInput = registerPage.getConfirmPasswordInput();
-    await confirmPasswordInput.fill('TestPassword123');
+    await registerPage.fillPreactInput(confirmPasswordInput, 'TestPassword123');
     await expect(confirmPasswordInput).toHaveValue('TestPassword123');
   });
 

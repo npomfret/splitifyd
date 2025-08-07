@@ -38,7 +38,6 @@ export function SettlementForm({
   const modalRef = useRef<HTMLDivElement>(null);
   
   const currentUser = authStore.user;
-  const groupData = groupDetailStore.group;
   const members = groupDetailStore.members || [];
 
   useEffect(() => {

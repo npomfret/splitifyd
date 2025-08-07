@@ -1,4 +1,5 @@
 import { pageTest, expect } from '../../fixtures/page-fixtures';
+import { RegisterPage } from '../../pages/register.page';
 
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   pageTest.beforeEach(async ({ page }) => {
@@ -25,10 +26,11 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
 
   pageTest('should disable submit button when terms not accepted', async ({ page }) => {
     // Fill form but leave terms unchecked
-    await page.fill('input[placeholder="Enter your full name"]', 'Test User');
-    await page.fill('input[placeholder="Enter your email"]', `test-terms-${Date.now()}@example.com`);
-    await page.fill('input[placeholder="Create a strong password"]', 'TestPassword123!');
-    await page.fill('input[placeholder="Confirm your password"]', 'TestPassword123!');
+    const registerPage = new RegisterPage(page);
+    await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
+    await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-terms-${Date.now()}@example.com`);
+    await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
     // Check only cookie policy checkbox using specific locator
     await page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
@@ -39,11 +41,12 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   });
 
   pageTest('should disable submit button when cookie policy not accepted', async ({ page }) => {
+    const registerPage = new RegisterPage(page);
     // Fill form but leave cookie policy unchecked
-    await page.fill('input[placeholder="Enter your full name"]', 'Test User');
-    await page.fill('input[placeholder="Enter your email"]', `test-cookie-${Date.now()}@example.com`);
-    await page.fill('input[placeholder="Create a strong password"]', 'TestPassword123!');
-    await page.fill('input[placeholder="Confirm your password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
+    await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-cookie-${Date.now()}@example.com`);
+    await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
     // Check only terms checkbox using specific locator
     await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
@@ -54,11 +57,12 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   });
 
   pageTest('should enable submit button when both policies accepted', async ({ page }) => {
+    const registerPage = new RegisterPage(page);
     // Fill form completely
-    await page.fill('input[placeholder="Enter your full name"]', 'Test User');
-    await page.fill('input[placeholder="Enter your email"]', `test-both-${Date.now()}@example.com`);
-    await page.fill('input[placeholder="Create a strong password"]', 'TestPassword123!');
-    await page.fill('input[placeholder="Confirm your password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
+    await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-both-${Date.now()}@example.com`);
+    await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
     // Check both checkboxes using specific locators
     await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
@@ -73,11 +77,12 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     // @skip-error-checking - This test may have expected registration errors
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'This test may have expected registration errors' });
     
+    const registerPage = new RegisterPage(page);
     // Fill form completely
-    await page.fill('input[placeholder="Enter your full name"]', 'Test User');
-    await page.fill('input[placeholder="Enter your email"]', `test-submit-${Date.now()}@example.com`);
-    await page.fill('input[placeholder="Create a strong password"]', 'TestPassword123!');
-    await page.fill('input[placeholder="Confirm your password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
+    await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-submit-${Date.now()}@example.com`);
+    await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
     // Check both checkboxes using specific locators
     await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
@@ -99,11 +104,12 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   });
 
   pageTest('should show appropriate error messages for unchecked boxes', async ({ page }) => {
+    const registerPage = new RegisterPage(page);
     // Fill form but don't check any boxes
-    await page.fill('input[placeholder="Enter your full name"]', 'Test User');
-    await page.fill('input[placeholder="Enter your email"]', `test-validation-${Date.now()}@example.com`);
-    await page.fill('input[placeholder="Create a strong password"]', 'TestPassword123!');
-    await page.fill('input[placeholder="Confirm your password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
+    await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-validation-${Date.now()}@example.com`);
+    await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
+    await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
     // Try to submit (should show validation error before form submission)
     // Since the submit button is disabled, we'll test by checking the form validity

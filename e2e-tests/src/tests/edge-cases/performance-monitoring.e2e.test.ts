@@ -34,7 +34,7 @@ pageTest.describe('Performance Monitoring E2E', () => {
     
     // Form should be interactive
     const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
-    await emailInput.fill('test@example.com');
+    await loginPage.fillPreactInput(emailInput, 'test@example.com');
     await expect(emailInput).toHaveValue('test@example.com');
     
     // No console errors

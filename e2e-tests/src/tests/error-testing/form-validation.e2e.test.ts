@@ -4,6 +4,7 @@ import { test } from '@playwright/test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
+import { GroupDetailPage } from '../../pages/group-detail.page';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -21,10 +22,10 @@ test.describe('Form Validation E2E', () => {
       await passwordInput.clear();
       
       // Enter invalid email
-      await emailInput.fill('notanemail');
+      await loginPage.fillPreactInput(emailInput, 'notanemail');
       
       // Enter valid password
-      await passwordInput.fill('ValidPassword123');
+      await loginPage.fillPreactInput(passwordInput, 'ValidPassword123');
       
       // Try to submit
       await loginPage.submitForm();
@@ -44,7 +45,7 @@ test.describe('Form Validation E2E', () => {
       await passwordInput.clear();
       
       // Fill only email
-      await emailInput.fill(generateTestEmail());
+      await loginPage.fillPreactInput(emailInput, generateTestEmail());
       
       // Submit button should be disabled without password
       const submitButton = loginPage.getSubmitButton();
@@ -53,13 +54,13 @@ test.describe('Form Validation E2E', () => {
       // Clear and try with only password
       await emailInput.clear();
       await passwordInput.clear();
-      await passwordInput.fill('Password123');
+      await loginPage.fillPreactInput(passwordInput, 'Password123');
       
       // Submit button should be disabled without email
       await expect(submitButton).toBeDisabled();
       
       // Fill both fields
-      await emailInput.fill(generateTestEmail());
+      await loginPage.fillPreactInput(emailInput, generateTestEmail());
       
       // Submit button should now be enabled
       await expect(submitButton).toBeEnabled();
@@ -77,17 +78,17 @@ test.describe('Form Validation E2E', () => {
       const emailInput = registerPage.getEmailInputByType();
       const passwordInputs = registerPage.getPasswordInputs();
       
-      await nameInput.fill(generateTestUserName());
-      await emailInput.fill(generateTestEmail());
-      await passwordInputs.first().fill('Password123');
-      await passwordInputs.last().fill('DifferentPassword123');
+      await registerPage.fillPreactInput(nameInput, generateTestUserName());
+      await registerPage.fillPreactInput(emailInput, generateTestEmail());
+      await registerPage.fillPreactInput(passwordInputs.first(), 'Password123');
+      await registerPage.fillPreactInput(passwordInputs.last(), 'DifferentPassword123');
       
       // Submit button should be disabled with mismatched passwords
       const submitButton = registerPage.getSubmitButton();
       await expect(submitButton).toBeDisabled();
       
       // Fix password match
-      await passwordInputs.last().fill('Password123');
+      await registerPage.fillPreactInput(passwordInputs.last(), 'Password123');
       
       // Also need to check both required checkboxes
       const termsCheckbox = registerPage.getTermsCheckbox();
@@ -130,10 +131,10 @@ test.describe('Form Validation E2E', () => {
       const emailInput = registerPage.getEmailInputByType();
       const passwordInputs = registerPage.getPasswordInputs();
       
-      await nameInput.fill(generateTestUserName());
-      await emailInput.fill('invalid-email-format');
-      await passwordInputs.first().fill('Password123');
-      await passwordInputs.last().fill('Password123');
+      await registerPage.fillPreactInput(nameInput, generateTestUserName());
+      await registerPage.fillPreactInput(emailInput, 'invalid-email-format');
+      await registerPage.fillPreactInput(passwordInputs.first(), 'Password123');
+      await registerPage.fillPreactInput(passwordInputs.last(), 'Password123');
       
       // Check both required checkboxes
       const termsCheckbox = registerPage.getTermsCheckbox();
@@ -153,7 +154,7 @@ test.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/register/);
       
       // Fix email format
-      await emailInput.fill(generateTestEmail());
+      await registerPage.fillPreactInput(emailInput, generateTestEmail());
       
       // Now form should be valid
       await expect(submitButton).toBeEnabled();
@@ -166,6 +167,7 @@ test.describe('Form Validation E2E', () => {
   test.describe('Expense Form', () => {
     authenticatedPageTest('should require description and amount', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
+      const groupDetailPage = new GroupDetailPage(page);
       
       // Verify we start on dashboard
       await expect(page).toHaveURL(/\/dashboard/);
@@ -187,8 +189,8 @@ test.describe('Form Validation E2E', () => {
       await expect(page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
       
       // Fill required fields
-      await page.getByPlaceholder('What was this expense for?').fill('Test expense');
-      await page.getByPlaceholder('0.00').fill('25.00');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Test expense');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25.00');
       
       // Should now allow submission
       await submitButton.click();
@@ -197,6 +199,7 @@ test.describe('Form Validation E2E', () => {
 
     authenticatedPageTest('should validate split totals for exact amounts', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
+      const groupDetailPage = new GroupDetailPage(page);
       
       // Verify we start on dashboard
       await expect(page).toHaveURL(/\/dashboard/);
@@ -209,8 +212,8 @@ test.describe('Form Validation E2E', () => {
       await page.waitForLoadState('domcontentloaded');
       
       // Fill basic expense details
-      await page.getByPlaceholder('What was this expense for?').fill('Split Test Expense');
-      await page.getByPlaceholder('0.00').fill('100.00');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Split Test Expense');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100.00');
       
       // Select exact split type
       await page.getByText('Exact amounts').click();
@@ -225,6 +228,7 @@ test.describe('Form Validation E2E', () => {
 
     authenticatedPageTest('should validate percentage totals', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
+      const groupDetailPage = new GroupDetailPage(page);
       
       // Verify we start on dashboard
       await expect(page).toHaveURL(/\/dashboard/);
@@ -237,8 +241,8 @@ test.describe('Form Validation E2E', () => {
       await page.waitForLoadState('domcontentloaded');
       
       // Fill basic expense details
-      await page.getByPlaceholder('What was this expense for?').fill('Percentage Test Expense');
-      await page.getByPlaceholder('0.00').fill('100.00');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Percentage Test Expense');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100.00');
       
       // Select percentage split type
       await page.getByText('Percentage', { exact: true }).click();

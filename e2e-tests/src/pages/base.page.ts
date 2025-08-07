@@ -60,6 +60,7 @@ export abstract class BasePage {
         await this.waitForFocus(input);
         await this.page.waitForTimeout(100);
         await input.pressSequentially(value);
+        // await input.fill(value);
 
         // Blur to trigger Preact validation
         await input.blur();
@@ -90,6 +91,7 @@ export abstract class BasePage {
     await this.validateInputValue(input, value);
     await this.page.waitForLoadState('domcontentloaded');
   }
+
   async waitForNetworkIdle() {
     await this.page.waitForLoadState('networkidle');
   }
@@ -161,27 +163,5 @@ export abstract class BasePage {
   async navigateToStaticPath(path: string): Promise<void> {
     await this.page.goto(`${EMULATOR_URL}${path}`);
     await this.waitForNetworkIdle();
-  }
-  /**
-   * Fill a numeric input field (like amount) that may have automatic formatting.
-   * Uses a more lenient validation approach for formatted numeric inputs.
-   */
-  async fillNumericInput(input: Locator, value: string): Promise<void> {
-    // Clear the field first
-    await input.fill('');
-    
-    // Type the value directly
-    await input.fill(value);
-    
-    // Blur to trigger any formatting
-    await input.blur();
-    await this.page.waitForTimeout(100); // Brief wait for formatting to complete
-    
-    // For numeric inputs, we just verify the field is not empty after input
-    const actualValue = await input.inputValue();
-    if (!actualValue || actualValue.trim() === '') {
-      const fieldIdentifier = await this.getFieldIdentifier(input);
-      throw new Error(`Numeric input failed for field "${fieldIdentifier}": field is empty after input "${value}"`);
-    }
   }
 }

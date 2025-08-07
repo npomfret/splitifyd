@@ -22,6 +22,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Try to enter negative amount
     const amountField = page.getByPlaceholder('0.00');
+    // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-50');
     
     // Verify HTML5 validation prevents negative values
@@ -29,6 +30,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Try to submit form with negative value
+    // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-100');
     await page.getByRole('button', { name: /save expense/i }).click();
     
@@ -40,8 +42,8 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(validationMessage).toBeTruthy();
     
     // Now enter a valid positive amount
-    await amountField.fill('50');
-    await page.getByPlaceholder('What was this expense for?').fill('Valid expense');
+    await groupDetailPage.fillPreactInput(amountField, '50');
+    await groupDetailPage.fillPreactInput(page.getByPlaceholder('What was this expense for?'), 'Valid expense');
     
     // Select all participants
     await page.getByRole('button', { name: 'Select all' }).click();
@@ -69,8 +71,9 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Try to enter zero amount
     const amountField = page.getByPlaceholder('0.00');
+    // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('0');
-    await page.getByPlaceholder('What was this expense for?').fill('Zero expense');
+    await groupDetailPage.fillPreactInput(page.getByPlaceholder('What was this expense for?'), 'Zero expense');
     
     // Select all participants
     await page.getByRole('button', { name: 'Select all' }).click();
@@ -129,6 +132,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Try to enter negative amount
     const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+    // Use direct fill for invalid value - UI should validate but not format/clear
     await amountInput.fill('-50');
     
     // Verify HTML5 validation
@@ -143,7 +147,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expect(modal).toBeVisible();
     
     // Enter valid amount
-    await amountInput.fill('50');
+    await groupDetailPage.fillPreactInput(amountInput, '50');
     
     // Select payer and payee
     const payerSelect = page.getByRole('combobox', { name: /who paid/i });
@@ -193,8 +197,8 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Fill expense details
-    await page.getByPlaceholder('0.00').fill('100');
-    await page.getByPlaceholder('What was this expense for?').fill('Split test expense');
+    await groupDetailPage.fillPreactInput(page.getByPlaceholder('0.00'), '100');
+    await groupDetailPage.fillPreactInput(page.getByPlaceholder('What was this expense for?'), 'Split test expense');
     
     // Select all participants first
     await page.getByRole('button', { name: 'Select all' }).click();
@@ -205,6 +209,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     // Try to enter negative split amount
     const splitInputs = page.locator('input[type="number"][step="0.01"][min="0.01"]');
     const firstSplitInput = splitInputs.first();
+    // Use direct fill for invalid value - UI should validate but not format/clear
     await firstSplitInput.fill('-50');
     
     // Verify min validation
@@ -252,6 +257,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     ];
     
     for (const testCase of testCases) {
+      // Use direct fill for test values - UI should validate but not format/clear
       await amountField.fill(testCase.value);
       
       // Use browser's built-in HTML5 validation

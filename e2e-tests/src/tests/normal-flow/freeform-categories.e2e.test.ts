@@ -25,8 +25,8 @@ test.describe('Freeform Categories E2E', () => {
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic expense details
-    await groupDetailPage.getExpenseDescriptionField().fill('Grocery shopping');
-    await groupDetailPage.getExpenseAmountField().fill('45.99');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Grocery shopping');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '45.99');
     
     // Test predefined category selection
     const categoryInput = groupDetailPage.getCategoryInput();
@@ -69,8 +69,8 @@ test.describe('Freeform Categories E2E', () => {
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic expense details
-    await groupDetailPage.getExpenseDescriptionField().fill('Team building activity');
-    await groupDetailPage.getExpenseAmountField().fill('120.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Team building activity');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '120.00');
     
     // Test custom category input
     const customCategory = 'Corporate Team Building';
@@ -112,7 +112,7 @@ test.describe('Freeform Categories E2E', () => {
     await page.waitForSelector('[role="listbox"]', { timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     // Type "tra" to filter for "Transportation"
-    await categoryInput.fill('tra');
+    await groupDetailPage.fillPreactInput(categoryInput, 'tra');
     
     // Check that Transportation suggestion is visible
     const transportSuggestion = groupDetailPage.getCategorySuggestion('Transportation');
@@ -185,8 +185,8 @@ test.describe('Freeform Categories E2E', () => {
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic expense details
-    await groupDetailPage.getExpenseDescriptionField().fill('Special characters test');
-    await groupDetailPage.getExpenseAmountField().fill('33.33');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Special characters test');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '33.33');
     
     // Test category with special characters (avoiding security filters)
     const specialCategory = 'Café & Restaurant - Fine Dining';
@@ -220,8 +220,8 @@ test.describe('Freeform Categories E2E', () => {
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.click();
     
-    await groupDetailPage.getExpenseDescriptionField().fill('Business lunch');
-    await groupDetailPage.getExpenseAmountField().fill('55.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Business lunch');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '55.00');
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
     await groupDetailPage.getSaveExpenseButton().click();
@@ -251,7 +251,7 @@ test.describe('Freeform Categories E2E', () => {
     await expect(categoryInput).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     const customCategory = 'Corporate Client Meeting';
-    await categoryInput.fill(customCategory);
+    await groupDetailPage.fillPreactInput(categoryInput, customCategory);
     
     // Save the changes - in edit mode the button says "Update Expense"
     const updateButton = page.getByRole('button', { name: /update expense/i });
@@ -282,12 +282,12 @@ test.describe('Freeform Categories E2E', () => {
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic expense details but leave category empty
-    await groupDetailPage.getExpenseDescriptionField().fill('Test empty category');
-    await groupDetailPage.getExpenseAmountField().fill('10.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Test empty category');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '10.00');
     
     // Clear category field (it might have a default)
     const categoryInput = groupDetailPage.getCategoryInput();
-    await categoryInput.fill('');
+    await groupDetailPage.fillPreactInput(categoryInput, '');
     
     // Try to submit
     const saveButton = groupDetailPage.getSaveExpenseButton();

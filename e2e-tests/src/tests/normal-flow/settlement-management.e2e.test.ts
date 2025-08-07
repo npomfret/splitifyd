@@ -39,14 +39,14 @@ test.describe('Settlement Management', () => {
     
     // Test negative amount
     const amountInput = groupDetailPage.getSettlementAmountInput();
-    await amountInput.fill('-10');
+    await groupDetailPage.fillPreactInput(amountInput, '-10');
     
     // Try to submit - should be disabled due to validation
     const submitButton = modal.getByRole('button', { name: /record payment/i });
     await expect(submitButton).toBeDisabled();
     
     // Fix amount
-    await amountInput.fill('10');
+    await groupDetailPage.fillPreactInput(amountInput, '10');
     
     // Test same payer and payee by directly setting form state
     const payerSelect = groupDetailPage.getPayerSelect();
@@ -112,9 +112,9 @@ test.describe('Settlement Management', () => {
     // Select by index
     await payerSelect.selectOption({ index: 2 }); // user2
     await payeeSelect.selectOption({ index: 1 }); // user1
-    await amountInput.fill('100');
+    await groupDetailPage.fillPreactInput(amountInput, '100');
     await currencySelect.selectOption('EUR');
-    await noteInput.fill('Euro payment');
+    await groupDetailPage.fillPreactInput(noteInput, 'Euro payment');
     
     // Submit
     const submitButton = modal.getByRole('button', { name: /record payment/i });

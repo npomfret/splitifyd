@@ -20,8 +20,8 @@ pageTest.describe('Form Behavior Edge Cases', () => {
     await passwordInput.clear();
     
     // Now fill form with our test data
-    await emailInput.fill('test@example.com');
-    await passwordInput.fill('Password123');
+    await loginPage.fillPreactInput(emailInput, 'test@example.com');
+    await loginPage.fillPreactInput(passwordInput, 'Password123');
     
     // Verify values are filled
     await expect(emailInput).toHaveValue('test@example.com');
@@ -50,8 +50,8 @@ pageTest.describe('Form Behavior Edge Cases', () => {
     const nameInput = registerPage.getNameInputByType();
     const emailInput = registerPage.getEmailInputByType();
     
-    await nameInput.fill('  Test User  ');
-    await emailInput.fill('  test@example.com  ');
+    await registerPage.fillPreactInput(nameInput, '  Test User  ');
+    await registerPage.fillPreactInput(emailInput, '  test@example.com  ');
     
     // Tab away to trigger any trim logic
     await emailInput.press('Tab');

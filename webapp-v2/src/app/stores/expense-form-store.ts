@@ -20,7 +20,7 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
 export interface ExpenseFormStore {
   // Form fields
   description: string;
-  amount: number;
+  amount: string | number;  // Allow string to preserve user input like "50.00"
   date: string;
   paidBy: string;
   category: string;
@@ -55,7 +55,7 @@ export interface ExpenseFormStore {
 // Type for form data fields
 interface ExpenseFormData {
   description: string;
-  amount: number;
+  amount: string | number;  // Allow string to preserve user input
   date: string;
   paidBy: string;
   category: string;
@@ -73,7 +73,7 @@ const getTodayDate = (): string => {
 
 // Signals for form state
 const descriptionSignal = signal<string>('');
-const amountSignal = signal<number>(0);
+const amountSignal = signal<string | number>('');  // Store as string to preserve user input
 const dateSignal = signal<string>(getTodayDate());
 const paidBySignal = signal<string>('');
 const categorySignal = signal<string>('food');
@@ -164,7 +164,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         descriptionSignal.value = value as string;
         break;
       case 'amount':
-        amountSignal.value = value as number;
+        amountSignal.value = value as string | number;
+        // Convert to number for calculations
+        const numericAmount = typeof value === 'string' ? parseFloat(value) || 0 : value as number;
         // Recalculate splits based on current type
         if (splitTypeSignal.value === 'equal') {
           this.calculateEqualSplits();
@@ -173,7 +175,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
           const currentSplits = [...splitsSignal.value];
           currentSplits.forEach(split => {
             if (split.percentage !== undefined) {
-              split.amount = (value as number * split.percentage) / 100;
+              split.amount = (numericAmount * split.percentage) / 100;
             }
           });
           splitsSignal.value = currentSplits;
@@ -261,7 +263,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   calculateEqualSplits(): void {
     const participants = participantsSignal.value;
-    const amount = amountSignal.value;
+    const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
     
     if (participants.length === 0 || amount <= 0) {
       splitsSignal.value = [];
@@ -309,16 +311,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     const splitIndex = currentSplits.findIndex(s => s.userId === userId);
     
     if (splitIndex >= 0) {
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       currentSplits[splitIndex] = { 
         ...currentSplits[splitIndex], 
         percentage,
-        amount: (amountSignal.value * percentage) / 100
+        amount: (numericAmount * percentage) / 100
       };
     } else {
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       currentSplits.push({ 
         userId, 
         percentage,
-        amount: (amountSignal.value * percentage) / 100
+        amount: (numericAmount * percentage) / 100
       });
     }
     
@@ -337,7 +341,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   private handleSplitTypeChange(newType: 'equal' | 'exact' | 'percentage'): void {
     const participants = participantsSignal.value;
-    const amount = amountSignal.value;
+    const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
     
     if (participants.length === 0 || amount <= 0) {
       splitsSignal.value = [];
@@ -383,9 +387,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       case 'amount':
         const amt = value ?? amountSignal.value;
-        if (amt <= 0) {
+        const numericAmt = typeof amt === 'string' ? parseFloat(amt) || 0 : amt;
+        if (numericAmt <= 0) {
           return 'Amount must be greater than 0';
-        } else if (amt > 1000000) {
+        } else if (numericAmt > 1000000) {
           return 'Amount seems too large';
         }
         break;
@@ -422,7 +427,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         // Validate splits based on split type
         if (splitTypeSignal.value === 'exact') {
           const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
-          if (Math.abs(totalSplit - amountSignal.value) > 0.01) {
+          const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+          if (Math.abs(totalSplit - numericAmount) > 0.01) {
             return `Split amounts must equal the total expense amount`;
           }
         } else if (splitTypeSignal.value === 'percentage') {
@@ -475,10 +481,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const dateTime = new Date(dateSignal.value);
       dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
       
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       const request: CreateExpenseRequest = {
         groupId,
         description: descriptionSignal.value.trim(),
-        amount: amountSignal.value,
+        amount: numericAmount,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
         date: dateTime.toISOString(),
@@ -491,7 +498,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       // Track recent category and amount
       addRecentCategory(categorySignal.value);
-      addRecentAmount(amountSignal.value);
+      addRecentAmount(numericAmount);
       
       // Refresh group data to show the new expense immediately
       try {
@@ -532,9 +539,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       // For updates, only include fields that can be changed
       // Backend doesn't allow changing: groupId, paidBy
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       const updateRequest = {
         description: descriptionSignal.value.trim(),
-        amount: amountSignal.value,
+        amount: numericAmount,
         category: categorySignal.value,
         date: dateTime.toISOString(),
         splitType: splitTypeSignal.value,
@@ -546,7 +554,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       // Track recent category and amount
       addRecentCategory(categorySignal.value);
-      addRecentAmount(amountSignal.value);
+      addRecentAmount(numericAmount);
       
       // Refresh group data to show the updated expense immediately
       try {
@@ -577,7 +585,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   reset(): void {
     descriptionSignal.value = '';
-    amountSignal.value = 0;
+    amountSignal.value = '';  // Reset to empty string
     dateSignal.value = getTodayDate();
     paidBySignal.value = '';
     categorySignal.value = 'food';
@@ -590,9 +598,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   hasUnsavedChanges(): boolean {
     // Check if any field has been modified from initial state
+    const hasAmount = typeof amountSignal.value === 'string' ? amountSignal.value.trim() !== '' : amountSignal.value > 0;
     return (
       descriptionSignal.value.trim() !== '' ||
-      amountSignal.value > 0 ||
+      hasAmount ||
       dateSignal.value !== getTodayDate() ||
       paidBySignal.value !== '' ||
       categorySignal.value !== 'food' ||

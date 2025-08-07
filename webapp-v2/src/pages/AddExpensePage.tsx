@@ -197,8 +197,9 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   
   const handleAmountChange = (e: Event) => {
     const input = e.target as HTMLInputElement;
-    const value = parseFloat(input.value) || 0;
-    expenseFormStore.updateField('amount', value);
+    // Keep the raw string value to preserve user input (e.g., "50.00")
+    // The store will handle conversion to number when needed
+    expenseFormStore.updateField('amount', input.value);
   };
   
   const handleParticipantToggle = (memberId: string) => {
@@ -321,7 +322,6 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       step="0.01"
                       min="0.01"
                       inputMode="decimal"
-                      pattern="[0-9]*"
                       required
                     />
                     
@@ -577,7 +577,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   </div>
                   
                   {/* Split inputs based on type */}
-                  {splitType.value === 'exact' && amount.value > 0 && (
+                  {splitType.value === 'exact' && (typeof amount.value === 'string' ? parseFloat(amount.value) > 0 : amount.value > 0) && (
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Enter exact amounts for each person:
@@ -619,18 +619,18 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                         <div className="flex justify-between text-sm">
                           <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
                           <span className={`font-medium ${
-                            Math.abs(splits.value.reduce((sum, s) => sum + s.amount, 0) - amount.value) < 0.01
+                            Math.abs(splits.value.reduce((sum, s) => sum + s.amount, 0) - (typeof amount.value === 'string' ? parseFloat(amount.value) || 0 : amount.value)) < 0.01
                               ? 'text-green-600 dark:text-green-400'
                               : 'text-red-600 dark:text-red-400'
                           }`}>
-                            ${splits.value.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amount.value.toFixed(2)}
+                            ${splits.value.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${(typeof amount.value === 'string' ? parseFloat(amount.value) || 0 : amount.value).toFixed(2)}
                           </span>
                         </div>
                       </div>
                     </div>
                   )}
                   
-                  {splitType.value === 'percentage' && amount.value > 0 && (
+                  {splitType.value === 'percentage' && (typeof amount.value === 'string' ? parseFloat(amount.value) > 0 : amount.value > 0) && (
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Enter percentage for each person:
@@ -687,7 +687,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                     </div>
                   )}
                   
-                  {splitType.value === 'equal' && amount.value > 0 && (
+                  {splitType.value === 'equal' && (typeof amount.value === 'string' ? parseFloat(amount.value) > 0 : amount.value > 0) && (
                     <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Each person pays:

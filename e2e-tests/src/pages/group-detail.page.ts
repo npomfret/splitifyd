@@ -84,7 +84,7 @@ export class GroupDetailPage extends BasePage {
 
   async typeCategoryText(text: string) {
     const categoryInput = this.getCategoryInput();
-    await categoryInput.fill(text);
+    await this.fillPreactInput(categoryInput, text);
   }
 
   getSaveExpenseButton() {
@@ -336,7 +336,7 @@ export class GroupDetailPage extends BasePage {
     await this.fillPreactInput(descriptionField, expense.description);
     
     const amountField = this.getExpenseAmountField();
-    await this.fillNumericInput(amountField, expense.amount.toString());
+    await this.fillPreactInput(amountField, expense.amount.toString());
     
     // Handle paidBy field - select who paid for the expense
     // The "Who paid?" section uses radio buttons inside label elements
@@ -400,7 +400,7 @@ export class GroupDetailPage extends BasePage {
     // Make selections
     await payerSelect.selectOption({ index: options.payerIndex });
     await payeeSelect.selectOption({ index: options.payeeIndex });
-    await this.fillNumericInput(amountInput, options.amount);
+    await this.fillPreactInput(amountInput, options.amount);
     await this.fillPreactInput(noteInput, options.note);
     
     // Submit
@@ -625,7 +625,7 @@ export class GroupDetailPage extends BasePage {
     }
     
     await payeeSelect.selectOption(payeeValue);
-    await this.fillNumericInput(amountInput, options.amount);
+    await this.fillPreactInput(amountInput, options.amount);
     await this.fillPreactInput(noteInput, options.note);
     
     // Submit
