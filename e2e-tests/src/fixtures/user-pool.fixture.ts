@@ -3,397 +3,197 @@ import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 
-export interface PooledUser {
-  id: string;
-  user: BaseUser;
-  inUse: boolean;
-  claimedBy?: string;
-  claimedAt?: Date;
-}
-
-export interface UserPoolConfig {
-  minPoolSize: number;
-  maxPoolSize: number;
-  preWarmCount: number;
-  maxClaimDuration: number; // Auto-release after timeout (ms)
-}
-
+/**
+ * Simple in-memory user pool implementation.
+ * 
+ * Key design principles:
+ * - No filesystem persistence (no race conditions)
+ * - Simple pop/push operations for claim/release
+ * - On-demand user creation when pool is empty
+ * - Singleton pattern - only one instance per process/worker
+ */
 export class UserPool {
-  private pool: Map<string, PooledUser> = new Map();
-  private config: UserPoolConfig;
-  private creationPage?: Page;
-  private static POOL_FILE: string | undefined;
-
-  constructor(config: Partial<UserPoolConfig> = {}) {
-    this.config = {
-      minPoolSize: 2,
-      maxPoolSize: 10,
-      preWarmCount: 10, // Increased to support all parallel workers
-      maxClaimDuration: 300000, // 5 minutes
-      ...config
-    };
-  }
-
-  /**
-   * Initialize the pool, loading any existing data from disk
-   */
-  async initialize(): Promise<void> {
-    // First try to load from environment variable (most reliable in CI)
-    if (process.env.PLAYWRIGHT_USER_POOL) {
-      try {
-        console.log('Loading user pool from environment variable...');
-        const users = JSON.parse(process.env.PLAYWRIGHT_USER_POOL) as BaseUser[];
-        
-        for (let i = 0; i < users.length; i++) {
-          const pooledUser: PooledUser = {
-            id: `prewarm-${i}`,
-            user: users[i],
-            inUse: false
-          };
-          this.pool.set(pooledUser.id, pooledUser);
-        }
-        
-        console.log(`✅ Loaded ${this.pool.size} users from environment variable`);
-        return;
-      } catch (error) {
-        console.warn('Failed to load pool from environment variable:', error);
-      }
+  // Singleton tracking
+  private static instance: UserPool | undefined;
+  
+  // In-memory pool of available users
+  private availableUsers: BaseUser[] = [];
+  // Track users currently in use (for debugging/stats)
+  private usersInUse: Map<string, string> = new Map(); // uid -> testId
+  
+  constructor() {
+    // Enforce singleton pattern - only one UserPool per process
+    if (UserPool.instance) {
+      throw new Error(
+        'UserPool has already been instantiated! ' +
+        'Use getUserPool() to get the existing instance. ' +
+        'Multiple UserPool instances would cause user conflicts.'
+      );
     }
     
-    // Fall back to disk-based persistence
-    await this.loadPoolFromDisk();
+    // Register this as the singleton instance
+    UserPool.instance = this;
+    
+    // Each worker starts with an empty pool and creates users on-demand
+    console.log('🔧 User pool initialized (on-demand mode)');
+  }
+  
+  /**
+   * Reset the singleton instance (mainly for testing).
+   * Should only be called from resetUserPool().
+   */
+  static resetInstance(): void {
+    UserPool.instance = undefined;
   }
 
   /**
-   * Get the pool file path
+   * Claim a user from the pool.
+   * If pool is empty, creates a new user on-demand.
    */
-  private static async getPoolFilePath(): Promise<string> {
-    if (!UserPool.POOL_FILE) {
-      // Simple fallback path for local development
-      UserPool.POOL_FILE = '.playwright-user-pool.json';
-    }
-    return UserPool.POOL_FILE;
-  }
-
-  /**
-   * Pre-warm the pool with test users
-   */
-  async preWarmPool(page: Page): Promise<void> {
-    this.creationPage = page;
-    console.log(`Pre-warming user pool with ${this.config.preWarmCount} users...`);
+  async claimUser(page: Page, testId: string): Promise<BaseUser> {
+    // Try to get an existing user from the pool
+    let user = this.availableUsers.pop();
     
-    // Create users sequentially to avoid resource contention
-    const createdUsers: BaseUser[] = [];
-    for (let i = 0; i < this.config.preWarmCount; i++) {
-      const pooledUser = await this.createPooledUser(`prewarm-${i}`);
-      createdUsers.push(pooledUser.user);
-    }
-    
-    console.log(`User pool ready with ${this.pool.size} users`);
-    
-    // Store users in environment variable for cross-process sharing
-    process.env.PLAYWRIGHT_USER_POOL = JSON.stringify(createdUsers);
-    
-    // Also persist to disk as backup
-    await this.savePoolToDisk();
-  }
-
-  /**
-   * Get a user by worker index - deterministic assignment
-   */
-  getUserByIndex(workerIndex: number): BaseUser {
-    const users = Array.from(this.pool.values());
-    
-    if (workerIndex >= users.length) {
-      throw new Error(`Worker index ${workerIndex} exceeds pool size ${users.length}. Increase preWarmCount in UserPoolConfig.`);
+    if (user) {
+      console.log(`📤 Claimed existing user: ${user.email} for test ${testId}`);
+    } else {
+      // Pool is empty, create a new user on-demand
+      console.log(`🔨 Creating new user on-demand for test ${testId}`);
+      user = await this.createUser(page, 'ondemand');
+      console.log(`✅ Created new user: ${user.email}`);
     }
     
-    const pooledUser = users[workerIndex];
-    console.log(`Worker ${workerIndex} assigned user: ${pooledUser.user.email}`);
-    return pooledUser.user;
+    // Track that this user is in use
+    this.usersInUse.set(user.uid, testId);
+    
+    return user;
   }
 
   /**
-   * Get a second user for multi-user tests - deterministic assignment
+   * Release a user back to the pool for reuse.
+   * This is optional - tests don't have to return users.
    */
-  getSecondUserByIndex(workerIndex: number): BaseUser {
-    const users = Array.from(this.pool.values());
-    const secondUserIndex = workerIndex + Math.ceil(users.length / 2);
-    
-    if (secondUserIndex >= users.length) {
-      throw new Error(`Second user index ${secondUserIndex} exceeds pool size ${users.length}. Increase preWarmCount in UserPoolConfig.`);
+  releaseUser(user: BaseUser): void {
+    // Only accept users that were claimed from this pool
+    if (!this.usersInUse.has(user.uid)) {
+      console.log(`⚠️ Attempted to release unknown user: ${user.email}`);
+      return;
     }
     
-    const pooledUser = users[secondUserIndex];
-    console.log(`Worker ${workerIndex} assigned second user: ${pooledUser.user.email}`);
-    return pooledUser.user;
+    // Remove from in-use tracking
+    this.usersInUse.delete(user.uid);
+    
+    // Add back to available pool
+    this.availableUsers.push(user);
+    console.log(`📥 Released user back to pool: ${user.email}`);
   }
 
   /**
-   * Get a third user for three-user tests - deterministic assignment
+   * Optional: Pre-warm the pool with users for better performance.
+   * This is now optional - the pool works fine with on-demand creation.
+   * @deprecated Consider removing this method entirely
    */
-  getThirdUserByIndex(workerIndex: number): BaseUser {
-    const users = Array.from(this.pool.values());
-    const thirdUserIndex = workerIndex + Math.floor(users.length * 2 / 3);
+  async preWarmPool(page: Page, count: number): Promise<void> {
+    console.log(`🔥 Pre-warming pool with ${count} users (optional optimization)...`);
     
-    if (thirdUserIndex >= users.length) {
-      throw new Error(`Third user index ${thirdUserIndex} exceeds pool size ${users.length}. Increase preWarmCount in UserPoolConfig.`);
+    for (let i = 0; i < count; i++) {
+      const user = await this.createUser(page, `prewarm-${i}`);
+      this.availableUsers.push(user);
+      console.log(`✅ Created pool user ${i + 1}/${count}: ${user.email}`);
     }
     
-    const pooledUser = users[thirdUserIndex];
-    console.log(`Worker ${workerIndex} assigned third user: ${pooledUser.user.email}`);
-    return pooledUser.user;
+    console.log(`✅ Pool pre-warmed with ${count} users`);
   }
 
   /**
-   * Legacy claim method - deprecated, use getUserByIndex instead
-   * @deprecated
+   * Create a new test user.
    */
-  async claimUser(testId: string): Promise<BaseUser> {
-    // Find available user
-    const availableUser = this.findAvailableUser();
-    
-    if (!availableUser) {
-      const stats = this.getPoolStats();
-      throw new Error(`User pool exhausted: ${stats.inUse}/${stats.total} users in use. Increase pool size or reduce parallel test execution.`);
-    }
-
-    // Claim the user atomically
-    availableUser.inUse = true;
-    availableUser.claimedBy = testId;
-    availableUser.claimedAt = new Date();
-
-    console.log(`User ${availableUser.user.email} claimed by test ${testId}`);
-    
-    // Update persistent pool state (fire and forget to avoid blocking test execution)
-    this.savePoolToDisk().catch(err => console.warn('Failed to persist pool state after claim:', err));
-    return availableUser.user;
-  }
-
-  /**
-   * Legacy release method - no-op with deterministic assignment
-   * @deprecated
-   */
-  async releaseUser(userId: string, testId: string): Promise<void> {
-    // No-op with deterministic assignment - users are never "released"
-    console.log(`Release called for user ${userId} by test ${testId} - no-op with deterministic assignment`);
-  }
-
-  /**
-   * Find an available user in the pool
-   */
-  private findAvailableUser(): PooledUser | undefined {
-    const now = new Date();
-    
-    for (const pooledUser of this.pool.values()) {
-      // Check if user is available
-      if (!pooledUser.inUse) {
-        return pooledUser;
-      }
-      
-      // Check if user claim has expired
-      if (pooledUser.claimedAt) {
-        const claimDuration = now.getTime() - pooledUser.claimedAt.getTime();
-        if (claimDuration > this.config.maxClaimDuration) {
-          console.warn(`Force-releasing expired user claim: ${pooledUser.user.email}`);
-          pooledUser.inUse = false;
-          pooledUser.claimedBy = undefined;
-          pooledUser.claimedAt = undefined;
-          return pooledUser;
-        }
-      }
-    }
-    
-    return undefined;
-  }
-
-  /**
-   * Create a new pooled user
-   */
-  private async createPooledUser(id: string): Promise<PooledUser> {
-    if (!this.creationPage) {
-      throw new Error('User pool not initialized - call preWarmPool() first');
-    }
-
-    // Create user directly without going through AuthenticationWorkflow to avoid page object issues
+  private async createUser(page: Page, prefix: string): Promise<BaseUser> {
     const uniqueId = generateShortId();
     const displayName = generateTestUserName('Pool');
-    const email = generateTestEmail('pool');
+    const email = generateTestEmail(prefix);
     const password = 'TestPassword123!';
 
-    // Navigate to register page (or back to register if we're on dashboard)
-    console.log(`Creating user ${id} - navigating to register page...`);
-    await this.creationPage.goto('/register');
-    await this.creationPage.waitForLoadState('networkidle');
-    
-    // Check if we're actually on the register page
-    const currentUrl = this.creationPage.url();
-    console.log(`Current URL: ${currentUrl}`);
+    // Navigate to register page
+    await page.goto('/register');
+    await page.waitForLoadState('networkidle');
     
     // Wait for form to be visible
-    await this.creationPage.waitForSelector('input[placeholder="Enter your full name"]', { timeout: TIMEOUTS.EXTENDED * 2 });
+    await page.waitForSelector('input[placeholder="Enter your full name"]', { 
+      timeout: TIMEOUTS.EXTENDED * 2 
+    });
     
-    // Clear any existing form data and fill registration form
-    await this.creationPage.fill('input[placeholder="Enter your full name"]', '');
-    await this.creationPage.fill('input[placeholder="Enter your full name"]', displayName);
+    // Fill registration form
+    await page.fill('input[placeholder="Enter your full name"]', displayName);
+    await page.fill('input[placeholder="Enter your email"]', email);
+    await page.fill('input[placeholder="Create a strong password"]', password);
+    await page.fill('input[placeholder="Confirm your password"]', password);
     
-    await this.creationPage.fill('input[placeholder="Enter your email"]', '');
-    await this.creationPage.fill('input[placeholder="Enter your email"]', email);
-    
-    await this.creationPage.fill('input[placeholder="Create a strong password"]', '');
-    await this.creationPage.fill('input[placeholder="Create a strong password"]', password);
-    
-    await this.creationPage.fill('input[placeholder="Confirm your password"]', '');
-    await this.creationPage.fill('input[placeholder="Confirm your password"]', password);
-    
-    // Ensure checkbox is checked
-    await this.creationPage.check('input[type="checkbox"]');
+    // Check terms checkbox
+    await page.check('input[type="checkbox"]');
     
     // Submit form
-    await this.creationPage.click('button:has-text("Create Account")');
+    await page.click('button:has-text("Create Account")');
     
     // Wait for redirect to dashboard
-    await this.creationPage.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
+    await page.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
     
-    // Logout the user so the next user creation can work
-    await this.creationPage.click('button:has-text("' + displayName + '")');
-    await this.creationPage.waitForSelector('text=Sign out', { timeout: TIMEOUTS.EXTENDED });
-    await this.creationPage.click('text=Sign out');
+    // Logout so the page is ready for the next user creation
+    await page.click(`button:has-text("${displayName}")`);
+    await page.waitForSelector('text=Sign out', { timeout: TIMEOUTS.EXTENDED });
+    await page.click('text=Sign out');
     
-    // Wait for logout to complete - should redirect to login or home
-    await this.creationPage.waitForURL(url => !url.toString().includes('/dashboard'), { timeout: TIMEOUTS.EXTENDED * 2 });
+    // Wait for logout to complete
+    await page.waitForURL(url => !url.toString().includes('/dashboard'), { 
+      timeout: TIMEOUTS.EXTENDED * 2 
+    });
     
-    const user: BaseUser = {
+    return {
       uid: uniqueId,
       email,
       displayName
     };
-    
-    const pooledUser: PooledUser = {
-      id,
-      user,
-      inUse: false
+  }
+
+  /**
+   * Get pool statistics for debugging.
+   */
+  getStats() {
+    return {
+      available: this.availableUsers.length,
+      inUse: this.usersInUse.size,
+      total: this.availableUsers.length + this.usersInUse.size
     };
-
-    this.pool.set(id, pooledUser);
-    console.log(`✅ Created pool user: ${email}`);
-    return pooledUser;
   }
 
   /**
-   * Clean up all users in the pool
+   * Clear the pool (for cleanup).
    */
-  async cleanupPool(): Promise<void> {
-    console.log(`Cleaning up user pool with ${this.pool.size} users`);
-    this.pool.clear();
-    
-    // Remove persistent pool file
-    try {
-      const fs = await import('fs');
-      const poolPath = await UserPool.getPoolFilePath();
-      
-      if (fs.existsSync(poolPath)) {
-        fs.unlinkSync(poolPath);
-        console.log(`✅ Removed persistent pool file at ${poolPath}`);
-      }
-    } catch (error) {
-      console.warn('Failed to remove pool file:', error);
-    }
-  }
-
-  /**
-   * Get pool statistics
-   */
-  getPoolStats() {
-    const total = this.pool.size;
-    const inUse = Array.from(this.pool.values()).filter(u => u.inUse).length;
-    const available = total - inUse;
-    
-    return { total, inUse, available };
-  }
-
-  /**
-   * Save pool state to disk - simplified for deterministic assignment
-   */
-  private async savePoolToDisk(): Promise<void> {
-    try {
-      const fs = await import('fs');
-      const poolPath = await UserPool.getPoolFilePath();
-      
-      // Only save the user list, no complex state tracking needed
-      const users = Array.from(this.pool.values()).map(p => p.user);
-      
-      fs.writeFileSync(poolPath, JSON.stringify(users, null, 2));
-      console.log(`💾 Saved ${users.length} users to pool file at ${poolPath}`);
-    } catch (error) {
-      console.warn('Failed to save pool to disk:', error);
-    }
-  }
-
-  /**
-   * Load pool state from disk - simplified for deterministic assignment
-   */
-  private async loadPoolFromDisk(): Promise<void> {
-    try {
-      const fs = await import('fs');
-      const poolPath = await UserPool.getPoolFilePath();
-      
-      console.log(`Looking for pool file at: ${poolPath}`);
-      
-      if (fs.existsSync(poolPath)) {
-        const data = JSON.parse(fs.readFileSync(poolPath, 'utf8'));
-        
-        // Handle both old and new format
-        let users: BaseUser[];
-        if (Array.isArray(data)) {
-          // New format - direct array of users
-          users = data;
-        } else if (data.users) {
-          // Old format - extract users from pooledUser objects
-          users = data.users.map((entry: any) => entry.pooledUser.user);
-        } else {
-          throw new Error('Unknown pool file format');
-        }
-        
-        // Restore pool users with simple structure
-        for (let i = 0; i < users.length; i++) {
-          const pooledUser: PooledUser = {
-            id: `user-${i}`,
-            user: users[i],
-            inUse: false
-          };
-          this.pool.set(pooledUser.id, pooledUser);
-        }
-        
-        console.log(`✅ Loaded ${this.pool.size} users from persistent pool at ${poolPath}`);
-      } else {
-        console.log(`⚠️ No pool file found at ${poolPath}`);
-      }
-    } catch (error) {
-      console.warn('Failed to load pool from disk:', error);
-    }
+  clear(): void {
+    this.availableUsers = [];
+    this.usersInUse.clear();
+    console.log('🧹 User pool cleared');
   }
 }
 
-// Global pool instance
+// Global pool instance per worker process
 let globalUserPool: UserPool | undefined;
-let globalUserPoolInitialized = false;
 
-export async function getUserPool(): Promise<UserPool> {
+/**
+ * Get or create the user pool for this worker.
+ * Each worker gets its own pool instance.
+ */
+export function getUserPool(): UserPool {
   if (!globalUserPool) {
     globalUserPool = new UserPool();
   }
-  
-  // Initialize only once per process
-  if (!globalUserPoolInitialized) {
-    await globalUserPool.initialize();
-    globalUserPoolInitialized = true;
-  }
-  
   return globalUserPool;
 }
 
+/**
+ * Reset the global pool (mainly for testing).
+ */
 export function resetUserPool(): void {
   globalUserPool = undefined;
-  globalUserPoolInitialized = false;
+  UserPool.resetInstance(); // Clear singleton tracking
 }
