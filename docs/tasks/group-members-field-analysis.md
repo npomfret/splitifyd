@@ -225,6 +225,91 @@ Fetching full user profiles has costs:
 
 The current implementation is broken - the comment suggests members should be in detail view, but they're never actually provided. Option 2 (separate members endpoint) provides the best balance of performance, scalability, and maintainability while fixing the immediate issue.
 
+## Implementation Plan
+
+### Current Problem Summary:
+1. **Backend**: The `getGroup` handler doesn't populate members (only returns GroupWithBalance without members)
+2. **Frontend**: Components expect members to be available and fall back to empty arrays
+3. **Performance**: Fetching members for every group would be expensive (N+1 queries)
+
+### Selected Solution: Option 2 - Separate Members Endpoint
+
+## Phase 1: Backend Implementation (3-4 hours)
+
+### 1.1 Create Members Handler
+- Create new file: `firebase/functions/src/groups/memberHandlers.ts`
+- Implement `getGroupMembers` handler with:
+  - Access control validation
+  - Member profile fetching
+  - Optional pagination support for large groups
+  - Response type: `GroupMembersResponse`
+
+### 1.2 Update Type Definitions
+- Keep `members` field in Group interface temporarily (for backwards compatibility)
+- Add deprecation comment to `members` field
+- Create new `GroupMembersResponse` interface
+
+### 1.3 Wire Up Routes
+- Add route in `firebase/functions/src/index.ts`: 
+  - `app.get('/groups/:id/members', authenticate, asyncHandler(getGroupMembers))`
+
+### 1.4 Clean Up Existing Code
+- Remove member fetching from `convertGroupDocumentToGroup`
+- Keep function simpler and more performant
+
+## Phase 2: Frontend Implementation (3-4 hours)
+
+### 2.1 Update API Client
+- Add `getGroupMembers(groupId: string)` method to apiClient
+- Return type: `GroupMembersResponse`
+
+### 2.2 Update Group Detail Store
+- Add new signal: `membersSignal`
+- Add `fetchMembers()` method
+- Modify `fetchGroup()` to trigger parallel fetching of members
+- Handle loading states separately
+
+### 2.3 Update Components
+- Modify GroupDetailPage to use store's members signal
+- Update all components that reference `group.members`:
+  - AddExpensePage
+  - SettlementForm
+  - ExpensesList
+  - GroupCard
+  - MembersList
+- Add loading states for member fetching
+
+## Phase 3: Testing & Verification (2-3 hours)
+
+### 3.1 Manual Testing
+- Test group creation flow
+- Test group detail page with various group sizes
+- Test expense creation with member selection
+- Test settlement forms
+
+### 3.2 Browser Testing
+- Use MCP browser automation to verify:
+  - Members load correctly in group detail
+  - No console errors
+  - Performance is acceptable
+
+### 3.3 Error Handling
+- Test with groups user doesn't have access to
+- Test with deleted/invalid group IDs
+- Test network failures
+
+## Phase 4: Documentation & Cleanup (1 hour)
+
+### 4.1 Update Comments
+- Remove misleading comment from Group interface
+- Add deprecation notice to members field
+- Document new endpoint
+
+### 4.2 Performance Verification
+- Measure load times before/after
+- Verify reduced database queries
+- Check memory usage improvements
+
 ## Next Steps
 
 1. Create TodoWrite list for implementation tasks
