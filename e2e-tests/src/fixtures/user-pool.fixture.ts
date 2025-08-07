@@ -28,7 +28,7 @@ export class UserPool {
     this.config = {
       minPoolSize: 2,
       maxPoolSize: 10,
-      preWarmCount: 2, // Start small for debugging
+      preWarmCount: 3, // Increased to support three-user tests
       maxClaimDuration: 300000, // 5 minutes
       ...config
     };

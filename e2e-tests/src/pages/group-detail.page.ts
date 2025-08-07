@@ -204,6 +204,62 @@ export class GroupDetailPage extends BasePage {
     return heading;
   }
 
+  /**
+   * Waits for the group to have the expected number of members
+   */
+  async waitForMemberCount(expectedCount: number, timeout = 10000): Promise<void> {
+    await expect(this.page.getByText(`${expectedCount} member${expectedCount !== 1 ? 's' : ''}`))
+      .toBeVisible({ timeout });
+  }
+
+  /**
+   * Waits for both users to be properly synchronized in the group
+   */
+  async waitForUserSynchronization(user1Name: string, user2Name: string): Promise<void> {
+    // Wait for member count to be 2
+    await this.waitForMemberCount(2);
+    
+    // Verify both users are visible in the group
+    await expect(this.page.getByText(user1Name).first()).toBeVisible();
+    await expect(this.page.getByText(user2Name).first()).toBeVisible();
+    
+    // Wait for any async operations to complete
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Enhanced method to wait for balance updates with proper timing
+   */
+  async waitForBalanceCalculation(): Promise<void> {
+    // More specific locator to avoid strict mode violation
+    const balancesSection = this.page.locator('.bg-white').filter({ 
+      has: this.page.getByRole('heading', { name: 'Balances' }) 
+    }).first();
+    
+    // Wait for balances section to be visible
+    await expect(balancesSection).toBeVisible();
+    
+    // Wait for loading to disappear
+    await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 15000 });
+    
+    // Give a moment for any final UI updates
+    await this.page.waitForTimeout(500);
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Reliably get debt amount from balance section
+   */
+  async getDebtAmount(): Promise<string> {
+    await this.waitForBalanceCalculation();
+    
+    const debtElement = this.page.locator('.text-red-600').first();
+    await expect(debtElement).toBeVisible();
+    
+    const debtText = await debtElement.textContent();
+    return debtText?.replace(/[$,]/g, '') || '0';
+  }
+
   async waitForBalanceUpdate(): Promise<void> {
     // Wait for the balance section to be stable
     const balanceSection = this.page.getByRole('heading', { name: 'Balances' }).locator('..');
@@ -242,21 +298,12 @@ export class GroupDetailPage extends BasePage {
     // The "Who paid?" section uses radio buttons inside label elements
     // Structure: <label><input type="radio" name="paidBy"/><Avatar/><span>{displayName}</span></label>
     
-    // For pool users, match by the prewarm index since names are long and dynamic
-    // Pool users have format: "Pool User 123456789-xxxx-xxxx-prewarm-0"
-    const payerLabel = expense.paidBy.includes('prewarm-0')
-      ? this.page.locator('label').filter({
-          has: this.page.locator('input[type="radio"][name="paidBy"]')
-        }).nth(0)
-      : expense.paidBy.includes('prewarm-1')
-      ? this.page.locator('label').filter({
-          has: this.page.locator('input[type="radio"][name="paidBy"]')
-        }).nth(1)
-      : this.page.locator('label').filter({
-          has: this.page.locator('input[type="radio"][name="paidBy"]')
-        }).filter({
-          hasText: expense.paidBy
-        }).first();
+    // Find the payer label by looking for the display name text
+    const payerLabel = this.page.locator('label').filter({
+      has: this.page.locator('input[type="radio"][name="paidBy"]')
+    }).filter({
+      hasText: expense.paidBy
+    }).first();
     
     await expect(payerLabel).toBeVisible();
     await payerLabel.click();
@@ -280,6 +327,126 @@ export class GroupDetailPage extends BasePage {
     await expect(this.page.getByText(expense.description)).toBeVisible();
     
     // Wait for balance calculation to complete
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Enhanced settlement form handling for reliable settlement recording
+   */
+  async recordSettlement(options: {
+    payerIndex: number;  // 1-based index in dropdown
+    payeeIndex: number;  // 1-based index in dropdown
+    amount: string;
+    note: string;
+  }): Promise<void> {
+    // Click settle up button
+    const settleButton = this.page.getByRole('button', { name: /settle up/i });
+    await settleButton.click();
+    
+    // Wait for modal
+    const modal = this.page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+    
+    // Fill form with more reliable selectors
+    const payerSelect = modal.getByRole('combobox', { name: /who paid/i });
+    const payeeSelect = modal.getByRole('combobox', { name: /who received the payment/i });
+    const amountInput = modal.getByRole('spinbutton', { name: /amount/i });
+    const noteInput = modal.getByRole('textbox', { name: /note/i });
+    
+    // Make selections
+    await payerSelect.selectOption({ index: options.payerIndex });
+    await payeeSelect.selectOption({ index: options.payeeIndex });
+    await this.fillNumericInput(amountInput, options.amount);
+    await this.fillPreactInput(noteInput, options.note);
+    
+    // Submit
+    const submitButton = modal.getByRole('button', { name: /record payment/i });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+    
+    // Wait for modal to close
+    await expect(modal).not.toBeVisible();
+    
+    // Wait for settlement to be processed
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Record settlement by user display name - more reliable than index-based selection
+   */
+  async recordSettlementByUser(options: {
+    payerName: string;  // Display name of who paid
+    payeeName: string;  // Display name of who received payment
+    amount: string;
+    note: string;
+  }): Promise<void> {
+    // Click settle up button
+    const settleButton = this.page.getByRole('button', { name: /settle up/i });
+    await settleButton.click();
+    
+    // Wait for modal
+    const modal = this.page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+    
+    // Fill form with display name-based selection
+    const payerSelect = modal.getByRole('combobox', { name: /who paid/i });
+    const payeeSelect = modal.getByRole('combobox', { name: /who received the payment/i });
+    const amountInput = modal.getByRole('spinbutton', { name: /amount/i });
+    const noteInput = modal.getByRole('textbox', { name: /note/i });
+    
+    // Wait for dropdowns to be populated
+    await this.page.waitForTimeout(500);
+    
+    // Select by display name text - more reliable than value since we don't have real Firebase UIDs
+    // Find options that contain the display names
+    const payerOptions = await payerSelect.locator('option').all();
+    let payerValue = '';
+    for (const option of payerOptions) {
+      const text = await option.textContent();
+      const value = await option.getAttribute('value');
+      if (text && text.includes(options.payerName)) {
+        payerValue = value || '';
+        break;
+      }
+    }
+    
+    if (!payerValue) {
+      throw new Error(`Could not find payer in dropdown. Looking for: ${options.payerName}`);
+    }
+    
+    await payerSelect.selectOption(payerValue);
+    
+    // After selecting payer, the payee dropdown updates dynamically
+    await this.page.waitForTimeout(100);
+    
+    const payeeOptions = await payeeSelect.locator('option').all();
+    let payeeValue = '';
+    for (const option of payeeOptions) {
+      const text = await option.textContent();
+      const value = await option.getAttribute('value');
+      if (text && text.includes(options.payeeName)) {
+        payeeValue = value || '';
+        break;
+      }
+    }
+    
+    if (!payeeValue) {
+      throw new Error(`Could not find payee in dropdown. Looking for: ${options.payeeName}`);
+    }
+    
+    await payeeSelect.selectOption(payeeValue);
+    await this.fillNumericInput(amountInput, options.amount);
+    await this.fillPreactInput(noteInput, options.note);
+    
+    // Submit
+    const submitButton = modal.getByRole('button', { name: /record payment/i });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+    
+    // Wait for modal to close
+    await expect(modal).not.toBeVisible();
+    
+    // Wait for settlement to be processed
     await this.page.waitForLoadState('networkidle');
   }
 }
