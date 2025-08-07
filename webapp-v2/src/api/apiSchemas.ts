@@ -154,6 +154,22 @@ export const GroupBalancesSchema = z.object({
   lastUpdated: z.string()
 });
 
+// Group members response schema
+export const GroupMembersResponseSchema = z.object({
+  members: z.array(z.object({
+    uid: z.string().min(1),
+    email: z.string().email(),
+    displayName: z.string().min(1),
+    role: z.enum(['admin', 'user']).optional(),
+    termsAcceptedAt: z.any().optional(),
+    cookiePolicyAcceptedAt: z.any().optional(),
+    acceptedPolicies: z.record(z.string(), z.string()).optional()
+  })),
+  totalCount: z.number(),
+  hasMore: z.boolean(),
+  nextCursor: z.string().optional()
+});
+
 // Share schemas
 export const ShareableLinkResponseSchema = z.object({
   linkId: z.string(),
@@ -254,6 +270,7 @@ export const responseSchemas = {
   'GET /groups': ListGroupsResponseSchema,
   'POST /groups': GroupSchema,
   '/groups/:id': GroupSchema,
+  '/groups/:id/members': GroupMembersResponseSchema,
   '/expenses': ExpenseDataSchema,
   'DELETE /expenses': MessageResponseSchema,
   '/expenses/group': ExpenseListResponseSchema,
