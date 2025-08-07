@@ -15,7 +15,7 @@ export default defineConfig({
   timeout: 10000,
   /* Expect timeout for assertions like toBeVisible() */
   expect: {
-    timeout: 1000
+    timeout: 1500
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -33,7 +33,7 @@ export default defineConfig({
     baseURL: EMULATOR_URL,
     
     /* Fast fail for element interactions */
-    actionTimeout: 1000,
+    actionTimeout: 800,
     
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

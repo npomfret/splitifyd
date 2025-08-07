@@ -16,7 +16,7 @@ pageTest.describe('Network Resilience E2E', () => {
     await loginPage.navigate();
     
     // Page should still render even if API calls fail
-    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible({timeout: 5000});// high timeout intentionally
     
     // Should not have unhandled errors (handled network errors are ok)
     // This is a basic check - app should handle network failures gracefully

@@ -59,7 +59,7 @@ export class UserPool {
     } else {
       // Pool is empty, create a new user on-demand
       console.log(`🔨 Creating new user on-demand for test ${testId}`);
-      user = await this.createUser(page, 'u_');
+      user = await this.createUser(page, 'u');
       console.log(`✅ Created new user: ${user.email}`);
     }
     
@@ -119,9 +119,7 @@ export class UserPool {
     await page.waitForLoadState('networkidle');
     
     // Wait for form to be visible
-    await page.waitForSelector('input[placeholder="Enter your full name"]', { 
-      timeout: TIMEOUTS.EXTENDED * 2 
-    });
+    await page.waitForSelector('input[placeholder="Enter your full name"]');
     
     // Fill registration form
     await page.fill('input[placeholder="Enter your full name"]', displayName);
