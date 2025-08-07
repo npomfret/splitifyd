@@ -5,114 +5,65 @@ import { generateTestGroupName } from '../../utils/test-helpers';
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
-authenticatedPageTest.describe('Dashboard E2E', () => {
-  authenticatedPageTest('should display dashboard with user info and groups section', async ({ authenticatedPage, dashboardPage }) => {
+authenticatedPageTest.describe('Dashboard User Journey', () => {
+  authenticatedPageTest('should handle complete dashboard workflow with authentication persistence', async ({ authenticatedPage, dashboardPage }) => {
     const { page, user } = authenticatedPage;
     
-    // Verify navigation to dashboard
+    // Phase 1: Dashboard display and authentication verification
     await expect(page).toHaveURL(/\/dashboard/);
-    
-    // Verify user is logged in and info is displayed
     await expect(dashboardPage.isLoggedIn()).resolves.toBe(true);
     const displayName = await dashboardPage.getUserDisplayName();
     expect(displayName).toBe(user.displayName);
     await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
-    
-    // Verify groups section is displayed
     await expect(dashboardPage.getGroupsHeading()).toBeVisible();
     
-    // Verify create group button is present and enabled
     const createGroupButton = dashboardPage.getCreateGroupButton();
     await expect(createGroupButton).toBeVisible();
     await expect(createGroupButton).toBeEnabled();
-  });
-
-  authenticatedPageTest('should persist authentication on reload', async ({ authenticatedPage, dashboardPage }) => {
-    const { page, user } = authenticatedPage;
     
-    // Wait for authentication state and user menu to be fully loaded with actual user displayName
+    // Phase 2: Test authentication persistence on reload
     await dashboardPage.waitForUserMenu(user.displayName);
-    
-    // Reload and verify authentication persists
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard/);
     await dashboardPage.waitForUserMenu(user.displayName);
   });
 
-  authenticatedPageTest.describe('Create Group Modal', () => {
-    authenticatedPageTest('should open create group modal', async ({ dashboardPage, createGroupModalPage }) => {
-      await dashboardPage.openCreateGroupModal();
-      
-      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
-      await expect(createGroupModalPage.getModalTitle()).toBeVisible();
-      
-      await expect(createGroupModalPage.getGroupNameInput()).toBeVisible();
-      await expect(createGroupModalPage.getDescriptionInput()).toBeVisible();
-    });
-
-    authenticatedPageTest('should create a new group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-      const { page } = authenticatedPage;
-      const groupName = generateTestGroupName();
-      const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Test Description');
-      
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-      await expect(groupDetailPage.getGroupTitleByName(groupName)).toBeVisible();
-      expect(groupId).toBeTruthy();
-    });
-
-    authenticatedPageTest('should close modal on cancel', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-      const { page } = authenticatedPage;
-      
-      await dashboardPage.openCreateGroupModal();
-      
-      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
-      
-      await createGroupModalPage.cancel();
-      
-      await createGroupModalPage.waitForModalToClose();
-      
-      await expect(page).toHaveURL(/\/dashboard/);
-    });
+  authenticatedPageTest('should handle complete group creation and navigation workflow', async ({ authenticatedPage, dashboardPage, groupDetailPage, createGroupModalPage }) => {
+    const { page } = authenticatedPage;
+    
+    // Phase 1: Modal interaction - open, verify, cancel
+    await dashboardPage.openCreateGroupModal();
+    await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+    await expect(createGroupModalPage.getModalTitle()).toBeVisible();
+    await expect(createGroupModalPage.getGroupNameInput()).toBeVisible();
+    await expect(createGroupModalPage.getDescriptionInput()).toBeVisible();
+    
+    await createGroupModalPage.cancel();
+    await createGroupModalPage.waitForModalToClose();
+    await expect(page).toHaveURL(/\/dashboard/);
+    
+    // Phase 2: Successful group creation and navigation
+    const groupName = generateTestGroupName('FullWorkflow');
+    const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Complete workflow test');
+    
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    await expect(groupDetailPage.getGroupTitleByName(groupName)).toBeVisible();
+    expect(groupId).toBeTruthy();
+    
+    // Phase 3: Navigation back to dashboard
+    await page.goBack();
+    await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  authenticatedPageTest.describe('Dashboard Navigation', () => {
-    authenticatedPageTest('should navigate to group details after creating a group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-      const { page } = authenticatedPage;
-      const groupName = generateTestGroupName('Navigation');
-      const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Test description');
-      
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-      await groupDetailPage.getGroupNameContaining('Navigation');
-      expect(groupId).toBeTruthy();
-      
-      });
-    authenticatedPageTest('should sign out successfully', async ({ authenticatedPage, dashboardPage }) => {
-      const { page, user } = authenticatedPage;
-      
-      // Wait for user menu to be available before clicking with actual user displayName
-      await dashboardPage.waitForUserMenu(user.displayName);
-      await dashboardPage.getUserMenuButton(user.displayName).click();
-      
-      await dashboardPage.getSignOutButton().click();
-      
-      await expect(page).toHaveURL(/\/login/);
-      
-      await expect(dashboardPage.getSignInButton()).toBeVisible();
-      
-      });
-
-    authenticatedPageTest('should return to dashboard from group page', async ({ authenticatedPage, dashboardPage }) => {
-      const { page } = authenticatedPage;
-      const groupId = await dashboardPage.createGroupAndNavigate(generateTestGroupName('BackNav'), 'Test description');
-      
-      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-      
-      await page.goBack();
-      
-      await expect(page).toHaveURL(/\/dashboard/);
-      expect(groupId).toBeTruthy();
-      
-      });
-
+  authenticatedPageTest('should handle user session management', async ({ authenticatedPage, dashboardPage }) => {
+    const { page, user } = authenticatedPage;
+    
+    // Test sign out functionality
+    await dashboardPage.waitForUserMenu(user.displayName);
+    await dashboardPage.getUserMenuButton(user.displayName).click();
+    await dashboardPage.getSignOutButton().click();
+    
+    await expect(page).toHaveURL(/\/login/);
+    await expect(dashboardPage.getSignInButton()).toBeVisible();
   });
 });

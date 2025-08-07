@@ -8,6 +8,33 @@ setupMCPDebugOnFailure();
 
 
 test.describe('Single User Balance Visualization', () => {
+  test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    const { page, user } = authenticatedPage;
+    
+    // Create test group with unique ID
+    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const groupName = `Empty Balance Group ${uniqueId}`;
+    await dashboardPage.createGroupAndNavigate(groupName, 'Testing empty group balance');
+    
+    // Verify navigation succeeded
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    
+    // Balance section should show "All settled up!" for empty group
+    const balancesHeading = page.getByRole('heading', { name: 'Balances' });
+    await expect(balancesHeading).toBeVisible();
+    
+    const settledUpMessage = groupDetailPage.getSettledUpMessageInBalanceSection();
+    await expect(settledUpMessage).toBeVisible();
+    
+    // Members section should show the creator
+    await expect(page.getByRole('main').getByText(user.displayName)).toBeVisible();
+    
+    // Expenses section should show empty state
+    const expensesHeading = page.getByRole('heading', { name: 'Expenses' });
+    await expect(expensesHeading).toBeVisible();
+    await expect(page.getByText(/no expenses yet/i)).toBeVisible();
+  });
+
   test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
     const { page, user } = authenticatedPage;
     

@@ -1,4 +1,3 @@
-import { test } from '@playwright/test';
 import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';

@@ -222,7 +222,6 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const validationMessage = await firstSplitInput.evaluate((el: HTMLInputElement) => el.validationMessage);
     expect(validationMessage).toBeTruthy();
     
-    console.log('✅ Negative split amount validation working correctly');
     
     // The main goal is achieved: negative split amounts are prevented by validation
     // We don't need to test the full expense creation flow here
