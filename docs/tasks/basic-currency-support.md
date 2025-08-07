@@ -213,10 +213,8 @@ authenticatedPageTest('should handle multi-currency expenses separately', async 
     -   AMD - Armenian dram
     -   ANG - Netherlands Antillean guilder
     -   AOA - Angolan kwanza
-    -   ARE - AREG
     -   ARS - Argentine peso
     -   AUD - Australian dollar
-    -   AUN - Australian nugget
     -   AWG - Aruban florin
     -   BAM - Bosnia and Herzegovina convertible mark
     -   BBD - Barbados dollar
@@ -227,7 +225,6 @@ authenticatedPageTest('should handle multi-currency expenses separately', async 
     -   BMD - Bermudian dollar
     -   BND - Brunei dollar
     -   BOB - Boliviano
-    -   BRI - Britannia
     -   BRL - Brazilian real
     -   BSD - Bahamian dollar
     -   BTN - Bhutanese ngultrum
@@ -237,26 +234,21 @@ authenticatedPageTest('should handle multi-currency expenses separately', async 
     -   CAD - Canadian dollar
     -   CDF - Congolese franc
     -   CHF - Swiss franc
-    -   CLF - Chilean Unit of Account
     -   CLP - Chilean peso
-    -   CNH - Chinese yuan
     -   CNY - Chinese yuan
     -   COP - Colombian peso
     -   CRC - Costa Rican colon
     -   CUP - Cuban peso
     -   CVE - Cape Verde escudo
-    -   CYP - Cypriot pound
     -   CZK - Czech koruna
     -   DJF - Djiboutian franc
     -   DKK - Danish krone
-    -   DOE - Double Eagle
     -   DOP - Dominican peso
     -   DZD - Algerian dinar
     -   EGP - Egyptian pound
     -   ETB - Ethiopian birr
     -   EUR - Euro
     -   FJD - Fiji dollar
-    -   FRN - French Napoleon
     -   GBP - Pound sterling
     -   GEL - Georgian lari
     -   GHS - Ghanaian cedi
@@ -281,29 +273,23 @@ authenticatedPageTest('should handle multi-currency expenses separately', async 
     -   KES - Kenyan shilling
     -   KHR - Cambodian riel
     -   KMF - Comoro franc
-    -   KRU - South African Krugerrand
     -   KRW - South Korean won
     -   KWD - Kuwaiti dinar
     -   KYD - Cayman Islands dollar
     -   KZT - Kazakhstani tenge
     -   LAK - Lao kip
     -   LBP - Lebanese pound
-    -   LFX - Khazanah Sukuk
     -   LKR - Sri Lankan rupee
     -   LRD - Liberian dollar
     -   LSL - Lesotho loti
-    -   LTL - Lithuanian litas
     -   LYD - Libyan dinar
-    -   M5P - Mexican 50 peso
     -   MAD - Moroccan dirham
-    -   MAL - Maple Leaf
     -   MDL - Moldovan leu
     -   MGA - Malagasy ariary
     -   MKD - Macedonian denar
     -   MMK - Myanma kyat
     -   MOP - Macanese pataca
     -   MRU - Mauritanian Ouguiya
-    -   MTL - Maltese lira
     -   MUR - Mauritian rupee
     -   MVR - Maldivian rufiyaa
     -   MWK - Malawian kwacha
@@ -311,15 +297,12 @@ authenticatedPageTest('should handle multi-currency expenses separately', async 
     -   MYR - Malaysian ringgit
     -   MZN - Mozambican metical
     -   NAD - Namibian dollar
-    -   NBL - Isle Of Man noble
     -   NGN - Nigerian naira
     -   NIO - Nicaraguan córdoba
     -   NOK - Norwegian krone
     -   NPR - Nepalese rupee
-    -   NSO - New Sovereign
     -   NZD - New Zealand dollar
     -   OMR - Omani rial
-    -   OSO - Old Sovereign
     -   PAB - Panamanian balboa
     -   PEN - Peruvian nuevo sol
     -   PGK - Papua New Guinean kina
@@ -361,24 +344,12 @@ authenticatedPageTest('should handle multi-currency expenses separately', async 
     -   UZS - Uzbekistan som
     -   VES - Venezuelan Bolivar Soberano
     -   VND - Vietnamese dong
-    -   VRL - Vreneli 10F.
-    -   VRN - Vreneli 20F
-    -   XAG - Silver (one troy ounce)
-    -   XAGK - Silver (kg)
-    -   XAU - Gold (one troy ounce)
-    -   XAUK - Gold (kg)
     -   XCD - East Caribbean dollar
-    -   XDR - Special drawing rights
     -   XOF - CFA Franc BCEAO
-    -   XPD - Palladium (one troy ounce)
-    -   XPDK - Palladium (kg)
     -   XPF - CFP franc
-    -   XPT - Platinum (one troy ounce)
-    -   XPTK - Platinum (kg)
     -   YER - Yemeni rial
     -   ZAR - South African Rand
     -   ZMW - Zambian kwacha
-    -   ZWD - Zimbabwe dollar
 
 ### 2. Default Currency Logic
 
@@ -399,6 +370,7 @@ To make creating expenses faster, the currency field should have a smart default
 
 -   Clearly display the currency symbol or code next to all amounts throughout the application (expense lists, detail views, balance summaries).
 -   The UI should be able to handle displaying multiple balance lines if a user has debts in more than one currency.
+-   **Currency Formatting Rules:** The application must handle currency-specific formatting rules, such as the number of decimal places (e.g., 2 for USD, 0 for JPY), symbol placement, and decimal/thousands separators. A comprehensive JSON configuration file named `currency-formatting.json` must be created in `webapp-v2/src/utils/currency/`. This file will store the formatting rules for all supported currencies and will be used by the client-side formatting layer.
 
 ## Implementation Strategy
 
