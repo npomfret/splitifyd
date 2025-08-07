@@ -93,7 +93,7 @@ export abstract class BasePage {
     await this.page.waitForLoadState('networkidle');
   }
   
-  async waitForNavigation(urlPattern: RegExp, timeout = 10000) {
+  async waitForNavigation(urlPattern: RegExp, timeout = 2000) {
     await this.page.waitForURL(urlPattern, { timeout });
   }
   

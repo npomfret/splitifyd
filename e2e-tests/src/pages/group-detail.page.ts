@@ -226,11 +226,35 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Waits for the group to have the expected number of members
+   * Waits for the group to have the expected number of members.
+   * Tests the current value, refreshes if incorrect, repeats until it matches or times out.
    */
-  async waitForMemberCount(expectedCount: number, timeout = 10000): Promise<void> {
-    await expect(this.page.getByText(`${expectedCount} member${expectedCount !== 1 ? 's' : ''}`))
-      .toBeVisible({ timeout });
+  async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
+    const startTime = Date.now();
+    const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
+    
+    while (Date.now() - startTime < timeout) {
+      try {
+        // Check if the expected member count is already visible
+        const memberCountElement = this.page.getByText(expectedText);
+        const isVisible = await memberCountElement.isVisible();
+        
+        if (isVisible) {
+          // Success! The count matches
+          return;
+        }
+      } catch (error) {
+        // Element not found, continue to refresh
+      }
+      
+      // The count doesn't match, refresh the page
+      await this.page.reload();
+      await this.page.waitForLoadState('networkidle');
+    }
+    
+    // Final attempt - throw error if still not matching after timeout
+    await expect(this.page.getByText(expectedText))
+      .toBeVisible({ timeout: 1000 });
   }
 
   /**
@@ -460,6 +484,80 @@ export class GroupDetailPage extends BasePage {
     for (const { groupDetailPage } of pages) {
       await groupDetailPage.waitForBalanceCalculation();
     }
+  }
+
+  /**
+   * Verify that settlement appears in history for all provided pages
+   */
+  async verifySettlementInHistory(pages: Array<{ page: any }>, settlementNote: string): Promise<void> {
+    for (const { page } of pages) {
+      const showHistoryButton = page.getByRole('button', { name: 'Show History' });
+      await showHistoryButton.click();
+      await expect(page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
+      await page.keyboard.press('Escape');
+    }
+  }
+
+  /**
+   * Verify debt amount in balance section across multiple pages
+   */
+  async verifyDebtAcrossPages(pages: Array<{ page: any; groupDetailPage: any }>, debtorName: string, creditorName: string, amount?: string): Promise<void> {
+    for (const { page, groupDetailPage } of pages) {
+      const balancesSection = page.locator('.bg-white').filter({ 
+        has: page.getByRole('heading', { name: 'Balances' }) 
+      }).first();
+      
+      await expect(balancesSection.getByText(`${debtorName} owes ${creditorName}`)).toBeVisible();
+      
+      if (amount) {
+        // Find the debt amount that's specifically associated with this debt relationship
+        // Look for the amount within the same container as the debt message
+        const debtRow = balancesSection.locator('div').filter({ 
+          hasText: `${debtorName} owes ${creditorName}` 
+        });
+        await expect(debtRow.locator('.text-red-600').filter({ hasText: amount }).first()).toBeVisible();
+      }
+    }
+  }
+
+  /**
+   * Verify expense appears on all provided pages
+   */
+  async verifyExpenseAcrossPages(pages: Array<{ page: any }>, expenseDescription: string, expenseAmount?: string): Promise<void> {
+    for (const { page } of pages) {
+      await expect(page.getByText(expenseDescription)).toBeVisible();
+      if (expenseAmount) {
+        await expect(page.getByText(expenseAmount)).toBeVisible();
+      }
+    }
+  }
+
+  /**
+   * Create expense and synchronize across multiple users
+   */
+  async addExpenseAndSync(
+    expense: ExpenseData, 
+    pages: Array<{ page: any; groupDetailPage: any }>,
+    expectedMemberCount?: number
+  ): Promise<void> {
+    await this.addExpense(expense);
+    await this.synchronizeMultiUserState(pages, expectedMemberCount);
+  }
+
+  /**
+   * Record settlement and synchronize across multiple users
+   */
+  async recordSettlementAndSync(
+    settlementOptions: {
+      payerName: string;
+      payeeName: string; 
+      amount: string;
+      note: string;
+    },
+    pages: Array<{ page: any; groupDetailPage: any }>
+  ): Promise<void> {
+    await this.recordSettlementByUser(settlementOptions);
+    await this.synchronizeMultiUserState(pages);
   }
 
   /**

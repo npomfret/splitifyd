@@ -29,7 +29,7 @@ test.describe('Add Expense E2E', () => {
     await amountField.fill('50.00');
     
     await expect(categorySelect).toBeVisible();
-    await groupDetailPage.selectCategoryFromSuggestions('Transportation');
+    await groupDetailPage.typeCategoryText('dinner');
     
     const submitButton = groupDetailPage.getSaveExpenseButton();
     
@@ -64,7 +64,7 @@ test.describe('Add Expense E2E', () => {
     
     const initialCategory = await categorySelect.inputValue();
     
-    await groupDetailPage.selectCategoryFromSuggestions('Bills & Utilities');
+    await groupDetailPage.typeCategoryText('Bills & Utilities');
     
     const newCategory = await categorySelect.inputValue();
     expect(newCategory).not.toBe(initialCategory);

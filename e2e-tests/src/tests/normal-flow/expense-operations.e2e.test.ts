@@ -7,59 +7,35 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Basic Expense Operations E2E', () => {
-  test('should create and view an expense', async ({ authenticatedPage, groupDetailPage }) => {
+  test('should create, view, and delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName(), 'Testing expense creation');
+    await groupWorkflow.createGroup(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
     const groupInfo = { user };
 
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Add expense using page object
+    // Create expense using page object
     await groupDetailPage.addExpense({
-      description: 'Test Expense',
+      description: 'Test Expense Lifecycle',
       amount: 50,
       paidBy: groupInfo.user.displayName,
       splitType: 'equal'
     });
     
     // Verify expense appears in list
-    await expect(page.getByText('Test Expense')).toBeVisible();
+    await expect(page.getByText('Test Expense Lifecycle')).toBeVisible();
     
-    // Navigate to expense detail
-    await page.getByText('Test Expense').click();
+    // Navigate to expense detail to view it
+    await page.getByText('Test Expense Lifecycle').click();
     await page.waitForLoadState('domcontentloaded');
     
-    // Verify expense detail page
+    // Verify expense detail page (view functionality)
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
-    await expect(page.getByText('Test Expense')).toBeVisible();
+    await expect(page.getByText('Test Expense Lifecycle')).toBeVisible();
     await expect(page.getByText('$50.00').first()).toBeVisible();
-  });
-
-  test('should delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page, user } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Delete'), 'Testing expense deletion');
-    const groupInfo = { user };
-
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
-    // Add expense to delete
-    await groupDetailPage.addExpense({
-      description: 'Expense to Delete',
-      amount: 75,
-      paidBy: groupInfo.user.displayName,
-      splitType: 'equal'
-    });
-    
-    // Verify expense exists
-    await expect(page.getByText('Expense to Delete')).toBeVisible();
-    
-    // Navigate to expense detail
-    await page.getByText('Expense to Delete').click();
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Click delete button
+    // Delete the expense
     const deleteButton = page.getByRole('button', { name: /delete/i });
     await deleteButton.click();
     
@@ -70,7 +46,7 @@ test.describe('Basic Expense Operations E2E', () => {
     // Should redirect back to group
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
     
-    // Expense should no longer be visible
-    await expect(page.getByText('Expense to Delete')).not.toBeVisible();
+    // Expense should no longer be visible (deletion verification)
+    await expect(page.getByText('Test Expense Lifecycle')).not.toBeVisible();
   });
 });

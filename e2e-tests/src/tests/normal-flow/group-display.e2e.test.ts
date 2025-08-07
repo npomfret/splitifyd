@@ -7,68 +7,41 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Group Details E2E', () => {
-  // Each test creates its own group for proper isolation in parallel execution
-  let groupName: string;
-  test.beforeEach(async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
+  test('should display correct initial state for a new group', async ({ authenticatedPage, groupDetailPage }) => {
+    const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    groupName = generateTestGroupName('Details');
+    const groupName = generateTestGroupName('Details');
     const groupId = await groupWorkflow.createGroup(groupName, 'Test group for details page');
     
     // Navigate to the created group
     await page.goto(`/groups/${groupId}`);
     await expect(page).toHaveURL(`/groups/${groupId}`);
-  });
-
-  test('should display group information', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page, user } = authenticatedPage;
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+    // Verify group information displays correctly
     await expect(groupDetailPage.getGroupTitle()).toContainText(groupName);
-    
     await expect(groupDetailPage.getGroupDescription()).toBeVisible();
     
     const userNameElement = groupDetailPage.getUserName(user.displayName);
     await expect(userNameElement).toBeVisible();
-    
     await expect(groupDetailPage.getMembersCount()).toBeVisible();
-  });
-
-  test('should display empty expense list', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page } = authenticatedPage;
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+    // Verify empty expense list displays correctly
     await expect(groupDetailPage.getNoExpensesMessage()).toBeVisible();
-    
     await expect(groupDetailPage.getAddExpenseButton()).toBeVisible();
-  });
-
-  test('should show group balances section', async ({ authenticatedPage, groupDetailPage }) => {
-    const { page } = authenticatedPage;
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+    // Verify group balances section is present
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
-  });
-
-  test('should have navigation back to dashboard', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+    // Verify navigation back to dashboard works
     await page.goBack();
     await expect(page).toHaveURL(/\/dashboard/);
-  });
-
-  test('should show group settings or options', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    // Navigate back to group to continue verification
+    await page.goto(`/groups/${groupId}`);
+    await expect(page).toHaveURL(`/groups/${groupId}`);
     
+    // Verify group settings or options are available
     const settingsElement = page.getByRole('button', { name: /settings/i });
-    
     await expect(settingsElement).toBeVisible();
   });
 });

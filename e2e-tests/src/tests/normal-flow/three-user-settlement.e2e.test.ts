@@ -77,30 +77,21 @@ test.describe('Three User Settlement Management', () => {
     
     
     // 2. User 1 makes a expense for 120, split equally
-    await groupDetailPage.addExpense({
+    const allPages = [
+      { page, groupDetailPage },
+      { page: page2, groupDetailPage: groupDetailPage2 },
+      { page: page3, groupDetailPage: groupDetailPage3 }
+    ];
+    
+    await groupDetailPage.addExpenseAndSync({
       description: 'Group dinner expense',
       amount: 120,
       paidBy: user1.displayName,
       splitType: 'equal'
-    });
+    }, allPages);
     
-    
-    // Wait for expense to appear on all pages and synchronize balance calculations
-    await groupDetailPage.synchronizeMultiUserState([
-      { page, groupDetailPage },
-      { page: page2, groupDetailPage: groupDetailPage2 },
-      { page: page3, groupDetailPage: groupDetailPage3 }
-    ]);
-    
-    // All users should see the expense
-    await expect(page.getByText('Group dinner expense')).toBeVisible();
-    await expect(page2.getByText('Group dinner expense')).toBeVisible();
-    await expect(page3.getByText('Group dinner expense')).toBeVisible();
-    
-    // All users should see $120.00 amount
-    await expect(page.getByText('$120.00')).toBeVisible();
-    await expect(page2.getByText('$120.00')).toBeVisible();
-    await expect(page3.getByText('$120.00')).toBeVisible();
+    // Verify expense appears across all pages
+    await groupDetailPage.verifyExpenseAcrossPages(allPages, 'Group dinner expense', '$120.00');
     
     
     // 3. Assert initial balances: user1 owed 80, user2 & user3 each owe 40
@@ -109,65 +100,22 @@ test.describe('Three User Settlement Management', () => {
     // User2 paid $0, owes $40 → Net: owes $40
     // User3 paid $0, owes $40 → Net: owes $40
     
-    // User1's view
-    const balancesSection1 = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
-    }).first();
-    
-    await expect(balancesSection1.getByText(`${user2.displayName} owes ${user1.displayName}`)).toBeVisible();
-    await expect(balancesSection1.getByText(`${user3.displayName} owes ${user1.displayName}`)).toBeVisible();
-    
-    // User2's view
-    const balancesSection2 = page2.locator('.bg-white').filter({ 
-      has: page2.getByRole('heading', { name: 'Balances' }) 
-    }).first();
-    
-    await expect(balancesSection2.getByText(`${user2.displayName} owes ${user1.displayName}`)).toBeVisible();
-    
-    // User3's view
-    const balancesSection3 = page3.locator('.bg-white').filter({ 
-      has: page3.getByRole('heading', { name: 'Balances' }) 
-    }).first();
-    
-    await expect(balancesSection3.getByText(`${user3.displayName} owes ${user1.displayName}`)).toBeVisible();
-    
-    // Check the amounts - there should be two $40.00 entries on user1's page
-    const fortyDollarElements = balancesSection1.locator('.text-red-600').filter({ hasText: '$40.00' });
-    await expect(fortyDollarElements).toHaveCount(2);
+    // Verify both debts exist across all pages
+    await groupDetailPage.verifyDebtAcrossPages(allPages, user2.displayName, user1.displayName, '$40.00');
+    await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
     
     
     // 4. User 2 makes partial settlement of 30
     
-    await groupDetailPage2.recordSettlement({
-      payerIndex: 2, // user2 (based on dropdown order)
-      payeeIndex: 1, // user1
+    await groupDetailPage.recordSettlementAndSync({
+      payerName: user2.displayName,
+      payeeName: user1.displayName,
       amount: '30',
       note: 'Partial payment from user2'
-    });
+    }, allPages);
     
-    // Synchronize settlement state across all pages
-    await groupDetailPage.synchronizeMultiUserState([
-      { page, groupDetailPage },
-      { page: page2, groupDetailPage: groupDetailPage2 },
-      { page: page3, groupDetailPage: groupDetailPage3 }
-    ]);
-    
-    
-    // All users should see the settlement in history
-    const showHistoryButton1 = page.getByRole('button', { name: 'Show History' });
-    await showHistoryButton1.click();
-    await expect(page.getByText(/Partial payment from user2/i)).toBeVisible();
-    await page.keyboard.press('Escape'); // Close history modal if it's a modal
-    
-    const showHistoryButton2 = page2.getByRole('button', { name: 'Show History' });
-    await showHistoryButton2.click();
-    await expect(page2.getByText(/Partial payment from user2/i)).toBeVisible();
-    await page2.keyboard.press('Escape');
-    
-    const showHistoryButton3 = page3.getByRole('button', { name: 'Show History' });
-    await showHistoryButton3.click();
-    await expect(page3.getByText(/Partial payment from user2/i)).toBeVisible();
-    await page3.keyboard.press('Escape');
+    // Verify settlement appears in history across all pages
+    await groupDetailPage.verifySettlementInHistory(allPages, 'Partial payment from user2');
     
     
     // 5. Assert updated balances after $30 payment
@@ -175,60 +123,31 @@ test.describe('Three User Settlement Management', () => {
     // User3 debt: $40 (unchanged)
     // User1 owed: $80 - $30 = $50
     
-    // Refresh balance sections after closing history
-    const updatedBalancesSection1 = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
-    }).first();
-    
-    // User2 should now owe $10
-    await expect(updatedBalancesSection1.getByText(`${user2.displayName} owes ${user1.displayName}`)).toBeVisible();
-    const tenDollarElement = updatedBalancesSection1.locator('.text-red-600').filter({ hasText: '$10.00' });
-    await expect(tenDollarElement).toBeVisible();
-    
-    // User3 should still owe $40
-    await expect(updatedBalancesSection1.getByText(`${user3.displayName} owes ${user1.displayName}`)).toBeVisible();
-    const fortyDollarElement = updatedBalancesSection1.locator('.text-red-600').filter({ hasText: '$40.00' });
-    await expect(fortyDollarElement).toBeVisible();
+    // Verify updated debts across all pages
+    await groupDetailPage.verifyDebtAcrossPages(allPages, user2.displayName, user1.displayName, '$10.00');
+    await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
     
     
     // 6. User 2 makes final settlement of remaining $10
     
-    await groupDetailPage2.recordSettlement({
-      payerIndex: 2, // user2
-      payeeIndex: 1, // user1
+    await groupDetailPage.recordSettlementAndSync({
+      payerName: user2.displayName,
+      payeeName: user1.displayName,
       amount: '10',
       note: 'Final payment from user2 - all settled!'
-    });
-    
-    // Synchronize settlement state across all pages
-    await groupDetailPage.synchronizeMultiUserState([
-      { page, groupDetailPage },
-      { page: page2, groupDetailPage: groupDetailPage2 },
-      { page: page3, groupDetailPage: groupDetailPage3 }
-    ]);
-    
+    }, allPages);
     
     // 7. Assert final state: User2 is settled up, User3 still owes $40
-    const finalBalancesSection1 = page.locator('.bg-white').filter({ 
+    
+    // User2 should no longer appear in debt list (settled up)
+    const balancesSection1 = page.locator('.bg-white').filter({ 
       has: page.getByRole('heading', { name: 'Balances' }) 
     }).first();
     
-    // User2 should no longer appear in the debt list (settled up)
-    // We should NOT see "User2 owes User1" anymore
-    await expect(finalBalancesSection1.getByText(`${user2.displayName} owes ${user1.displayName}`)).not.toBeVisible();
+    await expect(balancesSection1.getByText(`${user2.displayName} owes ${user1.displayName}`)).not.toBeVisible();
     
     // User3 should still owe $40
-    await expect(finalBalancesSection1.getByText(`${user3.displayName} owes ${user1.displayName}`)).toBeVisible();
-    await expect(finalBalancesSection1.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
-    
-    // User2's view should show they're settled up with User1
-    const finalBalancesSection2 = page2.locator('.bg-white').filter({ 
-      has: page2.getByRole('heading', { name: 'Balances' }) 
-    }).first();
-    
-    // User2 should no longer have any debt to User1
-    await expect(finalBalancesSection2.getByText(`${user2.displayName} owes ${user1.displayName}`)).not.toBeVisible();
-    
+    await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
     
     // Verify both settlements appear in history
     const finalHistoryButton = page.getByRole('button', { name: 'Show History' });

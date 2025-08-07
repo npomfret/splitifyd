@@ -5,7 +5,7 @@ import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, displayName } = validateRegisterRequest(req.body);
+  const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(req.body);
   let userRecord: admin.auth.UserRecord | null = null;
 
   try {
@@ -18,14 +18,22 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Create user document in Firestore
     const firestore = admin.firestore();
-    await firestore.collection('users').doc(userRecord.uid).set({
+    const userDoc: any = {
       email,
       displayName,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      termsAcceptedAt: new Date(),
-      cookiePolicyAcceptedAt: new Date()
-    });
+      updatedAt: new Date()
+    };
+    
+    // Only set acceptance timestamps if the user actually accepted the terms
+    if (termsAccepted) {
+      userDoc.termsAcceptedAt = new Date();
+    }
+    if (cookiePolicyAccepted) {
+      userDoc.cookiePolicyAcceptedAt = new Date();
+    }
+    
+    await firestore.collection('users').doc(userRecord.uid).set(userDoc);
 
     logger.info('User registration completed', { 
       email,
