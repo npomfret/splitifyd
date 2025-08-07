@@ -89,9 +89,11 @@ test.describe('Form Validation E2E', () => {
       // Fix password match
       await passwordInputs.last().fill('Password123');
       
-      // Also need to check terms checkbox
+      // Also need to check both required checkboxes
       const termsCheckbox = registerPage.getTermsCheckbox();
+      const cookieCheckbox = registerPage.getCookieCheckbox();
       await termsCheckbox.check();
+      await cookieCheckbox.check();
       
       // Now button should be enabled
       await expect(submitButton).toBeEnabled();
@@ -133,9 +135,11 @@ test.describe('Form Validation E2E', () => {
       await passwordInputs.first().fill('Password123');
       await passwordInputs.last().fill('Password123');
       
-      // Check terms
+      // Check both required checkboxes
       const termsCheckbox = registerPage.getTermsCheckbox();
+      const cookieCheckbox = registerPage.getCookieCheckbox();
       await termsCheckbox.check();
+      await cookieCheckbox.check();
       
       // HTML5 email validation happens on submit, not before
       const submitButton = registerPage.getSubmitButton();

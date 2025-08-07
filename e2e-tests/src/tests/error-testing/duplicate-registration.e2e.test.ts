@@ -57,13 +57,15 @@ test.describe('Duplicate User Registration E2E', () => {
     const passwordInput = registerPage.getPasswordInput();
     const confirmPasswordInput = registerPage.getConfirmPasswordInput();
     const termsCheckbox = registerPage.getTermsCheckbox();
+    const cookieCheckbox = registerPage.getCookieCheckbox();
     const submitButton = registerPage.getSubmitButton();
     
-    await nameInput.fill(displayName);
-    await emailInput.fill(email);
-    await passwordInput.fill(password);
-    await confirmPasswordInput.fill(password);
+    await registerPage.fillPreactInput(nameInput, displayName);
+    await registerPage.fillPreactInput(emailInput, email);
+    await registerPage.fillPreactInput(passwordInput, password);
+    await registerPage.fillPreactInput(confirmPasswordInput, password);
     await termsCheckbox.check();
+    await cookieCheckbox.check();
     
     // Click register button
     await submitButton.click();
@@ -131,9 +133,11 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.fillPreactInput(passwordInput, password);
     await registerPage.fillPreactInput(confirmPasswordInput, password);
     const termsCheckbox = registerPage.getTermsCheckbox();
+    const cookieCheckbox = registerPage.getCookieCheckbox();
     const submitButton = registerPage.getSubmitButton();
     
     await termsCheckbox.check();
+    await cookieCheckbox.check();
     
     // Submit
     await submitButton.click();
@@ -191,7 +195,9 @@ test.describe('Duplicate User Registration E2E', () => {
     await registerPage.fillPreactInput(emailInput, email1);
     await registerPage.fillPreactInput(passwordInput, password);
     await registerPage.fillPreactInput(confirmPasswordInput, password);
+    const cookieCheckbox = registerPage.getCookieCheckbox();
     await termsCheckbox.check();
+    await cookieCheckbox.check();
     await submitButton.click();
     
     // Should see error

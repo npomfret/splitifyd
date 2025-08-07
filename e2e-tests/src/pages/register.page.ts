@@ -27,7 +27,9 @@ export class RegisterPage extends BasePage {
     await this.fillPreactInput(this.emailInput, email);
     await this.fillPreactInput(this.passwordInput, password);
     await this.fillPreactInput(this.confirmPasswordInput, password);
-    await this.page.locator(SELECTORS.CHECKBOX).check();
+    // Check both required checkboxes using semantic selectors
+    await this.page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
+    await this.page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
   }
   
   async submitForm() {
@@ -61,7 +63,11 @@ export class RegisterPage extends BasePage {
   }
 
   getTermsCheckbox() {
-    return this.page.locator(SELECTORS.CHECKBOX);
+    return this.page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]');
+  }
+
+  getCookieCheckbox() {
+    return this.page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]');
   }
 
   getSubmitButton() {
