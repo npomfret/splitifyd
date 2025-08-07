@@ -282,6 +282,7 @@ src/tests/
 - **Manual State Management**: Do not manually authenticate or create page objects inside tests; use the provided fixtures.
 - **Long Timeouts**: Tests must fail quickly. The application is fast, so long timeouts are unnecessary and mask performance issues.
 - **Hard-coded Waits**: Do not use `await this.page.waitForTimeout()`. Use web-first assertions and explicit `waitFor` conditions instead.
+- **Bespoke selectors**: All code to select on-screen elements should be abstracted away behind a page object model.
 
 ## Debugging
 

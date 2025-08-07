@@ -439,6 +439,30 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Synchronize group state across multiple users by refreshing pages and waiting for updates.
+   * This replaces manual reload() calls scattered throughout multi-user tests.
+   */
+  async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any }>, expectedMemberCount?: number): Promise<void> {
+    // Refresh all pages to get latest state
+    for (const { page } of pages) {
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+    }
+    
+    // If member count is specified, wait for all pages to show correct count
+    if (expectedMemberCount) {
+      for (const { groupDetailPage } of pages) {
+        await groupDetailPage.waitForMemberCount(expectedMemberCount);
+      }
+    }
+    
+    // Additional wait for balance calculations to complete
+    for (const { groupDetailPage } of pages) {
+      await groupDetailPage.waitForBalanceCalculation();
+    }
+  }
+
+  /**
    * Record settlement by user display name - more reliable than index-based selection
    */
   async recordSettlementByUser(options: {

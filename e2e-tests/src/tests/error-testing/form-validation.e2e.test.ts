@@ -1,9 +1,9 @@
-import { test } from '@playwright/test';
 import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
+import { test } from '@playwright/test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';
+import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -257,6 +257,64 @@ test.describe('Form Validation E2E', () => {
       
       // Should remain on form due to validation (percentages don't total 100%)
       await expect(page.getByPlaceholder('What was this expense for?')).toHaveValue('Percentage Test Expense');
+    });
+  });
+
+  test.describe('Create Group Modal', () => {
+    authenticatedPageTest('should validate group form fields', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
+      const { page } = authenticatedPage;
+      
+      // Open the create group modal
+      await dashboardPage.openCreateGroupModal();
+      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+      
+      const submitButton = createGroupModalPage.getSubmitButton();
+      
+      // Submit button should be disabled with empty form
+      await expect(submitButton).toBeDisabled();
+      
+      // Test minimum length validation - single character should not be enough
+      const nameInput = createGroupModalPage.getGroupNameInput();
+      await nameInput.click();
+      await nameInput.type('T');
+      await page.keyboard.press('Tab');
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Should still be disabled with too short name
+      await expect(submitButton).toBeDisabled();
+      
+      // Fill with valid group name
+      await nameInput.clear();
+      await nameInput.type(generateTestGroupName());
+      await page.keyboard.press('Tab');
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Now button should be enabled
+      await expect(submitButton).toBeEnabled();
+    });
+
+    authenticatedPageTest('should prevent form submission with invalid data', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
+      const { page } = authenticatedPage;
+      
+      // Open modal and test validation behavior
+      await dashboardPage.openCreateGroupModal();
+      await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+      
+      const submitButton = page.locator('form').getByRole('button', { name: 'Create Group' });
+      await expect(submitButton).toBeVisible();
+      
+      // Submit button should be disabled for empty form
+      await expect(submitButton).toBeDisabled();
+      
+      // Fill with valid data and verify form can be submitted
+      await createGroupModalPage.fillGroupForm(generateTestGroupName(), 'Valid description');
+      
+      // Button should now be enabled
+      await expect(submitButton).toBeEnabled();
+      
+      // Submit and verify navigation to new group
+      await submitButton.click();
+      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
     });
   });
 });
