@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 
 interface ExpenseData {
@@ -370,6 +370,54 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Helper method to wait for dropdown options to be populated with user data
+   */
+  private async waitForDropdownOptions(selectElement: Locator, minOptions = 2, timeout = 250): Promise<void> {
+    await expect(async () => {
+      const options = await selectElement.locator('option').all();
+      const validOptions = [];
+      
+      for (const option of options) {
+        const value = await option.getAttribute('value');
+        const text = await option.textContent();
+        // Skip empty or placeholder options
+        if (value && value !== '' && text && text.trim() !== 'Select...' && text.trim() !== '') {
+          validOptions.push(option);
+        }
+      }
+      
+      if (validOptions.length < minOptions) {
+        throw new Error(`Expected at least ${minOptions} valid options, but found ${validOptions.length}`);
+      }
+    }).toPass({ timeout });
+  }
+
+  /**
+   * Helper method to wait for payee dropdown to update after payer selection
+   */
+  private async waitForPayeeDropdownUpdate(payeeSelect: Locator, payerName: string, timeout = 250): Promise<void> {
+    await expect(async () => {
+      const options = await payeeSelect.locator('option').all();
+      let hasValidPayeeOptions = false;
+      
+      for (const option of options) {
+        const value = await option.getAttribute('value');
+        const text = await option.textContent();
+        // Check if we have valid options that are not the payer and not placeholder
+        if (value && value !== '' && text && text.trim() !== 'Select...' && 
+            text.trim() !== '' && !text.includes(payerName)) {
+          hasValidPayeeOptions = true;
+          break;
+        }
+      }
+      
+      if (!hasValidPayeeOptions) {
+        throw new Error(`Payee dropdown has not updated with valid options after selecting payer: ${payerName}`);
+      }
+    }).toPass({ timeout });
+  }
+
+  /**
    * Record settlement by user display name - more reliable than index-based selection
    */
   async recordSettlementByUser(options: {
@@ -392,8 +440,8 @@ export class GroupDetailPage extends BasePage {
     const amountInput = modal.getByRole('spinbutton', { name: /amount/i });
     const noteInput = modal.getByRole('textbox', { name: /note/i });
     
-    // Wait for dropdowns to be populated
-    await this.page.waitForTimeout(500);
+    // Wait for payer dropdown to be populated with user data
+    await this.waitForDropdownOptions(payerSelect);
     
     // Select by display name text - more reliable than value since we don't have real Firebase UIDs
     // Find options that contain the display names
@@ -414,8 +462,8 @@ export class GroupDetailPage extends BasePage {
     
     await payerSelect.selectOption(payerValue);
     
-    // After selecting payer, the payee dropdown updates dynamically
-    await this.page.waitForTimeout(100);
+    // Wait for payee dropdown to update dynamically after payer selection
+    await this.waitForPayeeDropdownUpdate(payeeSelect, options.payerName);
     
     const payeeOptions = await payeeSelect.locator('option').all();
     let payeeValue = '';
