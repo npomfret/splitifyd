@@ -59,7 +59,7 @@ export class UserPool {
     } else {
       // Pool is empty, create a new user on-demand
       console.log(`🔨 Creating new user on-demand for test ${testId}`);
-      user = await this.createUser(page, 'ondemand');
+      user = await this.createUser(page, 'u_');
       console.log(`✅ Created new user: ${user.email}`);
     }
     
