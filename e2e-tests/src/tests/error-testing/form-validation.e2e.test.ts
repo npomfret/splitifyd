@@ -1,5 +1,6 @@
 import { pageTest, expect } from '../../fixtures/page-fixtures';
 import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
+import { test } from '@playwright/test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';

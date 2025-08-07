@@ -40,27 +40,53 @@ export abstract class BasePage {
    * This is necessary because Playwright's fill() method doesn't always trigger
    * the onChange events that Preact signals rely on.
    * Uses focus-based waiting with pressSequentially for reliable input.
+   * Includes retry logic to handle text truncation which has been observed to happen under high load (typically during parallel test execution).
    */
-  async fillPreactInput(selector: string | Locator, value: string) {
+  async fillPreactInput(selector: string | Locator, value: string, maxRetries = 3) {
     const input = typeof selector === 'string' ? this.page.locator(selector) : selector;
     
-    // Single click and wait for focus
-    await input.click();
-    await this.waitForFocus(input);
-    
-    // Clear and validate
-    await input.fill('');
-    await this.validateInputValue(input, '');
-    
-    // Ensure still focused before typing
-    await this.waitForFocus(input);
-    await this.page.waitForTimeout(100);//hack!
-    await input.pressSequentially(value, {delay: 5, timeout: 2000});// this is the safest way to type into text fields
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Single click and wait for focus
+        await input.click();
+        await this.waitForFocus(input);
+        
+        // Clear and validate
+        await input.fill('');
+        await this.validateInputValue(input, '');
+        
+        // Ensure still focused before typing
+        await this.waitForFocus(input);
+        await this.page.waitForTimeout(100);
+        await input.pressSequentially(value);
 
-    // Blur to trigger Preact validation and wait for state changes
-    await input.blur();
+        // Blur to trigger Preact validation
+        await input.blur();
+        
+        // Check if input was successful
+        const actualValue = await input.inputValue();
+        if (actualValue === value) {
+          await this.page.waitForLoadState('domcontentloaded');
+          return; // Success!
+        }
+        
+        // Log and retry if not final attempt
+        if (attempt < maxRetries) {
+          const fieldId = await this.getFieldIdentifier(input);
+          console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
+          await this.page.waitForTimeout(200); // Brief pause before retry
+        }
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
+        await this.page.waitForTimeout(200);
+      }
+    }
+    
+    // Final validation after all retries (throws error if still incorrect)
     await this.validateInputValue(input, value);
-
     await this.page.waitForLoadState('domcontentloaded');
   }
   async waitForNetworkIdle() {
