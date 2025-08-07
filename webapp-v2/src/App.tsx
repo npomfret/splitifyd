@@ -15,65 +15,38 @@ import { CookiePolicyPage } from './pages/static/CookiePolicyPage';
 import { JoinGroupPage } from './pages/JoinGroupPage';
 
 export function App() {
-  // In production, we're served at /v2/ so we need to handle that prefix
-  const prefix = import.meta.env.PROD ? '/v2' : '';
-  
   return (
     <Router>
-      <Route path={`${prefix}/`} component={LandingPage} />
       <Route path="/" component={LandingPage} />
       
       {/* Auth Routes */}
-      <Route path={`${prefix}/login`} component={LoginPage} />
       <Route path="/login" component={LoginPage} />
-      <Route path={`${prefix}/register`} component={RegisterPage} />
       <Route path="/register" component={RegisterPage} />
-      <Route path={`${prefix}/reset-password`} component={ResetPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       
       {/* Dashboard Routes */}
-      <Route path={`${prefix}/dashboard`} component={DashboardPage} />
       <Route path="/dashboard" component={DashboardPage} />
       
       {/* Group Routes */}
-      <Route path={`${prefix}/groups/:id`} component={GroupDetailPage} />
       <Route path="/groups/:id" component={GroupDetailPage} />
-      <Route path={`${prefix}/group/:id`} component={GroupDetailPage} />
       <Route path="/group/:id" component={GroupDetailPage} />
       
       {/* Add Expense Route */}
-      <Route path={`${prefix}/groups/:groupId/add-expense`} component={AddExpensePage} />
       <Route path="/groups/:groupId/add-expense" component={AddExpensePage} />
       
       {/* Expense Detail Route */}
-      <Route path={`${prefix}/groups/:groupId/expenses/:expenseId`} component={ExpenseDetailPage} />
       <Route path="/groups/:groupId/expenses/:expenseId" component={ExpenseDetailPage} />
       
       {/* Join Group Route */}
-      <Route path={`${prefix}/join`} component={JoinGroupPage} />
       <Route path="/join" component={JoinGroupPage} />
       
       {/* Static Pages */}
-      <Route path="/v2/pricing" component={PricingPage} />
-      <Route path={`${prefix}/pricing`} component={PricingPage} />
       <Route path="/pricing" component={PricingPage} />
-      <Route path="/v2/terms-of-service" component={TermsOfServicePage} />
-      <Route path={`${prefix}/terms-of-service`} component={TermsOfServicePage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
-      <Route path="/v2/terms" component={TermsOfServicePage} />
-      <Route path={`${prefix}/terms`} component={TermsOfServicePage} />
       <Route path="/terms" component={TermsOfServicePage} />
-      <Route path="/v2/privacy-policy" component={PrivacyPolicyPage} />
-      <Route path={`${prefix}/privacy-policy`} component={PrivacyPolicyPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
-      <Route path="/v2/privacy" component={PrivacyPolicyPage} />
-      <Route path={`${prefix}/privacy`} component={PrivacyPolicyPage} />
       <Route path="/privacy" component={PrivacyPolicyPage} />
-      <Route path="/v2/cookies-policy" component={CookiePolicyPage} />
-      <Route path={`${prefix}/cookies-policy`} component={CookiePolicyPage} />
       <Route path="/cookies-policy" component={CookiePolicyPage} />
-      <Route path="/v2/cookies" component={CookiePolicyPage} />
-      <Route path={`${prefix}/cookies`} component={CookiePolicyPage} />
       <Route path="/cookies" component={CookiePolicyPage} />
       
       <Route default component={NotFoundPage} />

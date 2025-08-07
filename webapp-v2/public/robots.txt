@@ -13,15 +13,6 @@ Disallow: /add-expense
 Disallow: /expenses/
 Disallow: /join
 
-# === PRODUCTION PATHS (v2) ===
-# Block private areas served under /v2/ prefix
-Disallow: /v2/dashboard
-Disallow: /v2/groups/
-Disallow: /v2/group/
-Disallow: /v2/add-expense
-Disallow: /v2/expenses/
-Disallow: /v2/join
-
 # === API ENDPOINTS ===
 Disallow: /api/
 

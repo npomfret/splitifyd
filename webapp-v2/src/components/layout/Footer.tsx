@@ -16,7 +16,7 @@ export function Footer() {
             <h3 class="font-semibold text-gray-900 mb-3">Product</h3>
             <ul class="space-y-2">
               <li>
-                <a href="/v2/pricing" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
+                <a href="/pricing" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
                   Pricing
                 </a>
               </li>
@@ -28,17 +28,17 @@ export function Footer() {
             <h3 class="font-semibold text-gray-900 mb-3">Legal</h3>
             <ul class="space-y-2">
               <li>
-                <a href="/v2/terms" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
+                <a href="/terms" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="/v2/privacy" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
+                <a href="/privacy" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="/v2/cookies" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
+                <a href="/cookies" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
                   Cookie Policy
                 </a>
               </li>

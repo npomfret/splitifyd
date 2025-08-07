@@ -115,7 +115,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.waitForURL((url) => {
       const urlStr = url.toString();
       const path = new URL(urlStr).pathname;
-      return path === '/' || path === '/login' || path === '/home' || path === '/v2';
+      return path === '/' || path === '/login' || path === '/home';
     }, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Second attempt - navigate to register page
@@ -176,7 +176,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await page.waitForURL((url) => {
       const urlStr = url.toString();
       const path = new URL(urlStr).pathname;
-      return path === '/' || path === '/login' || path === '/home' || path === '/v2';
+      return path === '/' || path === '/login' || path === '/home';
     }, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Try duplicate (should fail)

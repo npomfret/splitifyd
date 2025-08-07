@@ -5,7 +5,7 @@ import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selec
 
 export class DashboardPage extends BasePage {
   // Selectors
-  readonly url = '/v2/dashboard';
+  readonly url = '/dashboard';
   readonly userNameText = '.text-sm.font-medium.text-gray-700';
 
   async navigate() {

@@ -3,7 +3,7 @@ import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
 export class LoginPage extends BasePage {
   // Selectors
-  readonly url = '/v2/login';
+  readonly url = '/login';
   readonly signInButton = 'Sign In';
   readonly signUpLink = 'Sign up';
   readonly forgotPasswordLink = 'Forgot your password?';

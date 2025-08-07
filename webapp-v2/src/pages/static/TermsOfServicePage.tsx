@@ -6,7 +6,7 @@ export function TermsOfServicePage() {
   const { policy, loading, error } = usePolicy('terms-of-service');
   
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const canonical = `${baseUrl}/v2/terms`;
+  const canonical = `${baseUrl}/terms`;
   
   // Use policy creation date if available, fallback to static date
   const lastUpdated = policy?.createdAt ? new Date(policy.createdAt).toLocaleDateString() : 'January 22, 2025';

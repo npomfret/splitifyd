@@ -33,7 +33,7 @@ describe('StaticPageLayout', () => {
     
     // Check for main navigation links - there might be multiple Pricing links (header + footer)
     expect(screen.getByRole('link', { name: 'Splitifyd' })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: 'Pricing' })).toHaveAttribute('href', '/v2/pricing');
+    expect(screen.getByRole('link', { name: 'Pricing' })).toHaveAttribute('href', '/pricing');
   });
 
   it('includes footer with legal links', () => {
@@ -44,9 +44,9 @@ describe('StaticPageLayout', () => {
     );
     
     // Check for footer legal links
-    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/v2/terms');
-    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/v2/privacy');
-    expect(screen.getByRole('link', { name: 'Cookie Policy' })).toHaveAttribute('href', '/v2/cookies');
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms');
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: 'Cookie Policy' })).toHaveAttribute('href', '/cookies');
   });
 
   it('displays company branding', () => {

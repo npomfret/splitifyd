@@ -27,7 +27,7 @@ Options:
   --error <msg>     Error message from the failed test
 
 Examples:
-  npx tsx e2e/run-mcp-debug.ts --test "should show form fields on login page" --url "http://localhost:${HOSTING_PORT}/v2/login"
+  npx tsx e2e/run-mcp-debug.ts --test "should show form fields on login page" --url "http://localhost:${HOSTING_PORT}/login"
   npx tsx e2e/run-mcp-debug.ts --file "auth-flow.e2e.test.ts" --error "Expected button to be visible"
 `;
 
@@ -48,7 +48,7 @@ function parseArgs(): Record<string, string> {
 
 function generateMCPDebugTest(args: Record<string, string>): string {
   const testName = args.test || 'Unknown Test';
-  const url = args.url || `http://localhost:${HOSTING_PORT}/v2`;
+  const url = args.url || `http://localhost:${HOSTING_PORT}`;
   const errorMsg = args.error || 'Test failed';
   const testFile = args.file || 'unknown.test.ts';
 

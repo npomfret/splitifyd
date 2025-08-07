@@ -19,8 +19,8 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     await expect(page.locator('text=I accept the Cookie Policy')).toBeVisible();
     
     // Check that links exist - use first() to avoid strict mode violation
-    await expect(page.locator('a[href="/v2/terms"]').first()).toBeVisible();
-    await expect(page.locator('a[href="/v2/cookies"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/terms"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/cookies"]').first()).toBeVisible();
   });
 
   pageTest('should disable submit button when terms not accepted', async ({ page }) => {

@@ -3,7 +3,7 @@ import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
 export class RegisterPage extends BasePage {
   // Selectors
-  readonly url = '/v2/register';
+  readonly url = '/register';
   readonly fullNameInput = 'input[placeholder="Enter your full name"]';
   readonly emailInput = 'input[placeholder="Enter your email"]';
   readonly passwordInput = 'input[placeholder="Create a strong password"]';

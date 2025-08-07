@@ -2,7 +2,7 @@ import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function PricingPage() {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const canonical = `${baseUrl}/v2/pricing`;
+  const canonical = `${baseUrl}/pricing`;
   
   const structuredData = {
     "@context": "https://schema.org",

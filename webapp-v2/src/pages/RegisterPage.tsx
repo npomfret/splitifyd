@@ -174,7 +174,7 @@ export function RegisterPage() {
             <span class="ml-2 block text-sm text-gray-700">
               I accept the{' '}
               <a 
-                href="/v2/terms" 
+                href="/terms" 
                 target="_blank"
                 class="text-blue-600 hover:text-blue-500 transition-colors"
               >
@@ -195,7 +195,7 @@ export function RegisterPage() {
             <span class="ml-2 block text-sm text-gray-700">
               I accept the{' '}
               <a 
-                href="/v2/cookies" 
+                href="/cookies" 
                 target="_blank"
                 class="text-blue-600 hover:text-blue-500 transition-colors"
               >

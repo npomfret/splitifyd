@@ -16,7 +16,7 @@ describe('StaticPageLayout - Navigation', () => {
     const pricingLink = screen.getByRole('link', { name: 'Pricing' });
     
     expect(logoLink).toHaveAttribute('href', '/');
-    expect(pricingLink).toHaveAttribute('href', '/v2/pricing');
+    expect(pricingLink).toHaveAttribute('href', '/pricing');
   });
 
   it('provides footer legal navigation on all static pages', () => {
@@ -27,9 +27,9 @@ describe('StaticPageLayout - Navigation', () => {
     );
     
     // Footer should have legal links
-    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/v2/terms');
-    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/v2/privacy');
-    expect(screen.getByRole('link', { name: 'Cookie Policy' })).toHaveAttribute('href', '/v2/cookies');
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms');
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: 'Cookie Policy' })).toHaveAttribute('href', '/cookies');
   });
 
   it('maintains consistent branding across pages', () => {
