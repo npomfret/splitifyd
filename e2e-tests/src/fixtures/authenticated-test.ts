@@ -13,21 +13,25 @@ export interface AuthenticatedFixtures {
 
 export const authenticatedTest = base.extend<AuthenticatedFixtures>({
   authenticatedPage: async ({ page, context }, use, testInfo) => {
-    const userPool = await getUserPool();
+    const userPool = getUserPool();
     
     // Clear any existing auth state to ensure clean test environment
     await context.clearCookies();
     await page.goto('about:blank');
     
-    // Get user deterministically by worker index - no race condition possible
-    const user = userPool.getUserByIndex(testInfo.workerIndex);
+    // Claim a user from the pool (creates on-demand if needed)
+    const user = await userPool.claimUser(page, testInfo.testId);
     
     // Authenticate the existing user via login
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);
     
-    // Use the authenticated page - no cleanup needed with deterministic assignment
-    await use({ page, user });
+    try {
+      await use({ page, user });
+    } finally {
+      // Release user back to pool for reuse
+      userPool.releaseUser(user);
+    }
   }
 });
 

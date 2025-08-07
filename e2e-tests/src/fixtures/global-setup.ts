@@ -1,37 +1,32 @@
 import { chromium } from '@playwright/test';
-import { getUserPool } from './user-pool.fixture';
-import { HOSTING_PORT } from '../helpers/emulator-utils';
+import {EMULATOR_URL} from '../helpers/emulator-utils';
 
 async function globalSetup() {
   console.log('🚀 Starting e2e test global setup...');
 
-  // Create a browser for user pool initialization with same config as tests
+  // Create a browser just to test connectivity
   const browser = await chromium.launch();
+  const baseURL = EMULATOR_URL;
   const context = await browser.newContext({
-    baseURL: `http://localhost:${HOSTING_PORT}`
+    baseURL: baseURL
   });
   const page = await context.newPage();
 
   try {
     // Test basic connectivity first
-    console.log(`Testing connectivity to http://localhost:${HOSTING_PORT}`);
-    await page.goto(`http://localhost:${HOSTING_PORT}`);
+    console.log(`Testing connectivity to ${baseURL}`);
+    await page.goto(baseURL);
     await page.waitForLoadState('networkidle');
     console.log('✅ Basic connectivity confirmed');
     
-    // Test register page accessibility
+    // Test register page accessibility (critical for user creation)
     console.log('Testing register page navigation...');
-    await page.goto(`http://localhost:${HOSTING_PORT}/register`);
+    await page.goto(`${baseURL}/register`);
     await page.waitForLoadState('networkidle');
     console.log('✅ Register page accessible');
     
-    // Initialize and pre-warm the user pool - fail fast if this doesn't work
-    const userPool = await getUserPool();
-    await userPool.preWarmPool(page);
-    
-    const stats = userPool.getPoolStats();
-    console.log(`✅ User pool initialized: ${stats.total} users, ${stats.available} available`);
-    console.log('✅ Global setup completed');
+    // That's it! Each worker will create users on-demand
+    console.log('✅ Global setup completed - workers will create users on-demand');
   } finally {
     await context.close();
     await browser.close();

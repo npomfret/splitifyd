@@ -32,9 +32,9 @@ export const threeUserTest = multiUserTest.extend<ThreeUserFixtures>({
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    const userPool = await getUserPool();
-    // Use deterministic assignment instead of deprecated claimUser
-    const user = userPool.getThirdUserByIndex(testInfo.workerIndex);
+    // Claim a third user from the pool
+    const userPool = getUserPool();
+    const user = await userPool.claimUser(page, `${testInfo.testId}-user3`);
     
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);
@@ -60,7 +60,8 @@ export const threeUserTest = multiUserTest.extend<ThreeUserFixtures>({
         createGroupModalPage
       });
     } finally {
-      // No need to release user with deterministic assignment
+      // Release user back to pool and close context
+      userPool.releaseUser(user);
       await context.close();
     }
   }
