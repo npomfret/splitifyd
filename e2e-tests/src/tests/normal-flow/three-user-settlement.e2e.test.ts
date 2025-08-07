@@ -21,13 +21,8 @@ test.describe('Three User Settlement Management', () => {
     const { page: page3, user: user3 } = thirdUser;
     const groupWorkflow = new GroupWorkflow(page);
     
-    console.log('🧪 Starting 3-user partial settlement test');
     
     // Verify all 3 users are distinct to prevent flaky test failures
-    console.log(`🔍 Verifying user distinctness:`);
-    console.log(`User 1: ${user1.email} (${user1.displayName})`);
-    console.log(`User 2: ${user2.email} (${user2.displayName})`);
-    console.log(`User 3: ${user3.email} (${user3.displayName})`);
     
     // Assert all users have different emails
     expect(user1.email).not.toBe(user2.email);
@@ -44,7 +39,6 @@ test.describe('Three User Settlement Management', () => {
     await expect(page2.getByRole('button', { name: user2.displayName })).toBeVisible();
     await expect(page3.getByRole('button', { name: user3.displayName })).toBeVisible();
     
-    console.log('✅ All 3 users are distinct - proceeding with test');
     
     // 1. Create a group with 3 users
     await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
@@ -87,7 +81,6 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage2.waitForMemberCount(3);
     await groupDetailPage3.waitForMemberCount(3);
     
-    console.log('✅ Created group with 3 users');
     
     // 2. User 1 makes a expense for 120, split equally
     await groupDetailPage.addExpense({
@@ -97,7 +90,6 @@ test.describe('Three User Settlement Management', () => {
       splitType: 'equal'
     });
     
-    console.log('✅ Created $120 expense paid by user1, split equally among 3 users');
     
     // Wait for expense to appear on all pages and verify all users see it
     await groupDetailPage.waitForBalanceCalculation();
@@ -116,7 +108,6 @@ test.describe('Three User Settlement Management', () => {
     await expect(page2.getByText('$120.00')).toBeVisible();
     await expect(page3.getByText('$120.00')).toBeVisible();
     
-    console.log('✅ All users can see the expense');
     
     // 3. Assert initial balances: user1 owed 80, user2 & user3 each owe 40
     // Math: $120 / 3 = $40 per person
@@ -150,10 +141,8 @@ test.describe('Three User Settlement Management', () => {
     const fortyDollarElements = balancesSection1.locator('.text-red-600').filter({ hasText: '$40.00' });
     await expect(fortyDollarElements).toHaveCount(2);
     
-    console.log('✅ Verified initial debts: User2 owes $40, User3 owes $40');
     
     // 4. User 2 makes partial settlement of 30
-    console.log('💳 User2 making partial settlement of $30');
     
     await groupDetailPage2.recordSettlement({
       payerIndex: 2, // user2 (based on dropdown order)
@@ -171,7 +160,6 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage2.waitForBalanceCalculation();
     await groupDetailPage3.waitForBalanceCalculation();
     
-    console.log('✅ Settlement of $30 recorded');
     
     // All users should see the settlement in history
     const showHistoryButton1 = page.getByRole('button', { name: 'Show History' });
@@ -189,7 +177,6 @@ test.describe('Three User Settlement Management', () => {
     await expect(page3.getByText(/Partial payment from user2/i)).toBeVisible();
     await page3.keyboard.press('Escape');
     
-    console.log('✅ All users can see the settlement in history');
     
     // 5. Assert updated balances after $30 payment
     // User2 debt: $40 - $30 = $10
@@ -211,10 +198,8 @@ test.describe('Three User Settlement Management', () => {
     const fortyDollarElement = updatedBalancesSection1.locator('.text-red-600').filter({ hasText: '$40.00' });
     await expect(fortyDollarElement).toBeVisible();
     
-    console.log('✅ Verified balances after partial payment: User2 owes $10, User3 owes $40');
     
     // 6. User 2 makes final settlement of remaining $10
-    console.log('💳 User2 making final settlement of $10');
     
     await groupDetailPage2.recordSettlement({
       payerIndex: 2, // user2
@@ -232,7 +217,6 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage2.waitForBalanceCalculation();
     await groupDetailPage3.waitForBalanceCalculation();
     
-    console.log('✅ Final settlement of $10 recorded');
     
     // 7. Assert final state: User2 is settled up, User3 still owes $40
     const finalBalancesSection1 = page.locator('.bg-white').filter({ 
@@ -255,8 +239,6 @@ test.describe('Three User Settlement Management', () => {
     // User2 should no longer have any debt to User1
     await expect(finalBalancesSection2.getByText(`${user2.displayName} owes ${user1.displayName}`)).not.toBeVisible();
     
-    console.log('✅ User2 is now settled up with User1!');
-    console.log('✅ User3 still owes $40 to User1');
     
     // Verify both settlements appear in history
     const finalHistoryButton = page.getByRole('button', { name: 'Show History' });
@@ -264,6 +246,5 @@ test.describe('Three User Settlement Management', () => {
     await expect(page.getByText(/Partial payment from user2/i)).toBeVisible();
     await expect(page.getByText(/Final payment from user2 - all settled!/i)).toBeVisible();
     
-    console.log('🎉 Three-user partial and full settlement test completed successfully');
   });
 });
