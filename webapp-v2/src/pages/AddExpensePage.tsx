@@ -319,7 +319,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                       placeholder="0.00"
                       step="0.01"
-                      min="0"
+                      min="0.01"
                       inputMode="decimal"
                       pattern="[0-9]*"
                       required
@@ -608,7 +608,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 }}
                                 className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
                                 step="0.01"
-                                min="0"
+                                min="0.01"
                                 inputMode="decimal"
                               />
                             </div>

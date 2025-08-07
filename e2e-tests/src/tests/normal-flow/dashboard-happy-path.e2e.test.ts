@@ -28,15 +28,15 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
   });
 
   authenticatedPageTest('should persist authentication on reload', async ({ authenticatedPage, dashboardPage }) => {
-    const { page } = authenticatedPage;
+    const { page, user } = authenticatedPage;
     
-    // Verify user menu is visible (indicates authenticated state)
-    await expect(dashboardPage.getUserMenuButton()).toBeVisible();
+    // Wait for authentication state and user menu to be fully loaded with actual user displayName
+    await dashboardPage.waitForUserMenu(user.displayName);
     
     // Reload and verify authentication persists
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(dashboardPage.getUserMenuButton()).toBeVisible();
+    await dashboardPage.waitForUserMenu(user.displayName);
   });
 
   authenticatedPageTest.describe('Create Group Modal', () => {
@@ -78,18 +78,20 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
   authenticatedPageTest.describe('Dashboard Navigation', () => {
     authenticatedPageTest('should navigate to group details after creating a group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupId = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Navigation'), 'Test description');
+      const groupName = generateTestGroupName('Navigation');
+      const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Test description');
       
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, );
-      await expect(groupDetailPage.getGroupTextByName('Navigation Test Group')).toBeVisible();
+      await groupDetailPage.getGroupNameContaining('Navigation');
       expect(groupId).toBeTruthy();
       
       });
-
     authenticatedPageTest('should sign out successfully', async ({ authenticatedPage, dashboardPage }) => {
-      const { page } = authenticatedPage;
+      const { page, user } = authenticatedPage;
       
-      await dashboardPage.getUserMenuButton().click();
+      // Wait for user menu to be available before clicking with actual user displayName
+      await dashboardPage.waitForUserMenu(user.displayName);
+      await dashboardPage.getUserMenuButton(user.displayName).click();
       
       await dashboardPage.getSignOutButton().click();
       

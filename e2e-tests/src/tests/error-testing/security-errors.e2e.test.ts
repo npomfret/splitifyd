@@ -1,8 +1,7 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
+import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { 
   setupConsoleErrorReporting, 
-  setupMCPDebugOnFailure,
-  AuthenticationWorkflow
+  setupMCPDebugOnFailure
 } from '../../helpers/index';
 import { GroupWorkflow } from '../../workflows/index';
 import { generateTestGroupName } from '../../utils/test-helpers';
@@ -12,23 +11,19 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Security and Access Control', () => {
-  test('verifies group access control behavior', async ({ authenticatedPage, browser }) => {
-    const { page } = authenticatedPage;
+  test('verifies group access control behavior', async ({ authenticatedPage, secondUser }) => {
+    const { page: page1 } = authenticatedPage;
+    const { page: page2 } = secondUser;
+    
     // Create a group with User 1 (already authenticated)
-    const groupWorkflow = new GroupWorkflow(page);
+    const groupWorkflow = new GroupWorkflow(page1);
     const groupName = generateTestGroupName('Access');
     await groupWorkflow.createGroup(groupName, 'Testing access control');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    const groupUrl = page.url();
+    await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    const groupUrl = page1.url();
     
-    // Create User 2 in separate context
-    const context2 = await browser.newContext();
-    const page2 = await context2.newPage();
-    // Note: This test requires a second user, so we need to use createTestUser for User 2
-    await AuthenticationWorkflow.createTestUser(page2);
-    
-    // User 2 tries to access User 1's group
+    // User 2 (already authenticated via fixture) tries to access User 1's group
     await page2.goto(groupUrl);
     await page2.waitForLoadState('domcontentloaded');
     
@@ -40,7 +35,5 @@ test.describe('Security and Access Control', () => {
     // Verify that access control works - non-members should not see group details
     // The group name should NOT be visible to unauthorized users
     await expect(page2.getByText(groupName)).not.toBeVisible();
-    
-    await context2.close();
   });
 });

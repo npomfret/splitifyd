@@ -47,27 +47,35 @@ test.describe('Multi-User Collaboration E2E', () => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
-    const groupInfo = { user };
-    const user1 = groupInfo.user;
+    const user1 = user;
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
+    // Get share link
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
+    // Second user joins
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const user2 = secondUser.user;
-    // Navigate to the share link directly - it contains the full path including query params
-    await page2.goto(shareLink);
     
-    // Wait for the join page to load and click Join Group button
+    await page2.goto(shareLink);
     await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
     await groupDetailPage2.getJoinGroupButton().click();
-    
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
+    // CRITICAL FIX: Refresh first user's page to see the new member, then wait for synchronization
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // Also ensure second user sees both members
+    await page2.reload();
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // Now add expenses
     await groupDetailPage.addExpense({
       description: 'User 1 Lunch',
       amount: 25,
@@ -82,12 +90,13 @@ test.describe('Multi-User Collaboration E2E', () => {
       splitType: 'equal'
     });
     
-    // Refresh both pages to see all expenses (no real-time sync)
+    // Wait for balance calculations before verifying
     await page.reload();
-    await page2.reload();
-    await page.waitForLoadState('networkidle');
-    await page2.waitForLoadState('networkidle');
+    await groupDetailPage.waitForBalanceCalculation();
+    await page2.reload(); 
+    await groupDetailPage2.waitForBalanceCalculation();
     
+    // Verify expenses
     await expect(groupDetailPage.getExpenseByDescription('User 1 Lunch')).toBeVisible();
     await expect(groupDetailPage.getExpenseByDescription('User 2 Dinner')).toBeVisible();
     await expect(groupDetailPage2.getExpenseByDescription('User 1 Lunch')).toBeVisible();
@@ -109,7 +118,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('Solo'), 'Testing multiple expenses');
-    const groupInfo = { user };
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
@@ -124,9 +132,12 @@ test.describe('Multi-User Collaboration E2E', () => {
       await groupDetailPage.addExpense({
         description: expense.description,
         amount: expense.amount,
-        paidBy: groupInfo.user.displayName,
+        paidBy: user.displayName,
         splitType: 'equal'
       });
+      
+      // Wait for each expense to be processed
+      await groupDetailPage.waitForBalanceCalculation();
     }
     
     // Verify all expenses are visible

@@ -1,4 +1,4 @@
-import { authenticatedPageTest } from './authenticated-page-test';
+import { multiUserTest, MultiUserFixtures } from './multi-user-test';
 import { Page } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../helpers/index';
@@ -13,11 +13,10 @@ import {
 } from '../pages/index';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
-export interface MultiUserFixtures {
-  secondUser: {
+export interface ThreeUserFixtures extends MultiUserFixtures {
+  thirdUser: {
     page: Page;
     user: BaseUser;
-    // Page objects for the second user
     loginPage: LoginPage;
     registerPage: RegisterPage;
     homepagePage: HomepagePage;
@@ -28,20 +27,17 @@ export interface MultiUserFixtures {
   };
 }
 
-export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
-  secondUser: async ({ browser }, use, testInfo) => {
+export const threeUserTest = multiUserTest.extend<ThreeUserFixtures>({
+  thirdUser: async ({ browser }, use, testInfo) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    // Get user pool and assign second user deterministically
     const userPool = await getUserPool();
-    const user = userPool.getSecondUserByIndex(testInfo.workerIndex);
+    const user = await userPool.claimUser(`${testInfo.testId}-user3`);
     
-    // Authenticate the second user
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);
     
-    // Create page objects for the second user
     const loginPage = new LoginPage(page);
     const registerPage = new RegisterPage(page);
     const homepagePage = new HomepagePage(page);
@@ -63,7 +59,7 @@ export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
         createGroupModalPage
       });
     } finally {
-      // Clean up: just close context - no release needed with deterministic assignment
+      await userPool.releaseUser(user.uid, `${testInfo.testId}-user3`);
       await context.close();
     }
   }
