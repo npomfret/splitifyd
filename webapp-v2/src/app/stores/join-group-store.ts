@@ -1,6 +1,6 @@
 /**
  * Join Group Store
- * 
+ *
  * Manages the state for joining a group via share link
  */
 

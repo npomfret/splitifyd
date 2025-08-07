@@ -194,7 +194,6 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         break;
       case 'splitType':
         splitTypeSignal.value = value as 'equal' | 'exact' | 'percentage';
-        // Recalculate splits when type changes
         this.handleSplitTypeChange(value as 'equal' | 'exact' | 'percentage');
         break;
     }
@@ -209,7 +208,6 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       delete errors[field];
     }
     
-    // Also validate splits if amount or split type changed
     if (field === 'amount' || field === 'splitType') {
       const splitsError = this.validateField('splits');
       if (splitsError) {

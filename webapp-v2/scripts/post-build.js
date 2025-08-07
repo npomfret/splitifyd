@@ -31,10 +31,7 @@ if (isDev) {
 }
 
 // Always inject API_BASE_URL (empty string for production)
-// The build outputs to dist, so we read from there
-const indexPath = path.join(__dirname, '../dist/index.html');
-
-let html = fs.readFileSync(indexPath, 'utf8');
+// The build outputs to dist, so we need to process all HTML files
 
 // Inject the API_BASE_URL script before the closing </head> tag
 let scriptContent;
@@ -46,10 +43,41 @@ if (isDev) {
   scriptContent = `window.API_BASE_URL = '';`;
 }
 const scriptTag = `    <script>${scriptContent}</script>\n  `;
-html = html.replace('</head>', scriptTag + '</head>');
 
-fs.writeFileSync(indexPath, html);
-console.log(`Post-build: Injected API_BASE_URL script`);
+// Function to process an HTML file
+const processHtmlFile = (filePath) => {
+  if (fs.existsSync(filePath)) {
+    let html = fs.readFileSync(filePath, 'utf8');
+    
+    // Only inject if not already present
+    if (!html.includes('window.API_BASE_URL')) {
+      html = html.replace('</head>', scriptTag + '</head>');
+      fs.writeFileSync(filePath, html);
+      console.log(`Post-build: Injected API_BASE_URL into ${path.relative(path.join(__dirname, '..'), filePath)}`);
+    } else {
+      console.log(`Post-build: API_BASE_URL already present in ${path.relative(path.join(__dirname, '..'), filePath)}`);
+    }
+  }
+};
+
+// Process all pre-rendered HTML files
+const distDir = path.join(__dirname, '../dist');
+
+// Process root index.html
+processHtmlFile(path.join(distDir, 'index.html'));
+
+// Process other pre-rendered pages
+const prerenderDirs = [
+  'v2/pricing',
+  'v2/terms-of-service',
+  'v2/privacy-policy', 
+  'v2/cookies-policy'
+];
+
+prerenderDirs.forEach(dir => {
+  const htmlPath = path.join(distDir, dir, 'index.html');
+  processHtmlFile(htmlPath);
+});
 
 // Also calculate and log script hash for CSP if needed
 const crypto = await import('crypto');

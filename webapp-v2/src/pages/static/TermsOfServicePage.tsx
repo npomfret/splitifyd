@@ -1,7 +1,7 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function TermsOfServicePage() {
-  const baseUrl = window.location.origin;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${baseUrl}/v2/terms`;
   
   const structuredData = {

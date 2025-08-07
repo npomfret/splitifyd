@@ -1,6 +1,6 @@
 /**
  * Zod schemas for runtime validation of API responses
- * 
+ *
  * MANDATORY: Every API response must be validated against these schemas
  * This ensures type safety at runtime and catches server contract violations
  */

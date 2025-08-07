@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { LoadingSpinner } from '../ui';
 import type { SettlementListItem } from '@shared/types/webapp-shared-types';
 import { apiClient } from '../../app/apiClient';
-import { useAuth } from '../../app/hooks/useAuth';
+import { useAuthRequired } from '../../app/hooks/useAuthRequired';
 
 interface SettlementHistoryProps {
   groupId: string;
@@ -11,7 +11,7 @@ interface SettlementHistoryProps {
 }
 
 export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHistoryProps) {
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const [settlements, setSettlements] = useState<SettlementListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

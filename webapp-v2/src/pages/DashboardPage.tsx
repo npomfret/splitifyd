@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { groupsStore } from '../app/stores/groups-store';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { Container } from '../components/ui';
@@ -8,7 +8,7 @@ import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 
 export function DashboardPage() {
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Redirect to login if not authenticated  

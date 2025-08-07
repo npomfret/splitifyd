@@ -1,7 +1,7 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function PricingPage() {
-  const baseUrl = window.location.origin;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${baseUrl}/v2/pricing`;
   
   const structuredData = {

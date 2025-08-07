@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Scene, WebGLRenderer } from 'three';
+import { logError } from '../../utils/error-logger';
 
 export function Globe() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -12,7 +13,7 @@ export function Globe() {
   // Check if we're running in Playwright E2E tests
   // This flag is injected by Playwright before any page scripts run
   // to disable heavy animations that can cause test timeouts
-  const isPlaywrightTest = (window as any).__PLAYWRIGHT__ === true;
+  const isPlaywrightTest = typeof window !== 'undefined' && (window as any).__PLAYWRIGHT__ === true;
 
   useEffect(() => {
     // Skip Three.js globe initialization during E2E tests to improve performance.
@@ -187,7 +188,7 @@ export function Globe() {
           }
         };
       } catch (error) {
-        console.error('Failed to initialize globe:', error);
+        logError('Failed to initialize globe', error);
         setHasError(true);
         setIsLoading(false);
       }

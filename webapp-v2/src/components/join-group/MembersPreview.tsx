@@ -1,6 +1,6 @@
 /**
  * Members Preview Component
- * 
+ *
  * Shows current group members in the join group flow
  */
 

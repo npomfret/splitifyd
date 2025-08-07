@@ -4,12 +4,12 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 
 const emailSignal = signal('');
 
 export function ResetPasswordPage() {
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const [emailSent, setEmailSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

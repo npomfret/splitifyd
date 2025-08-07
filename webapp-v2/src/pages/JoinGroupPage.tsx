@@ -1,13 +1,13 @@
 /**
  * Join Group Page
- * 
+ *
  * Handles joining a group via share link invitation
  */
 
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { joinGroupStore } from '../app/stores/join-group-store';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { Card } from '../components/ui/Card';
 import { Stack } from '../components/ui/Stack';
 import { Button } from '../components/ui/Button';
@@ -22,7 +22,7 @@ interface JoinGroupPageProps {
 }
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const isAuthenticated = !!authStore.user;
   const {
     group,

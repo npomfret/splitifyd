@@ -6,7 +6,7 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { firebaseConfigManager } from '../app/firebase-config';
 import { logError } from '../utils/error-logger';
 
@@ -15,7 +15,7 @@ const passwordSignal = signal('');
 const formDefaultsLoadedSignal = signal(false);
 
 export function LoginPage() {
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   
   // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {

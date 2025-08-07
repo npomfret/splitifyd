@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
@@ -37,7 +37,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const error = useComputed(() => groupDetailStore.error);
   
   // Auth store via hook
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const currentUser = useComputed(() => authStore.user);
   const isGroupOwner = useComputed(() => 
     currentUser.value && group.value && group.value.createdBy === currentUser.value.uid

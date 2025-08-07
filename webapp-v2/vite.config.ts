@@ -9,7 +9,12 @@ const execAsync = promisify(exec);
 export default defineConfig(() => ({
   base: '/',
   plugins: [
-    preact(),
+    preact({
+      // Temporarily disable SSG until auth issues are resolved
+      prerender: {
+        enabled: false
+      }
+    }),
     {
       name: 'post-build-script',
       closeBundle: async () => {

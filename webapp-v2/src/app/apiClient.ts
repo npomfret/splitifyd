@@ -1,6 +1,6 @@
 /**
  * API client with runtime validation
- * 
+ *
  * All API responses are validated at runtime using zod schemas
  * This ensures the server response matches our expected types
  */
@@ -8,6 +8,7 @@
 import { responseSchemas, ApiErrorResponseSchema } from '../api/apiSchemas';
 import { z } from 'zod';
 import { AUTH_TOKEN_KEY } from '../constants';
+import { logWarning, logError } from '../utils/error-logger';
 import type {
   CreateGroupRequest,
   Group,
@@ -36,13 +37,21 @@ interface HealthCheckResponse {
 }
 
 // API configuration - use window.API_BASE_URL injected during build
-const apiBaseUrl = (window as any).API_BASE_URL;
-if (!apiBaseUrl) {
-  throw new Error('API_BASE_URL is not set - check build configuration');
-}
-const API_BASE_URL = apiBaseUrl + '/api';
+const getApiBaseUrl = () => {
+  // During SSG, return empty string (no API calls happen during SSG)
+  if (typeof window === 'undefined') {
+    return '/api';
+  }
+  
+  const apiBaseUrl = (window as any).API_BASE_URL;
+  if (!apiBaseUrl) {
+    throw new Error('API_BASE_URL is not set - check build configuration');
+  }
+  return apiBaseUrl + '/api';
+};
 
-// Custom error class for API validation errors
+const API_BASE_URL = getApiBaseUrl();
+
 export class ApiValidationError extends Error {
   constructor(
     message: string,
@@ -53,7 +62,6 @@ export class ApiValidationError extends Error {
   }
 }
 
-// Custom error class for API errors
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -150,20 +158,24 @@ export class ApiClient {
   private authToken: string | null = null;
 
   constructor() {
-    // Try to get auth token from localStorage
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (token) {
-      this.authToken = token;
+    // Try to get auth token from localStorage (skip during SSG)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        this.authToken = token;
+      }
     }
   }
 
   // Set auth token
   setAuthToken(token: string | null) {
     this.authToken = token;
-    if (token) {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+      }
     }
   }
 
@@ -259,7 +271,7 @@ export class ApiClient {
       }
       
       if (!validator) {
-        console.warn(`No validator found for endpoint ${endpoint}`);
+        logWarning('No validator found for endpoint', { endpoint });
         return data as T;
       }
 
@@ -274,10 +286,11 @@ export class ApiClient {
           return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
         }).join('\n');
         
-        console.error(`API Validation Error for ${endpoint}:`, JSON.stringify({
+        logError('API response validation failed', undefined, {
+          endpoint,
           issues: result.error.issues,
           receivedData: data
-        }, null, 2));
+        });
         
         throw new ApiValidationError(
           `API response validation failed for ${endpoint}:\n${errorDetails}`,
@@ -299,7 +312,14 @@ export class ApiClient {
             attemptNumber < RETRY_CONFIG.maxAttempts) {
           
           const delayMs = calculateRetryDelay(attemptNumber);
-          console.warn(`{"timestamp":"${new Date().toISOString()}","level":"warn","message":"API request failed, retrying","context":{"endpoint":"${endpoint}","method":"${options.method}","attempt":${attemptNumber},"maxAttempts":${RETRY_CONFIG.maxAttempts},"retryDelayMs":${delayMs},"error":"${error.message}"}}`);
+          logWarning('API request failed, retrying', {
+            endpoint,
+            method: options.method,
+            attempt: attemptNumber,
+            maxAttempts: RETRY_CONFIG.maxAttempts,
+            retryDelayMs: delayMs,
+            error: error.message
+          });
           
           await sleep(delayMs);
           return this.requestWithRetry(endpoint, options, attemptNumber + 1);
@@ -337,7 +357,14 @@ export class ApiClient {
           attemptNumber < RETRY_CONFIG.maxAttempts) {
         
         const delayMs = calculateRetryDelay(attemptNumber);
-        console.warn(`{"timestamp":"${new Date().toISOString()}","level":"warn","message":"API request failed, retrying","context":{"endpoint":"${endpoint}","method":"${options.method}","attempt":${attemptNumber},"maxAttempts":${RETRY_CONFIG.maxAttempts},"retryDelayMs":${delayMs},"error":"${networkError.message}"}}`);
+        logWarning('API request failed, retrying', {
+          endpoint,
+          method: options.method,
+          attempt: attemptNumber,
+          maxAttempts: RETRY_CONFIG.maxAttempts,
+          retryDelayMs: delayMs,
+          error: networkError.message
+        });
         
         await sleep(delayMs);
         return this.requestWithRetry(endpoint, options, attemptNumber + 1);

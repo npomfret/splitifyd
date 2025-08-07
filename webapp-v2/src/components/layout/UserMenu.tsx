@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { useAuth } from '../../app/hooks/useAuth';
+import { useAuthRequired } from '../../app/hooks/useAuthRequired';
 
 interface UserMenuProps {
   user: {
@@ -10,7 +10,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

@@ -54,12 +54,16 @@ export function App() {
       <Route path="/join" component={JoinGroupPage} />
       
       {/* Static Pages */}
+      <Route path="/v2/pricing" component={PricingPage} />
       <Route path={`${prefix}/pricing`} component={PricingPage} />
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/v2/terms-of-service" component={TermsOfServicePage} />
       <Route path={`${prefix}/terms-of-service`} component={TermsOfServicePage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/v2/privacy-policy" component={PrivacyPolicyPage} />
       <Route path={`${prefix}/privacy-policy`} component={PrivacyPolicyPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/v2/cookies-policy" component={CookiePolicyPage} />
       <Route path={`${prefix}/cookies-policy`} component={CookiePolicyPage} />
       <Route path="/cookies-policy" component={CookiePolicyPage} />
       

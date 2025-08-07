@@ -2,9 +2,8 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
-import type { ExpenseCategory } from '@shared/types/webapp-shared-types';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { apiClient } from '../app/apiClient';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar, CategorySuggestionInput } from '../components/ui';
@@ -25,7 +24,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const isEditMode = urlParams.get('edit') === 'true' && !!expenseId;
   
   // Computed values from stores
-  const authStore = useAuth();
+  const authStore = useAuthRequired();
   const currentUser = useComputed(() => authStore.user);
   const group = useComputed(() => groupDetailStore.group);
   const loading = useComputed(() => groupDetailStore.loading);

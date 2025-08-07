@@ -1,6 +1,6 @@
 /**
  * Join Button Component
- * 
+ *
  * Primary action button for joining a group
  */
 

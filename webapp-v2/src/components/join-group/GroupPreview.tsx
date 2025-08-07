@@ -1,6 +1,6 @@
 /**
  * Group Preview Component
- * 
+ *
  * Shows group information in the join group flow
  */
 

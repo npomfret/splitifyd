@@ -1,7 +1,7 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function PrivacyPolicyPage() {
-  const baseUrl = window.location.origin;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${baseUrl}/v2/privacy`;
   
   const structuredData = {

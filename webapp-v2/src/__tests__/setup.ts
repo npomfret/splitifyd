@@ -43,6 +43,36 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock auth store
+const mockAuthStore = {
+  user: null,
+  loading: false,
+  error: null,
+  initialized: true,
+  login: vi.fn(() => Promise.resolve()),
+  register: vi.fn(() => Promise.resolve()),
+  logout: vi.fn(() => Promise.resolve()),
+  resetPassword: vi.fn(() => Promise.resolve()),
+  clearError: vi.fn()
+};
+
+vi.mock('../app/stores/auth-store', () => ({
+  getAuthStore: vi.fn(() => Promise.resolve(mockAuthStore)),
+  createAuthStore: vi.fn(() => Promise.resolve(mockAuthStore))
+}));
+
+// Mock auth hooks
+vi.mock('../app/hooks/useAuth', () => ({
+  useAuth: vi.fn(() => mockAuthStore)
+}));
+
+vi.mock('../app/hooks/useAuthRequired', () => ({
+  useAuthRequired: vi.fn(() => ({
+    ...mockAuthStore,
+    user: { uid: 'test-user', email: 'test@example.com' }
+  }))
+}));
+
 // Mock GSAP modules
 vi.mock('gsap', () => ({
   gsap: {

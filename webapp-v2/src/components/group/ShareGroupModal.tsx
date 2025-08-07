@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { apiClient } from '../../app/apiClient';
 import { Button } from '../ui';
+import { logError } from '../../utils/error-logger';
 
 interface ShareGroupModalProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
       const response = await apiClient.generateShareLink(groupId);
       setShareLink(response.shareableUrl);
     } catch (err) {
-      console.error('Failed to generate share link:', err);
+      logError('Failed to generate share link', err);
       setError('Failed to generate share link. Please try again.');
     } finally {
       setLoading(false);
