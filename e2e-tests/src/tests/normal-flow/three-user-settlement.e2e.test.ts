@@ -56,10 +56,10 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
-    // Refresh first user's page to see the second member
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await groupDetailPage.waitForMemberCount(2);
+    // Synchronize to see the second member
+    await groupDetailPage.synchronizeMultiUserState([
+      { page, groupDetailPage }
+    ], 2);
     
     // Third user joins
     const groupDetailPage3 = thirdUser.groupDetailPage;
@@ -68,18 +68,12 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage3.getJoinGroupButton().click();
     await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
-    // Refresh all pages to see all 3 members
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    await page3.reload();
-    await page3.waitForLoadState('networkidle');
-    
-    // Wait for synchronization - all 3 users should see each other
-    await groupDetailPage.waitForMemberCount(3);
-    await groupDetailPage2.waitForMemberCount(3);
-    await groupDetailPage3.waitForMemberCount(3);
+    // Synchronize all pages to see all 3 members
+    await groupDetailPage.synchronizeMultiUserState([
+      { page, groupDetailPage },
+      { page: page2, groupDetailPage: groupDetailPage2 },
+      { page: page3, groupDetailPage: groupDetailPage3 }
+    ], 3);
     
     
     // 2. User 1 makes a expense for 120, split equally
@@ -91,12 +85,12 @@ test.describe('Three User Settlement Management', () => {
     });
     
     
-    // Wait for expense to appear on all pages and verify all users see it
-    await groupDetailPage.waitForBalanceCalculation();
-    await page2.reload();
-    await page3.reload();
-    await groupDetailPage2.waitForBalanceCalculation();
-    await groupDetailPage3.waitForBalanceCalculation();
+    // Wait for expense to appear on all pages and synchronize balance calculations
+    await groupDetailPage.synchronizeMultiUserState([
+      { page, groupDetailPage },
+      { page: page2, groupDetailPage: groupDetailPage2 },
+      { page: page3, groupDetailPage: groupDetailPage3 }
+    ]);
     
     // All users should see the expense
     await expect(page.getByText('Group dinner expense')).toBeVisible();
@@ -151,14 +145,12 @@ test.describe('Three User Settlement Management', () => {
       note: 'Partial payment from user2'
     });
     
-    // Wait for settlement to propagate and refresh all pages
-    await page.waitForLoadState('networkidle');
-    await page.reload();
-    await page2.reload();
-    await page3.reload();
-    await groupDetailPage.waitForBalanceCalculation();
-    await groupDetailPage2.waitForBalanceCalculation();
-    await groupDetailPage3.waitForBalanceCalculation();
+    // Synchronize settlement state across all pages
+    await groupDetailPage.synchronizeMultiUserState([
+      { page, groupDetailPage },
+      { page: page2, groupDetailPage: groupDetailPage2 },
+      { page: page3, groupDetailPage: groupDetailPage3 }
+    ]);
     
     
     // All users should see the settlement in history
@@ -208,14 +200,12 @@ test.describe('Three User Settlement Management', () => {
       note: 'Final payment from user2 - all settled!'
     });
     
-    // Wait for settlement to propagate and refresh all pages
-    await page.waitForLoadState('networkidle');
-    await page.reload();
-    await page2.reload();
-    await page3.reload();
-    await groupDetailPage.waitForBalanceCalculation();
-    await groupDetailPage2.waitForBalanceCalculation();
-    await groupDetailPage3.waitForBalanceCalculation();
+    // Synchronize settlement state across all pages
+    await groupDetailPage.synchronizeMultiUserState([
+      { page, groupDetailPage },
+      { page: page2, groupDetailPage: groupDetailPage2 },
+      { page: page3, groupDetailPage: groupDetailPage3 }
+    ]);
     
     
     // 7. Assert final state: User2 is settled up, User3 still owes $40
