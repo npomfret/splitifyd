@@ -119,3 +119,157 @@ To manage these policies, a secure admin interface is required.
         b. Add the new version to the `versions` map in the policy document.
         c. Update the `currentVersionHash` field to the new hash.
         d. This action should have a confirmation dialog (e.g., "Are you sure you want to publish this version? All users will be required to re-accept.") to prevent accidental updates.
+
+---
+
+## Implementation Plan
+
+### Phase 0: Document Migration (Prerequisites)
+
+Before implementing the versioned acceptance system, existing legal documents must be migrated into the new structure.
+
+#### Migration Tasks:
+1. **Document Discovery and Conversion**
+   - Locate current Terms of Service and Cookie Policy documents
+   - Convert to Markdown format for consistent editing and storage
+   - Clean up formatting and ensure proper structure for web display
+
+2. **Firebase Integration**
+   - Create initial documents in `policies` collection with proper schema
+   - Calculate SHA-256 hashes for existing content to establish baseline versions
+   - Set up proper versioning structure with current documents as version 1
+
+3. **User Data Migration** 
+   - Ensure all existing users have `acceptedPolicies` field in their user documents
+   - Migrate existing `termsAcceptedAt` and `cookiePolicyAcceptedAt` timestamps to new hash-based system
+   - Set initial accepted hashes to match current document versions (prevents unnecessary re-prompting)
+
+### Phase 1: Backend Security Infrastructure
+
+#### 1.1 Admin Access Control System
+- **Create `requireAdmin` middleware** for Firebase Functions
+  - Implement role-based access control checking user `role` field
+  - Add comprehensive error handling and logging
+  - Rate limiting for admin operations
+
+- **User Role Management**
+  - Add `role: 'admin' | 'user'` field to user documents (default: 'user')
+  - Create admin role assignment system for super-admins
+  - Implement role validation in authentication flow
+
+#### 1.2 Protected Policy Management Endpoints
+Create secure API endpoints for policy operations:
+- `GET /admin/policies` - List all policies with metadata
+- `GET /admin/policies/:id` - Get policy details and version history  
+- `GET /admin/policies/:id/versions/:hash` - Get specific version content
+- `PUT /admin/policies/:id` - Create new draft version (not published)
+- `POST /admin/policies/:id/publish` - Publish draft as current version
+- `DELETE /admin/policies/:id/versions/:hash` - Remove old version (with safeguards)
+
+#### 1.3 Firestore Security Rules
+Update security rules to protect policies collection:
+```javascript
+// Only admins can read/write policies
+match /policies/{policyId} {
+  allow read, write: if request.auth != null && 
+    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+```
+
+### Phase 2: Frontend Admin Interface
+
+#### 2.1 Admin Route Protection
+- **Route Guards**: Create admin-only route protection
+- **Navigation**: Add admin section to main navigation (admin users only)
+- **Access Control**: Show "Access Denied" page for unauthorized users
+
+#### 2.2 Policy Management Dashboard (`/admin/policies`)
+- **Policy List View**: Display all policies with current version info
+- **Quick Actions**: Edit, view history, publish status for each policy
+- **Creation Workflow**: Add new policy types beyond terms/cookies
+- **Search and Filtering**: Find policies by name, status, last modified
+
+#### 2.3 Policy Editor Interface (`/admin/policies/:id`)
+- **Rich Text Editor**: Markdown-compatible editor with preview
+- **Version Management**: 
+  - Dropdown to view/compare historical versions
+  - Visual diff between versions
+  - Version metadata (created date, author, publish status)
+- **Draft System**: Save changes without publishing
+- **Publishing Workflow**:
+  - Clear separation between "Save Draft" and "Publish"
+  - Confirmation dialog with impact warning
+  - Preview changes before publishing
+
+### Phase 3: User-Facing Integration
+
+#### 3.1 Policy Acceptance Flow
+- **Login/App Load Check**: Compare user's accepted versions with current versions
+- **Blocking Modal**: Full-screen modal when re-acceptance required
+- **Policy Display**: Render Markdown content with proper styling
+- **Acceptance Tracking**: Update user document with new version hashes
+
+#### 3.2 Policy Viewing
+- **Terms Page**: Public page showing current terms (no auth required)
+- **Privacy Page**: Public page showing current privacy/cookie policy
+- **Version History**: Allow users to see what they previously accepted
+
+### Phase 4: Advanced Features (Future)
+
+#### 4.1 Enhanced Admin Features
+- **Audit Logging**: Track all admin actions with timestamps and IP addresses
+- **Admin Activity Monitoring**: Dashboard showing recent policy changes
+- **Bulk Operations**: Manage multiple policies simultaneously
+- **Scheduling**: Schedule policy changes for future publication
+
+#### 4.2 User Experience Enhancements  
+- **Email Notifications**: Notify users of policy changes via email
+- **Change Highlights**: Show what changed between versions
+- **Acceptance History**: User dashboard showing their acceptance timeline
+- **Granular Consent**: Optional features requiring separate opt-in
+
+#### 4.3 Compliance Features
+- **Export Capabilities**: Generate compliance reports
+- **Retention Policies**: Automatic cleanup of old versions
+- **Geographic Compliance**: Different policies for different regions
+- **Integration APIs**: Connect with legal management systems
+
+## Security Considerations
+
+### Authentication & Authorization
+- **Multi-Factor Authentication**: Required for admin accounts
+- **Session Management**: Short timeouts for admin sessions
+- **IP Whitelisting**: Optional restriction of admin access by IP
+- **Audit Trail**: Complete logging of all policy changes
+
+### Data Protection
+- **Input Validation**: Strict validation of all policy content
+- **XSS Prevention**: Sanitize all user-generated content
+- **CSRF Protection**: Secure all admin forms with CSRF tokens
+- **Rate Limiting**: Prevent abuse of admin endpoints
+
+### Operational Security
+- **Backup Strategy**: Regular backups of policy data
+- **Disaster Recovery**: Plan for policy system outages
+- **Change Management**: Approval workflow for critical policy changes
+- **Monitoring**: Real-time alerting for admin activities
+
+## Success Metrics
+
+### Technical Metrics
+- Policy update deployment time < 5 minutes
+- Zero downtime during policy updates
+- 100% audit trail coverage for admin actions
+- < 1% false positive re-acceptance prompts
+
+### Business Metrics  
+- Legal compliance audit passing rate
+- User completion rate for policy acceptance
+- Time to deploy policy changes
+- Admin user satisfaction with interface
+
+### User Experience Metrics
+- Policy acceptance completion rate > 95%
+- Average time to complete acceptance < 2 minutes
+- User complaints about unnecessary re-prompts < 1%
+- Support tickets related to policy acceptance < 5/month
