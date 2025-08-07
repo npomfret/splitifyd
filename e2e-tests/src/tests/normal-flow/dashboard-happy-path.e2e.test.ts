@@ -28,15 +28,15 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
   });
 
   authenticatedPageTest('should persist authentication on reload', async ({ authenticatedPage, dashboardPage }) => {
-    const { page } = authenticatedPage;
+    const { page, user } = authenticatedPage;
     
-    // Verify user menu is visible (indicates authenticated state)
-    await expect(dashboardPage.getUserMenuButton()).toBeVisible();
+    // Wait for authentication state and user menu to be fully loaded with actual user displayName
+    await dashboardPage.waitForUserMenu(user.displayName);
     
     // Reload and verify authentication persists
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(dashboardPage.getUserMenuButton()).toBeVisible();
+    await dashboardPage.waitForUserMenu(user.displayName);
   });
 
   authenticatedPageTest.describe('Create Group Modal', () => {
@@ -87,9 +87,11 @@ authenticatedPageTest.describe('Dashboard E2E', () => {
       
       });
     authenticatedPageTest('should sign out successfully', async ({ authenticatedPage, dashboardPage }) => {
-      const { page } = authenticatedPage;
+      const { page, user } = authenticatedPage;
       
-      await dashboardPage.getUserMenuButton().click();
+      // Wait for user menu to be available before clicking with actual user displayName
+      await dashboardPage.waitForUserMenu(user.displayName);
+      await dashboardPage.getUserMenuButton(user.displayName).click();
       
       await dashboardPage.getSignOutButton().click();
       

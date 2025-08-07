@@ -54,13 +54,14 @@ export abstract class BasePage {
     
     // Ensure still focused before typing
     await this.waitForFocus(input);
-    await input.fill(value);
-    
+    await input.pressSequentially(value);// this is the safest way to type into text fields
+
     // Blur to trigger Preact validation and wait for state changes
     await input.blur();
+    await this.validateInputValue(input, value);
+
     await this.page.waitForLoadState('domcontentloaded');
-    
-  }  
+  }
   async waitForNetworkIdle() {
     await this.page.waitForLoadState('networkidle');
   }

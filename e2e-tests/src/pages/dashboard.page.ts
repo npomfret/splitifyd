@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { CreateGroupModalPage } from './create-group-modal.page';
 
@@ -35,12 +36,24 @@ export class DashboardPage extends BasePage {
     return this.page.getByRole('button', { name: /Create.*Group/i }).first();
   }
 
-  getUserMenuButton() {
-    // Try multiple strategies to find the user menu button
-    // Strategy 1: Look for button with user info/avatar  
-    const userButton = this.page.getByRole('button').filter({ hasText: /Pool|@/ }).first();
-    const avatarButton = this.page.locator('button').filter({ has: this.page.locator('img') }).first();
-    return userButton.or(avatarButton).or(this.page.getByRole('button', { name: /Profile|Account|User|Menu/i }).first());
+  getUserMenuButton(displayName?: string) {
+    // If displayName is provided, use it directly for precise matching
+    if (displayName) {
+      return this.page.getByRole('button', { name: displayName });
+    }
+    // Fallback to finding any button with Pool prefix (for backward compatibility)
+    return this.page.getByRole('button').filter({ hasText: /^Pool \w{8}$/ }).first();
+  }
+
+  async waitForUserMenu(displayName?: string): Promise<void> {
+    // Wait for authentication state to be fully loaded first
+    await this.waitForNetworkIdle();
+    
+    // Ensure we're logged in (this is a reliable check)
+    await expect(this.getWelcomeMessage()).toBeVisible();
+    
+    // Now wait for the user menu button to be available with fast timeout
+    await expect(this.getUserMenuButton(displayName)).toBeVisible();
   }
   getSignOutButton() {
     return this.page.getByRole('button', { name: /Sign Out|Logout/i });
