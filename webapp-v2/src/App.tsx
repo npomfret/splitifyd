@@ -60,12 +60,21 @@ export function App() {
       <Route path="/v2/terms-of-service" component={TermsOfServicePage} />
       <Route path={`${prefix}/terms-of-service`} component={TermsOfServicePage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/v2/terms" component={TermsOfServicePage} />
+      <Route path={`${prefix}/terms`} component={TermsOfServicePage} />
+      <Route path="/terms" component={TermsOfServicePage} />
       <Route path="/v2/privacy-policy" component={PrivacyPolicyPage} />
       <Route path={`${prefix}/privacy-policy`} component={PrivacyPolicyPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/v2/privacy" component={PrivacyPolicyPage} />
+      <Route path={`${prefix}/privacy`} component={PrivacyPolicyPage} />
+      <Route path="/privacy" component={PrivacyPolicyPage} />
       <Route path="/v2/cookies-policy" component={CookiePolicyPage} />
       <Route path={`${prefix}/cookies-policy`} component={CookiePolicyPage} />
       <Route path="/cookies-policy" component={CookiePolicyPage} />
+      <Route path="/v2/cookies" component={CookiePolicyPage} />
+      <Route path={`${prefix}/cookies`} component={CookiePolicyPage} />
+      <Route path="/cookies" component={CookiePolicyPage} />
       
       <Route default component={NotFoundPage} />
     </Router>
