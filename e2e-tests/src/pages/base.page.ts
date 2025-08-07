@@ -54,7 +54,8 @@ export abstract class BasePage {
     
     // Ensure still focused before typing
     await this.waitForFocus(input);
-    await input.pressSequentially(value);// this is the safest way to type into text fields
+    await this.page.waitForTimeout(100);//hack!
+    await input.pressSequentially(value, {delay: 5, timeout: 2000});// this is the safest way to type into text fields
 
     // Blur to trigger Preact validation and wait for state changes
     await input.blur();

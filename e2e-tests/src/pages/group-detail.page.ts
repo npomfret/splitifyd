@@ -240,10 +240,8 @@ export class GroupDetailPage extends BasePage {
     await expect(balancesSection).toBeVisible();
     
     // Wait for loading to disappear
-    await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 15000 });
+    await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 1000 });
     
-    // Give a moment for any final UI updates
-    await this.page.waitForTimeout(500);
     await this.page.waitForLoadState('networkidle');
   }
 

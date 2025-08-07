@@ -33,9 +33,9 @@ export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    // Get user pool and claim a second user
+    // Get user pool and assign second user deterministically
     const userPool = await getUserPool();
-    const user = await userPool.claimUser(`${testInfo.testId}-user2`);
+    const user = userPool.getSecondUserByIndex(testInfo.workerIndex);
     
     // Authenticate the second user
     const authWorkflow = new AuthenticationWorkflow(page);
@@ -63,8 +63,7 @@ export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
         createGroupModalPage
       });
     } finally {
-      // Clean up: release user and close context
-      await userPool.releaseUser(user.uid, `${testInfo.testId}-user2`);
+      // Clean up: just close context - no release needed with deterministic assignment
       await context.close();
     }
   }

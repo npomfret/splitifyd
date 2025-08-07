@@ -28,7 +28,7 @@ export class UserPool {
     this.config = {
       minPoolSize: 2,
       maxPoolSize: 10,
-      preWarmCount: 3, // Increased to support three-user tests
+      preWarmCount: 10, // Increased to support all parallel workers
       maxClaimDuration: 300000, // 5 minutes
       ...config
     };
@@ -99,7 +99,39 @@ export class UserPool {
   }
 
   /**
-   * Atomically claim a user from the pool
+   * Get a user by worker index - deterministic assignment
+   */
+  getUserByIndex(workerIndex: number): BaseUser {
+    const users = Array.from(this.pool.values());
+    
+    if (workerIndex >= users.length) {
+      throw new Error(`Worker index ${workerIndex} exceeds pool size ${users.length}. Increase preWarmCount in UserPoolConfig.`);
+    }
+    
+    const pooledUser = users[workerIndex];
+    console.log(`Worker ${workerIndex} assigned user: ${pooledUser.user.email}`);
+    return pooledUser.user;
+  }
+
+  /**
+   * Get a second user for multi-user tests - deterministic assignment
+   */
+  getSecondUserByIndex(workerIndex: number): BaseUser {
+    const users = Array.from(this.pool.values());
+    const secondUserIndex = workerIndex + Math.ceil(users.length / 2);
+    
+    if (secondUserIndex >= users.length) {
+      throw new Error(`Second user index ${secondUserIndex} exceeds pool size ${users.length}. Increase preWarmCount in UserPoolConfig.`);
+    }
+    
+    const pooledUser = users[secondUserIndex];
+    console.log(`Worker ${workerIndex} assigned second user: ${pooledUser.user.email}`);
+    return pooledUser.user;
+  }
+
+  /**
+   * Legacy claim method - deprecated, use getUserByIndex instead
+   * @deprecated
    */
   async claimUser(testId: string): Promise<BaseUser> {
     // Find available user
@@ -123,27 +155,12 @@ export class UserPool {
   }
 
   /**
-   * Release a user back to the pool
+   * Legacy release method - no-op with deterministic assignment
+   * @deprecated
    */
   async releaseUser(userId: string, testId: string): Promise<void> {
-    const pooledUser = Array.from(this.pool.values()).find(
-      u => u.user.uid === userId && u.claimedBy === testId
-    );
-
-    if (!pooledUser) {
-      console.warn(`Attempted to release user ${userId} not claimed by ${testId}`);
-      return;
-    }
-
-    // Reset user state
-    pooledUser.inUse = false;
-    pooledUser.claimedBy = undefined;
-    pooledUser.claimedAt = undefined;
-
-    console.log(`User ${pooledUser.user.email} released by test ${testId}`);
-    
-    // Update persistent pool state (fire and forget to avoid blocking test execution)
-    this.savePoolToDisk().catch(err => console.warn('Failed to persist pool state after release:', err));
+    // No-op with deterministic assignment - users are never "released"
+    console.log(`Release called for user ${userId} by test ${testId} - no-op with deterministic assignment`);
   }
 
   /**
@@ -280,33 +297,25 @@ export class UserPool {
   }
 
   /**
-   * Save pool state to disk
+   * Save pool state to disk - simplified for deterministic assignment
    */
   private async savePoolToDisk(): Promise<void> {
     try {
       const fs = await import('fs');
       const poolPath = await UserPool.getPoolFilePath();
       
-      const poolData = {
-        users: Array.from(this.pool.entries()).map(([id, pooledUser]) => ({
-          id,
-          pooledUser: {
-            ...pooledUser,
-            claimedAt: pooledUser.claimedAt?.toISOString()
-          }
-        })),
-        config: this.config
-      };
+      // Only save the user list, no complex state tracking needed
+      const users = Array.from(this.pool.values()).map(p => p.user);
       
-      fs.writeFileSync(poolPath, JSON.stringify(poolData, null, 2));
-      console.log(`💾 Saved ${this.pool.size} users to pool file at ${poolPath}`);
+      fs.writeFileSync(poolPath, JSON.stringify(users, null, 2));
+      console.log(`💾 Saved ${users.length} users to pool file at ${poolPath}`);
     } catch (error) {
       console.warn('Failed to save pool to disk:', error);
     }
   }
 
   /**
-   * Load pool state from disk
+   * Load pool state from disk - simplified for deterministic assignment
    */
   private async loadPoolFromDisk(): Promise<void> {
     try {
@@ -316,15 +325,28 @@ export class UserPool {
       console.log(`Looking for pool file at: ${poolPath}`);
       
       if (fs.existsSync(poolPath)) {
-        const poolData = JSON.parse(fs.readFileSync(poolPath, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(poolPath, 'utf8'));
         
-        // Restore pool users
-        for (const { id, pooledUser } of poolData.users) {
-          const restoredUser = {
-            ...pooledUser,
-            claimedAt: pooledUser.claimedAt ? new Date(pooledUser.claimedAt) : undefined
+        // Handle both old and new format
+        let users: BaseUser[];
+        if (Array.isArray(data)) {
+          // New format - direct array of users
+          users = data;
+        } else if (data.users) {
+          // Old format - extract users from pooledUser objects
+          users = data.users.map((entry: any) => entry.pooledUser.user);
+        } else {
+          throw new Error('Unknown pool file format');
+        }
+        
+        // Restore pool users with simple structure
+        for (let i = 0; i < users.length; i++) {
+          const pooledUser: PooledUser = {
+            id: `user-${i}`,
+            user: users[i],
+            inUse: false
           };
-          this.pool.set(id, restoredUser);
+          this.pool.set(pooledUser.id, pooledUser);
         }
         
         console.log(`✅ Loaded ${this.pool.size} users from persistent pool at ${poolPath}`);

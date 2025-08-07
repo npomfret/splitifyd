@@ -19,19 +19,15 @@ export const authenticatedTest = base.extend<AuthenticatedFixtures>({
     await context.clearCookies();
     await page.goto('about:blank');
     
-    // Claim user from pool - fail fast if pool is broken
-    const user = await userPool.claimUser(testInfo.testId);
+    // Get user deterministically by worker index - no race condition possible
+    const user = userPool.getUserByIndex(testInfo.workerIndex);
     
     // Authenticate the existing user via login
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);
     
-    try {
-      await use({ page, user });
-    } finally {
-      // Release user back to pool
-      await userPool.releaseUser(user.uid, testInfo.testId);
-    }
+    // Use the authenticated page - no cleanup needed with deterministic assignment
+    await use({ page, user });
   }
 });
 
