@@ -4,7 +4,7 @@ import type { ComponentChildren } from 'preact';
 import type { AuthStore } from '../../types/auth';
 import { getAuthStore } from '../stores/auth-store';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { logError } from '../../utils/error-logger';
+import { logError } from '../../utils/browser-logger';
 
 export const AuthContext = createContext<AuthStore | null>(null);
 

@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { Button, ConfirmDialog, Alert } from '../ui';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
-import { logError } from '../../utils/error-logger';
+import { logError } from '../../utils/browser-logger';
 
 interface ExpenseActionsProps {
   expense: ExpenseData;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Scene, WebGLRenderer } from 'three';
-import { logError } from '../../utils/error-logger';
+import { logError } from '../../utils/browser-logger';
 
 export function Globe() {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { apiClient } from '../../app/apiClient';
 import { Button } from '../ui';
-import { logError } from '../../utils/error-logger';
+import { logError } from '../../utils/browser-logger';
 
 interface ShareGroupModalProps {
   isOpen: boolean;

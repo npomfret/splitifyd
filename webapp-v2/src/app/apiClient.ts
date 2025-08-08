@@ -8,7 +8,7 @@
 import { responseSchemas, ApiErrorResponseSchema } from '../api/apiSchemas';
 import { z } from 'zod';
 import { AUTH_TOKEN_KEY } from '../constants';
-import { logWarning, logError } from '../utils/error-logger';
+import { logWarning, logError, logApiRequest, logApiResponse } from '../utils/browser-logger';
 import type {
   CreateGroupRequest,
   Group,
@@ -222,12 +222,32 @@ export class ApiClient {
       fetchOptions.body = JSON.stringify(options.body);
     }
 
+    // Log the API request
+    logApiRequest(options.method, endpoint, {
+      params: options.params,
+      query: options.query,
+      body: options.body,
+      headers: headers,
+      attempt: attemptNumber,
+      url: url,
+    });
+
+    const startTime = performance.now();
+
     try {
       const response = await fetch(url, fetchOptions);
+      const duration = performance.now() - startTime;
       
       // Handle non-2xx responses
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // Log error response
+        logApiResponse(options.method, endpoint, response.status, {
+          duration,
+          error: errorData,
+          retryAttempt: attemptNumber > 1 ? attemptNumber : undefined,
+        });
         
         // Try to parse as API error
         const errorResult = ApiErrorResponseSchema.safeParse(errorData);
@@ -261,6 +281,13 @@ export class ApiClient {
 
       // Parse response
       const data = await response.json();
+      
+      // Log successful response
+      logApiResponse(options.method, endpoint, response.status, {
+        duration,
+        dataSize: JSON.stringify(data).length,
+        retryAttempt: attemptNumber > 1 ? attemptNumber : undefined,
+      });
 
       // Get validator for this endpoint, trying method-specific first
       const methodEndpoint = `${options.method} ${endpoint}` as keyof typeof responseSchemas;

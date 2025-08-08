@@ -3,7 +3,7 @@ import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit} from '
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
-import { logWarning } from '../../utils/error-logger';
+import { logWarning } from '../../utils/browser-logger';
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },

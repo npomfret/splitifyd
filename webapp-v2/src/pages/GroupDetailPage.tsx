@@ -15,7 +15,7 @@ import {
   ShareGroupModal 
 } from '../components/group';
 import { SettlementForm, SettlementHistory } from '../components/settlements';
-import { logError } from '../utils/error-logger';
+import { logError } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
   id?: string;
