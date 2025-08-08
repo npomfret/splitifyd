@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../support/builders';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '../../src/types/webapp-shared-types';
 
 describe('Custom Categories Feature Tests', () => {
   let driver: ApiDriver;
@@ -133,17 +134,7 @@ describe('Custom Categories Feature Tests', () => {
 
   describe('Backward Compatibility', () => {
     test('should still accept all predefined categories', async () => {
-      const predefinedCategories = [
-        'food',
-        'transport',
-        'entertainment',
-        'utilities',
-        'shopping',
-        'accommodation',
-        'healthcare',
-        'education',
-        'other'
-      ];
+      const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map(cat => cat.name);
 
       for (const category of predefinedCategories) {
         const expenseData = new ExpenseBuilder()

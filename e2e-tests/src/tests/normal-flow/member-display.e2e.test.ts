@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
+import { GroupDetailPage } from '../../pages/group-detail.page';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -20,7 +21,9 @@ test.describe('Member Management E2E', () => {
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member display');
     
     // Should show the current user as a member in the main content area
-    await expect(page.getByRole(ARIA_ROLES.MAIN).getByText(user.displayName)).toBeVisible();
+    // Use the groupDetailPage page object model instead of direct selectors
+    const groupDetailPage = new GroupDetailPage(page);
+    await expect(groupDetailPage.getUserName(user.displayName)).toBeVisible();
     
     // Look for members section showing 1 member
     await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });

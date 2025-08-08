@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../support/builders';
 import { GroupBuilder } from '../support/builders';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '../../src/types/webapp-shared-types';
 
 describe('Enhanced Data Validation Tests', () => {
   let driver: ApiDriver;
@@ -171,15 +172,7 @@ describe('Enhanced Data Validation Tests', () => {
 
     test('should accept both standard and custom categories', async () => {
       const testCategories = [
-        'food',
-        'transport',
-        'entertainment',
-        'utilities',
-        'shopping',
-        'accommodation',
-        'healthcare',
-        'education',
-        'other',
+        ...PREDEFINED_EXPENSE_CATEGORIES.map(cat => cat.name),
         'my-custom-category',  // Custom categories are now allowed
         'business-lunch',
         'team-outing'

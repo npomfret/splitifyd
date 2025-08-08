@@ -9,3 +9,4 @@ export { Stack } from './Stack';
 export { Avatar } from './Avatar';
 export { ConfirmDialog } from './ConfirmDialog';
 export { CategorySuggestionInput } from './CategorySuggestionInput';
+export { SidebarCard } from './SidebarCard';

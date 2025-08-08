@@ -1,11 +1,11 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
-import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
+import { expenseFormStore, getRecentAmounts } from '../app/stores/expense-form-store';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { apiClient } from '../app/apiClient';
-import type { ExpenseData } from '@shared/types/webapp-shared-types';
+import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar, CategorySuggestionInput } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { logError } from '../utils/browser-logger';
@@ -359,7 +359,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                     <CategorySuggestionInput
                       value={category.value}
                       onChange={(value) => expenseFormStore.updateField('category', value)}
-                      suggestions={EXPENSE_CATEGORIES}
+                      suggestions={PREDEFINED_EXPENSE_CATEGORIES}
                       label="Category"
                       placeholder="Enter or select a category..."
                       className="dark:bg-gray-700 dark:text-white dark:border-gray-600"

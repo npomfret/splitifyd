@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder, GroupBuilder } from '../support/builders';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '../../src/types/webapp-shared-types';
 
 describe('Freeform Categories API Integration', () => {
   let driver: ApiDriver;
@@ -234,10 +235,7 @@ describe('Freeform Categories API Integration', () => {
 
   describe('Backward Compatibility', () => {
     test('should still accept all predefined categories', async () => {
-      const predefinedCategories = [
-        'food', 'transport', 'utilities', 'entertainment',
-        'shopping', 'accommodation', 'healthcare', 'education', 'other'
-      ];
+      const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map(cat => cat.name);
 
       for (const category of predefinedCategories) {
         const expenseData = new ExpenseBuilder()

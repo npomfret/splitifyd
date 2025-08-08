@@ -34,10 +34,12 @@ test.describe('Three User Settlement Management', () => {
     expect(user1.displayName).not.toBe(user3.displayName);
     expect(user2.displayName).not.toBe(user3.displayName);
     
-    // Verify correct users are shown in UI (top-right corner)
-    await expect(groupDetailPage.getUserDisplayButton(user1.displayName)).toBeVisible();
-    await expect(secondUser.groupDetailPage.getUserDisplayButton(user2.displayName)).toBeVisible();
-    await expect(thirdUser.groupDetailPage.getUserDisplayButton(user3.displayName)).toBeVisible();
+    // Verify correct users are shown in UI
+    // The new UI shows display names in the user button but not as the accessible name
+    // Use .first() to avoid strict mode violations when display name appears multiple times
+    await expect(groupDetailPage.getTextElement(user1.displayName).first()).toBeVisible();
+    await expect(secondUser.groupDetailPage.getTextElement(user2.displayName).first()).toBeVisible();
+    await expect(thirdUser.groupDetailPage.getTextElement(user3.displayName).first()).toBeVisible();
     
     
     // 1. Create a group with 3 users

@@ -8,12 +8,13 @@ export class CreateGroupModalPage extends BasePage {
 
   async isOpen(): Promise<boolean> {
     // Modal either exists or it doesn't - no ambiguity
-    return await this.page.getByText(this.modalTitle).isVisible();
+    // Use heading role to avoid confusion with button text
+    return await this.page.getByRole('heading', { name: this.modalTitle }).isVisible();
   }
   
   async fillGroupForm(name: string, description?: string) {
-    // Wait for modal to be fully visible
-    await this.page.getByText(this.modalTitle).waitFor({ state: 'visible' });
+    // Wait for modal to be fully visible - use heading to avoid ambiguity
+    await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'visible' });
     
     // Get the input using the correct selector - label text without asterisk
     const nameInput = this.page.getByLabel('Group Name');
@@ -68,12 +69,13 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async waitForModalToClose() {
-    await this.page.getByText(this.modalTitle).waitFor({ state: 'hidden' });
+    await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden' });
   }
 
   // Element accessors
   getModalTitle() {
-    return this.page.getByText(/Create.*New.*Group|New Group/i);
+    // Specifically target the modal heading, not buttons with the same text
+    return this.page.getByRole('heading', { name: /Create.*New.*Group|New Group/i });
   }
 
   getGroupNameInput() {

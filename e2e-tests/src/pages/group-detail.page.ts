@@ -189,13 +189,17 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Gets a specific debt message in the balance section (e.g., "User A owes User B")
+   * Gets a specific debt message in the balance section
+   * UI now uses arrow notation: "User A → User B" instead of "owes"
    */
   getDebtMessageInBalanceSection(debtorName: string, creditorName: string) {
     const balancesSection = this.page.locator('section, div').filter({ 
       has: this.page.getByRole('heading', { name: 'Balances' }) 
     });
-    return balancesSection.getByText(`${debtorName} owes ${creditorName}`).first();
+    // Try both formats - arrow notation (new UI) and "owes" (legacy)
+    return balancesSection.getByText(`${debtorName} → ${creditorName}`)
+      .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`))
+      .first();
   }
 
   /**
@@ -205,7 +209,45 @@ export class GroupDetailPage extends BasePage {
     const balancesSection = this.page.locator('section, div').filter({ 
       has: this.page.getByRole('heading', { name: 'Balances' }) 
     });
-    return balancesSection.getByText('All settled up!');
+    // Use .first() to get the first occurrence since there might be multiple
+    return balancesSection.getByText('All settled up!').first();
+  }
+
+  /**
+   * Checks if "All settled up!" exists in the balance section (regardless of visibility)
+   * Use this when the balance section might be collapsed on mobile
+   */
+  async hasSettledUpMessage(): Promise<boolean> {
+    const count = await this.page.getByText('All settled up!').count();
+    return count > 0;
+  }
+
+  /**
+   * Checks if debt message exists in the DOM (regardless of visibility)
+   * Use this when the balance section might be collapsed on mobile
+   */
+  async hasDebtMessage(debtorName: string, creditorName: string): Promise<boolean> {
+    // Check for arrow notation (new UI)
+    const arrowCount = await this.page.getByText(`${debtorName} → ${creditorName}`).count();
+    if (arrowCount > 0) return true;
+    
+    // Fallback to "owes" notation (legacy)
+    const owesCount = await this.page.getByText(`${debtorName} owes ${creditorName}`).count();
+    return owesCount > 0;
+  }
+
+  /**
+   * Checks if debt amount exists in the DOM (regardless of visibility)
+   * Use this when checking for amounts that might be in hidden sections
+   */
+  async hasDebtAmount(amount: string): Promise<boolean> {
+    // Look for the amount in red text (debt indicator) or as general text
+    const redTextCount = await this.page.locator('.text-red-600').filter({ hasText: amount }).count();
+    if (redTextCount > 0) return true;
+    
+    // Also check if the amount exists as regular text (in case styling changed)
+    const textCount = await this.page.getByText(amount).count();
+    return textCount > 0;
   }
 
   /**
@@ -467,13 +509,16 @@ export class GroupDetailPage extends BasePage {
         has: page.getByRole('heading', { name: 'Balances' }) 
       }).first();
       
-      await expect(balancesSection.getByText(`${debtorName} owes ${creditorName}`)).toBeVisible();
+      // UI now uses arrow notation: "User A → User B" instead of "owes"
+      const debtText = balancesSection.getByText(`${debtorName} → ${creditorName}`)
+        .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
+      await expect(debtText).toBeVisible();
       
       if (amount) {
         // Find the debt amount that's specifically associated with this debt relationship
         // Look for the amount within the same container as the debt message
         const debtRow = balancesSection.locator('div').filter({ 
-          hasText: `${debtorName} owes ${creditorName}` 
+          hasText: new RegExp(`${debtorName}.*→.*${creditorName}|${debtorName}.*owes.*${creditorName}`) 
         });
         await expect(debtRow.locator('.text-red-600').filter({ hasText: amount }).first()).toBeVisible();
       }
@@ -672,7 +717,15 @@ export class GroupDetailPage extends BasePage {
 
   // Utility method for debt messages
   getDebtMessage(debtorName: string, creditorName: string) {
-    return this.page.getByText(`${debtorName} owes ${creditorName}`);
+    // UI now uses arrow notation: "User A → User B" instead of "owes"
+    // On desktop (lg breakpoint), balance is shown in sidebar
+    // On mobile, it's shown in main content but hidden on desktop with lg:hidden
+    // We need to find ALL instances and filter for the visible one
+    const debtText = `${debtorName} → ${creditorName}`;
+    const legacyText = `${debtorName} owes ${creditorName}`;
+    
+    // Look for all instances of the debt text
+    return this.page.getByText(debtText).or(this.page.getByText(legacyText));
   }
 
   /**
@@ -848,7 +901,9 @@ export class GroupDetailPage extends BasePage {
    */
   getDebtInfo(debtorName: string, creditorName: string) {
     const balancesSection = this.getBalancesSection();
-    return balancesSection.getByText(`${debtorName} owes ${creditorName}`);
+    // UI now uses arrow notation: "User A → User B" instead of "owes"
+    return balancesSection.getByText(`${debtorName} → ${creditorName}`)
+      .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
   }
 
   /**

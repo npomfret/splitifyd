@@ -4,6 +4,7 @@ import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { 
@@ -15,6 +16,7 @@ import {
   ShareGroupModal 
 } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
+import { SidebarCard } from '@/components/ui/SidebarCard';
 import { logError } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
@@ -157,63 +159,100 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
       description={`Manage expenses for ${group.value!.name}`}
       headerVariant="dashboard"
     >
-      <div className="container mx-auto px-4 py-8">
-        <Stack spacing="lg">
-          <GroupHeader 
-            group={group.value!} 
-            onSettingsClick={handleSettings}
-          />
+      <GroupDetailGrid
+        leftSidebar={
+          <>
+            <MembersList 
+              members={members.value} 
+              createdBy={group.value!.createdBy || ''}
+              loading={loadingMembers.value}
+              variant="sidebar"
+            />
+            
+            <QuickActions 
+              onAddExpense={handleAddExpense}
+              onSettleUp={handleSettleUp}
+              onShare={handleShare}
+              variant="vertical"
+            />
+          </>
+        }
+        mainContent={
+          <Stack spacing="lg">
+            <GroupHeader 
+              group={group.value!} 
+              onSettingsClick={handleSettings}
+            />
 
-          <QuickActions 
-            onAddExpense={handleAddExpense}
-            onSettleUp={handleSettleUp}
-            onShare={handleShare}
-          />
-
-          <MembersList 
-            members={members.value} 
-            createdBy={group.value!.createdBy || ''}
-            loading={loadingMembers.value}
-          />
-
-          <BalanceSummary balances={balances.value} members={members.value} />
-
-          <ExpensesList 
-            expenses={expenses.value}
-            members={members.value}
-            hasMore={groupDetailStore.hasMoreExpenses}
-            loading={groupDetailStore.loadingExpenses}
-            onLoadMore={() => groupDetailStore.loadMoreExpenses()}
-            onExpenseClick={handleExpenseClick}
-            isGroupOwner={isGroupOwner.value ?? false}
-            showDeletedExpenses={showDeletedExpenses.value}
-            onShowDeletedChange={(show) => {
-              showDeletedExpenses.value = show;
-              groupDetailStore.refetchExpenses(show);
-            }}
-          />
-
-          {/* Settlement History Section */}
-          <Card className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Payment History</h2>
-              <Button 
-                variant="secondary" 
-                size="sm"
-                onClick={() => showSettlementHistory.value = !showSettlementHistory.value}
-              >
-                {showSettlementHistory.value ? 'Hide History' : 'Show History'}
-              </Button>
-            </div>
-            {showSettlementHistory.value && (
-              <SettlementHistory 
-                groupId={groupId!} 
-                limit={5}
+            {/* Mobile-only quick actions */}
+            <div className="lg:hidden">
+              <QuickActions 
+                onAddExpense={handleAddExpense}
+                onSettleUp={handleSettleUp}
+                onShare={handleShare}
               />
-            )}
-          </Card>
-        </Stack>
-      </div>
+            </div>
+
+            <ExpensesList 
+              expenses={expenses.value}
+              members={members.value}
+              hasMore={groupDetailStore.hasMoreExpenses}
+              loading={groupDetailStore.loadingExpenses}
+              onLoadMore={() => groupDetailStore.loadMoreExpenses()}
+              onExpenseClick={handleExpenseClick}
+              isGroupOwner={isGroupOwner.value ?? false}
+              showDeletedExpenses={showDeletedExpenses.value}
+              onShowDeletedChange={(show) => {
+                showDeletedExpenses.value = show;
+                groupDetailStore.refetchExpenses(show);
+              }}
+            />
+
+            {/* Mobile-only members list */}
+            <div className="lg:hidden">
+              <MembersList 
+                members={members.value} 
+                createdBy={group.value!.createdBy || ''}
+                loading={loadingMembers.value}
+              />
+            </div>
+
+            {/* Mobile-only balance summary */}
+            <div className="lg:hidden">
+              <BalanceSummary balances={balances.value} members={members.value} />
+            </div>
+          </Stack>
+        }
+        rightSidebar={
+          <>
+            <BalanceSummary 
+              balances={balances.value} 
+              members={members.value}
+              variant="sidebar"
+            />
+
+            {/* Settlement History Section */}
+            <SidebarCard title="Payment History">
+              <div className="space-y-3">
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  className="w-full"
+                  onClick={() => showSettlementHistory.value = !showSettlementHistory.value}
+                >
+                  {showSettlementHistory.value ? 'Hide History' : 'Show History'}
+                </Button>
+                {showSettlementHistory.value && (
+                  <SettlementHistory 
+                    groupId={groupId!} 
+                    limit={5}
+                  />
+                )}
+              </div>
+            </SidebarCard>
+          </>
+        }
+      />
 
       {/* Share Modal */}
       <ShareGroupModal

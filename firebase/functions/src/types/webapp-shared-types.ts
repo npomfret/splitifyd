@@ -40,6 +40,28 @@ export const PolicyIds = {
 export const DELETED_AT_FIELD = 'deletedAt';
 
 // ========================================================================
+// Expense Category Types and Constants
+// ========================================================================
+
+export interface ExpenseCategory {
+  name: string;
+  displayName: string;
+  icon: string;
+}
+
+export const PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
+  { name: 'transport', displayName: 'Transportation', icon: '🚗' },
+  { name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡' },
+  { name: 'entertainment', displayName: 'Entertainment', icon: '🎬' },
+  { name: 'shopping', displayName: 'Shopping', icon: '🛍️' },
+  { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
+  { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
+  { name: 'education', displayName: 'Education', icon: '📚' },
+  { name: 'other', displayName: 'Other', icon: '❓' }
+];
+
+// ========================================================================
 // Configuration Types - Used by webapp for API client
 // ========================================================================
 
@@ -220,12 +242,6 @@ export interface ExpenseSplit {
   userId: string;
   amount: number;
   percentage?: number;
-}
-
-export interface ExpenseCategory {
-  name: string;
-  displayName: string;
-  icon: string;
 }
 
 export interface ExpenseData {

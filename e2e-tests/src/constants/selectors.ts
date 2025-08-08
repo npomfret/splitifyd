@@ -78,7 +78,7 @@ export const BUTTON_TEXTS = {
 export const MESSAGES = {
   ALL_SETTLED_UP: 'All settled up!',
   NO_EXPENSES_YET: /no expenses yet/i,
-  WELCOME_BACK: /Welcome back/i,
+  WELCOME_BACK: /Welcome (back|to Splitifyd)/i,
   LOADING_BALANCES: 'Loading balances...',
 } as const;
 

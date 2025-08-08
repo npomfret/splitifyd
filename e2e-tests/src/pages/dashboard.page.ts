@@ -14,8 +14,17 @@ export class DashboardPage extends BasePage {
   }
   
   async isLoggedIn(): Promise<boolean> {
-    // We KNOW the welcome text exists when logged in
-    return await this.page.getByText(MESSAGES.WELCOME_BACK).isVisible();
+    try {
+      // Check for "Your Groups" heading - always present when logged in
+      const groupsHeading = await this.getGroupsHeading().isVisible({ timeout: 2000 }).catch(() => false);
+      if (groupsHeading) return true;
+      
+      // Fallback: welcome message for users with no groups
+      const welcomeMessage = await this.getWelcomeMessage().isVisible({ timeout: 1000 }).catch(() => false);
+      return welcomeMessage;
+    } catch {
+      return false;
+    }
   }
   
   async getUserDisplayName(): Promise<string> {
@@ -50,8 +59,9 @@ export class DashboardPage extends BasePage {
     // Wait for authentication state to be fully loaded first
     await this.waitForNetworkIdle();
     
-    // Ensure we're logged in (this is a reliable check)
-    await expect(this.getWelcomeMessage()).toBeVisible();
+    // Ensure we're logged in by checking for either welcome message (new users) or groups heading
+    // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
+    await expect(this.getGroupsHeading()).toBeVisible();
     
     // Now wait for the user menu button to be available with fast timeout
     await expect(this.getUserMenuButton(displayName)).toBeVisible();
