@@ -1,5 +1,5 @@
-import { authenticatedTest } from './authenticated-test';
-import { 
+import { multiUserTest } from './multi-user-declarative';
+import type { 
   LoginPage, 
   RegisterPage, 
   HomepagePage, 
@@ -8,10 +8,13 @@ import {
   GroupDetailPage,
   CreateGroupModalPage
 } from '../pages/index';
+import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
-// Extend authenticated test with page object fixtures
 export interface AuthenticatedPageFixtures {
-  // Page objects that work with the authenticated page
+  authenticatedPage: {
+    page: any;
+    user: BaseUser;
+  };
   loginPage: LoginPage;
   registerPage: RegisterPage;
   homepagePage: HomepagePage;
@@ -21,33 +24,33 @@ export interface AuthenticatedPageFixtures {
   createGroupModalPage: CreateGroupModalPage;
 }
 
-export const authenticatedPageTest = authenticatedTest.extend<AuthenticatedPageFixtures>({
-  loginPage: async ({ authenticatedPage }, use) => {
-    await use(new LoginPage(authenticatedPage.page));
+export const authenticatedPageTest = multiUserTest.extend<AuthenticatedPageFixtures>({
+  authenticatedPage: async ({ primaryUser }, use) => {
+    await use({
+      page: primaryUser.page,
+      user: primaryUser.user
+    });
   },
-  
-  registerPage: async ({ authenticatedPage }, use) => {
-    await use(new RegisterPage(authenticatedPage.page));
+  loginPage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.login);
   },
-  
-  homepagePage: async ({ authenticatedPage }, use) => {
-    await use(new HomepagePage(authenticatedPage.page));
+  registerPage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.register);
   },
-  
-  pricingPage: async ({ authenticatedPage }, use) => {
-    await use(new PricingPage(authenticatedPage.page));
+  homepagePage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.homepage);
   },
-  
-  dashboardPage: async ({ authenticatedPage }, use) => {
-    await use(new DashboardPage(authenticatedPage.page));
+  pricingPage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.pricing);
   },
-  
-  groupDetailPage: async ({ authenticatedPage }, use) => {
-    await use(new GroupDetailPage(authenticatedPage.page));
+  dashboardPage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.dashboard);
   },
-  
-  createGroupModalPage: async ({ authenticatedPage }, use) => {
-    await use(new CreateGroupModalPage(authenticatedPage.page));
+  groupDetailPage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.groupDetail);
+  },
+  createGroupModalPage: async ({ primaryUser }, use) => {
+    await use(primaryUser.pages.createGroupModal);
   }
 });
 

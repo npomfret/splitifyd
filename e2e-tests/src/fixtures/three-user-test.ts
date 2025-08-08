@@ -1,8 +1,7 @@
-import { multiUserTest, MultiUserFixtures } from './multi-user-test';
-import { Page } from '@playwright/test';
-import { getUserPool } from './user-pool.fixture';
-import { AuthenticationWorkflow } from '../helpers/index';
-import { 
+import { multiUserTest } from './multi-user-test';
+import type { MultiUserFixtures } from './multi-user-test';
+import type { Page } from '@playwright/test';
+import type { 
   LoginPage, 
   RegisterPage, 
   HomepagePage, 
@@ -28,42 +27,23 @@ export interface ThreeUserFixtures extends MultiUserFixtures {
 }
 
 export const threeUserTest = multiUserTest.extend<ThreeUserFixtures>({
-  thirdUser: async ({ browser }, use, testInfo) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    
-    // Claim a third user from the pool
-    const userPool = getUserPool();
-    const user = await userPool.claimUser(page);
-    
-    const authWorkflow = new AuthenticationWorkflow(page);
-    await authWorkflow.loginExistingUser(user);
-    
-    const loginPage = new LoginPage(page);
-    const registerPage = new RegisterPage(page);
-    const homepagePage = new HomepagePage(page);
-    const pricingPage = new PricingPage(page);
-    const dashboardPage = new DashboardPage(page);
-    const groupDetailPage = new GroupDetailPage(page);
-    const createGroupModalPage = new CreateGroupModalPage(page);
-    
-    try {
-      await use({
-        page,
-        user,
-        loginPage,
-        registerPage,
-        homepagePage,
-        pricingPage,
-        dashboardPage,
-        groupDetailPage,
-        createGroupModalPage
-      });
-    } finally {
-      // Release user back to pool and close context
-      userPool.releaseUser(user);
-      await context.close();
+  userCount: 3,
+  thirdUser: async ({ users }, use) => {
+    if (users.length < 3) {
+      throw new Error('threeUserTest requires at least 3 users');
     }
+    const third = users[2];
+    await use({
+      page: third.page,
+      user: third.user,
+      loginPage: third.pages.login,
+      registerPage: third.pages.register,
+      homepagePage: third.pages.homepage,
+      pricingPage: third.pages.pricing,
+      dashboardPage: third.pages.dashboard,
+      groupDetailPage: third.pages.groupDetail,
+      createGroupModalPage: third.pages.createGroupModal
+    });
   }
 });
 
