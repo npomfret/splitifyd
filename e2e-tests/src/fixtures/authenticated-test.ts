@@ -2,7 +2,7 @@ import { test as base } from './base-test';
 import { Page } from '@playwright/test';
 import { AuthenticationWorkflow } from '../workflows/index';
 import { getUserPool } from './user-pool.fixture';
-import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import type {User as BaseUser} from "@shared/types/webapp-shared-types";
 
 export interface AuthenticatedFixtures {
   authenticatedPage: {

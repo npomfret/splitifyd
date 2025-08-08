@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { TIMEOUTS } from '../config/timeouts';
-import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import type {User as BaseUser} from "@shared/types/webapp-shared-types";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 
 /**

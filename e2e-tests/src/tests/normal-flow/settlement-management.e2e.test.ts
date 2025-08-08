@@ -56,7 +56,7 @@ test.describe('Settlement Management', () => {
     const selectedPayerValue = await payerSelect.inputValue();
     
     // Manually set the payee to the same value using JavaScript to bypass filtering
-    await page.evaluate((payerValue) => {
+    await page.evaluate((payerValue: string) => {
       const payeeSelect = document.querySelector('select[id="payee"]') as HTMLSelectElement;
       if (payeeSelect) {
         payeeSelect.value = payerValue;

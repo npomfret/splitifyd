@@ -10,7 +10,7 @@ import {
   GroupDetailPage,
   CreateGroupModalPage
 } from '../pages/index';
-import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import type {User as BaseUser} from "@shared/types/webapp-shared-types";
 
 export interface PageObjects {
   login: LoginPage;
