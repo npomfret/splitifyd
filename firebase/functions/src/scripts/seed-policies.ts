@@ -50,91 +50,47 @@ function calculatePolicyHash(text: string): string {
 }
 
 /**
+ * Read policy file from docs/policies directory
+ */
+function readPolicyFile(filename: string): string {
+  const policyPath = path.join(__dirname, '../../../../docs/policies', filename);
+  try {
+    return fs.readFileSync(policyPath, 'utf8');
+  } catch (error) {
+    console.error(`Error reading policy file ${filename}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Seed initial policies into Firestore
  */
 async function seedPolicies() {
   const firestore = admin.firestore();
   const now = new Date().toISOString();
   
-  // Terms of Service text
-  const termsText = `# Terms of Service
-
-Last updated: ${new Date().toLocaleDateString()}
-
-## 1. Acceptance of Terms
-
-By accessing and using Splitifyd ("we", "our", "us"), you agree to be bound by these Terms of Service.
-
-## 2. Description of Service
-
-Splitifyd is a bill-splitting application that helps groups manage shared expenses.
-
-## 3. User Responsibilities
-
-Users are responsible for maintaining accurate information and using the service lawfully.
-
-## 4. Privacy
-
-Your use of our service is also governed by our Privacy Policy.
-
-## 5. Limitation of Liability
-
-The service is provided "as is" without warranties of any kind.
-
-## 6. Changes to Terms
-
-We reserve the right to modify these terms at any time.
-
-## 7. Contact
-
-If you have questions about these terms, please contact us.`;
-
-  // Cookie Policy text
-  const cookieText = `# Cookie Policy
-
-Last updated: ${new Date().toLocaleDateString()}
-
-## What Are Cookies
-
-Cookies are small text files stored on your device.
-
-## How We Use Cookies
-
-We use cookies for authentication and to improve your experience.
-
-## Your Choices
-
-You can control cookies through your browser settings.`;
-
-  // Privacy Policy text
-  const privacyText = `# Privacy Policy
-
-Last updated: ${new Date().toLocaleDateString()}
-
-## Information We Collect
-
-We collect information you provide directly to us.
-
-## How We Use Your Information
-
-We use the information to provide and improve our services.
-
-## Data Security
-
-We implement appropriate security measures to protect your data.
-
-## Your Rights
-
-You have rights regarding your personal information.
-
-## Contact Us
-
-If you have questions about this privacy policy, please contact us.`;
+  // Read policy texts from the actual policy documents
+  console.log('Reading policy documents from docs/policies...');
+  
+  let termsText: string;
+  let cookieText: string;
+  let privacyText: string;
+  
+  try {
+    termsText = readPolicyFile('terms-and-conditions.md');
+    cookieText = readPolicyFile('cookie-policy.md');
+    privacyText = readPolicyFile('privacy-policy.md');
+    console.log('✅ Successfully read all policy documents');
+  } catch (error) {
+    console.error('❌ Failed to read policy documents:', error);
+    console.log('Make sure the policy files exist in docs/policies/');
+    process.exit(1);
+  }
 
   try {
     const batch = firestore.batch();
 
-    // Seed Terms of Service
+    // Seed Terms and Conditions
     const termsRef = firestore
       .collection(FirestoreCollections.GROUPS)
       .doc(PolicyIds.TERMS_OF_SERVICE);
@@ -142,12 +98,12 @@ If you have questions about this privacy policy, please contact us.`;
     const termsHash = calculatePolicyHash(termsText);
     batch.set(termsRef, {
       id: PolicyIds.TERMS_OF_SERVICE,
-      policyName: 'Terms of Service',
+      policyName: 'Terms and Conditions',
       currentVersionHash: termsHash,
       versions: {
         [termsHash]: {
           text: termsText,
-          version: '1.0.0',
+          version: '2.0.0',  // Version 2.0.0 for the comprehensive rewrite
           createdAt: now,
           updatedAt: now,
           publishedAt: now,
@@ -171,7 +127,7 @@ If you have questions about this privacy policy, please contact us.`;
       versions: {
         [cookieHash]: {
           text: cookieText,
-          version: '1.0.0',
+          version: '2.0.0',  // Version 2.0.0 for the comprehensive rewrite
           createdAt: now,
           updatedAt: now,
           publishedAt: now,
@@ -195,7 +151,7 @@ If you have questions about this privacy policy, please contact us.`;
       versions: {
         [privacyHash]: {
           text: privacyText,
-          version: '1.0.0',
+          version: '2.0.0',  // Version 2.0.0 for the comprehensive rewrite
           createdAt: now,
           updatedAt: now,
           publishedAt: now,
