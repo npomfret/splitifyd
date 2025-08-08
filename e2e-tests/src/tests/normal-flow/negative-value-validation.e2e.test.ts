@@ -89,23 +89,16 @@ authenticatedTest.describe('Negative Value Validation', () => {
 
   multiUserTest('should prevent negative settlement amounts in UI', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
-    const { page: page2, user: user2 } = secondUser;
+    const { page: page2} = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('SettleNegative'), 'Testing negative settlements');
 
     // Share and join
-    await groupDetailPage.getShareButton().click();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
-    await page2.goto(shareLink);
-    await secondUser.groupDetailPage.getJoinGroupButton().click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
-    // Refresh to see both members
-    await page.reload();
+    // Wait to see both members
     await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForMemberCount(2);
     
@@ -167,24 +160,17 @@ authenticatedTest.describe('Negative Value Validation', () => {
   });
 
   multiUserTest('should prevent negative split amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
-    const { page: page2, user: user2 } = secondUser;
+    const { page } = authenticatedPage;
+    const { page: page2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('NegativeSplit'), 'Testing negative split amounts');
 
     // Share and join
-    await groupDetailPage.getShareButton().click();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
-    await page2.goto(shareLink);
-    await secondUser.groupDetailPage.getJoinGroupButton().click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
-    // Refresh to see both members
-    await page.reload();
+    // Wait to see both members
     await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForMemberCount(2);
     

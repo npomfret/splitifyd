@@ -11,23 +11,15 @@ test.describe('Settlement Management', () => {
   // as they are better covered by the comprehensive three-user-settlement test
   
   test('should validate settlement form', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
 
     // Share and join
-    await groupDetailPage.getShareButton().click();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
-    
     const page2 = secondUser.page;
-    await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
-    await page.reload();
+    await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
     // Open settlement form
     const settleButton = groupDetailPage.getSettleUpButton();
@@ -49,8 +41,7 @@ test.describe('Settlement Management', () => {
     
     // Test same payer and payee by directly setting form state
     const payerSelect = groupDetailPage.getPayerSelect();
-    const payeeSelect = groupDetailPage.getPayeeSelect();
-    
+
     // Get the first user value from payer select
     await payerSelect.selectOption({ index: 1 });
     const selectedPayerValue = await payerSelect.inputValue();
@@ -75,23 +66,15 @@ test.describe('Settlement Management', () => {
   // Note: Settlement history test removed - covered by three-user-settlement test
   
   test('should handle multiple currencies', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
     await groupWorkflow.createGroup('Multi-Currency Test', 'Testing multiple currencies');
 
     // Share and join
-    await groupDetailPage.getShareButton().click();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
-    
     const page2 = secondUser.page;
-    await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
-    await page.reload();
+    await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
     // Open settlement form
     const settleButton = groupDetailPage.getSettleUpButton();
