@@ -10,7 +10,7 @@ import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow } from '../utils/dateUtils';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
-import { logError } from '../utils/error-logger';
+import { logError } from '../utils/browser-logger';
 
 interface ExpenseDetailPageProps {
   groupId?: string;

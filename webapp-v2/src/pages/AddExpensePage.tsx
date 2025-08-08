@@ -8,7 +8,7 @@ import { apiClient } from '../app/apiClient';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { LoadingSpinner, Card, Button, Avatar, CategorySuggestionInput } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
-import { logError } from '../utils/error-logger';
+import { logError } from '../utils/browser-logger';
 import { BaseLayout } from '../components/layout/BaseLayout';
 
 interface AddExpensePageProps {

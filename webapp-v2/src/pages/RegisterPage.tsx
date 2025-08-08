@@ -8,7 +8,7 @@ import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { firebaseConfigManager } from '../app/firebase-config';
-import { logError } from '../utils/error-logger';
+import { logError } from '../utils/browser-logger';
 
 const nameSignal = signal('');
 const emailSignal = signal('');

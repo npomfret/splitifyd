@@ -1,6 +1,6 @@
 import { JSX } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
-import { logError } from '../../utils/error-logger';
+import { logError } from '../../utils/browser-logger';
 
 interface FormProps {
   onSubmit: (e: Event) => void | Promise<void>;
