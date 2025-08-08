@@ -55,12 +55,12 @@ export class UserPool {
     let user = this.availableUsers.pop();
     
     if (user) {
-      console.log(`📤 Claimed existing user: ${user.email} for test ${testId}`);
+      // console.log(`📤 Claimed existing user: ${user.email} for test ${testId}`);
     } else {
       // Pool is empty, create a new user on-demand
-      console.log(`🔨 Creating new user on-demand for test ${testId}`);
+      // console.log(`🔨 Creating new user on-demand for test ${testId}`);
       user = await this.createUser(page, 'u');
-      console.log(`✅ Created new user: ${user.email}`);
+      // console.log(`✅ Created new user: ${user.email}`);
     }
     
     // Track that this user is in use
@@ -76,7 +76,7 @@ export class UserPool {
   releaseUser(user: BaseUser): void {
     // Only accept users that were claimed from this pool
     if (!this.usersInUse.has(user.uid)) {
-      console.log(`⚠️ Attempted to release unknown user: ${user.email}`);
+      // console.log(`⚠️ Attempted to release unknown user: ${user.email}`);
       return;
     }
     
@@ -85,7 +85,7 @@ export class UserPool {
     
     // Add back to available pool
     this.availableUsers.push(user);
-    console.log(`📥 Released user back to pool: ${user.email}`);
+    // console.log(`📥 Released user back to pool: ${user.email}`);
   }
 
   /**
