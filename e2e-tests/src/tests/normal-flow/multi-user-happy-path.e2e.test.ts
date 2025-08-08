@@ -105,7 +105,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('Admin'), 'Testing admin badge');
     
-    await expect(groupDetailPage.getTextElement('Admin')).toBeVisible();
+    await expect(groupDetailPage.getAdminBadge()).toBeVisible();
   });
 
   test('single user can create group and add multiple expenses', async ({ authenticatedPage, groupDetailPage }) => {

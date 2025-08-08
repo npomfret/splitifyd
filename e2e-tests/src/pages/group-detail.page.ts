@@ -375,47 +375,6 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Enhanced settlement form handling for reliable settlement recording
-   */
-  async recordSettlement(options: {
-    payerIndex: number;  // 1-based index in dropdown
-    payeeIndex: number;  // 1-based index in dropdown
-    amount: string;
-    note: string;
-  }): Promise<void> {
-    // Click settle up button
-    const settleButton = this.page.getByRole('button', { name: /settle up/i });
-    await settleButton.click();
-    
-    // Wait for modal
-    const modal = this.page.getByRole('dialog');
-    await expect(modal).toBeVisible();
-    
-    // Fill form with more reliable selectors
-    const payerSelect = modal.getByRole('combobox', { name: /who paid/i });
-    const payeeSelect = modal.getByRole('combobox', { name: /who received the payment/i });
-    const amountInput = modal.getByRole('spinbutton', { name: /amount/i });
-    const noteInput = modal.getByRole('textbox', { name: /note/i });
-    
-    // Make selections
-    await payerSelect.selectOption({ index: options.payerIndex });
-    await payeeSelect.selectOption({ index: options.payeeIndex });
-    await this.fillPreactInput(amountInput, options.amount);
-    await this.fillPreactInput(noteInput, options.note);
-    
-    // Submit
-    const submitButton = modal.getByRole('button', { name: /record payment/i });
-    await expect(submitButton).toBeEnabled();
-    await submitButton.click();
-    
-    // Wait for modal to close
-    await expect(modal).not.toBeVisible();
-    
-    // Wait for settlement to be processed
-    await this.page.waitForLoadState('networkidle');
-  }
-
-  /**
    * Helper method to wait for dropdown options to be populated with user data
    */
   private async waitForDropdownOptions(selectElement: Locator, minOptions = 2, timeout = 250): Promise<void> {
@@ -503,7 +462,7 @@ export class GroupDetailPage extends BasePage {
    * Verify debt amount in balance section across multiple pages
    */
   async verifyDebtAcrossPages(pages: Array<{ page: any; groupDetailPage: any }>, debtorName: string, creditorName: string, amount?: string): Promise<void> {
-    for (const { page, groupDetailPage } of pages) {
+    for (const { page } of pages) {
       const balancesSection = page.locator('.bg-white').filter({ 
         has: page.getByRole('heading', { name: 'Balances' }) 
       }).first();
@@ -899,5 +858,15 @@ export class GroupDetailPage extends BasePage {
     const balancesSection = this.getBalancesSection();
     const settledMessage = balancesSection.getByText('All settled up!');
     return await settledMessage.isVisible();
+  }
+
+  /**
+   * Gets the admin badge element specifically.
+   * This targets the small badge text, not the group heading or description.
+   */
+  getAdminBadge() {
+    // Target the admin badge which is typically a small text element with specific styling
+    // Use exact match and look for the element with the smallest font size (text-xs class)
+    return this.page.locator('.text-xs').filter({ hasText: 'Admin' }).first();
   }
 }
