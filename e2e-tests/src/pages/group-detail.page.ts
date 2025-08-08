@@ -1,6 +1,6 @@
 import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
-import { HEADINGS, BUTTON_TEXTS, MESSAGES, FORM_LABELS, ARIA_ROLES, CLASS_SELECTORS } from '../constants/selectors';
+import { HEADINGS, BUTTON_TEXTS, MESSAGES, FORM_LABELS, ARIA_ROLES } from '../constants/selectors';
 
 interface ExpenseData {
   description: string;

@@ -1,6 +1,6 @@
-import { signal } from '@preact/signals';
-import type { Group, ExpenseData, GroupBalances, User } from '@shared/types/webapp-shared-types';
-import { apiClient } from '../apiClient';
+import {signal} from '@preact/signals';
+import type {ExpenseData, Group, GroupBalances, User} from '@shared/types/webapp-shared-types';
+import {apiClient} from '../apiClient';
 
 export interface GroupDetailStore {
   group: Group | null;
@@ -57,8 +57,7 @@ class GroupDetailStoreImpl implements GroupDetailStore {
     errorSignal.value = null;
 
     try {
-      const group = await apiClient.getGroup(id) as Group;
-      groupSignal.value = group;
+      groupSignal.value = await apiClient.getGroup(id) as Group;
 
       // Fetch members, balances and expenses in parallel
       await Promise.all([
@@ -131,8 +130,7 @@ class GroupDetailStoreImpl implements GroupDetailStore {
     errorSignal.value = null;
 
     try {
-      const balances = await apiClient.getGroupBalances(groupSignal.value.id);
-      balancesSignal.value = balances;
+      balancesSignal.value = await apiClient.getGroupBalances(groupSignal.value.id);
     } catch (error) {
       errorSignal.value = error instanceof Error ? error.message : 'Failed to fetch balances';
       throw error;

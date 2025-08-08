@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import { ApiDriver } from '../__tests__/support/ApiDriver';
-import { ExpenseBuilder } from '../__tests__/support/builders/ExpenseBuilder';
-import { logger } from '../src/logger';
-import type { User } from '../__tests__/support/ApiDriver';
-import type { Group } from '../src/types/webapp-shared-types';
+import type {User} from '../__tests__/support/ApiDriver';
+import {ApiDriver} from '../__tests__/support/ApiDriver';
+import {ExpenseBuilder} from '../__tests__/support/builders/ExpenseBuilder';
+import {logger} from '../src/logger';
+import type {Group} from '../src/types/webapp-shared-types';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -331,13 +331,11 @@ async function createTestExpense(
       .build();
 
     // Create expense via ApiDriver with retry logic
-    const response = await retryWithBackoff(
-      () => driver.createExpense(expenseData, createdBy.token),
-      3,  // max attempts
-      500 // initial delay 500ms
+    return await retryWithBackoff(
+        () => driver.createExpense(expenseData, createdBy.token),
+        3,  // max attempts
+        500 // initial delay 500ms
     );
-
-    return response;
   } catch (error) {
     logger.error(`✗ Failed to create expense ${expense.description}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;

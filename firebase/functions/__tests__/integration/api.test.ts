@@ -47,10 +47,9 @@ describe('Comprehensive API Test Suite', () => {
           .withName(`Test Group ${uuidv4()}`)
           .build();
 
-        const response = await driver.createGroup(groupData, users[0].token);
+        const createdGroup = await driver.createGroup(groupData, users[0].token);
 
-        expect(response.id).toBeDefined();
-        const createdGroup = response;
+        expect(createdGroup.id).toBeDefined();
 
         // Verify the group was created
         const fetchedGroup = await driver.getGroup(createdGroup.id, users[0].token);

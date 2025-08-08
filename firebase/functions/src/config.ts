@@ -1,8 +1,8 @@
-import { z } from 'zod';
-import { RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, WarningBanner } from './types/webapp-shared-types';
-import { validateAppConfiguration } from './middleware/config-validation';
-import { logger } from './logger';
+import {z} from 'zod';
+import {DOCUMENT_CONFIG, RATE_LIMITS, SYSTEM, VALIDATION_LIMITS} from './constants';
+import {ApiConfig, AppConfiguration, EnvironmentConfig, FirebaseConfig, WarningBanner} from './types/webapp-shared-types';
+import {validateAppConfiguration} from './middleware/config-validation';
+import {logger} from './logger';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: Config | null = null;
@@ -196,16 +196,14 @@ function buildAppConfiguration(): AppConfiguration {
   const environment: EnvironmentConfig = {
     warningBanner: getWarningBanner(config)
   };
-  
-  const appConfig: AppConfiguration = {
+
+  return {
     firebase,
     api,
     environment,
     formDefaults: config.formDefaults,
     firebaseAuthUrl: getFirebaseAuthUrl(config, env)
   };
-  
-  return appConfig;
 }
 
 // Export lazy getter for APP_CONFIG

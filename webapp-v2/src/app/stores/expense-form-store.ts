@@ -1,9 +1,9 @@
-import { signal } from '@preact/signals';
+import {signal} from '@preact/signals';
 import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit} from '@shared/types/webapp-shared-types';
-import { apiClient, ApiError } from '../apiClient';
-import { groupDetailStore } from './group-detail-store';
-import { groupsStore } from './groups-store';
-import { logWarning } from '../../utils/browser-logger';
+import {apiClient, ApiError} from '../apiClient';
+import {groupDetailStore} from './group-detail-store';
+import {groupsStore} from './groups-store';
+import {logWarning} from '../../utils/browser-logger';
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
@@ -275,12 +275,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     const remainder = amount - (splitAmount * participants.length);
     
     // Create splits
-    const splits: ExpenseSplit[] = participants.map((userId, index) => ({
+    splitsSignal.value = participants.map((userId, index) => ({
       userId,
       amount: index === 0 ? splitAmount + remainder : splitAmount
     }));
-    
-    splitsSignal.value = splits;
   }
 
   updateSplitAmount(userId: string, amount: number): void {

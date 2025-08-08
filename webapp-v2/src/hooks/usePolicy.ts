@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'preact/hooks';
-import { signal } from '@preact/signals';
 import { logError } from '../utils/browser-logger';
 
 // Policy-related types
