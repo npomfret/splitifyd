@@ -136,63 +136,81 @@ If you have questions about this privacy policy, please contact us.`;
 
     // Seed Terms of Service
     const termsRef = firestore
-      .collection(FirestoreCollections.DOCUMENTS)
+      .collection(FirestoreCollections.GROUPS)
       .doc(PolicyIds.TERMS_OF_SERVICE);
     
+    const termsHash = calculatePolicyHash(termsText);
     batch.set(termsRef, {
       id: PolicyIds.TERMS_OF_SERVICE,
-      type: 'policy',
-      name: 'Terms of Service',
-      text: termsText,
-      hash: calculatePolicyHash(termsText),
-      version: '1.0.0',
+      policyName: 'Terms of Service',
+      currentVersionHash: termsHash,
+      versions: {
+        [termsHash]: {
+          text: termsText,
+          version: '1.0.0',
+          createdAt: now,
+          updatedAt: now,
+          publishedAt: now,
+          status: 'published'
+        }
+      },
       createdAt: now,
-      updatedAt: now,
-      publishedAt: now,
-      status: 'published'
+      updatedAt: now
     });
 
     // Seed Cookie Policy
     const cookieRef = firestore
-      .collection(FirestoreCollections.DOCUMENTS)
+      .collection(FirestoreCollections.GROUPS)
       .doc(PolicyIds.COOKIE_POLICY);
     
+    const cookieHash = calculatePolicyHash(cookieText);
     batch.set(cookieRef, {
       id: PolicyIds.COOKIE_POLICY,
-      type: 'policy',
-      name: 'Cookie Policy',
-      text: cookieText,
-      hash: calculatePolicyHash(cookieText),
-      version: '1.0.0',
+      policyName: 'Cookie Policy',
+      currentVersionHash: cookieHash,
+      versions: {
+        [cookieHash]: {
+          text: cookieText,
+          version: '1.0.0',
+          createdAt: now,
+          updatedAt: now,
+          publishedAt: now,
+          status: 'published'
+        }
+      },
       createdAt: now,
-      updatedAt: now,
-      publishedAt: now,
-      status: 'published'
+      updatedAt: now
     });
 
     // Seed Privacy Policy
     const privacyRef = firestore
-      .collection(FirestoreCollections.DOCUMENTS)
+      .collection(FirestoreCollections.GROUPS)
       .doc(PolicyIds.PRIVACY_POLICY);
     
+    const privacyHash = calculatePolicyHash(privacyText);
     batch.set(privacyRef, {
       id: PolicyIds.PRIVACY_POLICY,
-      type: 'policy',
-      name: 'Privacy Policy',
-      text: privacyText,
-      hash: calculatePolicyHash(privacyText),
-      version: '1.0.0',
+      policyName: 'Privacy Policy',
+      currentVersionHash: privacyHash,
+      versions: {
+        [privacyHash]: {
+          text: privacyText,
+          version: '1.0.0',
+          createdAt: now,
+          updatedAt: now,
+          publishedAt: now,
+          status: 'published'
+        }
+      },
       createdAt: now,
-      updatedAt: now,
-      publishedAt: now,
-      status: 'published'
+      updatedAt: now
     });
 
     await batch.commit();
     console.log('✅ Successfully seeded all policies');
     
     // Verify the policies were created
-    const docs = await firestore.collection(FirestoreCollections.DOCUMENTS).get();
+    const docs = await firestore.collection(FirestoreCollections.GROUPS).get();
     console.log(`Total documents in collection: ${docs.size}`);
     
   } catch (error) {

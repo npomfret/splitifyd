@@ -54,7 +54,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
   const userId = req.user!.uid;
 
   try {
-    const groupRef = admin.firestore().collection(FirestoreCollections.DOCUMENTS).doc(groupId);
+    const groupRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
     const groupDoc = await groupRef.get();
 
     if (!groupDoc.exists) {
@@ -164,7 +164,7 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
 
   try {
     const groupsQuery = await admin.firestore()
-      .collection(FirestoreCollections.DOCUMENTS)
+      .collection(FirestoreCollections.GROUPS)
       .where('data.shareableLink', '==', linkId)
       .limit(1)
       .get();
@@ -237,7 +237,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
 
   try {
     const groupsQuery = await admin.firestore()
-      .collection(FirestoreCollections.DOCUMENTS)
+      .collection(FirestoreCollections.GROUPS)
       .where('data.shareableLink', '==', linkId)
       .limit(1)
       .get();
@@ -254,7 +254,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     const groupId = groupDoc.id;
 
     const result = await admin.firestore().runTransaction(async (transaction) => {
-      const groupRef = admin.firestore().collection(FirestoreCollections.DOCUMENTS).doc(groupId);
+      const groupRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
       const groupSnapshot = await transaction.get(groupRef);
       
       if (!groupSnapshot.exists) {

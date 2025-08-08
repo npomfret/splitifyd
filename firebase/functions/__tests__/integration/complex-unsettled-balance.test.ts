@@ -43,9 +43,9 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     
     // Verify both members are in the group
     const groupAfterJoin = await driver.getGroup(group.id, alice.token);
-    expect(groupAfterJoin.members).toHaveLength(2);
-    expect(groupAfterJoin.members).toContainEqual(expect.objectContaining({ uid: alice.uid }));
-    expect(groupAfterJoin.members).toContainEqual(expect.objectContaining({ uid: bob.uid }));
+    expect(groupAfterJoin.memberIds).toHaveLength(2);
+    expect(groupAfterJoin.memberIds).toContain(alice.uid);
+    expect(groupAfterJoin.memberIds).toContain(bob.uid);
     
     // Alice adds beach house expense ($800) - paid by Alice, split equally among all
     const expense1Data = new ExpenseBuilder()

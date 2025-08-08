@@ -197,14 +197,9 @@ describe('Comprehensive Security Test Suite', () => {
 
         const maliciousUpdate = {
           data: {
-            members: [
-              ...testGroup.members,
-              { 
-                uid: unauthorizedUser.uid, 
-                email: unauthorizedUser.email, 
-                name: unauthorizedUser.displayName,
-                initials: 'UU'
-              }
+            memberIds: [
+              ...(testGroup.memberIds || []),
+              unauthorizedUser.uid
             ]
           }
         };

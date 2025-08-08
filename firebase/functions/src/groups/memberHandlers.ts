@@ -64,7 +64,7 @@ export const getGroupMembers = async (
   
   try {
     // Verify user has access to the group
-    const docRef = admin.firestore().collection(FirestoreCollections.DOCUMENTS).doc(groupId);
+    const docRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
     const doc = await docRef.get();
     
     if (!doc.exists) {

@@ -12,7 +12,8 @@ export const UserRoles = {
 } as const;
 
 export const FirestoreCollections = {
-  DOCUMENTS: 'groups',
+  DOCUMENTS: 'documents',
+  GROUPS: 'groups',
   EXPENSES: 'expenses',
   SETTLEMENTS: 'settlements',
   USERS: 'users',

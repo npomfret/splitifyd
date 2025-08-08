@@ -291,20 +291,20 @@ app.get(`/${FirestoreCollections.EXPENSES}/user`, authenticate, asyncHandler(lis
 app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
 
 // NEW Group endpoints (requires auth) - RESTful API
-app.post(`/${FirestoreCollections.DOCUMENTS}`, authenticate, asyncHandler(createGroup));
-app.get(`/${FirestoreCollections.DOCUMENTS}`, authenticate, asyncHandler(listGroups));
+app.post(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(createGroup));
+app.get(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(listGroups));
 
 // Specific group endpoints must come BEFORE :id routes
-app.get(`/${FirestoreCollections.DOCUMENTS}/balances`, authenticate, asyncHandler(getGroupBalances));
-app.post(`/${FirestoreCollections.DOCUMENTS}/share`, authenticate, asyncHandler(generateShareableLink));
-app.post(`/${FirestoreCollections.DOCUMENTS}/preview`, authenticate, asyncHandler(previewGroupByLink));
-app.post(`/${FirestoreCollections.DOCUMENTS}/join`, authenticate, asyncHandler(joinGroupByLink));
+app.get(`/${FirestoreCollections.GROUPS}/balances`, authenticate, asyncHandler(getGroupBalances));
+app.post(`/${FirestoreCollections.GROUPS}/share`, authenticate, asyncHandler(generateShareableLink));
+app.post(`/${FirestoreCollections.GROUPS}/preview`, authenticate, asyncHandler(previewGroupByLink));
+app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(joinGroupByLink));
 
 // Parameterized routes come last
-app.get(`/${FirestoreCollections.DOCUMENTS}/:id`, authenticate, asyncHandler(getGroup));
-app.get(`/${FirestoreCollections.DOCUMENTS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
-app.put(`/${FirestoreCollections.DOCUMENTS}/:id`, authenticate, asyncHandler(updateGroup));
-app.delete(`/${FirestoreCollections.DOCUMENTS}/:id`, authenticate, asyncHandler(deleteGroup));
+app.get(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(getGroup));
+app.get(`/${FirestoreCollections.GROUPS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
+app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
+app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
 
 // Settlement endpoints (requires auth)
 app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));

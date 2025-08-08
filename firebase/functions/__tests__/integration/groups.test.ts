@@ -40,9 +40,9 @@ describe('RESTful Group Endpoints', () => {
       expect(response.name).toBe(groupData.name);
       expect(response.description).toBe(groupData.description);
       expect(response.createdBy).toBe(users[0].uid);
-      expect(response.members).toHaveLength(1);
-      expect(response.members[0].uid).toBe(users[0].uid);
-      // memberIds is not part of the response - only members array and memberCount
+      expect(response.memberIds).toHaveLength(1);
+      expect(response.memberIds[0]).toBe(users[0].uid);
+      // memberIds is the array of member UIDs
       // expenseCount removed - calculated on demand
     });
 
@@ -58,7 +58,7 @@ describe('RESTful Group Endpoints', () => {
 
       const response = await driver.createGroup(groupData, users[0].token);
 
-      expect(response.memberCount).toBe(1);
+      expect(response.memberIds).toHaveLength(1);
       expect(response.id).toBeDefined();
       expect(response.name).toBe(groupData.name);
     });
@@ -132,7 +132,7 @@ describe('RESTful Group Endpoints', () => {
       expect(response.id).toBe(testGroup.id);
       expect(response.name).toBe(testGroup.name);
       expect(response.description).toBe(testGroup.description);
-      expect(response.members).toHaveLength(1);
+      expect(response.memberIds).toHaveLength(1);
       expect(response.balance).toBeDefined();
       // userBalance is null for groups without expenses
       if (response.balance.userBalance) {
@@ -368,7 +368,7 @@ describe('RESTful Group Endpoints', () => {
       const firstGroup = response.groups[0];
       expect(firstGroup).toHaveProperty('id');
       expect(firstGroup).toHaveProperty('name');
-      expect(firstGroup).toHaveProperty('memberCount');
+      expect(firstGroup).toHaveProperty('memberIds');
       expect(firstGroup).toHaveProperty('balance');
       expect(firstGroup.balance).toHaveProperty('totalOwed');
       expect(firstGroup.balance).toHaveProperty('totalOwing');

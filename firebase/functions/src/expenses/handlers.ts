@@ -22,7 +22,7 @@ const getExpensesCollection = () => {
 };
 
 const getGroupsCollection = () => {
-  return admin.firestore().collection(FirestoreCollections.DOCUMENTS);
+  return admin.firestore().collection(FirestoreCollections.GROUPS);
 };
 
 const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {

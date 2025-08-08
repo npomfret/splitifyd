@@ -28,7 +28,7 @@ const getSettlementsCollection = () => {
 };
 
 const getGroupsCollection = () => {
-  return admin.firestore().collection(FirestoreCollections.DOCUMENTS);
+  return admin.firestore().collection(FirestoreCollections.GROUPS);
 };
 
 const getUsersCollection = () => {

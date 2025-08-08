@@ -41,7 +41,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     });
 
     const groupDoc = await db
-        .collection(FirestoreCollections.DOCUMENTS)
+        .collection(FirestoreCollections.GROUPS)
         .doc(groupId)
         .get();
 
