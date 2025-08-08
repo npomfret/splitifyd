@@ -20,7 +20,6 @@ test.describe('Security and Access Control', () => {
     const groupName = generateTestGroupName('Access');
     await groupWorkflow.createGroup(groupName, 'Testing access control');
     
-    await expect(page1).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     const groupUrl = page1.url();
     
     // User 2 (already authenticated via fixture) tries to access User 1's group

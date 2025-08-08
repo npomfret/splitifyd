@@ -14,8 +14,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Create a test group
     await groupWorkflow.createGroup(generateTestGroupName('NegativeValidation'), 'Testing negative value validation');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Navigate to add expense
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
@@ -63,8 +62,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Create a test group
     await groupWorkflow.createGroup(generateTestGroupName('ZeroValidation'), 'Testing zero value validation');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Navigate to add expense
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
@@ -96,8 +94,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('SettleNegative'), 'Testing negative settlements');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Share and join
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
@@ -176,8 +173,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('NegativeSplit'), 'Testing negative split amounts');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Share and join
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
@@ -238,8 +234,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Create a test group
     await groupWorkflow.createGroup(generateTestGroupName('HTML5Validation'), 'Testing HTML5 validation');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Navigate to add expense
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);

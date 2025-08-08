@@ -42,8 +42,7 @@ test.describe('Three User Settlement Management', () => {
     
     // 1. Create a group with 3 users
     await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Get share link and have users join
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();

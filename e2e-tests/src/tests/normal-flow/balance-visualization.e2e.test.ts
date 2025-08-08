@@ -113,8 +113,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Setup 2-person group with unique ID
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
@@ -163,8 +162,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
@@ -207,8 +205,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
@@ -261,8 +258,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
@@ -312,8 +308,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
@@ -354,7 +349,6 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Step 1: Create group and verify
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await multiUserExpected(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
     // Step 2: Get share link
@@ -488,8 +482,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
     await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
-    await multiUserExpected(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');

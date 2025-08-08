@@ -13,8 +13,6 @@ test.describe('Basic Expense Operations E2E', () => {
     await groupWorkflow.createGroup(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
     const groupInfo = { user };
 
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
     // Create expense using page object
     await groupDetailPage.addExpense({
       description: 'Test Expense Lifecycle',

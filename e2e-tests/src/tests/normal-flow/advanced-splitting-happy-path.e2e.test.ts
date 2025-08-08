@@ -14,10 +14,8 @@ test.describe('Advanced Splitting Options', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create a single group for the entire user journey
-    const groupId = await groupWorkflow.createGroup('Advanced Splitting Test Group');
-    await page.goto(`/groups/${groupId}`);
-    await expect(page).toHaveURL(`/groups/${groupId}`);
-    
+    await groupWorkflow.createGroup('Advanced Splitting Test Group');
+
     // === EQUAL SPLIT EXPENSE ===
     await groupDetailPage.getAddExpenseButton().click();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);

@@ -12,11 +12,7 @@ test.describe('Group Details E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     const groupName = generateTestGroupName('Details');
     const groupId = await groupWorkflow.createGroup(groupName, 'Test group for details page');
-    
-    // Navigate to the created group
-    await page.goto(`/groups/${groupId}`);
-    await expect(page).toHaveURL(`/groups/${groupId}`);
-    
+
     // Verify group information displays correctly
     await expect(groupDetailPage.getGroupTitle()).toContainText(groupName);
     await expect(groupDetailPage.getGroupDescription()).toBeVisible();

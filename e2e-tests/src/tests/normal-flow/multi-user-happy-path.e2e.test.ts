@@ -13,8 +13,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('Shared'), 'Testing group sharing');
 
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-
     await expect(groupDetailPage.getShareButton()).toBeVisible();
     await groupDetailPage.getShareButton().click();
     
@@ -48,8 +46,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
     const user1 = user;
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Get share link
     await groupDetailPage.getShareButton().click();
@@ -109,8 +105,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('Admin'), 'Testing admin badge');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
     await expect(page.getByText('Admin', { exact: true })).toBeVisible();
   });
 
@@ -118,8 +112,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('Solo'), 'Testing multiple expenses');
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add multiple expenses
     const expenses = [
@@ -152,8 +144,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupWorkflow.createGroup(generateTestGroupName('Balance'), 'Testing balance calculations');
     const groupInfo = { user };
     const user1 = groupInfo.user;
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Get share link
     await groupDetailPage.getShareButton().click();

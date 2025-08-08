@@ -16,8 +16,7 @@ test.describe('Settlement Management', () => {
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Share and join
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
@@ -81,8 +80,7 @@ test.describe('Settlement Management', () => {
     
     // Create group and add second user
     await groupWorkflow.createGroup('Multi-Currency Test', 'Testing multiple currencies');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    
+
     // Share and join
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
