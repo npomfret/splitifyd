@@ -93,14 +93,46 @@ const getTestConfig = (): TestDataConfig => {
 const generateTestUsers = (config: TestDataConfig): TestUser[] => {
   const users: TestUser[] = [];
   
-  // Generate users based on config
-  for (let i = 1; i <= config.userCount; i++) {
+  // Keep test1@test.com as the first user for easy reference
+  users.push({
+    email: 'test1@test.com',
+    password: 'rrRR44$$',
+    displayName: 'Bill Splitter'
+  });
+  
+  // More realistic test users with @example.com emails
+  const testUsers = [
+    { email: 'sarah.johnson@example.com', displayName: 'Sarah Johnson' },
+    { email: 'mike.chen@example.com', displayName: 'Mike Chen' },
+    { email: 'emily.davis@example.com', displayName: 'Emily Davis' },
+    { email: 'alex.martinez@example.com', displayName: 'Alex Martinez' },
+    { email: 'jessica.taylor@example.com', displayName: 'Jessica Taylor' },
+    { email: 'david.wilson@example.com', displayName: 'David Wilson' },
+    { email: 'lisa.anderson@example.com', displayName: 'Lisa Anderson' },
+    { email: 'james.thompson@example.com', displayName: 'James Thompson' },
+    { email: 'amanda.garcia@example.com', displayName: 'Amanda Garcia' },
+    { email: 'robert.lee@example.com', displayName: 'Robert Lee' },
+    { email: 'michelle.brown@example.com', displayName: 'Michelle Brown' },
+    { email: 'chris.rodriguez@example.com', displayName: 'Chris Rodriguez' },
+    { email: 'jennifer.white@example.com', displayName: 'Jennifer White' },
+    { email: 'daniel.harris@example.com', displayName: 'Daniel Harris' },
+    { email: 'sophia.clark@example.com', displayName: 'Sophia Clark' },
+    { email: 'matthew.lewis@example.com', displayName: 'Matthew Lewis' },
+    { email: 'olivia.walker@example.com', displayName: 'Olivia Walker' },
+    { email: 'ryan.hall@example.com', displayName: 'Ryan Hall' },
+    { email: 'natalie.young@example.com', displayName: 'Natalie Young' },
+    { email: 'kevin.allen@example.com', displayName: 'Kevin Allen' }
+  ];
+  
+  // Add users based on config count (minus 1 since we already have test1@test.com)
+  const remainingCount = Math.min(config.userCount - 1, testUsers.length);
+  for (let i = 0; i < remainingCount; i++) {
     users.push({
-      email: `test${i}@test.com`,
-      password: 'rrRR44$$',
-      displayName: `Test User ${i}`
+      ...testUsers[i],
+      password: 'rrRR44$$'
     });
   }
+  
   return users;
 };
 
