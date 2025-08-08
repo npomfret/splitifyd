@@ -15,13 +15,11 @@ Implementing multi-currency support with **per-currency separation** of balances
 - Need client-side data enrichment layer for formatting
 - Must support 167 currencies from 1Forge API
 - Balance calculations and debt simplification per currency
-- **Backward compatibility**: Default existing expenses to USD
 
 ## Phase 1: Core Data Model Changes
 
 ### 1.1 Backend Schema Updates
 - **Add `currency` field to ExpenseData interface** (firebase/functions/src/types/webapp-shared-types.ts)
-  - Default value: 'USD' for backward compatibility
   - Required field for new expenses
 - **Add `currency` to CreateExpenseRequest/UpdateExpenseRequest**
 - **Update API schemas** (webapp-v2/src/api/apiSchemas.ts) with currency validation
@@ -87,7 +85,6 @@ Create `webapp-v2/src/app/services/currencyService.ts`:
 
 ### 4.2 API Endpoint Updates
 - **Validate currency codes** in expense creation/updates
-- **Default to USD** if currency not provided (backward compatibility)
 - **Group balances response** includes per-currency breakdowns
 - **Settlement validation** ensures currency matching where applicable
 
@@ -110,7 +107,6 @@ Create `webapp-v2/src/app/services/currencyService.ts`:
 - **Balance calculation with mixed currencies**
 - **Settlement creation with currency validation**
 - **Default currency persistence and retrieval**
-- **API backward compatibility** (expenses without currency field)
 
 ### 5.3 E2E Tests (Following Strict Guidelines)
 Create `e2e-tests/src/tests/normal-flow/multi-currency-basic.e2e.test.ts`:
@@ -390,7 +386,6 @@ To make creating expenses faster, the currency field should have a smart default
 ## Risk Mitigation
 
 ### Technical Risks
-- **Backward compatibility**: Thorough testing of existing data
 - **Data integrity**: Strict validation at API boundaries
 - **Performance impact**: Client-side formatting only, minimal server changes
 - **Testing complexity**: Comprehensive E2E suite following strict guidelines
@@ -409,7 +404,6 @@ To make creating expenses faster, the currency field should have a smart default
 ✅ **E2E tests passing** with 1s timeouts and parallel execution
 ✅ **No automatic conversion** implemented
 ✅ **All existing functionality preserved** 
-✅ **Backward compatibility** maintained for existing expenses
 ✅ **Performance impact minimal** (< 100ms additional load time)
 
 ## Future Enhancements (Separate Tasks)
