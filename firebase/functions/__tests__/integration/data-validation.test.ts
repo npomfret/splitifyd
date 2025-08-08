@@ -5,7 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../support/builders';
-import { GroupBuilder } from '../support/builders/GroupBuilder';
+import { GroupBuilder } from '../support/builders';
 
 describe('Enhanced Data Validation Tests', () => {
   let driver: ApiDriver;

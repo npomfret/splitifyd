@@ -14,7 +14,7 @@ import {
   Group,
   GroupWithBalance,
 } from '../types/group-types';
-import { UserBalance } from '../types/webapp-shared-types';
+import { UserBalance, FirestoreCollections } from '../types/webapp-shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
@@ -24,7 +24,7 @@ import { calculateExpenseMetadata } from '../services/expenseMetadataService';
  * Get the groups collection reference
  */
 const getGroupsCollection = () => {
-  return admin.firestore().collection('documents'); // Using existing collection during migration
+  return admin.firestore().collection(FirestoreCollections.DOCUMENTS); // Using existing collection during migration
 };
 
 
@@ -303,7 +303,7 @@ export const deleteGroup = async (
 
   // Check if group has expenses
   const expensesSnapshot = await admin.firestore()
-    .collection('expenses')
+    .collection(FirestoreCollections.EXPENSES)
     .where('groupId', '==', groupId)
     .limit(1)
     .get();

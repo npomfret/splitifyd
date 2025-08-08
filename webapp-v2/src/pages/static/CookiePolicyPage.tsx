@@ -3,7 +3,7 @@ import { usePolicy } from '../../hooks/usePolicy';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 
 export function CookiePolicyPage() {
-  const { policy, loading, error } = usePolicy('cookie-policy');
+  const { policy, loading, error } = usePolicy('COOKIE_POLICY');
   
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${baseUrl}/cookies`;
@@ -65,3 +65,4 @@ export function CookiePolicyPage() {
     </StaticPageLayout>
   );
 }
+

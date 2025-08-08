@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { ExpenseData, User } from '@shared/types/webapp-shared-types';
+import type { ExpenseData, User } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 interface ExpenseItemProps {
   expense: ExpenseData;
@@ -9,7 +10,7 @@ interface ExpenseItemProps {
 
 export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
   const paidByUser = members.find(m => m.uid === expense.paidBy);
-  const isDeleted = expense.deletedAt !== null && expense.deletedAt !== undefined;
+  const isDeleted = expense[DELETED_AT_FIELD] !== null && expense[DELETED_AT_FIELD] !== undefined;
   const deletedByUser = expense.deletedBy ? members.find(m => m.uid === expense.deletedBy) : null;
   
   return (

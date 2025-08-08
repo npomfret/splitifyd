@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { FirestoreCollections } from '../types/webapp-shared-types';
 
 export interface ExpenseMetadata {
   expenseCount: number;
@@ -19,7 +20,7 @@ export const calculateExpenseMetadata = async (groupId: string): Promise<Expense
   }
 
   const expensesQuery = admin.firestore()
-    .collection('expenses')
+    .collection(FirestoreCollections.EXPENSES)
     .where('groupId', '==', groupId)
     .orderBy('createdAt', 'desc');
 

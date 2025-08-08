@@ -1,5 +1,5 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting } from '../../helpers/index';
+import { setupConsoleErrorReporting } from '../../helpers';
 
 setupConsoleErrorReporting();
 

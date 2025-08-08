@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test-utils';
-import { CategorySuggestionInput } from '../CategorySuggestionInput';
+import { CategorySuggestionInput } from '@/components/ui';
 import type { ExpenseCategory } from '@shared/types/webapp-shared-types';
 
 // Test categories matching the predefined categories in the app

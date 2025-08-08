@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
+import { FirestoreCollections, PolicyIds } from '../types/webapp-shared-types';
 
 // Load environment variables
 const envPath = path.join(__dirname, '../../.env.development');
@@ -62,385 +63,137 @@ Last updated: ${new Date().toLocaleDateString()}
 
 ## 1. Acceptance of Terms
 
-By accessing and using Splitifyd ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+By accessing and using Splitifyd ("we", "our", "us"), you agree to be bound by these Terms of Service.
 
 ## 2. Description of Service
 
-Splitifyd is a group expense tracking and splitting application that allows users to:
-- Create and manage expense groups
-- Track shared expenses
-- Calculate and settle balances between group members
-- Share expense data with other group members
+Splitifyd is a bill-splitting application that helps groups manage shared expenses.
 
-## 3. User Accounts
+## 3. User Responsibilities
 
-### 3.1 Registration
-You must provide accurate and complete information when creating an account. You are responsible for maintaining the confidentiality of your account credentials.
+Users are responsible for maintaining accurate information and using the service lawfully.
 
-### 3.2 Account Security
-You are responsible for all activities that occur under your account. Notify us immediately of any unauthorized use.
+## 4. Privacy
 
-## 4. User Conduct
+Your use of our service is also governed by our Privacy Policy.
 
-You agree not to:
-- Use the Service for any illegal purposes
-- Impersonate any person or entity
-- Upload malicious code or interfere with the Service
-- Attempt to gain unauthorized access to the Service or its systems
-- Use the Service to harass, abuse, or harm others
+## 5. Limitation of Liability
 
-## 5. Privacy and Data
+The service is provided "as is" without warranties of any kind.
 
-### 5.1 Data Collection
-We collect and process data as described in our Privacy Policy. By using the Service, you consent to such processing.
+## 6. Changes to Terms
 
-### 5.2 User Data
-You retain ownership of the data you submit to the Service. You grant us a license to use this data solely to provide the Service to you.
+We reserve the right to modify these terms at any time.
 
-### 5.3 Data Sharing
-Expense data is shared among group members. You are responsible for only adding members who should have access to group financial information.
+## 7. Contact
 
-## 6. Intellectual Property
-
-The Service and its original content, features, and functionality are owned by Splitifyd and are protected by international copyright, trademark, and other intellectual property laws.
-
-## 7. Disclaimer of Warranties
-
-THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-
-## 8. Limitation of Liability
-
-IN NO EVENT SHALL SPLITIFYD BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, OR GOODWILL.
-
-## 9. Indemnification
-
-You agree to indemnify and hold harmless Splitifyd from any claims, damages, losses, liabilities, and expenses arising from your use of the Service or violation of these Terms.
-
-## 10. Termination
-
-We may terminate or suspend your account immediately, without prior notice, for conduct that we believe violates these Terms or is harmful to other users of the Service.
-
-## 11. Changes to Terms
-
-We reserve the right to modify these Terms at any time. We will notify users of any material changes. Your continued use of the Service after changes constitutes acceptance of the new Terms.
-
-## 12. Governing Law
-
-These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Splitifyd operates, without regard to its conflict of law provisions.
-
-## 13. Contact Information
-
-If you have any questions about these Terms, please contact us at support@splitifyd.com.`;
+If you have questions about these terms, please contact us.`;
 
   // Cookie Policy text
-  const cookiePolicyText = `# Cookie Policy
+  const cookieText = `# Cookie Policy
 
 Last updated: ${new Date().toLocaleDateString()}
 
-## 1. Introduction
+## What Are Cookies
 
-This Cookie Policy explains how Splitifyd ("we", "us", or "our") uses cookies and similar technologies to recognize you when you visit our application. It explains what these technologies are and why we use them, as well as your rights to control our use of them.
+Cookies are small text files stored on your device.
 
-## 2. What are cookies?
+## How We Use Cookies
 
-Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners in order to make their websites work, or to work more efficiently, as well as to provide reporting information.
+We use cookies for authentication and to improve your experience.
 
-## 3. Why do we use cookies?
+## Your Choices
 
-We use cookies for several reasons:
-
-### 3.1 Essential Cookies
-These cookies are strictly necessary to provide you with services available through our application and to use some of its features, such as:
-- User authentication and session management
-- Security features to protect against CSRF attacks
-- Maintaining your preferences and settings
-
-### 3.2 Performance and Analytics Cookies
-These cookies help us understand how visitors interact with our application by collecting and reporting information anonymously:
-- Page load times and performance metrics
-- Error tracking and debugging
-- Usage patterns to improve user experience
-
-### 3.3 Functionality Cookies
-These cookies enable enhanced functionality and personalization:
-- Remembering your preferences (e.g., language, currency)
-- Remembering your login details (if you choose)
-- Customizing the interface based on your choices
-
-## 4. Types of cookies we use
-
-### Session Cookies
-Temporary cookies that expire when you close your browser. Used for:
-- Maintaining your session while using the app
-- Security tokens for form submissions
-
-### Persistent Cookies
-Remain on your device for a set period. Used for:
-- Remember me functionality
-- User preferences
-- Analytics tracking
-
-## 5. Third-party cookies
-
-We may use third-party services that set their own cookies:
-
-### Firebase/Google Analytics
-- Used for app analytics and performance monitoring
-- Helps us understand usage patterns and improve the service
-- You can opt-out at: https://tools.google.com/dlpage/gaoptout
-
-### Authentication Providers
-- If you log in using third-party authentication (Google, Facebook, etc.)
-- These providers may set their own cookies
-
-## 6. How can you control cookies?
-
-### 6.1 Browser Settings
-Most web browsers allow you to control cookies through their settings:
-- Chrome: Settings > Privacy and security > Cookies
-- Firefox: Settings > Privacy & Security > Cookies
-- Safari: Preferences > Privacy > Cookies
-- Edge: Settings > Privacy, search, and services > Cookies
-
-### 6.2 Essential Cookies
-Note that blocking essential cookies may prevent you from using core features of our application.
-
-### 6.3 Do Not Track
-We respect Do Not Track signals and do not track, plant cookies, or use advertising when a Do Not Track browser mechanism is in place.
-
-## 7. Local Storage
-
-In addition to cookies, we may use local storage (HTML5) to store:
-- User preferences
-- Temporary form data
-- Offline data cache
-
-You can clear local storage through your browser's developer tools or settings.
-
-## 8. Updates to this Policy
-
-We may update this Cookie Policy from time to time. We will notify you of any changes by posting the new Cookie Policy on this page and updating the "Last updated" date.
-
-## 9. Contact Us
-
-If you have any questions about our Cookie Policy, please contact us at:
-- Email: privacy@splitifyd.com
-- Website: https://splitifyd.com/contact
-
-## 10. Your Rights
-
-Depending on your location, you may have certain rights regarding cookies:
-- Right to be informed about our cookie use
-- Right to withdraw consent
-- Right to opt-out of non-essential cookies
-- Right to request deletion of cookie data
-
-To exercise these rights, please contact us using the information above.`;
+You can control cookies through your browser settings.`;
 
   // Privacy Policy text
-  const privacyPolicyText = `# Privacy Policy
+  const privacyText = `# Privacy Policy
 
 Last updated: ${new Date().toLocaleDateString()}
 
-## 1. Introduction
+## Information We Collect
 
-Splitifyd ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our expense tracking application.
+We collect information you provide directly to us.
 
-## 2. Information We Collect
+## How We Use Your Information
 
-### 2.1 Personal Information
-Information you provide directly:
-- Name and email address
-- Password (stored encrypted)
-- Profile information
-- Payment and expense data you enter
+We use the information to provide and improve our services.
 
-### 2.2 Automatically Collected Information
-- Device information (type, OS, browser)
-- IP address and location data
-- Usage data and analytics
-- Cookies and similar technologies
+## Data Security
 
-## 3. How We Use Your Information
+We implement appropriate security measures to protect your data.
 
-We use your information to:
-- Provide and maintain the Service
-- Process expense tracking and calculations
-- Send notifications about group activities
-- Improve and optimize the Service
-- Comply with legal obligations
-- Prevent fraud and enhance security
+## Your Rights
 
-## 4. Information Sharing
+You have rights regarding your personal information.
 
-### 4.1 Within Groups
-- Expense data is shared with members of your groups
-- Profile information visible to group members
-- Transaction history accessible to group participants
+## Contact Us
 
-### 4.2 Third Parties
-We do not sell your personal information. We may share data with:
-- Service providers (hosting, analytics, email)
-- Legal authorities when required by law
-- Business partners with your consent
-
-## 5. Data Security
-
-We implement appropriate technical and organizational measures:
-- Encryption of data in transit and at rest
-- Regular security audits and updates
-- Access controls and authentication
-- Secure backup procedures
-
-## 6. Data Retention
-
-We retain your information:
-- Active account data: As long as your account is active
-- Deleted account data: Up to 90 days for recovery
-- Legal compliance: As required by applicable laws
-- Aggregated data: May be retained indefinitely
-
-## 7. Your Rights
-
-You have the right to:
-- Access your personal information
-- Correct inaccurate data
-- Request deletion of your data
-- Export your data (data portability)
-- Opt-out of marketing communications
-- Withdraw consent
-
-## 8. Children's Privacy
-
-Our Service is not intended for children under 13. We do not knowingly collect information from children under 13. If you believe we have collected such information, please contact us.
-
-## 9. International Data Transfers
-
-Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for such transfers.
-
-## 10. California Privacy Rights (CCPA)
-
-California residents have additional rights:
-- Right to know what personal information is collected
-- Right to know if information is sold or disclosed
-- Right to say no to the sale of personal information
-- Right to equal service and price
-
-## 11. European Privacy Rights (GDPR)
-
-EU residents have additional rights:
-- Legal basis for processing
-- Right to restriction of processing
-- Right to object to processing
-- Right to lodge a complaint with supervisory authority
-
-## 12. Changes to This Policy
-
-We may update this Privacy Policy periodically. We will notify you of material changes via email or in-app notification. Your continued use after changes constitutes acceptance.
-
-## 13. Contact Information
-
-For privacy-related questions or to exercise your rights:
-- Email: privacy@splitifyd.com
-- Data Protection Officer: dpo@splitifyd.com
-- Address: [Company Address]
-
-## 14. Cookies and Tracking
-
-Please refer to our separate Cookie Policy for detailed information about our use of cookies and similar technologies.
-
-## 15. Third-Party Links
-
-Our Service may contain links to third-party websites. We are not responsible for the privacy practices of these external sites.`;
+If you have questions about this privacy policy, please contact us.`;
 
   try {
-    console.log('Starting policy seed process...\n');
+    const batch = firestore.batch();
 
-    // Create Terms of Service
-    const termsId = 'terms-of-service';
-    const termsHash = calculatePolicyHash(termsText);
+    // Seed Terms of Service
+    const termsRef = firestore
+      .collection(FirestoreCollections.DOCUMENTS)
+      .doc(PolicyIds.TERMS_OF_SERVICE);
     
-    console.log(`Creating Terms of Service (${termsId})...`);
-    console.log(`  Hash: ${termsHash}`);
-    
-    await firestore.collection('policies').doc(termsId).set({
-      policyName: 'Terms of Service',
-      currentVersionHash: termsHash,
-      versions: {
-        [termsHash]: {
-          text: termsText,
-          createdAt: now
-        }
-      },
+    batch.set(termsRef, {
+      id: PolicyIds.TERMS_OF_SERVICE,
+      type: 'policy',
+      name: 'Terms of Service',
+      text: termsText,
+      hash: calculatePolicyHash(termsText),
+      version: '1.0.0',
       createdAt: now,
-      createdBy: 'system-seed',
+      updatedAt: now,
       publishedAt: now,
-      publishedBy: 'system-seed'
+      status: 'published'
     });
-    
-    console.log('✓ Terms of Service created\n');
 
-    // Create Cookie Policy
-    const cookieId = 'cookie-policy';
-    const cookieHash = calculatePolicyHash(cookiePolicyText);
+    // Seed Cookie Policy
+    const cookieRef = firestore
+      .collection(FirestoreCollections.DOCUMENTS)
+      .doc(PolicyIds.COOKIE_POLICY);
     
-    console.log(`Creating Cookie Policy (${cookieId})...`);
-    console.log(`  Hash: ${cookieHash}`);
-    
-    await firestore.collection('policies').doc(cookieId).set({
-      policyName: 'Cookie Policy',
-      currentVersionHash: cookieHash,
-      versions: {
-        [cookieHash]: {
-          text: cookiePolicyText,
-          createdAt: now
-        }
-      },
+    batch.set(cookieRef, {
+      id: PolicyIds.COOKIE_POLICY,
+      type: 'policy',
+      name: 'Cookie Policy',
+      text: cookieText,
+      hash: calculatePolicyHash(cookieText),
+      version: '1.0.0',
       createdAt: now,
-      createdBy: 'system-seed',
+      updatedAt: now,
       publishedAt: now,
-      publishedBy: 'system-seed'
+      status: 'published'
     });
-    
-    console.log('✓ Cookie Policy created\n');
 
-    // Create Privacy Policy
-    const privacyId = 'privacy-policy';
-    const privacyHash = calculatePolicyHash(privacyPolicyText);
+    // Seed Privacy Policy
+    const privacyRef = firestore
+      .collection(FirestoreCollections.DOCUMENTS)
+      .doc(PolicyIds.PRIVACY_POLICY);
     
-    console.log(`Creating Privacy Policy (${privacyId})...`);
-    console.log(`  Hash: ${privacyHash}`);
-    
-    await firestore.collection('policies').doc(privacyId).set({
-      policyName: 'Privacy Policy',
-      currentVersionHash: privacyHash,
-      versions: {
-        [privacyHash]: {
-          text: privacyPolicyText,
-          createdAt: now
-        }
-      },
+    batch.set(privacyRef, {
+      id: PolicyIds.PRIVACY_POLICY,
+      type: 'policy',
+      name: 'Privacy Policy',
+      text: privacyText,
+      hash: calculatePolicyHash(privacyText),
+      version: '1.0.0',
       createdAt: now,
-      createdBy: 'system-seed',
+      updatedAt: now,
       publishedAt: now,
-      publishedBy: 'system-seed'
-    });
-    
-    console.log('✓ Privacy Policy created\n');
-
-    // Verify all policies exist
-    console.log('Verifying policies...');
-    const policiesSnapshot = await firestore.collection('policies').get();
-    
-    console.log(`\nSuccessfully seeded ${policiesSnapshot.size} policies:`);
-    policiesSnapshot.forEach(doc => {
-      const data = doc.data();
-      console.log(`  - ${data.policyName} (${doc.id})`);
-      console.log(`    Current version: ${data.currentVersionHash.substring(0, 8)}...`);
+      status: 'published'
     });
 
-    console.log('\n✅ Policy seeding complete!');
-    console.log('The app should now work properly with registration requiring policy acceptance.');
+    await batch.commit();
+    console.log('✅ Successfully seeded all policies');
+    
+    // Verify the policies were created
+    const docs = await firestore.collection(FirestoreCollections.DOCUMENTS).get();
+    console.log(`Total documents in collection: ${docs.size}`);
     
   } catch (error) {
     console.error('❌ Error seeding policies:', error);
@@ -448,13 +201,13 @@ Our Service may contain links to third-party websites. We are not responsible fo
   }
 }
 
-// Run the seed function
+// Run the seeding
 seedPolicies()
   .then(() => {
-    console.log('\nExiting...');
+    console.log('✅ Policy seeding completed');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('Fatal error:', error);
+    console.error('❌ Fatal error:', error);
     process.exit(1);
   });

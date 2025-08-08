@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getAuthStore, createAuthStore } from '../../app/stores/auth-store';
-import type { AuthStore } from '../../types/auth';
+import { getAuthStore, createAuthStore } from '@/app/stores/auth-store.ts';
+import type { AuthStore } from '@/types/auth.ts';
 
 // Mock Firebase service with proper hoisting
 vi.mock('../../app/firebase', () => ({

@@ -1,5 +1,5 @@
 import {signal} from '@preact/signals';
-import type {ExpenseData, Group, GroupBalances, User} from '@shared/types/webapp-shared-types';
+import type {ExpenseData, Group, GroupBalances, User} from '../../../../firebase/functions/src/types/webapp-shared-types';
 import {apiClient} from '../apiClient';
 
 export interface GroupDetailStore {

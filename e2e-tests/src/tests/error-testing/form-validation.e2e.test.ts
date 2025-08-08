@@ -1,10 +1,10 @@
-import { pageTest, expect } from '../../fixtures/page-fixtures';
-import { authenticatedPageTest } from '../../fixtures/authenticated-page-test';
+import { pageTest, expect } from '../../fixtures';
+import { authenticatedPageTest } from '../../fixtures';
 import { test } from '@playwright/test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
-import { GroupDetailPage } from '../../pages/group-detail.page';
+import { GroupDetailPage } from '../../pages';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();

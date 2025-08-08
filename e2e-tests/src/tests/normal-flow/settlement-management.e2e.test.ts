@@ -1,6 +1,6 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
-import { GroupWorkflow } from '../../workflows/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
@@ -56,7 +56,7 @@ test.describe('Settlement Management', () => {
     const selectedPayerValue = await payerSelect.inputValue();
     
     // Manually set the payee to the same value using JavaScript to bypass filtering
-    await page.evaluate((payerValue) => {
+    await page.evaluate((payerValue: string) => {
       const payeeSelect = document.querySelector('select[id="payee"]') as HTMLSelectElement;
       if (payeeSelect) {
         payeeSelect.value = payerValue;

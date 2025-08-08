@@ -1,5 +1,5 @@
-import { pageTest, expect } from '../../fixtures/page-fixtures';
-import { RegisterPage } from '../../pages/register.page';
+import { pageTest, expect } from '../../fixtures';
+import { RegisterPage } from '../../pages';
 
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   pageTest.beforeEach(async ({ page }) => {

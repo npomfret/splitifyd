@@ -4,11 +4,12 @@ import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
 import { db } from '../firebase';
 import { userService } from './userService';
+import { FirestoreCollections, DELETED_AT_FIELD } from '../types/webapp-shared-types';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });
     const expensesSnapshot = await db
-        .collection('expenses')
+        .collection(FirestoreCollections.EXPENSES)
         .where('groupId', '==', groupId)
         .get();
 
@@ -17,7 +18,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
             id: doc.id,
             ...doc.data()
         }) as any)
-        .filter(expense => !expense.deletedAt);
+        .filter(expense => !expense[DELETED_AT_FIELD]);
     
     logger.info('[BalanceCalculator] Found expenses', { 
         totalExpenses: expensesSnapshot.size,
@@ -25,7 +26,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     });
 
     const settlementsSnapshot = await db
-        .collection('settlements')
+        .collection(FirestoreCollections.SETTLEMENTS)
         .where('groupId', '==', groupId)
         .get();
 
@@ -40,7 +41,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     });
 
     const groupDoc = await db
-        .collection('documents')
+        .collection(FirestoreCollections.DOCUMENTS)
         .doc(groupId)
         .get();
 

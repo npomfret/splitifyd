@@ -8,7 +8,10 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
   return {
     id: `group-${Math.random().toString(36).substr(2, 9)}`,
     name: 'Test Group',
-    memberCount: 1,
+    memberIds: ['test-user'],
+    createdBy: 'test-user',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     balance: {
       userBalance: {
         userId: 'test-user',
@@ -46,7 +49,7 @@ describe('GroupCard', () => {
   it('displays group name and basic info', () => {
     const group = createTestGroup({
       name: 'Trip to Paris',
-      memberCount: 3,
+      memberIds: ['user1', 'user2', 'user3'],
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -142,8 +145,7 @@ describe('GroupCard', () => {
 
     const group = createTestGroup({
       name: 'Large Group',
-      members,
-      memberCount: members.length
+      memberIds: members.map(m => m.uid)
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -165,8 +167,7 @@ describe('GroupCard', () => {
 
     const group = createTestGroup({
       name: 'Large Group',
-      members,
-      memberCount: members.length
+      memberIds: members.map(m => m.uid)
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -193,7 +194,7 @@ describe('GroupCard', () => {
   it('handles groups with single member correctly', () => {
     const group = createTestGroup({
       name: 'Solo Trip',
-      memberCount: 1
+      memberIds: ['test-user']
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -214,7 +215,7 @@ describe('GroupCard', () => {
   it('handles groups without members array', () => {
     const group = createTestGroup({
       name: 'No Members Array',
-      members: undefined
+      memberIds: undefined as any
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -226,7 +227,7 @@ describe('GroupCard', () => {
   it('handles empty members array', () => {
     const group = createTestGroup({
       name: 'Empty Members',
-      members: []
+      memberIds: []
     });
 
     render(<GroupCard group={group} onClick={mockOnClick} />);

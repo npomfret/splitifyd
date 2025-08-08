@@ -1,7 +1,7 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { multiUserTest, expect as multiUserExpected } from '../../fixtures/multi-user-test';
-import { GroupWorkflow } from '../../workflows/index';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { GroupWorkflow } from '../../workflows';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import {generateShortId} from "../../utils/test-helpers.ts";
 
 setupConsoleErrorReporting();

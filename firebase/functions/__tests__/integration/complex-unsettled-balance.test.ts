@@ -7,10 +7,10 @@
 import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { v4 as uuidv4 } from 'uuid';
-import { UserBuilder } from '../support/builders/UserBuilder';
-import { GroupBuilder } from '../support/builders/GroupBuilder';
-import { ExpenseBuilder } from '../support/builders/ExpenseBuilder';
-import { SettlementBuilder } from '../support/builders/SettlementBuilder';
+import { UserBuilder } from '../support/builders';
+import { GroupBuilder } from '../support/builders';
+import { ExpenseBuilder } from '../support/builders';
+import { SettlementBuilder } from '../support/builders';
 
 describe('Complex Unsettled Balance - API Integration Test', () => {
   let driver: ApiDriver;

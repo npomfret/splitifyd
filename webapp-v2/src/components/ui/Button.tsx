@@ -1,5 +1,5 @@
 import { JSX } from 'preact';
-import { logButtonClick } from '../../utils/browser-logger';
+import { logButtonClick } from '@/utils/browser-logger.ts';
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';

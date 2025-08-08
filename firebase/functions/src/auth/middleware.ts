@@ -4,6 +4,7 @@ import { Errors, sendError } from '../utils/errors';
 import { getConfig } from '../config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
+import { FirestoreCollections, UserRoles } from '../types/webapp-shared-types';
 
 /**
  * Extended Express Request with user information
@@ -13,7 +14,7 @@ export interface AuthenticatedRequest extends Request {
     uid: string;
     email: string;
     displayName: string;
-    role?: "admin" | "user";
+    role?: typeof UserRoles.ADMIN | typeof UserRoles.USER;
   };
 }
 /**
@@ -138,13 +139,13 @@ export const authenticate = async (
     }
     
     // Fetch user role from Firestore
-    const userDocRef = admin.firestore().collection("users").doc(userRecord.uid);
+    const userDocRef = admin.firestore().collection(FirestoreCollections.USERS).doc(userRecord.uid);
     const userDoc = await userDocRef.get();
     const userData = userDoc.data();
     
     // Default to "user" role for existing users without role field (backward compatibility)
     // New users should always have role field set during registration
-    const userRole = userData?.role ?? "user";
+    const userRole = userData?.role ?? UserRoles.USER;
     
     // Attach user information to request
     req.user = {
@@ -193,7 +194,7 @@ export const requireAdmin = async (
   }
 
   // Check if user has admin role
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== UserRoles.ADMIN) {
     logger.warn('Admin access denied - insufficient permissions', { 
       userId: req.user.uid,
       role: req.user.role,

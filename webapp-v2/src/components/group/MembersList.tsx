@@ -1,6 +1,6 @@
 import { Card } from '../ui/Card';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import type { User } from '@shared/types/webapp-shared-types';
+import type { User } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 interface MembersListProps {
   members: User[];

@@ -5,7 +5,7 @@ import { Errors } from '../utils/errors';
 import { userService } from '../services/userService';
 import { validateGroupId } from './validation';
 import { logger } from '../logger';
-import { User, GroupMembersResponse } from '../types/webapp-shared-types';
+import { User, GroupMembersResponse, FirestoreCollections } from '../types/webapp-shared-types';
 import { Group } from '../types/webapp-shared-types';
 
 /**
@@ -64,7 +64,7 @@ export const getGroupMembers = async (
   
   try {
     // Verify user has access to the group
-    const docRef = admin.firestore().collection('documents').doc(groupId);
+    const docRef = admin.firestore().collection(FirestoreCollections.DOCUMENTS).doc(groupId);
     const doc = await docRef.get();
     
     if (!doc.exists) {

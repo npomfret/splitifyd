@@ -1,6 +1,6 @@
 import { useContext } from 'preact/hooks';
 import { AuthContext } from '../providers/AuthProvider';
-import type { AuthStore } from '../../types/auth';
+import type { AuthStore } from '@/types/auth.ts';
 
 /**
  * Use this hook in components that require authentication.

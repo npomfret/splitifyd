@@ -1,5 +1,5 @@
 import {defineConfig, devices} from '@playwright/test';
-import {EMULATOR_URL} from './src/helpers/index';
+import {EMULATOR_URL} from './src/helpers';
 
 /**
  * @see https://playwright.dev/docs/test-configuration

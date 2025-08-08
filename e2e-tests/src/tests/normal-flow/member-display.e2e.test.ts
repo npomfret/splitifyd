@@ -1,5 +1,5 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
 

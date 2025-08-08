@@ -2,8 +2,8 @@ import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure
-} from '../../helpers/index';
-import { GroupWorkflow } from '../../workflows/index';
+} from '../../helpers';
+import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 // Enable console error reporting and MCP debugging

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
-import { pageTest, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { pageTest, expect } from '../../fixtures';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();

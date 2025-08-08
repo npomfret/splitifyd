@@ -3,7 +3,7 @@ import { usePolicy } from '../../hooks/usePolicy';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 
 export function PrivacyPolicyPage() {
-  const { policy, loading, error } = usePolicy('privacy-policy');
+  const { policy, loading, error } = usePolicy('PRIVACY_POLICY');
   
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${baseUrl}/privacy-policy`;
@@ -65,3 +65,4 @@ export function PrivacyPolicyPage() {
     </StaticPageLayout>
   );
 }
+

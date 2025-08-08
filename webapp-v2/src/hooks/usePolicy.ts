@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { logError } from '../utils/browser-logger';
+import { PolicyIds } from '@shared/types/webapp-shared-types';
 
 // Policy-related types
 interface PolicySummary {
@@ -51,7 +52,7 @@ async function fetchCurrentPolicy(policyId: string): Promise<PolicyResponse> {
 }
 
 // Hook for fetching a single policy
-export function usePolicy(policyId: string) {
+export function usePolicy(policyId: keyof typeof PolicyIds) {
   const [policy, setPolicy] = useState<PolicyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +64,7 @@ export function usePolicy(policyId: string) {
       try {
         setLoading(true);
         setError(null);
-        const policyData = await fetchCurrentPolicy(policyId);
+        const policyData = await fetchCurrentPolicy(PolicyIds[policyId]);
         
         if (!cancelled) {
           setPolicy(policyData);

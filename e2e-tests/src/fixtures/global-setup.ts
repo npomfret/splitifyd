@@ -1,5 +1,5 @@
 import { chromium } from '@playwright/test';
-import {EMULATOR_URL} from '../helpers/emulator-utils';
+import {EMULATOR_URL} from '../helpers';
 
 async function globalSetup() {
   console.log('🚀 Starting e2e test global setup...');

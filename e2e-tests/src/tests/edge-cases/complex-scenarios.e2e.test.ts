@@ -1,6 +1,6 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
-import { GroupDetailPage } from '../../pages/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupDetailPage } from '../../pages';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();

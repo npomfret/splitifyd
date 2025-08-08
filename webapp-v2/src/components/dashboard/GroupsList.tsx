@@ -1,5 +1,5 @@
 import { route } from 'preact-router';
-import { groupsStore } from '../../app/stores/groups-store';
+import { groupsStore } from '@/app/stores/groups-store.ts';
 import { LoadingSpinner } from '../ui';
 import { GroupCard } from './GroupCard';
 import { EmptyGroupsState } from './EmptyGroupsState';

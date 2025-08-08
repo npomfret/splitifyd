@@ -1,5 +1,5 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';

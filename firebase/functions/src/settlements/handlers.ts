@@ -18,20 +18,21 @@ import {
   CreateSettlementRequest, 
   UpdateSettlementRequest,
   SettlementListItem,
-  User
+  User,
+  FirestoreCollections
 } from '../types/webapp-shared-types';
 import { GroupData } from '../types/group-types';
 
 const getSettlementsCollection = () => {
-  return admin.firestore().collection('settlements');
+  return admin.firestore().collection(FirestoreCollections.SETTLEMENTS);
 };
 
 const getGroupsCollection = () => {
-  return admin.firestore().collection('documents');
+  return admin.firestore().collection(FirestoreCollections.DOCUMENTS);
 };
 
 const getUsersCollection = () => {
-  return admin.firestore().collection('users');
+  return admin.firestore().collection(FirestoreCollections.USERS);
 };
 
 const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {

@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure
-} from '../../helpers/index';
+} from '../../helpers';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();

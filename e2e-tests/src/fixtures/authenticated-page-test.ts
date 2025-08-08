@@ -7,7 +7,7 @@ import type {
   DashboardPage,
   GroupDetailPage,
   CreateGroupModalPage
-} from '../pages/index';
+} from '../pages';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
 export interface AuthenticatedPageFixtures {

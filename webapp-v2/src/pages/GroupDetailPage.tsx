@@ -4,8 +4,8 @@ import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { LoadingSpinner, Card, Button } from '../components/ui';
-import { Stack } from '../components/ui/Stack';
+import { LoadingSpinner, Card, Button } from '@/components/ui';
+import { Stack } from '@/components/ui';
 import { 
   GroupHeader, 
   QuickActions, 
@@ -13,8 +13,8 @@ import {
   ExpensesList,
   BalanceSummary,
   ShareGroupModal 
-} from '../components/group';
-import { SettlementForm, SettlementHistory } from '../components/settlements';
+} from '@/components/group';
+import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { logError } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {

@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { 
   setupConsoleErrorReporting, 
   setupMCPDebugOnFailure
-} from '../../helpers/index';
+} from '../../helpers';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { generateTestGroupName } from '../../utils/test-helpers';
@@ -167,7 +167,7 @@ test.describe('Error Handling', () => {
     
     // Start the submission (will timeout) and wait for expected UI state changes
     const submitPromise = createGroupModalPage.submitForm();
-    const buttonReenabledPromise = page.waitForFunction((selector) => {
+    const buttonReenabledPromise = page.waitForFunction((selector: string) => {
       const button = document.querySelector(`${selector}:not([disabled])`);
       return button && button.textContent?.includes('Create Group');
     }, SELECTORS.SUBMIT_BUTTON, { timeout: TIMEOUTS.LONG });

@@ -1,5 +1,5 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();

@@ -5,6 +5,7 @@ import { firebaseService } from '../firebase';
 import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '../../constants';
 import { logError } from '../../utils/browser-logger';
+import { AuthErrors } from '@shared/types/webapp-shared-types';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -137,7 +138,7 @@ class AuthStoreImpl implements AuthStore {
 
   private getAuthErrorMessage(error: any): string {
     // Handle API errors from our backend (e.g., EMAIL_EXISTS)
-    if (error?.code === 'EMAIL_EXISTS') {
+    if (error?.code === AuthErrors.EMAIL_EXISTS_CODE) {
       return 'This email is already registered.';
     }
     
@@ -147,7 +148,7 @@ class AuthStoreImpl implements AuthStore {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
           return 'Invalid email or password.';
-        case 'auth/email-already-in-use':
+        case AuthErrors.EMAIL_EXISTS:
           return 'This email is already registered.';
         case 'auth/weak-password':
           return 'Password is too weak. Please use at least 6 characters.';

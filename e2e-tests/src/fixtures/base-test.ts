@@ -1,5 +1,5 @@
 import { test as base } from '@playwright/test';
-import { setupConsoleErrorReporting } from '../helpers/console-error-reporter';
+import { setupConsoleErrorReporting } from '../helpers';
 
 // Set up console error reporting for all tests
 setupConsoleErrorReporting();

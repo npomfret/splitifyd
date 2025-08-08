@@ -10,7 +10,8 @@ import {
   CreatePolicyRequest,
   UpdatePolicyRequest,
   PublishPolicyRequest,
-  PolicyVersion
+  PolicyVersion,
+  FirestoreCollections
 } from '../types/webapp-shared-types';
 
 /**
@@ -26,7 +27,7 @@ function calculatePolicyHash(text: string): string {
 export const listPolicies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const firestore = admin.firestore();
-    const policiesSnapshot = await firestore.collection('policies').get();
+    const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
     
     const policies: PolicyDocument[] = [];
     
@@ -70,7 +71,7 @@ export const getPolicy = async (req: AuthenticatedRequest, res: Response): Promi
 
   try {
     const firestore = admin.firestore();
-    const policyDoc = await firestore.collection('policies').doc(id).get();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     
     if (!policyDoc.exists) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -119,7 +120,7 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
 
   try {
     const firestore = admin.firestore();
-    const policyDoc = await firestore.collection('policies').doc(id).get();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     
     if (!policyDoc.exists) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -177,7 +178,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
 
   try {
     const firestore = admin.firestore();
-    const policyDoc = await firestore.collection('policies').doc(id).get();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     
     if (!policyDoc.exists) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -257,7 +258,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
 
   try {
     const firestore = admin.firestore();
-    const policyDoc = await firestore.collection('policies').doc(id).get();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     
     if (!policyDoc.exists) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -327,7 +328,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
     const id = policyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     // Check if policy already exists
-    const existingDoc = await firestore.collection('policies').doc(id).get();
+    const existingDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     if (existingDoc.exists) {
       throw new ApiError(HTTP_STATUS.CONFLICT, 'POLICY_EXISTS', 'Policy already exists');
     }
@@ -353,7 +354,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
       publishedBy: req.user?.uid
     };
 
-    await firestore.collection('policies').doc(id).set(policyData);
+    await firestore.collection(FirestoreCollections.POLICIES).doc(id).set(policyData);
 
     logger.info('Policy created', { 
       userId: req.user?.uid,
@@ -387,7 +388,7 @@ export const deletePolicyVersion = async (req: AuthenticatedRequest, res: Respon
 
   try {
     const firestore = admin.firestore();
-    const policyDoc = await firestore.collection('policies').doc(id).get();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     
     if (!policyDoc.exists) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');

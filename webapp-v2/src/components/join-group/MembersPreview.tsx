@@ -5,7 +5,7 @@
  * (Members are now fetched separately via /groups/:id/members endpoint)
  */
 
-import type { Group } from '@shared/types/webapp-shared-types';
+import type { Group } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 interface MembersPreviewProps {
   group: Group;

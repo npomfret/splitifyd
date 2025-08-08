@@ -568,6 +568,9 @@ export class ApiClient {
       name: response.groupName,
       description: '',
       memberIds: [],  // Will be populated after join
+      createdBy: '',  // Will be populated from server
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       balance: {
         userBalance: null,
         totalOwed: 0,

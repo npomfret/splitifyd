@@ -3,7 +3,7 @@ import { route } from 'preact-router';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { groupsStore } from '../app/stores/groups-store';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { Container } from '../components/ui';
+import { Container } from '@/components/ui';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 

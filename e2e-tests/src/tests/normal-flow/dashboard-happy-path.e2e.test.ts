@@ -1,5 +1,5 @@
-import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import { authenticatedPageTest, expect } from '../../fixtures';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();

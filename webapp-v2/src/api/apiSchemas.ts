@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { UserRoles, SplitTypes } from '@shared/types/webapp-shared-types';
 
 // Base schemas
 export const MemberSchema = z.object({
@@ -117,7 +118,7 @@ export const ExpenseDataSchema = z.object({
   paidByName: z.string().min(1).optional(),
   category: z.string().min(1),
   date: z.string(),
-  splitType: z.enum(['equal', 'exact', 'percentage']),
+  splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
   participants: z.array(z.string().min(1)),
   splits: z.array(ExpenseSplitSchema),
   createdBy: z.string().min(1),
@@ -160,7 +161,7 @@ export const GroupMembersResponseSchema = z.object({
     uid: z.string().min(1),
     email: z.string().email(),
     displayName: z.string().min(1),
-    role: z.enum(['admin', 'user']).optional(),
+    role: z.enum([UserRoles.ADMIN, UserRoles.USER]).optional(),
     termsAcceptedAt: z.any().optional(),
     cookiePolicyAcceptedAt: z.any().optional(),
     acceptedPolicies: z.record(z.string(), z.string()).optional()

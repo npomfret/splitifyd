@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { DashboardPage } from '../pages/dashboard.page';
+import { DashboardPage } from '../pages';
 import { AuthenticationWorkflow } from './authentication.workflow';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 import { generateTestGroupName } from '../utils/test-helpers';

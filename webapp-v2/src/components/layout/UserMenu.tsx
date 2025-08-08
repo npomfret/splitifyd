@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { useAuthRequired } from '../../app/hooks/useAuthRequired';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 
 interface UserMenuProps {
   user: {

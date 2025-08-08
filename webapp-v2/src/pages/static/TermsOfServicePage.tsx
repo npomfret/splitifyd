@@ -3,7 +3,7 @@ import { usePolicy } from '../../hooks/usePolicy';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 
 export function TermsOfServicePage() {
-  const { policy, loading, error } = usePolicy('terms-of-service');
+  const { policy, loading, error } = usePolicy('TERMS_OF_SERVICE');
   
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${baseUrl}/terms`;
@@ -65,3 +65,4 @@ export function TermsOfServicePage() {
     </StaticPageLayout>
   );
 }
+

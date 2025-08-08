@@ -1,6 +1,6 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
-import { GroupWorkflow } from '../../workflows/index';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();

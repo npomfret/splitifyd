@@ -15,13 +15,14 @@ import {
   Expense
 } from './validation';
 import { GroupData } from '../types/group-types';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../types/webapp-shared-types';
 
 const getExpensesCollection = () => {
-  return admin.firestore().collection('expenses');
+  return admin.firestore().collection(FirestoreCollections.EXPENSES);
 };
 
 const getGroupsCollection = () => {
-  return admin.firestore().collection('documents');
+  return admin.firestore().collection(FirestoreCollections.DOCUMENTS);
 };
 
 const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {
@@ -280,9 +281,9 @@ export const updateExpense = async (
     let splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
     
     if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
-      if (splitType === 'exact') {
+      if (splitType === SplitTypes.EXACT) {
         // When only amount changes on exact splits, convert to equal splits
-        finalSplitType = 'equal';
+        finalSplitType = SplitTypes.EQUAL;
         splits = [];
       }
     }
@@ -410,7 +411,7 @@ export const deleteExpense = async (
       
       // Soft delete the expense
       transaction.update(docRef, {
-        deletedAt: Timestamp.now(),
+        [DELETED_AT_FIELD]: Timestamp.now(),
         deletedBy: userId
       });
       
@@ -474,7 +475,7 @@ export const listGroupExpenses = async (
 
   // Filter out deleted expenses by default
   if (!includeDeleted) {
-    query = query.where('deletedAt', '==', null);
+    query = query.where(DELETED_AT_FIELD, '==', null);
   }
 
   if (cursor) {
@@ -558,7 +559,7 @@ export const listUserExpenses = async (
 
   // Filter out deleted expenses by default
   if (!includeDeleted) {
-    query = query.where('deletedAt', '==', null);
+    query = query.where(DELETED_AT_FIELD, '==', null);
   }
 
   if (cursor) {

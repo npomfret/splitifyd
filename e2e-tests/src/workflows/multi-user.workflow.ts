@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { AuthenticationWorkflow } from './authentication.workflow';
-import { GroupDetailPage, DashboardPage } from '../pages/index';
+import { GroupDetailPage, DashboardPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 

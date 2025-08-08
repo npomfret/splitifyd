@@ -1,10 +1,10 @@
 import { createContext } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import type { AuthStore } from '../../types/auth';
+import type { AuthStore } from '@/types/auth.ts';
 import { getAuthStore } from '../stores/auth-store';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { logError } from '../../utils/browser-logger';
+import { LoadingSpinner } from '@/components/ui';
+import { logError } from '@/utils/browser-logger.ts';
 
 export const AuthContext = createContext<AuthStore | null>(null);
 

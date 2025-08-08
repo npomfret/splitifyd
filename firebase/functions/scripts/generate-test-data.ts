@@ -2,7 +2,7 @@
 
 import type {User} from '../__tests__/support/ApiDriver';
 import {ApiDriver} from '../__tests__/support/ApiDriver';
-import {ExpenseBuilder} from '../__tests__/support/builders/ExpenseBuilder';
+import {ExpenseBuilder} from '../__tests__/support/builders';
 import {logger} from '../src/logger';
 import type {Group} from '../src/types/webapp-shared-types';
 

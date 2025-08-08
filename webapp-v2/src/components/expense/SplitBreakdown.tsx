@@ -1,6 +1,7 @@
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
-import type { ExpenseData, User } from '@shared/types/webapp-shared-types';
+import type { ExpenseData, User } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import { SplitTypes } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 interface SplitBreakdownProps {
   expense: ExpenseData;
@@ -15,11 +16,11 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
 
   const getSplitTypeLabel = (type: string) => {
     switch (type) {
-      case 'equal':
+      case SplitTypes.EQUAL:
         return 'Split Equally';
-      case 'exact':
+      case SplitTypes.EXACT:
         return 'Exact Amounts';
-      case 'percentage':
+      case SplitTypes.PERCENTAGE:
         return 'By Percentage';
       default:
         return 'Custom Split';
@@ -28,11 +29,11 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
 
   const getSplitTypeBadgeColor = (type: string) => {
     switch (type) {
-      case 'equal':
+      case SplitTypes.EQUAL:
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'exact':
+      case SplitTypes.EXACT:
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'percentage':
+      case SplitTypes.PERCENTAGE:
         return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
@@ -117,7 +118,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
         })}
       </div>
       
-      {expense.splitType === 'percentage' && (
+      {expense.splitType === SplitTypes.PERCENTAGE && (
         <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
           <p className="text-sm text-yellow-800 dark:text-yellow-200">
             Total: {expense.splits.reduce((sum, s) => sum + ((s.amount / expense.amount) * 100), 0).toFixed(1)}%

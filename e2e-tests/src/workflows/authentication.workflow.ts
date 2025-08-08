@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
-import { RegisterPage } from '../pages/register.page';
-import { LoginPage } from '../pages/login.page';
-import { DashboardPage } from '../pages/dashboard.page';
+import { RegisterPage } from '../pages';
+import { LoginPage } from '../pages';
+import { DashboardPage } from '../pages';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 

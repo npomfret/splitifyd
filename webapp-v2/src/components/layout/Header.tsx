@@ -1,5 +1,5 @@
 import { useComputed } from '@preact/signals';
-import { useAuth } from '../../app/hooks/useAuth';
+import { useAuth } from '@/app/hooks/useAuth.ts';
 import { lazy, Suspense } from 'preact/compat';
 
 // Lazy load UserMenu to avoid SSG issues

@@ -8,7 +8,7 @@ import {
   DashboardPage,
   GroupDetailPage,
   CreateGroupModalPage
-} from '../pages/index';
+} from '../pages';
 
 // Define fixtures for pre-navigated pages
 export interface PageFixtures {
