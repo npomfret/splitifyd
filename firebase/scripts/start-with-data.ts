@@ -15,6 +15,16 @@ if (!fs.existsSync(firebaseConfigPath)) {
   process.exit(1);
 }
 
+// Read project ID from .firebaserc
+const firebaseRcPath = path.join(__dirname, '../.firebaserc');
+if (!fs.existsSync(firebaseRcPath)) {
+  logger.error('❌ .firebaserc not found.');
+  process.exit(1);
+}
+
+const firebaseRc: any = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
+const PROJECT_ID = firebaseRc.projects.default;
+
 const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
 const UI_PORT: string = firebaseConfig.emulators.ui.port || '4000';
 const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port || '5001';
@@ -33,6 +43,7 @@ const devFormEmail = process.env.DEV_FORM_EMAIL || '';
 const devFormPassword = process.env.DEV_FORM_PASSWORD || '';
 
 logger.info('🚀 Starting Firebase emulator with test data generation...', {
+  projectId: PROJECT_ID,
   uiPort: UI_PORT,
   functionsPort: FUNCTIONS_PORT,
   devFormEmail: devFormEmail ? '✓' : '✗',
@@ -72,7 +83,7 @@ function checkApiReady(): Promise<boolean> {
     const req = http.request({
       hostname: 'localhost',
       port: Number(FUNCTIONS_PORT),
-      path: '/demo/us-central1/api',
+      path: `/${PROJECT_ID}/us-central1/api`,
       method: 'GET',
       timeout: 1000
     }, (res) => {
@@ -130,6 +141,7 @@ setTimeout((() => {
       logger.error('❌ API functions failed to become ready within timeout', {
         apiAttempts,
         maxApiAttempts,
+        apiPath: `/${PROJECT_ID}/us-central1/api`,
         note: 'This may indicate an issue with function deployment or configuration'
       });
       return;
