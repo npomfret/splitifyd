@@ -100,12 +100,12 @@ test.describe('Multi-User Collaboration E2E', () => {
     
   });
 
-  test('should show group creator as admin', async ({ authenticatedPage }) => {
+  test('should show group creator as admin', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroup(generateTestGroupName('Admin'), 'Testing admin badge');
     
-    await expect(page.getByText('Admin', { exact: true })).toBeVisible();
+    await expect(groupDetailPage.getTextElement('Admin')).toBeVisible();
   });
 
   test('single user can create group and add multiple expenses', async ({ authenticatedPage, groupDetailPage }) => {
@@ -171,7 +171,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
     const owesPattern = new RegExp(`${user2.displayName}.*owes.*${user1.displayName}`, 'i');
-    await expect(page.getByText(owesPattern)).toBeVisible();
+    await expect(groupDetailPage.getTextElement(owesPattern)).toBeVisible();
     
   });
 });

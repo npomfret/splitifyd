@@ -28,6 +28,11 @@ export class HomepagePage extends BasePage {
     return this.page.getByRole('heading', { level: 1 });
   }
 
+  // Get specific heading by text
+  getHeading(text: string) {
+    return this.page.getByRole('heading', { name: text });
+  }
+
   async featuresSection() {
     return this.page.locator('[data-testid="features-section"]')
       .or(this.page.getByRole('region', { name: /features/i }));

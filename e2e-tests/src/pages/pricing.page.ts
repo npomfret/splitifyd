@@ -11,6 +11,11 @@ export class PricingPage extends BasePage {
     return this.page.getByRole('heading', { name: /pricing/i });
   }
 
+  // Get heading with specific level
+  getHeadingWithLevel(text: string, level: number) {
+    return this.page.getByRole('heading', { name: text, level });
+  }
+
   async freeplanCard() {
     return this.page.locator('[data-testid="free-plan"]')
       .or(this.page.getByText(/free/i).locator('..').locator('..'));

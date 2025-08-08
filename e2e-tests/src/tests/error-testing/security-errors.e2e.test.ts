@@ -33,6 +33,6 @@ test.describe('Security and Access Control', () => {
     
     // Verify that access control works - non-members should not see group details
     // The group name should NOT be visible to unauthorized users
-    await expect(page2.getByText(groupName)).not.toBeVisible();
+    await expect(secondUser.groupDetailPage.getTextElement(groupName)).not.toBeVisible();
   });
 });

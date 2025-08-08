@@ -10,7 +10,7 @@ test.describe('Basic Expense Operations E2E', () => {
   test('should create, view, and delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
+    const groupId = await groupWorkflow.createGroup(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
     const groupInfo = { user };
 
     // Create expense using page object
@@ -22,29 +22,23 @@ test.describe('Basic Expense Operations E2E', () => {
     });
     
     // Verify expense appears in list
-    await expect(page.getByText('Test Expense Lifecycle')).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).toBeVisible();
     
     // Navigate to expense detail to view it
-    await page.getByText('Test Expense Lifecycle').click();
-    await page.waitForLoadState('domcontentloaded');
+    await groupDetailPage.clickExpenseToView('Test Expense Lifecycle');
     
     // Verify expense detail page (view functionality)
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
-    await expect(page.getByText('Test Expense Lifecycle')).toBeVisible();
-    await expect(page.getByText('$50.00').first()).toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).toBeVisible();
+    await expect(groupDetailPage.getCurrencyAmount('50.00').first()).toBeVisible();
     
     // Delete the expense
-    const deleteButton = page.getByRole('button', { name: /delete/i });
-    await deleteButton.click();
-    
-    // Confirm deletion - click the second delete button in the confirmation dialog
-    const confirmButton = page.getByRole('button', { name: 'Delete' }).nth(1);
-    await confirmButton.click();
+    await groupDetailPage.deleteExpense();
     
     // Should redirect back to group
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     // Expense should no longer be visible (deletion verification)
-    await expect(page.getByText('Test Expense Lifecycle')).not.toBeVisible();
+    await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).not.toBeVisible();
   });
 });

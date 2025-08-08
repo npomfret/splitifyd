@@ -35,9 +35,9 @@ test.describe('Three User Settlement Management', () => {
     expect(user2.displayName).not.toBe(user3.displayName);
     
     // Verify correct users are shown in UI (top-right corner)
-    await expect(page.getByRole('button', { name: user1.displayName })).toBeVisible();
-    await expect(page2.getByRole('button', { name: user2.displayName })).toBeVisible();
-    await expect(page3.getByRole('button', { name: user3.displayName })).toBeVisible();
+    await expect(groupDetailPage.getUserDisplayButton(user1.displayName)).toBeVisible();
+    await expect(secondUser.groupDetailPage.getUserDisplayButton(user2.displayName)).toBeVisible();
+    await expect(thirdUser.groupDetailPage.getUserDisplayButton(user3.displayName)).toBeVisible();
     
     
     // 1. Create a group with 3 users
@@ -139,20 +139,17 @@ test.describe('Three User Settlement Management', () => {
     // 7. Assert final state: User2 is settled up, User3 still owes $40
     
     // User2 should no longer appear in debt list (settled up)
-    const balancesSection1 = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
-    }).first();
+    const balancesSection1 = groupDetailPage.getBalancesSection();
     
-    await expect(balancesSection1.getByText(`${user2.displayName} owes ${user1.displayName}`)).not.toBeVisible();
+    await expect(groupDetailPage.getDebtInfo(user2.displayName, user1.displayName)).not.toBeVisible();
     
     // User3 should still owe $40
     await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
     
     // Verify both settlements appear in history
-    const finalHistoryButton = page.getByRole('button', { name: 'Show History' });
-    await finalHistoryButton.click();
-    await expect(page.getByText(/Partial payment from user2/i)).toBeVisible();
-    await expect(page.getByText(/Final payment from user2 - all settled!/i)).toBeVisible();
+    await groupDetailPage.openHistory();
+    await expect(groupDetailPage.getTextElement(/Partial payment from user2/i)).toBeVisible();
+    await expect(groupDetailPage.getTextElement(/Final payment from user2 - all settled!/i)).toBeVisible();
     
   });
 });

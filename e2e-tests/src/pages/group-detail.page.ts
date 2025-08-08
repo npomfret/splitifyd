@@ -741,4 +741,163 @@ export class GroupDetailPage extends BasePage {
     
     return shareLink;
   }
+
+  // ==============================
+  // ADDITIONAL METHODS TO FIX SELECTOR VIOLATIONS
+  // ==============================
+
+  /**
+   * Gets the "Split between" text element
+   * Used in advanced-splitting tests
+   */
+  getSplitBetweenText() {
+    return this.page.getByText('Split between');
+  }
+
+  /**
+   * Gets the balances section using the complex locator
+   * This replaces repeated complex locator chains in tests
+   */
+  getBalancesSection() {
+    return this.page.locator('.bg-white').filter({ 
+      has: this.page.getByRole('heading', { name: 'Balances' }) 
+    }).first();
+  }
+
+  /**
+   * Gets a user display button by display name
+   * Replaces direct getByRole calls in tests
+   */
+  getUserDisplayButton(displayName: string) {
+    return this.page.getByRole('button', { name: displayName });
+  }
+
+  /**
+   * Gets any text element - centralizes getByText calls
+   */
+  getTextElement(text: string | RegExp) {
+    return this.page.getByText(text);
+  }
+
+  /**
+   * Gets the delete button for an expense
+   */
+  getExpenseDeleteButton() {
+    return this.page.getByRole('button', { name: /delete/i });
+  }
+
+  /**
+   * Gets the confirmation delete button (second delete button in dialog)
+   */
+  getDeleteConfirmButton() {
+    return this.page.getByRole('button', { name: 'Delete' }).nth(1);
+  }
+
+  /**
+   * Clicks on an expense by its description to view details
+   */
+  async clickExpenseToView(description: string) {
+    const expense = this.getExpenseByDescription(description);
+    await expense.click();
+    await this.page.waitForLoadState('domcontentloaded');
+  }
+
+  /**
+   * Deletes an expense with confirmation
+   */
+  async deleteExpense() {
+    const deleteButton = this.getExpenseDeleteButton();
+    await deleteButton.click();
+    
+    // Confirm deletion
+    const confirmButton = this.getDeleteConfirmButton();
+    await confirmButton.click();
+    
+    // Wait for deletion to complete
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Gets the join group button on share link page
+   * This is the most frequently violated selector
+   */
+  getJoinGroupButtonOnSharePage() {
+    return this.page.getByRole('button', { name: /join group/i });
+  }
+
+  /**
+   * Clicks the join group button and waits for navigation
+   */
+  async clickJoinGroup() {
+    const joinButton = this.getJoinGroupButtonOnSharePage();
+    await joinButton.click();
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+  }
+
+  /**
+   * Gets heading by exact or partial text match
+   */
+  getHeading(name: string | RegExp) {
+    return this.page.getByRole('heading', { name });
+  }
+
+  /**
+   * Gets the first visible heading (for dynamic group names)
+   */
+  getFirstHeading() {
+    return this.page.getByRole('heading').first();
+  }
+
+  /**
+   * Helper to check if expense is visible
+   */
+  async isExpenseVisible(description: string): Promise<boolean> {
+    return await this.getExpenseByDescription(description).isVisible();
+  }
+
+  /**
+   * Helper to check if text is visible
+   */
+  async isTextVisible(text: string | RegExp): Promise<boolean> {
+    return await this.getTextElement(text).isVisible();
+  }
+
+  /**
+   * Gets the show history button
+   */
+  getHistoryButton() {
+    return this.page.getByRole('button', { name: 'Show History' });
+  }
+
+  /**
+   * Opens the history modal
+   */
+  async openHistory() {
+    const historyButton = this.getHistoryButton();
+    await historyButton.click();
+  }
+
+  /**
+   * Closes any open modal using Escape
+   */
+  async closeModal() {
+    await this.page.keyboard.press('Escape');
+  }
+
+  /**
+   * Gets debt information from balances section
+   */
+  getDebtInfo(debtorName: string, creditorName: string) {
+    const balancesSection = this.getBalancesSection();
+    return balancesSection.getByText(`${debtorName} owes ${creditorName}`);
+  }
+
+  /**
+   * Checks if users are settled up
+   */
+  async areUsersSettledUp(): Promise<boolean> {
+    const balancesSection = this.getBalancesSection();
+    const settledMessage = balancesSection.getByText('All settled up!');
+    return await settledMessage.isVisible();
+  }
 }

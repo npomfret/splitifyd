@@ -43,7 +43,7 @@ test.describe('Advanced Splitting Options', () => {
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '75.50');
     
     // Change split type to exact amounts
-    await expect(page.getByText('Split between')).toBeVisible();
+    await expect(groupDetailPage.getSplitBetweenText()).toBeVisible();
     await groupDetailPage.getExactAmountsText().click();
     await expect(groupDetailPage.getExactAmountsRadio()).toBeChecked();
     await expect(groupDetailPage.getExactAmountsInstructions()).toBeVisible();
@@ -65,7 +65,7 @@ test.describe('Advanced Splitting Options', () => {
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '1000');
     
     // Change split type to percentage
-    await expect(page.getByText('Split between')).toBeVisible();
+    await expect(groupDetailPage.getSplitBetweenText()).toBeVisible();
     await groupDetailPage.getPercentageText().click();
     await expect(groupDetailPage.getPercentageRadio()).toBeChecked();
     await expect(groupDetailPage.getPercentageInstructions()).toBeVisible();
@@ -86,7 +86,7 @@ test.describe('Advanced Splitting Options', () => {
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Testing split type changes');
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '150');
     
-    await expect(page.getByText('Split between')).toBeVisible();
+    await expect(groupDetailPage.getSplitBetweenText()).toBeVisible();
     
     // Start with equal split (default)
     await expect(groupDetailPage.getEqualRadio()).toBeChecked();

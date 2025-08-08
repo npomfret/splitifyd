@@ -3,6 +3,7 @@ import { multiUserTest, expect as multiUserExpected } from '../../fixtures/multi
 import { GroupWorkflow } from '../../workflows';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import {generateShortId} from "../../utils/test-helpers.ts";
+import { GroupDetailPage } from '../../pages/group-detail.page';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -107,6 +108,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should show settled up when both users pay equal amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
     
     // Setup 2-person group with unique ID
@@ -118,7 +120,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.keyboard.press('Escape');
     
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -157,6 +159,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
     
     const uniqueId = generateShortId();
@@ -167,7 +170,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.keyboard.press('Escape');
     
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -193,13 +196,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const debtAmount = groupDetailPage.getDebtAmountInBalanceSection("$100.00");
     await multiUserExpected(debtAmount).toBeVisible();
     
-    await multiUserExpected(page.getByText('One Person Pays')).toBeVisible();
+    await multiUserExpected(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
     await multiUserExpected(groupDetailPage.getCurrencyAmount('200.00')).toBeVisible();
   });
   
   multiUserTest('should calculate complex debts correctly', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
     
     const uniqueId = generateShortId();
@@ -210,7 +214,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.keyboard.press('Escape');
     
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     
@@ -253,6 +257,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
     
     const uniqueId = generateShortId();
@@ -263,7 +268,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.keyboard.press('Escape');
     
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     
@@ -303,6 +308,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
     
     const uniqueId = generateShortId();
@@ -313,7 +319,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.keyboard.press('Escape');
     
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(`/groups/${groupId}`);
     
     // User1 pays $123.45 → User2 owes exactly $61.73 (or $61.72 depending on rounding)
@@ -342,6 +348,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
   multiUserTest('should update debt correctly after partial settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Step 1: Create group and verify
@@ -356,18 +363,17 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Step 3: User 2 joins and verify
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     // Step 4: Synchronize both users and verify member count
     await groupDetailPage.waitForMemberCount(2);
-    await multiUserExpected(page.getByText(user1.displayName).first()).toBeVisible();
-    await multiUserExpected(page.getByText(user2.displayName).first()).toBeVisible();
+    await multiUserExpected(groupDetailPage.getTextElement(user1.displayName).first()).toBeVisible();
+    await multiUserExpected(groupDetailPage.getTextElement(user2.displayName).first()).toBeVisible();
     
-    const groupDetailPage2 = secondUser.groupDetailPage;
     await groupDetailPage2.waitForMemberCount(2);
-    await multiUserExpected(page2.getByText(user1.displayName).first()).toBeVisible();
-    await multiUserExpected(page2.getByText(user2.displayName).first()).toBeVisible();
+    await multiUserExpected(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
+    await multiUserExpected(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
     
     // Step 5: Verify no expenses yet
     await multiUserExpected(groupDetailPage.getNoExpensesText()).toBeVisible();
@@ -392,9 +398,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Step 9: Verify initial debt (User 2 owes User 1 $100)
     await groupDetailPage.waitForBalanceCalculation();
-    const balancesSection = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
-    }).first();
+    const balancesSection = groupDetailPage.getBalancesSection();
     
     await multiUserExpected(balancesSection.getByText(`${user2.displayName} owes ${user1.displayName}`)).toBeVisible();
     await multiUserExpected(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
@@ -476,6 +480,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
   multiUserTest('should show settled up after exact settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
+    const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     const uniqueId = generateShortId();
@@ -486,14 +491,13 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await page.keyboard.press('Escape');
     
     await page2.goto(shareLink);
-    await page2.getByRole('button', { name: /join group/i }).click();
+    await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     // Critical: Ensure both users are synchronized before creating expenses
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Also ensure user2 sees both members
-    const groupDetailPage2 = secondUser.groupDetailPage;
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Create known debt: User1 pays $150 → User2 owes $75
@@ -509,7 +513,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await groupDetailPage.waitForBalanceUpdate();
     
     // Wait for expense to appear and balance to calculate
-    await multiUserExpected(page.getByText('One Person Pays')).toBeVisible();
+    await multiUserExpected(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
     await groupDetailPage.waitForBalanceCalculation();
     
     // Verify debt exists and capture the actual amount
@@ -568,7 +572,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Verify expenses still appear after settlement in user1's browser
     await multiUserExpected(groupDetailPage.getExpensesHeading()).toBeVisible();
-    await multiUserExpected(page.getByText('One Person Pays')).toBeVisible();
+    await multiUserExpected(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
     await multiUserExpected(groupDetailPage.getCurrencyAmount('150.00')).toBeVisible();
     
     // Test user2's browser (page2) - should show same data

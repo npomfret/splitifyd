@@ -9,11 +9,11 @@ test.describe('Navigation E2E', () => {
     
     // Test homepage loads correctly
     await homepagePage.navigate();
-    await expect(page.getByRole('heading', { name: 'Effortless Bill Splitting, Simplified & Smart.' })).toBeVisible();
+    await expect(homepagePage.getHeading('Effortless Bill Splitting, Simplified & Smart.')).toBeVisible();
     
     // Test pricing page loads correctly
     await pricingPage.navigate();
-    await expect(page.getByRole('heading', { name: 'Pricing', level: 1 })).toBeVisible();
+    await expect(pricingPage.getHeadingWithLevel('Pricing', 1)).toBeVisible();
     
     // No console errors
   });
