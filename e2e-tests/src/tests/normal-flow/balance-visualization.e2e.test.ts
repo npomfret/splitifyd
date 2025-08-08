@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { multiUserTest, expect as multiUserExpected } from '../../fixtures/multi-user-test';
 import { GroupWorkflow } from '../../workflows/index';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers/index';
+import {generateShortId} from "../../utils/test-helpers.ts";
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -12,7 +13,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page, user } = authenticatedPage;
     
     // Create test group with unique ID
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     const groupName = `Empty Balance Group ${uniqueId}`;
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing empty group balance');
     
@@ -34,7 +35,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page, user } = authenticatedPage;
     
     // Create test group using dashboard page object with unique ID
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     const groupName = `Single User Test ${uniqueId}`;
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing single user balance');
     
@@ -68,7 +69,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page } = authenticatedPage;
     
     // Create test group with unique ID
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     const groupName = `Zero Balance Test ${uniqueId}`;
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing zero balance state');
     
@@ -83,7 +84,7 @@ test.describe('Single User Balance Visualization', () => {
     const { page, user } = authenticatedPage;
     
     // Create test group with unique ID
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     const groupName = `Currency Display Test ${uniqueId}`;
     await dashboardPage.createGroupAndNavigate(groupName, 'Testing currency display');
     
@@ -111,7 +112,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const groupWorkflow = new GroupWorkflow(page);
     
     // Setup 2-person group with unique ID
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
 
     await groupDetailPage.getShareButton().click();
@@ -160,7 +161,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
     await groupDetailPage.getShareButton().click();
@@ -203,7 +204,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
 
     await groupDetailPage.getShareButton().click();
@@ -256,7 +257,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
 
     await groupDetailPage.getShareButton().click();
@@ -306,7 +307,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
     await groupDetailPage.getShareButton().click();
@@ -347,7 +348,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Step 1: Create group and verify
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
     await multiUserExpected(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
@@ -480,7 +481,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
-    const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
     await groupDetailPage.getShareButton().click();
