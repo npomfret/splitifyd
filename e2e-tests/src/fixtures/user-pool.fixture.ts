@@ -2,6 +2,7 @@ import { Page } from '@playwright/test';
 import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
+import { EMULATOR_URL } from '../helpers/index';
 
 /**
  * Simple in-memory user pool implementation.
@@ -114,8 +115,8 @@ export class UserPool {
     const email = generateTestEmail(prefix);
     const password = 'TestPassword123!';
 
-    // Navigate to register page
-    await page.goto('/register');
+    // Navigate to register page with full URL
+    await page.goto(`${EMULATOR_URL}/register`);
     await page.waitForLoadState('networkidle');
     
     // Wait for form to be visible
