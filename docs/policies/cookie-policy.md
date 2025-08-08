@@ -4,16 +4,18 @@
 
 ## 1. BINDING ACCEPTANCE AND CONSENT
 
-THIS COOKIE POLICY (HEREINAFTER REFERRED TO AS "POLICY," "COOKIE POLICY," "TRACKING POLICY," OR "SURVEILLANCE AGREEMENT") EXPLAINS HOW SPLITIFYD AND ITS AFFILIATES, SUBSIDIARIES, PARENT COMPANIES, SUCCESSORS, ASSIGNS, PARTNERS, CONTRACTORS, AND AGENTS (COLLECTIVELY "WE," "US," "OUR," OR "THE COMPANY") DEPLOY, UTILIZE, AND BENEFIT FROM COOKIES, PIXELS, BEACONS, SCRIPTS, TAGS, FINGERPRINTING TECHNOLOGIES, AND ALL OTHER CURRENT AND FUTURE TRACKING MECHANISMS (COLLECTIVELY "TRACKING TECHNOLOGIES") ON OUR APPLICATION, WEBSITE, SERVICES, AND ALL RELATED PROPERTIES (COLLECTIVELY "THE SERVICE").
+THIS COOKIE POLICY (HEREINAFTER REFERRED TO AS "POLICY," "COOKIE POLICY," "TRACKING POLICY," OR "SURVEILLANCE AGREEMENT") EXPLAINS HOW SPLITIFYD AND ITS AFFILIATES, SUBSIDIARIES, PARENT COMPANIES, SUCCESSORS, ASSIGNS, PARTNERS, CONTRACTORS, AND AGENTS (COLLECTIVELY "WE," "US," "OUR," OR "THE COMPANY") MAY DEPLOY, UTILIZE, AND BENEFIT FROM COOKIES, PIXELS, BEACONS, SCRIPTS, TAGS, FINGERPRINTING TECHNOLOGIES, AND ALL OTHER CURRENT AND FUTURE TRACKING MECHANISMS (COLLECTIVELY "TRACKING TECHNOLOGIES") ON OUR APPLICATION, WEBSITE, SERVICES, AND ALL RELATED PROPERTIES (COLLECTIVELY "THE SERVICE").
+
+CURRENT STATUS: The Service is presently offered free of charge without advertisements or active tracking beyond essential operational cookies. HOWEVER, this may change at any time without notice.
 
 BY ACCESSING, USING, VIEWING, DOWNLOADING, INSTALLING, OR OTHERWISE INTERACTING WITH THE SERVICE IN ANY MANNER WHATSOEVER, YOU HEREBY:
-- Provide explicit, informed, and irrevocable consent to ALL tracking activities described herein
-- Acknowledge that this consent cannot be withdrawn
-- Waive any right to object to tracking technologies
-- Accept that tracking is essential to the Service
-- Agree to bear all risks associated with tracking
-- Consent to tracking across all devices and platforms
-- Authorize us to share tracking data with unlimited third parties
+- Provide explicit, informed, and irrevocable consent to ALL current and future tracking activities
+- Acknowledge that we may implement comprehensive tracking at any time
+- Waive any right to object to future tracking technologies
+- Accept that tracking may become essential to the Service
+- Agree to bear all risks associated with any future tracking
+- Consent to potential tracking across all devices and platforms
+- Authorize us to share tracking data with unlimited third parties if/when collected
 - Accept that we may implement new tracking technologies without notice
 
 ## 2. COMPREHENSIVE DEFINITIONS
@@ -35,9 +37,9 @@ ANY AND ALL methods, techniques, technologies, or mechanisms, whether currently 
 ### 2.3 "Device"
 Any equipment capable of accessing the Service, including but not limited to: computers, smartphones, tablets, smart TVs, gaming consoles, wearables, IoT devices, vehicles, smart home devices, or any other internet-connected apparatus.
 
-## 3. CATEGORIES OF TRACKING TECHNOLOGIES WE USE
+## 3. CATEGORIES OF TRACKING TECHNOLOGIES WE MAY USE
 
-We reserve the absolute and unconditional right to use ANY tracking technology, including but not limited to:
+While we currently use only essential operational cookies necessary for the Service to function, we reserve the absolute and unconditional right to implement ANY tracking technology at any time, including but not limited to:
 
 ### 3.1 Essential Operational Cookies (Non-Optional)
 - Authentication tokens and session identifiers

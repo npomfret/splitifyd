@@ -17,7 +17,22 @@ Your use constitutes:
 - Waiver of any cooling-off period
 - Acceptance of unilateral modification rights
 
-## 2. CAPACITY, AGE, AND ELIGIBILITY REQUIREMENTS
+## 2. FREE SERVICE AND FUTURE CHANGES
+
+The Service is currently provided free of charge without advertisements. However, we explicitly reserve the unlimited right to:
+- Introduce advertising at any time without notice
+- Implement any form of monetization
+- Convert to a paid service model
+- Add premium features or subscriptions
+- Display sponsored content
+- Collect and monetize user data
+- Partner with third-party advertisers
+- Use affiliate marketing
+- Require payment for continued access
+
+Your continued use after any such changes constitutes acceptance of the new terms.
+
+## 3. CAPACITY, AGE, AND ELIGIBILITY REQUIREMENTS
 
 You represent, warrant, covenant, and guarantee that:
 - You are at least 18 years of age (or 21 where locally required)
@@ -31,12 +46,12 @@ You represent, warrant, covenant, and guarantee that:
 
 Misrepresentation of eligibility constitutes fraud and subjects you to criminal and civil penalties.
 
-## 3. INTELLECTUAL PROPERTY AND LICENSE GRANTS
+## 4. INTELLECTUAL PROPERTY AND LICENSE GRANTS
 
-### 3.1 Our Intellectual Property
+### 4.1 Our Intellectual Property
 All elements of the Service, including but not limited to software code, algorithms, methods, techniques, processes, designs, text, graphics, images, sounds, music, videos, interactive features, databases, compilations, and all other content (collectively "Our IP"), are our exclusive property or licensed to us. Our IP is protected by copyright, trademark, patent, trade secret, and other intellectual property laws worldwide.
 
-### 3.2 Limited License to You
+### 4.2 Limited License to You
 Subject to your complete compliance with these Terms, we grant you a LIMITED, NON-EXCLUSIVE, NON-TRANSFERABLE, NON-SUBLICENSABLE, REVOCABLE, PERSONAL LICENSE to access and use the Service solely for personal, non-commercial purposes. This license:
 - May be revoked at any time without notice
 - Does not constitute a sale or transfer of any rights
@@ -44,7 +59,7 @@ Subject to your complete compliance with these Terms, we grant you a LIMITED, NO
 - Does not include any right to derivative works
 - Terminates automatically upon any breach
 
-### 3.3 Your Content License to Us
+### 4.3 Your Content License to Us
 By submitting, posting, uploading, or transmitting any content, data, information, or materials to or through the Service ("Your Content"), you hereby grant us an IRREVOCABLE, PERPETUAL, WORLDWIDE, ROYALTY-FREE, FULLY PAID-UP, NON-EXCLUSIVE, UNLIMITED, UNRESTRICTED, SUBLICENSABLE (through multiple tiers), TRANSFERABLE, AND ASSIGNABLE LICENSE to:
 
 - Use, reproduce, modify, adapt, publish, translate, distribute, perform, and display Your Content
@@ -59,11 +74,11 @@ By submitting, posting, uploading, or transmitting any content, data, informatio
 
 This license survives termination of these Terms and your use of the Service.
 
-## 4. PROHIBITED ACTIVITIES AND USES
+## 5. PROHIBITED ACTIVITIES AND USES
 
 You SHALL NOT, and shall not attempt to:
 
-### 4.1 Technical Prohibitions
+### 5.1 Technical Prohibitions
 - Reverse engineer, decompile, disassemble, or derive source code
 - Circumvent, disable, or interfere with security features
 - Use automated systems, bots, scrapers, or similar tools
@@ -75,7 +90,7 @@ You SHALL NOT, and shall not attempt to:
 - Frame, mirror, or embed the Service
 - Deep link to the Service without permission
 
-### 4.2 Content Prohibitions
+### 5.2 Content Prohibitions
 - Upload viruses, malware, or malicious code
 - Transmit unlawful, harmful, or objectionable content
 - Infringe any intellectual property rights
@@ -87,7 +102,7 @@ You SHALL NOT, and shall not attempt to:
 - Harvest or collect user information
 - Post content we deem inappropriate
 
-### 4.3 Commercial Prohibitions
+### 5.3 Commercial Prohibitions
 - Use the Service for any commercial purpose without our written consent
 - Sell, rent, lease, or sub-license the Service
 - Use the Service for benchmarking or competitive analysis
@@ -96,9 +111,9 @@ You SHALL NOT, and shall not attempt to:
 
 Violation of any prohibition results in immediate termination and potential legal action.
 
-## 5. USER ACCOUNTS AND SECURITY
+## 6. USER ACCOUNTS AND SECURITY
 
-### 5.1 Account Creation
+### 6.1 Account Creation
 You may be required to create an account. You agree to:
 - Provide accurate, current, and complete information
 - Maintain and update information
@@ -109,7 +124,7 @@ You may be required to create an account. You agree to:
 - Not create multiple accounts
 - Accept liability for all account usage
 
-### 5.2 Account Termination
+### 6.2 Account Termination
 We may suspend or terminate your account:
 - At any time for any reason or no reason
 - Without prior notice
@@ -119,27 +134,30 @@ We may suspend or terminate your account:
 
 Upon termination, all licenses terminate immediately, but all other provisions survive.
 
-## 6. PAYMENT TERMS AND REFUND POLICY
+## 7. PAYMENT TERMS AND FUTURE MONETIZATION
 
-### 6.1 Fees and Charges
-- All fees are non-refundable unless required by law
+### 7.1 Current Free Service
+The Service is currently provided free of charge. However, we explicitly reserve the right to:
+- Introduce fees, subscriptions, or paid features at any time without notice
+- Convert the entire Service to a paid model
+- Implement tiered pricing or freemium models
+- Charge for features that are currently free
+- Add advertisements, sponsorships, or affiliate programs
+- Monetize user data and usage patterns
+- Require payment for continued access to existing features
+
+### 7.2 Future Billing Terms (When Applicable)
+If/when we introduce payments:
+- All fees will be non-refundable
 - We may change fees at any time without notice
-- You are responsible for all applicable taxes
-- Late payments accrue interest at 18% annually or maximum legal rate
-- You pay all collection costs including attorneys' fees
-- We may charge for previously free features
-- Payment constitutes acceptance of all charges
-
-### 6.2 Billing
-- You authorize automatic recurring billing
-- You must provide valid payment information
-- You authorize us to charge any payment method on file
+- You will be responsible for all applicable taxes
+- Late payments will accrue interest at 18% annually
+- You will pay all collection costs including attorneys' fees
 - Failed payments may result in immediate termination
-- We are not responsible for bank fees or charges
-- Currency exchange rates are at our discretion
-- Disputed charges must be reported within 7 days
+- Currency exchange rates will be at our discretion
+- By continuing to use the Service after pricing is introduced, you accept all charges
 
-## 7. DISCLAIMERS AND WARRANTIES
+## 8. DISCLAIMERS AND WARRANTIES
 
 THE SERVICE IS PROVIDED "AS IS," "AS AVAILABLE," "WITH ALL FAULTS," AND "WITH ALL DEFECTS." TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO:
 
@@ -167,9 +185,9 @@ WE DO NOT WARRANT THAT:
 
 YOU ASSUME ALL RISK OF USE. WE ARE NOT RESPONSIBLE FOR ANY DAMAGE TO YOUR COMPUTER SYSTEM, LOSS OF DATA, OR OTHER HARM RESULTING FROM YOUR USE OF THE SERVICE.
 
-## 8. LIMITATION OF LIABILITY
+## 9. LIMITATION OF LIABILITY
 
-### 8.1 Exclusion of Damages
+### 9.1 Exclusion of Damages
 TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE BE LIABLE FOR:
 
 - DIRECT DAMAGES
@@ -194,7 +212,7 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL WE BE LIABLE FOR:
 - LOSS OF CONSORTIUM
 - ANY OTHER PECUNIARY OR NON-PECUNIARY LOSS
 
-### 8.2 Cap on Liability
+### 9.2 Cap on Liability
 IF, DESPITE THE ABOVE, WE ARE FOUND LIABLE, OUR TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED £1 (ONE BRITISH POUND). THIS LIMITATION APPLIES:
 - Regardless of the theory of liability
 - Whether in contract, tort, negligence, strict liability, or otherwise
@@ -202,10 +220,10 @@ IF, DESPITE THE ABOVE, WE ARE FOUND LIABLE, OUR TOTAL AGGREGATE LIABILITY FOR AL
 - Even if remedies fail of their essential purpose
 - To the maximum extent permitted by law
 
-### 8.3 Time Limitation
+### 9.3 Time Limitation
 Any claim must be brought within 30 days of the event giving rise to the claim, or be forever barred.
 
-## 9. INDEMNIFICATION
+## 10. INDEMNIFICATION
 
 You agree to defend, indemnify, and hold harmless us and our officers, directors, employees, agents, licensors, suppliers, successors, and assigns from and against any claims, actions, demands, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to:
 
@@ -224,9 +242,9 @@ You agree to defend, indemnify, and hold harmless us and our officers, directors
 
 This indemnification survives termination and includes the right to select counsel and control defense.
 
-## 10. DISPUTE RESOLUTION AND ARBITRATION
+## 11. DISPUTE RESOLUTION AND ARBITRATION
 
-### 10.1 Mandatory Arbitration
+### 11.1 Mandatory Arbitration
 ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION, EXCEPT THAT WE MAY SEEK INJUNCTIVE RELIEF IN COURT. You waive all rights to:
 - Jury trial
 - Court trial (except small claims)
@@ -236,7 +254,7 @@ ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION
 - Consolidated actions
 - Public injunctive relief
 
-### 10.2 Arbitration Process
+### 11.2 Arbitration Process
 - Arbitration shall be in London, England
 - English law applies without regard to conflicts
 - LCIA rules apply
@@ -247,10 +265,10 @@ ANY DISPUTE SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION
 - Limited discovery at arbitrator's discretion
 - No punitive damages may be awarded
 
-### 10.3 Class Action Waiver
+### 11.3 Class Action Waiver
 YOU WAIVE ANY RIGHT TO PARTICIPATE IN CLASS ACTIONS. CLAIMS MAY ONLY BE BROUGHT INDIVIDUALLY. If this waiver is unenforceable, the entire arbitration provision is void.
 
-## 11. MODIFICATIONS TO TERMS
+## 12. MODIFICATIONS TO TERMS
 
 We reserve the absolute right to modify these Terms at any time without notice. Modifications are effective immediately upon posting. Your continued use constitutes acceptance. We may also:
 - Change the Service without notice
@@ -261,9 +279,9 @@ We reserve the absolute right to modify these Terms at any time without notice. 
 
 You are responsible for reviewing Terms regularly. We have no obligation to notify you of changes.
 
-## 12. TERMINATION
+## 13. TERMINATION
 
-### 12.1 Termination by Us
+### 13.1 Termination by Us
 We may terminate your access immediately, without notice, for any reason, including but not limited to:
 - Breach of these Terms
 - Our belief that termination is necessary
@@ -275,75 +293,75 @@ We may terminate your access immediately, without notice, for any reason, includ
 - Protecting other users
 - Our sole discretion
 
-### 12.2 Termination by You
+### 13.2 Termination by You
 You may terminate only by ceasing all use and deleting all copies of the Service. There are no refunds upon termination.
 
-### 12.3 Survival
+### 13.3 Survival
 The following sections survive termination indefinitely: Intellectual Property, Indemnification, Disclaimers, Limitation of Liability, Dispute Resolution, and any other provisions that by their nature should survive.
 
-## 13. GENERAL PROVISIONS
+## 14. GENERAL PROVISIONS
 
-### 13.1 Entire Agreement
+### 14.1 Entire Agreement
 These Terms, together with our Privacy Policy and Cookie Policy, constitute the entire agreement and supersede all prior agreements.
 
-### 13.2 Governing Law
+### 14.2 Governing Law
 These Terms are governed by English law without regard to conflict of law principles. You consent to exclusive jurisdiction in England.
 
-### 13.3 Severability
+### 14.3 Severability
 If any provision is unenforceable, we may replace it with a similar enforceable provision that achieves the same economic effect.
 
-### 13.4 No Waiver
+### 14.4 No Waiver
 Our failure to enforce any provision is not a waiver. Waivers must be in writing and signed by us.
 
-### 13.5 Assignment
+### 14.5 Assignment
 We may freely assign these Terms and your information. You may not assign without our written consent.
 
-### 13.6 Force Majeure
+### 14.6 Force Majeure
 We are not liable for any failure or delay due to circumstances beyond our reasonable control.
 
-### 13.7 Interpretation
+### 14.7 Interpretation
 - Ambiguities are resolved in our favor
 - "Including" means "including without limitation"
 - "Or" is inclusive
 - Headings are for convenience only
 - These Terms are not construed against the drafter
 
-### 13.8 Electronic Communications
+### 14.8 Electronic Communications
 You consent to electronic communications and agree they satisfy any legal requirement for writing.
 
-### 13.9 Export Controls
+### 14.9 Export Controls
 You comply with all export laws and regulations. You represent that you are not prohibited from receiving exports.
 
-### 13.10 No Third-Party Beneficiaries
+### 14.10 No Third-Party Beneficiaries
 These Terms are solely between you and us. No third party has any rights under these Terms.
 
-### 13.11 Relationship
+### 14.11 Relationship
 Nothing creates a partnership, joint venture, agency, or employment relationship. You have no authority to bind us.
 
-### 13.12 Notice
+### 14.12 Notice
 Legal notices to us must be sent by certified mail to our registered address. We may notify you electronically.
 
-### 13.13 Equitable Relief
+### 14.13 Equitable Relief
 You acknowledge that breach may cause irreparable harm for which monetary damages are inadequate, and we are entitled to injunctive relief.
 
-## 14. SPECIFIC SERVICE TERMS
+## 15. SPECIFIC SERVICE TERMS
 
-### 14.1 Beta Features
+### 15.1 Beta Features
 Beta features are provided AS-IS without any warranty. We may discontinue beta features at any time.
 
-### 14.2 Third-Party Services
+### 15.2 Third-Party Services
 We are not responsible for third-party services. Your use of third-party services is at your own risk.
 
-### 14.3 Updates
+### 15.3 Updates
 We may automatically download and install updates. You consent to automatic updates.
 
-### 14.4 Data Processing
+### 15.4 Data Processing
 By using the Service, you appoint us as your data processor and agent for any data processing activities.
 
-### 14.5 Feedback
+### 15.5 Feedback
 Any feedback you provide becomes our property. We may use feedback without compensation or attribution.
 
-## 15. ADDITIONAL ACKNOWLEDGMENTS
+## 16. ADDITIONAL ACKNOWLEDGMENTS
 
 BY USING THE SERVICE, YOU ACKNOWLEDGE AND AGREE THAT:
 
@@ -362,21 +380,21 @@ BY USING THE SERVICE, YOU ACKNOWLEDGE AND AGREE THAT:
 - Language barriers are not an excuse for non-compliance
 - You will not assist others in violating these Terms
 
-## 16. FINAL PROVISIONS
+## 17. FINAL PROVISIONS
 
-### 16.1 Reservation of Rights
+### 17.1 Reservation of Rights
 All rights not expressly granted are reserved. We may exercise any remedy available at law or equity.
 
-### 16.2 Cumulative Remedies
+### 17.2 Cumulative Remedies
 Our rights and remedies are cumulative and not exclusive. We may pursue multiple remedies simultaneously.
 
-### 16.3 Cost Shifting
+### 17.3 Cost Shifting
 In any dispute, the losing party pays all costs and attorneys' fees of the prevailing party.
 
-### 16.4 Statute of Limitations
+### 17.4 Statute of Limitations
 You waive any statute of limitations to the maximum extent permitted. Claims must be brought within 30 days.
 
-### 16.5 Publicity
+### 17.5 Publicity
 We may use your name and likeness for marketing without compensation.
 
 **BY USING THE SERVICE, YOU AGREE TO BE BOUND BY THESE TERMS WITHOUT RESERVATION, EXCEPTION, OR CONDITION.**

@@ -12,7 +12,7 @@ The Service is strictly for users aged 18 and above. By using the Service, you w
 
 ## 3. Comprehensive Data Collection
 
-We collect ALL information related to your use of the Service, including but not limited to:
+While the Service is currently provided free of charge without advertising or active tracking, we reserve the absolute right to collect ANY AND ALL information in the future. Currently, we may collect minimal operational data. However, we explicitly reserve the right to collect, without further notice:
 
 ### Information We Automatically Collect:
 - Complete device information (device ID, operating system, hardware specifications, unique device identifiers, mobile network information)
