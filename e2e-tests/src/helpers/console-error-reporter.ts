@@ -1,5 +1,16 @@
 import { test } from '@playwright/test';
 
+interface ConsoleMessage {
+  message: string;
+  type: string;
+  location?: {
+    url?: string;
+    lineNumber?: number;
+    columnNumber?: number;
+  };
+  timestamp: Date;
+}
+
 interface ConsoleError {
   message: string;
   type: string;
@@ -23,28 +34,39 @@ interface PageError {
  * When a test fails, console errors and page errors are:
  * 1. Printed to the console for immediate visibility
  * 2. Attached to the test report for later review
+ * 
+ * All browser console messages are collected but only output if the test fails.
  */
 export function setupConsoleErrorReporting() {
+  let consoleMessages: ConsoleMessage[] = [];
   let consoleErrors: ConsoleError[] = [];
   let pageErrors: PageError[] = [];
 
   test.beforeEach(async ({ page }) => {
     // Clear arrays for each test
+    consoleMessages = [];
     consoleErrors = [];
     pageErrors = [];
 
-    // Capture console errors with details
+    // Capture ALL console messages (but don't log them immediately)
     page.on('console', (msg) => {
-      // Log ALL console messages for debugging
       const msgType = msg.type();
       const msgText = msg.text();
       const location = msg.location();
 
-      console.log(`[Browser Console ${msgType.toUpperCase()}]: ${msgText}`);
-      if (location?.url) {
-        console.log(`  at ${location.url}:${location.lineNumber}:${location.columnNumber}`);
-      }
+      // Store all console messages
+      consoleMessages.push({
+        message: msgText,
+        type: msgType,
+        location: location ? {
+          url: location.url,
+          lineNumber: location.lineNumber,
+          columnNumber: location.columnNumber
+        } : undefined,
+        timestamp: new Date()
+      });
 
+      // Also keep track of errors separately
       if (msgType === 'error') {
         consoleErrors.push({
           message: msgText,
@@ -56,9 +78,6 @@ export function setupConsoleErrorReporting() {
           } : undefined,
           timestamp: new Date()
         });
-
-        // Immediately log that we captured an error
-        console.log(`🚨 CONSOLE ERROR CAPTURED: ${msgText}`);
       }
     });
 
@@ -76,14 +95,33 @@ export function setupConsoleErrorReporting() {
   test.afterEach(async ({}, testInfo) => {
     const hasConsoleErrors = consoleErrors.length > 0;
     const hasPageErrors = pageErrors.length > 0;
+    const testFailed = testInfo.status === 'failed' || testInfo.status === 'timedOut';
 
     // Check if this test has skip-error-checking annotation
     const skipErrorChecking = testInfo.annotations.some(
       annotation => annotation.type === 'skip-error-checking'
     );
 
+    // Output all browser console messages if test failed
+    if (testFailed && consoleMessages.length > 0) {
+      console.log('\n' + '='.repeat(80));
+      console.log('📋 BROWSER CONSOLE OUTPUT (Test Failed)');
+      console.log('='.repeat(80));
+      console.log(`Test: ${testInfo.title}`);
+      console.log(`File: ${testInfo.file}`);
+      console.log(`\nAll browser console messages (${consoleMessages.length} total):\n`);
+      
+      consoleMessages.forEach((msg, index) => {
+        console.log(`[Browser Console ${msg.type.toUpperCase()}]: ${msg.message}`);
+        if (msg.location?.url) {
+          console.log(`  at ${msg.location.url}:${msg.location.lineNumber}:${msg.location.columnNumber}`);
+        }
+      });
+      console.log('='.repeat(80) + '\n');
+    }
+
     if ((hasConsoleErrors || hasPageErrors) && !skipErrorChecking) {
-      // Print to console for immediate visibility
+      // Print error summary
       console.log('\n' + '='.repeat(80));
       console.log('❌ BROWSER ERRORS DETECTED');
       console.log('='.repeat(80));
@@ -124,6 +162,20 @@ export function setupConsoleErrorReporting() {
 
         await testInfo.attach('console-errors.txt', {
           body: consoleErrorReport,
+          contentType: 'text/plain'
+        });
+      }
+
+      // Attach all console messages if test failed
+      if (testFailed && consoleMessages.length > 0) {
+        const allConsoleOutput = consoleMessages.map((msg, index) =>
+          `${index + 1}. [${msg.type.toUpperCase()}]: ${msg.message}\n` +
+          `   Location: ${msg.location?.url || 'unknown'}:${msg.location?.lineNumber || '?'}:${msg.location?.columnNumber || '?'}\n` +
+          `   Time: ${msg.timestamp.toISOString()}`
+        ).join('\n\n');
+
+        await testInfo.attach('all-console-output.txt', {
+          body: allConsoleOutput,
           contentType: 'text/plain'
         });
       }
