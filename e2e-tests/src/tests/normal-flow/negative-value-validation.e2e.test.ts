@@ -89,7 +89,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
 
   multiUserTest('should prevent negative settlement amounts in UI', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
-    const { page: page2, user: user2 } = secondUser;
+    const { page: page2} = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -160,8 +160,8 @@ authenticatedTest.describe('Negative Value Validation', () => {
   });
 
   multiUserTest('should prevent negative split amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
-    const { page: page2, user: user2 } = secondUser;
+    const { page } = authenticatedPage;
+    const { page: page2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user

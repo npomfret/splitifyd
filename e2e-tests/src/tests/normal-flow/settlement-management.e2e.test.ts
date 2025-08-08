@@ -11,7 +11,7 @@ test.describe('Settlement Management', () => {
   // as they are better covered by the comprehensive three-user-settlement test
   
   test('should validate settlement form', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
@@ -41,8 +41,7 @@ test.describe('Settlement Management', () => {
     
     // Test same payer and payee by directly setting form state
     const payerSelect = groupDetailPage.getPayerSelect();
-    const payeeSelect = groupDetailPage.getPayeeSelect();
-    
+
     // Get the first user value from payer select
     await payerSelect.selectOption({ index: 1 });
     const selectedPayerValue = await payerSelect.inputValue();
@@ -67,7 +66,7 @@ test.describe('Settlement Management', () => {
   // Note: Settlement history test removed - covered by three-user-settlement test
   
   test('should handle multiple currencies', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page, user: user1 } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user

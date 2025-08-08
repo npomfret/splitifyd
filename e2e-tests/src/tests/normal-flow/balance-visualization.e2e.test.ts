@@ -9,7 +9,7 @@ setupMCPDebugOnFailure();
 
 
 test.describe('Single User Balance Visualization', () => {
-  test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+  test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     
     // Create test group with unique ID
@@ -31,9 +31,9 @@ test.describe('Single User Balance Visualization', () => {
     await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
   });
 
-  test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
-    const { page, user } = authenticatedPage;
-    
+  test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { user } = authenticatedPage;
+
     // Create test group using dashboard page object with unique ID
     const uniqueId = generateShortId();
     const groupName = `Single User Test ${uniqueId}`;
@@ -65,9 +65,7 @@ test.describe('Single User Balance Visualization', () => {
     await expect(groupDetailPage.getCurrencyAmount('80.00')).toBeVisible();
   });
 
-  test('should handle zero balance state correctly', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
-    const { page } = authenticatedPage;
-    
+  test('should handle zero balance state correctly', async ({ dashboardPage, groupDetailPage }) => {
     // Create test group with unique ID
     const uniqueId = generateShortId();
     const groupName = `Zero Balance Test ${uniqueId}`;
@@ -80,8 +78,8 @@ test.describe('Single User Balance Visualization', () => {
     await expect(settledUpMessage).toBeVisible();
   });
 
-  test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
-    const { page, user } = authenticatedPage;
+  test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { user } = authenticatedPage;
     
     // Create test group with unique ID
     const uniqueId = generateShortId();
@@ -106,7 +104,7 @@ test.describe('Single User Balance Visualization', () => {
 });
 
 multiUserTest.describe('Multi-User Balance Visualization - Deterministic States', () => {
-  multiUserTest('should show settled up when both users pay equal amounts', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should show settled up when both users pay equal amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -156,7 +154,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await multiUserExpected(page.getByText('User2 Equal Payment')).toBeVisible();
   });
 
-  multiUserTest('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -199,7 +197,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await multiUserExpected(groupDetailPage.getCurrencyAmount('200.00')).toBeVisible();
   });
   
-  multiUserTest('should calculate complex debts correctly', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should calculate complex debts correctly', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -252,7 +250,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await multiUserExpected(page.getByText('Small User2 Payment')).toBeVisible();
   });
   
-  multiUserTest('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -302,7 +300,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await multiUserExpected(page.getByText('Balance Debt')).toBeVisible();
   });
   
-  multiUserTest('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -341,7 +339,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 });
 
 multiUserTest.describe('Balance with Settlement Calculations', () => {
-  multiUserTest('should update debt correctly after partial settlement', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should update debt correctly after partial settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -475,7 +473,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await multiUserExpected(balancesSection2.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
   });
 
-  multiUserTest('should show settled up after exact settlement', async ({ authenticatedPage, groupDetailPage, secondUser }, testInfo) => {
+  multiUserTest('should show settled up after exact settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
@@ -561,10 +559,10 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await multiUserExpected(groupDetailPage.getBalancesHeading()).toBeVisible();
     
     // Use more specific selector for the balance section
-    const balanceSection = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
+    const balanceSection = page.locator('.bg-white').filter({
+      has: page.getByRole('heading', { name: 'Balances' })
     }).first();
-    
+
     // Should be settled up after paying the full debt amount
     await multiUserExpected(groupDetailPage.getSettledUpMessageInBalanceSection()).toBeVisible();
     
@@ -576,7 +574,6 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Test user2's browser (page2) - should show same data
     await multiUserExpected(secondUser.groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    const balanceSection2 = page2.locator('section, div').filter({ has: secondUser.groupDetailPage.getBalancesHeading() });
     await multiUserExpected(secondUser.groupDetailPage.getLoadingBalancesText()).not.toBeVisible();
     
     // Both users should see settled up
