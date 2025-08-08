@@ -53,7 +53,7 @@ firebase/public
 e2e-tests/playwright-report
 reports
 tmp
-
+screenshots
 
 # AI agents stuff
 CLAUDE.md
