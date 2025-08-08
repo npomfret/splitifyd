@@ -715,4 +715,30 @@ export class GroupDetailPage extends BasePage {
   getDebtMessage(debtorName: string, creditorName: string) {
     return this.page.getByText(`${debtorName} owes ${creditorName}`);
   }
+
+  /**
+   * Shares the group and waits for another user to join.
+   * This encapsulates the entire share/join flow to avoid code duplication.
+   * 
+   * @param joinerPage - The Page object for the user who will join the group
+   * @returns The share link URL
+   */
+  async shareGroupAndWaitForJoin(joinerPage: any): Promise<string> {
+    // Click share button and get the share link
+    await this.getShareButton().click();
+    const shareLink = await this.getShareLinkInput().inputValue();
+    
+    // Close the share modal
+    await this.page.keyboard.press('Escape');
+    
+    // Have the second user navigate to share link and join
+    await joinerPage.goto(shareLink);
+    await joinerPage.getByRole('button', { name: /join group/i }).click();
+    await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    
+    // Refresh the original page to see updated members
+    await this.page.reload();
+    
+    return shareLink;
+  }
 }
