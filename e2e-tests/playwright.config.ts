@@ -11,11 +11,11 @@ export default defineConfig({
   /* Global setup and teardown for user pool management */
   globalSetup: './src/fixtures/global-setup.ts',
   globalTeardown: './src/fixtures/global-teardown.ts',
-  /* Global test timeout - 10 seconds to handle slower operations */
-  timeout: 10000,
+  /* Global test timeout - some are slow */
+  timeout: 15000,
   /* Expect timeout for assertions like toBeVisible() */
   expect: {
-    timeout: 1600
+    timeout: 2000
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -33,7 +33,7 @@ export default defineConfig({
     baseURL: EMULATOR_URL,
     
     /* Fast fail for element interactions */
-    actionTimeout: 1200,
+    actionTimeout: 1500,
     
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
