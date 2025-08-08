@@ -24,7 +24,7 @@ import { calculateExpenseMetadata } from '../services/expenseMetadataService';
  * Get the groups collection reference
  */
 const getGroupsCollection = () => {
-  return admin.firestore().collection(FirestoreCollections.DOCUMENTS); // Using existing collection during migration
+  return admin.firestore().collection(FirestoreCollections.GROUPS); // Using existing collection during migration
 };
 
 

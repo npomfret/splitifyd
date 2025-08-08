@@ -152,38 +152,43 @@ describe('Enhanced Data Validation Tests', () => {
   });
 
   describe('Category Validation', () => {
-    test('should reject expenses with invalid categories', async () => {
+    test('should accept any category name (categories are now free-form)', async () => {
       const expenseData = {
         ...new ExpenseBuilder()
           .withGroupId(testGroup.id)
           .withPaidBy(users[0].uid)
           .withParticipants([users[0].uid, users[1].uid])
           .build(),
-        category: 'invalid-category-name' // Invalid category - this is what the test is about
+        category: 'custom-category-name' // Custom category - this is what the test is about
       };
 
-      await expect(
-        driver.createExpense(expenseData, users[0].token)
-      ).rejects.toThrow(/invalid.*category|category.*allowed|INVALID_CATEGORY/i);
+      const response = await driver.createExpense(expenseData, users[0].token);
+      expect(response.id).toBeDefined();
+      
+      const createdExpense = await driver.getExpense(response.id, users[0].token);
+      expect(createdExpense.category).toBe('custom-category-name');
     });
 
-    test('should accept all valid expense categories', async () => {
-      const validCategories = [
+    test('should accept both standard and custom categories', async () => {
+      const testCategories = [
         'food',
-        'transport', // Note: API uses 'transport' not 'transportation'
+        'transport',
         'entertainment',
         'utilities',
         'shopping',
         'accommodation',
         'healthcare',
         'education',
-        'other'
+        'other',
+        'my-custom-category',  // Custom categories are now allowed
+        'business-lunch',
+        'team-outing'
       ];
 
-      for (const category of validCategories) {
+      for (const category of testCategories) {
         const expenseData = new ExpenseBuilder()
           .withGroupId(testGroup.id)
-          .withCategory(category) // Valid category - this is what the test is about
+          .withCategory(category) // Any category - this is what the test is about
           .withPaidBy(users[0].uid)
           .withParticipants([users[0].uid, users[1].uid])
           .build();
@@ -226,7 +231,7 @@ describe('Enhanced Data Validation Tests', () => {
       ).rejects.toThrow(/category.*required|category.*empty|INVALID_CATEGORY/i);
     });
 
-    test('should enforce case sensitivity in category validation', async () => {
+    test('should accept categories regardless of case (categories are now free-form)', async () => {
       const expenseData = {
         ...new ExpenseBuilder()
           .withGroupId(testGroup.id)
@@ -236,9 +241,11 @@ describe('Enhanced Data Validation Tests', () => {
         category: 'FOOD' // Uppercase category - this is what the test is about
       };
 
-      await expect(
-        driver.createExpense(expenseData, users[0].token)
-      ).rejects.toThrow(/invalid.*category|category.*case|INVALID_CATEGORY/i);
+      const response = await driver.createExpense(expenseData, users[0].token);
+      expect(response.id).toBeDefined();
+      
+      const createdExpense = await driver.getExpense(response.id, users[0].token);
+      expect(createdExpense.category).toBe('FOOD');
     });
   });
 

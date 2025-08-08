@@ -54,7 +54,7 @@ describe('Comprehensive API Test Suite', () => {
         // Verify the group was created
         const fetchedGroup = await driver.getGroup(createdGroup.id, users[0].token);
         expect(fetchedGroup.name).toBe(groupData.name);
-        expect(fetchedGroup.members.length).toBe(1); // Only creator initially
+        expect(fetchedGroup.memberIds.length).toBe(1); // Only creator initially
       });
 
     });
@@ -170,7 +170,7 @@ describe('Comprehensive API Test Suite', () => {
         
         // Verify the user was added to the group
         const updatedGroup = await driver.getGroup(shareableGroup.id, newUser.token);
-        const memberUids = updatedGroup.members.map((m: any) => m.uid);
+        const memberUids = updatedGroup.memberIds;
         expect(memberUids).toContain(newUser.uid);
       });
 
@@ -230,7 +230,7 @@ describe('Comprehensive API Test Suite', () => {
         
         // Verify all users were added to the group
         const updatedGroup = await driver.getGroup(multiJoinGroup.id, users[0].token);
-        const memberUids = updatedGroup.members.map((m: any) => m.uid);
+        const memberUids = updatedGroup.memberIds;
         
         // Should have original member + 3 new members = 4 total
         expect(memberUids.length).toBe(4);
@@ -781,8 +781,8 @@ describe('Comprehensive API Test Suite', () => {
       // Verify the response structure includes balance info
       expect(groupDetails).toHaveProperty('id');
       expect(groupDetails).toHaveProperty('name');
-      expect(groupDetails).toHaveProperty('members');
-      expect(groupDetails.members.length).toBeGreaterThan(0);
+      expect(groupDetails).toHaveProperty('memberIds');
+      expect(groupDetails.memberIds.length).toBeGreaterThan(0);
     });
 
     test('should include balance data in listGroups response', async () => {

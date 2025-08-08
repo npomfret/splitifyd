@@ -301,6 +301,10 @@ export class ApiDriver {
     return await this.apiRequest(`/groups/${groupId}`, 'GET', null, token);
   }
 
+  async getGroupMembers(groupId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
+  }
+
   async updateGroup(groupId: string, data: any, token: string): Promise<void> {
     return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
   }

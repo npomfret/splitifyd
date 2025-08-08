@@ -223,7 +223,7 @@ describe('Error Handling and Recovery Testing', () => {
                 // Verify all data is accessible for export
                 expect(groupData).toBeDefined();
                 expect(groupData).toHaveProperty('name');
-                expect(groupData).toHaveProperty('members');
+                expect(groupData).toHaveProperty('memberIds');
 
                 expect(expenseData).toHaveProperty('expenses');
                 expect(expenseData.expenses.length).toBeGreaterThan(0);
@@ -314,7 +314,7 @@ describe('Error Handling and Recovery Testing', () => {
                 
                 // Group data should remain unchanged
                 expect(finalGroupData.name).toBe(initialGroupData.name);
-                expect(finalGroupData.members.length).toBe(initialGroupData.members.length);
+                expect(finalGroupData.memberIds.length).toBe(initialGroupData.memberIds.length);
             });
 
             it('should handle database transaction consistency', async () => {
@@ -349,7 +349,7 @@ describe('Error Handling and Recovery Testing', () => {
                 // Both should see the same group state
                 expect(mainUserGroupView.id).toBe(user2GroupView.id);
                 expect(mainUserGroupView.name).toBe(user2GroupView.name);
-                expect(mainUserGroupView.members.length).toBe(user2GroupView.members.length);
+                expect(mainUserGroupView.memberIds.length).toBe(user2GroupView.memberIds.length);
             });
         });
     });
