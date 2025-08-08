@@ -34,7 +34,7 @@ export const threeUserTest = multiUserTest.extend<ThreeUserFixtures>({
     
     // Claim a third user from the pool
     const userPool = getUserPool();
-    const user = await userPool.claimUser(page, `${testInfo.testId}-user3`);
+    const user = await userPool.claimUser(page);
     
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);

@@ -20,7 +20,7 @@ export const authenticatedTest = base.extend<AuthenticatedFixtures>({
     await page.goto('about:blank');
     
     // Claim a user from the pool (creates on-demand if needed)
-    const user = await userPool.claimUser(page, testInfo.testId);
+    const user = await userPool.claimUser(page);
     
     // Authenticate the existing user via login
     const authWorkflow = new AuthenticationWorkflow(page);

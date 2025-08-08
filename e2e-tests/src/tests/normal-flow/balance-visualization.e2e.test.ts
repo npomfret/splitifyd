@@ -308,7 +308,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const groupWorkflow = new GroupWorkflow(page);
     
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
+    const groupId = await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
@@ -316,8 +316,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await page2.goto(shareLink);
     await page2.getByRole('button', { name: /join group/i }).click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
+    await page2.waitForURL(`/groups/${groupId}`);
     
     // User1 pays $123.45 → User2 owes exactly $61.73 (or $61.72 depending on rounding)
     await groupDetailPage.addExpense({

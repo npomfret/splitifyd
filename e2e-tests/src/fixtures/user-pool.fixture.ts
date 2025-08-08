@@ -19,7 +19,7 @@ export class UserPool {
   // In-memory pool of available users
   private availableUsers: BaseUser[] = [];
   // Track users currently in use (for debugging/stats)
-  private usersInUse: Map<string, string> = new Map(); // uid -> testId
+  private usersInUse: Set<string> = new Set(); // uid
   
   constructor() {
     // Enforce singleton pattern - only one UserPool per process
@@ -50,21 +50,21 @@ export class UserPool {
    * Claim a user from the pool.
    * If pool is empty, creates a new user on-demand.
    */
-  async claimUser(page: Page, testId: string): Promise<BaseUser> {
+  async claimUser(page: Page): Promise<BaseUser> {
     // Try to get an existing user from the pool
     let user = this.availableUsers.pop();
     
     if (user) {
-      // console.log(`📤 Claimed existing user: ${user.email} for test ${testId}`);
+      // console.log(`📤 Claimed existing user: ${user.email}`);
     } else {
       // Pool is empty, create a new user on-demand
-      // console.log(`🔨 Creating new user on-demand for test ${testId}`);
+      // console.log(`🔨 Creating new user on-demand`);
       user = await this.createUser(page, 'u');
       // console.log(`✅ Created new user: ${user.email}`);
     }
     
     // Track that this user is in use
-    this.usersInUse.set(user.uid, testId);
+    this.usersInUse.add(user.uid);
     
     return user;
   }

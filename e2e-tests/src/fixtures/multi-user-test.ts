@@ -35,7 +35,7 @@ export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
     
     // Claim a second user from the pool
     const userPool = getUserPool();
-    const user = await userPool.claimUser(page, `${testInfo.testId}-user2`);
+    const user = await userPool.claimUser(page);
     
     // Authenticate the second user
     const authWorkflow = new AuthenticationWorkflow(page);
