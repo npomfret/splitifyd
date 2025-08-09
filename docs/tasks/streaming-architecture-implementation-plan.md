@@ -2,766 +2,565 @@
 
 ## Executive Summary
 
-This plan outlines a **Notification-Driven REST** architecture for Splitifyd - a hybrid approach that uses lightweight Firestore listeners purely for change detection while keeping all data fetching through traditional REST APIs with pagination. This provides real-time updates without the complexity of streaming pagination.
+This plan implements a **Notification-Driven REST** architecture for Splitifyd - a hybrid approach using lightweight Firestore listeners for change detection while keeping all data fetching through REST APIs with pagination. This provides real-time updates without streaming complexity.
 
-## Recommended Architecture: Notification-Driven REST
+## Architecture Overview
 
-After analysis, I recommend the **Notification-Driven REST** approach as the primary architecture:
+The **Notification-Driven REST** approach:
 
-1. **Use Firestore listeners as lightweight change detectors only**
-2. **Keep all data fetching through REST APIs**
-3. **Auto-refresh current view when changes are detected**
+1. **Firestore listeners detect changes only** (no data transfer)
+2. **REST APIs handle all data fetching** with traditional pagination
+3. **Auto-refresh current view** when changes detected
+4. **Preserve user context** during refreshes (selections, scroll position, form inputs)
 
-This gives you:
-- Real-time feel without complexity
-- Perfect pagination (page numbers work as expected)
-- Lower costs (minimal Firestore reads)
-- Easier to implement and maintain
+### Key Benefits
+- ✅ Real-time feel with traditional pagination UX
+- ✅ Minimal Firestore costs (~100 reads/hour for notifications)
+- ✅ Simple mental model (REST + notifications)
+- ✅ No streaming pagination complexity
+- ✅ Easy rollback to pure REST if needed
 
 ## Implementation Phases
 
-### Phase 1: Change Detection Infrastructure (Week 1)
+### Phase 1: Core Infrastructure (Week 1)
 
-#### Tasks:
-1. **Create lightweight change tracking**
-   ```javascript
-   // firebase/functions/src/triggers/change-tracker.ts
-   export const trackGroupChanges = functions.firestore
-     .document('groups/{groupId}')
-     .onWrite(async (change, context) => {
-       const changeDoc = {
-         groupId: context.params.groupId,
-         timestamp: Date.now(),
-         type: !change.before.exists ? 'created' : 
-               !change.after.exists ? 'deleted' : 'modified',
-         userId: change.after?.data()?.lastModifiedBy
-       };
-       
-       // Write to lightweight changes collection
-       await admin.firestore()
-         .collection('group-changes')
-         .add(changeDoc);
-       
-       // Auto-cleanup old changes (>5 minutes)
-       await cleanupOldChanges();
-     });
-   
-   export const trackExpenseChanges = functions.firestore
-     .document('groups/{groupId}/expenses/{expenseId}')
-     .onWrite(async (change, context) => {
-       await admin.firestore()
-         .collection('expense-changes')
-         .add({
-           groupId: context.params.groupId,
-           expenseId: context.params.expenseId,
-           timestamp: Date.now(),
-           type: getChangeType(change)
-         });
-     });
-   ```
+#### 1.1 Change Detection with Rate Limiting
+```typescript
+// firebase/functions/src/triggers/change-tracker.ts
+import { debounce } from '../utils/debounce';
 
-2. **Implement change cleanup**
-   ```javascript
-   // Scheduled function to clean up old change notifications
-   export const cleanupChanges = functions.pubsub
-     .schedule('every 5 minutes')
-     .onRun(async () => {
-       const cutoff = Date.now() - (5 * 60 * 1000); // 5 minutes ago
-       
-       const batch = admin.firestore().batch();
-       
-       // Clean group changes
-       const oldGroupChanges = await admin.firestore()
-         .collection('group-changes')
-         .where('timestamp', '<', cutoff)
-         .get();
-       
-       oldGroupChanges.forEach(doc => batch.delete(doc.ref));
-       
-       // Clean expense changes
-       const oldExpenseChanges = await admin.firestore()
-         .collection('expense-changes')
-         .where('timestamp', '<', cutoff)
-         .get();
-       
-       oldExpenseChanges.forEach(doc => batch.delete(doc.ref));
-       
-       await batch.commit();
-     });
-   ```
+const pendingChanges = new Map<string, NodeJS.Timeout>();
 
-### Phase 2: REST API Pagination Support (Week 2)
+export const trackGroupChanges = functions.firestore
+  .document('groups/{groupId}')
+  .onWrite(async (change, context) => {
+    const groupId = context.params.groupId;
+    
+    // Debounce rapid changes (e.g., multiple field updates)
+    if (pendingChanges.has(groupId)) {
+      clearTimeout(pendingChanges.get(groupId));
+    }
+    
+    const timeoutId = setTimeout(async () => {
+      const changeDoc = {
+        groupId,
+        timestamp: Date.now(),
+        type: !change.before.exists ? 'created' : 
+              !change.after.exists ? 'deleted' : 'modified',
+        userId: change.after?.data()?.lastModifiedBy,
+        fields: getChangedFields(change.before, change.after) // Track what changed
+      };
+      
+      await admin.firestore()
+        .collection('group-changes')
+        .add(changeDoc);
+      
+      pendingChanges.delete(groupId);
+    }, 500); // 500ms debounce
+    
+    pendingChanges.set(groupId, timeoutId);
+  });
 
-#### Tasks:
-1. **Update REST API endpoints for pagination**
-   ```typescript
-   // firebase/functions/src/routes/groups.ts
-   router.get('/groups', async (req, res) => {
-     const { page = 1, limit = 20, sort = 'lastActivityAt' } = req.query;
-     const userId = req.user.uid;
-     
-     const offset = (page - 1) * limit;
-     
-     // Get total count for pagination metadata
-     const totalQuery = await admin.firestore()
-       .collection('groups')
-       .where('memberIds', 'array-contains', userId)
-       .count()
-       .get();
-     
-     const total = totalQuery.data().count;
-     
-     // Get paginated data
-     const groupsSnapshot = await admin.firestore()
-       .collection('groups')
-       .where('memberIds', 'array-contains', userId)
-       .orderBy(sort, 'desc')
-       .limit(limit)
-       .offset(offset)
-       .get();
-     
-     const groups = groupsSnapshot.docs.map(doc => ({
-       id: doc.id,
-       ...doc.data()
-     }));
-     
-     res.json({
-       groups,
-       pagination: {
-         page: Number(page),
-         limit: Number(limit),
-         total,
-         totalPages: Math.ceil(total / limit),
-         hasMore: offset + limit < total
-       }
-     });
-   });
-   
-   router.get('/groups/:groupId/expenses', async (req, res) => {
-     const { groupId } = req.params;
-     const { page = 1, limit = 50 } = req.query;
-     
-     // Verify user has access to group
-     await verifyGroupAccess(req.user.uid, groupId);
-     
-     const offset = (page - 1) * limit;
-     
-     const expensesSnapshot = await admin.firestore()
-       .collection('groups')
-       .doc(groupId)
-       .collection('expenses')
-       .orderBy('createdAt', 'desc')
-       .limit(limit)
-       .offset(offset)
-       .get();
-     
-     const expenses = expensesSnapshot.docs.map(doc => ({
-       id: doc.id,
-       ...doc.data()
-     }));
-     
-     res.json({
-       expenses,
-       pagination: {
-         page: Number(page),
-         limit: Number(limit),
-         hasMore: expensesSnapshot.size === limit
-       }
-     });
-   });
-   ```
+// Helper to identify changed fields for granular updates
+function getChangedFields(before: any, after: any): string[] {
+  if (!before.exists) return ['*']; // New document
+  if (!after.exists) return ['*']; // Deleted document
+  
+  const beforeData = before.data();
+  const afterData = after.data();
+  const changedFields: string[] = [];
+  
+  Object.keys(afterData).forEach(key => {
+    if (JSON.stringify(beforeData[key]) !== JSON.stringify(afterData[key])) {
+      changedFields.push(key);
+    }
+  });
+  
+  return changedFields;
+}
+```
 
-### Phase 3: Client-side Change Detection (Week 3)
+#### 1.2 Automatic Cleanup
+```typescript
+// firebase/functions/src/scheduled/cleanup.ts
+export const cleanupChanges = functions.pubsub
+  .schedule('every 5 minutes')
+  .onRun(async () => {
+    const cutoff = Date.now() - (5 * 60 * 1000);
+    const batch = admin.firestore().batch();
+    
+    // Clean up old changes
+    const collections = ['group-changes', 'expense-changes'];
+    for (const collection of collections) {
+      const snapshot = await admin.firestore()
+        .collection(collection)
+        .where('timestamp', '<', cutoff)
+        .limit(500) // Batch limit
+        .get();
+      
+      snapshot.forEach(doc => batch.delete(doc.ref));
+    }
+    
+    await batch.commit();
+  });
 
-#### Tasks:
-1. **Update groups store with change detection**
-   ```typescript
-   // webapp-v2/src/app/stores/groups-store.ts
-   import { onSnapshot, query, where, collection, orderBy, limit } from 'firebase/firestore';
-   
-   class GroupsStore {
-     private changeListener: (() => void) | null = null;
-     private currentPage = 1;
-     private pageSize = 20;
-     private totalPages = 1;
-     
-     // Listen for changes only (not data)
-     subscribeToChanges(userId: string) {
-       // Lightweight listener for change notifications
-       const changesQuery = query(
-         collection(db, 'group-changes'),
-         where('timestamp', '>', Date.now() - 300000), // Last 5 minutes
-         orderBy('timestamp', 'desc'),
-         limit(1)
-       );
-       
-       this.changeListener = onSnapshot(changesQuery, (snapshot) => {
-         if (!snapshot.empty && !snapshot.metadata.fromCache) {
-           const change = snapshot.docs[0].data();
-           
-           // Check if change affects current user's groups
-           if (this.shouldRefresh(change, userId)) {
-             // Refresh current page via REST
-             this.refreshCurrentPage();
-           }
-         }
-       }, (error) => {
-         console.warn('Change listener error:', error);
-         // Continue working with REST only
-       });
-     }
-     
-     // Load groups via REST with pagination
-     async loadGroups(page = 1) {
-       this.loading = true;
-       this.error = null;
-       
-       try {
-         const response = await apiClient.getGroups({ 
-           page, 
-           limit: this.pageSize 
-         });
-         
-         this.groups = response.groups;
-         this.currentPage = response.pagination.page;
-         this.totalPages = response.pagination.totalPages;
-         this.hasMore = response.pagination.hasMore;
-       } catch (error) {
-         this.error = this.getErrorMessage(error);
-         throw error;
-       } finally {
-         this.loading = false;
-       }
-     }
-     
-     // Refresh current page when changes detected
-     async refreshCurrentPage() {
-       // Don't show loading spinner for background refresh
-       const response = await apiClient.getGroups({ 
-         page: this.currentPage, 
-         limit: this.pageSize 
-       });
-       
-       // Smoothly update the UI
-       this.groups = response.groups;
-       
-       // Optional: Show subtle notification
-       this.showUpdateNotification('Groups updated');
-     }
-     
-     // Traditional pagination methods
-     async nextPage() {
-       if (this.currentPage < this.totalPages) {
-         await this.loadGroups(this.currentPage + 1);
-       }
-     }
-     
-     async previousPage() {
-       if (this.currentPage > 1) {
-         await this.loadGroups(this.currentPage - 1);
-       }
-     }
-     
-     async goToPage(page: number) {
-       if (page >= 1 && page <= this.totalPages) {
-         await this.loadGroups(page);
-       }
-     }
-     
-     dispose() {
-       if (this.changeListener) {
-         this.changeListener();
-         this.changeListener = null;
-       }
-     }
-   }
-   ```
-
-2. **Update expense store similarly**
-   ```typescript
-   // webapp-v2/src/app/stores/group-detail-store.ts
-   class GroupDetailStore {
-     private expenseChangeListener: (() => void) | null = null;
-     private currentExpensePage = 1;
-     private expensePageSize = 50;
-     
-     // Listen for expense changes in current group
-     subscribeToExpenseChanges(groupId: string) {
-       const changesQuery = query(
-         collection(db, 'expense-changes'),
-         where('groupId', '==', groupId),
-         where('timestamp', '>', Date.now() - 300000),
-         orderBy('timestamp', 'desc'),
-         limit(1)
-       );
-       
-       this.expenseChangeListener = onSnapshot(changesQuery, () => {
-         // Refresh current expense page
-         this.refreshExpenses(groupId);
-       });
-     }
-     
-     // Load expenses with pagination
-     async loadExpenses(groupId: string, page = 1) {
-       const response = await apiClient.getExpenses(groupId, {
-         page,
-         limit: this.expensePageSize
-       });
-       
-       this.expenses = response.expenses;
-       this.currentExpensePage = page;
-       this.hasMoreExpenses = response.pagination.hasMore;
-     }
-     
-     // Background refresh
-     async refreshExpenses(groupId: string) {
-       const response = await apiClient.getExpenses(groupId, {
-         page: this.currentExpensePage,
-         limit: this.expensePageSize
-       });
-       
-       this.expenses = response.expenses;
-     }
-   }
-   ```
-
-### Phase 4: UI Components (Week 4)
-
-#### Tasks:
-1. **Create pagination UI components**
-   ```typescript
-   // webapp-v2/src/components/ui/Pagination.tsx
-   interface PaginationProps {
-     currentPage: number;
-     totalPages: number;
-     onPageChange: (page: number) => void;
-     loading?: boolean;
-   }
-   
-   export function Pagination({ 
-     currentPage, 
-     totalPages, 
-     onPageChange,
-     loading 
-   }: PaginationProps) {
-     return (
-       <div className="flex items-center justify-between py-4">
-         <button
-           onClick={() => onPageChange(currentPage - 1)}
-           disabled={currentPage === 1 || loading}
-           className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-         >
-           Previous
-         </button>
-         
-         <div className="flex gap-2">
-           {/* Page numbers */}
-           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-             const page = i + 1;
-             return (
-               <button
-                 key={page}
-                 onClick={() => onPageChange(page)}
-                 className={`px-3 py-1 rounded ${
-                   page === currentPage 
-                     ? 'bg-blue-500 text-white' 
-                     : 'bg-gray-200'
-                 }`}
-               >
-                 {page}
-               </button>
-             );
-           })}
-         </div>
-         
-         <button
-           onClick={() => onPageChange(currentPage + 1)}
-           disabled={currentPage === totalPages || loading}
-           className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-         >
-           Next
-         </button>
-       </div>
-     );
-   }
-   ```
-
-2. **Update Dashboard with pagination**
-   ```typescript
-   // webapp-v2/src/pages/DashboardPage.tsx
-   export function DashboardPage() {
-     const [currentPage, setCurrentPage] = useState(1);
-     
-     useEffect(() => {
-       // Initial load
-       groupsStore.loadGroups(currentPage);
-       
-       // Start listening for changes
-       groupsStore.subscribeToChanges(userId);
-       
-       return () => {
-         groupsStore.dispose();
-       };
-     }, []);
-     
-     const handlePageChange = async (page: number) => {
-       setCurrentPage(page);
-       await groupsStore.loadGroups(page);
-     };
-     
-     return (
-       <div>
-         <GroupsList groups={groupsStore.groups} />
-         
-         <Pagination
-           currentPage={currentPage}
-           totalPages={groupsStore.totalPages}
-           onPageChange={handlePageChange}
-           loading={groupsStore.loading}
-         />
-         
-         {/* Subtle update indicator */}
-         {groupsStore.lastUpdated && (
-           <div className="text-sm text-gray-500">
-             Updated {formatRelativeTime(groupsStore.lastUpdated)}
-           </div>
-         )}
-       </div>
-     );
-   }
-   ```
-
-3. **Add real-time status indicator**
-   ```typescript
-   // webapp-v2/src/components/ui/RealtimeStatus.tsx
-   export function RealtimeStatus({ connected }: { connected: boolean }) {
-     return (
-       <div className="flex items-center gap-2 text-sm">
-         <div className={`w-2 h-2 rounded-full ${
-           connected ? 'bg-green-500' : 'bg-gray-400'
-         }`} />
-         <span>{connected ? 'Live updates' : 'Offline'}</span>
-       </div>
-     );
-   }
-   ```
-
-### Phase 5: Testing and Performance Optimization (Week 5)
-
-#### Tasks:
-1. **End-to-end testing**
-   - Test real-time synchronization across multiple clients
-   - Verify data consistency
-   - Test offline/online transitions
-
-2. **Performance testing**
-   - Load test with varying group sizes
-   - Measure latency improvements
-   - Monitor Firestore read/write costs
-
-3. **Optimization**
-   - Implement hybrid pagination for large expense lists (see Pagination Strategy)
-   - Add debouncing for rapid updates
-   - Optimize bundle size with code splitting
-
-## Technical Considerations
-
-### Pagination Strategy
-
-**Challenge:** Firestore's real-time listeners don't naturally support traditional pagination like REST APIs. You can't easily "load more" while maintaining real-time updates for already-loaded items.
-
-**Solution: Notification-Driven REST Approach (Recommended)**
-
-This elegant hybrid uses Firestore listeners purely as change notifications, while REST APIs handle all data fetching:
+### Phase 2: REST API with Pagination (Week 1-2)
 
 ```typescript
-// webapp-v2/src/stores/smart-pagination-store.ts
-class SmartPaginationStore {
-  private changeListeners: Map<string, () => void> = new Map();
-  private currentData: Map<string, any> = new Map();
-  private pageSize = 50;
-  private currentPage = 1;
+// firebase/functions/src/routes/groups.ts
+router.get('/groups', async (req, res) => {
+  const { page = 1, limit = 20, sort = 'lastActivityAt' } = req.query;
+  const userId = req.user.uid;
   
-  // Listen ONLY for changes (lightweight metadata)
-  subscribeToChanges(groupId: string) {
-    // Ultra-lightweight listener - only gets timestamps/IDs
+  const offset = (page - 1) * limit;
+  
+  // Parallel queries for better performance
+  const [totalQuery, groupsSnapshot] = await Promise.all([
+    admin.firestore()
+      .collection('groups')
+      .where('memberIds', 'array-contains', userId)
+      .count()
+      .get(),
+    admin.firestore()
+      .collection('groups')
+      .where('memberIds', 'array-contains', userId)
+      .orderBy(sort, 'desc')
+      .limit(limit)
+      .offset(offset)
+      .get()
+  ]);
+  
+  const total = totalQuery.data().count;
+  const groups = groupsSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+  
+  res.json({
+    groups,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasMore: offset + limit < total
+    }
+  });
+});
+
+### Phase 3: Smart Client-Side Implementation (Week 2)
+
+```typescript
+// webapp-v2/src/app/stores/groups-store.ts
+import { onSnapshot, query, where, collection, orderBy, limit } from 'firebase/firestore';
+
+class GroupsStore {
+  private changeListener: (() => void) | null = null;
+  private refreshTimeout: NodeJS.Timeout | null = null;
+  private lastRefresh = 0;
+  private userContext = new Map<string, any>(); // Preserve user state
+  
+  // Smart change detection with context preservation
+  subscribeToChanges(userId: string) {
     const changesQuery = query(
-      collection(db, 'groups', groupId, 'changes'),
-      where('timestamp', '>', Date.now() - 60000), // Last minute
+      collection(db, 'group-changes'),
+      where('timestamp', '>', Date.now() - 300000),
       orderBy('timestamp', 'desc'),
       limit(1)
     );
     
-    const unsubscribe = onSnapshot(changesQuery, async (snapshot) => {
-      if (!snapshot.empty) {
-        // Change detected! Refresh via REST
-        await this.refreshCurrentPage(groupId);
+    this.changeListener = onSnapshot(changesQuery, (snapshot) => {
+      if (!snapshot.empty && !snapshot.metadata.fromCache) {
+        const change = snapshot.docs[0].data();
         
-        // Optional: Show notification
-        this.showChangeNotification(snapshot.docs[0].data());
-      }
-    });
-    
-    this.changeListeners.set(groupId, unsubscribe);
-  }
-  
-  // All data fetching via REST (with pagination)
-  async loadPage(groupId: string, page: number) {
-    const response = await fetch(
-      `/api/groups/${groupId}/expenses?page=${page}&limit=${this.pageSize}`
-    );
-    
-    const { data, totalPages, hasMore } = await response.json();
-    
-    // Store in local state
-    data.forEach(item => {
-      this.currentData.set(item.id, item);
-    });
-    
-    this.currentPage = page;
-    this.updateUI();
-  }
-  
-  // Refresh current view when changes detected
-  async refreshCurrentPage(groupId: string) {
-    // Re-fetch only the current page
-    await this.loadPage(groupId, this.currentPage);
-    
-    // UI updates automatically via signals/state
-  }
-  
-  // Traditional pagination controls
-  async nextPage(groupId: string) {
-    await this.loadPage(groupId, this.currentPage + 1);
-  }
-  
-  async previousPage(groupId: string) {
-    await this.loadPage(groupId, this.currentPage - 1);
-  }
-}
-```
-
-**Benefits of Notification-Driven REST:**
-- ✅ Traditional pagination works perfectly (page numbers, sorting, filtering)
-- ✅ Minimal Firestore reads (only change notifications)
-- ✅ Data stays fresh (auto-refresh on changes)
-- ✅ Simple mental model (REST with real-time notifications)
-- ✅ Easy to implement search, filters, sorting
-- ✅ Predictable costs (mostly REST, few Firestore reads)
-
-**Alternative: Full Streaming Approach (Original)**
-
-```typescript
-// webapp-v2/src/stores/expense-pagination-store.ts
-class ExpensePaginationStore {
-  private pageSize = 50;
-  private loadedExpenses: Map<string, Expense> = new Map();
-  private latestExpenseListener: (() => void) | null = null;
-  private olderExpensesLoaded = 0;
-  
-  // Stream only the most recent expenses (real-time)
-  subscribeToRecentExpenses(groupId: string) {
-    const recentQuery = query(
-      collection(db, 'groups', groupId, 'expenses'),
-      orderBy('createdAt', 'desc'),
-      limit(this.pageSize)
-    );
-    
-    this.latestExpenseListener = onSnapshot(recentQuery, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const expense = { id: change.doc.id, ...change.doc.data() };
-        
-        if (change.type === 'added' || change.type === 'modified') {
-          this.loadedExpenses.set(expense.id, expense);
-        } else if (change.type === 'removed') {
-          this.loadedExpenses.delete(expense.id);
+        // Smart refresh decision based on changed fields
+        if (this.shouldRefresh(change, userId)) {
+          this.scheduleRefresh(change);
         }
+      }
+    }, (error) => {
+      console.warn('Falling back to REST-only mode:', error);
+    });
+  }
+  
+  // Intelligent refresh decision
+  private shouldRefresh(change: any, userId: string): boolean {
+    // Skip refresh for non-critical fields
+    const nonCriticalFields = ['lastViewed', 'analytics', 'metadata'];
+    if (change.fields?.every(f => nonCriticalFields.includes(f))) {
+      return false;
+    }
+    
+    // Check if change affects current view
+    return change.userId !== userId || // Other user's change
+           change.type === 'deleted' ||
+           change.fields?.includes('name') ||
+           change.fields?.includes('balance');
+  }
+  
+  // Debounced refresh with rate limiting
+  private scheduleRefresh(change: any) {
+    // Rate limit: max 1 refresh per 2 seconds
+    const now = Date.now();
+    if (now - this.lastRefresh < 2000) {
+      return;
+    }
+    
+    // Cancel pending refresh
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
+    }
+    
+    // Schedule new refresh with debounce
+    this.refreshTimeout = setTimeout(() => {
+      this.refreshWithContext();
+      this.lastRefresh = Date.now();
+    }, 500);
+  }
+  
+  // Refresh while preserving user context
+  private async refreshWithContext() {
+    // Save current user context
+    this.saveUserContext();
+    
+    try {
+      const response = await apiClient.getGroups({
+        page: this.currentPage,
+        limit: this.pageSize
       });
       
-      this.updateExpensesList();
-    });
+      // Apply optimistic updates for user's own changes
+      this.mergeWithOptimisticUpdates(response.groups);
+      
+      // Restore user context
+      this.restoreUserContext();
+      
+      // Subtle notification
+      if (this.hasVisibleChanges(response.groups)) {
+        this.showUpdateNotification('Content updated');
+      }
+    } catch (error) {
+      // Silent fail for background refresh
+      console.debug('Background refresh failed:', error);
+    }
   }
   
-  // Load older expenses via REST (one-time fetch, no streaming)
-  async loadMoreExpenses(groupId: string) {
-    const lastExpense = Array.from(this.loadedExpenses.values())
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .pop();
-    
-    if (!lastExpense) return;
-    
-    // Use REST API for older expenses (static data)
-    const response = await fetch(`/api/groups/${groupId}/expenses?` + 
-      `startAfter=${lastExpense.createdAt}&limit=${this.pageSize}`);
-    const olderExpenses = await response.json();
-    
-    // Add to map without listener (these won't update in real-time)
-    olderExpenses.forEach(expense => {
-      this.loadedExpenses.set(expense.id, expense);
-    });
-    
-    this.olderExpensesLoaded += olderExpenses.length;
-    this.updateExpensesList();
+  // Preserve form inputs, selections, scroll position
+  private saveUserContext() {
+    this.userContext.set('scrollPosition', window.scrollY);
+    this.userContext.set('selectedItems', this.selectedItems);
+    this.userContext.set('formData', this.captureFormData());
   }
   
-  // Virtual scrolling for very large lists
-  getVisibleExpenses(scrollPosition: number): Expense[] {
-    const allExpenses = Array.from(this.loadedExpenses.values())
-      .sort((a, b) => b.createdAt - a.createdAt);
+  private restoreUserContext() {
+    window.scrollTo(0, this.userContext.get('scrollPosition') || 0);
+    this.selectedItems = this.userContext.get('selectedItems') || [];
+    this.restoreFormData(this.userContext.get('formData'));
+  }
+  
+  // Optimistic updates for user's own changes
+  private mergeWithOptimisticUpdates(serverData: any[]) {
+    const merged = serverData.map(item => {
+      const optimistic = this.optimisticUpdates.get(item.id);
+      return optimistic ? { ...item, ...optimistic } : item;
+    });
     
-    const startIndex = Math.floor(scrollPosition / ITEM_HEIGHT);
-    const endIndex = startIndex + VISIBLE_ITEMS;
-    
-    return allExpenses.slice(startIndex, endIndex);
+    this.groups = merged;
+  }
+  
+  dispose() {
+    if (this.changeListener) {
+      this.changeListener();
+    }
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
+    }
   }
 }
+
+### Phase 4: UI Components & Integration (Week 3)
+
+```typescript
+// webapp-v2/src/components/ui/Pagination.tsx
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  loading?: boolean;
+  hasUpdates?: boolean; // Show when background updates available
+}
+
+export function Pagination({ 
+  currentPage, 
+  totalPages, 
+  onPageChange,
+  loading,
+  hasUpdates 
+}: PaginationProps) {
+  return (
+    <div className="flex items-center justify-between py-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1 || loading}
+        className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+      
+      <div className="flex items-center gap-4">
+        <div className="flex gap-2">
+          {generatePageNumbers(currentPage, totalPages).map(page => (
+            <button
+              key={page}
+              onClick={() => onPageChange(page)}
+              disabled={loading}
+              className={`px-3 py-1 rounded ${
+                page === currentPage 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-200 hover:bg-gray-300'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+        
+        {hasUpdates && (
+          <div className="text-sm text-blue-600 animate-pulse">
+            • New updates
+          </div>
+        )}
+      </div>
+      
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages || loading}
+        className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  );
+}
+
+// Smart page number generation
+function generatePageNumbers(current: number, total: number): number[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  
+  // Show: 1 ... current-1 current current+1 ... total
+  const pages = new Set([1, current - 1, current, current + 1, total]);
+  return Array.from(pages).filter(p => p > 0 && p <= total).sort((a, b) => a - b);
+}
+
+### Phase 5: Comprehensive Testing (Week 4)
+
+#### 5.1 Test Scenarios
+
+```typescript
+// webapp-v2/src/__tests__/streaming.test.ts
+describe('Streaming Architecture', () => {
+  it('should handle concurrent edits without data loss', async () => {
+    // User A starts editing
+    const userA = await createTestUser();
+    await userA.startEditingExpense('expense-1');
+    
+    // User B makes changes
+    const userB = await createTestUser();
+    await userB.updateExpense('expense-1', { amount: 100 });
+    
+    // Verify User A sees notification but preserves their edits
+    await wait(1000);
+    expect(userA.hasNotification()).toBe(true);
+    expect(userA.formData).toEqual(userA.originalFormData);
+  });
+  
+  it('should rate limit rapid changes', async () => {
+    // Make 10 rapid changes
+    for (let i = 0; i < 10; i++) {
+      await updateGroup({ name: `Test ${i}` });
+    }
+    
+    // Should only trigger 1 refresh
+    expect(refreshCount).toBe(1);
+  });
+  
+  it('should maintain pagination state after refresh', async () => {
+    await navigateToPage(3);
+    await triggerBackgroundRefresh();
+    
+    expect(currentPage).toBe(3);
+    expect(scrollPosition).toBeCloseTo(previousScrollPosition, 10);
+  });
+  
+  it('should handle network interruptions gracefully', async () => {
+    await simulateOffline();
+    await makeChanges();
+    await simulateOnline();
+    
+    // Should reconcile changes
+    expect(dataConsistency).toBe(true);
+  });
+});
 ```
 
-**Three-tier Strategy for Different Scenarios:**
+#### 5.2 Performance Monitoring
 
-1. **Small Groups (<100 expenses)**: Stream everything
-   ```typescript
-   // Full real-time sync for all expenses
-   onSnapshot(collection(db, 'groups', groupId, 'expenses'), ...)
-   ```
+```typescript
+// firebase/functions/src/monitoring/performance.ts
+export const monitorRefreshRate = functions.pubsub
+  .schedule('every 1 hour')
+  .onRun(async () => {
+    const metrics = await getRefreshMetrics();
+    
+    // Alert if refresh rate too high
+    if (metrics.refreshesPerMinute > 10) {
+      await sendAlert('High refresh rate detected', metrics);
+    }
+    
+    // Alert if Firestore reads excessive
+    if (metrics.firestoreReads > 10000) {
+      await sendAlert('Excessive Firestore reads', metrics);
+    }
+    
+    // Log to monitoring dashboard
+    await logMetrics(metrics);
+  });
 
-2. **Medium Groups (100-1000 expenses)**: Hybrid approach
-   ```typescript
-   // Stream recent 50, REST API for older ones
-   // Recent expenses update in real-time
-   // Older expenses are static until refresh
-   ```
+## Technical Considerations
 
-3. **Large Groups (>1000 expenses)**: Virtual scrolling + on-demand loading
-   ```typescript
-   // Stream only visible window + buffer
-   // Load chunks via REST as user scrolls
-   // Use intersection observer for infinite scroll
-   ```
+### Conflict Resolution
 
-**Benefits of this approach:**
-- Recent/active data stays real-time (most important for UX)
-- Older/archived data loads on-demand (less critical for real-time)
-- Reduces Firestore read costs significantly
-- Maintains good performance even with thousands of items
+When a user is editing data and a background refresh occurs:
 
-**Trade-offs:**
-- More complex than simple REST pagination
-- Older expenses won't update in real-time (usually acceptable)
-- Need to manage two data sources (streaming + REST)
+1. **Preserve Active Edits**: Form data and user input are saved before refresh
+2. **Show Conflict Indicator**: Visual cue when remote changes detected
+3. **Offer Merge Options**: Let user choose to keep their changes or accept remote
+4. **Optimistic Updates**: Apply user's changes immediately, reconcile with server later
 
-### Error Handling
+### Error Handling & Fallback
+
 ```typescript
 class StreamingErrorHandler {
   handleError(error: FirestoreError) {
     switch(error.code) {
       case 'permission-denied':
-        // Fallback to REST API
+        // Silently fallback to REST-only mode
+        this.disableStreaming();
         break;
       case 'unavailable':
-        // Show offline indicator
+        // Show subtle offline indicator
+        this.setOfflineMode(true);
+        break;
+      case 'resource-exhausted':
+        // Rate limit hit - increase debounce time
+        this.increaseDebounceTime();
         break;
       default:
-        // Log to monitoring service
+        // Log but don't disrupt user
+        console.debug('Streaming error:', error);
     }
   }
 }
 ```
 
-### Backward Compatibility
-- Maintain REST endpoints during transition
-- Implement feature flags for gradual rollout
-- Provide fallback mechanisms for streaming failures
+### Alternative: Server-Sent Events (SSE)
 
-### Monitoring
-- Track streaming connection health
-- Monitor real-time update latency
-- Alert on excessive reconnections
+Consider SSE as a simpler alternative to Firestore listeners:
+
+```typescript
+// firebase/functions/src/routes/sse.ts
+router.get('/events/groups/:groupId', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+  
+  // Send changes as SSE
+  const unsubscribe = onGroupChange(groupId, (change) => {
+    res.write(`data: ${JSON.stringify(change)}\n\n`);
+  });
+  
+  req.on('close', () => unsubscribe());
+});
+```
+
+Benefits: Simpler, cheaper, works through proxies/firewalls better.
 
 ## Success Metrics
 
-1. **User Experience**
-   - Real-time feel with traditional pagination UX
-   - <500ms latency for change detection
-   - Seamless background updates without disruption
+### Target Performance
+- **Change Detection**: <500ms from change to notification
+- **Refresh Rate**: Max 1 refresh per 2 seconds per user
+- **Firestore Reads**: <100 reads/hour for change detection
+- **User Context**: 100% preservation during refreshes
+- **Fallback Success**: 100% functionality when streaming fails
 
-2. **Performance**
-   - Traditional REST performance with real-time updates
-   - Predictable pagination (page 1, 2, 3...)
-   - Minimal memory footprint (no streaming all data)
+### Cost Targets
+- **80% reduction** in Firestore reads vs full streaming
+- **95% of data** transferred via REST (not Firestore)
+- **<$10/month** for change detection infrastructure
 
-3. **Cost**
-   - 80% reduction in Firestore reads vs full streaming
-   - Minimal change detection overhead (~100 reads/hour)
-   - REST API handles 95% of data transfer
+## Implementation Timeline
 
-## Rollback Plan
+### Week 1: Foundation
+- [ ] Change detection infrastructure with rate limiting
+- [ ] Automatic cleanup scheduled function
+- [ ] Field-level change tracking
 
-If issues arise during implementation:
+### Week 2: REST & Client
+- [ ] Paginated REST endpoints
+- [ ] Smart client-side store with context preservation
+- [ ] Optimistic updates and conflict resolution
 
-1. **Immediate rollback**
-   - Feature flag to disable streaming
-   - REST API remains fully functional
-   - No data migration required
+### Week 3: UI & Integration
+- [ ] Pagination components with update indicators
+- [ ] Dashboard integration
+- [ ] Real-time status indicators
 
-2. **Gradual rollback**
-   - Disable streaming for specific features
-   - Monitor and fix issues
-   - Re-enable after fixes
+### Week 4: Testing & Monitoring
+- [ ] Comprehensive test suite
+- [ ] Performance monitoring
+- [ ] Refresh rate alerting
+- [ ] Documentation
 
-## Timeline
+## Rollback Strategy
 
-- **Week 1**: Security rules (Critical)
-- **Week 2**: Dashboard streaming
-- **Week 3**: Group details streaming
-- **Week 4**: Client-side calculations
-- **Week 5**: Testing and optimization
-- **Week 6**: Production rollout (10% users)
-- **Week 7**: Full rollout
+The architecture is designed for zero-risk deployment:
 
-## Next Steps
+1. **Feature Flag Control**: `enableStreaming: false` instantly disables all real-time features
+2. **REST Fallback**: System continues working without any streaming
+3. **No Data Migration**: No database changes required
+4. **Gradual Rollout**: Test with 1% → 10% → 50% → 100% of users
 
-1. Get stakeholder approval
-2. Set up feature flags
-3. Begin Phase 1: Security Rules Audit
-4. Create monitoring dashboard
-5. Schedule daily standups for migration team
+## Migration Checklist
 
-## Appendix
-
-### A. Required Dependencies
-```json
-{
-  "firebase": "^10.x",
-  "@firebase/firestore": "^4.x",
-  "preact": "^10.x",
-  "@preact/signals": "^1.x"
-}
-```
-
-### B. Firestore Index Requirements
-```json
-// firestore.indexes.json
-{
-  "indexes": [
-    {
-      "collectionGroup": "groups",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "memberIds", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
-      ]
-    }
-  ]
-}
-```
-
-### C. Migration Checklist
-- [ ] Security rules updated and tested
+### Pre-deployment
+- [ ] Rate limiting implemented and tested
+- [ ] Context preservation verified
+- [ ] Conflict resolution tested
+- [ ] Performance monitoring active
 - [ ] Feature flags configured
-- [ ] Monitoring dashboards created
-- [ ] Error tracking configured
-- [ ] Load testing completed
-- [ ] Documentation updated
-- [ ] Team trained on new architecture
-- [ ] Rollback procedures tested
+
+### Post-deployment
+- [ ] Monitor refresh rates
+- [ ] Track Firestore costs
+- [ ] Gather user feedback
+- [ ] Optimize based on metrics
+
+## Appendix: Configuration
+
+```typescript
+// config/streaming.ts
+export const STREAMING_CONFIG = {
+  enabled: process.env.ENABLE_STREAMING === 'true',
+  changeRetentionMinutes: 5,
+  debounceMs: 500,
+  rateLimitMs: 2000,
+  maxRefreshesPerMinute: 30,
+  fallbackToRest: true,
+  preserveUserContext: true,
+  showUpdateNotifications: true
+};
