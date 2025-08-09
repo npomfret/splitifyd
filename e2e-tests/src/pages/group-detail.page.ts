@@ -924,4 +924,218 @@ export class GroupDetailPage extends BasePage {
     // Use exact match and look for the element with the smallest font size (text-xs class)
     return this.page.locator('.text-xs').filter({ hasText: 'Admin' }).first();
   }
+
+  // ==============================
+  // ADDITIONAL METHODS FOR TEST REFACTORING
+  // ==============================
+
+  /**
+   * Count all "All settled up!" elements in the DOM
+   */
+  async getAllSettledUpElementsCount(): Promise<number> {
+    return await this.page.getByText('All settled up!').count();
+  }
+
+  /**
+   * Get the main section of the page
+   */
+  getMainSection() {
+    return this.page.getByRole('main');
+  }
+
+  /**
+   * Get balances section with specific filter
+   */
+  getBalancesSectionByFilter() {
+    return this.page.locator("section, div").filter({ 
+      has: this.page.getByRole("heading", { name: "Balances" }) 
+    });
+  }
+
+  /**
+   * Get debt amount by regex pattern (e.g., for amounts with rounding variations)
+   */
+  getDebtAmountPattern(pattern: RegExp) {
+    const balancesSection = this.getBalancesSectionByFilter();
+    return balancesSection.getByText(pattern).first();
+  }
+
+  /**
+   * Check if a debt amount matching a pattern exists in the DOM
+   */
+  async hasDebtAmountPattern(pattern: RegExp): Promise<boolean> {
+    const count = await this.page.getByText(pattern).count();
+    return count > 0;
+  }
+
+  /**
+   * Get the amount input field (for expense or settlement forms)
+   */
+  getAmountInput() {
+    return this.page.getByPlaceholder('0.00');
+  }
+
+  /**
+   * Get the expense description input field
+   */
+  getDescriptionInput() {
+    return this.page.getByPlaceholder('What was this expense for?');
+  }
+
+  /**
+   * Get the settings button
+   */
+  getSettingsButton() {
+    return this.page.getByRole('button', { name: /settings/i });
+  }
+
+  /**
+   * Get the edit button
+   */
+  getEditButton() {
+    return this.page.getByRole('button', { name: /edit/i });
+  }
+
+  /**
+   * Get the update expense button
+   */
+  getUpdateExpenseButton() {
+    return this.page.getByRole('button', { name: /update expense/i });
+  }
+
+  /**
+   * Get the settle up button (already exists but adding for clarity)
+   */
+  getSettleUpButtonDirect() {
+    return this.page.getByRole('button', { name: /settle up/i });
+  }
+
+  /**
+   * Get the settlement dialog/modal
+   */
+  getSettlementDialog() {
+    return this.page.getByRole('dialog');
+  }
+
+  /**
+   * Get the settlement amount input (spinbutton)
+   */
+  getSettlementAmountSpinbutton() {
+    return this.page.getByRole('spinbutton', { name: /amount/i });
+  }
+
+  /**
+   * Get the currency combobox in settlement form
+   */
+  getCurrencyCombobox() {
+    return this.page.getByRole('combobox', { name: /currency/i });
+  }
+
+  /**
+   * Get the note textbox in settlement form
+   */
+  getNoteTextbox() {
+    return this.page.getByRole('textbox', { name: /note/i });
+  }
+
+  /**
+   * Wait for listbox (dropdown options) to appear
+   */
+  async waitForListbox(timeout = 5000) {
+    await this.page.waitForSelector('[role="listbox"]', { timeout });
+  }
+
+  /**
+   * Get all options in a listbox
+   */
+  async getListboxOptions() {
+    return await this.page.locator('[role="option"]').all();
+  }
+
+  /**
+   * Get a specific input by its minimum value attribute
+   */
+  getInputWithMinValue(minValue: string) {
+    return this.page.locator(`input[type="number"][step="0.01"][min="${minValue}"]`);
+  }
+
+  /**
+   * Get member count text by regex
+   */
+  getMemberCountByRegex(pattern: RegExp) {
+    return this.page.getByText(pattern);
+  }
+
+  /**
+   * Get the split between heading
+   */
+  getSplitBetweenHeading() {
+    return this.page.getByRole('heading', { name: /split between/i });
+  }
+
+  /**
+   * Get the split card (parent of split between heading)
+   */
+  async getSplitCard() {
+    const heading = this.getSplitBetweenHeading();
+    return heading.locator('..').locator('..');
+  }
+
+  /**
+   * Get checkboxes within the split card
+   */
+  async getSplitCardCheckbox() {
+    const splitCard = await this.getSplitCard();
+    return splitCard.locator('input[type="checkbox"]').first();
+  }
+
+  /**
+   * Get admin text element
+   */
+  getAdminText() {
+    return this.page.getByText(/admin/i).first();
+  }
+
+  /**
+   * Get share modal dialog
+   */
+  getShareModalDialog() {
+    return this.page.getByRole('dialog', { name: /share group/i });
+  }
+
+  /**
+   * Get textbox within share modal
+   */
+  async getShareModalTextbox() {
+    const modal = this.getShareModalDialog();
+    return modal.getByRole('textbox');
+  }
+
+  /**
+   * Get exact amounts text element
+   */
+  getExactAmountsTextElement() {
+    return this.page.getByText('Exact amounts');
+  }
+
+  /**
+   * Get percentage text element (exact match)
+   */
+  getPercentageTextElement() {
+    return this.page.getByText('Percentage', { exact: true });
+  }
+
+  /**
+   * Get form element
+   */
+  getForm() {
+    return this.page.locator('form');
+  }
+
+  /**
+   * Get create group button within form context
+   */
+  getFormCreateGroupButton() {
+    return this.getForm().getByRole('button', { name: 'Create Group' });
+  }
 }

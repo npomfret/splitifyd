@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {DOCUMENT_CONFIG, RATE_LIMITS, SYSTEM, VALIDATION_LIMITS} from './constants';
-import {ApiConfig, AppConfiguration, EnvironmentConfig, FirebaseConfig, WarningBanner} from './types/webapp-shared-types';
+import {AppConfiguration, EnvironmentConfig, FirebaseConfig, WarningBanner} from './types/webapp-shared-types';
 import {validateAppConfiguration} from './middleware/config-validation';
 import {logger} from './logger';
 
@@ -188,18 +188,12 @@ function buildAppConfiguration(): AppConfiguration {
     throw new Error('Firebase configuration is incomplete in production');
   }
   
-  const api: ApiConfig = {
-    timeout: 30000,
-    retryAttempts: 3
-  };
-  
   const environment: EnvironmentConfig = {
     warningBanner: getWarningBanner(config)
   };
 
   return {
     firebase,
-    api,
     environment,
     formDefaults: config.formDefaults,
     firebaseAuthUrl: getFirebaseAuthUrl(config, env)

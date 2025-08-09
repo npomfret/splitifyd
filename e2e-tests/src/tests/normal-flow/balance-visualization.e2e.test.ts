@@ -29,11 +29,11 @@ test.describe('Single User Balance Visualization', () => {
     
     // The "All settled up!" message exists but might be in a collapsed section
     // Just verify it exists in the DOM (don't check visibility since section might be collapsed on mobile)
-    const settledElements = await page.getByText('All settled up!').count();
+    const settledElements = await groupDetailPage.getAllSettledUpElementsCount();
     expect(settledElements).toBeGreaterThan(0);
     
     // Members section should show the creator - use first() since display name might appear multiple times
-    await expect(page.getByRole('main').getByText(user.displayName).first()).toBeVisible();
+    await expect(groupDetailPage.getMainSection().getByText(user.displayName).first()).toBeVisible();
     
     // Expenses section should show empty state
     await expect(groupDetailPage.getExpensesHeading()).toBeVisible();
@@ -158,6 +158,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Wait for second expense to be fully processed
     await groupDetailPage.waitForBalanceUpdate();
     
+    // Refresh to ensure all balance calculations are complete and visible
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    
     await multiUserExpected(groupDetailPage.getBalancesHeading()).toBeVisible();
     
     // No Promise.race() needed - we KNOW this will be settled up
@@ -237,6 +241,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await groupDetailPage2.clickJoinGroup();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
+    // Wait for both users to be properly synchronized
+    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // User1 pays $300, User2 pays $100 → User2 owes User1 exactly $100
     // Complex but predictable: User1 paid $300, User2 paid $100
@@ -261,6 +267,9 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Wait for second expense to be fully processed
     await groupDetailPage.waitForBalanceUpdate();
     
+    // Reload to ensure all balance calculations are complete and visible
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     
     await multiUserExpected(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -380,7 +389,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     // Allow for rounding: $123.45 / 2 could be $61.72 or $61.73
     // Check if the amount exists in the DOM (might be hidden if balances section is collapsed)
-    const hasDebtAmount = await page.getByText(/\$61\.7[23]/).count() > 0;
+    const hasDebtAmount = await groupDetailPage.hasDebtAmountPattern(/\$61\.7[23]/);
     multiUserExpected(hasDebtAmount).toBe(true);
     
     // Check if the original expense amount is visible (also use .first() to avoid strict mode)

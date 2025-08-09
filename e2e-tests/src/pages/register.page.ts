@@ -27,9 +27,9 @@ export class RegisterPage extends BasePage {
     await this.fillPreactInput(this.emailInput, email);
     await this.fillPreactInput(this.passwordInput, password);
     await this.fillPreactInput(this.confirmPasswordInput, password);
-    // Check both required checkboxes using semantic selectors
-    await this.page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
-    await this.page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
+    // Check both required checkboxes using page object methods
+    await this.checkTermsCheckbox();
+    await this.checkCookieCheckbox();
   }
   
   async submitForm() {
@@ -106,5 +106,36 @@ export class RegisterPage extends BasePage {
 
   getSignInLink() {
     return this.page.getByRole(ARIA_ROLES.LINK, { name: 'Sign in' });
+  }
+
+  // Terms and Cookie Policy specific accessors
+  getTermsText() {
+    return this.page.locator('text=I accept the Terms of Service');
+  }
+
+  getCookieText() {
+    return this.page.locator('text=I accept the Cookie Policy');
+  }
+
+  getTermsLink() {
+    return this.page.locator('a[href="/terms"]').first();
+  }
+
+  getCookiesLink() {
+    return this.page.locator('a[href="/cookies"]').first();
+  }
+
+  getCreateAccountButton() {
+    return this.page.locator('button:has-text("Create Account")');
+  }
+
+  // Helper method to check terms checkbox
+  async checkTermsCheckbox() {
+    await this.getTermsCheckbox().check();
+  }
+
+  // Helper method to check cookie checkbox
+  async checkCookieCheckbox() {
+    await this.getCookieCheckbox().check();
   }
 }

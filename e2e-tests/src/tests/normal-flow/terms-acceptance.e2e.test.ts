@@ -8,20 +8,19 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   });
 
   pageTest('should display both terms and cookie policy checkboxes', async ({ page }) => {
-    // Check that both checkboxes are present using more specific locators
-    const termsCheckbox = page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]');
-    const cookieCheckbox = page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]');
+    const registerPage = new RegisterPage(page);
     
-    await expect(termsCheckbox).toBeVisible();
-    await expect(cookieCheckbox).toBeVisible();
+    // Check that both checkboxes are present using page object methods
+    await expect(registerPage.getTermsCheckbox()).toBeVisible();
+    await expect(registerPage.getCookieCheckbox()).toBeVisible();
     
     // Check that they have appropriate labels
-    await expect(page.locator('text=I accept the Terms of Service')).toBeVisible();
-    await expect(page.locator('text=I accept the Cookie Policy')).toBeVisible();
+    await expect(registerPage.getTermsText()).toBeVisible();
+    await expect(registerPage.getCookieText()).toBeVisible();
     
-    // Check that links exist - use first() to avoid strict mode violation
-    await expect(page.locator('a[href="/terms"]').first()).toBeVisible();
-    await expect(page.locator('a[href="/cookies"]').first()).toBeVisible();
+    // Check that links exist
+    await expect(registerPage.getTermsLink()).toBeVisible();
+    await expect(registerPage.getCookiesLink()).toBeVisible();
   });
 
   pageTest('should disable submit button when terms not accepted', async ({ page }) => {
@@ -32,12 +31,11 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
     await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
-    // Check only cookie policy checkbox using specific locator
-    await page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
+    // Check only cookie policy checkbox using page object method
+    await registerPage.checkCookieCheckbox();
     
     // Submit button should be disabled
-    const submitButton = page.locator('button:has-text("Create Account")');
-    await expect(submitButton).toBeDisabled();
+    await expect(registerPage.getCreateAccountButton()).toBeDisabled();
   });
 
   pageTest('should disable submit button when cookie policy not accepted', async ({ page }) => {
@@ -48,12 +46,11 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
     await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
-    // Check only terms checkbox using specific locator
-    await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
+    // Check only terms checkbox using page object method
+    await registerPage.checkTermsCheckbox();
     
     // Submit button should be disabled
-    const submitButton = page.locator('button:has-text("Create Account")');
-    await expect(submitButton).toBeDisabled();
+    await expect(registerPage.getCreateAccountButton()).toBeDisabled();
   });
 
   pageTest('should enable submit button when both policies accepted', async ({ page }) => {
@@ -64,13 +61,12 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
     await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
-    // Check both checkboxes using specific locators
-    await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
-    await page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
+    // Check both checkboxes using page object methods
+    await registerPage.checkTermsCheckbox();
+    await registerPage.checkCookieCheckbox();
     
     // Submit button should be enabled
-    const submitButton = page.locator('button:has-text("Create Account")');
-    await expect(submitButton).toBeEnabled();
+    await expect(registerPage.getCreateAccountButton()).toBeEnabled();
   });
 
   pageTest('should allow form submission when both policies accepted', async ({ page }, testInfo) => {
@@ -84,12 +80,12 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
     await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
     
-    // Check both checkboxes using specific locators
-    await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
-    await page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
+    // Check both checkboxes using page object methods
+    await registerPage.checkTermsCheckbox();
+    await registerPage.checkCookieCheckbox();
     
     // Submit button should be enabled and clickable
-    const submitButton = page.locator('button:has-text("Create Account")');
+    const submitButton = registerPage.getCreateAccountButton();
     await expect(submitButton).toBeEnabled();
     
     // Test that clicking the button doesn't immediately fail (form validation passes)
@@ -113,15 +109,15 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     
     // Try to submit (should show validation error before form submission)
     // Since the submit button is disabled, we'll test by checking the form validity
-    const submitButton = page.locator('button:has-text("Create Account")');
+    const submitButton = registerPage.getCreateAccountButton();
     await expect(submitButton).toBeDisabled();
     
     // Check one box, should still be disabled
-    await page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]').check();
+    await registerPage.checkTermsCheckbox();
     await expect(submitButton).toBeDisabled();
     
     // Check second box, should now be enabled
-    await page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]').check();
+    await registerPage.checkCookieCheckbox();
     await expect(submitButton).toBeEnabled();
   });
 });

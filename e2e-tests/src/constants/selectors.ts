@@ -70,9 +70,14 @@ export const BUTTON_TEXTS = {
   SHOW_HISTORY: 'Show History',
   ADD_EXPENSE: /add expense/i,
   SAVE_EXPENSE: /save expense/i,
+  UPDATE_EXPENSE: /update expense/i,
   SHARE: /share/i,
   SIGN_OUT: /Sign Out|Logout/i,
   SIGN_IN: /Sign In|Login/i,
+  EDIT: /edit/i,
+  SETTINGS: /settings/i,
+  CREATE_ACCOUNT: 'Create Account',
+  CREATE_GROUP: 'Create Group',
 } as const;
 
 export const MESSAGES = {
@@ -93,4 +98,10 @@ export const CLASS_SELECTORS = {
   WHITE_BACKGROUND: '.bg-white',
   RED_TEXT: '.text-red-600',
   GRAY_TEXT: '.text-sm.font-medium.text-gray-700',
+} as const;
+
+export const LINKS = {
+  TERMS: '/terms',
+  COOKIES: '/cookies',
+  PRIVACY: '/privacy',
 } as const;

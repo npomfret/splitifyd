@@ -58,8 +58,34 @@ export const PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[] = [
   { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
   { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
   { name: 'education', displayName: 'Education', icon: '📚' },
+  { name: 'bedroom_supplies', displayName: 'Bedroom Supplies', icon: '🍆' },
+  { name: 'pets', displayName: 'Pets & Animals', icon: '🐾' },
+  { name: 'alcohol', displayName: 'Drinks & Nightlife', icon: '🍺' },
+  { name: 'coffee', displayName: 'Coffee Addiction', icon: '☕' },
+  { name: 'tech', displayName: 'Gadgets & Electronics', icon: '💻' },
+  { name: 'gaming', displayName: 'Gaming', icon: '🎮' },
+  { name: 'home', displayName: 'Home & Garden', icon: '🏡' },
+  { name: 'subscriptions', displayName: 'Streaming & Subscriptions', icon: '📺' },
+  { name: 'gifts', displayName: 'Gifts & Generosity', icon: '🎁' },
+  { name: 'charity', displayName: 'Charity & Donations', icon: '🤝' },
+  { name: 'hobbies', displayName: 'Hobbies & Crafts', icon: '🎨' },
+  { name: 'sports', displayName: 'Sports & Fitness', icon: '🏋️' },
+  { name: 'beauty', displayName: 'Beauty & Personal Care', icon: '💅' },
+  { name: 'dating', displayName: 'Dating & Romance', icon: '💘' },
+  { name: 'therapy', displayName: 'Therapy & Self Care', icon: '🛋️' },
+  { name: 'kids', displayName: 'Children & Babysitting', icon: '🍼' },
+  { name: 'clubbing', displayName: 'Clubbing & Bad Decisions', icon: '💃' },
+  { name: 'lottery', displayName: 'Lottery Tickets & Regret', icon: '🎰' },
+  { name: 'junk_food', displayName: 'Midnight Snacks', icon: '🌭' },
+  { name: 'hangover', displayName: 'Hangover Recovery Supplies', icon: '🥤' },
+  { name: 'impulse', displayName: 'Impulse Purchases', icon: '🤷' },
+  { name: 'side_hustle', displayName: 'Side Hustle Expenses', icon: '💼' },
+  { name: 'bribery', displayName: 'Bribes (Totally Legal)', icon: '🤑' },
+  { name: 'lawsuits', displayName: 'Legal Trouble', icon: '⚖️' },
+  { name: 'weird_stuff', displayName: 'Weird Stuff Off the Internet', icon: '🦄' },
   { name: 'other', displayName: 'Other', icon: '❓' }
 ];
+
 
 // ========================================================================
 // Configuration Types - Used by webapp for API client
@@ -83,11 +109,6 @@ export interface FirebaseConfig {
   measurementId?: string;
 }
 
-export interface ApiConfig {
-  timeout: number;
-  retryAttempts: number;
-}
-
 export interface EnvironmentConfig {
   warningBanner?: WarningBanner;
 }
@@ -105,7 +126,6 @@ export interface FormDefaults {
 
 export interface AppConfiguration {
   firebase: FirebaseConfig;
-  api: ApiConfig;
   environment: EnvironmentConfig;
   formDefaults: FormDefaults;
   /**

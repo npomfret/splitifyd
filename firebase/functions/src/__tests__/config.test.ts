@@ -91,11 +91,6 @@ describe('Configuration Response Functions', () => {
         measurementId: 'G-TEST123'
       });
       
-      expect(config.api).toEqual({
-        timeout: 30000,
-        retryAttempts: 3
-      });
-      
       expect(config.environment).toMatchObject({
         warningBanner: {
           enabled: true,

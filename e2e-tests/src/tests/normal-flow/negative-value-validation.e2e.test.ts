@@ -20,7 +20,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Try to enter negative amount
-    const amountField = page.getByPlaceholder('0.00');
+    const amountField = groupDetailPage.getAmountInput();
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-50');
     
@@ -31,7 +31,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     // Try to submit form with negative value
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-100');
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     
     // Form should not submit - we should still be on the add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
@@ -42,13 +42,13 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Now enter a valid positive amount
     await groupDetailPage.fillPreactInput(amountField, '50');
-    await groupDetailPage.fillPreactInput(page.getByPlaceholder('What was this expense for?'), 'Valid expense');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Valid expense');
     
     // Select all participants
-    await page.getByRole('button', { name: 'Select all' }).click();
+    await groupDetailPage.getSelectAllButton().click();
     
     // Submit should work now
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     // Verify expense was created
@@ -68,16 +68,16 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Try to enter zero amount
-    const amountField = page.getByPlaceholder('0.00');
+    const amountField = groupDetailPage.getAmountInput();
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('0');
-    await groupDetailPage.fillPreactInput(page.getByPlaceholder('What was this expense for?'), 'Zero expense');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Zero expense');
     
     // Select all participants
-    await page.getByRole('button', { name: 'Select all' }).click();
+    await groupDetailPage.getSelectAllButton().click();
     
     // Try to submit
-    await page.getByRole('button', { name: /save expense/i }).click();
+    await groupDetailPage.getSaveExpenseButton().click();
     
     // Form should not submit due to min validation
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
@@ -114,14 +114,14 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expect(page.getByText('Test expense for settlement')).toBeVisible();
     
     // Open settlement form
-    const settleButton = page.getByRole('button', { name: /settle up/i });
+    const settleButton = groupDetailPage.getSettleUpButtonDirect();
     await settleButton.click();
     
-    const modal = page.getByRole('dialog');
+    const modal = groupDetailPage.getSettlementDialog();
     await expect(modal).toBeVisible();
     
     // Try to enter negative amount
-    const amountInput = page.getByRole('spinbutton', { name: /amount/i });
+    const amountInput = groupDetailPage.getSettlementAmountSpinbutton();
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountInput.fill('-50');
     
@@ -140,8 +140,8 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupDetailPage.fillPreactInput(amountInput, '50');
     
     // Select payer and payee
-    const payerSelect = page.getByRole('combobox', { name: /who paid/i });
-    const payeeSelect = page.getByRole('combobox', { name: /who received the payment/i });
+    const payerSelect = groupDetailPage.getPayerSelect();
+    const payeeSelect = groupDetailPage.getPayeeSelect();
     
     await payerSelect.selectOption({ index: 2 }); // user2
     await payeeSelect.selectOption({ index: 1 }); // user1
@@ -154,7 +154,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expect(modal).not.toBeVisible();
     
     // Verify settlement was recorded
-    const showHistoryButton = page.getByRole('button', { name: 'Show History' });
+    const showHistoryButton = groupDetailPage.getShowHistoryButton();
     await showHistoryButton.click();
     await expect(page.getByText(/\$50\.00/)).toBeVisible();
   });
@@ -179,17 +179,17 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Fill expense details
-    await groupDetailPage.fillPreactInput(page.getByPlaceholder('0.00'), '100');
-    await groupDetailPage.fillPreactInput(page.getByPlaceholder('What was this expense for?'), 'Split test expense');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getAmountInput(), '100');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Split test expense');
     
     // Select all participants first
-    await page.getByRole('button', { name: 'Select all' }).click();
+    await groupDetailPage.getSelectAllButton().click();
     
     // Select exact amounts split type
     await page.getByText('Exact amounts').click();
     
     // Try to enter negative split amount
-    const splitInputs = page.locator('input[type="number"][step="0.01"][min="0.01"]');
+    const splitInputs = groupDetailPage.getInputWithMinValue('0.01');
     const firstSplitInput = splitInputs.first();
     // Use direct fill for invalid value - UI should validate but not format/clear
     await firstSplitInput.fill('-50');
@@ -199,7 +199,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Try to submit with negative split - HTML5 validation should prevent it
-    const saveButton = page.getByRole('button', { name: /save expense/i });
+    const saveButton = groupDetailPage.getSaveExpenseButton();
     await saveButton.click();
     
     // Should still be on add expense page due to validation
@@ -225,7 +225,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
-    const amountField = page.getByPlaceholder('0.00');
+    const amountField = groupDetailPage.getAmountInput();
     
     // Test various invalid inputs
     const testCases = [

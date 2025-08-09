@@ -58,4 +58,57 @@ export class HomepagePage extends BasePage {
     const link = await this.signUpLink();
     await link.click();
   }
+
+  // Additional element accessors for test refactoring
+
+  /**
+   * Get Splitifyd logo/home link
+   */
+  getLogoLink() {
+    return this.page.getByRole('link', { name: /splitifyd|home/i }).first();
+  }
+
+  /**
+   * Get Splitifyd image by alt text
+   */
+  getSplitifydAltImage() {
+    return this.page.getByAltText('Splitifyd');
+  }
+
+  /**
+   * Get the main homepage heading
+   */
+  getHomepageHeading() {
+    return this.page.getByRole('heading', { 
+      name: 'Effortless Bill Splitting, Simplified & Smart.' 
+    });
+  }
+
+  /**
+   * Get Terms link (typically in footer)
+   */
+  getTermsLink() {
+    return this.page.getByRole('link', { name: 'Terms' });
+  }
+
+  /**
+   * Get Privacy link (typically in footer)
+   */
+  getPrivacyLink() {
+    return this.page.getByRole('link', { name: 'Privacy' });
+  }
+
+  /**
+   * Get Login link (alternative accessor)
+   */
+  getLoginLink() {
+    return this.page.getByRole('link', { name: 'Login' });
+  }
+
+  /**
+   * Get Sign Up link with exact match
+   */
+  getSignUpLinkExact() {
+    return this.page.getByRole('link', { name: 'Sign Up', exact: true });
+  }
 }
