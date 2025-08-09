@@ -284,17 +284,66 @@ Add new section for security management:
 - All existing groups get **"Open Collaboration" preset** applied
 - Group creator becomes first admin when using role-based permissions
 - Last admin check: Auto-assign admin role to another member or revert to open permissions
+- Migration preview mode: Show admins what would change before applying
+- Batch migration with progress tracking for large deployments
+
+### 6. Real-time Permission Synchronization
+
+```typescript
+// Client-side permission sync
+class PermissionSync {
+  private unsubscribe: (() => void) | null = null;
+  
+  subscribeToPermissionChanges(groupId: string) {
+    // Listen for permission changes
+    this.unsubscribe = onSnapshot(
+      doc(db, 'groups', groupId),
+      (snapshot) => {
+        const data = snapshot.data();
+        if (data?.permissions) {
+          // Update local permission cache
+          permissionCache.invalidate(groupId);
+          
+          // Update UI to reflect new permissions
+          updateUIPermissions(data.permissions);
+          
+          // Show notification if user's own permissions changed
+          if (hasUserPermissionsChanged(data)) {
+            showNotification('Your permissions have been updated');
+          }
+        }
+      }
+    );
+  }
+  
+  dispose() {
+    this.unsubscribe?.();
+  }
+}
+```
 
 ## Security Considerations
 
 1. **Group boundary protection** remains paramount
 2. **Audit trail** preserved for all operations:
    - `createdBy`, `modifiedBy`, `deletedBy` tracked
-   - Role changes logged
-   - Permission changes logged
+   - Role changes logged with timestamp and actor
+   - Permission changes logged with before/after state
    - Preset applications logged
+   - Audit log retention: 90 days minimum
 3. **Permission checks** enforced at API level based on current settings
-4. **Gradual rollout** possible via feature flag
+4. **Rate limiting** on permission changes (max 10 changes per minute per group)
+5. **Race condition prevention** using optimistic locking for concurrent permission changes
+6. **Permission escalation protection** - users cannot grant themselves higher permissions
+7. **Invite link security**:
+   - Time-limited links for managed groups (default 7 days)
+   - Single-use option for high-security groups
+   - Link revocation capability
+8. **Gradual rollout** possible via feature flags:
+   - `enableManagedGroups`
+   - `enableCustomPermissions`
+   - `enablePendingApprovals`
+   - `enablePermissionHistory`
 
 ## Testing Requirements
 
@@ -325,12 +374,49 @@ Add new section for security management:
 3. Verify permission boundaries enforced
 4. Verify preset transitions preserve data integrity
 
+### Additional Tests
+1. **Concurrent Edit Tests**:
+   - Verify no data loss when two admins change permissions simultaneously
+   - Verify optimistic locking prevents conflicting changes
+2. **Permission Cache Tests**:
+   - Verify cache invalidation on permission changes
+   - Verify TTL expiry works correctly
+3. **Real-time Sync Tests**:
+   - Verify permission changes propagate to all active sessions
+   - Verify UI updates when permissions change
+4. **Edge Case Tests**:
+   - Verify last admin cannot demote themselves
+   - Verify pending members are auto-removed after 7 days
+   - Verify invite links expire correctly
+5. **Performance Tests**:
+   - Verify permission checks don't impact API response times
+   - Test with groups having 100+ members
+6. **Rate Limiting Tests**:
+   - Verify rate limits prevent permission change spam
+   - Verify legitimate changes aren't blocked
+
 ## Rollout Strategy
 
 1. **Phase 1**: Implement permission system with Open Collaboration preset
+   - Core permission framework
+   - Basic UI with preset selection
+   - Migration for existing groups
+   
 2. **Phase 2**: Add Managed Group preset behind feature flag
-3. **Phase 3**: Add custom permission controls
-4. **Phase 4**: Full production release with preset UI
+   - Role-based permissions
+   - Admin approval flow
+   - Pending member management
+   
+3. **Phase 3**: Add advanced features
+   - Custom permission controls
+   - Permission history viewer
+   - Time-limited invite links
+   - Permission simulator UI
+   
+4. **Phase 4**: Full production release
+   - Remove feature flags
+   - Enable all presets
+   - Launch user education campaign
 
 ## Benefits
 
@@ -340,3 +426,18 @@ Add new section for security management:
 - **Progressive Disclosure**: Simple presets for casual users, advanced options for power users
 - **Clear Mental Model**: Presets as starting points, not rigid constraints
 - **Scalability**: Supports both casual groups and formal organizations
+- **Security**: Comprehensive audit trail and permission boundaries
+- **Performance**: Cached permissions with smart invalidation
+- **Real-time**: Permission changes propagate instantly to all users
+- **Extensible**: Easy to add new presets and permission types
+
+## Future Enhancements
+
+1. **Permission Templates**: Allow organizations to save and share custom permission configurations
+2. **Bulk Operations**: UI for managing multiple members' roles simultaneously
+3. **Permission Delegation**: Allow admins to delegate specific permissions to trusted members
+4. **Time-based Permissions**: Temporary admin rights for specific tasks
+5. **API Keys**: Generate scoped API keys for third-party integrations
+6. **Compliance Mode**: Enhanced audit and approval workflows for regulated industries
+7. **Permission Analytics**: Dashboard showing permission usage patterns
+8. **Smart Suggestions**: AI-powered preset recommendations based on group activity
