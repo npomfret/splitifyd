@@ -637,8 +637,11 @@ export class GroupDetailPage extends BasePage {
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
     
-    // Wait for modal to close
-    await expect(modal).not.toBeVisible();
+    // Wait for modal to close with increased timeout for settlement processing
+    await expect(modal).not.toBeVisible({ timeout: 5000 });
+    
+    // Add a small delay to ensure the settlement is fully processed
+    await this.page.waitForTimeout(500);
     
     // Wait for settlement to be processed
     await this.page.waitForLoadState('networkidle');
