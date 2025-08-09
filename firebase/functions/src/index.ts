@@ -277,6 +277,7 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
 app.get('/policies/current', asyncHandler(getCurrentPolicies));
 app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
+
 // Auth endpoints (no auth required)
 app.post('/register', asyncHandler(register));
 

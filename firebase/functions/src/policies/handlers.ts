@@ -246,6 +246,61 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
 };
 
 /**
+ * Internal function to publish a policy version (bypasses HTTP layer)
+ */
+export const publishPolicyInternal = async (id: string, versionHash: string): Promise<{ currentVersionHash: string }> => {
+  if (!versionHash) {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_HASH', 'Version hash is required');
+  }
+
+  try {
+    const firestore = admin.firestore();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
+    
+    if (!policyDoc.exists) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+    }
+
+    const data = policyDoc.data();
+    if (!data) {
+      throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
+    }
+    
+    if (!data.versions) {
+      throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
+    }
+    
+    const versions = data.versions;
+
+    // Verify the version exists
+    if (!versions[versionHash]) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
+    }
+
+    const now = new Date().toISOString();
+
+    // Update policy to make this version current
+    await firestore.collection(FirestoreCollections.POLICIES).doc(id).update({
+      currentVersionHash: versionHash,
+      updatedAt: now
+    });
+
+    logger.info('Policy published successfully', { policyId: id, versionHash });
+
+    return {
+      currentVersionHash: versionHash
+    };
+    
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    logger.errorWithContext('Failed to publish policy', error as Error, { policyId: id, versionHash });
+    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_PUBLISH_FAILED', 'Failed to publish policy');
+  }
+};
+
+/**
  * POST /admin/policies/:id/publish - Publish draft as current version
  */
 export const publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -308,6 +363,63 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
       versionHash 
     });
     throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_PUBLISH_FAILED', 'Failed to publish policy');
+  }
+};
+
+/**
+ * Internal function to create a policy (bypasses HTTP layer)
+ */
+export const createPolicyInternal = async (policyName: string, text: string): Promise<{ id: string; currentVersionHash: string }> => {
+  if (!policyName || !text) {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
+  }
+
+  try {
+    const firestore = admin.firestore();
+    
+    // Generate ID from policy name (kebab-case)
+    const id = policyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    
+    // Check if policy already exists
+    const existingDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
+    if (existingDoc.exists) {
+      throw new ApiError(HTTP_STATUS.CONFLICT, 'POLICY_EXISTS', 'Policy already exists');
+    }
+
+    // Calculate hash for initial version
+    const versionHash = calculatePolicyHash(text);
+    const now = new Date().toISOString();
+
+    const initialVersion: PolicyVersion = {
+      text,
+      createdAt: now
+    };
+
+    const newPolicy: PolicyDocument = {
+      id,
+      policyName,
+      versions: {
+        [versionHash]: initialVersion
+      },
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await firestore.collection(FirestoreCollections.POLICIES).doc(id).set(newPolicy);
+
+    logger.info('Policy created successfully', { policyId: id });
+
+    return {
+      id,
+      currentVersionHash: versionHash
+    };
+    
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    logger.errorWithContext('Failed to create policy', error as Error, { policyName });
+    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_CREATE_FAILED', 'Failed to create policy');
   }
 };
 

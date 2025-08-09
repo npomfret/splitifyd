@@ -11,12 +11,19 @@ import { FirestoreCollections } from '../types/webapp-shared-types';
 export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
   try {
     const firestore = admin.firestore();
-    const policiesSnapshot = await firestore.collection(FirestoreCollections.GROUPS).get();
+    const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
     
     const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
     
     policiesSnapshot.forEach(doc => {
       const data = doc.data();
+      console.log('🔍 Found document:', doc.id, { 
+        policyName: data.policyName, 
+        currentVersionHash: data.currentVersionHash,
+        hasVersions: !!data.versions,
+        dataKeys: Object.keys(data)
+      });
+      
       if (!data.policyName || !data.currentVersionHash) {
         logger.warn('Policy document missing required fields', { policyId: doc.id });
         return;
@@ -48,7 +55,7 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
 
   try {
     const firestore = admin.firestore();
-    const policyDoc = await firestore.collection(FirestoreCollections.GROUPS).doc(id).get();
+    const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
     
     if (!policyDoc.exists) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');

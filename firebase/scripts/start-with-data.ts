@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 
 import { generateTestData } from '../functions/scripts/generate-test-data';
+import { seedPolicies } from '../functions/src/scripts/seed-policies';
 import { logger } from './logger';
 
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
@@ -157,6 +158,21 @@ setTimeout((() => {
     logger.info('📍 The Splitifyd application is now fully operational');
     logger.info('🌐 Firebase emulators are running and API functions are ready');
     logger.info('🚀 You can now use the webapp and all endpoints are available');
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('📊 STARTING POLICY SEEDING...');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
+    
+    try {
+      await seedPolicies();
+      logger.info('');
+      logger.info('✅ Policy seeding completed successfully!');
+      logger.info('📋 Privacy policy, terms, and cookie policy are now available');
+    } catch (error) {
+      logger.error('❌ Policy seeding failed', { error });
+    }
+    
     logger.info('');
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('📊 STARTING TEST DATA GENERATION...');
