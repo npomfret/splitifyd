@@ -2,10 +2,11 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-// import { authStore } from '../app/stores/auth-store';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { LoadingSpinner, Card, Button } from '../components/ui';
-import { Stack } from '../components/ui/Stack';
+import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
+import { LoadingSpinner, Card, Button } from '@/components/ui';
+import { Stack } from '@/components/ui';
 import { 
   GroupHeader, 
   QuickActions, 
@@ -13,7 +14,10 @@ import {
   ExpensesList,
   BalanceSummary,
   ShareGroupModal 
-} from '../components/group';
+} from '@/components/group';
+import { SettlementForm, SettlementHistory } from '@/components/settlements';
+import { SidebarCard } from '@/components/ui/SidebarCard';
+import { logError } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
   id?: string;
@@ -22,16 +26,25 @@ interface GroupDetailPageProps {
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const isInitialized = useSignal(false);
   const showShareModal = useSignal(false);
+  const showSettlementForm = useSignal(false);
+  const showSettlementHistory = useSignal(false);
+  const showDeletedExpenses = useSignal(false);
 
   // Computed values from store
   const group = useComputed(() => groupDetailStore.group);
   const expenses = useComputed(() => groupDetailStore.expenses);
   const balances = useComputed(() => groupDetailStore.balances);
-  const members = useComputed(() => group.value?.members || []);
+  const members = useComputed(() => groupDetailStore.members);
   const loading = useComputed(() => groupDetailStore.loading);
+  const loadingMembers = useComputed(() => groupDetailStore.loadingMembers);
   const error = useComputed(() => groupDetailStore.error);
-  // const currentUser = useComputed(() => authStore.user);
-
+  
+  // Auth store via hook
+  const authStore = useAuthRequired();
+  const currentUser = useComputed(() => authStore.user);
+  const isGroupOwner = useComputed(() => 
+    currentUser.value && group.value && group.value.createdBy === currentUser.value.uid
+  );
 
   // Fetch group data on mount
   useEffect(() => {
@@ -42,11 +55,12 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         await groupDetailStore.fetchGroup(groupId);
         isInitialized.value = true;
       } catch (error) {
-        console.error('Failed to load group:', error);
+        logError('Failed to load group page', error, { groupId });
         isInitialized.value = true;
       }
     };
 
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     loadGroup();
 
     // Cleanup on unmount
@@ -127,7 +141,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   };
 
   const handleSettleUp = () => {
-    console.log('Settle up clicked');
+    showSettlementForm.value = true;
   };
 
   const handleShare = () => {
@@ -135,7 +149,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   };
 
   const handleSettings = () => {
-    console.log('Settings clicked');
+    // TODO: Implement group settings functionality
   };
 
   // Render group detail
@@ -145,36 +159,100 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
       description={`Manage expenses for ${group.value!.name}`}
       headerVariant="dashboard"
     >
-      <div className="container mx-auto px-4 py-8">
-        <Stack spacing="lg">
-          <GroupHeader 
-            group={group.value!} 
-            onSettingsClick={handleSettings}
-          />
+      <GroupDetailGrid
+        leftSidebar={
+          <>
+            <MembersList 
+              members={members.value} 
+              createdBy={group.value!.createdBy || ''}
+              loading={loadingMembers.value}
+              variant="sidebar"
+            />
+            
+            <QuickActions 
+              onAddExpense={handleAddExpense}
+              onSettleUp={handleSettleUp}
+              onShare={handleShare}
+              variant="vertical"
+            />
+          </>
+        }
+        mainContent={
+          <Stack spacing="lg">
+            <GroupHeader 
+              group={group.value!} 
+              onSettingsClick={handleSettings}
+            />
 
-          <QuickActions 
-            onAddExpense={handleAddExpense}
-            onSettleUp={handleSettleUp}
-            onShare={handleShare}
-          />
+            {/* Mobile-only quick actions */}
+            <div className="lg:hidden">
+              <QuickActions 
+                onAddExpense={handleAddExpense}
+                onSettleUp={handleSettleUp}
+                onShare={handleShare}
+              />
+            </div>
 
-          <MembersList 
-            members={group.value!.members || []} 
-            createdBy={group.value!.createdBy || ''}
-          />
+            <ExpensesList 
+              expenses={expenses.value}
+              members={members.value}
+              hasMore={groupDetailStore.hasMoreExpenses}
+              loading={groupDetailStore.loadingExpenses}
+              onLoadMore={() => groupDetailStore.loadMoreExpenses()}
+              onExpenseClick={handleExpenseClick}
+              isGroupOwner={isGroupOwner.value ?? false}
+              showDeletedExpenses={showDeletedExpenses.value}
+              onShowDeletedChange={(show) => {
+                showDeletedExpenses.value = show;
+                groupDetailStore.refetchExpenses(show);
+              }}
+            />
 
-          <BalanceSummary balances={balances.value} />
+            {/* Mobile-only members list */}
+            <div className="lg:hidden">
+              <MembersList 
+                members={members.value} 
+                createdBy={group.value!.createdBy || ''}
+                loading={loadingMembers.value}
+              />
+            </div>
 
-          <ExpensesList 
-            expenses={expenses.value}
-            members={members.value}
-            hasMore={groupDetailStore.hasMoreExpenses}
-            loading={groupDetailStore.loadingExpenses}
-            onLoadMore={() => groupDetailStore.loadMoreExpenses()}
-            onExpenseClick={handleExpenseClick}
-          />
-        </Stack>
-      </div>
+            {/* Mobile-only balance summary */}
+            <div className="lg:hidden">
+              <BalanceSummary balances={balances.value} members={members.value} />
+            </div>
+          </Stack>
+        }
+        rightSidebar={
+          <>
+            <BalanceSummary 
+              balances={balances.value} 
+              members={members.value}
+              variant="sidebar"
+            />
+
+            {/* Settlement History Section */}
+            <SidebarCard title="Payment History">
+              <div className="space-y-3">
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  className="w-full"
+                  onClick={() => showSettlementHistory.value = !showSettlementHistory.value}
+                >
+                  {showSettlementHistory.value ? 'Hide History' : 'Show History'}
+                </Button>
+                {showSettlementHistory.value && (
+                  <SettlementHistory 
+                    groupId={groupId!} 
+                    limit={5}
+                  />
+                )}
+              </div>
+            </SidebarCard>
+          </>
+        }
+      />
 
       {/* Share Modal */}
       <ShareGroupModal
@@ -182,6 +260,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         onClose={() => showShareModal.value = false}
         groupId={groupId!}
         groupName={group.value!.name}
+      />
+
+      {/* Settlement Form Modal */}
+      <SettlementForm
+        isOpen={showSettlementForm.value}
+        onClose={() => showSettlementForm.value = false}
+        groupId={groupId!}
+        onSuccess={() => {
+          // Refresh balances after successful settlement
+          groupDetailStore.fetchBalances();
+        }}
       />
     </BaseLayout>
   );

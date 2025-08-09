@@ -41,7 +41,7 @@ firebase/emulator-data/
 # Firebase service account keys
 firebase/functions/*service-account-key.json
 
-# Firebase public directory is now a tracked symlink to webapp/dist
+# Firebase public directory is a symlink to webapp-v2/dist (via link-webapp script)
 
 # macOS
 .DS_Store
@@ -50,8 +50,10 @@ firebase/functions/*service-account-key.json
 dist
 firebase/public
 
+e2e-tests/playwright-report
 reports
 tmp
+screenshots
 
 # AI agents stuff
 CLAUDE.md
@@ -60,25 +62,17 @@ directives
 .claude/commands/analyse.md
 .claude/commands/changes.md
 .claude/commands/fix.md
-.claude/commands/hello.md
 .claude/commands/next-task.md
+.claude/commands/p.md
+.claude/agents/agent-advisor.md
 .claude/agents/analyst.md
+.claude/agents/anti-pattern-detector.md
 .claude/agents/architect-advisor.md
 .claude/agents/auditor.md
-.claude/agents/backwards-compat-detector.md
-.claude/agents/comment-detector.md
-.claude/agents/console-detector.md
-.claude/agents/duplicate-detector.md
-.claude/agents/engineering-guardian.md
-.claude/agents/error-suppressor-detector.md
-.claude/agents/hack-detector.md
-.claude/agents/modern-syntax-enforcer.md
-.claude/agents/mutable-state-detector.md
-.claude/agents/no-fallback-detector.md
-.claude/agents/pwd-checker.md
-.claude/agents/scope-creep-detector.md
-.claude/agents/style-enforcer.md
-.claude/agents/test-for-future-detector.md
-.claude/agents/test-quality-enforcer.md
-.claude/agents/test-runner.md
-.claude/agents/workflow-orchestrator.md
+.claude/agents/code-quality-enforcer.md
+.claude/agents/mcp-advisor.md
+.claude/agents/scope-guardian.md
+.claude/agents/test-guardian.md
+.mcp.local.json
+.claude/mcp-inventory.json
+.claude/agents/prompt-advisor.md

@@ -1,11 +1,12 @@
 /**
  * Zod schemas for runtime validation of API responses
- * 
+ *
  * MANDATORY: Every API response must be validated against these schemas
  * This ensures type safety at runtime and catches server contract violations
  */
 
 import { z } from 'zod';
+import { UserRoles, SplitTypes } from '@shared/types/webapp-shared-types';
 
 // Base schemas
 export const MemberSchema = z.object({
@@ -62,7 +63,7 @@ export const GroupSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
-  memberCount: z.number(),
+  memberIds: z.array(z.string()),
   balance: z.object({
     userBalance: z.object({
       userId: z.string().min(1),
@@ -117,7 +118,7 @@ export const ExpenseDataSchema = z.object({
   paidByName: z.string().min(1).optional(),
   category: z.string().min(1),
   date: z.string(),
-  splitType: z.enum(['equal', 'exact', 'percentage']),
+  splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
   participants: z.array(z.string().min(1)),
   splits: z.array(ExpenseSplitSchema),
   createdBy: z.string().min(1),
@@ -135,14 +136,15 @@ export const ExpenseListResponseSchema = z.object({
 
 // Balance schemas - Updated to match server response structure
 export const UserBalanceSchema = z.object({
+  userId: z.string(),
   netBalance: z.number(),
   owes: z.record(z.string(), z.number()),
   owedBy: z.record(z.string(), z.number())
 });
 
 export const SimplifiedDebtSchema = z.object({
-  from: z.string(),
-  to: z.string(),
+  from: z.object({ userId: z.string() }),
+  to: z.object({ userId: z.string() }),
   amount: z.number()
 });
 
@@ -151,6 +153,22 @@ export const GroupBalancesSchema = z.object({
   userBalances: z.record(z.string(), UserBalanceSchema),
   simplifiedDebts: z.array(SimplifiedDebtSchema),
   lastUpdated: z.string()
+});
+
+// Group members response schema
+export const GroupMembersResponseSchema = z.object({
+  members: z.array(z.object({
+    uid: z.string().min(1),
+    email: z.string().email(),
+    displayName: z.string().min(1),
+    role: z.enum([UserRoles.ADMIN, UserRoles.USER]).optional(),
+    termsAcceptedAt: z.any().optional(),
+    cookiePolicyAcceptedAt: z.any().optional(),
+    acceptedPolicies: z.record(z.string(), z.string()).optional()
+  })),
+  totalCount: z.number(),
+  hasMore: z.boolean(),
+  nextCursor: z.string().optional()
 });
 
 // Share schemas
@@ -204,12 +222,54 @@ export const MessageResponseSchema = z.object({
   message: z.string().min(1)
 });
 
+// Settlement schemas
+export const SettlementSchema = z.object({
+  id: z.string().min(1),
+  groupId: z.string().min(1),
+  payerId: z.string().min(1),
+  payeeId: z.string().min(1),
+  amount: z.number().positive(),
+  date: z.string(),
+  note: z.string().optional(),
+  createdBy: z.string().min(1),
+  createdAt: z.string(),
+  updatedAt: z.string()
+});
+
+export const SettlementListItemSchema = z.object({
+  id: z.string().min(1),
+  groupId: z.string().min(1),
+  payer: z.object({
+    uid: z.string().min(1),
+    displayName: z.string().min(1),
+    email: z.string().email().optional()
+  }),
+  payee: z.object({
+    uid: z.string().min(1),
+    displayName: z.string().min(1),
+    email: z.string().email().optional()
+  }),
+  amount: z.number().positive(),
+  date: z.string(),
+  note: z.string().optional(),
+  createdBy: z.string().min(1).optional(),
+  createdAt: z.string()
+});
+
+export const ListSettlementsResponseSchema = z.object({
+  settlements: z.array(SettlementListItemSchema),
+  count: z.number(),
+  hasMore: z.boolean(),
+  nextCursor: z.string().optional()
+});
+
 export const responseSchemas = {
   '/config': AppConfigurationSchema,
   '/health': HealthCheckResponseSchema,
   'GET /groups': ListGroupsResponseSchema,
   'POST /groups': GroupSchema,
   '/groups/:id': GroupSchema,
+  '/groups/:id/members': GroupMembersResponseSchema,
   '/expenses': ExpenseDataSchema,
   'DELETE /expenses': MessageResponseSchema,
   '/expenses/group': ExpenseListResponseSchema,
@@ -217,5 +277,14 @@ export const responseSchemas = {
   'POST /groups/share': ShareableLinkResponseSchema,
   '/groups/share': ShareableLinkResponseSchema,
   '/groups/join': JoinGroupResponseSchema,
-  '/register': RegisterResponseSchema
+  '/register': RegisterResponseSchema,
+  'POST /settlements': z.object({
+    success: z.boolean(),
+    data: SettlementSchema
+  }),
+  '/settlements': z.object({
+    success: z.boolean(),
+    data: ListSettlementsResponseSchema
+  }),
+  '/settlements/:settlementId': SettlementListItemSchema
 } as const;

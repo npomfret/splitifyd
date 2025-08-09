@@ -7,7 +7,7 @@
     "build": "npm run build:check && vite build && node scripts/post-build.js",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
     "build:prod": "tsc && vite build && node scripts/post-build.js",
-    "watch": "mkdir -p ../webapp/dist/v2 && vite build --watch",
+    "watch": "vite build --watch",
     "preview": "vite preview",
     "typecheck": "npm run build:check",
     "clean": "rm -rf dist",
@@ -21,11 +21,13 @@
     "firebase": "^12.0.0",
     "gsap": "^3.13.0",
     "preact": "^10.19.3",
+    "preact-iso": "^2.9.2",
     "preact-router": "^4.1.2",
     "three": "^0.178.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.1",
+    "@splitifyd/test-support": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/preact": "^3.2.4",
     "@testing-library/user-event": "^14.6.1",

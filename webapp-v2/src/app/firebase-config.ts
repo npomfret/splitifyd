@@ -77,6 +77,11 @@ export const firebaseConfigManager = new FirebaseConfigManager();
 
 // Set up API base URL from window object (injected during build)
 const setupApiBaseUrl = () => {
+  // Skip during SSG
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
   const apiBaseUrl = (window as any).API_BASE_URL;
   if (!apiBaseUrl) {
     throw new Error('API_BASE_URL is not set - check build configuration');

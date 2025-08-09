@@ -1,6 +1,7 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import express from 'express';
 import { authenticate } from './auth/middleware';
+import { authenticateAdmin } from "./auth/middleware";
 import { register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
@@ -18,8 +19,10 @@ import {
   listUserExpenses,
   getExpenseHistory,
 } from './expenses/handlers';
-import { generateShareableLink, joinGroupByLink } from './groups/shareHandlers';
+import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
+import { getGroupMembers } from './groups/memberHandlers';
+import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import {
   createGroup,
   getGroup,
@@ -27,10 +30,27 @@ import {
   deleteGroup,
   listGroups,
 } from './groups/handlers';
+import {
+  createSettlement,
+  getSettlement,
+  updateSettlement,
+  deleteSettlement,
+  listSettlements,
+} from './settlements/handlers';
 import { admin } from './firebase';
+import {
+  listPolicies,
+  getPolicy,
+  getPolicyVersion,
+  updatePolicy,
+  publishPolicy,
+  createPolicy,
+  deletePolicyVersion,
+} from "./policies/handlers";
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
+import { FirestoreCollections } from './types/webapp-shared-types';
 
 // Test emulator connections when running locally
 if (process.env.FUNCTIONS_EMULATOR === 'true') {
@@ -162,7 +182,7 @@ function setupRoutes(app: express.Application): void {
   
   // List files in current directory
   const currentDir = process.cwd();
-  let files: any[] = [];
+  let files: any[];
   
   try {
     const entries = fs.readdirSync(currentDir);
@@ -253,33 +273,55 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
   }
 });
 
+// Public policy endpoints (no auth required)
+app.get('/policies/current', asyncHandler(getCurrentPolicies));
+app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
+
 // Auth endpoints (no auth required)
 app.post('/register', asyncHandler(register));
 
 
 // Expense endpoints (requires auth)
-app.post('/expenses', authenticate, asyncHandler(createExpense));
-app.get('/expenses', authenticate, asyncHandler(getExpense));
-app.put('/expenses', authenticate, asyncHandler(updateExpense));
-app.delete('/expenses', authenticate, asyncHandler(deleteExpense));
-app.get('/expenses/group', authenticate, asyncHandler(listGroupExpenses));
-app.get('/expenses/user', authenticate, asyncHandler(listUserExpenses));
-app.get('/expenses/history', authenticate, asyncHandler(getExpenseHistory));
+app.post(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(createExpense));
+app.get(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(getExpense));
+app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
+app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
+app.get(`/${FirestoreCollections.EXPENSES}/group`, authenticate, asyncHandler(listGroupExpenses));
+app.get(`/${FirestoreCollections.EXPENSES}/user`, authenticate, asyncHandler(listUserExpenses));
+app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
 
 // NEW Group endpoints (requires auth) - RESTful API
-app.post('/groups', authenticate, asyncHandler(createGroup));
-app.get('/groups', authenticate, asyncHandler(listGroups));
+app.post(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(createGroup));
+app.get(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(listGroups));
 
 // Specific group endpoints must come BEFORE :id routes
-app.get('/groups/balances', authenticate, asyncHandler(getGroupBalances));
-app.post('/groups/share', authenticate, asyncHandler(generateShareableLink));
-app.post('/groups/join', authenticate, asyncHandler(joinGroupByLink));
+app.get(`/${FirestoreCollections.GROUPS}/balances`, authenticate, asyncHandler(getGroupBalances));
+app.post(`/${FirestoreCollections.GROUPS}/share`, authenticate, asyncHandler(generateShareableLink));
+app.post(`/${FirestoreCollections.GROUPS}/preview`, authenticate, asyncHandler(previewGroupByLink));
+app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(joinGroupByLink));
 
 // Parameterized routes come last
-app.get('/groups/:id', authenticate, asyncHandler(getGroup));
-app.put('/groups/:id', authenticate, asyncHandler(updateGroup));
-app.delete('/groups/:id', authenticate, asyncHandler(deleteGroup));
+app.get(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(getGroup));
+app.get(`/${FirestoreCollections.GROUPS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
+app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
+app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
 
+// Settlement endpoints (requires auth)
+app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));
+app.get(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(listSettlements));
+app.get(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(getSettlement));
+app.put(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(updateSettlement));
+app.delete(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(deleteSettlement));
+
+
+// Admin Policy endpoints (requires admin auth)
+app.post(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(createPolicy));
+app.get(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(listPolicies));
+app.get(`/admin/${FirestoreCollections.POLICIES}/:id`, authenticateAdmin, asyncHandler(getPolicy));
+app.get(`/admin/${FirestoreCollections.POLICIES}/:id/versions/:hash`, authenticateAdmin, asyncHandler(getPolicyVersion));
+app.put(`/admin/${FirestoreCollections.POLICIES}/:id`, authenticateAdmin, asyncHandler(updatePolicy));
+app.post(`/admin/${FirestoreCollections.POLICIES}/:id/publish`, authenticateAdmin, asyncHandler(publishPolicy));
+app.delete(`/admin/${FirestoreCollections.POLICIES}/:id/versions/:hash`, authenticateAdmin, asyncHandler(deletePolicyVersion));
 app.use((req: express.Request, res: express.Response) => {
   res.status(HTTP_STATUS.NOT_FOUND).json({
     error: {

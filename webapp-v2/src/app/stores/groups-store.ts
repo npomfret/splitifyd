@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
-import type { Group, CreateGroupRequest, ListGroupsResponse } from '@shared/types/webapp-shared-types';
+import type { Group, CreateGroupRequest, ListGroupsResponse } from '../../../../firebase/functions/src/types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
+import { logWarning } from '../../utils/browser-logger';
 
 export interface GroupsStore {
   groups: Group[];
@@ -61,7 +62,7 @@ class GroupsStoreImpl implements GroupsStore {
         await this.refreshGroups();
       } catch (refreshError) {
         // Log refresh error but don't fail the group creation
-        console.warn('Failed to refresh groups after creating group:', refreshError);
+        logWarning('Failed to refresh groups after creating group', { error: refreshError });
       }
       
       return newGroup;

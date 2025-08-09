@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
-import { groupsStore } from '../../app/stores/groups-store';
-import { apiClient } from '../../app/apiClient';
+import { groupsStore } from '@/app/stores/groups-store.ts';
+import { apiClient } from '@/app/apiClient.ts';
 import type { CreateGroupRequest, Group, User, ListGroupsResponse } from '@shared/types/webapp-shared-types';
 
 // Mock the API client
@@ -12,7 +12,10 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
   return {
     id: `group-${Math.random().toString(36).substr(2, 9)}`,
     name: 'Test Group',
-    memberCount: 1,
+    memberIds: ['test-user'],
+    createdBy: 'test-user',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     balance: {
       userBalance: {
         userId: 'test-user',
@@ -53,7 +56,10 @@ describe('GroupsStore', () => {
         {
           id: 'group-1',
           name: 'Group 1',
-          memberCount: 3,
+          memberIds: ['user1', 'user2', 'user3'],
+          createdBy: 'test-user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           balance: {
             userBalance: {
               userId: 'test-user',
@@ -70,7 +76,10 @@ describe('GroupsStore', () => {
         {
           id: 'group-2',
           name: 'Group 2',
-          memberCount: 2,
+          memberIds: ['user1', 'user2'],
+          createdBy: 'test-user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           balance: {
             userBalance: {
               userId: 'test-user',
@@ -264,16 +273,14 @@ describe('GroupsStore', () => {
       
       const mockCreatedGroup = createTestGroup({
         name: 'Transform Test',
-        members: [member1, member2],
-        memberCount: 2
+        memberIds: [member1.uid, member2.uid]
       });
 
       mockApiClient.createGroup.mockResolvedValueOnce(mockCreatedGroup);
 
       const result = await groupsStore.createGroup(groupRequest);
 
-      expect(result.members).toEqual([member1, member2]);
-      expect(result.memberCount).toBe(2);
+      expect(result.memberIds).toEqual([member1.uid, member2.uid]);
     });
 
     it('sets error state on creation failure', async () => {

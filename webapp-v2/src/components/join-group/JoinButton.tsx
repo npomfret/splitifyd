@@ -1,11 +1,11 @@
 /**
  * Join Button Component
- * 
+ *
  * Primary action button for joining a group
  */
 
 import { Button } from '../ui/Button';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui';
 
 interface JoinButtonProps {
   onJoin: () => void;

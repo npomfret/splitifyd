@@ -6,14 +6,17 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { authStore } from '../app/stores/auth-store';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { firebaseConfigManager } from '../app/firebase-config';
+import { logError } from '../utils/browser-logger';
 
 const emailSignal = signal('');
 const passwordSignal = signal('');
 const formDefaultsLoadedSignal = signal(false);
 
 export function LoginPage() {
+  const authStore = useAuthRequired();
+  
   // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {
     authStore.clearError();
@@ -26,7 +29,7 @@ export function LoginPage() {
       }
       formDefaultsLoadedSignal.value = true;
     }).catch(error => {
-      console.error('Failed to load form defaults:', error);
+      logError('Failed to load form defaults', error);
       formDefaultsLoadedSignal.value = true;
     });
   }, []);
@@ -52,7 +55,7 @@ export function LoginPage() {
       await authStore.login(email, password);
       // Redirect will happen via useEffect when user state updates
     } catch (error) {
-      // Error is handled by the auth store
+      logError('Login attempt failed', error, { email });
     }
   };
 

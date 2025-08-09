@@ -3,9 +3,11 @@ import { Request, Response } from 'express';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
+import { getCurrentPolicyVersions } from './policy-helpers';
+import { FirestoreCollections, UserRoles, AuthErrors } from '../types/webapp-shared-types';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, displayName } = validateRegisterRequest(req.body);
+  const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(req.body);
   let userRecord: admin.auth.UserRecord | null = null;
 
   try {
@@ -16,15 +18,29 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       displayName,
     });
 
+    // Get current policy versions for user acceptance
+    const currentPolicyVersions = await getCurrentPolicyVersions();
+
     // Create user document in Firestore
     const firestore = admin.firestore();
-    await firestore.collection('users').doc(userRecord.uid).set({
+    const userDoc: any = {
       email,
       displayName,
+      role: UserRoles.USER, // Default role for new users
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
-
+      acceptedPolicies: currentPolicyVersions // Capture current policy versions
+    };
+    
+    // Only set acceptance timestamps if the user actually accepted the terms
+    if (termsAccepted) {
+      userDoc.termsAcceptedAt = new Date();
+    }
+    if (cookiePolicyAccepted) {
+      userDoc.cookiePolicyAcceptedAt = new Date();
+    }
+    
+    await firestore.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
     logger.info('User registration completed', { 
       email,
       userId: userRecord.uid 
@@ -60,10 +76,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Handle specific auth errors
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/email-already-exists') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === AuthErrors.EMAIL_EXISTS) {
       res.status(HTTP_STATUS.CONFLICT).json({
         error: {
-          code: 'EMAIL_EXISTS',
+          code: AuthErrors.EMAIL_EXISTS_CODE,
           message: 'An account with this email already exists'
         }
       });

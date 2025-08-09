@@ -4,6 +4,8 @@ import { mapFirebaseUser } from '../../types/auth';
 import { firebaseService } from '../firebase';
 import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '../../constants';
+import { logError } from '../../utils/browser-logger';
+import { AuthErrors } from '@shared/types/webapp-shared-types';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -18,8 +20,14 @@ class AuthStoreImpl implements AuthStore {
   get error() { return errorSignal.value; }
   get initialized() { return initializedSignal.value; }
 
-  constructor() {
-    this.initializeAuth();
+  private constructor() {
+    // Private constructor - use static create() method instead
+  }
+
+  static async create(): Promise<AuthStoreImpl> {
+    const store = new AuthStoreImpl();
+    await store.initializeAuth();
+    return store;
   }
 
   private async initializeAuth() {
@@ -37,7 +45,7 @@ class AuthStoreImpl implements AuthStore {
             apiClient.setAuthToken(idToken);
             localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
           } catch (error) {
-            console.error('Failed to get ID token:', error);
+            logError('Failed to get ID token', error);
           }
         } else {
           userSignal.value = null;
@@ -76,13 +84,13 @@ class AuthStoreImpl implements AuthStore {
     }
   }
 
-  async register(email: string, password: string, displayName: string): Promise<void> {
+  async register(email: string, password: string, displayName: string, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
     loadingSignal.value = true;
     errorSignal.value = null;
 
     try {
       // Use server-side registration which creates both Firebase Auth user and Firestore document
-      await apiClient.register(email, password, displayName);
+      await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
       
       // Now sign in the user to get the Firebase Auth state
       await this.login(email, password);
@@ -129,12 +137,18 @@ class AuthStoreImpl implements AuthStore {
   }
 
   private getAuthErrorMessage(error: any): string {
+    // Handle API errors from our backend (e.g., EMAIL_EXISTS)
+    if (error?.code === AuthErrors.EMAIL_EXISTS_CODE) {
+      return 'This email is already registered.';
+    }
+    
+    // Handle Firebase Auth errors
     if (error?.code) {
       switch (error.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
           return 'Invalid email or password.';
-        case 'auth/email-already-in-use':
+        case AuthErrors.EMAIL_EXISTS:
           return 'This email is already registered.';
         case 'auth/weak-password':
           return 'Password is too weak. Please use at least 6 characters.';
@@ -152,4 +166,16 @@ class AuthStoreImpl implements AuthStore {
   }
 }
 
-export const authStore = new AuthStoreImpl();
+// Singleton instance promise
+let authStoreInstance: Promise<AuthStoreImpl> | null = null;
+
+export const createAuthStore = async (): Promise<AuthStoreImpl> => {
+  return await AuthStoreImpl.create();
+};
+
+export const getAuthStore = (): Promise<AuthStoreImpl> => {
+  if (!authStoreInstance) {
+    authStoreInstance = AuthStoreImpl.create();
+  }
+  return authStoreInstance;
+};

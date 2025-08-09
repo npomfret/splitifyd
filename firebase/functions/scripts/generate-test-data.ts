@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import { ApiDriver } from '../__tests__/support/ApiDriver';
-import { ExpenseBuilder } from '../__tests__/support/builders/ExpenseBuilder';
-import { logger } from '../src/logger';
-import type { User } from '../__tests__/support/ApiDriver';
-import type { Group } from '../src/types/webapp-shared-types';
+import type {User} from '../__tests__/support/ApiDriver';
+import {ApiDriver} from '../__tests__/support/ApiDriver';
+import {ExpenseBuilder} from '../__tests__/support/builders';
+import {logger} from '../src/logger';
+import type {Group} from '../src/types/webapp-shared-types';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -93,14 +93,46 @@ const getTestConfig = (): TestDataConfig => {
 const generateTestUsers = (config: TestDataConfig): TestUser[] => {
   const users: TestUser[] = [];
   
-  // Generate users based on config
-  for (let i = 1; i <= config.userCount; i++) {
+  // Keep test1@test.com as the first user for easy reference
+  users.push({
+    email: 'test1@test.com',
+    password: 'rrRR44$$',
+    displayName: 'Bill Splitter'
+  });
+  
+  // More realistic test users with @example.com emails
+  const testUsers = [
+    { email: 'sarah.johnson@example.com', displayName: 'Sarah Johnson' },
+    { email: 'mike.chen@example.com', displayName: 'Mike Chen' },
+    { email: 'emily.davis@example.com', displayName: 'Emily Davis' },
+    { email: 'alex.martinez@example.com', displayName: 'Alex Martinez' },
+    { email: 'jessica.taylor@example.com', displayName: 'Jessica Taylor' },
+    { email: 'david.wilson@example.com', displayName: 'David Wilson' },
+    { email: 'lisa.anderson@example.com', displayName: 'Lisa Anderson' },
+    { email: 'james.thompson@example.com', displayName: 'James Thompson' },
+    { email: 'amanda.garcia@example.com', displayName: 'Amanda Garcia' },
+    { email: 'robert.lee@example.com', displayName: 'Robert Lee' },
+    { email: 'michelle.brown@example.com', displayName: 'Michelle Brown' },
+    { email: 'chris.rodriguez@example.com', displayName: 'Chris Rodriguez' },
+    { email: 'jennifer.white@example.com', displayName: 'Jennifer White' },
+    { email: 'daniel.harris@example.com', displayName: 'Daniel Harris' },
+    { email: 'sophia.clark@example.com', displayName: 'Sophia Clark' },
+    { email: 'matthew.lewis@example.com', displayName: 'Matthew Lewis' },
+    { email: 'olivia.walker@example.com', displayName: 'Olivia Walker' },
+    { email: 'ryan.hall@example.com', displayName: 'Ryan Hall' },
+    { email: 'natalie.young@example.com', displayName: 'Natalie Young' },
+    { email: 'kevin.allen@example.com', displayName: 'Kevin Allen' }
+  ];
+  
+  // Add users based on config count (minus 1 since we already have test1@test.com)
+  const remainingCount = Math.min(config.userCount - 1, testUsers.length);
+  for (let i = 0; i < remainingCount; i++) {
     users.push({
-      email: `test${i}@test.com`,
-      password: 'rrRR44$$',
-      displayName: `Test User ${i}`
+      ...testUsers[i],
+      password: 'rrRR44$$'
     });
   }
+  
   return users;
 };
 
@@ -319,7 +351,6 @@ async function createTestExpense(
   try {
     const participantIds = participants.map(p => p.uid);
     
-    // Use ExpenseBuilder to ensure proper structure
     const expenseData = new ExpenseBuilder()
       .withGroupId(groupId)
       .withAmount(expense.amount)
@@ -332,13 +363,11 @@ async function createTestExpense(
       .build();
 
     // Create expense via ApiDriver with retry logic
-    const response = await retryWithBackoff(
-      () => driver.createExpense(expenseData, createdBy.token),
-      3,  // max attempts
-      500 // initial delay 500ms
+    return await retryWithBackoff(
+        () => driver.createExpense(expenseData, createdBy.token),
+        3,  // max attempts
+        500 // initial delay 500ms
     );
-
-    return response;
   } catch (error) {
     logger.error(`✗ Failed to create expense ${expense.description}`, { error: error instanceof Error ? error : new Error(String(error)) });
     throw error;
@@ -364,7 +393,7 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
     await Promise.all(groupBatch.map(async (group) => {
       // Get all members of this group
       const groupMembers = users.filter(user => 
-        group.members?.some((member: any) => member.uid === user.uid)
+        group.memberIds?.includes(user.uid)
       );
       
       if (groupMembers.length === 0) return;
@@ -419,7 +448,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
   
   // Get all members of this group from the refreshed data
   const groupMembers = users.filter(user => 
-    settledGroup.members?.some((member: any) => member.uid === user.uid)
+    settledGroup.memberIds?.includes(user.uid)
   );
   
   if (groupMembers.length < 2) return;
@@ -480,7 +509,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
   
   // Get all members of this group from the refreshed data
   const groupMembers = users.filter(user => 
-    largeGroup.members?.some((member: any) => member.uid === user.uid)
+    largeGroup.memberIds?.includes(user.uid)
   );
   
   if (groupMembers.length === 0) return;
@@ -518,6 +547,152 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
   }
   
   logger.info(`Created ${totalExpenses} expenses for "Large Group"`);
+}
+
+async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
+  // Skip empty group but process all other groups including settled and large groups
+  const groupsWithPayments = groups.filter(g => g.name !== 'Empty Group');
+  
+  logger.info(`Creating small payments/settlements for ${groupsWithPayments.length} groups`);
+  
+  // Process groups in batches to reduce contention
+  const BATCH_SIZE = 2;
+  
+  for (let i = 0; i < groupsWithPayments.length; i += BATCH_SIZE) {
+    const groupBatch = groupsWithPayments.slice(i, i + BATCH_SIZE);
+    
+    await Promise.all(groupBatch.map(async (group) => {
+      // Get all members of this group
+      const groupMembers = users.filter(user => 
+        group.memberIds?.includes(user.uid)
+      );
+      
+      if (groupMembers.length < 2) return;
+      
+      // Create 1-3 small settlements per group
+      const settlementCount = Math.floor(Math.random() * 3) + 1;
+      const settlementPromises = [];
+      
+      for (let j = 0; j < settlementCount; j++) {
+        // Pick random payer and payee
+        const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+        const availablePayees = groupMembers.filter(m => m.uid !== payer.uid);
+        
+        if (availablePayees.length === 0) continue;
+        
+        const payee = availablePayees[Math.floor(Math.random() * availablePayees.length)];
+        
+        // Generate small payment amounts between $5 and $50
+        const paymentAmount = Math.round((Math.random() * 45 + 5) * 100) / 100;
+        
+        const paymentNotes = [
+          'Coffee payment', 'Lunch payback', 'Gas money', 'Uber split', 
+          'Drinks last night', 'Pizza share', 'Movie tickets', 'Parking fee',
+          'Groceries split', 'Tip payback', 'Breakfast split', 'Snacks'
+        ];
+        
+        const settlementData = {
+          groupId: group.id,
+          payerId: payer.uid,
+          payeeId: payee.uid,
+          amount: paymentAmount,
+          currency: 'USD',
+          note: paymentNotes[Math.floor(Math.random() * paymentNotes.length)],
+          date: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString() // Random date within last 15 days
+        };
+        
+        settlementPromises.push(
+          retryWithBackoff(
+            () => driver.createSettlement(settlementData, payer.token),
+            3,
+            500
+          )
+            .then(() => {
+              logger.info(`Created small payment: ${payer.displayName} → ${payee.displayName} $${paymentAmount} in ${group.name}`);
+            })
+            .catch(error => {
+              logger.warn(`Failed to create settlement in group ${group.name}`, {
+                groupId: group.id,
+                payer: payer.displayName,
+                payee: payee.displayName,
+                amount: paymentAmount,
+                error: error instanceof Error ? error : new Error(String(error))
+              });
+              // Don't throw - continue with other settlements
+            })
+        );
+      }
+      
+      await Promise.all(settlementPromises);
+      logger.info(`Created ${settlementCount} small payments for group: ${group.name}`);
+    }));
+  }
+  
+  logger.info(`✓ Finished creating small payments for all groups`);
+}
+
+async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
+  // Skip empty group (it has no expenses to delete)
+  const groupsWithExpenses = groups.filter(g => g.name !== 'Empty Group');
+  
+  logger.info(`Deleting some expenses from ${groupsWithExpenses.length} groups to test deletion functionality`);
+  
+  let totalDeleted = 0;
+  
+  for (const group of groupsWithExpenses) {
+    try {
+      // Get a group member to perform the deletion (preferably the creator)
+      const deleter = users.find(u => u.uid === group.createdBy) || users.find(u => group.memberIds?.includes(u.uid));
+      if (!deleter) {
+        logger.warn(`No valid user found to delete expenses from group: ${group.name}`);
+        continue;
+      }
+      
+      // Get expenses for this group
+      const { expenses } = await driver.getGroupExpenses(group.id, deleter.token);
+      
+      if (!expenses || expenses.length === 0) {
+        logger.info(`No expenses found in group: ${group.name}`);
+        continue;
+      }
+      
+      // Determine how many to delete (1-2 expenses, but at least 1 per group)
+      const deleteCount = Math.min(
+        Math.floor(Math.random() * 2) + 1, // 1 or 2 expenses
+        Math.max(1, Math.floor(expenses.length * 0.2)) // Or 20% of expenses, whichever is less
+      );
+      
+      // Randomly select expenses to delete
+      const shuffled = [...expenses].sort(() => 0.5 - Math.random());
+      const expensesToDelete = shuffled.slice(0, deleteCount);
+      
+      // Delete the selected expenses
+      for (const expense of expensesToDelete) {
+        try {
+          await retryWithBackoff(
+            () => driver.deleteExpense(expense.id, deleter.token),
+            2,
+            500
+          );
+          totalDeleted++;
+          logger.info(`Deleted expense: "${expense.description}" ($${expense.amount}) from ${group.name}`);
+        } catch (error) {
+          logger.warn(`Failed to delete expense ${expense.id} from group ${group.name}`, {
+            error: error instanceof Error ? error : new Error(String(error))
+          });
+        }
+      }
+      
+      logger.info(`Deleted ${deleteCount} expense(s) from group: ${group.name}`);
+      
+    } catch (error) {
+      logger.error(`Failed to process expense deletion for group ${group.name}`, {
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+    }
+  }
+  
+  logger.info(`✓ Finished deleting expenses. Total deleted: ${totalDeleted} expenses across all groups`);
 }
 
 async function waitForApiReady(): Promise<void> {
@@ -628,6 +803,20 @@ export async function generateTestData(): Promise<void> {
     await createManyExpensesForLargeGroup(refreshedGroups, users, config);
     logger.info('✓ Created many expenses for pagination testing');
     logTiming('Large group expenses creation', largeGroupExpensesStart);
+
+    // Create small payments/settlements for groups to demonstrate payment functionality
+    logger.info('Creating small payments/settlements for groups...');
+    const smallPaymentsStart = Date.now();
+    await createSmallPaymentsForGroups(refreshedGroups, users);
+    logger.info('✓ Created small payments/settlements');
+    logTiming('Small payments creation', smallPaymentsStart);
+
+    // Delete some expenses to test deletion functionality and show deleted state
+    logger.info('Deleting some expenses to test deletion functionality...');
+    const deletionStart = Date.now();
+    await deleteSomeExpensesFromGroups(refreshedGroups, users);
+    logger.info('✓ Deleted some expenses from groups');
+    logTiming('Expense deletion', deletionStart);
 
     const totalTime = Date.now() - startTime;
     logger.info('🎉 Test data generation completed', {

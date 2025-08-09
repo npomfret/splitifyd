@@ -162,7 +162,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
       // Verify final group membership
       const finalGroup = await driver.getGroup(testGroup.id, users[0].token);
-      const memberUids = finalGroup.members.map((m: any) => m.uid);
+      const memberUids = finalGroup.memberIds;
 
       // Should have original 5 users + at least some new users
       // Note: Some concurrent joins might fail due to race conditions
@@ -201,7 +201,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
 
       // Verify user appears only once in group
       const finalGroup = await driver.getGroup(testGroup.id, users[0].token);
-      const userOccurrences = finalGroup.members.filter((m: any) => m.uid === duplicateUser.uid);
+      const userOccurrences = finalGroup.memberIds.filter((uid: string) => uid === duplicateUser.uid);
       expect(userOccurrences.length).toBe(1);
     });
 
@@ -316,14 +316,13 @@ describe('Concurrent Operations and Transaction Integrity', () => {
           .withPaidBy(users[1].uid)
           .withParticipants([users[0].uid, users[1].uid])
           .build(),
-        // Invalid: bad category
+        // Invalid: empty participants
         new ExpenseBuilder()
           .withGroupId(testGroup.id)
-          .withDescription('Invalid Expense - Bad Category')
+          .withDescription('Invalid Expense - No Participants')
           .withAmount(100)
           .withPaidBy(users[0].uid)
-          .withParticipants([users[0].uid, users[1].uid])
-          .withCategory('invalid-category')
+          .withParticipants([])
           .build(),
       ];
 
@@ -351,7 +350,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       expect(expenseDescriptions).toContain('Valid Expense 1');
       expect(expenseDescriptions).toContain('Valid Expense 2');
       expect(expenseDescriptions).not.toContain('Invalid Expense - Negative');
-      expect(expenseDescriptions).not.toContain('Invalid Expense - Bad Category');
+      expect(expenseDescriptions).not.toContain('Invalid Expense - No Participants');
     });
 
     test('should maintain balance consistency after failed operations', async () => {

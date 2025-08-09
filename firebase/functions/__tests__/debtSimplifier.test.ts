@@ -2,8 +2,7 @@ import { simplifyDebts, UserBalance } from '../src/utils/debtSimplifier';
 
 describe('simplifyDebts', () => {
     it('should return empty array for empty balances', () => {
-        const userNames = new Map<string, string>();
-        const result = simplifyDebts({}, userNames);
+        const result = simplifyDebts({});
         expect(result).toEqual([]);
     });
 
@@ -12,8 +11,7 @@ describe('simplifyDebts', () => {
             user1: { userId: 'user1', owes: {}, owedBy: {}, netBalance: 0 },
             user2: { userId: 'user2', owes: {}, owedBy: {}, netBalance: 0 }
         };
-        const userNames = new Map([['user1', 'Alice'], ['user2', 'Bob']]);
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         expect(result).toEqual([]);
     });
 
@@ -33,8 +31,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const userNames = new Map([['user1', 'Alice'], ['user2', 'Bob']]);
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -60,8 +57,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const userNames = new Map([['user1', 'Alice'], ['user2', 'Bob']]);
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
@@ -93,8 +89,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const userNames = new Map();
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         
         expect(result).toHaveLength(0);
     });
@@ -127,8 +122,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const userNames = new Map();
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         
         // Calculate net balances:
         // Alice: owes 90 (40+30+20), owed 30 = net -60
@@ -166,8 +160,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const userNames = new Map();
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         expect(result).toHaveLength(0);
     });
 
@@ -199,8 +192,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const userNames = new Map();
-        const result = simplifyDebts(balances, userNames);
+        const result = simplifyDebts(balances);
         
         expect(result).toHaveLength(2);
         

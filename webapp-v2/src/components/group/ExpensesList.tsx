@@ -2,7 +2,7 @@ import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
 import { Button } from '../ui/Button';
 import { ExpenseItem } from './ExpenseItem';
-import type { ExpenseData, User } from '@shared/types/webapp-shared-types';
+import type { ExpenseData, User } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 interface ExpensesListProps {
   expenses: ExpenseData[];
@@ -11,6 +11,9 @@ interface ExpensesListProps {
   loading: boolean;
   onLoadMore: () => void;
   onExpenseClick?: (expense: ExpenseData) => void;
+  isGroupOwner?: boolean;
+  showDeletedExpenses?: boolean;
+  onShowDeletedChange?: (show: boolean) => void;
 }
 
 export function ExpensesList({ 
@@ -19,11 +22,27 @@ export function ExpensesList({
   hasMore, 
   loading, 
   onLoadMore, 
-  onExpenseClick 
+  onExpenseClick,
+  isGroupOwner = false,
+  showDeletedExpenses = false,
+  onShowDeletedChange
 }: ExpensesListProps) {
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-semibold mb-4">Expenses</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Expenses</h2>
+        {isGroupOwner && onShowDeletedChange && (
+          <label className="flex items-center space-x-2 text-sm">
+            <input
+              type="checkbox"
+              checked={showDeletedExpenses}
+              onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
+              className="rounded"
+            />
+            <span>Show deleted expenses</span>
+          </label>
+        )}
+      </div>
       {expenses.length === 0 ? (
         <p className="text-gray-600">No expenses yet. Add one to get started!</p>
       ) : (

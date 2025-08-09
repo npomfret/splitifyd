@@ -6,6 +6,7 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { FirestoreCollections } from '../types/webapp-shared-types';
 
 const generateShareToken = (): string => {
   const bytes = randomBytes(12);
@@ -53,7 +54,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
   const userId = req.user!.uid;
 
   try {
-    const groupRef = admin.firestore().collection('documents').doc(groupId);
+    const groupRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
     const groupDoc = await groupRef.get();
 
     if (!groupDoc.exists) {
@@ -86,9 +87,35 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
       updatedAt: Timestamp.now(),
     });
 
-    const protocol = req.get('x-forwarded-proto') || (req.secure ? 'https' : 'http');
-    const host = req.get('host');
-    const baseUrl = `${protocol}://${host}`;
+    // In development, use the hosting port for the webapp URL
+    // In production, use the request's origin
+    let baseUrl: string;
+    
+    if (process.env.FUNCTIONS_EMULATOR === 'true') {
+      // Use the hosting port from environment configuration
+      const hostingPort = process.env.EMULATOR_HOSTING_PORT;
+      if (!hostingPort) {
+        throw new ApiError(
+          HTTP_STATUS.INTERNAL_ERROR,
+          'CONFIGURATION_ERROR',
+          'EMULATOR_HOSTING_PORT environment variable must be set in development'
+        );
+      }
+      baseUrl = `http://localhost:${hostingPort}`;
+    } else {
+      // In production, use the request's origin or referer
+      const origin = req.get('origin') || req.get('referer');
+      if (origin) {
+        // Extract base URL from origin/referer
+        const url = new URL(origin);
+        baseUrl = `${url.protocol}//${url.host}`;
+      } else {
+        // Fallback to request host if no origin/referer
+        const protocol = req.get('x-forwarded-proto') || (req.secure ? 'https' : 'http');
+        const host = req.get('host');
+        baseUrl = `${protocol}://${host}`;
+      }
+    }
     
     const shareableUrl = `${baseUrl}/join?linkId=${shareToken}`;
 
@@ -118,6 +145,77 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
   }
 }
 
+export async function previewGroupByLink(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const validationRules = {
+    linkId: { type: 'string', required: true },
+  };
+
+  const validation = validateRequest(req.body, validationRules);
+  if (!validation.isValid) {
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      'VALIDATION_ERROR',
+      `Invalid request: ${validation.errors.join(', ')}`
+    );
+  }
+
+  const { linkId } = req.body;
+  const userId = req.user!.uid;
+
+  try {
+    const groupsQuery = await admin.firestore()
+      .collection(FirestoreCollections.GROUPS)
+      .where('data.shareableLink', '==', linkId)
+      .limit(1)
+      .get();
+
+    if (groupsQuery.empty) {
+      throw new ApiError(
+        HTTP_STATUS.NOT_FOUND,
+        'INVALID_LINK',
+        'Invalid or expired share link'
+      );
+    }
+
+    const groupDoc = groupsQuery.docs[0];
+    const groupData = groupDoc.data();
+    
+    if (!groupData.data) {
+      throw new ApiError(
+        HTTP_STATUS.INTERNAL_ERROR,
+        'INVALID_GROUP',
+        'Group data is invalid'
+      );
+    }
+
+    // Check if user is already a member
+    const memberIds = groupData.data.memberIds || [];
+    const isAlreadyMember = memberIds.includes(userId) || groupData.userId === userId;
+
+    // Return group preview data
+    res.status(HTTP_STATUS.OK).json({
+      groupId: groupDoc.id,
+      groupName: groupData.data.name,
+      groupDescription: groupData.data.description || '',
+      memberCount: memberIds.length,
+      isAlreadyMember,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    
+    logger.errorWithContext('Error previewing group by link', error as Error, {
+      linkId: linkId.substring(0, 4) + '...',
+      userId,
+    });
+    
+    throw new ApiError(
+      HTTP_STATUS.INTERNAL_ERROR,
+      'INTERNAL_ERROR',
+      'Failed to preview group'
+    );
+  }
+}
+
 export async function joinGroupByLink(req: AuthenticatedRequest, res: Response): Promise<void> {
   const validationRules = {
     linkId: { type: 'string', required: true },
@@ -139,7 +237,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
 
   try {
     const groupsQuery = await admin.firestore()
-      .collection('documents')
+      .collection(FirestoreCollections.GROUPS)
       .where('data.shareableLink', '==', linkId)
       .limit(1)
       .get();
@@ -156,7 +254,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     const groupId = groupDoc.id;
 
     const result = await admin.firestore().runTransaction(async (transaction) => {
-      const groupRef = admin.firestore().collection('documents').doc(groupId);
+      const groupRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
       const groupSnapshot = await transaction.get(groupRef);
       
       if (!groupSnapshot.exists) {

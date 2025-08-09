@@ -69,15 +69,9 @@ describe('App Integration', () => {
     expect(screen.getByRole('heading', { name: 'Cookie Policy' })).toBeInTheDocument();
   });
 
-  it('supports both production and development route formats', () => {
-    // Test that both /pricing and /v2/pricing work
+  it('handles pricing route correctly without v2 prefix', () => {
     window.history.replaceState({}, '', '/pricing');
-    const { rerender } = render(<App />);
-    expect(screen.getByRole('heading', { name: 'Pricing (It\'s Free, Seriously)' })).toBeInTheDocument();
-    
-    // Change route and re-render
-    window.history.replaceState({}, '', '/v2/pricing'); 
-    rerender(<App />);
+    render(<App />);
     expect(screen.getByRole('heading', { name: 'Pricing (It\'s Free, Seriously)' })).toBeInTheDocument();
   });
 });

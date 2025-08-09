@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
-import { EmptyGroupsState } from '../../../components/dashboard/EmptyGroupsState';
+import { EmptyGroupsState } from '@/components/dashboard/EmptyGroupsState.tsx';
 
 describe('EmptyGroupsState', () => {
   const mockOnCreateGroup = vi.fn();

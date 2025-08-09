@@ -1,8 +1,8 @@
-import { z } from 'zod';
-import { RATE_LIMITS, DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { AppConfiguration, FirebaseConfig, ApiConfig, EnvironmentConfig, WarningBanner } from './types/webapp-shared-types';
-import { validateAppConfiguration } from './middleware/config-validation';
-import { logger } from './logger';
+import {z} from 'zod';
+import {DOCUMENT_CONFIG, RATE_LIMITS, SYSTEM, VALIDATION_LIMITS} from './constants';
+import {AppConfiguration, EnvironmentConfig, FirebaseConfig, WarningBanner} from './types/webapp-shared-types';
+import {validateAppConfiguration} from './middleware/config-validation';
+import {logger} from './logger';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: Config | null = null;
@@ -57,14 +57,6 @@ export interface Config {
 function getEnv(): z.infer<typeof envSchema> {
   if (cachedEnv) return cachedEnv;
   
-  const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
-  
-  // Load environment variables from .env file for local development
-  if (isEmulator) {
-    require('dotenv').config();
-  }
-  
-  // Parse environment variables
   try {
     cachedEnv = envSchema.parse(process.env);
     return cachedEnv;
@@ -196,24 +188,16 @@ function buildAppConfiguration(): AppConfiguration {
     throw new Error('Firebase configuration is incomplete in production');
   }
   
-  const api: ApiConfig = {
-    timeout: 30000,
-    retryAttempts: 3
-  };
-  
   const environment: EnvironmentConfig = {
     warningBanner: getWarningBanner(config)
   };
-  
-  const appConfig: AppConfiguration = {
+
+  return {
     firebase,
-    api,
     environment,
     formDefaults: config.formDefaults,
     firebaseAuthUrl: getFirebaseAuthUrl(config, env)
   };
-  
-  return appConfig;
 }
 
 // Export lazy getter for APP_CONFIG

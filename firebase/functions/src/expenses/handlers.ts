@@ -15,13 +15,14 @@ import {
   Expense
 } from './validation';
 import { GroupData } from '../types/group-types';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../types/webapp-shared-types';
 
 const getExpensesCollection = () => {
-  return admin.firestore().collection('expenses');
+  return admin.firestore().collection(FirestoreCollections.EXPENSES);
 };
 
 const getGroupsCollection = () => {
-  return admin.firestore().collection('documents');
+  return admin.firestore().collection(FirestoreCollections.GROUPS);
 };
 
 const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {
@@ -74,6 +75,11 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
   }
 
   const expense = doc.data() as Expense;
+
+  // Check if the expense is soft-deleted
+  if (expense.deletedAt) {
+    throw Errors.NOT_FOUND('Expense');
+  }
 
   // Single authorization check: fetch group once and verify access
   const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
@@ -148,6 +154,8 @@ export const createExpense = async (
     memberIds,
     createdAt: Timestamp.fromDate(now),
     updatedAt: Timestamp.fromDate(now),
+    deletedAt: null,
+    deletedBy: null,
   };
 
   // Only add receiptUrl if it's defined
@@ -273,9 +281,9 @@ export const updateExpense = async (
     let splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
     
     if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
-      if (splitType === 'exact') {
+      if (splitType === SplitTypes.EXACT) {
         // When only amount changes on exact splits, convert to equal splits
-        finalSplitType = 'equal';
+        finalSplitType = SplitTypes.EQUAL;
         splits = [];
       }
     }
@@ -341,8 +349,28 @@ export const updateExpense = async (
       updates: Object.keys(updateData)
     });
 
+    // Fetch the updated expense to return the full object
+    const updatedExpenseDoc = await docRef.get();
+    const updatedExpense = { 
+      id: updatedExpenseDoc.id, 
+      ...updatedExpenseDoc.data() 
+    } as Expense;
+
     res.json({
-      message: 'Expense updated successfully',
+      id: updatedExpense.id,
+      groupId: updatedExpense.groupId,
+      createdBy: updatedExpense.createdBy,
+      paidBy: updatedExpense.paidBy,
+      amount: updatedExpense.amount,
+      category: updatedExpense.category,
+      description: updatedExpense.description,
+      date: toISOString(updatedExpense.date),
+      splitType: updatedExpense.splitType,
+      participants: updatedExpense.participants,
+      splits: updatedExpense.splits,
+      receiptUrl: updatedExpense.receiptUrl || undefined,
+      createdAt: toISOString(updatedExpense.createdAt),
+      updatedAt: toISOString(updatedExpense.updatedAt),
     });
   } catch (error) {
     logger.error('Failed to update expense', {
@@ -381,8 +409,11 @@ export const deleteExpense = async (
         throw new Error(`Group ${expense.groupId} not found`);
       }
       
-      // Delete the expense
-      transaction.delete(docRef);
+      // Soft delete the expense
+      transaction.update(docRef, {
+        [DELETED_AT_FIELD]: Timestamp.now(),
+        deletedBy: userId
+      });
       
       const groupData = groupDoc.data();
       if (!groupData?.data) {
@@ -391,16 +422,18 @@ export const deleteExpense = async (
       
       // Note: Group metadata will be updated by the balance aggregation trigger
       
-      logger.info('Transaction: Deleting expense', {
+      logger.info('Transaction: Soft deleting expense', {
         expenseId,
-        groupId: expense.groupId
+        groupId: expense.groupId,
+        deletedBy: userId
       });
     });
 
-    logger.info('Expense deleted', {
+    logger.info('Expense soft deleted', {
       expenseId,
       groupId: expense.groupId,
-      userId
+      userId,
+      deletedBy: userId
     });
 
     res.json({
@@ -431,13 +464,19 @@ export const listGroupExpenses = async (
 
   const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
   const cursor = req.query.cursor as string;
+  const includeDeleted = req.query.includeDeleted === 'true';
 
   let query = getExpensesCollection()
     .where('groupId', '==', groupId)
-    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt')
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
+
+  // Filter out deleted expenses by default
+  if (!includeDeleted) {
+    query = query.where(DELETED_AT_FIELD, '==', null);
+  }
 
   if (cursor) {
     try {
@@ -477,6 +516,8 @@ export const listGroupExpenses = async (
         receiptUrl: data.receiptUrl,
         createdAt: toISOString(data.createdAt),
         updatedAt: toISOString(data.updatedAt),
+        deletedAt: data.deletedAt ? toISOString(data.deletedAt) : null,
+        deletedBy: data.deletedBy || null,
       };
     });
 
@@ -507,13 +548,19 @@ export const listUserExpenses = async (
   const userId = validateUserAuth(req);
   const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
   const cursor = req.query.cursor as string;
+  const includeDeleted = req.query.includeDeleted === 'true';
 
   let query = getExpensesCollection()
     .where('memberIds', 'array-contains', userId)
-    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt')
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
+
+  // Filter out deleted expenses by default
+  if (!includeDeleted) {
+    query = query.where(DELETED_AT_FIELD, '==', null);
+  }
 
   if (cursor) {
     try {
@@ -553,6 +600,8 @@ export const listUserExpenses = async (
         receiptUrl: data.receiptUrl,
         createdAt: toISOString(data.createdAt),
         updatedAt: toISOString(data.updatedAt),
+        deletedAt: data.deletedAt ? toISOString(data.deletedAt) : null,
+        deletedBy: data.deletedBy || null,
       };
     });
 

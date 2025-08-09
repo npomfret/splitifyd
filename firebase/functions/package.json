@@ -12,7 +12,8 @@
     "test:unit": "jest --testPathIgnorePatterns=__tests__/integration/ --testPathIgnorePatterns=__tests__/performance/",
     "test:integration": "jest __tests__/integration/",
     "test:performance": "jest __tests__/performance/",
-    "validate-cors": "node scripts/validate-cors.js"
+    "validate-cors": "node scripts/validate-cors.js",
+    "seed:policies": "tsx src/scripts/seed-policies.ts"
   },
   "engines": {
     "node": "22"
@@ -29,6 +30,7 @@
     "zod": "^4.0.5"
   },
   "devDependencies": {
+    "@splitifyd/test-support": "*",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.14",

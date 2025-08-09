@@ -1,6 +1,9 @@
 import { useComputed } from '@preact/signals';
-import { authStore } from '../../app/stores/auth-store';
-import { UserMenu } from './UserMenu';
+import { useAuth } from '@/app/hooks/useAuth.ts';
+import { lazy, Suspense } from 'preact/compat';
+
+// Lazy load UserMenu to avoid SSG issues
+const UserMenu = lazy(() => import('./UserMenu').then(m => ({ default: m.UserMenu })));
 
 interface HeaderProps {
   variant?: 'default' | 'minimal' | 'dashboard';
@@ -8,7 +11,8 @@ interface HeaderProps {
 }
 
 export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
-  const user = useComputed(() => authStore.user);
+  const authStore = useAuth();
+  const user = useComputed(() => authStore?.user || null);
   const isAuthenticated = useComputed(() => !!user.value);
 
   const getNavLinks = () => {
@@ -24,7 +28,11 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
     if (!showAuth) return null;
 
     if (isAuthenticated.value && user.value) {
-      return <UserMenu user={user.value} />;
+      return (
+        <Suspense fallback={<div>...</div>}>
+          <UserMenu user={user.value} />
+        </Suspense>
+      );
     }
 
     return (

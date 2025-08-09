@@ -20,7 +20,6 @@ export function SEOHead({
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
-    // Set document title
     document.title = `${title} | Splitifyd`;
 
     // Helper function to set or update meta tag

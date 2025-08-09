@@ -1,14 +1,15 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
-import { expenseFormStore, EXPENSE_CATEGORIES, getRecentAmounts } from '../app/stores/expense-form-store';
-import type { ExpenseCategory } from '@shared/types/webapp-shared-types';
+import { expenseFormStore, getRecentAmounts } from '../app/stores/expense-form-store';
 import { groupDetailStore } from '../app/stores/group-detail-store';
-import { authStore } from '../app/stores/auth-store';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { apiClient } from '../app/apiClient';
-import type { ExpenseData } from '@shared/types/webapp-shared-types';
-import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
+import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
+import { LoadingSpinner, Card, Button, Avatar, CategorySuggestionInput } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
+import { logError } from '../utils/browser-logger';
+import { BaseLayout } from '../components/layout/BaseLayout';
 
 interface AddExpensePageProps {
   groupId?: string;
@@ -23,8 +24,10 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const isEditMode = urlParams.get('edit') === 'true' && !!expenseId;
   
   // Computed values from stores
+  const authStore = useAuthRequired();
   const currentUser = useComputed(() => authStore.user);
   const group = useComputed(() => groupDetailStore.group);
+  const members = useComputed(() => groupDetailStore.members);
   const loading = useComputed(() => groupDetailStore.loading);
   const saving = useComputed(() => expenseFormStore.saving);
   const formError = useComputed(() => expenseFormStore.error);
@@ -91,7 +94,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
               throw new Error('Expense not found');
             }
           } catch (error) {
-            console.error('Failed to load expense for editing:', error);
+            logError('Failed to load expense for editing', error);
             route(`/groups/${groupId}`);
             return;
           }
@@ -103,16 +106,22 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
             if (currentUser.value) {
               expenseFormStore.updateField('paidBy', currentUser.value.uid);
             }
+            
+            // For equal splits, select all group members by default
+            if (group.value?.memberIds) {
+              expenseFormStore.setParticipants(group.value.memberIds);
+            }
           }
         }
         
         isInitialized.value = true;
       } catch (error) {
-        console.error('Failed to initialize add expense form:', error);
+        logError('Failed to initialize add expense form', error);
         route(`/groups/${groupId}`);
       }
     };
     
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     initializeForm();
     
     // Cleanup on unmount
@@ -165,7 +174,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
       }
     } catch (error) {
       // Error is handled by the store
-      console.error('Failed to save expense:', error);
+      logError('Failed to save expense', error);
     }
   };
   
@@ -188,8 +197,9 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   
   const handleAmountChange = (e: Event) => {
     const input = e.target as HTMLInputElement;
-    const value = parseFloat(input.value) || 0;
-    expenseFormStore.updateField('amount', value);
+    // Keep the raw string value to preserve user input (e.g., "50.00")
+    // The store will handle conversion to number when needed
+    expenseFormStore.updateField('amount', input.value);
   };
   
   const handleParticipantToggle = (memberId: string) => {
@@ -197,7 +207,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   };
   
   const handleSelectAll = () => {
-    const allMemberIds = members.map(m => m.uid);
+    const allMemberIds = members.value.map(m => m.uid);
     expenseFormStore.setParticipants(allMemberIds);
   };
   
@@ -209,44 +219,52 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   // Show loading while initializing
   if (!isInitialized.value || loading.value) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-        <LoadingSpinner size="lg" />
-      </div>
+      <BaseLayout title="Loading... - Splitifyd">
+        <div className="container mx-auto px-4 py-8">
+          <LoadingSpinner size="lg" />
+        </div>
+      </BaseLayout>
     );
   }
   
-  // Redirect if no group found
   if (!group.value) {
     route('/dashboard');
     return null;
   }
   
-  const members = group.value.members || [];
-  const memberMap = members.reduce((acc, member) => {
+  // Use members from store instead of group.members
+  const memberMap = members.value.reduce((acc, member) => {
     acc[member.uid] = member;
     return acc;
-  }, {} as Record<string, typeof members[0]>);
+  }, {} as Record<string, typeof members.value[0]>);
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex flex-row items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {isEditMode ? 'Edit Expense' : 'Add Expense'}
-            </h1>
-            <Button variant="ghost" onClick={handleCancel}>
-              Cancel
-            </Button>
+    <BaseLayout
+      title={`${isEditMode ? 'Edit Expense' : 'Add Expense'} - ${group.value.name} - Splitifyd`}
+      description={`${isEditMode ? 'Edit expense' : 'Add a new expense'} in ${group.value.name}`}
+      headerVariant="dashboard"
+    >
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Page Header Section */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {isEditMode ? 'Edit Expense' : 'Add Expense'}
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {group.value.name}
+                </p>
+              </div>
+              <Button variant="ghost" onClick={handleCancel}>
+                Cancel
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {group.value.name}
-          </p>
         </div>
-      </div>
-      
-      {/* Form */}
+        
+        {/* Form Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         <form onSubmit={handleSubmit}>
           <Stack spacing="md">
@@ -302,9 +320,8 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                       placeholder="0.00"
                       step="0.01"
-                      min="0"
+                      min="0.01"
                       inputMode="decimal"
-                      pattern="[0-9]*"
                       required
                     />
                     
@@ -339,20 +356,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   
                   {/* Category */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Category
-                    </label>
-                    <select
+                    <CategorySuggestionInput
                       value={category.value}
-                      onChange={(e) => expenseFormStore.updateField('category', (e.target as HTMLSelectElement).value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    >
-                      {EXPENSE_CATEGORIES.map((cat: ExpenseCategory) => (
-                        <option key={cat.name} value={cat.name}>
-                          {cat.icon} {cat.displayName}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => expenseFormStore.updateField('category', value)}
+                      suggestions={PREDEFINED_EXPENSE_CATEGORIES}
+                      label="Category"
+                      placeholder="Enter or select a category..."
+                      className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                    />
                   </div>
                 </div>
                 
@@ -388,7 +399,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   Who paid? <span className="text-red-500">*</span>
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {members.map(member => (
+                  {members.value.map(member => (
                     <label
                       key={member.uid}
                       className={`
@@ -453,7 +464,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {members.map(member => {
+                  {members.value.map(member => {
                     const isSelected = participants.value.includes(member.uid);
                     const isPayer = paidBy.value === member.uid;
                     return (
@@ -566,7 +577,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                   </div>
                   
                   {/* Split inputs based on type */}
-                  {splitType.value === 'exact' && amount.value > 0 && (
+                  {splitType.value === 'exact' && (typeof amount.value === 'string' ? parseFloat(amount.value) > 0 : amount.value > 0) && (
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Enter exact amounts for each person:
@@ -597,7 +608,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 }}
                                 className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
                                 step="0.01"
-                                min="0"
+                                min="0.01"
                                 inputMode="decimal"
                               />
                             </div>
@@ -608,18 +619,18 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                         <div className="flex justify-between text-sm">
                           <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
                           <span className={`font-medium ${
-                            Math.abs(splits.value.reduce((sum, s) => sum + s.amount, 0) - amount.value) < 0.01
+                            Math.abs(splits.value.reduce((sum, s) => sum + s.amount, 0) - (typeof amount.value === 'string' ? parseFloat(amount.value) || 0 : amount.value)) < 0.01
                               ? 'text-green-600 dark:text-green-400'
                               : 'text-red-600 dark:text-red-400'
                           }`}>
-                            ${splits.value.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amount.value.toFixed(2)}
+                            ${splits.value.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${(typeof amount.value === 'string' ? parseFloat(amount.value) || 0 : amount.value).toFixed(2)}
                           </span>
                         </div>
                       </div>
                     </div>
                   )}
                   
-                  {splitType.value === 'percentage' && amount.value > 0 && (
+                  {splitType.value === 'percentage' && (typeof amount.value === 'string' ? parseFloat(amount.value) > 0 : amount.value > 0) && (
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Enter percentage for each person:
@@ -676,7 +687,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                     </div>
                   )}
                   
-                  {splitType.value === 'equal' && amount.value > 0 && (
+                  {splitType.value === 'equal' && (typeof amount.value === 'string' ? parseFloat(amount.value) > 0 : amount.value > 0) && (
                     <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Each person pays:
@@ -739,5 +750,6 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         </form>
       </div>
     </div>
+    </BaseLayout>
   );
 }

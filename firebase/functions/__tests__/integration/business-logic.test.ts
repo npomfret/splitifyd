@@ -445,7 +445,7 @@ describe('Business Logic Edge Cases', () => {
       // Should be able to get group details and verify no expenses
       const groupDetails = await driver.getGroup(emptyGroup.id, users[0].token);
       expect(groupDetails).toHaveProperty('id');
-      expect(groupDetails).toHaveProperty('members');
+      expect(groupDetails).toHaveProperty('memberIds');
       
       // Verify no expenses exist
       const expenses = await driver.getGroupExpenses(emptyGroup.id, users[0].token);

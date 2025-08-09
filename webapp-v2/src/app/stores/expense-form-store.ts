@@ -1,21 +1,18 @@
 import { signal } from '@preact/signals';
-import type { CreateExpenseRequest, ExpenseData, ExpenseSplit } from '@shared/types/webapp-shared-types';
-import { EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
+import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit, SplitTypes, PREDEFINED_EXPENSE_CATEGORIES} from '../../../../firebase/functions/src/types/webapp-shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
-
-// Re-export categories for easy access
-export { EXPENSE_CATEGORIES };
+import { logWarning } from '../../utils/browser-logger';
 
 export interface ExpenseFormStore {
   // Form fields
   description: string;
-  amount: number;
+  amount: string | number;  // Allow string to preserve user input like "50.00"
   date: string;
   paidBy: string;
   category: string;
-  splitType: 'equal' | 'exact' | 'percentage';
+  splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
   participants: string[];
   splits: ExpenseSplit[];
   
@@ -46,11 +43,11 @@ export interface ExpenseFormStore {
 // Type for form data fields
 interface ExpenseFormData {
   description: string;
-  amount: number;
+  amount: string | number;  // Allow string to preserve user input
   date: string;
   paidBy: string;
   category: string;
-  splitType: 'equal' | 'exact' | 'percentage';
+  splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }
 
 // Get today's date in YYYY-MM-DD format
@@ -64,11 +61,11 @@ const getTodayDate = (): string => {
 
 // Signals for form state
 const descriptionSignal = signal<string>('');
-const amountSignal = signal<number>(0);
+const amountSignal = signal<string | number>('');  // Store as string to preserve user input
 const dateSignal = signal<string>(getTodayDate());
 const paidBySignal = signal<string>('');
 const categorySignal = signal<string>('food');
-const splitTypeSignal = signal<'equal' | 'exact' | 'percentage'>('equal');
+const splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
 const participantsSignal = signal<string[]>([]);
 const splitsSignal = signal<ExpenseSplit[]>([]);
 
@@ -155,16 +152,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         descriptionSignal.value = value as string;
         break;
       case 'amount':
-        amountSignal.value = value as number;
+        amountSignal.value = value as string | number;
+        // Convert to number for calculations
+        const numericAmount = typeof value === 'string' ? parseFloat(value) || 0 : value as number;
         // Recalculate splits based on current type
-        if (splitTypeSignal.value === 'equal') {
+        if (splitTypeSignal.value === SplitTypes.EQUAL) {
           this.calculateEqualSplits();
-        } else if (splitTypeSignal.value === 'percentage') {
+        } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
           // Recalculate amounts for percentage splits
           const currentSplits = [...splitsSignal.value];
           currentSplits.forEach(split => {
             if (split.percentage !== undefined) {
-              split.amount = (value as number * split.percentage) / 100;
+              split.amount = (numericAmount * split.percentage) / 100;
             }
           });
           splitsSignal.value = currentSplits;
@@ -184,9 +183,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         categorySignal.value = value as string;
         break;
       case 'splitType':
-        splitTypeSignal.value = value as 'equal' | 'exact' | 'percentage';
-        // Recalculate splits when type changes
-        this.handleSplitTypeChange(value as 'equal' | 'exact' | 'percentage');
+        splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
+        this.handleSplitTypeChange(value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE);
         break;
     }
     
@@ -200,7 +198,6 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       delete errors[field];
     }
     
-    // Also validate splits if amount or split type changed
     if (field === 'amount' || field === 'splitType') {
       const splitsError = this.validateField('splits');
       if (splitsError) {
@@ -254,7 +251,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   calculateEqualSplits(): void {
     const participants = participantsSignal.value;
-    const amount = amountSignal.value;
+    const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
     
     if (participants.length === 0 || amount <= 0) {
       splitsSignal.value = [];
@@ -302,16 +299,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     const splitIndex = currentSplits.findIndex(s => s.userId === userId);
     
     if (splitIndex >= 0) {
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       currentSplits[splitIndex] = { 
         ...currentSplits[splitIndex], 
         percentage,
-        amount: (amountSignal.value * percentage) / 100
+        amount: (numericAmount * percentage) / 100
       };
     } else {
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       currentSplits.push({ 
         userId, 
         percentage,
-        amount: (amountSignal.value * percentage) / 100
+        amount: (numericAmount * percentage) / 100
       });
     }
     
@@ -328,9 +327,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     validationErrorsSignal.value = errors;
   }
 
-  private handleSplitTypeChange(newType: 'equal' | 'exact' | 'percentage'): void {
+  private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
     const participants = participantsSignal.value;
-    const amount = amountSignal.value;
+    const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
     
     if (participants.length === 0 || amount <= 0) {
       splitsSignal.value = [];
@@ -338,11 +337,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
     
     switch (newType) {
-      case 'equal':
+      case SplitTypes.EQUAL:
         this.calculateEqualSplits();
         break;
         
-      case 'exact':
+      case SplitTypes.EXACT:
         // Initialize with equal amounts as a starting point
         const exactAmount = amount / participants.length;
         splitsSignal.value = participants.map(userId => ({
@@ -351,7 +350,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }));
         break;
         
-      case 'percentage':
+      case SplitTypes.PERCENTAGE:
         // Initialize with equal percentages
         const equalPercentage = 100 / participants.length;
         splitsSignal.value = participants.map(userId => ({
@@ -376,9 +375,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       case 'amount':
         const amt = value ?? amountSignal.value;
-        if (amt <= 0) {
+        const numericAmt = typeof amt === 'string' ? parseFloat(amt) || 0 : amt;
+        if (numericAmt <= 0) {
           return 'Amount must be greater than 0';
-        } else if (amt > 1000000) {
+        } else if (numericAmt > 1000000) {
           return 'Amount seems too large';
         }
         break;
@@ -413,12 +413,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         
       case 'splits':
         // Validate splits based on split type
-        if (splitTypeSignal.value === 'exact') {
+        if (splitTypeSignal.value === SplitTypes.EXACT) {
           const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
-          if (Math.abs(totalSplit - amountSignal.value) > 0.01) {
+          const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+          if (Math.abs(totalSplit - numericAmount) > 0.01) {
             return `Split amounts must equal the total expense amount`;
           }
-        } else if (splitTypeSignal.value === 'percentage') {
+        } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
           const totalPercentage = splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
           if (Math.abs(totalPercentage - 100) > 0.01) {
             return 'Percentages must add up to 100%';
@@ -468,10 +469,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const dateTime = new Date(dateSignal.value);
       dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
       
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       const request: CreateExpenseRequest = {
         groupId,
         description: descriptionSignal.value.trim(),
-        amount: amountSignal.value,
+        amount: numericAmount,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
         date: dateTime.toISOString(),
@@ -484,7 +486,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       // Track recent category and amount
       addRecentCategory(categorySignal.value);
-      addRecentAmount(amountSignal.value);
+      addRecentAmount(numericAmount);
       
       // Refresh group data to show the new expense immediately
       try {
@@ -494,7 +496,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         ]);
       } catch (refreshError) {
         // Log refresh error but don't fail the expense creation
-        console.warn('Failed to refresh data after creating expense:', refreshError);
+        logWarning('Failed to refresh data after creating expense', { error: refreshError });
       }
       
       // Clear draft and reset form after successful save
@@ -523,11 +525,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const dateTime = new Date(dateSignal.value);
       dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
       
-      const request: CreateExpenseRequest = {
-        groupId,
+      // For updates, only include fields that can be changed
+      // Backend doesn't allow changing: groupId, paidBy
+      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+      const updateRequest = {
         description: descriptionSignal.value.trim(),
-        amount: amountSignal.value,
-        paidBy: paidBySignal.value,
+        amount: numericAmount,
         category: categorySignal.value,
         date: dateTime.toISOString(),
         splitType: splitTypeSignal.value,
@@ -535,11 +538,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         splits: splitsSignal.value
       };
       
-      const expense = await apiClient.updateExpense(expenseId, request);
+      const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
       
       // Track recent category and amount
       addRecentCategory(categorySignal.value);
-      addRecentAmount(amountSignal.value);
+      addRecentAmount(numericAmount);
       
       // Refresh group data to show the updated expense immediately
       try {
@@ -549,7 +552,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         ]);
       } catch (refreshError) {
         // Log refresh error but don't fail the expense update
-        console.warn('Failed to refresh data after updating expense:', refreshError);
+        logWarning('Failed to refresh data after updating expense', { error: refreshError });
       }
       
       // Clear draft after successful update
@@ -570,11 +573,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   reset(): void {
     descriptionSignal.value = '';
-    amountSignal.value = 0;
+    amountSignal.value = '';  // Reset to empty string
     dateSignal.value = getTodayDate();
     paidBySignal.value = '';
     categorySignal.value = 'food';
-    splitTypeSignal.value = 'equal';
+    splitTypeSignal.value = SplitTypes.EQUAL;
     participantsSignal.value = [];
     splitsSignal.value = [];
     errorSignal.value = null;
@@ -583,13 +586,14 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
   hasUnsavedChanges(): boolean {
     // Check if any field has been modified from initial state
+    const hasAmount = typeof amountSignal.value === 'string' ? amountSignal.value.trim() !== '' : amountSignal.value > 0;
     return (
       descriptionSignal.value.trim() !== '' ||
-      amountSignal.value > 0 ||
+      hasAmount ||
       dateSignal.value !== getTodayDate() ||
       paidBySignal.value !== '' ||
       categorySignal.value !== 'food' ||
-      splitTypeSignal.value !== 'equal' ||
+      splitTypeSignal.value !== SplitTypes.EQUAL ||
       participantsSignal.value.length > 0 ||
       splitsSignal.value.length > 0
     );
@@ -613,7 +617,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       localStorage.setItem(draftKey, JSON.stringify(draftData));
     } catch (error) {
       // Silently ignore localStorage errors (privacy mode, storage full, etc.)
-      console.warn('Failed to save expense draft:', error);
+      logWarning('Failed to save expense draft to localStorage', { error });
     }
   }
 
@@ -641,13 +645,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       dateSignal.value = draftData.date || getTodayDate();
       paidBySignal.value = draftData.paidBy || '';
       categorySignal.value = draftData.category || 'food';
-      splitTypeSignal.value = draftData.splitType || 'equal';
+      splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
       participantsSignal.value = draftData.participants || [];
       splitsSignal.value = draftData.splits || [];
       
       return true;
     } catch (error) {
-      console.warn('Failed to load expense draft:', error);
+      logWarning('Failed to load expense draft from localStorage', { error });
       return false;
     }
   }
@@ -657,7 +661,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const draftKey = `expense-draft-${groupId}`;
       localStorage.removeItem(draftKey);
     } catch (error) {
-      console.warn('Failed to clear expense draft:', error);
+      logWarning('Failed to clear expense draft from localStorage', { error });
     }
   }
 
@@ -673,3 +677,4 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
 // Export singleton instance
 export const expenseFormStore = new ExpenseFormStoreImpl();
+

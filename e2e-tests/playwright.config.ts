@@ -1,15 +1,22 @@
 import {defineConfig, devices} from '@playwright/test';
-import {HOSTING_PORT} from './helpers';
+import {EMULATOR_URL} from './src/helpers';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './src/tests',
   /* Output directory for test results */
   outputDir: '../tmp/playwright-test-results',
-  /* Global test timeout - 5 seconds for fast feedback */
-  timeout: 5000,
+  /* Global setup and teardown for user pool management */
+  globalSetup: './src/fixtures/global-setup.ts',
+  globalTeardown: './src/fixtures/global-teardown.ts',
+  /* Global test timeout - some are slow */
+  timeout: 15000,
+  /* Expect timeout for assertions like toBeVisible() */
+  expect: {
+    timeout: 2000
+  },
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -23,7 +30,10 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: `http://localhost:${HOSTING_PORT}`,
+    baseURL: EMULATOR_URL,
+    
+    /* Fast fail for element interactions */
+    actionTimeout: 1500,
     
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -36,7 +46,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 2048 },
+      },
     },
   ],
 

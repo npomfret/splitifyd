@@ -1,12 +1,12 @@
 /**
  * Join Group Store
- * 
+ *
  * Manages the state for joining a group via share link
  */
 
 import { signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
-import type { Group } from '@shared/types/webapp-shared-types';
+import type { Group } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 // Signals for join group state
 const groupSignal = signal<Group | null>(null);
@@ -31,27 +31,42 @@ class JoinGroupStore {
     linkIdSignal.value = linkId;
     
     try {
-      // Since there's no preview endpoint, we'll attempt to join and handle the ALREADY_MEMBER case
-      // This will validate the link and give us group info
-      const group = await apiClient.joinGroupByLink(linkId);
+      // Load preview data without joining the group
+      const preview = await apiClient.previewGroupByLink(linkId);
+      
+      // Transform preview data to Group interface
+      const group: Group = {
+        id: preview.groupId,
+        name: preview.groupName,
+        description: preview.groupDescription,
+        memberIds: [],  // Preview doesn't provide member IDs
+        createdBy: '',  // Will be populated from server
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        balance: {
+          userBalance: null,
+          totalOwed: 0,
+          totalOwing: 0
+        },
+        lastActivity: 'Never',
+        lastActivityRaw: new Date().toISOString()
+      };
+      
       groupSignal.value = group;
       loadingPreviewSignal.value = false;
-      joinSuccessSignal.value = true;
+      
+      // If user is already a member, redirect them to the group
+      if (preview.isAlreadyMember) {
+        joinSuccessSignal.value = true;
+      }
     } catch (error: any) {
-      // Handle different error cases
-      if (error.code === 'ALREADY_MEMBER') {
-        // User is already a member - we can still show the group preview
-        // We need to get group info another way. For now, show error but allow join flow
-        loadingPreviewSignal.value = false;
-        errorSignal.value = 'You are already a member of this group';
-      } else if (error.code === 'INVALID_LINK') {
-        loadingPreviewSignal.value = false;
+      loadingPreviewSignal.value = false;
+      
+      if (error.code === 'INVALID_LINK') {
         errorSignal.value = 'This invitation link is invalid or has expired';
       } else if (error.code === 'GROUP_NOT_FOUND') {
-        loadingPreviewSignal.value = false;
         errorSignal.value = 'This group no longer exists';
       } else {
-        loadingPreviewSignal.value = false;
         errorSignal.value = error.message || 'Failed to load group information';
       }
     }

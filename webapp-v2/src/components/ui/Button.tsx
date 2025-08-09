@@ -1,4 +1,5 @@
 import { JSX } from 'preact';
+import { logButtonClick } from '@/utils/browser-logger.ts';
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -28,6 +29,35 @@ export function Button({
   ariaLabel,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+
+  // Extract text content from children for logging
+  const getButtonText = (): string => {
+    if (typeof children === 'string') {
+      return children;
+    }
+    if (ariaLabel) {
+      return ariaLabel;
+    }
+    if (id) {
+      return `Button#${id}`;
+    }
+    return 'Button';
+  };
+
+  const handleClick = () => {
+    if (!isDisabled && onClick) {
+      // Log the button click
+      logButtonClick(getButtonText(), {
+        id,
+        variant,
+        size,
+        type,
+        page: window.location.pathname,
+      });
+      
+      onClick();
+    }
+  };
 
   const baseClasses = [
     'inline-flex',
@@ -95,7 +125,7 @@ export function Button({
     <button
       id={id}
       type={type}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={isDisabled}
       className={buttonClasses}
       aria-label={ariaLabel}

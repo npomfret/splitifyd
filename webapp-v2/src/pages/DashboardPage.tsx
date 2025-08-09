@@ -1,39 +1,33 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
-import { authStore } from '../app/stores/auth-store';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { groupsStore } from '../app/stores/groups-store';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { Container } from '../components/ui';
-import { LoadingSpinner } from '../components/ui';
+import { DashboardGrid } from '../components/layout/DashboardGrid';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
+import { DashboardStats } from '../components/dashboard/DashboardStats';
+import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 
 export function DashboardPage() {
+  const authStore = useAuthRequired();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated  
   useEffect(() => {
-    if (authStore.initialized && !authStore.user) {
+    if (!authStore.user) {
       route('/login', true);
       return;
     }
-  }, [authStore.initialized, authStore.user]);
+  }, [authStore.user]);
 
   // Fetch groups when component mounts and user is authenticated
   useEffect(() => {
     if (authStore.user && !groupsStore.initialized) {
+      // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
       groupsStore.fetchGroups();
     }
   }, [authStore.user, groupsStore.initialized]);
-
-  // Show loading spinner while auth is initializing
-  if (!authStore.initialized) {
-    return (
-      <div class="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
 
   // Redirect if user is not authenticated (will happen in useEffect)
   if (!authStore.user) {
@@ -48,44 +42,61 @@ export function DashboardPage() {
       description="Manage your groups and expenses with Splitifyd"
       headerVariant="dashboard"
     >
-      <div class="py-8">
-        <Container maxWidth="xl">
-          {/* Welcome Section */}
-          <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">
-              Welcome back, {user.displayName || user.email.split('@')[0]}!
-            </h2>
-            <p class="text-gray-600">
-              Here are your groups and recent activity.
-            </p>
-          </div>
-
-          {/* Groups Section */}
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold text-gray-900">Your Groups</h3>
-              <button 
-                class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium"
-                onClick={() => setIsCreateModalOpen(true)}
-              >
-                Create Group
-              </button>
+      <DashboardGrid
+        mainContent={
+          <>
+            {/* Quick Actions - Show at top on mobile, hide on large screens */}
+            <div class="lg:hidden mb-6">
+              <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
             </div>
 
-            {/* Groups Content */}
-            <GroupsList 
-              onCreateGroup={() => setIsCreateModalOpen(true)}
-            />
+            {/* Welcome Section - Only show for first-time users (no groups) */}
+            {groupsStore.groups.length === 0 && (
+              <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                  Welcome to Splitifyd, {user.displayName || user.email.split('@')[0]}!
+                </h2>
+                <p class="text-gray-600">
+                  Get started by creating your first group to track and split expenses with friends.
+                </p>
+              </div>
+            )}
+
+            {/* Groups Section */}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Your Groups</h3>
+                <button 
+                  class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  Create Group
+                </button>
+              </div>
+
+              {/* Groups Content */}
+              <GroupsList 
+                onCreateGroup={() => setIsCreateModalOpen(true)}
+              />
+            </div>
+          </>
+        }
+        sidebarContent={
+          <div class="space-y-4">
+            {/* Quick Actions - Show in sidebar on large screens only */}
+            <div class="hidden lg:block">
+              <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
+            </div>
+            <DashboardStats />
           </div>
-        </Container>
-      </div>
+        }
+      />
 
       {/* Create Group Modal */}
       <CreateGroupModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(groupId) => {
-          console.log('Successfully created group:', groupId);
           setIsCreateModalOpen(false);
           route(`/groups/${groupId}`);
         }}

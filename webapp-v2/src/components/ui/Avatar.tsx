@@ -1,4 +1,4 @@
-import { getInitials, getUserColor, getAvatarSize, type AvatarProps } from '../../utils/avatar';
+import { getInitials, getUserColor, getAvatarSize, type AvatarProps } from '@/utils/avatar.ts';
 
 export function Avatar({ displayName, userId, size = 'md' }: AvatarProps) {
   const initials = getInitials(displayName);

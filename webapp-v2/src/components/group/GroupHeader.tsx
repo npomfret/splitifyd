@@ -1,7 +1,7 @@
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { Group } from '@shared/types/webapp-shared-types';
+import type { Group } from '../../../../firebase/functions/src/types/webapp-shared-types';
 
 interface GroupHeaderProps {
   group: Group;
@@ -29,7 +29,7 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
       
       <div className="flex gap-6 text-sm text-gray-600">
         <div>
-          <span className="font-medium">{group.members?.length || group.memberCount}</span> members
+          <span className="font-medium">{group.memberIds.length}</span> members
         </div>
         <div>
           <span className="font-medium">Recent</span> expenses

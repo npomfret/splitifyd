@@ -12,8 +12,7 @@ import '@testing-library/jest-dom';
 // So we need to explicitly set it
 if (!globalThis.fetch) {
   // Import node's native fetch
-  const nodeFetch = global.fetch;
-  globalThis.fetch = nodeFetch;
+  globalThis.fetch = global.fetch;
   globalThis.Headers = global.Headers;
   globalThis.Request = global.Request;
   globalThis.Response = global.Response;

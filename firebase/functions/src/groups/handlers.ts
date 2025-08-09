@@ -13,12 +13,10 @@ import {
 import {
   Group,
   GroupWithBalance,
-  GroupDocument,
 } from '../types/group-types';
-import { UserBalance } from '../types/webapp-shared-types';
+import { UserBalance, FirestoreCollections } from '../types/webapp-shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
-import { userService } from '../services/userService';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 
@@ -26,30 +24,14 @@ import { calculateExpenseMetadata } from '../services/expenseMetadataService';
  * Get the groups collection reference
  */
 const getGroupsCollection = () => {
-  return admin.firestore().collection('documents'); // Using existing collection during migration
+  return admin.firestore().collection(FirestoreCollections.GROUPS); // Using existing collection during migration
 };
 
-/**
- * Generate initials from a name or email
- */
-const getInitials = (nameOrEmail: string): string => {
-  if (!nameOrEmail) return 'U';
-  
-  // If it's an email, use the part before @
-  if (nameOrEmail.includes('@')) {
-    const username = nameOrEmail.split('@')[0];
-    return username.charAt(0).toUpperCase();
-  }
-  
-  // For regular names, take first letter of each word
-  const words = nameOrEmail.trim().split(/\s+/);
-  return words.map(word => word.charAt(0).toUpperCase()).join('').substring(0, 2);
-};
 
 /**
- * Transform Firestore document to GroupDocument format
+ * Transform Firestore document to Group format
  */
-const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDocument => {
+const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group => {
   const data = doc.data();
   if (!data) {
     throw new Error('Invalid group document');
@@ -68,21 +50,21 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): GroupDoc
     description: groupData.description ?? '',
     createdBy: groupData.createdBy!,
     memberIds: groupData.memberIds!,
-    createdAt: data.createdAt!.toDate(),
-    updatedAt: data.updatedAt!.toDate(),
+    createdAt: data.createdAt!.toDate().toISOString(),
+    updatedAt: data.updatedAt!.toDate().toISOString(),
   };
 };
 
 /**
- * Convert GroupDocument to Group with computed fields
+ * Add computed fields to Group
  */
-const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: string): Promise<Group> => {
+const addComputedFields = async (group: Group, userId: string): Promise<Group> => {
   // Calculate real balance for the user
-  const groupBalances = await calculateGroupBalances(groupDoc.id);
+  const groupBalances = await calculateGroupBalances(group.id);
   const userBalanceData = groupBalances.userBalances[userId];
   
   // Calculate expense metadata on-demand
-  const expenseMetadata = await calculateExpenseMetadata(groupDoc.id);
+  const expenseMetadata = await calculateExpenseMetadata(group.id);
   
   let userBalance: UserBalance | null = null;
   let totalOwed = 0;
@@ -102,10 +84,7 @@ const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: stri
   }
 
   return {
-    id: groupDoc.id,
-    name: groupDoc.name,
-    description: groupDoc.description,
-    memberCount: groupDoc.memberIds.length,
+    ...group,
     balance: {
       userBalance,
       totalOwed,
@@ -116,25 +95,7 @@ const convertGroupDocumentToGroup = async (groupDoc: GroupDocument, userId: stri
       'No recent activity',
     lastActivityRaw: expenseMetadata.lastExpenseTime ? 
       expenseMetadata.lastExpenseTime.toISOString() : 
-      groupDoc.createdAt.toISOString(),
-    
-    // Fetch member profiles dynamically
-    members: await (async () => {
-      const memberProfiles = await userService.getUsers(groupDoc.memberIds);
-      return groupDoc.memberIds.map(memberId => {
-        const profile = memberProfiles.get(memberId);
-        return {
-          uid: memberId,
-          name: profile!.displayName,
-          initials: getInitials(profile!.displayName),
-          email: profile!.email,
-          displayName: profile!.displayName
-        };
-      });
-    })(),
-    createdBy: groupDoc.createdBy,
-    createdAt: groupDoc.createdAt.toISOString(),
-    updatedAt: groupDoc.updatedAt.toISOString()
+      group.createdAt,
   };
 };
 
@@ -153,12 +114,12 @@ const fetchGroupWithAccess = async (
     throw Errors.NOT_FOUND('Group');
   }
 
-  const groupDoc = transformGroupDocument(doc);
+  const group = transformGroupDocument(doc);
   
   // Check if user is the owner
-  if (groupDoc.createdBy === userId) {
-    const group = await convertGroupDocumentToGroup(groupDoc, userId);
-    return { docRef, group };
+  if (group.createdBy === userId) {
+    const groupWithComputed = await addComputedFields(group, userId);
+    return { docRef, group: groupWithComputed };
   }
 
   // For write operations, only the owner is allowed
@@ -167,12 +128,14 @@ const fetchGroupWithAccess = async (
   }
 
   // For read operations, check if user is a member
-  if (groupDoc.memberIds.includes(userId)) {
-    const group = await convertGroupDocumentToGroup(groupDoc, userId);
-    return { docRef, group };
+  if (group.memberIds.includes(userId)) {
+    const groupWithComputed = await addComputedFields(group, userId);
+    return { docRef, group: groupWithComputed };
   }
 
   // User doesn't have access to this group
+  // SECURITY: Return 404 instead of 403 to prevent information disclosure.
+  // This prevents attackers from enumerating valid group IDs.
   throw Errors.NOT_FOUND('Group');
 };
 
@@ -208,14 +171,14 @@ export const createGroup = async (
     const now = new Date();
     const docRef = getGroupsCollection().doc();
   
-  const newGroup: GroupDocument = {
+  const newGroup: Group = {
     id: docRef.id,
     name: sanitizedData.name,
     description: sanitizedData.description ?? '',
     createdBy: userId,
     memberIds: sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId],
-    createdAt: now,
-    updatedAt: now,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
   };
 
   // Store in Firestore (using old structure during migration)
@@ -233,9 +196,10 @@ export const createGroup = async (
   });
 
     const createdDoc = await docRef.get();
-    const groupDoc = transformGroupDocument(createdDoc);
-    const group = await convertGroupDocumentToGroup(groupDoc, userId);
-    res.status(HTTP_STATUS.CREATED).json(group);
+    const group = transformGroupDocument(createdDoc);
+    const groupWithComputed = await addComputedFields(group, userId);
+    
+    res.status(HTTP_STATUS.CREATED).json(groupWithComputed);
   } catch (error) {
     logger.error('Error in createGroup', { 
       error: error instanceof Error ? error : new Error(String(error))
@@ -339,7 +303,7 @@ export const deleteGroup = async (
 
   // Check if group has expenses
   const expensesSnapshot = await admin.firestore()
-    .collection('expenses')
+    .collection(FirestoreCollections.EXPENSES)
     .where('groupId', '==', groupId)
     .limit(1)
     .get();
@@ -413,14 +377,11 @@ export const listGroups = async (
       const expenseMetadata = await calculateExpenseMetadata(group.id);
       
       // Format last activity
-      const lastActivityDate = expenseMetadata.lastExpenseTime ?? group.updatedAt;
+      const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
       const lastActivity = formatRelativeTime(lastActivityDate.toISOString());
 
       return {
-        id: group.id,
-        name: group.name,
-        description: group.description,
-        memberCount: group.memberIds.length,
+        ...group,
         balance: {
           userBalance: userBalance,
           totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
@@ -438,7 +399,7 @@ export const listGroups = async (
     const lastDoc = returnedDocs[returnedDocs.length - 1];
     const lastGroup = transformGroupDocument(lastDoc);
     nextCursor = encodeCursor({
-      updatedAt: lastGroup.updatedAt.toISOString(),
+      updatedAt: lastGroup.updatedAt,
       id: lastGroup.id
     });
   }

@@ -6,8 +6,9 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { apiClient } from '../../app/apiClient';
-import { ApiDriver } from '../../../../firebase/functions/__tests__/support/ApiDriver';
+import { apiClient } from '@/app/apiClient.ts';
+import { ApiDriver } from '@test-support/ApiDriver';
+import type { Group } from '@shared/types/webapp-shared-types';
 import type { User } from '@shared/types/webapp-shared-types';
 
 describe('API Client Integration Tests', () => {
@@ -63,17 +64,17 @@ describe('API Client Integration Tests', () => {
       expect(response).toHaveProperty('pagination');
       
       // Check that our groups are in the response
-      const groupIds = response.groups.map(g => g.id);
+      const groupIds = response.groups.map((g: Group) => g.id);
       expect(groupIds).toContain(group1.id);
       expect(groupIds).toContain(group2.id);
       
       // Validate specific fields that were causing issues
-      response.groups.forEach(group => {
+      response.groups.forEach((group: Group) => {
         expect(group).toHaveProperty('balance');
-        expect(group.balance).toHaveProperty('userBalance');
-        if (group.balance.userBalance) {
-          expect(group.balance.userBalance).toHaveProperty('userId');
-          expect(typeof group.balance.userBalance.userId).toBe('string');
+        expect(group.balance!).toHaveProperty('userBalance');
+        if (group.balance!.userBalance) {
+          expect(group.balance!.userBalance).toHaveProperty('userId');
+          expect(typeof group.balance!.userBalance.userId).toBe('string');
         }
       });
     });
@@ -84,14 +85,14 @@ describe('API Client Integration Tests', () => {
       const response = await apiClient.getGroups();
       
       // Verify all groups have proper balance structure without denormalized names
-      response.groups.forEach(group => {
-        if (group.balance.userBalance) {
-          expect(group.balance.userBalance).toHaveProperty('userId');
-          expect(group.balance.userBalance).toHaveProperty('netBalance');
-          expect(group.balance.userBalance).toHaveProperty('owes');
-          expect(group.balance.userBalance).toHaveProperty('owedBy');
+      response.groups.forEach((group: Group) => {
+        if (group.balance?.userBalance) {
+          expect(group.balance!.userBalance).toHaveProperty('userId');
+          expect(group.balance!.userBalance).toHaveProperty('netBalance');
+          expect(group.balance!.userBalance).toHaveProperty('owes');
+          expect(group.balance!.userBalance).toHaveProperty('owedBy');
           // Should NOT have denormalized name property
-          expect(group.balance.userBalance).not.toHaveProperty('name');
+          expect(group.balance!.userBalance).not.toHaveProperty('name');
         }
       });
     });
@@ -109,7 +110,7 @@ describe('API Client Integration Tests', () => {
       
       expect(fetchedGroup.id).toBe(testGroup.id);
       expect(fetchedGroup.name).toBe('Single Group Test');
-      expect(fetchedGroup.memberCount).toBeGreaterThanOrEqual(1);
+      expect(fetchedGroup.memberIds.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should create a new group', async () => {

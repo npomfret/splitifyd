@@ -29,34 +29,39 @@ This task is to add "Sign in with Apple" as an authentication method for the web
     *   Enable "Apple" as a new sign-in provider.
     *   Provide the Service ID, Team ID, Key ID, and the contents of the `.p8` private key file.
 
-### Phase 2: Client-Side Implementation (webapp-v2)
+### Phase 2: Backend Implementation
+
+1.  **Create a Firestore User Document on New Auth User Creation**:
+    *   Create a new Firebase Cloud Function that triggers on user creation (`auth.user().onCreate()`).
+    *   This function will be responsible for creating a corresponding user document in the `users` collection in Firestore.
+    *   When a new user signs up with Apple, this function will capture the `displayName` and `email` from the Firebase Auth user record and save it to the new Firestore document, ensuring our user profiles are consistent.
+
+### Phase 3: Client-Side Implementation (webapp-v2)
 
 1.  **Add a "Sign in with Apple" Button**:
-    *   In the `LoginPage.tsx` and `RegisterPage.tsx` components, add a new button for "Sign in with Apple". This should be styled according to Apple's branding guidelines.
+    *   In the `LoginPage.tsx` and `RegisterPage.tsx` components, add a new button for "Sign in with Apple".
+    *   The button's design must adhere to **Apple's Human Interface Guidelines** to ensure compliance.
 
-2.  **Create an Authentication Handler**:
-    *   In `webapp-v2/src/api/auth.ts`, create a new function `signInWithApple`.
+2.  **Update the Authentication Store**:
+    *   In `webapp-v2/src/app/stores/auth-store.ts`, create a new `signInWithApple` method within the `AuthStore`.
     *   This function will use `signInWithPopup` with the `OAuthProvider('apple.com')`.
-    *   It should request the `email` and `name` scopes.
+    *   It should request the `email` and `name` scopes to capture user information on the first login.
 
-3.  **Handle User Data**:
-    *   After a successful sign-in, check if this is a new user.
-    *   If it is a new user, and the `displayName` is available from the Apple sign-in result, save it to the user's profile in Firestore.
-    *   The user should be redirected to the dashboard upon successful login.
-
-4.  **Error Handling**:
+3.  **Error Handling**:
     *   Implement error handling for common scenarios, such as the user closing the popup or other authentication failures. Display appropriate feedback to the user.
+    *   Specifically handle the `auth/account-exists-with-different-credential` error. When this occurs, inform the user that an account with their email already exists and prompt them to sign in with their original method to link the accounts.
 
-### Phase 3: Testing
+### Phase 4: Testing
 
 1.  **Manual Testing**:
     *   Thoroughly test the "Sign in with Apple" flow on a staging or development environment.
     *   Test both new user registration and existing user login.
-    *   Verify that the user's name is correctly captured on the first sign-in.
+    *   Verify that the user's name is correctly captured on the first sign-in and saved to Firestore via the `onCreate()` trigger.
     *   Test the private email relay functionality.
+    *   Test the account linking flow when an email already exists.
 
 2.  **Automated Testing**:
     *   Due to the external dependency on Apple's authentication service, end-to-end testing of the full "Sign in with Apple" flow is complex.
-    *   We should focus on unit tests for our `signInWithApple` function, mocking the Firebase `signInWithPopup` call to simulate successful and failed authentication attempts.
-    *   We can create a new E2E test that clicks the "Sign in with Apple" button and verifies that the application attempts to open the Apple sign-in popup, but we will need to mock the response from Apple to proceed further.
+    *   Focus on unit tests for the `signInWithApple` method in the `AuthStore`, mocking the Firebase `signInWithPopup` call to simulate successful and failed authentication attempts.
+    *   Create a new E2E test that clicks the "Sign in with Apple" button. Use **Playwright's network interception (`page.route()`)** to mock the response from Apple's authentication service. This will allow for testing the application's handling of both successful and failed sign-in attempts without depending on the external service.
 

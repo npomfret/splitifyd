@@ -19,11 +19,11 @@
       "@shared/*": ["../firebase/functions/src/*"],
       "@shared/types/*": ["../firebase/functions/src/types/*"]
     },
-    "types": ["@types/node", "@playwright/test"]
+    "types": ["@types/node", "@playwright/test", "jest"]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx"
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

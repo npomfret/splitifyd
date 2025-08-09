@@ -6,17 +6,20 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { authStore } from '../app/stores/auth-store';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { firebaseConfigManager } from '../app/firebase-config';
+import { logError } from '../utils/browser-logger';
 
 const nameSignal = signal('');
 const emailSignal = signal('');
 const passwordSignal = signal('');
 const confirmPasswordSignal = signal('');
 const agreeToTermsSignal = signal(false);
+const agreeToCookiesSignal = signal(false);
 const localErrorSignal = signal<string | null>(null);
 
 export function RegisterPage() {
+  const authStore = useAuthRequired();
   // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {
     authStore.clearError();
@@ -37,7 +40,7 @@ export function RegisterPage() {
         }
       }
     }).catch(error => {
-      console.error('Failed to load form defaults:', error);
+      logError('Failed to load form defaults', error);
     });
   }, []);
 
@@ -65,7 +68,10 @@ export function RegisterPage() {
       return 'Passwords do not match';
     }
     if (!agreeToTermsSignal.value) {
-      return 'You must agree to the Terms of Service';
+      return 'You must accept the Terms of Service';
+    }
+    if (!agreeToCookiesSignal.value) {
+      return 'You must accept the Cookie Policy';
     }
     return null;
   };
@@ -85,11 +91,13 @@ export function RegisterPage() {
       await authStore.register(
         emailSignal.value.trim(),
         passwordSignal.value,
-        nameSignal.value.trim()
+        nameSignal.value.trim(),
+        agreeToTermsSignal.value,
+        agreeToCookiesSignal.value
       );
       // Redirect will happen via useEffect when user state updates
     } catch (error) {
-      // Error is handled by the auth store
+      logError('Registration attempt failed', error, { email: emailSignal.value.trim(), displayName: nameSignal.value.trim() });
     }
   };
 
@@ -97,7 +105,8 @@ export function RegisterPage() {
                      emailSignal.value.trim() && 
                      passwordSignal.value && 
                      confirmPasswordSignal.value &&
-                     agreeToTermsSignal.value;
+                     agreeToTermsSignal.value &&
+                     agreeToCookiesSignal.value;
   const isSubmitting = authStore.loading;
   const displayError = authStore.error || localErrorSignal.value;
 
@@ -152,7 +161,7 @@ export function RegisterPage() {
           autoComplete="new-password"
         />
 
-        <div class="space-y-4">
+        <div class="space-y-3">
           <label class="flex items-start">
             <input
               type="checkbox"
@@ -163,21 +172,34 @@ export function RegisterPage() {
               required
             />
             <span class="ml-2 block text-sm text-gray-700">
-              I agree to the{' '}
+              I accept the{' '}
               <a 
-                href="/v2/terms" 
+                href="/terms" 
                 target="_blank"
                 class="text-blue-600 hover:text-blue-500 transition-colors"
               >
                 Terms of Service
               </a>
-              {' '}and{' '}
+            </span>
+          </label>
+          
+          <label class="flex items-start">
+            <input
+              type="checkbox"
+              checked={agreeToCookiesSignal.value}
+              onChange={(e) => agreeToCookiesSignal.value = (e.target as HTMLInputElement).checked}
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0"
+              disabled={isSubmitting}
+              required
+            />
+            <span class="ml-2 block text-sm text-gray-700">
+              I accept the{' '}
               <a 
-                href="/v2/privacy" 
+                href="/cookies" 
                 target="_blank"
                 class="text-blue-600 hover:text-blue-500 transition-colors"
               >
-                Privacy Policy
+                Cookie Policy
               </a>
             </span>
           </label>

@@ -7,22 +7,28 @@ describe('Auth Validation', () => {
     it('should validate valid register request', () => {
       const validRequest = {
         email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'Test User'
+        password: 'TestPass123\!',
+        displayName: 'Test User',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       const result = validateRegisterRequest(validRequest);
       
       expect(result.email).toBe('test@example.com');
-      expect(result.password).toBe('TestPass123!');
+      expect(result.password).toBe('TestPass123\!');
       expect(result.displayName).toBe('Test User');
+      expect(result.termsAccepted).toBe(true);
+      expect(result.cookiePolicyAccepted).toBe(true);
     });
 
     it('should normalize email to lowercase and trim display name', () => {
       const request = {
         email: 'TEST@EXAMPLE.COM',
-        password: 'TestPass123!',
-        displayName: '  Test User  '
+        password: 'TestPass123\!',
+        displayName: '  Test User  ',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       const result = validateRegisterRequest(request);
@@ -35,7 +41,9 @@ describe('Auth Validation', () => {
       const request = {
         email: 'test@example.com',
         password: 'weakpass',
-        displayName: 'Test User'
+        displayName: 'Test User',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       expect(() => validateRegisterRequest(request)).toThrow(ApiError);
@@ -45,7 +53,9 @@ describe('Auth Validation', () => {
     it('should throw error for missing display name', () => {
       const request = {
         email: 'test@example.com',
-        password: 'TestPass123!'
+        password: 'TestPass123\!',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       expect(() => validateRegisterRequest(request)).toThrow(ApiError);
@@ -55,8 +65,10 @@ describe('Auth Validation', () => {
     it('should throw error for display name too short', () => {
       const request = {
         email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'A'
+        password: 'TestPass123\!',
+        displayName: 'A',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       expect(() => validateRegisterRequest(request)).toThrow(ApiError);
@@ -66,8 +78,10 @@ describe('Auth Validation', () => {
     it('should throw error for display name too long', () => {
       const request = {
         email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'A'.repeat(51)
+        password: 'TestPass123\!',
+        displayName: 'A'.repeat(51),
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       expect(() => validateRegisterRequest(request)).toThrow(ApiError);
@@ -77,8 +91,10 @@ describe('Auth Validation', () => {
     it('should throw error for invalid display name characters', () => {
       const request = {
         email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'Test<script>alert("xss")</script>'
+        password: 'TestPass123\!',
+        displayName: 'Test<script>alert("xss")</script>',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       expect(() => validateRegisterRequest(request)).toThrow(ApiError);
@@ -88,13 +104,65 @@ describe('Auth Validation', () => {
     it('should accept valid display name characters', () => {
       const request = {
         email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'John Doe-Smith_123.Jr'
+        password: 'TestPass123\!',
+        displayName: 'John Doe-Smith_123.Jr',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       };
       
       const result = validateRegisterRequest(request);
       
       expect(result.displayName).toBe('John Doe-Smith_123.Jr');
+    });
+
+    it('should throw error for missing terms acceptance', () => {
+      const request = {
+        email: 'test@example.com',
+        password: 'TestPass123\!',
+        displayName: 'Test User',
+        cookiePolicyAccepted: true
+      };
+      
+      expect(() => validateRegisterRequest(request)).toThrow(ApiError);
+      expect(() => validateRegisterRequest(request)).toThrow('Terms acceptance is required');
+    });
+
+    it('should throw error for missing cookie policy acceptance', () => {
+      const request = {
+        email: 'test@example.com',
+        password: 'TestPass123\!',
+        displayName: 'Test User',
+        termsAccepted: true
+      };
+      
+      expect(() => validateRegisterRequest(request)).toThrow(ApiError);
+      expect(() => validateRegisterRequest(request)).toThrow('Cookie policy acceptance is required');
+    });
+
+    it('should throw error for false terms acceptance', () => {
+      const request = {
+        email: 'test@example.com',
+        password: 'TestPass123\!',
+        displayName: 'Test User',
+        termsAccepted: false,
+        cookiePolicyAccepted: true
+      };
+      
+      expect(() => validateRegisterRequest(request)).toThrow(ApiError);
+      expect(() => validateRegisterRequest(request)).toThrow('You must accept the Terms of Service');
+    });
+
+    it('should throw error for false cookie policy acceptance', () => {
+      const request = {
+        email: 'test@example.com',
+        password: 'TestPass123\!',
+        displayName: 'Test User',
+        termsAccepted: true,
+        cookiePolicyAccepted: false
+      };
+      
+      expect(() => validateRegisterRequest(request)).toThrow(ApiError);
+      expect(() => validateRegisterRequest(request)).toThrow('You must accept the Cookie Policy');
     });
   });
 });

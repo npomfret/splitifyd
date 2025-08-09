@@ -25,6 +25,7 @@ export function CTASection() {
       }
     };
 
+    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     initAnimations();
   }, []);
 

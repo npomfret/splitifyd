@@ -61,7 +61,9 @@ export class ApiDriver {
       await this.apiRequest('/register', 'POST', {
         email: userInfo.email,
         password: userInfo.password,
-        displayName: userInfo.displayName
+        displayName: userInfo.displayName,
+        termsAccepted: true,
+        cookiePolicyAccepted: true
       });
     } catch (error) {
       // Ignore "already exists" errors
@@ -121,6 +123,45 @@ export class ApiDriver {
 
   async getExpense(expenseId: string, token: string): Promise<ExpenseData> {
     return await this.apiRequest(`/expenses?id=${expenseId}`, 'GET', null, token);
+  }
+
+  async createSettlement(settlementData: any, token: string): Promise<any> {
+    const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
+    return response.data;
+  }
+
+  async getSettlement(settlementId: string, token: string): Promise<any> {
+    const response = await this.apiRequest(`/settlements/${settlementId}`, 'GET', null, token);
+    return response.data;
+  }
+
+  async updateSettlement(settlementId: string, updateData: any, token: string): Promise<any> {
+    const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
+    return response.data;
+  }
+
+  async deleteSettlement(settlementId: string, token: string): Promise<void> {
+    await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
+  }
+
+  async listSettlements(token: string, params?: { 
+    groupId: string; 
+    limit?: number; 
+    cursor?: string; 
+    userId?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params?.groupId) queryParams.append('groupId', params.groupId);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.cursor) queryParams.append('cursor', params.cursor);
+    if (params?.userId) queryParams.append('userId', params.userId);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    const queryString = queryParams.toString();
+    const response = await this.apiRequest(`/settlements${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
+    return response.data;
   }
 
   createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<ExpenseData> {
@@ -260,6 +301,10 @@ export class ApiDriver {
     return await this.apiRequest(`/groups/${groupId}`, 'GET', null, token);
   }
 
+  async getGroupMembers(groupId: string, token: string): Promise<any> {
+    return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
+  }
+
   async updateGroup(groupId: string, data: any, token: string): Promise<void> {
     return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
   }
@@ -277,8 +322,14 @@ export class ApiDriver {
     return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
   }
 
-  async register(userData: { email: string; password: string; displayName: string }): Promise<any> {
-    return await this.apiRequest('/register', 'POST', userData);
+  async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean }): Promise<any> {
+    // Ensure required policy acceptance fields are provided with defaults
+    const registrationData = {
+      ...userData,
+      termsAccepted: userData.termsAccepted ?? true,
+      cookiePolicyAccepted: userData.cookiePolicyAccepted ?? true
+    };
+    return await this.apiRequest('/register', 'POST', registrationData);
   }
 
   async makeInvalidApiCall(endpoint: string, method: string = 'GET', body: unknown = null, token: string | null = null): Promise<any> {

@@ -1,17 +1,17 @@
 /**
  * Join Group Page
- * 
+ *
  * Handles joining a group via share link invitation
  */
 
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { joinGroupStore } from '../app/stores/join-group-store';
-import { authStore } from '../app/stores/auth-store';
-import { Card } from '../components/ui/Card';
-import { Stack } from '../components/ui/Stack';
-import { Button } from '../components/ui/Button';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { Card } from '@/components/ui';
+import { Stack } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { LoadingSpinner } from '@/components/ui';
 import { GroupPreview } from '../components/join-group/GroupPreview';
 import { MembersPreview } from '../components/join-group/MembersPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
@@ -22,6 +22,7 @@ interface JoinGroupPageProps {
 }
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
+  const authStore = useAuthRequired();
   const isAuthenticated = !!authStore.user;
   const {
     group,
@@ -58,7 +59,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
       return;
     }
 
-    // Load group preview
+    // Load group preview - intentionally not awaited (useEffect cannot be async)
     joinGroupStore.loadGroupPreview(actualLinkId);
   }, [actualLinkId, isAuthenticated]);
 
@@ -68,7 +69,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
       // Navigate to the group detail page
       setTimeout(() => {
         route(`/groups/${group.id}`);
-      }, 1500); // Small delay to show success message
+      }, 500); // Small delay to show success message
     }
   }, [joinSuccess, group]);
 
