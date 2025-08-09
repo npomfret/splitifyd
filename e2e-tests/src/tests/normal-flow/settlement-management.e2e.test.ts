@@ -103,6 +103,10 @@ test.describe('Settlement Management', () => {
     
     await expect(modal).not.toBeVisible();
     
+    // Refresh to ensure UI is updated with new settlement
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    
     // View history
     const showHistoryButton = page.getByRole('button', { name: 'Show History' });
     await showHistoryButton.click();
@@ -111,8 +115,8 @@ test.describe('Settlement Management', () => {
     const euroSettlement = page.getByText(/EUR/i);
     await expect(euroSettlement).toBeVisible();
     
-    // Also verify the settlement amount appears
-    const settlementAmount = page.getByText(/100\.00/);
+    // Verify the settlement amount appears using the page object method
+    const settlementAmount = groupDetailPage.getSettlementAmountInHistory('100.00', 'EUR');
     await expect(settlementAmount).toBeVisible();
     
   });

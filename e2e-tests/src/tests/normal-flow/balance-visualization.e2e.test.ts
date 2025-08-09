@@ -40,7 +40,7 @@ test.describe('Single User Balance Visualization', () => {
     await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
   });
 
-  test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+  test('should show settled up state for single-user groups', async ({ page, authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { user } = authenticatedPage;
 
     // Create test group using dashboard page object with unique ID
@@ -62,6 +62,10 @@ test.describe('Single User Balance Visualization', () => {
       paidBy: user.displayName,
       splitType: 'equal'
     });
+    
+    // Refresh to ensure UI is updated (matches pattern from other tests)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     
     // Verify Balances section shows settled up for single-user groups
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
