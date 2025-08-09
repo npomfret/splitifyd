@@ -192,12 +192,44 @@ if (!canDelete) {
 #### Add Group Management Handlers
 
 New endpoints needed:
-- `applySecurityPreset(groupId, preset)` - Apply a convenience preset
+- `applySecurityPreset(groupId, preset)` - Apply a convenience preset (batch transaction)
 - `updateGroupPermissions(groupId, permissions)` - Customize individual permissions
-- `setMemberRole(groupId, targetUserId, role)` - Promote/demote members
+- `setMemberRole(groupId, targetUserId, role)` - Promote/demote members (with last admin check)
 - `approveMember(groupId, userId)` - Approve pending members
 - `rejectMember(groupId, userId)` - Reject pending members
 - `getPendingMembers(groupId)` - List pending members
+- `getPermissionHistory(groupId)` - View permission change audit log
+- `createInviteLink(groupId, options)` - Create time-limited or single-use invite links
+
+**Edge Case Handling:**
+```typescript
+async function setMemberRole(groupId: string, targetUserId: string, newRole: string) {
+  const group = await getGroup(groupId);
+  
+  // Prevent last admin from demoting themselves
+  if (newRole !== 'admin') {
+    const adminCount = Object.values(group.members)
+      .filter(m => m.role === 'admin' && m.status === 'active')
+      .length;
+    
+    if (adminCount === 1 && group.members[targetUserId]?.role === 'admin') {
+      throw new Error('Cannot remove last admin. Promote another member first.');
+    }
+  }
+  
+  // Prevent removing group creator without explicit confirmation
+  if (targetUserId === group.createdBy && newRole === 'viewer') {
+    // Require additional confirmation flag
+    throw new Error('Changing creator permissions requires explicit confirmation');
+  }
+  
+  // Update role with audit log
+  await updateMemberRole(groupId, targetUserId, newRole, {
+    changedBy: currentUserId,
+    timestamp: Date.now(),
+    previousRole: group.members[targetUserId]?.role
+  });
+}
 
 ### 3. Join Flow Updates
 
@@ -208,11 +240,13 @@ New endpoints needed:
 
 #### Managed Group:
 1. User clicks share link
-2. User added with `status: 'pending'` if `memberApproval: 'admin-required'`
-3. UI shows "Awaiting admin approval"
-4. Admins see notification/pending list
-5. Admin approves/rejects
-6. User gains access or is removed
+2. Check invite link validity (expiry, usage limits)
+3. User added with `status: 'pending'` if `memberApproval: 'admin-required'`
+4. UI shows "Awaiting admin approval"
+5. Admins see notification/pending list
+6. Admin approves/rejects
+7. User gains access or is removed
+8. Pending members auto-removed after 7 days if not approved
 
 ### 4. Frontend Changes
 
@@ -221,18 +255,24 @@ Add new section for security management:
 
 **Security Presets Section:**
 - Quick preset buttons: "Open Collaboration" | "Managed Group"
+- Visual indicator when custom permissions deviate from preset
 - Description of what each preset configures
+- "Permission Simulator" showing what each role can do
 
 **Custom Permissions Section:**
 - Individual permission toggles/dropdowns
-- Member list with role indicators
+- Warning dialogs for permission downgrades
+- Member list with role indicators and last activity
 - Role management controls (for admins)
 - Pending members section (when approval required)
+- Permission history viewer (last 30 days)
 
 **UI Flow:**
-1. User clicks a preset button → all permissions configured instantly
-2. User can then customize individual permissions if desired
-3. Advanced users can ignore presets and configure manually
+1. User clicks a preset button → confirmation dialog → batch transaction applies all permissions
+2. Visual feedback shows which settings changed
+3. User can then customize individual permissions if desired
+4. Advanced users can ignore presets and configure manually
+5. Real-time updates push permission changes to all active sessions
 
 #### Expense UI
 - Show edit/delete buttons based on current permission settings
