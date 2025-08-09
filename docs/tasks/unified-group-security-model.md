@@ -4,6 +4,12 @@
 
 This task combines the group security model with flexible expense permissions, creating a comprehensive permission system with convenient preset configurations for different collaboration styles.
 
+### Key Design Principles
+- **Progressive Disclosure**: Simple presets for casual users, advanced options for power users
+- **Backward Compatibility**: Default configuration preserves existing behavior
+- **Real-time Updates**: Permission changes take effect immediately across all active sessions
+- **Audit Trail**: All permission and role changes are logged for accountability
+
 ## Security Configuration Presets
 
 Rather than rigid "modes", the system provides convenient preset buttons that configure a bundle of security preferences for the group. Users can select a preset and then customize individual settings as needed.
@@ -24,6 +30,12 @@ Rather than rigid "modes", the system provides convenient preset buttons that co
 - Admin approval required for new members
 - Enhanced audit and control features
 - Only admins can change security settings
+
+### 3. Future Presets (Extensible)
+**System designed to support additional presets:**
+- "Read-Only Viewer" - For stakeholders who need visibility but not editing rights
+- "Department Budget" - Specialized for corporate expense tracking
+- Custom templates saved by organizations
 
 ## Permission Matrix
 
@@ -62,7 +74,8 @@ interface Group {
   // existing fields...
   
   // Security Configuration
-  securityPreset: 'open' | 'managed'; // default: 'open'
+  securityPreset: 'open' | 'managed' | 'custom'; // default: 'open'
+  presetAppliedAt?: Timestamp; // Track when preset was last applied
   
   // Individual permission settings (customizable after preset selection)
   permissions: {
@@ -76,9 +89,29 @@ interface Group {
   // Member roles (used when permissions require role-based access)
   members: {
     [userId: string]: {
-      role: 'admin' | 'member'; // default: 'member'
+      role: 'admin' | 'member' | 'viewer'; // default: 'member'
       joinedAt: Timestamp;
       status: 'active' | 'pending'; // pending for admin approval
+      lastPermissionChange?: Timestamp; // Track permission updates
+    }
+  };
+  
+  // Permission change history
+  permissionHistory?: Array<{
+    timestamp: Timestamp;
+    changedBy: string;
+    changeType: 'preset' | 'custom' | 'role';
+    changes: Record<string, any>;
+  }>;
+  
+  // Invite link configuration
+  inviteLinks?: {
+    [linkId: string]: {
+      createdAt: Timestamp;
+      createdBy: string;
+      expiresAt?: Timestamp; // Optional expiry for managed groups
+      maxUses?: number; // Optional usage limit
+      usedCount: number;
     }
   };
 }
@@ -100,15 +133,49 @@ function checkPermission(group: Group, userId: string, action: string, expense?:
   const userRole = group.members[userId]?.role || 'member';
   const permission = group.permissions[action];
   
+  // Viewer role can only read, never modify
+  if (userRole === 'viewer' && ['expenseEditing', 'expenseDeletion'].includes(action)) {
+    return false;
+  }
+  
   switch (permission) {
     case 'anyone':
-      return true;
+      return userRole !== 'viewer';
     case 'owner-and-admin':
       return userRole === 'admin' || expense?.createdBy === userId;
     case 'admin-only':
       return userRole === 'admin';
     default:
       return false;
+  }
+}
+
+// Cache permissions client-side with TTL
+class PermissionCache {
+  private cache = new Map<string, { value: boolean; expires: number }>();
+  private ttl = 60000; // 1 minute TTL
+  
+  check(key: string, compute: () => boolean): boolean {
+    const cached = this.cache.get(key);
+    if (cached && cached.expires > Date.now()) {
+      return cached.value;
+    }
+    
+    const value = compute();
+    this.cache.set(key, { value, expires: Date.now() + this.ttl });
+    return value;
+  }
+  
+  invalidate(pattern?: string) {
+    if (pattern) {
+      for (const key of this.cache.keys()) {
+        if (key.includes(pattern)) {
+          this.cache.delete(key);
+        }
+      }
+    } else {
+      this.cache.clear();
+    }
   }
 }
 ```

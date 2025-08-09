@@ -26,11 +26,12 @@ test.describe('Member Management E2E', () => {
     await expect(groupDetailPage.getUserName(user.displayName)).toBeVisible();
     
     // Look for members section showing 1 member
-    await expect(page.getByText(/1 member/i)).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+    await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
   });
 
   test('should show member in expense split options', async ({ authenticatedPage, dashboardPage }) => {
     const { page, user } = authenticatedPage;
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -48,19 +49,17 @@ test.describe('Member Management E2E', () => {
     await expect(page.getByPlaceholder(PLACEHOLDERS.EXPENSE_DESCRIPTION)).toBeVisible();
     
     // Member should be visible in split section
-    const splitHeading = page.getByRole(ARIA_ROLES.HEADING, { name: /split between/i });
+    const splitHeading = groupDetailPage.getSplitBetweenHeading();
     await expect(splitHeading).toBeVisible();
     
-    // Find the card containing the split options by looking for checkboxes near the heading
-    const splitCard = splitHeading.locator('..').locator('..');
-    
     // The current user should be included and checked by default (payer is auto-selected)
-    const userCheckbox = splitCard.locator(SELECTORS.CHECKBOX).first();
+    const userCheckbox = groupDetailPage.getSplitOptionsFirstCheckbox();
     await expect(userCheckbox).toBeVisible();
     await expect(userCheckbox).toBeChecked();
     
     // User name should be visible in split section
-    await expect(splitCard.getByText(user.displayName)).toBeVisible();
+    const isUserInSplit = await groupDetailPage.isUserInSplitOptions(user.displayName);
+    expect(isUserInSplit).toBe(true);
   });
 
   test('should show creator as admin', async ({ authenticatedPage, dashboardPage }) => {
@@ -81,6 +80,7 @@ test.describe('Member Management E2E', () => {
 
   test('should show share functionality', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -91,18 +91,18 @@ test.describe('Member Management E2E', () => {
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for sharing');
     
     // Share button should be visible
-    const shareButton = page.getByRole(ARIA_ROLES.BUTTON, { name: /share/i });
+    const shareButton = groupDetailPage.getShareButton();
     await expect(shareButton).toBeVisible();
     
     // Click share to open modal
     await shareButton.click();
     
     // Share modal should open with link
-    const shareModal = page.getByRole(ARIA_ROLES.DIALOG, { name: /share group/i });
+    const shareModal = groupDetailPage.getShareModalDialog();
     await expect(shareModal).toBeVisible();
     
     // Should show share link
-    const shareLink = shareModal.getByRole(ARIA_ROLES.TEXTBOX);
+    const shareLink = groupDetailPage.getShareLinkTextbox();
     await expect(shareLink).toBeVisible();
     
     // Link should contain the join URL with linkId parameter
@@ -112,6 +112,7 @@ test.describe('Member Management E2E', () => {
 
   test('should handle member count display', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
+    const groupDetailPage = new GroupDetailPage(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -122,7 +123,7 @@ test.describe('Member Management E2E', () => {
     await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member count');
     
     // Should show member count
-    const memberCount = page.getByText(/1 member/i);
+    const memberCount = groupDetailPage.getMemberCountElement();
     await expect(memberCount).toBeVisible();
     
     // Note: Balance display testing is centralized in balance-settlement.e2e.test.ts

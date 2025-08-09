@@ -997,6 +997,82 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Get the split between heading
+   */
+  getSplitBetweenHeading() {
+    return this.page.getByRole('heading', { name: /split between/i });
+  }
+
+  /**
+   * Get the split options card (contains checkboxes for split selection)
+   */
+  getSplitOptionsCard() {
+    const splitHeading = this.getSplitBetweenHeading();
+    // Navigate up to the containing card
+    return splitHeading.locator('..').locator('..');
+  }
+
+  /**
+   * Get the first checkbox in split options
+   */
+  getSplitOptionsFirstCheckbox() {
+    const splitCard = this.getSplitOptionsCard();
+    return splitCard.locator('input[type="checkbox"]').first();
+  }
+
+  /**
+   * Check if a user name is visible in split options
+   */
+  async isUserInSplitOptions(userName: string): Promise<boolean> {
+    const splitCard = this.getSplitOptionsCard();
+    return await splitCard.getByText(userName).isVisible();
+  }
+
+  /**
+   * Get member count text element (e.g., "1 member" or "3 members")
+   */
+  getMemberCountElement() {
+    return this.page.getByText(/\d+ member/i);
+  }
+
+  /**
+   * Get the share modal dialog
+   */
+  getShareModalDialog() {
+    return this.page.getByRole('dialog', { name: /share group/i });
+  }
+
+  /**
+   * Get the share link textbox within the share modal
+   */
+  getShareLinkTextbox() {
+    const shareModal = this.getShareModalDialog();
+    return shareModal.getByRole('textbox');
+  }
+
+  /**
+   * Check if there are NO debt messages (for settled up verification)
+   */
+  async hasNoDebtMessages(): Promise<boolean> {
+    // Check for absence of arrow notation
+    const arrowCount = await this.page.getByText(/→/).count();
+    // Check for absence of "owes" text
+    const owesCount = await this.page.getByText(/owes/i).count();
+    return arrowCount === 0 && owesCount === 0;
+  }
+
+  /**
+   * Calculate exact debt amount for equal split
+   * @param totalAmount - Total expense amount
+   * @param numberOfPeople - Number of people splitting
+   * @returns The amount each person owes, rounded to 2 decimal places
+   */
+  calculateEqualSplitDebt(totalAmount: number, numberOfPeople: number): string {
+    const debtPerPerson = totalAmount / numberOfPeople;
+    return debtPerPerson.toFixed(2);
+  }
+
+  /**
    * Get the update expense button
    */
   getUpdateExpenseButton() {
@@ -1067,48 +1143,10 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Get the split between heading
-   */
-  getSplitBetweenHeading() {
-    return this.page.getByRole('heading', { name: /split between/i });
-  }
-
-  /**
-   * Get the split card (parent of split between heading)
-   */
-  async getSplitCard() {
-    const heading = this.getSplitBetweenHeading();
-    return heading.locator('..').locator('..');
-  }
-
-  /**
-   * Get checkboxes within the split card
-   */
-  async getSplitCardCheckbox() {
-    const splitCard = await this.getSplitCard();
-    return splitCard.locator('input[type="checkbox"]').first();
-  }
-
-  /**
    * Get admin text element
    */
   getAdminText() {
     return this.page.getByText(/admin/i).first();
-  }
-
-  /**
-   * Get share modal dialog
-   */
-  getShareModalDialog() {
-    return this.page.getByRole('dialog', { name: /share group/i });
-  }
-
-  /**
-   * Get textbox within share modal
-   */
-  async getShareModalTextbox() {
-    const modal = this.getShareModalDialog();
-    return modal.getByRole('textbox');
   }
 
   /**

@@ -196,5 +196,10 @@ test.describe('Multi-User Collaboration E2E', () => {
     // Verify that the debt relationship exists
     expect(hasArrowDebt || hasOwesDebt).toBeTruthy();
     
+    // Verify the specific debt amount: $100 / 2 = $50.00
+    const expectedDebt = groupDetailPage.calculateEqualSplitDebt(100, 2);
+    const hasCorrectAmount = await groupDetailPage.hasDebtAmount(`$${expectedDebt}`);
+    expect(hasCorrectAmount).toBe(true);
+    
   });
 });

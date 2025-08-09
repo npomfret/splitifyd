@@ -169,6 +169,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
     multiUserExpected(hasSettledMessage).toBe(true);
     
+    // Also verify NO debt messages are present (double-check settled state)
+    const hasNoDebts = await groupDetailPage.hasNoDebtMessages();
+    multiUserExpected(hasNoDebts).toBe(true);
+    
     await multiUserExpected(page.getByText('User1 Equal Payment')).toBeVisible();
     await multiUserExpected(page.getByText('User2 Equal Payment')).toBeVisible();
   });
@@ -348,6 +352,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const hasSettledMessage2 = await groupDetailPage.hasSettledUpMessage();
     multiUserExpected(hasSettledMessage2).toBe(true);
     
+    // Verify NO debt messages remain
+    const hasNoDebts2 = await groupDetailPage.hasNoDebtMessages();
+    multiUserExpected(hasNoDebts2).toBe(true);
+    
     await multiUserExpected(page.getByText('Create Debt')).toBeVisible();
     await multiUserExpected(page.getByText('Balance Debt')).toBeVisible();
   });
@@ -387,9 +395,11 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const hasDebt = await groupDetailPage.hasDebtMessage(user2.displayName, user1.displayName);
     multiUserExpected(hasDebt).toBe(true);
     
-    // Allow for rounding: $123.45 / 2 could be $61.72 or $61.73
-    // Check if the amount exists in the DOM (might be hidden if balances section is collapsed)
-    const hasDebtAmount = await groupDetailPage.hasDebtAmountPattern(/\$61\.7[23]/);
+    // Calculate exact debt amount: $123.45 / 2 = $61.73 (standard rounding)
+    // Note: JavaScript's toFixed() rounds 61.725 to 61.73
+    const expectedDebt = groupDetailPage.calculateEqualSplitDebt(123.45, 2);
+    // Check if the exact amount exists in the DOM
+    const hasDebtAmount = await groupDetailPage.hasDebtAmount(`$${expectedDebt}`);
     multiUserExpected(hasDebtAmount).toBe(true);
     
     // Check if the original expense amount is visible (also use .first() to avoid strict mode)

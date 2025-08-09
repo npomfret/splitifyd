@@ -78,6 +78,13 @@ test.describe('Three User Settlement Management', () => {
     
     
     // 2. User 1 makes a expense for 120, split equally
+    // DEBT CALCULATION:
+    // - Total expense: $120
+    // - Split 3 ways: $120 / 3 = $40 per person
+    // - User1 paid full $120, but only owes $40 share
+    // - User1 is owed: $120 - $40 = $80 total
+    // - User2 owes: $40 to User1
+    // - User3 owes: $40 to User1
     const allPages = [
       { page, groupDetailPage },
       { page: page2, groupDetailPage: groupDetailPage2 },
@@ -95,11 +102,12 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage.verifyExpenseAcrossPages(allPages, 'Group dinner expense', '$120.00');
     
     
-    // 3. Assert initial balances: user1 owed 80, user2 & user3 each owe 40
-    // Math: $120 / 3 = $40 per person
-    // User1 paid $120, owes $40 → Net: owed $80
-    // User2 paid $0, owes $40 → Net: owes $40
-    // User3 paid $0, owes $40 → Net: owes $40
+    // 3. Assert initial balances after first expense
+    // EXPECTED STATE:
+    // - User1 is owed $80 total ($40 from User2 + $40 from User3)
+    // - User2 owes $40 to User1
+    // - User3 owes $40 to User1
+    // This represents the initial debt distribution after the group dinner
     
     // Verify both debts exist across all pages
     await groupDetailPage.verifyDebtAcrossPages(allPages, user2.displayName, user1.displayName, '$40.00');
@@ -107,6 +115,10 @@ test.describe('Three User Settlement Management', () => {
     
     
     // 4. User 2 makes partial settlement of 30
+    // SETTLEMENT CALCULATION:
+    // - User2 current debt: $40
+    // - Payment amount: $30
+    // - Remaining debt after payment: $40 - $30 = $10
     
     await groupDetailPage.recordSettlementAndSync({
       payerName: user2.displayName,
@@ -119,10 +131,12 @@ test.describe('Three User Settlement Management', () => {
     await groupDetailPage.verifySettlementInHistory(allPages, 'Partial payment from user2');
     
     
-    // 5. Assert updated balances after $30 payment
-    // User2 debt: $40 - $30 = $10
-    // User3 debt: $40 (unchanged)
-    // User1 owed: $80 - $30 = $50
+    // 5. Assert updated balances after partial settlement
+    // EXPECTED STATE AFTER $30 PAYMENT:
+    // - User1 is now owed $50 total (was $80, received $30)
+    // - User2 now owes $10 to User1 (was $40, paid $30)
+    // - User3 still owes $40 to User1 (unchanged)
+    // The partial payment reduces User2's debt but doesn't fully settle
     
     // Verify updated debts across all pages
     await groupDetailPage.verifyDebtAcrossPages(allPages, user2.displayName, user1.displayName, '$10.00');
@@ -130,6 +144,10 @@ test.describe('Three User Settlement Management', () => {
     
     
     // 6. User 2 makes final settlement of remaining $10
+    // FINAL SETTLEMENT CALCULATION:
+    // - User2 remaining debt: $10
+    // - Payment amount: $10
+    // - User2 will be fully settled after this payment
     
     await groupDetailPage.recordSettlementAndSync({
       payerName: user2.displayName,
@@ -138,7 +156,12 @@ test.describe('Three User Settlement Management', () => {
       note: 'Final payment from user2 - all settled!'
     }, allPages);
     
-    // 7. Assert final state: User2 is settled up, User3 still owes $40
+    // 7. Assert final state after all settlements
+    // EXPECTED FINAL STATE:
+    // - User1 is now owed only $40 (from User3)
+    // - User2 is FULLY SETTLED (paid $30 + $10 = $40 total)
+    // - User3 still owes $40 to User1 (no payments made)
+    // This verifies that partial settlements work correctly in 3-user groups
     
     // User2 should no longer appear in debt list (settled up)
     const balancesSection1 = groupDetailPage.getBalancesSection();

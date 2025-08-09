@@ -111,5 +111,9 @@ test.describe('Settlement Management', () => {
     const euroSettlement = page.getByText(/EUR/i);
     await expect(euroSettlement).toBeVisible();
     
+    // Also verify the settlement amount appears
+    const settlementAmount = page.getByText(/100\.00/);
+    await expect(settlementAmount).toBeVisible();
+    
   });
 });
