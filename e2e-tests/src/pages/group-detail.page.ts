@@ -683,20 +683,13 @@ export class GroupDetailPage extends BasePage {
    * Gets settlement amount within the history dialog/modal.
    * This avoids strict mode violations when multiple amounts appear on the page.
    * @param amount The amount to look for (e.g., '100.00')
-   * @param currency Optional currency code (e.g., 'EUR', 'USD')
    */
-  getSettlementAmountInHistory(amount: string, currency?: string) {
+  getSettlementAmountInHistory(amount: string) {
     // Look for amount within the settlement history dialog context
     const historyDialog = this.page.getByRole(ARIA_ROLES.DIALOG);
     
-    if (currency) {
-      // If currency specified, look for the formatted amount (e.g., "EUR 100.00" or "$100.00" or "€100.00")
-      // The SettlementHistory component formats amounts using Intl.NumberFormat
-      // For EUR it might show as "€100.00" or "EUR 100.00" depending on browser locale
-      return historyDialog.getByText(new RegExp(`(${currency}|€|\\$)\\s*${amount}`));
-    }
-    
-    // Otherwise look for amount within settlement cards (has specific styling classes)
+    // Look for amount within settlement cards (has specific styling classes)
+    // All amounts are in USD now
     return historyDialog.locator('.text-lg.font-bold').filter({ hasText: amount }).first();
   }
 
@@ -1121,12 +1114,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('spinbutton', { name: /amount/i });
   }
 
-  /**
-   * Get the currency combobox in settlement form
-   */
-  getCurrencyCombobox() {
-    return this.page.getByRole('combobox', { name: /currency/i });
-  }
 
   /**
    * Get the note textbox in settlement form

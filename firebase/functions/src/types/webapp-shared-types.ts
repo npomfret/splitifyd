@@ -58,6 +58,7 @@ export const PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[] = [
   { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
   { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
   { name: 'education', displayName: 'Education', icon: '📚' },
+  { name: 'Just the tip', displayName: 'Just the tip', icon: '😮' },
   { name: 'bedroom_supplies', displayName: 'Bedroom Supplies', icon: '🍆' },
   { name: 'pets', displayName: 'Pets & Animals', icon: '🐾' },
   { name: 'alcohol', displayName: 'Drinks & Nightlife', icon: '🍺' },
@@ -318,7 +319,6 @@ export interface Settlement {
   payerId: string;
   payeeId: string;
   amount: number;
-  currency: string;
   date: string;  // ISO string
   note?: string | undefined;
   createdBy: string;
@@ -331,14 +331,12 @@ export interface CreateSettlementRequest {
   payerId: string;
   payeeId: string;
   amount: number;
-  currency: string;
   date?: string;  // ISO string, defaults to today
   note?: string;
 }
 
 export interface UpdateSettlementRequest {
   amount?: number;
-  currency?: string;
   date?: string;
   note?: string;
 }
@@ -349,7 +347,6 @@ export interface SettlementListItem {
   payer: User;
   payee: User;
   amount: number;
-  currency: string;
   date: string;
   note?: string;
   createdAt: string;
@@ -367,7 +364,6 @@ export interface SimplifiedDebt {
     userId: string;
   };
   amount: number;
-  currency?: string;  // Add currency support for multi-currency groups
 }
 
 export interface GroupBalances {

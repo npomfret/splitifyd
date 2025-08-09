@@ -124,7 +124,6 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
             payerId,
             payeeId,
             amount,
-            currency: settlement.currency,
             date: settlement.date
         });
         

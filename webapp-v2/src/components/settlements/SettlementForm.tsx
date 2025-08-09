@@ -13,7 +13,9 @@ import { useAuthRequired } from '../../app/hooks/useAuthRequired';
 const payerIdSignal = signal('');
 const payeeIdSignal = signal('');
 const amountSignal = signal('');
-const currencySignal = signal('USD');
+// Currency is always USD - no multi-currency support yet
+const DEFAULT_CURRENCY = 'USD';
+const currencySignal = signal(DEFAULT_CURRENCY);
 const dateSignal = signal(new Date().toISOString().split('T')[0]);
 const noteSignal = signal('');
 
@@ -46,12 +48,12 @@ export function SettlementForm({
         payerIdSignal.value = preselectedDebt.from.userId;
         payeeIdSignal.value = preselectedDebt.to.userId;
         amountSignal.value = preselectedDebt.amount.toFixed(2);
-        currencySignal.value = preselectedDebt.currency || 'USD';
+        // Currency is always USD
       } else if (currentUser) {
         payerIdSignal.value = currentUser.uid;
         payeeIdSignal.value = '';
         amountSignal.value = '';
-        currencySignal.value = 'USD';
+        // Currency is always USD
       }
       
       dateSignal.value = new Date().toISOString().split('T')[0];
@@ -102,9 +104,7 @@ export function SettlementForm({
       return 'Amount cannot exceed 999,999.99';
     }
     
-    if (!currencySignal.value) {
-      return 'Please select a currency';
-    }
+    // Currency is always USD, no need to validate
     
     if (!dateSignal.value) {
       return 'Please select a date';
@@ -139,7 +139,6 @@ export function SettlementForm({
         payerId: payerIdSignal.value,
         payeeId: payeeIdSignal.value,
         amount: parseFloat(amountSignal.value),
-        currency: currencySignal.value.toUpperCase(),
         date: new Date(dateSignal.value).toISOString(),
         note: noteSignal.value.trim() || undefined
       };
@@ -240,48 +239,24 @@ export function SettlementForm({
               </select>
             </div>
 
-            {/* Amount and Currency */}
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
-                </label>
-                <input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max="999999.99"
-                  placeholder="0.00"
-                  value={amountSignal.value}
-                  onInput={(e: Event) => amountSignal.value = (e.target as HTMLInputElement).value}
-                  disabled={isSubmitting}
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <select
-                  id="currency"
-                  value={currencySignal.value}
-                  onChange={(e) => currencySignal.value = (e.target as HTMLSelectElement).value}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isSubmitting}
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="CAD">CAD</option>
-                  <option value="AUD">AUD</option>
-                  <option value="JPY">JPY</option>
-                  <option value="CNY">CNY</option>
-                  <option value="INR">INR</option>
-                </select>
-              </div>
+            {/* Amount */}
+            <div>
+              <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
+                Amount
+              </label>
+              <input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="999999.99"
+                placeholder="0.00"
+                value={amountSignal.value}
+                onInput={(e: Event) => amountSignal.value = (e.target as HTMLInputElement).value}
+                disabled={isSubmitting}
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* Date */}
@@ -327,7 +302,7 @@ export function SettlementForm({
                   <span class="font-medium">{getMemberName(payeeIdSignal.value)}</span>
                   {' '}
                   <span class="font-bold text-gray-900">
-                    {currencySignal.value} {parseFloat(amountSignal.value).toFixed(2)}
+                    ${parseFloat(amountSignal.value).toFixed(2)}
                   </span>
                 </p>
               </div>

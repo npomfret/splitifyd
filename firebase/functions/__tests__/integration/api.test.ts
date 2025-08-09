@@ -482,7 +482,6 @@ describe('Comprehensive API Test Suite', () => {
           .withPayer(users[0].uid)
           .withPayee(users[1].uid)
           .withAmount(75.50)
-          .withCurrency('USD')
           .withNote('Test settlement payment')
           .build();
 
@@ -491,7 +490,6 @@ describe('Comprehensive API Test Suite', () => {
         expect(createdSettlement.id).toBeDefined();
         expect(createdSettlement.groupId).toBe(testGroup.id);
         expect(createdSettlement.amount).toBe(75.50);
-        expect(createdSettlement.currency).toBe('USD');
         expect(createdSettlement.note).toBe('Test settlement payment');
       });
 
@@ -507,7 +505,6 @@ describe('Comprehensive API Test Suite', () => {
         
         expect(createdSettlement.id).toBeDefined();
         expect(createdSettlement.amount).toBe(25.00);
-        expect(createdSettlement.currency).toBe('USD');
       });
 
       test('should reject settlement with invalid group', async () => {
@@ -616,15 +613,13 @@ describe('Comprehensive API Test Suite', () => {
         
         const updateData = {
           amount: 75.25,
-          note: 'Updated note',
-          currency: 'EUR'
+          note: 'Updated note'
         };
         
         const updated = await driver.updateSettlement(created.id, updateData, users[0].token);
         
         expect(updated.amount).toBe(75.25);
         expect(updated.note).toBe('Updated note');
-        expect(updated.currency).toBe('EUR');
       });
 
       test('should reject update by non-creator', async () => {

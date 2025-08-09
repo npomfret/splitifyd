@@ -71,15 +71,11 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
     }
   };
 
-  const formatAmount = (amount: number, currency: string): string => {
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency
-      }).format(amount);
-    } catch {
-      return `${currency} ${amount.toFixed(2)}`;
-    }
+  const formatAmount = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
 
   if (isLoading && settlements.length === 0) {
@@ -166,7 +162,7 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
                   'text-gray-600'
                 }`}>
                   {isCurrentUserPayee && '+'}
-                  {formatAmount(settlement.amount, settlement.currency)}
+                  {formatAmount(settlement.amount)}
                 </p>
               </div>
             </div>

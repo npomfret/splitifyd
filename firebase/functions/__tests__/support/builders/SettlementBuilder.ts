@@ -3,7 +3,6 @@ export interface TestSettlement {
   payerId: string;
   payeeId: string;
   amount: number;
-  currency: string;
   date?: string;
   note?: string;
 }
@@ -16,8 +15,7 @@ export class SettlementBuilder {
       groupId: 'default-group-id',
       payerId: 'default-payer-id',
       payeeId: 'default-payee-id',
-      amount: 50.00,
-      currency: 'USD'
+      amount: 50.00
     };
   }
 
@@ -41,11 +39,6 @@ export class SettlementBuilder {
     return this;
   }
 
-  withCurrency(currency: string): this {
-    this.settlement.currency = currency;
-    return this;
-  }
-
   withDate(date: string): this {
     this.settlement.date = date;
     return this;
@@ -62,7 +55,6 @@ export class SettlementBuilder {
       payerId: this.settlement.payerId,
       payeeId: this.settlement.payeeId,
       amount: this.settlement.amount,
-      currency: this.settlement.currency,
       ...(this.settlement.date && { date: this.settlement.date }),
       ...(this.settlement.note && { note: this.settlement.note })
     };

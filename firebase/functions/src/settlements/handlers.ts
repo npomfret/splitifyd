@@ -133,7 +133,6 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
       payerId: settlementData.payerId,
       payeeId: settlementData.payeeId,
       amount: settlementData.amount,
-      currency: settlementData.currency.toUpperCase(),
       date: settlementDate,
       createdBy: userId,
       createdAt: now,
@@ -219,10 +218,6 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
     
     if (updateData.amount !== undefined) {
       updates.amount = updateData.amount;
-    }
-    
-    if (updateData.currency !== undefined) {
-      updates.currency = updateData.currency.toUpperCase();
     }
     
     if (updateData.date !== undefined) {
@@ -362,7 +357,6 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
       payer: payerData,
       payee: payeeData,
       amount: settlement.amount,
-      currency: settlement.currency,
       date: toISOString(settlement.date),
       note: settlement.note,
       createdAt: toISOString(settlement.createdAt)

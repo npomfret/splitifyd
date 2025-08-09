@@ -229,7 +229,6 @@ export const SettlementSchema = z.object({
   payerId: z.string().min(1),
   payeeId: z.string().min(1),
   amount: z.number().positive(),
-  currency: z.string().min(1).max(3),
   date: z.string(),
   note: z.string().optional(),
   createdBy: z.string().min(1),
@@ -251,7 +250,6 @@ export const SettlementListItemSchema = z.object({
     email: z.string().email().optional()
   }),
   amount: z.number().positive(),
-  currency: z.string().min(1).max(3),
   date: z.string(),
   note: z.string().optional(),
   createdBy: z.string().min(1).optional(),

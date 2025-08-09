@@ -13,17 +13,6 @@ const amountSchema = Joi.number()
     'any.required': 'Amount is required'
   });
 
-const currencySchema = Joi.string()
-  .uppercase()
-  .length(3)
-  .pattern(/^[A-Z]{3}$/)
-  .required()
-  .messages({
-    'string.length': 'Currency must be a 3-letter code',
-    'string.pattern.base': 'Currency must be a valid 3-letter ISO code (e.g., USD, EUR)',
-    'any.required': 'Currency is required'
-  });
-
 const noteSchema = Joi.string()
   .max(500)
   .optional()
@@ -52,7 +41,6 @@ export const createSettlementSchema = Joi.object<CreateSettlementRequest>({
     'any.required': 'Payee ID is required'
   }),
   amount: amountSchema,
-  currency: currencySchema,
   date: dateSchema,
   note: noteSchema
 }).custom((value, helpers) => {
@@ -74,15 +62,6 @@ export const updateSettlementSchema = Joi.object<UpdateSettlementRequest>({
       'number.base': 'Amount must be a number',
       'number.positive': 'Amount must be greater than 0',
       'number.max': 'Amount cannot exceed 999,999.99'
-    }),
-  currency: Joi.string()
-    .uppercase()
-    .length(3)
-    .pattern(/^[A-Z]{3}$/)
-    .optional()
-    .messages({
-      'string.length': 'Currency must be a 3-letter code',
-      'string.pattern.base': 'Currency must be a valid 3-letter ISO code (e.g., USD, EUR)'
     }),
   date: dateSchema,
   note: noteSchema

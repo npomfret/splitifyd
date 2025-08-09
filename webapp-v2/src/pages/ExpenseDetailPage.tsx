@@ -190,10 +190,11 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
         {/* Content */}
         <div className="max-w-3xl mx-auto px-4 py-6">
         <Stack spacing="md">
-          {/* Main Expense Info */}
+          {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
           <Card>
             <Stack spacing="lg">
-              <div className="text-center">
+              {/* Top Section - Amount & Description */}
+              <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                   ${expense.value.amount.toFixed(2)}
                 </h2>
@@ -202,55 +203,60 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 </p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              {/* Middle Section - Key Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Date */}
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Date</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {new Date(expense.value.date).toLocaleDateString()}
                   </p>
                 </div>
+                
+                {/* Category */}
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Category</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {expense.value.category}
                   </p>
                 </div>
-              </div>
-            </Stack>
-          </Card>
-          
-          {/* Paid By */}
-          <Card>
-            <Stack spacing="md">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Paid by
-              </h3>
-              <div className="flex items-center gap-3">
-                <Avatar 
-                  displayName={payer?.displayName || 'Unknown'}
-                  userId={expense.value.paidBy}
-                  size="md"
-                />
+                
+                {/* Paid By */}
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    {payer?.displayName || 'Unknown'}
-                  </p>
-                  {payer?.email && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {payer.email}
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Paid by</p>
+                  <div className="flex items-center gap-2">
+                    <Avatar 
+                      displayName={payer?.displayName || 'Unknown'}
+                      userId={expense.value.paidBy}
+                      size="sm"
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">
+                        {payer?.displayName || 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {/* Actions Section */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <ExpenseActions
+                  expense={expense.value}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onShare={handleShare}
+                />
+              </div>
             </Stack>
           </Card>
           
-          {/* Split Information */}
+          {/* Split Information - Kept Separate */}
           <Card>
             <SplitBreakdown expense={expense.value} members={members.value} />
           </Card>
           
-          {/* Receipt */}
+          {/* Receipt - Kept Separate */}
           {expense.value.receiptUrl && (
             <Card>
               <Stack spacing="md">
@@ -272,28 +278,19 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
               </Stack>
             </Card>
           )}
-
-          {/* Actions */}
-          <Card>
-            <Stack spacing="md">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Actions
-              </h3>
-              <ExpenseActions
-                expense={expense.value}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onShare={handleShare}
-              />
-            </Stack>
-          </Card>
           
-          {/* Metadata */}
+          {/* Metadata - Moved to Bottom */}
           <Card className="bg-gray-50 dark:bg-gray-800/50">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              <p>Added {formatDistanceToNow(new Date(expense.value.createdAt))}</p>
+              <div className="flex items-center justify-between">
+                <span>Added {formatDistanceToNow(new Date(expense.value.createdAt))}</span>
+                <span className="text-xs">{new Date(expense.value.createdAt).toLocaleString()}</span>
+              </div>
               {expense.value.updatedAt !== expense.value.createdAt && (
-                <p>Last updated {formatDistanceToNow(new Date(expense.value.updatedAt))}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <span>Last updated {formatDistanceToNow(new Date(expense.value.updatedAt))}</span>
+                  <span className="text-xs">{new Date(expense.value.updatedAt).toLocaleString()}</span>
+                </div>
               )}
             </div>
           </Card>

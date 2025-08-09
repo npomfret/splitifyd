@@ -111,7 +111,6 @@ describe('Negative Value Validation', () => {
         .withPayer(users[0].uid)
         .withPayee(users[1].uid)
         .withAmount(-50) // Negative amount
-        .withCurrency('USD')
         .withNote('Test negative settlement')
         .build();
 
@@ -125,7 +124,6 @@ describe('Negative Value Validation', () => {
         .withPayer(users[0].uid)
         .withPayee(users[1].uid)
         .withAmount(0) // Zero amount
-        .withCurrency('USD')
         .withNote('Test zero settlement')
         .build();
 
@@ -140,7 +138,6 @@ describe('Negative Value Validation', () => {
         .withPayer(users[0].uid)
         .withPayee(users[1].uid)
         .withAmount(100)
-        .withCurrency('USD')
         .withNote('Valid settlement')
         .build();
 
@@ -161,7 +158,6 @@ describe('Negative Value Validation', () => {
         .withPayer(users[0].uid)
         .withPayee(users[1].uid)
         .withAmount(1000000) // Amount exceeds max of 999,999.99
-        .withCurrency('USD')
         .withNote('Test max amount')
         .build();
 
