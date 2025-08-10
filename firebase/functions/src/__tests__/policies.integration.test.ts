@@ -24,7 +24,7 @@ describe('Policies API Integration Tests', () => {
     const testPolicyText = '# Test Policy\n\nThis is a test policy for integration testing.';
     const testPolicyHash = crypto.createHash('sha256').update(testPolicyText, 'utf8').digest('hex');
     
-    await firestore.collection(FirestoreCollections.GROUPS).doc(PolicyIds.TERMS_OF_SERVICE).set({
+    await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.TERMS_OF_SERVICE).set({
       id: PolicyIds.TERMS_OF_SERVICE,
       policyName: 'Terms of Service',
       currentVersionHash: testPolicyHash,
@@ -46,7 +46,7 @@ describe('Policies API Integration Tests', () => {
     const cookiePolicyText = '# Cookie Policy\n\nThis is a test cookie policy.';
     const cookiePolicyHash = crypto.createHash('sha256').update(cookiePolicyText, 'utf8').digest('hex');
     
-    await firestore.collection(FirestoreCollections.GROUPS).doc(PolicyIds.COOKIE_POLICY).set({
+    await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.COOKIE_POLICY).set({
       id: PolicyIds.COOKIE_POLICY,
       policyName: 'Cookie Policy',
       currentVersionHash: cookiePolicyHash,
@@ -68,8 +68,8 @@ describe('Policies API Integration Tests', () => {
   afterAll(async () => {
     // Clean up test data
     const firestore = admin.firestore();
-    await firestore.collection(FirestoreCollections.GROUPS).doc(PolicyIds.TERMS_OF_SERVICE).delete();
-    await firestore.collection(FirestoreCollections.GROUPS).doc(PolicyIds.COOKIE_POLICY).delete();
+    await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.TERMS_OF_SERVICE).delete();
+    await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.COOKIE_POLICY).delete();
   });
 
   describe('GET /policies/current', () => {
@@ -137,7 +137,7 @@ describe('Policies API Integration Tests', () => {
       const firestore = admin.firestore();
       
       // Create a corrupted policy document (missing required fields)
-      await firestore.collection(FirestoreCollections.GROUPS).doc('corrupted-policy').set({
+      await firestore.collection(FirestoreCollections.POLICIES).doc('corrupted-policy').set({
         id: 'corrupted-policy',
         policyName: 'Corrupted Policy'
         // Missing currentVersionHash and versions
@@ -152,14 +152,14 @@ describe('Policies API Integration Tests', () => {
       expect(data.error).toHaveProperty('code', 'CORRUPT_POLICY_DATA');
       
       // Clean up
-      await firestore.collection(FirestoreCollections.GROUPS).doc('corrupted-policy').delete();
+      await firestore.collection(FirestoreCollections.POLICIES).doc('corrupted-policy').delete();
     });
 
     it('should handle missing version data gracefully', async () => {
       const firestore = admin.firestore();
       
       // Create a policy with invalid version reference
-      await firestore.collection(FirestoreCollections.GROUPS).doc('invalid-version').set({
+      await firestore.collection(FirestoreCollections.POLICIES).doc('invalid-version').set({
         id: 'invalid-version',
         policyName: 'Invalid Version Policy',
         currentVersionHash: 'non-existent-hash',
@@ -175,7 +175,7 @@ describe('Policies API Integration Tests', () => {
       expect(data.error).toHaveProperty('code', 'VERSION_NOT_FOUND');
       
       // Clean up
-      await firestore.collection(FirestoreCollections.GROUPS).doc('invalid-version').delete();
+      await firestore.collection(FirestoreCollections.POLICIES).doc('invalid-version').delete();
     });
   });
 });

@@ -373,7 +373,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
 /**
  * Internal function to create a policy (bypasses HTTP layer)
  */
-export const createPolicyInternal = async (policyName: string, text: string): Promise<{ id: string; currentVersionHash: string }> => {
+export const createPolicyInternal = async (policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> => {
   if (!policyName || !text) {
     throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
   }
@@ -381,8 +381,8 @@ export const createPolicyInternal = async (policyName: string, text: string): Pr
   try {
     const firestore = admin.firestore();
     
-    // Generate ID from policy name (kebab-case)
-    const id = policyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    // Use custom ID if provided, otherwise generate ID from policy name (kebab-case)
+    const id = customId || policyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     // Check if policy already exists
     const existingDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();

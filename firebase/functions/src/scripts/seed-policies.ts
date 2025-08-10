@@ -26,7 +26,9 @@ console.log(`Auth emulator at ${process.env.FIREBASE_AUTH_EMULATOR_HOST}`);
 
 // Initialize admin SDK with emulator settings (same as functions)
 if (!admin.apps.length) {
-  admin.initializeApp();
+  admin.initializeApp({
+    projectId: 'splitifyd'
+  });
 }
 
 
@@ -53,8 +55,8 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
     // Read policy text
     const text = readPolicyFile(filename);
     
-    // Create policy using internal function
-    const createResponse = await createPolicyInternal(policyName, text);
+    // Create policy using internal function with custom ID
+    const createResponse = await createPolicyInternal(policyName, text, policyId);
     
     console.log(`✅ Created policy: ${createResponse.id}`);
     
