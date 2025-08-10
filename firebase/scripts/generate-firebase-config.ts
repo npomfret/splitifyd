@@ -44,10 +44,10 @@ fs.writeFileSync(configPath, configContent);
 
 logger.info('🔥 Firebase configuration generated', {
   ports: {
-    ui: process.env.EMULATOR_UI_PORT || '4000',
-    auth: process.env.EMULATOR_AUTH_PORT || '9099',
-    functions: process.env.EMULATOR_FUNCTIONS_PORT || '5001',
-    firestore: process.env.EMULATOR_FIRESTORE_PORT || '8080',
-    hosting: process.env.EMULATOR_HOSTING_PORT || '5002'
+    ui: process.env.EMULATOR_UI_PORT!,
+    auth: process.env.EMULATOR_AUTH_PORT!,
+    functions: process.env.EMULATOR_FUNCTIONS_PORT!,
+    firestore: process.env.EMULATOR_FIRESTORE_PORT!,
+    hosting: process.env.EMULATOR_HOSTING_PORT!
   }
 });
