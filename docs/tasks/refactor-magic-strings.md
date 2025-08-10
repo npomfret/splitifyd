@@ -68,12 +68,115 @@ The plan is to centralize these magic strings into the `firebase/functions/src/t
         *   `webapp-v2/src/components/group/ExpenseItem.tsx`
     *   **Plan:** Add a `DELETED_AT_FIELD` constant to `webapp-shared-types.ts`.
 
-## Implementation Steps
+## Current Status
 
-1.  **Modify `webapp-shared-types.ts`:** Add the new enums/const objects.
-2.  **Refactor Server Code:** Replace all magic strings in the `firebase/functions` directory with the new shared constants.
-3.  **Refactor Client Code:** Replace all magic strings in the `webapp-v2` directory with the new shared constants.
-4.  **Run Tests:** Execute the test suite to ensure that the changes haven't introduced any regressions.
-5.  **Commit and Push:** Commit the changes with a descriptive message.
+✅ **Constants Added to `webapp-shared-types.ts`:** All identified magic strings have been centralized as const objects:
+- `UserRoles` (lines 9-12)
+- `FirestoreCollections` (lines 14-20)  
+- `SplitTypes` (lines 22-26)
+- `AuthErrors` (lines 28-31)
+- `PolicyIds` (lines 33-37)
+- `DELETED_AT_FIELD` (line 39)
+
+## Implementation Plan
+
+### Phase 1: Server-Side Refactoring (`firebase/functions/src/`)
+
+**Priority: High** - These changes will prevent bugs and improve maintainability
+
+1. **Auth & Middleware Files**
+   - [ ] `auth/handlers.ts` - Replace user roles and collection names
+   - [ ] `auth/middleware.ts` - Replace user roles and collection names
+   - [ ] `auth/policy-helpers.ts` - Replace collection names
+
+2. **Core Business Logic**
+   - [ ] `expenses/handlers.ts` - Replace collection names, split types, `deletedAt`
+   - [ ] `expenses/validation.ts` - Replace split types, `deletedAt`
+   - [ ] `settlements/handlers.ts` - Replace collection names
+   - [ ] `policies/handlers.ts` - Replace collection names and policy IDs
+
+3. **Group Management**
+   - [ ] `groups/handlers.ts` - Replace collection names
+   - [ ] `groups/balanceHandlers.ts` - Replace collection names
+   - [ ] `groups/memberHandlers.ts` - Replace collection names
+   - [ ] `groups/shareHandlers.ts` - Replace collection names
+
+4. **Services**
+   - [ ] `services/balanceCalculator.ts` - Replace collection names
+   - [ ] `services/expenseMetadataService.ts` - Replace collection names
+
+5. **Scripts**
+   - [ ] `scripts/seed-policies.ts` - Replace policy IDs and collection names
+
+### Phase 2: Client-Side Refactoring (`webapp-v2/src/`)
+
+**Priority: Medium** - These changes will ensure consistency between client and server
+
+1. **API Layer**
+   - [ ] `api/apiSchemas.ts` - Replace user roles and split types
+
+2. **Store Layer**
+   - [ ] `app/stores/auth-store.ts` - Replace auth error codes
+   - [ ] `app/stores/expense-form-store.ts` - Replace split types
+
+3. **Policy Pages**
+   - [ ] `pages/static/CookiePolicyPage.tsx` - Replace policy IDs
+   - [ ] `pages/static/PrivacyPolicyPage.tsx` - Replace policy IDs
+   - [ ] `pages/static/TermsOfServicePage.tsx` - Replace policy IDs
+
+4. **Components**
+   - [ ] `components/group/ExpenseItem.tsx` - Replace `DELETED_AT_FIELD`
+
+### Phase 3: Testing & Validation
+
+1. **Automated Testing**
+   - [ ] Run unit tests: `npm test`
+   - [ ] Run integration tests in Firebase functions
+   - [ ] Run E2E tests to ensure UI still works
+
+2. **Manual Verification**
+   - [ ] Test user registration and login
+   - [ ] Test expense creation with different split types
+   - [ ] Test policy page loading
+   - [ ] Test expense deletion (soft delete functionality)
+
+### Phase 4: Implementation Guidelines
+
+**Search and Replace Strategy:**
+```bash
+# Example for FirestoreCollections.EXPENSES
+# Before: 'expenses' or "expenses"
+# After: FirestoreCollections.EXPENSES
+
+# Server files - add import:
+import { FirestoreCollections } from '../types/webapp-shared-types';
+
+# Client files - add import:
+import { FirestoreCollections } from '@shared/types/webapp-shared-types';
+```
+
+**Import Guidelines:**
+- Server files: `import { ConstantName } from '../types/webapp-shared-types';`
+- Client files: `import { ConstantName } from '@shared/types/webapp-shared-types';`
+
+**Priority Order:**
+1. Start with server-side auth and core business logic (highest risk for bugs)
+2. Move to collections and data access patterns
+3. Finish with client-side UI components
+4. Validate with comprehensive testing
+
+**Risk Mitigation:**
+- Make changes in small, testable chunks
+- Run tests after each file modification
+- Use TypeScript's compiler to catch import/reference errors
+- Test auth flows and expense operations thoroughly
+
+## Benefits After Implementation
+
+1. **Type Safety**: All magic strings become typed constants
+2. **Refactoring Safety**: Changing a value requires updating only one location
+3. **IDE Support**: Auto-completion and find-all-references work properly
+4. **Self-Documenting**: Constants provide clear intent and prevent typos
+5. **Consistency**: Shared constants ensure client-server alignment
 
 This refactoring will significantly improve the codebase's quality and maintainability.
