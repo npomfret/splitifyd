@@ -1,6 +1,7 @@
 import { threeUserTest as test, expect } from '../../fixtures/three-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import { JoinGroupPage } from '../../pages/join-group.page';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
@@ -50,24 +51,28 @@ test.describe('Three User Settlement Management', () => {
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
-    // Second user joins
+    // Second user joins using robust JoinGroupPage
     const groupDetailPage2 = secondUser.groupDetailPage;
-    await page2.goto(shareLink);
-    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
-    await groupDetailPage2.getJoinGroupButton().click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    const joinGroupPage2 = new JoinGroupPage(page2);
+    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+    
+    if (!joinResult2.success) {
+      throw new Error(`Second user failed to join group: ${joinResult2.reason}`);
+    }
     
     // Synchronize to see the second member
     await groupDetailPage.synchronizeMultiUserState([
       { page, groupDetailPage }
     ], 2);
     
-    // Third user joins
+    // Third user joins using robust JoinGroupPage
     const groupDetailPage3 = thirdUser.groupDetailPage;
-    await page3.goto(shareLink);
-    await expect(groupDetailPage3.getJoinGroupHeading()).toBeVisible();
-    await groupDetailPage3.getJoinGroupButton().click();
-    await page3.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    const joinGroupPage3 = new JoinGroupPage(page3);
+    const joinResult3 = await joinGroupPage3.attemptJoinWithStateDetection(shareLink);
+    
+    if (!joinResult3.success) {
+      throw new Error(`Third user failed to join group: ${joinResult3.reason}`);
+    }
     
     // Synchronize all pages to see all 3 members
     await groupDetailPage.synchronizeMultiUserState([

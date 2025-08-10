@@ -1,6 +1,7 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupDetailPage } from '../../pages';
+import { JoinGroupPage } from '../../pages/join-group.page';
 import { GroupWorkflow } from '../../workflows';
 
 // Enable console error reporting and MCP debugging
@@ -29,11 +30,13 @@ test.describe('Complex Unsettled Group Scenario', () => {
     const shareLink = await shareLinkInput.inputValue();
     await alicePage.keyboard.press('Escape');
     
-    // Have Bob join via share link
-    await bobPage.goto(shareLink);
-    await expect(bobPage.getByRole('heading', { name: 'Join Group' })).toBeVisible();
-    await bobPage.getByRole('button', { name: 'Join Group' }).click();
-    await bobPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    // Have Bob join via robust JoinGroupPage
+    const bobJoinGroupPage = new JoinGroupPage(bobPage);
+    const bobJoinResult = await bobJoinGroupPage.attemptJoinWithStateDetection(shareLink);
+    
+    if (!bobJoinResult.success) {
+      throw new Error(`Bob failed to join group: ${bobJoinResult.reason}`);
+    }
     
     // Verify Bob is now on the group page
     await expect(bobPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

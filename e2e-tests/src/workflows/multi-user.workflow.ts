@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { AuthenticationWorkflow } from './authentication.workflow';
 import { GroupWorkflow } from './group.workflow';
-import { GroupDetailPage, DashboardPage } from '../pages';
+import { GroupDetailPage, DashboardPage, JoinGroupPage, LoginPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
 
@@ -56,28 +56,144 @@ export class MultiUserWorkflow {
 
     const { page: creatorPage } = this.users[0];
 
-    // Get share link
-    await creatorPage.getByRole('button', { name: /share/i }).click();
-    const shareLinkInput = creatorPage.getByRole('dialog').getByRole('textbox');
-    this.shareLink = await shareLinkInput.inputValue();
-    await creatorPage.keyboard.press('Escape');
+    // Get share link using more reliable method
+    this.shareLink = await this.getShareLink(creatorPage);
 
     // Have other users join via share link
     for (let i = 1; i < this.users.length; i++) {
-      const { page } = this.users[i];
-      await page.goto(this.shareLink);
-
-      // Wait for the join page to load
-      await expect(page.getByRole('heading', { name: 'Join Group' })).toBeVisible();
-
-      // Click the Join Group button
-      await page.getByRole('button', { name: 'Join Group' }).click();
-
-      // Wait for redirect to group page
-      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+      const { page, user } = this.users[i];
+      await this.joinGroupViaShareLink(page, this.shareLink, user);
     }
 
     return this.shareLink;
+  }
+
+  /**
+   * Reliably gets the share link from the group page.
+   * Uses the optimized GroupDetailPage method with fast timeouts.
+   */
+  async getShareLink(page: Page): Promise<string> {
+    const groupDetailPage = new GroupDetailPage(page);
+    return await groupDetailPage.getShareLinkReliably();
+  }
+
+  /**
+   * Joins a group via share link with comprehensive error handling.
+   * Handles different authentication states automatically.
+   */
+  async joinGroupViaShareLink(page: Page, shareLink: string, user?: BaseUser): Promise<void> {
+    const joinGroupPage = new JoinGroupPage(page);
+    
+    try {
+      // Attempt join with state detection
+      const result = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
+      
+      if (result.success) {
+        // Wait for group page to load completely
+        await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+        await page.waitForLoadState('networkidle');
+        return;
+      }
+
+      // Handle different failure scenarios
+      if (result.needsLogin) {
+        throw new Error(`User needs to log in first. Use joinGroupViaShareLinkWithLogin() instead.`);
+      }
+
+      if (result.alreadyMember) {
+        // User is already a member - this might be expected in some tests
+        console.warn(`User ${user?.displayName || 'unknown'} is already a member of the group`);
+        return;
+      }
+
+      if (result.error) {
+        throw new Error(`Failed to join group: ${result.reason}`);
+      }
+
+      throw new Error(`Unexpected join result: ${result.reason}`);
+
+    } catch (error) {
+      // Take debug screenshot
+      await joinGroupPage.takeDebugScreenshot(`failed-join-${user?.displayName || 'user'}`);
+      
+      // Get detailed page state for debugging
+      const pageState = await joinGroupPage.getPageState();
+      
+      throw new Error(`Failed to join group via share link: ${error}. Page state: ${JSON.stringify(pageState, null, 2)}`);
+    }
+  }
+
+  /**
+   * Joins a group via share link when user is not logged in.
+   * Handles login flow first, then joins the group.
+   */
+  async joinGroupViaShareLinkWithLogin(page: Page, shareLink: string, user: BaseUser): Promise<void> {
+    const joinGroupPage = new JoinGroupPage(page);
+    
+    // Navigate to share link first
+    await joinGroupPage.navigateToShareLink(shareLink);
+    
+    // Check if login is needed
+    const isLoggedIn = await joinGroupPage.isUserLoggedIn();
+    
+    if (!isLoggedIn) {
+      // Login first
+      const loginPage = new LoginPage(page);
+      await loginPage.navigate();
+      
+      const password = 'TestPassword123!'; // Standard test password
+      await loginPage.login(user.email, password);
+      
+      // Wait for login to complete
+      const dashboardPage = new DashboardPage(page);
+      await dashboardPage.waitForDashboard();
+      
+      // Navigate back to share link
+      await joinGroupPage.navigateToShareLink(shareLink);
+    }
+    
+    // Now attempt to join
+    await joinGroupPage.joinGroup();
+    
+    // Wait for redirect to group page
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+    await page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Tests share link with user who is already a member.
+   * Verifies appropriate message is shown.
+   */
+  async testShareLinkAlreadyMember(page: Page, shareLink: string): Promise<void> {
+    const joinGroupPage = new JoinGroupPage(page);
+    
+    // Navigate to share link
+    await joinGroupPage.navigateToShareLink(shareLink);
+    
+    // Should show already member message
+    const isAlreadyMember = await joinGroupPage.isUserAlreadyMember();
+    if (!isAlreadyMember) {
+      const pageState = await joinGroupPage.getPageState();
+      throw new Error(`Expected already member message but didn't find it. Page state: ${JSON.stringify(pageState, null, 2)}`);
+    }
+  }
+
+  /**
+   * Tests an invalid share link.
+   * Verifies appropriate error is shown.
+   */
+  async testInvalidShareLink(page: Page, invalidShareLink: string): Promise<void> {
+    const joinGroupPage = new JoinGroupPage(page);
+    
+    // Navigate to invalid share link
+    await joinGroupPage.navigateToShareLink(invalidShareLink);
+    
+    // Should show error page
+    const isErrorPage = await joinGroupPage.isErrorPage();
+    if (!isErrorPage) {
+      const pageState = await joinGroupPage.getPageState();
+      throw new Error(`Expected error page but didn't find it. Page state: ${JSON.stringify(pageState, null, 2)}`);
+    }
   }
 
   /**

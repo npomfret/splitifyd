@@ -748,25 +748,30 @@ export class GroupDetailPage extends BasePage {
   /**
    * Shares the group and waits for another user to join.
    * This encapsulates the entire share/join flow to avoid code duplication.
+   * Optimized for fast timeouts and reliable share link extraction.
    * 
    * @param joinerPage - The Page object for the user who will join the group
    * @returns The share link URL
    */
   async shareGroupAndWaitForJoin(joinerPage: any): Promise<string> {
-    // Click share button and get the share link
-    await this.getShareButton().click();
-    const shareLink = await this.getShareLinkInput().inputValue();
+    // Use the optimized share link extraction method
+    const shareLink = await this.getShareLinkReliably();
     
-    // Close the share modal
-    await this.page.keyboard.press('Escape');
-    
-    // Have the second user navigate to share link and join
+    // Have the second user navigate to share link and join with fast timeout
     await joinerPage.goto(shareLink);
-    await joinerPage.getByRole('button', { name: /join group/i }).click();
-    await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    await joinerPage.waitForLoadState('networkidle');
+    
+    // Click join button with fast timeout
+    const joinButton = joinerPage.getByRole('button', { name: /join group/i });
+    await joinButton.waitFor({ state: 'visible', timeout: 1000 });
+    await joinButton.click();
+    
+    // Wait for navigation with reasonable timeout
+    await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 3000 });
     
     // Refresh the original page to see updated members
     await this.page.reload();
+    await this.page.waitForLoadState('networkidle');
     
     return shareLink;
   }
@@ -856,11 +861,103 @@ export class GroupDetailPage extends BasePage {
 
   /**
    * Clicks the join group button and waits for navigation
+   * @deprecated Use JoinGroupPage.joinGroup() instead for better reliability
    */
   async clickJoinGroup() {
     const joinButton = this.getJoinGroupButtonOnSharePage();
     await joinButton.click();
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+  }
+
+  /**
+   * Reliably gets the share link from the group page with retry logic.
+   * Handles modal timing and extraction issues.
+   * Optimized for fast timeouts (1 second action timeout).
+   */
+  async getShareLinkReliably(maxRetries: number = 3): Promise<string> {
+    let shareLink: string | null = null;
+    let attempts = 0;
+
+    // Pre-check: Ensure we're on a group page and page is ready
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 2000 });
+    await this.page.waitForLoadState('networkidle');
+    
+    // Pre-check: Ensure group title is visible (indicates page is ready)
+    const groupTitle = this.page.getByRole('heading').first();
+    await groupTitle.waitFor({ state: 'visible', timeout: 2000 });
+
+    while (!shareLink && attempts < maxRetries) {
+      try {
+        attempts++;
+        
+        // Click share button with fast timeout
+        const shareButton = this.getShareButton();
+        await shareButton.waitFor({ state: 'visible', timeout: 1000 });
+        await shareButton.click();
+
+        // Get share link from dialog with progressive timeout
+        const timeout = 500 + (attempts * 200); // Start at 500ms, increase per attempt
+        const dialog = this.page.getByRole('dialog');
+        await dialog.waitFor({ state: 'visible', timeout });
+        
+        const shareLinkInput = this.getShareLinkInput();
+        await shareLinkInput.waitFor({ state: 'visible', timeout });
+        
+        shareLink = await shareLinkInput.inputValue();
+        
+        // Fast close - use Escape key immediately
+        await this.page.keyboard.press('Escape');
+        
+        if (shareLink && shareLink.includes('/join/')) {
+          // Success - return immediately
+          return shareLink;
+        }
+        
+      } catch (error) {
+        // Log attempt failure but continue
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.warn(`Share link attempt ${attempts} failed on ${this.page.url()}:`, errorMessage);
+        
+        // Debug logging - check what state we're in
+        try {
+          const shareButtonVisible = await this.getShareButton().isVisible();
+          const shareButtonCount = await this.page.getByRole('button', { name: /share/i }).count();
+          console.warn(`Debug - Share button visible: ${shareButtonVisible}, count: ${shareButtonCount}`);
+        } catch (e) {
+          console.warn('Debug - Could not check share button state:', e);
+        }
+        
+        // Try to close any open modal before retrying
+        try {
+          await this.page.keyboard.press('Escape');
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        
+        if (attempts >= maxRetries) {
+          // Enhanced error with debugging info
+          throw new Error(`Failed to get share link after ${maxRetries} attempts on ${this.page.url()}: ${errorMessage}`);
+        }
+        
+        // Short wait before retry (progressive backoff within 1-second limit)
+        await this.page.waitForTimeout(Math.min(250 * attempts, 800));
+      }
+    }
+
+    if (!shareLink || !shareLink.includes('/join/')) {
+      throw new Error(`Failed to obtain valid share link from ${this.page.url()}`);
+    }
+
+    return shareLink;
+  }
+
+  /**
+   * Navigates to a share link and handles the join process reliably.
+   * This method integrates with the new JoinGroupPage for better error handling.
+   */
+  async navigateToShareLink(shareLink: string): Promise<void> {
+    await this.page.goto(shareLink);
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**

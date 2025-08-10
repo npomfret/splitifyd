@@ -1,6 +1,7 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import { JoinGroupPage } from '../../pages/join-group.page';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
@@ -27,17 +28,13 @@ test.describe('Multi-User Collaboration E2E', () => {
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
 
-    // Navigate to the share link directly - it contains the full path including query params
-    await page2.goto(shareLink);
+    // Use robust JoinGroupPage for reliable share link joining
+    const joinGroupPage = new JoinGroupPage(page2);
+    const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
     
-    // Wait for the join page to load
-    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
-    
-    // Click the Join Group button
-    await groupDetailPage2.getJoinGroupButton().click();
-    
-    // Now wait for navigation to the group page
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    if (!joinResult.success) {
+      throw new Error(`Failed to join group: ${joinResult.reason}`);
+    }
     
   });
 
