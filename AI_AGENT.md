@@ -93,6 +93,8 @@ Note: if the emulator isn't running, STOP and ask the user to start it
 Note: never use the system browser, always use Chromium
 
 # Firebase Local Development
+- Never hard code app urls or port numbers! Look for `window.API_BASE_URL`, it is templated-in as a build step.
+- We have several local environments!
 - Firebase is configured to run on a set of ports (via the `switch-instance.sh` script and the .env files in `firebase/functions/.env.<envname>`)
 - To determine which port(s) to use, examine `firebase/firebase.json`
 - Do not edit `firebase/firebase.json`, it is tempated during the build process - only edit the template
