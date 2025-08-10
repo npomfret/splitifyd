@@ -42,7 +42,9 @@ export const listPolicies = async (req: AuthenticatedRequest, res: Response): Pr
         id: doc.id,
         policyName: data.policyName,
         currentVersionHash: data.currentVersionHash,
-        versions: data.versions
+        versions: data.versions,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
       });
     });
 
@@ -91,7 +93,9 @@ export const getPolicy = async (req: AuthenticatedRequest, res: Response): Promi
       id: policyDoc.id,
       policyName: data.policyName,
       currentVersionHash: data.currentVersionHash,
-      versions: data.versions
+      versions: data.versions,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt
     };
 
     logger.info('Policy retrieved', { 
@@ -398,6 +402,7 @@ export const createPolicyInternal = async (policyName: string, text: string): Pr
     const newPolicy: PolicyDocument = {
       id,
       policyName,
+      currentVersionHash: versionHash,
       versions: {
         [versionHash]: initialVersion
       },

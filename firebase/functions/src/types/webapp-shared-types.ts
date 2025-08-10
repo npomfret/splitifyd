@@ -170,6 +170,8 @@ export interface PolicyDocument {
   policyName: string;
   currentVersionHash: string;
   versions: Record<string, PolicyVersion>;
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
 }
 
 // Admin Policy Management Types
