@@ -79,8 +79,6 @@ To run the server locally via the firebase emulator
 npm run dev
 ```
 
-In your browser go to http://localhost:5002/
-
 To stop the emulator, just hit `ctrl-c`, but if it doesn't stop cleanly run `./scripts/kill-emulators.js`
 
 ## Webapp Architecture
