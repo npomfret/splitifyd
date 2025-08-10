@@ -1,17 +1,17 @@
 import { pageTest, expect } from '../../fixtures';
 import { authenticatedPageTest } from '../../fixtures';
-import { test } from '@playwright/test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
 import { GroupDetailPage } from '../../pages';
+import { GroupWorkflow } from '../../workflows';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
-test.describe('Form Validation E2E', () => {
-  test.describe('Login Form', () => {
+pageTest.describe('Form Validation E2E', () => {
+  pageTest.describe('Login Form', () => {
     pageTest('should show validation for invalid email format', async ({ loginPageNavigated }) => {
       const { page, loginPage } = loginPageNavigated;
       
@@ -69,7 +69,7 @@ test.describe('Form Validation E2E', () => {
     });
   });
 
-  test.describe('Register Form', () => {
+  pageTest.describe('Register Form', () => {
     pageTest('should validate password confirmation match', async ({ registerPageNavigated }) => {
       const { registerPage } = registerPageNavigated;
       
@@ -164,16 +164,17 @@ test.describe('Form Validation E2E', () => {
     });
   });
 
-  test.describe('Expense Form', () => {
+  authenticatedPageTest.describe('Expense Form', () => {
     authenticatedPageTest('should require description and amount', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
       const groupDetailPage = new GroupDetailPage(page);
+      const groupWorkflow = new GroupWorkflow(page);
       
       // Verify we start on dashboard
       await expect(page).toHaveURL(/\/dashboard/);
       
       // Create a group
-      await dashboardPage.createGroupAndNavigate('Expense Validation Group', 'Testing expense form validation');
+      await groupWorkflow.createGroupAndNavigate('Expense Validation Group', 'Testing expense form validation');
 
       // Navigate to add expense form
       const addExpenseButton = page.getByRole('button', { name: /add expense/i });
@@ -200,12 +201,13 @@ test.describe('Form Validation E2E', () => {
     authenticatedPageTest('should validate split totals for exact amounts', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
       const groupDetailPage = new GroupDetailPage(page);
+      const groupWorkflow = new GroupWorkflow(page);
       
       // Verify we start on dashboard
       await expect(page).toHaveURL(/\/dashboard/);
       
       // Create a group
-      await dashboardPage.createGroupAndNavigate('Split Validation Group', 'Testing split validation');
+      await groupWorkflow.createGroupAndNavigate('Split Validation Group', 'Testing split validation');
 
       // Navigate to add expense form
       await page.getByRole('button', { name: /add expense/i }).click();
@@ -229,12 +231,13 @@ test.describe('Form Validation E2E', () => {
     authenticatedPageTest('should validate percentage totals', async ({ authenticatedPage, dashboardPage }) => {
       const { page } = authenticatedPage;
       const groupDetailPage = new GroupDetailPage(page);
+      const groupWorkflow = new GroupWorkflow(page);
       
       // Verify we start on dashboard
       await expect(page).toHaveURL(/\/dashboard/);
       
       // Create a group
-      await dashboardPage.createGroupAndNavigate('Percentage Validation Group', 'Testing percentage validation');
+      await groupWorkflow.createGroupAndNavigate('Percentage Validation Group', 'Testing percentage validation');
 
       // Navigate to add expense form  
       await page.getByRole('button', { name: /add expense/i }).click();
@@ -256,7 +259,7 @@ test.describe('Form Validation E2E', () => {
     });
   });
 
-  test.describe('Create Group Modal', () => {
+  authenticatedPageTest.describe('Create Group Modal', () => {
     authenticatedPageTest('should validate group form fields', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
       const { page } = authenticatedPage;
       

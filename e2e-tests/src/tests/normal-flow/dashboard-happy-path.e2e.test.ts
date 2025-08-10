@@ -1,6 +1,7 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import { GroupWorkflow } from '../../workflows';
 
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
@@ -31,6 +32,7 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
 
   authenticatedPageTest('should handle complete group creation and navigation workflow', async ({ authenticatedPage, dashboardPage, groupDetailPage, createGroupModalPage }) => {
     const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Phase 1: Modal interaction - open, verify, cancel
     await dashboardPage.openCreateGroupModal();
@@ -45,7 +47,7 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
     
     // Phase 2: Successful group creation and navigation
     const groupName = generateTestGroupName('FullWorkflow');
-    const groupId = await dashboardPage.createGroupAndNavigate(groupName, 'Complete workflow test');
+    const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Complete workflow test');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getGroupTitleByName(groupName)).toBeVisible();

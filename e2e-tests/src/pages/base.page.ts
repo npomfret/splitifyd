@@ -60,7 +60,7 @@ export abstract class BasePage {
         
         // Ensure still focused before typing
         await this.waitForFocus(input);
-        await this.page.waitForTimeout(100);
+        await this.page.waitForLoadState('domcontentloaded');
         await input.pressSequentially(value);
         // await input.fill(value);
 
@@ -78,14 +78,16 @@ export abstract class BasePage {
         if (attempt < maxRetries) {
           const fieldId = await this.getFieldIdentifier(input);
           console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
-          await this.page.waitForTimeout(200); // Brief pause before retry
+          // Use DOM state waiting instead of arbitrary timeout
+          await this.page.waitForLoadState('domcontentloaded');
         }
       } catch (error) {
         if (attempt === maxRetries) {
           throw error;
         }
         console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
-        await this.page.waitForTimeout(200);
+        // Use DOM state waiting instead of arbitrary timeout
+        await this.page.waitForLoadState('domcontentloaded');
       }
     }
     

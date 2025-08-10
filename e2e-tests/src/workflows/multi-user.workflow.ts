@@ -1,5 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { AuthenticationWorkflow } from './authentication.workflow';
+import { GroupWorkflow } from './group.workflow';
 import { GroupDetailPage, DashboardPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
@@ -39,8 +40,8 @@ export class MultiUserWorkflow {
     }
 
     const { page } = this.users[0];
-    const dashboardPage = new DashboardPage(page);
-    this.groupId = await dashboardPage.createGroupAndNavigate(name, description);
+    const groupWorkflow = new GroupWorkflow(page);
+    this.groupId = await groupWorkflow.createGroupAndNavigate(name, description);
     return this.groupId;
   }
 

@@ -84,34 +84,32 @@ export class DashboardPage extends BasePage {
   }
 
   async waitForDashboard() {
-    await this.waitForNavigation(/\/dashboard/);
-  }
-
-  /**
-   * Creates a group and navigates to it, returning the group ID
-   */
-  async createGroupAndNavigate(name: string, description?: string): Promise<string> {
-    // Ensure we're on dashboard
-    if (!this.page.url().includes('/dashboard')) {
-      await this.navigate();
+    // Wait for navigation to dashboard if not already there - handle both /dashboard and /dashboard/
+    await this.page.waitForURL(/\/dashboard\/?$/, { timeout: 5000 });
+    
+    // Wait for the dashboard to be fully loaded
+    await this.waitForNetworkIdle();
+    
+    // Wait for the main dashboard content to appear
+    await this.page.locator('h3:has-text("Your Groups")').waitFor();
+    
+    // Wait for groups loading to complete by ensuring loading spinner disappears
+    // The loading spinner has text "Loading your groups..."
+    const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
+    if (await loadingSpinner.isVisible().catch(() => false)) {
+      await loadingSpinner.waitFor({ state: 'hidden' });
     }
     
-    // Open modal and create group
-    const createGroupModal = new CreateGroupModalPage(this.page);
-    await this.openCreateGroupModal();
-    await createGroupModal.createGroup(name, description);
+    // Ensure dashboard content is stabilized - wait for either groups grid or empty state
+    // Use more specific selectors to avoid conflicts with footer grid
+    const groupsGrid = this.page.locator('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3.gap-4');
+    const emptyStateHeading = this.page.locator('h4:has-text("No groups yet")');
     
-    // Wait for navigation and verify URL
-    await this.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
-
-    // Extract and return group ID
-    const groupId = this.getUrlParam('groupId')!;
-    
-    // Verify we're on the correct group page by checking URL contains the pattern
-    await expect(this.page).toHaveURL(new RegExp(`/groups/${groupId}$`));
-
-    await expect(this.page.getByText(name)).toBeVisible();
-
-    return groupId;
+    // Wait for one of these to be visible (groups exist or empty state)
+    await Promise.race([
+      groupsGrid.waitFor({ state: 'visible' }),
+      emptyStateHeading.waitFor({ state: 'visible' })
+    ]);
   }
+
 }

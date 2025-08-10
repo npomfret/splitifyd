@@ -3,6 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern } from '../../helpers/wait-helpers';
+import { GroupWorkflow } from '../../workflows';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -10,7 +11,8 @@ setupMCPDebugOnFailure();
 test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     
@@ -48,7 +50,8 @@ test.describe('Add Expense E2E', () => {
 
   test('should allow selecting expense category', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();
@@ -80,7 +83,8 @@ test.describe('Add Expense E2E', () => {
 
   test('should show expense in group after creation', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
     
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForLoadState('domcontentloaded');
@@ -102,7 +106,8 @@ test.describe('Add Expense E2E', () => {
 
   test('should allow custom category input', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();

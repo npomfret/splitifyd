@@ -1,6 +1,7 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupDetailPage } from '../../pages';
+import { GroupWorkflow } from '../../workflows';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -11,6 +12,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     // Use fixture-provided users instead of creating new ones
     const { page: alicePage, user: alice } = authenticatedPage;
     const { page: bobPage, user: bob } = secondUser;
+    const groupWorkflow = new GroupWorkflow(alicePage);
     
     // Navigate Alice to dashboard and create group
     await alicePage.goto('/dashboard');
@@ -19,7 +21,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     // Create group with Alice
     const groupName = 'Vacation Trip 2024';
     const groupDescription = 'Summer vacation expenses';
-    await dashboardPage.createGroupAndNavigate(groupName, groupDescription);
+    await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
 
     // Get share link from Alice's page
     await alicePage.getByRole('button', { name: /share/i }).click();

@@ -3,6 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
+import { GroupWorkflow } from '../../workflows';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -14,7 +15,8 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
     
     // Start adding expense
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
@@ -58,7 +60,8 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('CustomCat'), 'Testing custom category input');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCat'), 'Testing custom category input');
     
     // Start adding expense
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
@@ -96,7 +99,8 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('FilterCat'), 'Testing category filtering');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('FilterCat'), 'Testing category filtering');
     
     // Start adding expense
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
@@ -138,7 +142,8 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
     
     // Start adding expense
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
@@ -181,7 +186,8 @@ test.describe('Freeform Categories E2E', () => {
     // @skip-error-checking - May have API validation issues with special characters
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues with special characters' });
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('SpecialCat'), 'Testing special characters');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('SpecialCat'), 'Testing special characters');
     
     // Start adding expense
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
@@ -219,7 +225,8 @@ test.describe('Freeform Categories E2E', () => {
     // @skip-error-checking - May have API validation issues during editing
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('EditCat'), 'Testing category editing');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditCat'), 'Testing category editing');
     
     // Create expense with predefined category first
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
@@ -278,7 +285,8 @@ test.describe('Freeform Categories E2E', () => {
     // @skip-error-checking - This test expects validation errors
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'This test expects validation errors' });
     const { page } = authenticatedPage;
-    await dashboardPage.createGroupAndNavigate(generateTestGroupName('EmptyCat'), 'Testing empty category validation');
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EmptyCat'), 'Testing empty category validation');
     
     // Start adding expense
     const addExpenseButton = groupDetailPage.getAddExpenseButton();

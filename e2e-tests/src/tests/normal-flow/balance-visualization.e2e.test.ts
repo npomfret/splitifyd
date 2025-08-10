@@ -12,11 +12,12 @@ setupMCPDebugOnFailure();
 test.describe('Single User Balance Visualization', () => {
   test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Create test group with unique ID
     const uniqueId = generateShortId();
     const groupName = `Empty Balance Group ${uniqueId}`;
-    await dashboardPage.createGroupAndNavigate(groupName, 'Testing empty group balance');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing empty group balance');
     
     // Balance section should show "All settled up!" for empty group
     // Check if Balances heading is visible
@@ -40,13 +41,14 @@ test.describe('Single User Balance Visualization', () => {
     await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
   });
 
-  test('should show settled up state for single-user groups', async ({ page, authenticatedPage, dashboardPage, groupDetailPage }) => {
-    const { user } = authenticatedPage;
+  test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
 
     // Create test group using dashboard page object with unique ID
     const uniqueId = generateShortId();
     const groupName = `Single User Test ${uniqueId}`;
-    await dashboardPage.createGroupAndNavigate(groupName, 'Testing single user balance');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing single user balance');
     
     // Add expenses
     await groupDetailPage.addExpense({
@@ -79,11 +81,13 @@ test.describe('Single User Balance Visualization', () => {
     await expect(groupDetailPage.getCurrencyAmount('80.00')).toBeVisible();
   });
 
-  test('should handle zero balance state correctly', async ({ dashboardPage, groupDetailPage }) => {
+  test('should handle zero balance state correctly', async ({ dashboardPage, groupDetailPage, authenticatedPage }) => {
+    const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
     // Create test group with unique ID
     const uniqueId = generateShortId();
     const groupName = `Zero Balance Test ${uniqueId}`;
-    await dashboardPage.createGroupAndNavigate(groupName, 'Testing zero balance state');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing zero balance state');
     
     // Verify Balances section shows settled up initially
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -94,12 +98,13 @@ test.describe('Single User Balance Visualization', () => {
   });
 
   test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-    const { user } = authenticatedPage;
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Create test group with unique ID
     const uniqueId = generateShortId();
     const groupName = `Currency Display Test ${uniqueId}`;
-    await dashboardPage.createGroupAndNavigate(groupName, 'Testing currency display');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing currency display');
     
     // Add expense
     await groupDetailPage.addExpense({

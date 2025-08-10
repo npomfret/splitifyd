@@ -3,6 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
 import { GroupDetailPage } from '../../pages/group-detail.page';
+import { GroupWorkflow } from '../../workflows';
 
 // Enable console error reporting and MCP debugging
 setupConsoleErrorReporting();
@@ -11,6 +12,7 @@ setupMCPDebugOnFailure();
 test.describe('Member Management E2E', () => {
   test('should display current group members', async ({ authenticatedPage, dashboardPage }) => {
     const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -18,7 +20,7 @@ test.describe('Member Management E2E', () => {
     
     // Create a group
     const groupName = 'Members Display Group';
-    await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member display');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for member display');
     
     // Should show the current user as a member in the main content area
     // Use the groupDetailPage page object model instead of direct selectors
@@ -32,6 +34,7 @@ test.describe('Member Management E2E', () => {
   test('should show member in expense split options', async ({ authenticatedPage, dashboardPage }) => {
     const { page, user } = authenticatedPage;
     const groupDetailPage = new GroupDetailPage(page);
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -39,7 +42,7 @@ test.describe('Member Management E2E', () => {
     
     // Create a group
     const groupName = 'Split Test Group';
-    await dashboardPage.createGroupAndNavigate(groupName, 'Test group for split options');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for split options');
     
     // Navigate to add expense
     const addExpenseButton = page.getByRole(ARIA_ROLES.BUTTON, { name: /add expense/i });
@@ -64,6 +67,7 @@ test.describe('Member Management E2E', () => {
 
   test('should show creator as admin', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -71,7 +75,7 @@ test.describe('Member Management E2E', () => {
     
     // Create a group
     const groupName = 'Admin Test Group';
-    await dashboardPage.createGroupAndNavigate(groupName, 'Test group for admin badge');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for admin badge');
     
     // Creator should have admin badge - we expect a specific UI element
     // The UI must show "admin" text for the group creator
@@ -81,6 +85,7 @@ test.describe('Member Management E2E', () => {
   test('should show share functionality', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
     const groupDetailPage = new GroupDetailPage(page);
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -88,7 +93,7 @@ test.describe('Member Management E2E', () => {
     
     // Create a group
     const groupName = 'Share Test Group';
-    await dashboardPage.createGroupAndNavigate(groupName, 'Test group for sharing');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for sharing');
     
     // Share button should be visible
     const shareButton = groupDetailPage.getShareButton();
@@ -113,6 +118,7 @@ test.describe('Member Management E2E', () => {
   test('should handle member count display', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
     const groupDetailPage = new GroupDetailPage(page);
+    const groupWorkflow = new GroupWorkflow(page);
     
     // Navigate to dashboard
     await page.goto('/dashboard');
@@ -120,7 +126,7 @@ test.describe('Member Management E2E', () => {
     
     // Create a group
     const groupName = 'Member Count Group';
-    await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member count');
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for member count');
     
     // Should show member count
     const memberCount = groupDetailPage.getMemberCountElement();

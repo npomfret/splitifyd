@@ -35,6 +35,10 @@ export class LoginPage extends BasePage {
   async login(email: string, password: string, rememberMe = false) {
     await this.fillLoginForm(email, password, rememberMe);
     await this.submitForm();
+    
+    // Simple approach: just wait for the form submission to complete
+    // The AuthenticationWorkflow will handle waiting for dashboard
+    await this.waitForNetworkIdle();
   }
 
   async clickSignUp() {
