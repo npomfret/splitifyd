@@ -46,10 +46,19 @@ function readPolicyFile(filename: string): string {
 }
 
 /**
- * Seed policy using internal functions
+ * Seed policy using internal functions (idempotent)
  */
 async function seedPolicy(policyId: string, policyName: string, filename: string): Promise<void> {
   try {
+    // Check if policy already exists
+    const firestore = admin.firestore();
+    const existingDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).get();
+    
+    if (existingDoc.exists) {
+      console.log(`⏭️  Policy ${policyId} already exists, skipping...`);
+      return;
+    }
+    
     console.log(`📄 Creating policy: ${policyName}`);
     
     // Read policy text
