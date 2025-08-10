@@ -48,3 +48,268 @@ Several components in the codebase have grown to be overly complex, managing too
 
 *   **Problem**: The project uses Tailwind CSS, which is great for utility-first styling. However, there are some inconsistencies in how it's used. Some components have a lot of inline classes, while others use `@apply` in CSS files.
 *   **Suggestion**: Establish a clear styling guide for the project. This should include conventions for when to use inline classes, when to use `@apply`, and how to organize the CSS files.
+
+---
+
+## Code Analysis Results
+
+Based on a comprehensive analysis of the `webapp-v2` codebase conducted on 2025-08-10:
+
+### Quantitative Findings
+
+- **Total Files Analyzed**: 37 TypeScript/JavaScript files
+- **Total Functions**: 139
+- **Total Variables**: 287
+- **Total Classes**: 3
+- **Largest Component**: `AddExpensePage.tsx` (754 lines, 21 functions, 53 variables)
+- **API Client Size**: `apiClient.ts` (598 lines, 19 convenience methods)
+- **Signal Usage**: 64 occurrences across 10 files
+- **Loading Pattern Duplication**: 21 files implement loading states independently
+
+### Validation of Original Review Findings
+
+#### 1. **Overly Complex Components - CONFIRMED ✓**
+- `AddExpensePage.tsx` is indeed problematic at 754 lines
+- The component manages 17 computed values just for form fields
+- Multiple `useEffect` hooks with complex dependency arrays
+- Mixing URL parameter parsing, edit mode logic, and form management
+
+#### 2. **Inconsistent State Management - PARTIALLY CONFIRMED ⚠️**
+- Preact signals are used consistently (good)
+- However, patterns vary between `useSignal` for local state vs `signal` in stores
+- No documented convention for `useComputed` vs direct store access
+- The inconsistency is more about patterns than technology choices
+
+#### 3. **API Client and Error Handling - CONFIRMED ✓**
+- 19 convenience methods with duplicated error handling logic
+- Each method repeats similar try-catch patterns
+- Retry logic is implemented but could be more centralized
+- The suggestion for a generic request method is valid
+
+#### 4. **Code Duplication - CONFIRMED ✓**
+- 21 files independently implement loading/error states
+- `LoadingSpinner` is properly componentized
+- `ErrorMessage` exists but only in auth components
+- No shared error handling components outside auth
+
+#### 5. **Fragile Routing - CONFIRMED ✓**
+- All routes use hardcoded strings in `App.tsx`
+- No route constants file exists
+- Multiple route variations (`/groups/:id` and `/group/:id`) for same component
+
+#### 6. **Styling Strategy - MINOR ISSUE ✓**
+- Actually quite consistent - only 1 `@apply` usage found
+- Tailwind utilities used throughout
+- Less problematic than initially suggested
+
+## Additional Issues Discovered
+
+### 7. **Missing Error Boundaries**
+- No React error boundaries to catch component crashes
+- Errors can crash the entire application
+- No graceful degradation strategy
+
+### 8. **No Code Splitting**
+- All pages imported directly in `App.tsx`
+- Missing lazy loading opportunities
+- Larger initial bundle size than necessary
+
+### 9. **Test Coverage Gaps**
+- Test files exist but appear limited in scope
+- Integration tests only cover basic scenarios
+- No tests for complex components like `AddExpensePage`
+
+### 10. **Type Safety Issues**
+- Some `any` types in API client
+- Missing type guards for runtime validation
+- Inconsistent use of strict typing
+
+## Prioritized Implementation Plan
+
+### Phase 1: Foundation (Week 1)
+**Impact: High | Effort: Low**
+
+#### 1.1 Create Route Constants
+```typescript
+// src/constants/routes.ts
+export const ROUTES = {
+  HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  DASHBOARD: '/dashboard',
+  GROUP_DETAIL: '/groups/:id',
+  ADD_EXPENSE: '/groups/:groupId/add-expense',
+  // ... etc
+} as const;
+```
+
+#### 1.2 Create Reusable Error/Loading Components
+```typescript
+// src/components/ui/ErrorState.tsx
+interface ErrorStateProps {
+  error: string | Error;
+  onRetry?: () => void;
+}
+
+// src/components/ui/LoadingState.tsx
+interface LoadingStateProps {
+  message?: string;
+  fullScreen?: boolean;
+}
+```
+
+#### 1.3 Document State Management Patterns
+Create `docs/state-management-guide.md` with clear conventions
+
+### Phase 2: AddExpensePage Refactoring (Week 2)
+**Impact: Very High | Effort: High**
+
+#### 2.1 Extract Custom Hook
+```typescript
+// src/hooks/useExpenseForm.ts
+export function useExpenseForm(groupId: string, expenseId?: string) {
+  const formState = useSignal<ExpenseFormData>({
+    description: '',
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    paidBy: '',
+    category: '',
+    splitType: 'equal',
+    participants: [],
+    splits: []
+  });
+
+  const validation = useComputed(() => validateExpenseForm(formState.value));
+  const isDirty = useComputed(() => /* check if form changed */);
+  
+  // All form logic extracted here
+  return {
+    formState,
+    validation,
+    isDirty,
+    updateField,
+    submit,
+    reset
+  };
+}
+```
+
+#### 2.2 Component Breakdown
+```typescript
+// New component structure:
+// src/components/expense-form/
+//   ├── ExpenseFormHeader.tsx
+//   ├── ParticipantSelector.tsx
+//   ├── SplitTypeSelector.tsx
+//   ├── SplitAmountInputs.tsx
+//   ├── CategorySelector.tsx
+//   └── index.ts
+```
+
+#### 2.3 Simplified Page Component
+```typescript
+// Reduced from 754 lines to ~150 lines
+export default function AddExpensePage({ groupId }: Props) {
+  const { formState, validation, submit } = useExpenseForm(groupId);
+  
+  return (
+    <BaseLayout>
+      <ExpenseFormHeader />
+      <form onSubmit={submit}>
+        {/* Composed from smaller components */}
+      </form>
+    </BaseLayout>
+  );
+}
+```
+
+### Phase 3: API Client Optimization (Week 3)
+**Impact: Medium | Effort: Medium**
+
+#### 3.1 Centralized Request Handler
+```typescript
+class ApiClient {
+  private async requestWithRetry<T>(config: RequestConfig): Promise<T> {
+    // Centralized error handling
+    // Unified retry logic
+    // Response validation
+  }
+
+  // Thin convenience methods
+  async getGroup(id: string) {
+    return this.requestWithRetry<Group>({
+      endpoint: `/groups/${id}`,
+      method: 'GET'
+    });
+  }
+}
+```
+
+### Phase 4: Performance Improvements (Week 4)
+**Impact: High | Effort: Medium**
+
+#### 4.1 Implement Code Splitting
+```typescript
+// App.tsx with lazy loading
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
+
+export function App() {
+  return (
+    <Router>
+      <Suspense fallback={<LoadingState />}>
+        <Route path="/dashboard" component={DashboardPage} />
+        {/* ... */}
+      </Suspense>
+    </Router>
+  );
+}
+```
+
+#### 4.2 Add Error Boundaries
+```typescript
+// src/components/ErrorBoundary.tsx
+class ErrorBoundary extends Component {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    logError('Component crashed', { error, errorInfo });
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return <ErrorState error={this.state.error} />;
+    }
+    return this.props.children;
+  }
+}
+```
+
+### Phase 5: Testing & Documentation (Week 5)
+**Impact: Medium | Effort: High**
+
+- Add comprehensive tests for refactored components
+- Document new patterns and conventions
+- Create component storybook for UI components
+- Add integration tests for critical user flows
+
+## Success Metrics
+
+1. **Code Quality**
+   - Reduce `AddExpensePage.tsx` from 754 to <200 lines
+   - Eliminate 80% of loading/error state duplication
+   - Achieve 80% test coverage for critical paths
+
+2. **Performance**
+   - Reduce initial bundle size by 30%
+   - Improve Time to Interactive by 2 seconds
+   - Eliminate unnecessary re-renders
+
+3. **Developer Experience**
+   - Reduce time to implement new features by 40%
+   - Improve code review turnaround time
+   - Decrease bug reports related to state management
+
+## Conclusion
+
+The original code review correctly identified the major issues in the webapp-v2 codebase. The most critical problem is the complexity of `AddExpensePage.tsx`, which should be the primary focus of refactoring efforts. By following this phased implementation plan, the codebase can be systematically improved while maintaining functionality and minimizing risk.
+
+The refactoring should establish clear patterns that can be applied throughout the application, improving both maintainability and developer experience. Regular code reviews during the refactoring process will ensure that new patterns are consistently applied and that the codebase evolves in a sustainable direction.
