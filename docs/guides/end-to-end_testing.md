@@ -6,29 +6,33 @@ This project uses Playwright for end-to-end testing with a robust architecture d
 
 ## Core Principles
 
-### 1. Fast & Parallel Execution
+### Fast & Parallel Execution
 - **1 second action timeout** - No flaky selectors or slow operations allowed
 - **10 second test timeout** - Tests must complete quickly or fail
 - **4 parallel workers** - Tests run simultaneously and must not interfere
 - **Browser reuse between tests** - Never assume clean browser state
 
-### 2. Test Isolation
+### Test Isolation
 - **Every test must be self-contained** - Tests should not depend on the state left by previous tests
 - **Explicit state setup** - Always verify and establish the expected starting state
 - **Browser context reuse** - Tests must work when the browser is reused from previous tests
 - **Clean teardown** - Tests clean up after themselves using fixtures
 
-### 3. Fixtures Over Bare Tests
+### Fixtures Over Bare Tests
 - **Always use appropriate fixtures** instead of bare `test()` calls
 - **Authentication is handled by fixtures** - Never manually authenticate in tests
 - **Page objects are provided by fixtures** - Access page objects through fixture parameters
 
-### 4. State Verification
+### State Verification
 - **Always assert navigation state** - Verify URLs and page content before performing actions
 - **Fail fast on unexpected state** - Tests should immediately fail if preconditions aren't met
 - **Use explicit waits** - Wait for specific conditions rather than arbitrary timeouts
 
 ## Test Architecture
+
+The tests are split into 3 group; normal flow (happy path), error testing, and edge cases).
+
+When debugging test failures, first ALWAYS look in `e2e-tests/playwright-report` for the failure report, console logs, screenshots etc.
 
 ### Fixtures Hierarchy
 
