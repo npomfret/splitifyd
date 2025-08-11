@@ -123,7 +123,20 @@ function buildUrl(endpoint: string, params?: Record<string, string>, query?: Rec
   return url;
 }
 
-// Simple request options
+// Enhanced request configuration interface
+interface RequestConfig<T = any> {
+  endpoint: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  params?: Record<string, string>;
+  query?: Record<string, string>;
+  body?: any;
+  headers?: Record<string, string>;
+  schema?: z.ZodSchema<T>;  // Optional runtime validation override
+  skipAuth?: boolean;      // Skip auth token for public endpoints
+  skipRetry?: boolean;     // Skip retry for specific requests
+}
+
+// Legacy interface for backward compatibility
 interface RequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   params?: Record<string, string>;
@@ -131,6 +144,10 @@ interface RequestOptions {
   body?: any;
   headers?: Record<string, string>;
 }
+
+// Interceptor types for middleware pipeline
+type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
+type ResponseInterceptor = <T>(response: T, config: RequestConfig) => T | Promise<T>;
 
 // Retry configuration
 const RETRY_CONFIG = {
@@ -160,6 +177,8 @@ function sleep(ms: number): Promise<void> {
 // Main API client class
 export class ApiClient {
   private authToken: string | null = null;
+  private requestInterceptors: RequestInterceptor[] = [];
+  private responseInterceptors: ResponseInterceptor[] = [];
 
   constructor() {
     // Try to get auth token from localStorage (skip during SSG)
@@ -169,6 +188,30 @@ export class ApiClient {
         this.authToken = token;
       }
     }
+  }
+
+  // Add request interceptor
+  addRequestInterceptor(interceptor: RequestInterceptor): () => void {
+    this.requestInterceptors.push(interceptor);
+    // Return function to remove the interceptor
+    return () => {
+      const index = this.requestInterceptors.indexOf(interceptor);
+      if (index > -1) {
+        this.requestInterceptors.splice(index, 1);
+      }
+    };
+  }
+
+  // Add response interceptor
+  addResponseInterceptor(interceptor: ResponseInterceptor): () => void {
+    this.responseInterceptors.push(interceptor);
+    // Return function to remove the interceptor
+    return () => {
+      const index = this.responseInterceptors.indexOf(interceptor);
+      if (index > -1) {
+        this.responseInterceptors.splice(index, 1);
+      }
+    };
   }
 
   // Set auth token
@@ -183,20 +226,42 @@ export class ApiClient {
     }
   }
 
-  // Main request method with runtime validation and retry logic
+  // Enhanced request method with RequestConfig support
+  async request<T = any>(config: RequestConfig<T>): Promise<T>;
+  // Legacy overload for backward compatibility
+  async request<T = any>(endpoint: string, options: RequestOptions): Promise<T>;
   async request<T = any>(
-    endpoint: string,
-    options: RequestOptions
+    configOrEndpoint: RequestConfig<T> | string,
+    options?: RequestOptions
   ): Promise<T> {
-    return this.requestWithRetry(endpoint, options, 1);
+    // Normalize input to RequestConfig
+    let config: RequestConfig<T>;
+    if (typeof configOrEndpoint === 'string') {
+      // Legacy format - convert to new format
+      config = {
+        endpoint: configOrEndpoint,
+        ...options!
+      };
+    } else {
+      // New RequestConfig format
+      config = configOrEndpoint;
+    }
+
+    // Apply request interceptors
+    let processedConfig = config;
+    for (const interceptor of this.requestInterceptors) {
+      processedConfig = await interceptor(processedConfig);
+    }
+
+    return this.requestWithRetry(processedConfig, 1);
   }
 
   // Internal method that handles the actual request with retry logic
   private async requestWithRetry<T = any>(
-    endpoint: string,
-    options: RequestOptions,
+    config: RequestConfig<T>,
     attemptNumber: number
   ): Promise<T> {
+    const { endpoint, ...options } = config;
     const url = buildUrl(
       `${API_BASE_URL}${endpoint}`,
       options.params,
@@ -208,8 +273,8 @@ export class ApiClient {
       ...options.headers
     };
 
-    // Add auth token if available
-    if (this.authToken) {
+    // Add auth token if available and not skipped
+    if (this.authToken && !config.skipAuth) {
       headers['Authorization'] = `Bearer ${this.authToken}`;
     }
 
@@ -292,44 +357,56 @@ export class ApiClient {
         retryAttempt: attemptNumber > 1 ? attemptNumber : undefined,
       });
 
-      // Get validator for this endpoint, trying method-specific first
-      const methodEndpoint = `${options.method} ${endpoint}` as keyof typeof responseSchemas;
-      let validator = responseSchemas[methodEndpoint];
-      
-      // Fallback to endpoint without method
+      // Use custom schema if provided, otherwise use global schemas
+      let validator: z.ZodSchema<any> | undefined = config.schema;
       if (!validator) {
-        validator = responseSchemas[endpoint as keyof typeof responseSchemas];
+        // Get validator for this endpoint, trying method-specific first
+        const methodEndpoint = `${options.method} ${endpoint}` as keyof typeof responseSchemas;
+        validator = responseSchemas[methodEndpoint];
+        
+        // Fallback to endpoint without method
+        if (!validator) {
+          validator = responseSchemas[endpoint as keyof typeof responseSchemas];
+        }
       }
       
+      let validatedData: T;
       if (!validator) {
         logWarning('No validator found for endpoint', { endpoint });
-        return data as T;
+        validatedData = data as T;
+      } else {
+        // Validate response
+        const result = validator.safeParse(data);
+        if (!result.success) {
+          // Create a more detailed error message
+          const errorDetails = result.error.issues.map(issue => {
+            const path = issue.path.join('.');
+            const expected = 'expected' in issue ? issue.expected : issue.code;
+            const received = 'received' in issue ? JSON.stringify(issue.received) : 'unknown';
+            return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
+          }).join('\n');
+          
+          logError('API response validation failed', undefined, {
+            endpoint,
+            issues: result.error.issues,
+            receivedData: data
+          });
+          
+          throw new ApiValidationError(
+            `API response validation failed for ${endpoint}:\n${errorDetails}`,
+            result.error.issues
+          );
+        }
+        validatedData = result.data as T;
       }
 
-      // Validate response
-      const result = validator.safeParse(data);
-      if (!result.success) {
-        // Create a more detailed error message
-        const errorDetails = result.error.issues.map(issue => {
-          const path = issue.path.join('.');
-          const expected = 'expected' in issue ? issue.expected : issue.code;
-          const received = 'received' in issue ? JSON.stringify(issue.received) : 'unknown';
-          return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
-        }).join('\n');
-        
-        logError('API response validation failed', undefined, {
-          endpoint,
-          issues: result.error.issues,
-          receivedData: data
-        });
-        
-        throw new ApiValidationError(
-          `API response validation failed for ${endpoint}:\n${errorDetails}`,
-          result.error.issues
-        );
+      // Apply response interceptors
+      let processedResponse = validatedData;
+      for (const interceptor of this.responseInterceptors) {
+        processedResponse = await interceptor(processedResponse, config);
       }
 
-      return result.data as T;
+      return processedResponse;
     } catch (error) {
       // Re-throw our custom errors that aren't retryable
       if (error instanceof ApiValidationError) {
@@ -338,7 +415,8 @@ export class ApiClient {
       
       // Handle API errors - check if we should retry
       if (error instanceof ApiError) {
-        if (shouldRetryError(error) && 
+        if (!config.skipRetry && 
+            shouldRetryError(error) && 
             isRetryableMethod(options.method) && 
             attemptNumber < RETRY_CONFIG.maxAttempts) {
           
@@ -353,7 +431,7 @@ export class ApiClient {
           });
           
           await sleep(delayMs);
-          return this.requestWithRetry(endpoint, options, attemptNumber + 1);
+          return this.requestWithRetry(config, attemptNumber + 1);
         }
         throw error;
       }
@@ -383,7 +461,8 @@ export class ApiClient {
       }
       
       // Check if we should retry this network error
-      if (shouldRetryError(networkError) && 
+      if (!config.skipRetry && 
+          shouldRetryError(networkError) && 
           isRetryableMethod(options.method) && 
           attemptNumber < RETRY_CONFIG.maxAttempts) {
         
@@ -398,45 +477,55 @@ export class ApiClient {
         });
         
         await sleep(delayMs);
-        return this.requestWithRetry(endpoint, options, attemptNumber + 1);
+        return this.requestWithRetry(config, attemptNumber + 1);
       }
       
       throw networkError;
     }
   }
 
-  // Convenience methods for common endpoints
+  // Convenience methods for common endpoints (using enhanced RequestConfig internally)
   async getConfig(): Promise<AppConfiguration> {
-    return this.request('/config', { method: 'GET' });
+    return this.request({ 
+      endpoint: '/config', 
+      method: 'GET' 
+    });
   }
 
   async getGroups(): Promise<ListGroupsResponse> {
-    return this.request('/groups', { method: 'GET' });
+    return this.request({ 
+      endpoint: '/groups', 
+      method: 'GET' 
+    });
   }
 
   async getGroup(id: string): Promise<Group> {
-    return this.request('/groups/:id', {
+    return this.request({
+      endpoint: '/groups/:id',
       method: 'GET',
       params: { id }
     });
   }
 
   async getGroupMembers(id: string): Promise<GroupMembersResponse> {
-    return this.request('/groups/:id/members', {
+    return this.request({
+      endpoint: '/groups/:id/members',
       method: 'GET',
       params: { id }
     });
   }
 
   async createGroup(data: CreateGroupRequest): Promise<Group> {
-    return this.request('/groups', {
+    return this.request({
+      endpoint: '/groups',
       method: 'POST',
       body: data
     });
   }
 
   async getGroupBalances(groupId: string): Promise<GroupBalances> {
-    return this.request('/groups/balances', {
+    return this.request({
+      endpoint: '/groups/balances',
       method: 'GET',
       query: { groupId }
     });
@@ -453,21 +542,24 @@ export class ApiClient {
     if (includeDeleted !== undefined) {
       query.includeDeleted = includeDeleted.toString();
     }
-    return this.request('/expenses/group', {
+    return this.request({
+      endpoint: '/expenses/group',
       method: 'GET',
       query
     });
   }
 
   async createExpense(data: CreateExpenseRequest): Promise<ExpenseData> {
-    return this.request('/expenses', {
+    return this.request({
+      endpoint: '/expenses',
       method: 'POST',
       body: data
     });
   }
 
   async updateExpense(expenseId: string, data: CreateExpenseRequest): Promise<ExpenseData> {
-    return this.request('/expenses', {
+    return this.request({
+      endpoint: '/expenses',
       method: 'PUT',
       query: { id: expenseId },
       body: data
@@ -475,14 +567,16 @@ export class ApiClient {
   }
 
   async deleteExpense(expenseId: string): Promise<{ message: string }> {
-    return this.request('/expenses', {
+    return this.request({
+      endpoint: '/expenses',
       method: 'DELETE',
       query: { id: expenseId }
     });
   }
 
   async createSettlement(data: CreateSettlementRequest): Promise<Settlement> {
-    const response = await this.request<{ success: boolean; data: Settlement }>('/settlements', {
+    const response = await this.request<{ success: boolean; data: Settlement }>({
+      endpoint: '/settlements',
       method: 'POST',
       body: data
     });
@@ -490,7 +584,8 @@ export class ApiClient {
   }
 
   async getSettlement(settlementId: string): Promise<SettlementListItem> {
-    return this.request('/settlements/:settlementId', {
+    return this.request({
+      endpoint: '/settlements/:settlementId',
       method: 'GET',
       params: { settlementId }
     });
@@ -516,7 +611,8 @@ export class ApiClient {
     if (startDate !== undefined) query.startDate = startDate;
     if (endDate !== undefined) query.endDate = endDate;
     
-    const response = await this.request<{ success: boolean; data: { settlements: SettlementListItem[]; count: number; hasMore: boolean; nextCursor?: string } }>('/settlements', {
+    const response = await this.request<{ success: boolean; data: { settlements: SettlementListItem[]; count: number; hasMore: boolean; nextCursor?: string } }>({
+      endpoint: '/settlements',
       method: 'GET',
       query
     });
@@ -524,7 +620,8 @@ export class ApiClient {
   }
 
   async updateSettlement(settlementId: string, data: Partial<CreateSettlementRequest>): Promise<Settlement> {
-    return this.request('/settlements/:settlementId', {
+    return this.request({
+      endpoint: '/settlements/:settlementId',
       method: 'PUT',
       params: { settlementId },
       body: data
@@ -532,15 +629,16 @@ export class ApiClient {
   }
 
   async deleteSettlement(settlementId: string): Promise<{ message: string }> {
-    return this.request('/settlements/:settlementId', {
+    return this.request({
+      endpoint: '/settlements/:settlementId',
       method: 'DELETE',
       params: { settlementId }
     });
   }
 
-
   async generateShareLink(groupId: string): Promise<{ linkId: string; shareablePath: string }> {
-    return this.request('/groups/share', {
+    return this.request({
+      endpoint: '/groups/share',
       method: 'POST',
       body: { groupId }
     });
@@ -553,14 +651,16 @@ export class ApiClient {
     memberCount: number;  // Still returned by preview endpoint for display
     isAlreadyMember: boolean;
   }> {
-    return this.request('/groups/preview', {
+    return this.request({
+      endpoint: '/groups/preview',
       method: 'POST',
       body: { linkId }
     });
   }
 
   async joinGroupByLink(linkId: string): Promise<Group> {
-    const response = await this.request('/groups/join', {
+    const response = await this.request({
+      endpoint: '/groups/join',
       method: 'POST',
       body: { linkId }
     });
@@ -585,18 +685,39 @@ export class ApiClient {
   }
 
   async register(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<{ success: boolean; message: string; user: { uid: string; email: string; displayName: string } }> {
-    return this.request('/register', {
+    return this.request({
+      endpoint: '/register',
       method: 'POST',
       body: { email, password, displayName, termsAccepted, cookiePolicyAccepted }
     });
   }
 
   async healthCheck(): Promise<HealthCheckResponse> {
-    return this.request('/health', {
+    return this.request({
+      endpoint: '/health',
       method: 'GET'
     });
   }
 }
 
+// Export types for external use
+export type { RequestConfig, RequestInterceptor, ResponseInterceptor };
+
 // Export a singleton instance
 export const apiClient = new ApiClient();
+
+// Helper function to create strongly typed requests
+export function createTypedRequest<T>(
+  endpoint: string, 
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  schema?: z.ZodSchema<T>
+) {
+  return (additionalConfig: Omit<RequestConfig<T>, 'endpoint' | 'method' | 'schema'> = {}) => {
+    return apiClient.request<T>({
+      endpoint,
+      method,
+      schema,
+      ...additionalConfig
+    });
+  };
+}
