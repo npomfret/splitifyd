@@ -128,6 +128,8 @@ export class SomePage extends BasePage {
 - `expectUrl()` - Asserts URL matches pattern
 - `getUrlParam()` - Extracts parameters from URL
 
+Note: as the site does not yet automatically update when new data is available, it is often necessary to refresh the browser to see changes.
+
 ## Writing Tests
 
 ### Test Structure
@@ -235,8 +237,8 @@ src/tests/
 
 ### Critical: Fast Timeouts & Parallel Execution
 
-- **Action Timeout**: **1 second** - Forces fast, reliable selectors
-- **Global Timeout**: **10 seconds** - Entire test must complete quickly  
+- **Action Timeout**: **1.5 seconds** - Forces fast, reliable selectors
+- **Global Timeout**: **15 seconds** - Entire test must complete quickly
 - **Parallel Execution**: Tests run with **4 workers in parallel**
 - **Test Isolation Required**: Every test MUST work when run in any order with any other tests
 - **Browser Reuse**: Tests share browser contexts - NEVER assume clean state
