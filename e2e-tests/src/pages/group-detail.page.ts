@@ -92,6 +92,43 @@ export class GroupDetailPage extends BasePage {
     await this.fillPreactInput(categoryInput, text);
   }
 
+  // Currency selector accessors and methods
+  getCurrencySelector() {
+    // Currency selector uses div with role="combobox" (different from category input)
+    return this.page.locator('div[role="combobox"][aria-haspopup="listbox"]').first();
+  }
+
+  async selectCurrency(currencyCode: string) {
+    const currencySelector = this.getCurrencySelector();
+    await expect(currencySelector).toBeVisible();
+    
+    // Click to open the dropdown
+    await currencySelector.click();
+    
+    // Wait for the listbox to appear
+    await this.page.waitForSelector('[role="listbox"]', { timeout: 2000 });
+    
+    // Search for the currency if there's a search input visible
+    const searchInput = this.page.locator('[role="listbox"] input[type="text"]');
+    if (await searchInput.isVisible()) {
+      await this.fillPreactInput(searchInput, currencyCode);
+      await this.page.waitForTimeout(200); // Brief wait for search results
+    }
+    
+    // Click on the currency option - look for button with currency code
+    const currencyOption = this.page.getByRole('button').filter({ hasText: currencyCode }).first();
+    await expect(currencyOption).toBeVisible();
+    await currencyOption.click();
+  }
+
+  async getCurrencySelectorValue(): Promise<string> {
+    const currencySelector = this.getCurrencySelector();
+    const text = await currencySelector.textContent();
+    // Extract currency code from text like "$ USD United States Dollar"
+    const match = text?.match(/([A-Z]{3})/);
+    return match ? match[1] : '';
+  }
+
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
   }
@@ -402,8 +439,11 @@ export class GroupDetailPage extends BasePage {
     const amountField = this.getExpenseAmountField();
     await this.fillPreactInput(amountField, expense.amount.toString());
     
-    // TODO: Add currency selector when UI component is ready
-    // For now, the form defaults to USD
+    // Handle currency selection
+    if (expense.currency && expense.currency !== 'USD') {
+      await this.selectCurrency(expense.currency);
+    }
+    // If currency is USD or not specified, the form defaults to USD
     
     // Handle paidBy field - select who paid for the expense
     // The "Who paid?" section uses radio buttons inside label elements
