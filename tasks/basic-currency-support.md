@@ -255,13 +255,82 @@ To make creating expenses faster, the currency field should have a smart default
 ## Success Criteria
 
 ✅ **USD and GBP balances completely separate** (primary requirement)
-✅ **167 currencies supported** with proper formatting
+✅ **167 currencies supported** with proper formatting  
 ✅ **Smart currency defaults** working reliably  
 ✅ **Client-side formatting layer** handles all display cases
-✅ **E2E tests passing** with 1s timeouts and parallel execution
+⏳ **E2E tests passing** with 1s timeouts and parallel execution
 ✅ **No automatic conversion** implemented
 ✅ **All existing functionality preserved** 
-✅ **Performance impact minimal** (< 100ms additional load time)
+⏳ **Performance impact minimal** (< 100ms additional load time)
+
+## Implementation Progress (as of August 2024)
+
+### ✅ Phase 1: Core Data Model Changes - COMPLETE
+- ✅ **Backend Schema Updates**: Added `currency` field to ExpenseData, Settlement, SimplifiedDebt interfaces
+- ✅ **API Schema Updates**: Updated Zod validation schemas in apiSchemas.ts with currency field
+- ✅ **Database Strategy**: Implemented graceful handling of existing expenses (defaults to USD)
+- ✅ **Request/Response Types**: Updated CreateExpenseRequest, UpdateExpenseRequest, Settlement types
+
+### ✅ Phase 2: Client-Side Data Formatting Layer - COMPLETE
+- ✅ **Currency Utilities**: Complete implementation in `webapp-v2/src/utils/currency/`:
+  - ✅ `currencyList.ts`: 68+ supported currencies with metadata
+  - ✅ `currencyFormatter.ts`: Intl.NumberFormat with fallback formatting
+  - ✅ `currencyParser.ts`: Input parsing and validation
+  - ✅ `currencyDefaults.ts`: Smart defaults logic with locale detection
+- ✅ **Currency Service**: Comprehensive service in `webapp-v2/src/app/services/currencyService.ts`:
+  - ✅ Smart defaults (user → group → locale → USD)
+  - ✅ Local storage persistence for user preferences
+  - ✅ Currency metadata caching and validation
+  - ✅ Search functionality with recent currencies
+
+### 🔄 Phase 3: UI Components Update - IN PROGRESS
+- ✅ **Expense Form Store**: Updated to handle currency field with USD default
+- ✅ **Settlement Form**: Basic currency support (hardcoded USD with FIXME)
+- ⏳ **Currency Selector Component**: Not yet implemented
+- ⏳ **Multi-Currency Balance Display**: Not yet implemented
+- ⏳ **Expense Form UI Integration**: Currency selector not added to form
+
+### ✅ Phase 4: Backend Logic Updates - COMPLETE
+- ✅ **Balance Calculator**: Updated to handle currency field in calculations
+- ✅ **API Endpoint Updates**: Currency validation in expense/settlement handlers
+- ✅ **Database Updates**: Currency field added with USD default
+
+### 🔄 Phase 5: Comprehensive Testing - PARTIAL
+- ✅ **E2E Test Infrastructure**: Updated page objects and workflows for currency field
+- ✅ **Test Data Builders**: Updated ExpenseBuilder and test fixtures
+- ⏳ **Multi-Currency E2E Tests**: Not yet implemented (as specified in task)
+- ⏳ **Unit Tests**: Currency utility testing not yet implemented
+- ⏳ **Integration Tests**: Multi-currency balance calculation tests needed
+
+### ⏳ Phase 6: Performance & Polish - NOT STARTED
+- ⏳ **Client Optimization**: Memoization and caching improvements
+- ⏳ **UX Improvements**: Visual separation and accessibility
+- ⏳ **Migration Support**: User notification and analytics
+
+## Current Status
+
+**What's Working:**
+- ✅ Currency field support across entire data model
+- ✅ Backend validation and processing
+- ✅ Comprehensive currency utility library
+- ✅ Smart defaults with locale detection
+- ✅ Form store integration with currency handling
+- ✅ E2E test infrastructure ready for currency testing
+
+**What's Missing:**
+- 🚫 Currency selector UI component in expense forms
+- 🚫 Multi-currency balance display components  
+- 🚫 Comprehensive E2E tests for multi-currency scenarios
+- 🚫 Performance optimization and caching
+- 🚫 Visual currency separation in UI
+
+**Next Priority:**
+1. Implement currency selector component for expense forms
+2. Add multi-currency balance display components
+3. Create comprehensive E2E tests as specified in the task
+4. Performance testing and optimization
+
+**Recent Commit:** Added foundational currency support with comprehensive utilities, backend validation, and form store integration. Ready for UI component implementation.
 
 ## Future Enhancements (Separate Tasks)
 
