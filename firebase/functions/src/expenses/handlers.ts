@@ -144,6 +144,7 @@ export const createExpense = async (
     createdBy: userId,
     paidBy: expenseData.paidBy,
     amount: expenseData.amount,
+    currency: expenseData.currency,
     description: expenseData.description,
     category: expenseData.category,
     date: parseISOToTimestamp(expenseData.date) || createServerTimestamp(),
@@ -228,6 +229,7 @@ export const getExpense = async (
     createdBy: expense.createdBy,
     paidBy: expense.paidBy,
     amount: expense.amount,
+    currency: expense.currency || 'USD',
     description: expense.description,
     category: expense.category,
     date: timestampToISO(expense.date),
@@ -361,6 +363,7 @@ export const updateExpense = async (
       createdBy: updatedExpense.createdBy,
       paidBy: updatedExpense.paidBy,
       amount: updatedExpense.amount,
+      currency: updatedExpense.currency || 'USD',
       category: updatedExpense.category,
       description: updatedExpense.description,
       date: timestampToISO(updatedExpense.date),
@@ -467,7 +470,7 @@ export const listGroupExpenses = async (
 
   let query = getExpensesCollection()
     .where('groupId', '==', groupId)
-    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'currency', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
@@ -506,6 +509,7 @@ export const listGroupExpenses = async (
         createdBy: data.createdBy,
         paidBy: data.paidBy,
         amount: data.amount,
+        currency: data.currency || 'USD',
         description: data.description,
         category: data.category,
         date: timestampToISO(data.date),
@@ -551,7 +555,7 @@ export const listUserExpenses = async (
 
   let query = getExpensesCollection()
     .where('memberIds', 'array-contains', userId)
-    .select('groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
+    .select('groupId', 'createdBy', 'paidBy', 'amount', 'currency', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'receiptUrl', 'createdAt', 'updatedAt', 'memberIds', 'deletedAt', 'deletedBy')
     .orderBy('date', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit + 1);
@@ -590,6 +594,7 @@ export const listUserExpenses = async (
         createdBy: data.createdBy,
         paidBy: data.paidBy,
         amount: data.amount,
+        currency: data.currency || 'USD',
         description: data.description,
         category: data.category,
         date: timestampToISO(data.date),

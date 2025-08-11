@@ -116,7 +116,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       await page2.getByRole('button', { name: /logout|sign out/i }).click();
       
       // Wait for logout to complete
-      await page2.waitForURL((url: URL) => !url.toString().includes('/dashboard'), { timeout: 5000 });
+      await page2.waitForURL(url => !url.toString().includes('/dashboard'), { timeout: 5000 });
       
       // Now test login + join flow
       await multiUserWorkflow.joinGroupViaShareLinkWithLogin(page2, shareLink, user2);

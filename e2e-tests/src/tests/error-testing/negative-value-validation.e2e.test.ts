@@ -107,6 +107,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
       description: 'Test expense for settlement',
       amount: 100,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     

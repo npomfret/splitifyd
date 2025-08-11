@@ -17,6 +17,7 @@ export interface Expense {
   createdBy: string;
   paidBy: string;
   amount: number;
+  currency: string;
   description: string;
   category: string;
   date: admin.firestore.Timestamp | Date;
@@ -82,6 +83,7 @@ const createExpenseSchema = Joi.object({
   groupId: Joi.string().required(),
   paidBy: Joi.string().required(),
   amount: Joi.number().positive().required(),
+  currency: Joi.string().length(3).uppercase().required(),
   description: Joi.string().trim().min(1).max(200).required(),
   category: Joi.string().trim().min(1).max(50).required(),
   date: dateValidationSchema.required(),
@@ -93,6 +95,7 @@ const createExpenseSchema = Joi.object({
 
 const updateExpenseSchema = Joi.object({
   amount: Joi.number().positive().optional(),
+  currency: Joi.string().length(3).uppercase().optional(),
   description: Joi.string().trim().min(1).max(200).optional(),
   category: Joi.string().trim().min(1).max(50).optional(),
   date: dateValidationSchema.optional(),
@@ -214,6 +217,7 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
     groupId: value.groupId.trim(),
     paidBy: value.paidBy.trim(),
     amount: value.amount,
+    currency: value.currency,
     description: value.description.trim(),
     category: value.category,
     date: value.date,
@@ -264,6 +268,10 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
 
   if ('amount' in value) {
     update.amount = value.amount;
+  }
+
+  if ('currency' in value) {
+    update.currency = value.currency;
   }
 
   if ('description' in value) {

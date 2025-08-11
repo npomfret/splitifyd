@@ -18,6 +18,30 @@ vi.mock('../../ui/CategorySuggestionInput', () => ({
   )
 }));
 
+// Mock the CurrencySelector component
+vi.mock('../../ui/CurrencySelector', () => ({
+  CurrencySelector: ({ value, onChange, label }: any) => (
+    <div data-testid="currency-selector">
+      <label>{label}</label>
+      <select value={value} onChange={(e) => onChange((e.target as HTMLSelectElement).value)}>
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        <option value="GBP">GBP</option>
+      </select>
+    </div>
+  )
+}));
+
+// Mock the currency service
+vi.mock('../../../app/services/currencyService', () => ({
+  CurrencyService: {
+    getInstance: () => ({
+      getRecentCurrencies: () => ['USD', 'EUR', 'GBP'],
+      addToRecentCurrencies: vi.fn()
+    })
+  }
+}));
+
 describe('ExpenseBasicFields', () => {
   const mockUpdateField = vi.fn();
   const mockHandleAmountChange = vi.fn();
@@ -32,6 +56,7 @@ describe('ExpenseBasicFields', () => {
   const defaultProps = {
     description: '',
     amount: '',
+    currency: 'USD',
     date: '2024-01-15',
     category: '',
     validationErrors: {},

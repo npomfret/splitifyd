@@ -11,4 +11,5 @@ export { Stack } from './Stack';
 export { Avatar } from './Avatar';
 export { ConfirmDialog } from './ConfirmDialog';
 export { CategorySuggestionInput } from './CategorySuggestionInput';
+export { CurrencySelector } from './CurrencySelector';
 export { SidebarCard } from './SidebarCard';

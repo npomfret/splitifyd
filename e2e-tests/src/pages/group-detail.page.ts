@@ -5,6 +5,7 @@ import { HEADINGS, BUTTON_TEXTS, MESSAGES, FORM_LABELS, ARIA_ROLES } from '../co
 interface ExpenseData {
   description: string;
   amount: number;
+  currency: string; // Required: must be explicitly provided
   paidBy: string;
   splitType: 'equal' | 'exact' | 'percentage';
   participants?: string[]; // Optional: if not provided, selects all members
@@ -63,11 +64,15 @@ export class GroupDetailPage extends BasePage {
   }
 
   getCategorySelect() {
-    return this.page.getByRole('combobox').first();
+    // Category input is an actual input element with aria-haspopup
+    // (not the currency selector which is a div with role=combobox)
+    return this.page.locator('input[aria-haspopup="listbox"]').first();
   }
 
   getCategoryInput() {
-    return this.page.getByRole('combobox').first();
+    // Category input is an actual input element with aria-haspopup
+    // (not the currency selector which is a div with role=combobox)
+    return this.page.locator('input[aria-haspopup="listbox"]').first();
   }
 
   getCategorySuggestion(text: string) {
@@ -85,6 +90,43 @@ export class GroupDetailPage extends BasePage {
   async typeCategoryText(text: string) {
     const categoryInput = this.getCategoryInput();
     await this.fillPreactInput(categoryInput, text);
+  }
+
+  // Currency selector accessors and methods
+  getCurrencySelector() {
+    // Currency selector uses div with role="combobox" (different from category input)
+    return this.page.locator('div[role="combobox"][aria-haspopup="listbox"]').first();
+  }
+
+  async selectCurrency(currencyCode: string) {
+    const currencySelector = this.getCurrencySelector();
+    await expect(currencySelector).toBeVisible();
+    
+    // Click to open the dropdown
+    await currencySelector.click();
+    
+    // Wait for the listbox to appear
+    await this.page.waitForSelector('[role="listbox"]', { timeout: 2000 });
+    
+    // Search for the currency if there's a search input visible
+    const searchInput = this.page.locator('[role="listbox"] input[type="text"]');
+    if (await searchInput.isVisible()) {
+      await this.fillPreactInput(searchInput, currencyCode);
+      await this.page.waitForTimeout(200); // Brief wait for search results
+    }
+    
+    // Click on the currency option - look for button with currency code
+    const currencyOption = this.page.getByRole('button').filter({ hasText: currencyCode }).first();
+    await expect(currencyOption).toBeVisible();
+    await currencyOption.click();
+  }
+
+  async getCurrencySelectorValue(): Promise<string> {
+    const currencySelector = this.getCurrencySelector();
+    const text = await currencySelector.textContent();
+    // Extract currency code from text like "$ USD United States Dollar"
+    const match = text?.match(/([A-Z]{3})/);
+    return match ? match[1] : '';
   }
 
   getSaveExpenseButton() {
@@ -396,6 +438,12 @@ export class GroupDetailPage extends BasePage {
     
     const amountField = this.getExpenseAmountField();
     await this.fillPreactInput(amountField, expense.amount.toString());
+    
+    // Handle currency selection
+    if (expense.currency && expense.currency !== 'USD') {
+      await this.selectCurrency(expense.currency);
+    }
+    // If currency is USD or not specified, the form defaults to USD
     
     // Handle paidBy field - select who paid for the expense
     // The "Who paid?" section uses radio buttons inside label elements

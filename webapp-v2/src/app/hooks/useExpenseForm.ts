@@ -29,6 +29,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
   // Form field values
   const description = useComputed(() => expenseFormStore.description);
   const amount = useComputed(() => expenseFormStore.amount);
+  const currency = useComputed(() => expenseFormStore.currency);
   const date = useComputed(() => expenseFormStore.date);
   const paidBy = useComputed(() => expenseFormStore.paidBy);
   const category = useComputed(() => expenseFormStore.category);
@@ -65,6 +66,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
               // Populate form with existing expense data
               expenseFormStore.updateField('description', expense.description);
               expenseFormStore.updateField('amount', expense.amount);
+              expenseFormStore.updateField('currency', expense.currency || 'USD');
               expenseFormStore.updateField('date', expense.date.split('T')[0]); // Extract date part
               expenseFormStore.updateField('paidBy', expense.paidBy);
               expenseFormStore.updateField('category', expense.category);
@@ -201,6 +203,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
     // Form values
     description: description.value,
     amount: amount.value,
+    currency: currency.value,
     date: date.value,
     paidBy: paidBy.value,
     category: category.value,

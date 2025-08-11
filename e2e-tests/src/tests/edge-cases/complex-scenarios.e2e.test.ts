@@ -48,6 +48,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       description: 'Beach House Rental',
       amount: 800.00,
       paidBy: alice.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -57,6 +58,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       description: 'Restaurant Dinner',
       amount: 120.00,
       paidBy: bob.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     

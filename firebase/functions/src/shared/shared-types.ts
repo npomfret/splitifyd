@@ -272,6 +272,7 @@ export interface ExpenseData {
   createdBy: string;
   paidBy: string;
   amount: number;
+  currency: string;
   description: string;
   category: string;
   date: string;  // ISO string
@@ -289,6 +290,7 @@ export interface CreateExpenseRequest {
   groupId: string;
   description: string;
   amount: number;
+  currency: string;
   paidBy: string;
   category: string;
   date: string;
@@ -301,6 +303,7 @@ export interface CreateExpenseRequest {
 export interface UpdateExpenseRequest {
   description?: string;
   amount?: number;
+  currency?: string;
   paidBy?: string;
   category?: string;
   date?: string;
@@ -320,6 +323,7 @@ export interface Settlement {
   payerId: string;
   payeeId: string;
   amount: number;
+  currency: string;
   date: string;  // ISO string
   note?: string | undefined;
   createdBy: string;
@@ -332,12 +336,14 @@ export interface CreateSettlementRequest {
   payerId: string;
   payeeId: string;
   amount: number;
+  currency: string;
   date?: string;  // ISO string, defaults to today
   note?: string;
 }
 
 export interface UpdateSettlementRequest {
   amount?: number;
+  currency?: string;
   date?: string;
   note?: string;
 }
@@ -348,6 +354,7 @@ export interface SettlementListItem {
   payer: User;
   payee: User;
   amount: number;
+  currency: string;
   date: string;
   note?: string;
   createdAt: string;
@@ -365,6 +372,7 @@ export interface SimplifiedDebt {
     userId: string;
   };
   amount: number;
+  currency: string;
 }
 
 export interface GroupBalances {

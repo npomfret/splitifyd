@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from '../../utils/dateUtils';
 import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
 import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/shared/shared-types';
+import { formatCurrency } from '../../utils/currency';
 
 interface ExpenseItemProps {
   expense: ExpenseData;
@@ -43,7 +44,7 @@ export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
         </div>
         <div className="text-right">
           <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>
-            ${expense.amount.toFixed(2)}
+            {formatCurrency(expense.amount, expense.currency || 'USD')}
           </p>
           <p className="text-xs text-gray-500">{expense.category}</p>
         </div>
