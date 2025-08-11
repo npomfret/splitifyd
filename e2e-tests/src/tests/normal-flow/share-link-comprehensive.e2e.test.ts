@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { multiUserTest } from '../../fixtures/multi-user-test';
+import { mixedAuthTest, singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
+import { fourUserTest } from '../../fixtures/multi-user-declarative';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
 import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
 import { AuthenticationWorkflow } from '../../workflows/authentication.workflow';
@@ -69,42 +71,36 @@ test.describe('Comprehensive Share Link Testing', () => {
   });
 
   test.describe('Share Link - Not Logged In User', () => {
-    test('should redirect non-logged-in user to login then to group after login', async ({ browser }) => {
-      // Create a logged-in user to create the group
-      const context1 = await browser.newContext();
-      const page1 = await context1.newPage();
-      const user1 = await AuthenticationWorkflow.createTestUser(page1);
+    singleMixedAuthTest('should redirect non-logged-in user to login then to group after login', async ({ 
+      authenticatedUsers, 
+      unauthenticatedUsers 
+    }) => {
+      const { page: page1, user: user1 } = authenticatedUsers[0];
+      const { page: page2, joinGroupPage } = unauthenticatedUsers[0];
       
-      // Create group
+      // Create group with authenticated user
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
       const groupId = await groupWorkflow.createGroup(`Login Required Test ${uniqueId}`, 'Testing login requirement');
       
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);
-
-      // Create a second user (but don't log them in yet)
-      const context2 = await browser.newContext();
-      const page2 = await context2.newPage();
       
       // Navigate to share link while not logged in
-      const joinGroupPage = new JoinGroupPage(page2);
       const result = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
       
       expect(result.success).toBe(false);
       expect(result.needsLogin).toBe(true);
       expect(result.reason).toContain('log in');
-
-      // Clean up
-      await context1.close();
-      await context2.close();
     });
 
-    test('should allow user to join group after logging in from share link', async ({ browser }) => {
-      // Create user1 and group
-      const context1 = await browser.newContext();
-      const page1 = await context1.newPage();
-      const user1 = await AuthenticationWorkflow.createTestUser(page1);
+    mixedAuthTest.use({ authenticatedUserCount: 1, unauthenticatedUserCount: 1 });
+    mixedAuthTest('should allow user to join group after logging in from share link', async ({ 
+      authenticatedUsers,
+      unauthenticatedUsers 
+    }) => {
+      const { page: page1, user: user1 } = authenticatedUsers[0];
+      const { page: page2 } = unauthenticatedUsers[0];
       
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
@@ -113,9 +109,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);
 
-      // Create user2 (registered but not currently logged in)
-      const context2 = await browser.newContext();
-      const page2 = await context2.newPage();
+      // Create and register user2 (but log them out)
       const authWorkflow = new AuthenticationWorkflow(page2);
       const user2 = await authWorkflow.createAndLoginTestUser();
       
@@ -133,10 +127,6 @@ test.describe('Comprehensive Share Link Testing', () => {
       await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
       const groupDetailPage2 = new GroupDetailPage(page2);
       await groupDetailPage2.waitForMemberCount(2);
-
-      // Clean up
-      await context1.close();
-      await context2.close();
     });
   });
 
@@ -181,11 +171,12 @@ test.describe('Comprehensive Share Link Testing', () => {
   });
 
   test.describe('Share Link - Reliability Testing', () => {
-    multiUserTest('should work reliably with multiple rapid joins', async ({ 
-      authenticatedPage, 
-      groupDetailPage 
+    fourUserTest('should work reliably with multiple rapid joins', async ({ 
+      users
     }) => {
-      const { page: creatorPage, user: creator } = authenticatedPage;
+      const creatorUser = users[0];
+      const { page: creatorPage, user: creator } = creatorUser;
+      const groupDetailPage = creatorUser.pages.groupDetail;
       
       // Create group
       const uniqueId = generateShortId();
@@ -195,39 +186,25 @@ test.describe('Comprehensive Share Link Testing', () => {
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
 
-      // Create multiple users and have them join rapidly
-      const browser = creatorPage.context().browser()!;
-      const joinPromises: Promise<void>[] = [];
-      const contexts: any[] = [];
-
-      for (let i = 0; i < 3; i++) {
-        const context = await browser.newContext();
-        contexts.push(context);
-        const page = await context.newPage();
-        const user = await AuthenticationWorkflow.createTestUser(page);
-        
-        joinPromises.push(
-          multiUserWorkflow.joinGroupViaShareLink(page, shareLink, user)
-        );
-      }
+      // Have the other 3 users join rapidly
+      const joinPromises = users.slice(1).map(userFixture => 
+        multiUserWorkflow.joinGroupViaShareLink(userFixture.page, shareLink, userFixture.user)
+      );
 
       // Wait for all joins to complete
       await Promise.all(joinPromises);
 
       // Verify all users joined
       await groupDetailPage.waitForMemberCount(4); // Creator + 3 joiners
-
-      // Clean up
-      for (const context of contexts) {
-        await context.close();
-      }
     });
 
     multiUserTest('should recover from network interruptions during join', async ({ 
       authenticatedPage, 
-      groupDetailPage 
+      groupDetailPage,
+      secondUser 
     }) => {
       const { page: creatorPage } = authenticatedPage;
+      const { page: page2, user: user2, groupDetailPage: groupDetailPage2 } = secondUser;
       
       // Create group
       const uniqueId = generateShortId();
@@ -236,12 +213,6 @@ test.describe('Comprehensive Share Link Testing', () => {
 
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
-
-      // Create second user
-      const browser = creatorPage.context().browser()!;
-      const context2 = await browser.newContext();
-      const page2 = await context2.newPage();
-      const user2 = await AuthenticationWorkflow.createTestUser(page2);
 
       // Simulate network interruption by going offline briefly
       await page2.context().setOffline(true);
@@ -257,19 +228,16 @@ test.describe('Comprehensive Share Link Testing', () => {
       
       // Verify join succeeded
       await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-      const groupDetailPage2 = new GroupDetailPage(page2);
       await groupDetailPage2.waitForMemberCount(2);
-
-      await context2.close();
     });
   });
 
   test.describe('Share Link - Edge Cases', () => {
     // Test deleted - group deletion not implemented yet
     
-    test('should handle multiple share link operations', async ({ page }) => {
-      // Create multiple groups and get their share links
-      const user = await AuthenticationWorkflow.createTestUser(page);
+    multiUserTest('should handle multiple share link operations', async ({ authenticatedPage }) => {
+      const { page } = authenticatedPage;
+      // User is already authenticated via fixture
       const groupWorkflow = new GroupWorkflow(page);
       const multiUserWorkflow = new MultiUserWorkflow(null);
       
