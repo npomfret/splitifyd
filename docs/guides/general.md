@@ -6,6 +6,8 @@ This document defines the rules, standards, and best practices.
 
 ## General
 
+* Only do EXACTLY what you were asked to do. No more, no less.  If you have ideas, suggest them BUT DO NOT IMPLEMENT THEM.
+* Strive for elegance, not simplicity.
 * Always run `pwd` before running any shell commands to confirm your working directory
 * NEVER ever take over the system default browser.  Always use chromium.
 
