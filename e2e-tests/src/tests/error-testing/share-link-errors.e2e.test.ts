@@ -5,7 +5,7 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Share Link Error Handling', () => {
-  test('should handle invalid share links', async ({ authenticatedPage, groupDetailPage }) => {
+  test('should handle invalid share links', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     
     const invalidShareLink = `${page.url().split('/dashboard')[0]}/join?linkId=invalid-group-id`;

@@ -4,6 +4,8 @@ export { Form } from './Form';
 export { Card } from './Card';
 export { Alert } from './Alert';
 export { LoadingSpinner } from './LoadingSpinner';
+export { LoadingState } from './LoadingState';
+export { ErrorState } from './ErrorState';
 export { Container } from './Container';
 export { Stack } from './Stack';
 export { Avatar } from './Avatar';

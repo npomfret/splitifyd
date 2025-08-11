@@ -111,6 +111,10 @@ test.describe('Single User Balance Visualization', () => {
       splitType: 'equal'
     });
     
+    // Refresh to ensure UI is updated (matches pattern from other tests)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    
     // Check for currency formatting in expense section
     await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();
     

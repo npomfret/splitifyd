@@ -99,7 +99,10 @@ function buildUrl(endpoint: string, params?: Record<string, string>, query?: Rec
   // Replace path parameters
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      url = url.replace(`:${key}`, value);
+      // Ensure value is a string and not undefined/null
+      if (value !== undefined && value !== null) {
+        url = url.replace(`:${key}`, String(value));
+      }
     });
   }
   
@@ -107,8 +110,8 @@ function buildUrl(endpoint: string, params?: Record<string, string>, query?: Rec
   if (query) {
     const searchParams = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value);
+      if (value !== undefined && value !== null && value !== '') {
+        searchParams.append(key, String(value));
       }
     });
     const queryString = searchParams.toString();
