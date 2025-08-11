@@ -403,3 +403,6 @@ export const api = onRequest({
   app(req, res);
 });
 
+// Phase 1 Streaming Infrastructure: Change detection and cleanup
+export { trackGroupChanges, trackExpenseChanges } from './triggers/change-tracker';
+export { cleanupChanges, manualCleanupChanges } from './scheduled/cleanup';

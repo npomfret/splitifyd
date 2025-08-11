@@ -119,6 +119,37 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    // Change detection collections - for real-time notifications (Phase 1 Streaming)
+    match /group-changes/{changeId} {
+      // Allow read if user is authenticated, change is recent (5 minutes), and user is affected
+      allow read: if request.auth != null && 
+        resource.data.timestamp > request.time.toMillis() - (5 * 60 * 1000) &&
+        request.auth.uid in resource.data.metadata.affectedUsers;
+      
+      // Only server functions can write changes
+      allow write: if false;
+    }
+    
+    match /expense-changes/{changeId} {
+      // Allow read if user is authenticated, change is recent (5 minutes), and user is affected
+      allow read: if request.auth != null && 
+        resource.data.timestamp > request.time.toMillis() - (5 * 60 * 1000) &&
+        request.auth.uid in resource.data.metadata.affectedUsers;
+      
+      // Only server functions can write changes
+      allow write: if false;
+    }
+    
+    match /balance-changes/{changeId} {
+      // Allow read if user is authenticated, change is recent (5 minutes), and user is affected
+      allow read: if request.auth != null && 
+        resource.data.timestamp > request.time.toMillis() - (5 * 60 * 1000) &&
+        request.auth.uid in resource.data.metadata.affectedUsers;
+      
+      // Only server functions can write changes
+      allow write: if false;
+    }
+    
     // Default deny rule for any other collections
     match /{document=**} {
       allow read, write: if false;
