@@ -1,4 +1,3 @@
-import { Page } from '@playwright/test';
 import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/types/webapp-shared-types";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
@@ -50,8 +49,9 @@ export class UserPool {
   /**
    * Claim a user from the pool.
    * If pool is empty, creates a new user on-demand.
+   * @param browser - The browser instance to use for creating users if needed
    */
-  async claimUser(page: Page): Promise<BaseUser> {
+  async claimUser(browser: any): Promise<BaseUser> {
     // Try to get an existing user from the pool
     let user = this.availableUsers.pop();
     
@@ -60,7 +60,7 @@ export class UserPool {
     } else {
       // Pool is empty, create a new user on-demand
       // console.log(`🔨 Creating new user on-demand`);
-      user = await this.createUser(page, 'u');
+      user = await this.createUser(browser, 'u');
       // console.log(`✅ Created new user: ${user.email}`);
     }
     
@@ -94,11 +94,11 @@ export class UserPool {
    * This is now optional - the pool works fine with on-demand creation.
    * @deprecated Consider removing this method entirely
    */
-  async preWarmPool(page: Page, count: number): Promise<void> {
+  async preWarmPool(browser: any, count: number): Promise<void> {
     console.log(`🔥 Pre-warming pool with ${count} users (optional optimization)...`);
     
     for (let i = 0; i < count; i++) {
-      const user = await this.createUser(page, `prewarm-${i}`);
+      const user = await this.createUser(browser, `prewarm-${i}`);
       this.availableUsers.push(user);
       console.log(`✅ Created pool user ${i + 1}/${count}: ${user.email}`);
     }
@@ -107,46 +107,56 @@ export class UserPool {
   }
 
   /**
-   * Create a new test user.
+   * Create a new test user using a temporary browser context.
+   * The temporary context is closed after user creation to avoid empty browser windows.
    */
-  private async createUser(page: Page, prefix: string): Promise<BaseUser> {
+  private async createUser(browser: any, prefix: string): Promise<BaseUser> {
     const uniqueId = generateShortId();
     const displayName = generateTestUserName('Pool');
     const email = generateTestEmail(prefix);
     const password = 'TestPassword123!';
 
-    // Navigate to register page with full URL
-    await page.goto(`${EMULATOR_URL}/register`);
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for form to be visible
-    await page.waitForSelector('input[placeholder="Enter your full name"]');
-    
-    // Fill registration form
-    await page.fill('input[placeholder="Enter your full name"]', displayName);
-    await page.fill('input[placeholder="Enter your email"]', email);
-    await page.fill('input[placeholder="Create a strong password"]', password);
-    await page.fill('input[placeholder="Confirm your password"]', password);
-    
-    // Check both terms and cookie policy checkboxes (first and last)
-    await page.locator('input[type="checkbox"]').first().check();
-    await page.locator('input[type="checkbox"]').last().check();
-    
-    // Submit form
-    await page.click('button:has-text("Create Account")');
-    
-    // Wait for redirect to dashboard
-    await page.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
-    
-    // Logout so the page is ready for the next user creation
-    await page.click(`button:has-text("${displayName}")`);
-    await page.waitForSelector('text=Sign out', { timeout: TIMEOUTS.EXTENDED });
-    await page.click('text=Sign out');
-    
-    // Wait for logout to complete
-    await page.waitForURL(url => !url.toString().includes('/dashboard'), { 
-      timeout: TIMEOUTS.EXTENDED * 2 
-    });
+    // Create a temporary context and page for user registration
+    const tempContext = await browser.newContext();
+    const tempPage = await tempContext.newPage();
+
+    try {
+      // Navigate to register page with full URL
+      await tempPage.goto(`${EMULATOR_URL}/register`);
+      await tempPage.waitForLoadState('networkidle');
+      
+      // Wait for form to be visible
+      await tempPage.waitForSelector('input[placeholder="Enter your full name"]');
+      
+      // Fill registration form
+      await tempPage.fill('input[placeholder="Enter your full name"]', displayName);
+      await tempPage.fill('input[placeholder="Enter your email"]', email);
+      await tempPage.fill('input[placeholder="Create a strong password"]', password);
+      await tempPage.fill('input[placeholder="Confirm your password"]', password);
+      
+      // Check both terms and cookie policy checkboxes (first and last)
+      await tempPage.locator('input[type="checkbox"]').first().check();
+      await tempPage.locator('input[type="checkbox"]').last().check();
+      
+      // Submit form
+      await tempPage.click('button:has-text("Create Account")');
+      
+      // Wait for redirect to dashboard
+      await tempPage.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
+      
+      // Logout so the user can be used later
+      await tempPage.click(`button:has-text("${displayName}")`);
+      await tempPage.waitForSelector('text=Sign out', { timeout: TIMEOUTS.EXTENDED });
+      await tempPage.click('text=Sign out');
+      
+      // Wait for logout to complete
+      await tempPage.waitForURL((url: URL) => !url.toString().includes('/dashboard'), { 
+        timeout: TIMEOUTS.EXTENDED * 2 
+      });
+    } finally {
+      // Always close the temporary context to avoid empty browser windows
+      await tempContext.close();
+    }
     
     return {
       uid: uniqueId,

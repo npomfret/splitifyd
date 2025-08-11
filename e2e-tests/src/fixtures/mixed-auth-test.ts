@@ -49,7 +49,7 @@ async function createAuthenticatedUser(browser: any): Promise<{
   const context = await browser.newContext();
   const page = await context.newPage();
   const userPool = getUserPool();
-  const user = await userPool.claimUser(page);
+  const user = await userPool.claimUser(browser);  // Pass browser instead of page
   
   const authWorkflow = new AuthenticationWorkflow(page);
   await authWorkflow.loginExistingUser(user);

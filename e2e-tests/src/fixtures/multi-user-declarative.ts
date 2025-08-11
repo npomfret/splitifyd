@@ -48,11 +48,17 @@ function createPageObjects(page: Page): PageObjects {
   };
 }
 
-async function createUserFixture(browser: any): Promise<UserFixture> {
-  const context = await browser.newContext();
-  const page = await context.newPage();
+async function createUserFixture(
+  browser: any, 
+  existingPage?: Page, 
+  existingContext?: BrowserContext
+): Promise<UserFixture> {
+  // Use existing page/context if provided (for primary user), otherwise create new ones
+  const context = existingContext || await browser.newContext();
+  const page = existingPage || await context.newPage();
+  
   const userPool = getUserPool();
-  const user = await userPool.claimUser(page);
+  const user = await userPool.claimUser(browser);  // Pass browser instead of page
   
   const authWorkflow = new AuthenticationWorkflow(page);
   await authWorkflow.loginExistingUser(user);
@@ -68,21 +74,37 @@ async function createUserFixture(browser: any): Promise<UserFixture> {
 export const multiUserTest = base.extend<MultiUserFixtures>({
   userCount: 1,
   
-  users: async ({ browser, userCount }, use) => {
+  users: async ({ browser, userCount, page, context }, use) => {
     const users: UserFixture[] = [];
     const userPool = getUserPool();
     
     try {
-      const userPromises = Array.from({ length: userCount }, () => createUserFixture(browser));
+      // For the first user, reuse the default Playwright page/context
+      // For additional users, create new contexts
+      const userPromises: Promise<UserFixture>[] = [];
+      
+      for (let i = 0; i < userCount; i++) {
+        if (i === 0) {
+          // First user: reuse default page/context
+          userPromises.push(createUserFixture(browser, page, context));
+        } else {
+          // Additional users: create new contexts
+          userPromises.push(createUserFixture(browser));
+        }
+      }
+      
       const createdUsers = await Promise.all(userPromises);
       users.push(...createdUsers);
       
       await use(users);
       
     } finally {
-      await Promise.all(users.map(async ({ context, user }) => {
+      await Promise.all(users.map(async ({ context, user }, index) => {
         userPool.releaseUser(user);
-        await context.close();
+        // Don't close the default context (index 0), Playwright will handle it
+        if (index > 0) {
+          await context.close();
+        }
       }));
     }
   },
