@@ -14,7 +14,7 @@ import {
   Group,
   GroupWithBalance,
 } from '../types/group-types';
-import { UserBalance, FirestoreCollections } from '../types/webapp-shared-types';
+import { UserBalance, FirestoreCollections } from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';

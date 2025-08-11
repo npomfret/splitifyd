@@ -1,15 +1,13 @@
 # Commit
 
-First read all the files in @docs/guides
+- [ ] read all the files in @docs/guides
+- [ ] use the git cli to view and analyse this **entier** changeset
+- [ ] have we violated any of the rules or patterns? if so: **STOP**
 
-Use the git cli to view and analyse this **entier** changeset.
+If it's ok:
 
-Have we violated any of the rules or patterns?
-
-If not, compose a detailed commit message, do not commit the code.
-
-There should be no untracked files! Either:
-
-- add them to git if they are needed
-- delete them
-- in special cases new some files should be git ignored - but always ask first
+- [ ] compose a detailed commit message (**do not commit the code**), but do not list out EVERY change
+- [ ] there should be no untracked files. Either:
+  - if they are needed: add them to git
+  - otherwise: delete them
+  - in special cases new some files should be _git ignored_ - but always ask first

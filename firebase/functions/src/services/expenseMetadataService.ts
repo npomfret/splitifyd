@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { FirestoreCollections } from '../types/webapp-shared-types';
+import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 
 export interface ExpenseMetadata {

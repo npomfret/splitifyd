@@ -5,7 +5,7 @@
 import {ApiDriver, User} from '../support/ApiDriver';
 import {PerformanceTestWorkers} from './PerformanceTestWorkers';
 import {ExpenseBuilder, UserBuilder} from '../support/builders';
-import type {Group} from "../../src/types/webapp-shared-types";
+import type {Group} from "../../src/shared/shared-types";
 
 describe('Performance - Response Time Benchmarks', () => {
     let driver: ApiDriver;

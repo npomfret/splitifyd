@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { DashboardPage, CreateGroupModalPage } from '../pages';
 import { AuthenticationWorkflow } from './authentication.workflow';
-import type {User as BaseUser} from "@shared/types/webapp-shared-types.ts";
+import type {User as BaseUser} from "@shared/shared-types";
 import { generateTestGroupName } from '../utils/test-helpers';
 
 export interface TestGroup {

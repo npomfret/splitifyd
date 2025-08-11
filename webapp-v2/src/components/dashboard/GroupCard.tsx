@@ -1,4 +1,4 @@
-import type { Group } from '@shared/types/webapp-shared-types';
+import type { Group } from '@shared/shared-types';
 import { Card } from '../ui';
 
 interface GroupCardProps {

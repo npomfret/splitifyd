@@ -1,4 +1,4 @@
-import type {ExpenseData, Group, User as BaseUser} from '../../src/types/webapp-shared-types';
+import type {ExpenseData, Group, User as BaseUser} from '../../src/shared/shared-types';
 import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
 
 // Test-specific extension of User to include auth token

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'preact/hooks';
-import type { ExpenseCategory } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import type { ExpenseCategory } from '../../../../firebase/functions/src/shared/shared-types';
 
 interface CategorySuggestionInputProps {
   value: string;

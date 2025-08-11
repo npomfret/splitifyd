@@ -1,5 +1,5 @@
 /**
- * Group types - Re-exported from webapp-shared-types.ts to avoid duplication
+ * Group types - Re-exported from shared-types.ts to avoid duplication
  */
 
 export {
@@ -8,7 +8,7 @@ export {
   CreateGroupRequest,
   User,
   UserBalance
-} from './webapp-shared-types';
+} from '../shared/shared-types';
 
 export {
   GroupWithBalance,

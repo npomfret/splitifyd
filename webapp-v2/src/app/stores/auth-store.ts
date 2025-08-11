@@ -5,7 +5,7 @@ import { firebaseService } from '../firebase';
 import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '../../constants';
 import { logError } from '../../utils/browser-logger';
-import { AuthErrors } from '@shared/types/webapp-shared-types';
+import { AuthErrors } from '@shared/shared-types';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);

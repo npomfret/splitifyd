@@ -5,7 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder, GroupBuilder } from '../support/builders';
-import { PREDEFINED_EXPENSE_CATEGORIES } from '../../src/types/webapp-shared-types';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '../../src/shared/shared-types';
 
 describe('Freeform Categories API Integration', () => {
   let driver: ApiDriver;

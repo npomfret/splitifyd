@@ -4,7 +4,7 @@ import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, getRecentAmounts } from '../stores/expense-form-store';
 import { groupDetailStore } from '../stores/group-detail-store';
 import { apiClient } from '../apiClient';
-import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/types/webapp-shared-types';
+import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/shared-types';
 import { logError } from '../../utils/browser-logger';
 import { useAuth } from './useAuth';
 

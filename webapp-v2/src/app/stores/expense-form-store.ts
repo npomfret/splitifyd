@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit, SplitTypes, PREDEFINED_EXPENSE_CATEGORIES} from '../../../../firebase/functions/src/types/webapp-shared-types';
+import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit, SplitTypes, PREDEFINED_EXPENSE_CATEGORIES} from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';

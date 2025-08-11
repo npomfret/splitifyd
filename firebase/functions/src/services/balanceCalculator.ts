@@ -4,7 +4,7 @@ import { GroupBalance } from '../models/groupBalance';
 import { logger } from '../logger';
 import { db } from '../firebase';
 import { userService } from './userService';
-import { FirestoreCollections, DELETED_AT_FIELD } from '../types/webapp-shared-types';
+import { FirestoreCollections, DELETED_AT_FIELD } from '../shared/shared-types';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
     logger.info('[BalanceCalculator] Calculating balances', { groupId });

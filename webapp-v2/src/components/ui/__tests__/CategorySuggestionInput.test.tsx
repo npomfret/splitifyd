@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test-utils';
 import { CategorySuggestionInput } from '@/components/ui';
-import type { ExpenseCategory } from '@shared/types/webapp-shared-types';
+import type { ExpenseCategory } from '@shared/shared-types';
 
 // Test categories matching the predefined categories in the app
 const mockCategories: ExpenseCategory[] = [

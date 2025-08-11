@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { ApiError } from '../utils/errors';
 import { timestampToISO } from '../utils/dateHelpers';
-import { FirestoreCollections } from '../types/webapp-shared-types';
+import { FirestoreCollections } from '../shared/shared-types';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.uid;

@@ -5,7 +5,7 @@ import type {
   CreateSettlementRequest, 
   User, 
   SimplifiedDebt 
-} from '../../../../firebase/functions/src/types/webapp-shared-types';
+} from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient } from '../../app/apiClient';
 import { groupDetailStore } from '../../app/stores/group-detail-store';
 import { useAuthRequired } from '../../app/hooks/useAuthRequired';

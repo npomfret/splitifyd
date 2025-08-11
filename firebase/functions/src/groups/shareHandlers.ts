@@ -6,7 +6,7 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { FirestoreCollections } from '../types/webapp-shared-types';
+import { FirestoreCollections } from '../shared/shared-types';
 
 const generateShareToken = (): string => {
   const bytes = randomBytes(12);

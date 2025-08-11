@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { LoadingSpinner } from '../ui';
-import type { SettlementListItem } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import type { SettlementListItem } from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient } from '../../app/apiClient';
 import { useAuthRequired } from '../../app/hooks/useAuthRequired';
 

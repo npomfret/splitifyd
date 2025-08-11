@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { FirestoreCollections, PolicyIds } from '../types/webapp-shared-types';
+import { FirestoreCollections, PolicyIds } from '../shared/shared-types';
 import * as crypto from 'crypto';
 
 // Set up environment for tests

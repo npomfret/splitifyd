@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { UserRoles, SplitTypes } from '@shared/types/webapp-shared-types';
+import { UserRoles, SplitTypes } from '@shared/shared-types';
 
 // Base schemas
 export const MemberSchema = z.object({

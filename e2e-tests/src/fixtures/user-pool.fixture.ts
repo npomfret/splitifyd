@@ -1,5 +1,5 @@
 import { TIMEOUTS } from '../config/timeouts';
-import type {User as BaseUser} from "@shared/types/webapp-shared-types";
+import type {User as BaseUser} from "@shared/shared-types";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 import { EMULATOR_URL } from '../helpers/index';
 

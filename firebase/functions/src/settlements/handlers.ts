@@ -19,7 +19,7 @@ import {
   SettlementListItem,
   User,
   FirestoreCollections
-} from '../types/webapp-shared-types';
+} from '../shared/shared-types';
 import { GroupData } from '../types/group-types';
 
 const getSettlementsCollection = () => {

@@ -6,7 +6,7 @@
 
 import { signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
-import type { Group } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import type { Group } from '../../../../firebase/functions/src/shared/shared-types';
 
 // Signals for join group state
 const groupSignal = signal<Group | null>(null);

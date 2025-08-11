@@ -1,6 +1,6 @@
 import { Card, CategorySuggestionInput } from '../ui';
 import { Stack } from '../ui/Stack';
-import { ExpenseCategory } from '@shared/types/webapp-shared-types';
+import { ExpenseCategory } from '@shared/shared-types';
 
 interface ExpenseBasicFieldsProps {
   description: string;

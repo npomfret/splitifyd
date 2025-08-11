@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 import { logger } from '../logger';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '../types/webapp-shared-types';
+import { FirestoreCollections } from '../shared/shared-types';
 
 /**
  * Get current version hashes for all policies

@@ -21,7 +21,7 @@ import type {
   CreateSettlementRequest,
   Settlement,
   SettlementListItem
-} from '@shared/types/webapp-shared-types';
+} from '@shared/shared-types';
 
 // Define HealthCheckResponse locally since it's not in shared types
 interface HealthCheckResponse {

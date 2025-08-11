@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { logError } from '../utils/browser-logger';
-import { PolicyIds } from '@shared/types/webapp-shared-types';
+import { PolicyIds } from '@shared/shared-types';
 
 // Policy-related types
 interface PolicySummary {

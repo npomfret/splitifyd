@@ -4,7 +4,7 @@ import { Errors, sendError } from '../utils/errors';
 import { getConfig } from '../config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
-import { FirestoreCollections, UserRoles } from '../types/webapp-shared-types';
+import { FirestoreCollections, UserRoles } from '../shared/shared-types';
 
 /**
  * Extended Express Request with user information

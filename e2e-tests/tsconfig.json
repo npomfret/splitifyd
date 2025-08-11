@@ -16,8 +16,7 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../firebase/functions/src/*"],
-      "@shared/types/*": ["../firebase/functions/src/types/*"]
+      "@shared/*": ["../firebase/functions/src/shared/*"]
     },
     "types": ["@types/node", "@playwright/test", "jest"]
   },

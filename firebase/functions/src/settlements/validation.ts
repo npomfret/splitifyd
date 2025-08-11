@@ -1,5 +1,5 @@
 import * as Joi from 'joi';
-import { CreateSettlementRequest, UpdateSettlementRequest } from '../types/webapp-shared-types';
+import { CreateSettlementRequest, UpdateSettlementRequest } from '../shared/shared-types';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 
 const amountSchema = Joi.number()

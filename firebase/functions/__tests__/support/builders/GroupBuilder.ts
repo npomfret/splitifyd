@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { User, CreateGroupRequest } from '../../../src/types/webapp-shared-types';
+import type { User, CreateGroupRequest } from '../../../src/shared/shared-types';
 
 export class GroupBuilder {
   private group: CreateGroupRequest;

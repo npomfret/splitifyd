@@ -51,7 +51,7 @@ import {
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FirestoreCollections } from './types/webapp-shared-types';
+import { FirestoreCollections } from './shared/shared-types';
 
 // Test emulator connections when running locally
 if (process.env.FUNCTIONS_EMULATOR === 'true') {

@@ -12,7 +12,7 @@ import {
   CreateGroupModalPage,
   JoinGroupPage
 } from '../pages/index';
-import type {User as BaseUser} from "@shared/types/webapp-shared-types";
+import type {User as BaseUser} from "@shared/shared-types";
 
 export interface UnauthenticatedUserFixture {
   page: Page;

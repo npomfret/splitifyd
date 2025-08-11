@@ -4,7 +4,7 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
 import { getCurrentPolicyVersions } from './policy-helpers';
-import { FirestoreCollections, UserRoles, AuthErrors } from '../types/webapp-shared-types';
+import { FirestoreCollections, UserRoles, AuthErrors } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 
 export const register = async (req: Request, res: Response): Promise<void> => {

@@ -13,7 +13,7 @@ import {
   PublishPolicyRequest,
   PolicyVersion,
   FirestoreCollections
-} from '../types/webapp-shared-types';
+} from '../shared/shared-types';
 
 /**
  * Calculate SHA-256 hash of policy text

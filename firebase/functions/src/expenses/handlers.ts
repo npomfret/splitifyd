@@ -14,7 +14,7 @@ import {
   Expense
 } from './validation';
 import { GroupData } from '../types/group-types';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../types/webapp-shared-types';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/shared-types';
 
 const getExpensesCollection = () => {
   return admin.firestore().collection(FirestoreCollections.EXPENSES);

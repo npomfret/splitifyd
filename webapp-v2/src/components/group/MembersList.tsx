@@ -1,7 +1,7 @@
 import { Card } from '../ui/Card';
 import { SidebarCard } from '../ui/SidebarCard';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import type { User } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import type { User } from '../../../../firebase/functions/src/shared/shared-types';
 
 interface MembersListProps {
   members: User[];

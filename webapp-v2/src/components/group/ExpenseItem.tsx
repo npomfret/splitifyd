@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { ExpenseData, User } from '../../../../firebase/functions/src/types/webapp-shared-types';
-import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/types/webapp-shared-types';
+import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
+import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/shared/shared-types';
 
 interface ExpenseItemProps {
   expense: ExpenseData;

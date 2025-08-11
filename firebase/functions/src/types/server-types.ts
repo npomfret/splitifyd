@@ -1,5 +1,5 @@
 // Server-only types - not shared with webapp clients
-import { Group, GroupBalance } from './webapp-shared-types';
+import { Group, GroupBalance } from '../shared/shared-types';
 
 
 // Request/Response types for server-side validation

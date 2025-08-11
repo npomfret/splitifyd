@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { FirestoreCollections } from '../types/webapp-shared-types';
+import { FirestoreCollections } from '../shared/shared-types';
 
 /**
  * GET /policies/current - List all current policy versions (public endpoint)

@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
-import { PolicyIds, FirestoreCollections } from '../types/webapp-shared-types';
+import { PolicyIds, FirestoreCollections } from '../shared/shared-types';
 import { createPolicyInternal, publishPolicyInternal } from '../policies/handlers';
 
 // Load environment variables

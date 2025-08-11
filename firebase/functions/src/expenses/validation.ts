@@ -9,7 +9,7 @@ import {
   CreateExpenseRequest, 
   UpdateExpenseRequest,
   SplitTypes
-} from '../types/webapp-shared-types';
+} from '../shared/shared-types';
 
 export interface Expense {
   id: string;

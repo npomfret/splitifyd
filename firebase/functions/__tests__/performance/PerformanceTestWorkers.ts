@@ -1,5 +1,5 @@
 import {ApiDriver, User} from '../support/ApiDriver';
-import type {ExpenseData, Group} from "../../src/types/webapp-shared-types";
+import type {ExpenseData, Group} from "../../src/shared/shared-types";
 
 export class PerformanceTestWorkers {
     constructor(private driver: ApiDriver) {}

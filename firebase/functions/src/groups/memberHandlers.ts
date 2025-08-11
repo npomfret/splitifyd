@@ -5,8 +5,8 @@ import { Errors } from '../utils/errors';
 import { userService } from '../services/userService';
 import { validateGroupId } from './validation';
 import { logger } from '../logger';
-import { User, GroupMembersResponse, FirestoreCollections } from '../types/webapp-shared-types';
-import { Group } from '../types/webapp-shared-types';
+import { User, GroupMembersResponse, FirestoreCollections } from '../shared/shared-types';
+import { Group } from '../shared/shared-types';
 
 /**
  * Transform a Firestore document to a Group

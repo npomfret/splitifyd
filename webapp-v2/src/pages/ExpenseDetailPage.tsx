@@ -9,7 +9,7 @@ import { Stack } from '../components/ui/Stack';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow, formatLocalDate, formatLocalDateTime } from '../utils/dateUtils';
-import type { ExpenseData } from '@shared/types/webapp-shared-types';
+import type { ExpenseData } from '@shared/shared-types';
 import { logError } from '../utils/browser-logger';
 
 interface ExpenseDetailPageProps {

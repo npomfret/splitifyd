@@ -8,8 +8,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { apiClient } from '@/app/apiClient.ts';
 import { ApiDriver } from '@test-support/ApiDriver';
-import type { Group } from '@shared/types/webapp-shared-types';
-import type { User } from '@shared/types/webapp-shared-types';
+import type { Group } from '@shared/shared-types';
+import type { User } from '@shared/shared-types';
 
 describe('API Client Integration Tests', () => {
   let apiDriver: ApiDriver;
