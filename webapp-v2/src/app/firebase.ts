@@ -10,11 +10,13 @@ import {
   User as FirebaseUser,
   AuthError
 } from 'firebase/auth';
+import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
 class FirebaseService {
   private app: FirebaseApp | null = null;
   private auth: Auth | null = null;
+  private firestore: Firestore | null = null;
   private initialized = false;
 
   async initialize(): Promise<void> {
@@ -28,8 +30,9 @@ class FirebaseService {
     // Initialize Firebase with config from API
     this.app = initializeApp(config.firebase);
     this.auth = getAuth(this.app);
+    this.firestore = getFirestore(this.app);
     
-    // Connect to auth emulator in development (server provides URL only in emulator mode)
+    // Connect to emulators in development (server provides URLs only in emulator mode)
     if (config.firebaseAuthUrl) {
       try {
         connectAuthEmulator(this.auth, config.firebaseAuthUrl, { disableWarnings: true });
@@ -42,6 +45,18 @@ class FirebaseService {
       }
     }
     
+    // Connect Firestore emulator if available
+    if (config.firebaseAuthUrl) {
+      // Extract host and port from auth URL for Firestore
+      const authUrl = new URL(config.firebaseAuthUrl);
+      const firestorePort = 8080; // Standard Firestore emulator port
+      try {
+        connectFirestoreEmulator(this.firestore, authUrl.hostname, firestorePort);
+      } catch (error) {
+        // Emulator already connected, continue
+      }
+    }
+    
     this.initialized = true;
   }
 
@@ -50,6 +65,13 @@ class FirebaseService {
       throw new Error('Firebase not initialized - call initialize() first');
     }
     return this.auth;
+  }
+
+  getFirestore(): Firestore {
+    if (!this.firestore) {
+      throw new Error('Firebase not initialized - call initialize() first');
+    }
+    return this.firestore;
   }
 
   // Auth methods
@@ -72,3 +94,6 @@ class FirebaseService {
 }
 
 export const firebaseService = new FirebaseService();
+
+// Export a getter for db to ensure initialization
+export const getDb = () => firebaseService.getFirestore();

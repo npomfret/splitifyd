@@ -11,8 +11,8 @@ The streaming implementation follows a phased approach to progressively add real
 | Phase | Status | Description |
 |-------|--------|-------------|
 | **Phase 1** | ✅ COMPLETED | Core infrastructure & change detection |
-| **Phase 2** | 🔄 Next | Smart REST with auto-refresh |
-| **Phase 3** | ⏳ Planned | Progressive streaming migration |
+| **Phase 2** | ✅ COMPLETED | Smart REST with auto-refresh |
+| **Phase 3** | 🔄 Next | Progressive streaming migration |
 | **Phase 4** | ⏳ Planned | Optimization & production polish |
 
 ## Files in this Directory
@@ -20,6 +20,7 @@ The streaming implementation follows a phased approach to progressively add real
 ### Planning Documents
 - **[unified-plan.md](./unified-plan.md)** - Complete implementation plan with technical details for all phases
 - **[phase1-testing.md](./phase1-testing.md)** - Testing guide for Phase 1 infrastructure
+- **[phase2-testing.md](./phase2-testing.md)** - Testing guide for Phase 2 smart refresh
 
 ### Architecture Approach
 
@@ -46,23 +47,41 @@ We're using a **Notification-Driven REST** architecture with progressive enhance
 - Connection quality monitoring
 - Automatic cleanup every 5 minutes
 
+### Phase 2 Accomplishments (Completed 2025-08-11)
+
+✅ **Features Implemented:**
+- Enhanced REST endpoints with metadata
+- Smart client-side refresh logic
+- Change detection subscription system
+- User context preservation during updates
+- Optimistic updates with conflict resolution
+- Connection-aware refresh timing
+
+✅ **Key Components:**
+- `groups/handlers.ts` - Enhanced with metadata queries
+- `change-detector.ts` - Firestore change subscription
+- `groups-store-enhanced.ts` - Smart refresh & optimistic updates
+- `firebase.ts` - Added Firestore support
+
 ### Next Steps
 
-**Phase 2: Smart REST with Auto-Refresh**
-- Implement paginated REST endpoints with metadata
-- Add smart client-side refresh logic
-- Preserve user context during updates
-- Implement optimistic updates with conflict resolution
+**Phase 3: Progressive Streaming Migration**
+- Migrate high-frequency data to full streaming
+- Implement hybrid REST/streaming approach
+- Add collaborative features
+- Client-side balance calculations
 
 ### Testing
 
-To test Phase 1 infrastructure:
 ```bash
 # Start emulator
 npm run dev
 
-# Follow testing guide
+# Test Phase 1 infrastructure
 # See: phase1-testing.md
+
+# Test Phase 2 smart refresh
+# See: phase2-testing.md
 ```
 
 ### Cost Projections
