@@ -8,4 +8,8 @@ Have we violated any of the rules or patterns?
 
 If not, compose a detailed commit message, do not commit the code.
 
-Check the untracked files and either add them to git, or delete them.  In special cases new some files should be ignored - but always ask first.
+There should be no untracked files! Either:
+
+- add them to git if they are needed
+- delete them
+- in special cases new some files should be git ignored - but always ask first
