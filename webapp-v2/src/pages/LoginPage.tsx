@@ -48,6 +48,10 @@ export function LoginPage() {
     const password = passwordSignal.value;
 
     if (!email || !password) {
+      const errors = [];
+      if (!email) errors.push('Email is required');
+      if (!password) errors.push('Password is required');
+      console.warn('[LoginPage] Validation failed:', errors.join(', '));
       return;
     }
 

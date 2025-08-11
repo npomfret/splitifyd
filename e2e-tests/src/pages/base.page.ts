@@ -105,7 +105,43 @@ export abstract class BasePage {
   }
   
   async clickButtonWithText(text: string) {
-    await this.page.getByRole('button', { name: text }).click();
+    const button = this.page.getByRole('button', { name: text });
+    await this.expectButtonEnabled(button, text);
+    await button.click();
+  }
+
+  /**
+   * Expects a button to be enabled before clicking.
+   * Provides detailed error messages if the button is disabled.
+   */
+  async expectButtonEnabled(button: Locator, buttonText?: string): Promise<void> {
+    const isDisabled = await button.isDisabled();
+    
+    if (isDisabled) {
+      // Gather validation error messages for better debugging
+      const errorMessages = await this.page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
+      const buttonTitle = await button.getAttribute('title');
+      const buttonName = buttonText || await button.textContent() || 'Submit';
+      
+      let errorDetail = `Button "${buttonName}" is disabled.`;
+      if (errorMessages.length > 0) {
+        errorDetail += ` Validation errors found: ${errorMessages.join(', ')}`;
+      }
+      if (buttonTitle) {
+        errorDetail += ` Button hint: ${buttonTitle}`;
+      }
+      
+      throw new Error(errorDetail);
+    }
+  }
+
+  /**
+   * Helper specifically for submit buttons with detailed validation error reporting.
+   * Use this before clicking submit buttons in forms.
+   */
+  async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
+    const button = submitButton || this.page.getByRole('button', { name: /submit|create|save|sign in|register/i });
+    await this.expectButtonEnabled(button, 'Submit');
   }
 
   /**

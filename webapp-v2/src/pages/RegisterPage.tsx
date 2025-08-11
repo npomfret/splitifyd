@@ -81,6 +81,7 @@ export function RegisterPage() {
     
     const validationError = validateForm();
     if (validationError) {
+      console.warn('[RegisterPage] Validation failed:', validationError);
       localErrorSignal.value = validationError;
       return;
     }

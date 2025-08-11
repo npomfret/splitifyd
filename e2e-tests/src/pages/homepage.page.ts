@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 
 export class HomepagePage extends BasePage {
@@ -41,21 +42,25 @@ export class HomepagePage extends BasePage {
   // Actions
   async clickGetStarted() {
     const button = await this.getStartedButton();
+    await expect(button).toBeEnabled();
     await button.click();
   }
 
   async goToPricing() {
     const link = await this.pricingLink();
+    await expect(link).toBeEnabled();
     await link.click();
   }
 
   async goToLogin() {
     const link = await this.signInLink();
+    await expect(link).toBeEnabled();
     await link.click();
   }
 
   async goToSignUp() {
     const link = await this.signUpLink();
+    await expect(link).toBeEnabled();
     await link.click();
   }
 

@@ -33,7 +33,10 @@ export class RegisterPage extends BasePage {
   }
   
   async submitForm() {
-    await this.clickButtonWithText(this.createAccountButton);
+    // Check button is enabled before clicking (provides better error messages)
+    const submitButton = this.getSubmitButton();
+    await this.expectButtonEnabled(submitButton, this.createAccountButton);
+    await submitButton.click();
   }
   
   async register(name: string, email: string, password: string) {

@@ -92,33 +92,12 @@ export class GroupDetailPage extends BasePage {
   }
   
   /**
-   * Checks if the submit button is enabled and provides detailed error reporting
-   * @returns Promise that resolves if button is enabled, rejects with validation errors if disabled
+   * Override the base expectSubmitButtonEnabled to provide expense-specific behavior
+   * @returns Promise that resolves if button is enabled, throws error if disabled
    */
-  async expectSubmitButtonEnabled() {
-    const submitButton = this.getSaveExpenseButton();
-    const isDisabled = await submitButton.isDisabled();
-    
-    if (isDisabled) {
-      // Look for validation error messages in the form
-      const errorMessages = await this.page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
-      
-      // Also check the button's title attribute for hints
-      const buttonTitle = await submitButton.getAttribute('title');
-      
-      // Build a detailed error message
-      let errorDetail = 'Submit button is disabled.';
-      if (errorMessages.length > 0) {
-        errorDetail += ` Validation errors found: ${errorMessages.join(', ')}`;
-      }
-      if (buttonTitle) {
-        errorDetail += ` Button hint: ${buttonTitle}`;
-      }
-      
-      throw new Error(errorDetail);
-    }
-    
-    return true;
+  async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
+    const button = submitButton || this.getSaveExpenseButton();
+    await this.expectButtonEnabled(button, 'Save Expense');
   }
   
   /**
@@ -396,6 +375,7 @@ export class GroupDetailPage extends BasePage {
     // Wait for add expense button to be available and click it
     const addExpenseButton = this.getAddExpenseButton();
     await expect(addExpenseButton).toBeVisible();
+    await expect(addExpenseButton).toBeEnabled();
     await addExpenseButton.click();
     
     // Wait for navigation to add expense page
@@ -436,11 +416,14 @@ export class GroupDetailPage extends BasePage {
     // Always click "Select all" to ensure deterministic state
     const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
     await expect(selectAllButton).toBeVisible();
+    await expect(selectAllButton).toBeEnabled();
     await selectAllButton.click();
     
     // Submit form
     const submitButton = this.getSaveExpenseButton();
     await expect(submitButton).toBeEnabled();
+    // Check button is enabled before clicking (provides better error messages)
+    await this.expectButtonEnabled(submitButton, 'Save Expense');
     await submitButton.click();
     
     // Wait for navigation back to group page
@@ -613,6 +596,7 @@ export class GroupDetailPage extends BasePage {
   }): Promise<void> {
     // Click settle up button
     const settleButton = this.page.getByRole('button', { name: /settle up/i });
+    await expect(settleButton).toBeEnabled();
     await settleButton.click();
     
     // Wait for modal
@@ -672,6 +656,8 @@ export class GroupDetailPage extends BasePage {
     // Submit
     const submitButton = modal.getByRole('button', { name: /record payment/i });
     await expect(submitButton).toBeEnabled();
+    // Check button is enabled before clicking (provides better error messages)
+    await this.expectButtonEnabled(submitButton, 'Record Payment');
     await submitButton.click();
     
     // Wait for modal to close with increased timeout for settlement processing
@@ -801,6 +787,7 @@ export class GroupDetailPage extends BasePage {
     // Click join button with fast timeout
     const joinButton = joinerPage.getByRole('button', { name: /join group/i });
     await joinButton.waitFor({ state: 'visible', timeout: 1000 });
+    await expect(joinButton).toBeEnabled();
     await joinButton.click();
     
     // Wait for navigation with reasonable timeout
@@ -878,10 +865,12 @@ export class GroupDetailPage extends BasePage {
    */
   async deleteExpense() {
     const deleteButton = this.getExpenseDeleteButton();
+    await expect(deleteButton).toBeEnabled();
     await deleteButton.click();
     
     // Confirm deletion
     const confirmButton = this.getDeleteConfirmButton();
+    await expect(confirmButton).toBeEnabled();
     await confirmButton.click();
     
     // Wait for deletion to complete
@@ -902,6 +891,7 @@ export class GroupDetailPage extends BasePage {
    */
   async clickJoinGroup() {
     const joinButton = this.getJoinGroupButtonOnSharePage();
+    await expect(joinButton).toBeEnabled();
     await joinButton.click();
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
   }
@@ -930,6 +920,7 @@ export class GroupDetailPage extends BasePage {
         // Click share button with fast timeout
         const shareButton = this.getShareButton();
         await shareButton.waitFor({ state: 'visible', timeout: 1000 });
+        await expect(shareButton).toBeEnabled();
         await shareButton.click();
 
         // Get share link from dialog with progressive timeout
@@ -1037,6 +1028,7 @@ export class GroupDetailPage extends BasePage {
    */
   async openHistory() {
     const historyButton = this.getHistoryButton();
+    await expect(historyButton).toBeEnabled();
     await historyButton.click();
   }
 

@@ -14,9 +14,6 @@ import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
 const payerIdSignal = signal('');
 const payeeIdSignal = signal('');
 const amountSignal = signal('');
-// Currency is always USD - no multi-currency support yet
-const DEFAULT_CURRENCY = 'USD';
-const currencySignal = signal(DEFAULT_CURRENCY);
 const dateSignal = signal(new Date().toISOString().split('T')[0]);
 const noteSignal = signal('');
 
@@ -158,6 +155,20 @@ export function SettlementForm({
   };
 
   if (!isOpen) return null;
+  
+  // Computed property for form validity
+  const isFormValid = (() => {
+    const amount = parseFloat(amountSignal.value);
+    return payerIdSignal.value && 
+           payeeIdSignal.value && 
+           payerIdSignal.value !== payeeIdSignal.value &&
+           amountSignal.value && 
+           !isNaN(amount) && 
+           amount > 0 && 
+           amount <= 999999.99 &&
+           dateSignal.value &&
+           !isDateInFuture(dateSignal.value);
+  })();
   
   const getMemberName = (userId: string): string => {
     const member = members.find((m: User) => m.uid === userId);
@@ -328,7 +339,7 @@ export function SettlementForm({
               <Button
                 type="submit"
                 variant="primary"
-                disabled={!!validateForm() || isSubmitting}
+                disabled={!isFormValid || isSubmitting}
                 loading={isSubmitting}
                 className="flex-1"
               >

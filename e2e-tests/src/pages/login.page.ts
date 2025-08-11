@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
@@ -29,7 +30,10 @@ export class LoginPage extends BasePage {
   }
   
   async submitForm() {
-    await this.clickButtonWithText(this.signInButton);
+    // Check button is enabled before clicking (provides better error messages)
+    const submitButton = this.getSubmitButton();
+    await this.expectButtonEnabled(submitButton, this.signInButton);
+    await submitButton.click();
   }
   
   async login(email: string, password: string, rememberMe = false) {
@@ -42,11 +46,15 @@ export class LoginPage extends BasePage {
   }
 
   async clickSignUp() {
-    await this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink }).first().click();
+    const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink }).first();
+    await expect(link).toBeEnabled();
+    await link.click();
   }
   
   async clickForgotPassword() {
-    await this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink }).click();
+    const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
+    await expect(link).toBeEnabled();
+    await link.click();
   }
 
   // Element accessors for direct interaction in tests

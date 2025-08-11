@@ -12,35 +12,36 @@ Apply the improved validation pattern we implemented for the expense form to ALL
 ## Forms to Update
 
 ### 1. Login Form (`webapp-v2/src/pages/LoginPage.tsx`)
-- [ ] Add `isFormValid` computed property to check email/password validation
-- [ ] Disable submit button when form is invalid
-- [ ] Add console.warn for validation failures
+- [x] Add `isFormValid` computed property to check email/password validation
+- [x] Disable submit button when form is invalid
+- [x] Add console.warn for validation failures
 - [ ] Show validation errors in real-time
 
 ### 2. Registration Form (`webapp-v2/src/pages/RegisterPage.tsx`)
-- [ ] Add `isFormValid` computed property
-- [ ] Check email, password, displayName, and policy acceptance
-- [ ] Disable submit button when invalid
-- [ ] Add console.warn for validation failures
+- [x] Add `isFormValid` computed property
+- [x] Check email, password, displayName, and policy acceptance
+- [x] Disable submit button when invalid
+- [x] Add console.warn for validation failures
 
-### 3. Create Group Form (`webapp-v2/src/pages/CreateGroupPage.tsx`)
-- [ ] Add validation for group name (required, min length)
-- [ ] Add `isFormValid` computed property
-- [ ] Disable submit button when invalid
-- [ ] Add console.warn for validation failures
+### 3. Create Group Form (`webapp-v2/src/components/dashboard/CreateGroupModal.tsx`)
+- [x] Add validation for group name (required, min length)
+- [x] Add `isFormValid` computed property
+- [x] Disable submit button when invalid
+- [x] Add console.warn for validation failures
 
 ### 4. Edit Group Form (`webapp-v2/src/pages/EditGroupPage.tsx`)
-- [ ] Similar to Create Group
+- [ ] Similar to Create Group (File doesn't exist)
 - [ ] Validate name and description
 - [ ] Disable submit when invalid
 
 ### 5. Edit Expense Form (`webapp-v2/src/pages/AddExpensePage.tsx` in edit mode)
-- [ ] Already partially done, ensure consistency
-- [ ] Verify edit mode uses same validation
+- [x] Already has complete validation pattern
+- [x] Uses same validation in edit mode
 
 ### 6. Add Settlement Form (`webapp-v2/src/components/settlements/SettlementForm.tsx`)
-- [x] Already has correct pattern but verify it's complete
+- [x] Added `isFormValid` computed property
 - [x] Console.warn already added
+- [x] Submit button disabled when invalid
 
 ## Implementation Pattern
 
@@ -117,3 +118,35 @@ After implementing:
 
 ## Priority
 High - This will significantly improve both user experience and developer experience when debugging test failures.
+
+## Progress Summary (Updated: 2025-08-11)
+
+### ✅ Completed Tasks:
+
+#### Form Validation Updates:
+1. **LoginPage.tsx** - Added console.warn for validation failures when email or password is missing
+2. **RegisterPage.tsx** - Enhanced validation with console.warn for better debugging
+3. **CreateGroupModal.tsx** - Added console.warn when form validation fails
+4. **SettlementForm.tsx** - Added `isFormValid` computed property and updated submit button to use it consistently
+5. **ExpenseForm** (expense-form-store.ts) - Already had complete validation pattern
+
+#### E2E Test Improvements:
+1. **BasePage** - Added `expectButtonEnabled()` and `expectSubmitButtonEnabled()` helper methods
+2. **All Page Objects** - Updated to check buttons are enabled before clicking:
+   - LoginPage: Submit button and navigation links
+   - RegisterPage: Submit button
+   - CreateGroupModalPage: Submit and cancel buttons
+   - GroupDetailPage: All form submission and action buttons
+   - HomepagePage: Navigation buttons and links
+   - DashboardPage: Create group button
+   - JoinGroupPage: Already had proper assertions
+
+### 🚧 Remaining Tasks:
+- Real-time validation error display for LoginPage
+- EditGroupPage implementation (file doesn't exist in codebase)
+
+### Benefits Achieved:
+- **Better UX**: Users immediately see when they can't submit due to disabled buttons
+- **Better Test Failures**: Tests now fail with clear messages like "Button 'Sign In' is disabled. Validation errors found: Email is required"
+- **Easier Debugging**: Console warnings provide visibility into validation issues
+- **Consistency**: All forms now follow the same validation pattern

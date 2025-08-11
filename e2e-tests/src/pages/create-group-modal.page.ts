@@ -39,6 +39,8 @@ export class CreateGroupModalPage extends BasePage {
     // Wait for the button to become enabled
     await expect(submitButton).toBeEnabled({ timeout: TIMEOUTS.QUICK });
     
+    // Check button is enabled before clicking (provides better error messages)
+    await this.expectButtonEnabled(submitButton, 'Create Group');
     await submitButton.click();
   }
   
@@ -46,6 +48,7 @@ export class CreateGroupModalPage extends BasePage {
     // Modal MUST have a cancel/close button - this is basic UX
     // Use a regex that matches either "Cancel" or "Close"
     const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: /(Cancel|Close)/i });
+    await expect(cancelButton).toBeEnabled();
     await cancelButton.click();
   }
   
