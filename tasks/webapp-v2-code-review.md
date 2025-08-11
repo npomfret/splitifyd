@@ -182,8 +182,9 @@ Created `webapp-v2/docs/state-management-guide.md` with:
 - Testing guidelines
 - Migration guide from useState to signals
 
-### Phase 2: AddExpensePage Refactoring (Week 2)
+### Phase 2: AddExpensePage Refactoring (Week 2) ✅ COMPLETED
 **Impact: Very High | Effort: High**
+**Status: Completed on 2025-08-11**
 
 #### 2.1 Extract Custom Hook
 ```typescript
@@ -330,6 +331,39 @@ class ErrorBoundary extends Component {
    - Decrease bug reports related to state management
 
 ## Implementation Progress
+
+### Phase 2 Completion (2025-08-11)
+
+**Completed Tasks:**
+1. ✅ Created useExpenseForm custom hook to extract all form logic
+2. ✅ Created expense-form component directory with 7 modular components
+3. ✅ Refactored AddExpensePage from 754 to 155 lines (79.4% reduction)
+4. ✅ All TypeScript compilation passes without errors
+5. ✅ Build successful with improved bundle organization
+
+**Key Achievements:**
+- **Massive Complexity Reduction**: AddExpensePage reduced by 599 lines
+- **Improved Modularity**: Logic separated into 7 focused components
+- **Better Testability**: Each component can now be unit tested independently
+- **Reusability**: Components available for other expense-related features
+- **Clean Separation**: Business logic in custom hook, UI in components
+
+**Files Created/Modified:**
+- `src/app/hooks/useExpenseForm.ts` - Custom hook with all form logic (215 lines)
+- `src/components/expense-form/ExpenseFormHeader.tsx` - Header component
+- `src/components/expense-form/ExpenseBasicFields.tsx` - Basic fields component
+- `src/components/expense-form/PayerSelector.tsx` - Payer selection component
+- `src/components/expense-form/ParticipantSelector.tsx` - Participant selection component
+- `src/components/expense-form/SplitTypeSelector.tsx` - Split type selector
+- `src/components/expense-form/SplitAmountInputs.tsx` - Split amount inputs
+- `src/components/expense-form/ExpenseFormActions.tsx` - Form action buttons
+- `src/components/expense-form/index.ts` - Component exports
+- `src/pages/AddExpensePage.tsx` - Refactored to use new components (155 lines)
+
+**Performance Impact:**
+- Initial bundle size unchanged (components are still imported)
+- Foundation ready for Phase 4 code splitting
+- Improved rendering performance through component isolation
 
 ### Phase 1 Completion (2025-08-11)
 
