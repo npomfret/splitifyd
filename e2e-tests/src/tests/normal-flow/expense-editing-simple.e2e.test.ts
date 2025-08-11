@@ -8,8 +8,8 @@ import { GroupWorkflow } from '../../workflows';
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
-test.describe('Expense Editing E2E - Core Functionality', () => {
-  test('should edit expense amount successfully', async ({ 
+test.describe('Comprehensive Expense Editing E2E', () => {
+  test('should edit expense amount (increase)', async ({ 
     authenticatedPage, 
     dashboardPage, 
     groupDetailPage 
@@ -77,6 +77,62 @@ test.describe('Expense Editing E2E - Core Functionality', () => {
     await expect(page.getByText('Amount Edit Test')).toBeVisible();
     // Use more specific selector to avoid strict mode violation
     await expect(page.getByRole('heading', { name: '$75.50' })).toBeVisible();
+  });
+
+
+  test("should edit expense amount (decrease)", async ({
+    authenticatedPage,
+    dashboardPage,
+    groupDetailPage
+  }, testInfo) => {
+    // Skip error checking for edit operations
+    testInfo.annotations.push({ type: "skip-error-checking", description: "May have API validation issues during editing" });
+    
+    const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName("EditAmountDown"), "Testing expense amount decrease");
+    
+    // Create initial expense with higher amount
+    const addExpenseButton = groupDetailPage.getAddExpenseButton();
+    await expect(addExpenseButton).toBeVisible();
+    await addExpenseButton.click();
+    
+    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), "High Amount Expense");
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), "150.00");
+    await groupDetailPage.selectCategoryFromSuggestions("Food & Dining");
+    
+    await groupDetailPage.getSaveExpenseButton().click();
+    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    
+    // Edit to decrease amount
+    const expenseElement = groupDetailPage.getExpenseByDescription("High Amount Expense");
+    await expect(expenseElement).toBeVisible();
+    await expenseElement.click();
+    await page.waitForLoadState("networkidle");
+    
+    const editButton = page.getByRole("button", { name: /edit/i });
+    await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await editButton.click();
+    
+    await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    
+    // Change amount from $150.00 to $25.75
+    const amountField = groupDetailPage.getExpenseAmountField();
+    await expect(amountField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+    await groupDetailPage.fillPreactInput(amountField, "25.75");
+    
+    const updateButton = page.getByRole("button", { name: /update expense/i });
+    await expect(updateButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+    await updateButton.click();
+    
+    await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    
+    // Verify amount was decreased - use specific selector
+    await expect(page.getByText("High Amount Expense")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "$25.75" })).toBeVisible();
   });
 
   test('should edit expense description successfully', async ({ 
