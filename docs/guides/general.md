@@ -71,3 +71,9 @@ The app must run reliably across all supported environments.
 ## Web Build
 
 * Do not minify or obfuscate source code; clear and accurate stack traces are vital for debugging
+
+## Dates
+
+* The client and server will ONLY communicate dates using UTC. It is non-ambiguous.
+* However, new never show the client a UTC date string; we always covert to their local time.
+* Use `Timestamp.now()` instead of `new Date()` (via `import { Timestamp } from 'firebase-admin/firestore';`)
