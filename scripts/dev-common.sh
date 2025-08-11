@@ -11,9 +11,10 @@ start_dev_instance() {
     
     # Set background color using osascript (AppleScript) based on instance
     case $instance in
-        1) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 32768, 0}" ;; # Green
-        2) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 0, 32768}" ;; # Blue  
-        3) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {32768, 32768, 0}" ;; # Yellow
+        1) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 26214, 0}" ;; # Dark Green
+        2) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 13107, 39321}" ;; # Dark Blue  
+        3) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {39321, 26214, 0}" ;; # Dark Orange
+        4) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {26214, 0, 26214}" ;; # Dark Magenta
     esac
     
     printf "\033[1;${color_code}m"
@@ -26,10 +27,11 @@ start_dev_instance() {
     
     # Set a colored prompt with background that persists
     case $instance in
-        1) export PS1="\[\033[42m\033[1;30m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Green bg, black text
+        1) export PS1="\[\033[42m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Green bg, white text
         2) export PS1="\[\033[44m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Blue bg, white text  
-        3) export PS1="\[\033[43m\033[1;30m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Yellow bg, black text
+        3) export PS1="\[\033[43m\033[1;30m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Orange bg, black text
+        4) export PS1="\[\033[45m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Magenta bg, white text
     esac
     
-    clear && (cd firebase && npm run switch-instance ${instance}) && npm run dev
+    clear && (cd firebase && npm run kill-emulators && npm run switch-instance ${instance}) && npm run dev
 }
