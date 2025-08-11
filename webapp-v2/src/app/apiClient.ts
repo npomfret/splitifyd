@@ -20,7 +20,8 @@ import type {
   CreateExpenseRequest,
   CreateSettlementRequest,
   Settlement,
-  SettlementListItem
+  SettlementListItem,
+  Policy
 } from '@shared/shared-types';
 
 // Define HealthCheckResponse locally since it's not in shared types
@@ -35,6 +36,30 @@ interface HealthCheckResponse {
       responseTime?: number;
     };
   };
+}
+
+// Policy acceptance types for user endpoints
+interface AcceptPolicyRequest {
+  policyId: string;
+  versionHash: string;
+}
+
+interface AcceptMultiplePoliciesRequest {
+  acceptances: AcceptPolicyRequest[];
+}
+
+interface PolicyAcceptanceStatus {
+  policyId: string;
+  currentVersionHash: string;
+  userAcceptedHash?: string;
+  needsAcceptance: boolean;
+  policyName: string;
+}
+
+interface UserPolicyStatusResponse {
+  needsAcceptance: boolean;
+  policies: PolicyAcceptanceStatus[];
+  totalPending: number;
 }
 
 // API configuration - use window.API_BASE_URL injected during build
@@ -698,10 +723,58 @@ export class ApiClient {
       method: 'GET'
     });
   }
+
+  // User policy acceptance methods
+  async acceptPolicy(policyId: string, versionHash: string): Promise<{ success: boolean; message: string; acceptedPolicy: { policyId: string; versionHash: string; acceptedAt: string } }> {
+    return this.request({
+      endpoint: '/user/policies/accept',
+      method: 'POST',
+      body: { policyId, versionHash }
+    });
+  }
+
+  async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<{ success: boolean; message: string; acceptedPolicies: Array<{ policyId: string; versionHash: string; acceptedAt: string }> }> {
+    return this.request({
+      endpoint: '/user/policies/accept-multiple',
+      method: 'POST',
+      body: { acceptances }
+    });
+  }
+
+  async getUserPolicyStatus(): Promise<UserPolicyStatusResponse> {
+    return this.request({
+      endpoint: '/user/policies/status',
+      method: 'GET'
+    });
+  }
+
+  async getCurrentPolicies(): Promise<{ policies: Record<string, { policyName: string; currentVersionHash: string }>; count: number }> {
+    return this.request({
+      endpoint: '/policies/current',
+      method: 'GET',
+      skipAuth: true // Public endpoint
+    });
+  }
+
+  async getCurrentPolicy(policyId: string): Promise<{ id: string; policyName: string; currentVersionHash: string; text: string; createdAt: string }> {
+    return this.request({
+      endpoint: '/policies/:id/current',
+      method: 'GET',
+      params: { id: policyId },
+      skipAuth: true // Public endpoint
+    });
+  }
 }
 
 // Export types for external use
-export type { RequestConfig, RequestInterceptor, ResponseInterceptor };
+export type { 
+  RequestConfig, 
+  RequestInterceptor, 
+  ResponseInterceptor,
+  AcceptPolicyRequest,
+  PolicyAcceptanceStatus,
+  UserPolicyStatusResponse 
+};
 
 // Export a singleton instance
 export const apiClient = new ApiClient();

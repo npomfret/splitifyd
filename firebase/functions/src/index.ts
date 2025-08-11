@@ -48,6 +48,11 @@ import {
   createPolicy,
   deletePolicyVersion,
 } from "./policies/handlers";
+import {
+  acceptPolicy,
+  acceptMultiplePolicies,
+  getUserPolicyStatus,
+} from './policies/user-handlers';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -278,6 +283,10 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
 app.get('/policies/current', asyncHandler(getCurrentPolicies));
 app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
+// User policy endpoints (requires auth)
+app.post('/user/policies/accept', authenticate, asyncHandler(acceptPolicy));
+app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
+app.get('/user/policies/status', authenticate, asyncHandler(getUserPolicyStatus));
 
 // Auth endpoints (no auth required)
 app.post('/register', asyncHandler(register));

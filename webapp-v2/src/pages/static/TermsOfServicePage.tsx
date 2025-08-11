@@ -60,7 +60,7 @@ export function TermsOfServicePage() {
           </div>
         )}
         
-        {policy && <PolicyRenderer markdown={policy.text} />}
+        {policy && <PolicyRenderer content={policy.text} />}
       </div>
     </StaticPageLayout>
   );

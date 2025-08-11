@@ -2,6 +2,9 @@ import Router, { Route } from 'preact-router';
 import { Suspense, lazy } from 'preact/compat';
 import { LoadingState } from './components/ui';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
+import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
+import { useAuth } from './app/hooks/useAuth';
 
 // Lazy-loaded page components for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -29,6 +32,19 @@ function LazyRoute({ component: Component, ...props }: any) {
 }
 
 export function App() {
+  const authStore = useAuth();
+  const { needsAcceptance, pendingPolicies, refreshPolicyStatus } = usePolicyAcceptance();
+  
+  const user = authStore?.user;
+
+  const handlePolicyAcceptance = async () => {
+    // Refresh policy status after acceptance to hide the modal
+    await refreshPolicyStatus();
+  };
+
+  // Only show policy modal for authenticated users who need acceptance
+  const shouldShowPolicyModal = user && needsAcceptance && pendingPolicies.length > 0;
+
   return (
     <ErrorBoundary>
       <Router>
@@ -66,6 +82,14 @@ export function App() {
         
         <Route default component={(props: any) => <LazyRoute component={NotFoundPage} {...props} />} />
       </Router>
+      
+      {/* Policy Acceptance Modal - shows when user has pending policy acceptances */}
+      {shouldShowPolicyModal && (
+        <PolicyAcceptanceModal
+          policies={pendingPolicies}
+          onAccept={handlePolicyAcceptance}
+        />
+      )}
     </ErrorBoundary>
   );
 }

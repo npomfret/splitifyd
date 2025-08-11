@@ -1,7 +1,7 @@
 import { useMemo } from 'preact/hooks';
 
 interface PolicyRendererProps {
-  markdown: string;
+  content: string;
   className?: string;
 }
 
@@ -33,8 +33,8 @@ function parseMarkdown(markdown: string): string {
     .replace(/(<\/ul>)<\/p>/g, '$1');
 }
 
-export function PolicyRenderer({ markdown, className = '' }: PolicyRendererProps) {
-  const htmlContent = useMemo(() => parseMarkdown(markdown), [markdown]);
+export function PolicyRenderer({ content, className = '' }: PolicyRendererProps) {
+  const htmlContent = useMemo(() => parseMarkdown(content), [content]);
   
   return (
     <div 

@@ -22,7 +22,11 @@ export function RegisterPage() {
   const authStore = useAuthRequired();
   // Clear any previous errors when component mounts and load form defaults
   useEffect(() => {
-    authStore.clearError();
+    // Only clear errors if this is not a registration-related error
+    // This prevents clearing errors immediately after a failed registration attempt
+    if (!authStore.error || !authStore.error.toLowerCase().includes('email')) {
+      authStore.clearError();
+    }
     localErrorSignal.value = null;
     
     // Load form defaults from config
