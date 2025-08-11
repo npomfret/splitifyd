@@ -94,13 +94,12 @@ test.describe('Comprehensive Share Link Testing', () => {
       expect(result.reason).toContain('log in');
     });
 
-    mixedAuthTest.use({ authenticatedUserCount: 1, unauthenticatedUserCount: 1 });
-    mixedAuthTest('should allow user to join group after logging in from share link', async ({ 
-      authenticatedUsers,
-      unauthenticatedUsers 
+    multiUserTest('should allow user to join group after logging in from share link', async ({ 
+      authenticatedPage,
+      secondUser
     }) => {
-      const { page: page1, user: user1 } = authenticatedUsers[0];
-      const { page: page2 } = unauthenticatedUsers[0];
+      const { page: page1, user: user1 } = authenticatedPage;
+      const { page: page2, user: user2 } = secondUser;
       
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
@@ -109,16 +108,15 @@ test.describe('Comprehensive Share Link Testing', () => {
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);
 
-      // Create and register user2 (but log them out)
-      const authWorkflow = new AuthenticationWorkflow(page2);
-      const user2 = await authWorkflow.createAndLoginTestUser();
-      
-      // Log out user2
+      // Log out user2 to test login flow
       await page2.goto(`${EMULATOR_URL}/dashboard`);
       await page2.waitForLoadState('networkidle');
       // Click user menu to show logout option
       await page2.getByRole('button', { name: user2.displayName }).click();
       await page2.getByRole('button', { name: /logout|sign out/i }).click();
+      
+      // Wait for logout to complete
+      await page2.waitForURL((url: URL) => !url.toString().includes('/dashboard'), { timeout: 5000 });
       
       // Now test login + join flow
       await multiUserWorkflow.joinGroupViaShareLinkWithLogin(page2, shareLink, user2);
