@@ -131,7 +131,7 @@ export interface AppConfiguration {
   /**
    * URL for Firebase Auth emulator - only populated in development.
    * Used by the client to connect to the local auth emulator instead of production Firebase Auth.
-   * Format: http://localhost:9099 (or whatever port the auth emulator is running on)
+   * Format: http://localhost:xxxx (or whatever port the auth emulator is running on)
    */
   firebaseAuthUrl?: string;
 }
