@@ -4,6 +4,8 @@
 
 This project uses Playwright for end-to-end testing with a robust architecture designed for parallel execution, test isolation, and maintainability. The tests run against the Firebase emulator to ensure a consistent testing environment.
 
+In general, the end-to-end test suite is quite slow.  During development, ONLY run selected tests (relevant to the stuff you are working on). Only at the end run the entire suite.
+
 ## Core Principles
 
 ### Fast & Parallel Execution
@@ -93,6 +95,8 @@ All UI interactions go through page objects that encapsulate:
 - Common actions
 - State verification methods
 - Preact-specific input handling
+
+Never write bespoke selectors in tests. Always use the page object model pattern.
 
 ### Base Page Pattern
 
