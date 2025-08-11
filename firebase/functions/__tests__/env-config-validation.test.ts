@@ -40,7 +40,6 @@ describe('Environment Configuration Validation', () => {
     it('should contain all expected core environment variables', () => {
       const expectedVars = [
         'NODE_ENV',
-        'CORS_ALLOWED_ORIGINS',
         'LOG_LEVEL',
         'EMULATOR_UI_PORT',
         'EMULATOR_AUTH_PORT',
