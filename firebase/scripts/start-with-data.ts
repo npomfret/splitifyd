@@ -27,8 +27,8 @@ const firebaseRc: any = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
 const PROJECT_ID = firebaseRc.projects.default;
 
 const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-const UI_PORT: string = firebaseConfig.emulators.ui.port || '4000';
-const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port || '5001';
+const UI_PORT: string = firebaseConfig.emulators.ui.port!;
+const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port!;
 
 // Load .env file to get dev form defaults
 const envPath = path.join(__dirname, '../functions/.env');
