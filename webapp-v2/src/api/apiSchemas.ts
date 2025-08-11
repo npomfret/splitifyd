@@ -174,7 +174,7 @@ export const GroupMembersResponseSchema = z.object({
 // Share schemas
 export const ShareableLinkResponseSchema = z.object({
   linkId: z.string(),
-  shareableUrl: z.string()
+  shareablePath: z.string()
 });
 
 export const JoinGroupResponseSchema = z.object({

@@ -1,0 +1,122 @@
+import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
+import { GroupWorkflow } from '../../workflows';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import {generateShortId} from "../../utils/test-helpers.ts";
+
+setupConsoleErrorReporting();
+setupMCPDebugOnFailure();
+
+test.describe('Single User Balance Visualization', () => {
+  test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    
+    // Create test group with unique ID
+    const uniqueId = generateShortId();
+    const groupName = `Empty Balance Group ${uniqueId}`;
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing empty group balance');
+    
+    // Balance section should show "All settled up!" for empty group
+    // Check if Balances heading is visible
+    const balancesHeading = groupDetailPage.getBalancesHeading();
+    await expect(balancesHeading).toBeVisible();
+    
+    // Wait for the page to fully load and settle
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Additional wait for dynamic content
+    
+    // The "All settled up!" message exists but might be in a collapsed section
+    // Just verify it exists in the DOM (don't check visibility since section might be collapsed on mobile)
+    const settledElements = await groupDetailPage.getAllSettledUpElementsCount();
+    expect(settledElements).toBeGreaterThan(0);
+    
+    // Members section should show the creator - use first() since display name might appear multiple times
+    await expect(groupDetailPage.getMainSection().getByText(user.displayName).first()).toBeVisible();
+    
+    // Expenses section should show empty state
+    await expect(groupDetailPage.getExpensesHeading()).toBeVisible();
+    await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
+  });
+
+  test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+
+    // Create test group using dashboard page object with unique ID
+    const uniqueId = generateShortId();
+    const groupName = `Single User Test ${uniqueId}`;
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing single user balance');
+    
+    // Add expenses
+    await groupDetailPage.addExpense({
+      description: 'Dinner',
+      amount: 120,
+      paidBy: user.displayName,
+      splitType: 'equal'
+    });
+    
+    await groupDetailPage.addExpense({
+      description: 'Groceries',
+      amount: 80,
+      paidBy: user.displayName,
+      splitType: 'equal'
+    });
+    
+    // Refresh to ensure UI is updated (matches pattern from other tests)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    
+    // Verify Balances section shows settled up for single-user groups
+    await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
+    
+    // Check that "All settled up!" exists (might be in collapsed section on mobile)
+    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
+    expect(hasSettledMessage).toBe(true);
+    
+    // Verify expenses are tracked in the expense section
+    await expect(groupDetailPage.getCurrencyAmount('120.00')).toBeVisible();
+    await expect(groupDetailPage.getCurrencyAmount('80.00')).toBeVisible();
+  });
+
+  test('should handle zero balance state correctly', async ({ dashboardPage, groupDetailPage, authenticatedPage }) => {
+    const { page } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    // Create test group with unique ID
+    const uniqueId = generateShortId();
+    const groupName = `Zero Balance Test ${uniqueId}`;
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing zero balance state');
+    
+    // Verify Balances section shows settled up initially
+    await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
+    
+    // Check that "All settled up!" exists (might be in collapsed section on mobile)
+    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
+    expect(hasSettledMessage).toBe(true);
+  });
+
+  test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
+    const { page, user } = authenticatedPage;
+    const groupWorkflow = new GroupWorkflow(page);
+    
+    // Create test group with unique ID
+    const uniqueId = generateShortId();
+    const groupName = `Currency Display Test ${uniqueId}`;
+    await groupWorkflow.createGroupAndNavigate(groupName, 'Testing currency display');
+    
+    // Add expense
+    await groupDetailPage.addExpense({
+      description: 'International expense',
+      amount: 250,
+      paidBy: user.displayName,
+      splitType: 'equal'
+    });
+    
+    // Check for currency formatting in expense section
+    await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();
+    
+    // Balance section should still show settled up for single user
+    // Check that "All settled up!" exists (might be in collapsed section on mobile)
+    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
+    expect(hasSettledMessage).toBe(true);
+  });
+});

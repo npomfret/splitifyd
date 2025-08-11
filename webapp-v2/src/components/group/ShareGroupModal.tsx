@@ -46,7 +46,9 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     
     try {
       const response = await apiClient.generateShareLink(groupId);
-      setShareLink(response.shareableUrl);
+      // Construct full URL from the path returned by server
+      const fullUrl = `${window.location.origin}${response.shareablePath}`;
+      setShareLink(fullUrl);
     } catch (err) {
       logError('Failed to generate share link', err);
       setError('Failed to generate share link. Please try again.');

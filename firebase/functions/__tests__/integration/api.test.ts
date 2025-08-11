@@ -112,10 +112,9 @@ describe('Comprehensive API Test Suite', () => {
         // Any member should be able to generate a share link
         const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
         
-        expect(shareResponse).toHaveProperty('shareableUrl');
+        expect(shareResponse).toHaveProperty('shareablePath');
         expect(shareResponse).toHaveProperty('linkId');
-        expect(shareResponse.shareableUrl).toContain('http');
-        expect(shareResponse.shareableUrl).toContain('/join?linkId=');
+        expect(shareResponse.shareablePath).toBe(`/join?linkId=${shareResponse.linkId}`);
         expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
       });
 
@@ -126,10 +125,9 @@ describe('Comprehensive API Test Suite', () => {
         // User[1] (member) should be able to generate a share link
         const shareResponse = await driver.generateShareLink(memberGroup.id, users[1].token);
         
-        expect(shareResponse).toHaveProperty('shareableUrl');
+        expect(shareResponse).toHaveProperty('shareablePath');
         expect(shareResponse).toHaveProperty('linkId');
-        expect(shareResponse.shareableUrl).toContain('http');
-        expect(shareResponse.shareableUrl).toContain('/join?linkId=');
+        expect(shareResponse.shareablePath).toBe(`/join?linkId=${shareResponse.linkId}`);
         expect(shareResponse.linkId).toMatch(/^[A-Za-z0-9_-]{16}$/);
       });
 

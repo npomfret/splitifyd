@@ -87,37 +87,8 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
       updatedAt: Timestamp.now(),
     });
 
-    // In development, use the hosting port for the webapp URL
-    // In production, use the request's origin
-    let baseUrl: string;
-    
-    if (process.env.FUNCTIONS_EMULATOR === 'true') {
-      // Use the hosting port from environment configuration
-      const hostingPort = process.env.EMULATOR_HOSTING_PORT;
-      if (!hostingPort) {
-        throw new ApiError(
-          HTTP_STATUS.INTERNAL_ERROR,
-          'CONFIGURATION_ERROR',
-          'EMULATOR_HOSTING_PORT environment variable must be set in development'
-        );
-      }
-      baseUrl = `http://localhost:${hostingPort}`;
-    } else {
-      // In production, use the request's origin or referer
-      const origin = req.get('origin') || req.get('referer');
-      if (origin) {
-        // Extract base URL from origin/referer
-        const url = new URL(origin);
-        baseUrl = `${url.protocol}//${url.host}`;
-      } else {
-        // Fallback to request host if no origin/referer
-        const protocol = req.get('x-forwarded-proto') || (req.secure ? 'https' : 'http');
-        const host = req.get('host');
-        baseUrl = `${protocol}://${host}`;
-      }
-    }
-    
-    const shareableUrl = `${baseUrl}/join?linkId=${shareToken}`;
+    // Server only returns the path, webapp will construct the full URL
+    const shareablePath = `/join?linkId=${shareToken}`;
 
     logger.info('Shareable link generated', {
       groupId,
@@ -126,7 +97,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     });
 
     res.status(HTTP_STATUS.OK).json({
-      shareableUrl,
+      shareablePath,
       linkId: shareToken,
     });
   } catch (error) {

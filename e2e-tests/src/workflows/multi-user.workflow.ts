@@ -162,7 +162,7 @@ export class MultiUserWorkflow {
 
   /**
    * Tests share link with user who is already a member.
-   * Verifies appropriate message is shown.
+   * Verifies user is redirected to the group page.
    */
   async testShareLinkAlreadyMember(page: Page, shareLink: string): Promise<void> {
     const joinGroupPage = new JoinGroupPage(page);
@@ -170,11 +170,13 @@ export class MultiUserWorkflow {
     // Navigate to share link
     await joinGroupPage.navigateToShareLink(shareLink);
     
-    // Should show already member message
-    const isAlreadyMember = await joinGroupPage.isUserAlreadyMember();
-    if (!isAlreadyMember) {
-      const pageState = await joinGroupPage.getPageState();
-      throw new Error(`Expected already member message but didn't find it. Page state: ${JSON.stringify(pageState, null, 2)}`);
+    // Should redirect to group page since user is already a member
+    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
+    
+    // Verify we're on the group page (not the join page)
+    const isOnGroupPage = page.url().includes('/groups/') && !page.url().includes('/join');
+    if (!isOnGroupPage) {
+      throw new Error(`Expected redirect to group page for already-member, but stayed on: ${page.url()}`);
     }
   }
 

@@ -536,7 +536,7 @@ export class ApiClient {
   }
 
 
-  async generateShareLink(groupId: string): Promise<{ linkId: string; shareableUrl: string }> {
+  async generateShareLink(groupId: string): Promise<{ linkId: string; shareablePath: string }> {
     return this.request('/groups/share', {
       method: 'POST',
       body: { groupId }

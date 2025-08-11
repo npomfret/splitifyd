@@ -255,7 +255,7 @@ export class ApiDriver {
     );
   }
 
-  async generateShareLink(groupId: string, token: string): Promise<{ shareableUrl: string; linkId: string }> {
+  async generateShareLink(groupId: string, token: string): Promise<{ shareablePath: string; linkId: string }> {
     return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
   }
 

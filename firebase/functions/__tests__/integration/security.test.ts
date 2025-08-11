@@ -170,7 +170,7 @@ describe('Comprehensive Security Test Suite', () => {
         // Any group member should be able to generate share links
         const shareLink = await driver.generateShareLink(testGroup.id, users[1].token);
         expect(shareLink).toHaveProperty('linkId');
-        expect(shareLink).toHaveProperty('shareableUrl');
+        expect(shareLink).toHaveProperty('shareablePath');
       });
 
       test('should prevent non-members from generating share links', async () => {

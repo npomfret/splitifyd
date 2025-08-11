@@ -908,7 +908,7 @@ export class GroupDetailPage extends BasePage {
         // Fast close - use Escape key immediately
         await this.page.keyboard.press('Escape');
         
-        if (shareLink && shareLink.includes('/join/')) {
+        if (shareLink && shareLink.includes('/join?')) {
           // Success - return immediately
           return shareLink;
         }
@@ -944,8 +944,8 @@ export class GroupDetailPage extends BasePage {
       }
     }
 
-    if (!shareLink || !shareLink.includes('/join/')) {
-      throw new Error(`Failed to obtain valid share link from ${this.page.url()}`);
+    if (!shareLink || !shareLink.includes('/join?')) {
+      throw new Error(`Failed to obtain valid share link from ${this.page.url()}. Got: ${shareLink}`);
     }
 
     return shareLink;

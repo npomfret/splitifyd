@@ -1,35 +1,33 @@
-import { chromium } from '@playwright/test';
-import {EMULATOR_URL} from '../helpers';
+import { EMULATOR_URL } from '../helpers';
 
 async function globalSetup() {
   console.log('🚀 Starting e2e test global setup...');
 
-  // Create a browser just to test connectivity
-  const browser = await chromium.launch();
   const baseURL = EMULATOR_URL;
-  const context = await browser.newContext({
-    baseURL: baseURL
-  });
-  const page = await context.newPage();
-
+  
+  // Simple connectivity test without creating a browser instance
   try {
-    // Test basic connectivity first
     console.log(`Testing connectivity to ${baseURL}`);
-    await page.goto(baseURL);
-    await page.waitForLoadState('networkidle');
-    console.log('✅ Basic connectivity confirmed');
+    const response = await fetch(baseURL);
+    if (response.ok) {
+      console.log('✅ Basic connectivity confirmed');
+      
+      // Test register page accessibility (critical for user creation)
+      console.log('Testing register page navigation...');
+      const registerResponse = await fetch(`${baseURL}/register`);
+      if (registerResponse.ok) {
+        console.log('✅ Register page accessible');
+      } else {
+        console.warn(`⚠️  Register page returned status ${registerResponse.status}`);
+      }
+    } else {
+      console.warn(`⚠️  Server responded with status ${response.status}, but tests will proceed`);
+    }
     
-    // Test register page accessibility (critical for user creation)
-    console.log('Testing register page navigation...');
-    await page.goto(`${baseURL}/register`);
-    await page.waitForLoadState('networkidle');
-    console.log('✅ Register page accessible');
-    
-    // That's it! Each worker will create users on-demand
     console.log('✅ Global setup completed - workers will create users on-demand');
-  } finally {
-    await context.close();
-    await browser.close();
+  } catch (error: any) {
+    console.warn(`⚠️  Connectivity test failed: ${error.message}`);
+    console.log('Tests will proceed - connectivity will be tested during actual test execution');
   }
 }
 
