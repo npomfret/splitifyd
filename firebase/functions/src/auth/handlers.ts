@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
 import { getCurrentPolicyVersions } from './policy-helpers';
 import { FirestoreCollections, UserRoles, AuthErrors } from '../types/webapp-shared-types';
+import { createServerTimestamp } from '../utils/dateHelpers';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(req.body);
@@ -27,17 +28,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       email,
       displayName,
       role: UserRoles.USER, // Default role for new users
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: createServerTimestamp(),
+      updatedAt: createServerTimestamp(),
       acceptedPolicies: currentPolicyVersions // Capture current policy versions
     };
     
     // Only set acceptance timestamps if the user actually accepted the terms
     if (termsAccepted) {
-      userDoc.termsAcceptedAt = new Date();
+      userDoc.termsAcceptedAt = createServerTimestamp();
     }
     if (cookiePolicyAccepted) {
-      userDoc.cookiePolicyAcceptedAt = new Date();
+      userDoc.cookiePolicyAcceptedAt = createServerTimestamp();
     }
     
     await firestore.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);

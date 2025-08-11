@@ -3,6 +3,7 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as admin from 'firebase-admin';
 import { sanitizeString } from '../utils/security';
+import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { 
   ExpenseSplit, 
   CreateExpenseRequest, 
@@ -36,13 +37,54 @@ const expenseSplitSchema = Joi.object({
   percentage: Joi.number().min(0).max(100).optional()
 });
 
+// Date validation schema with proper constraints
+// Custom UTC-only date validation schema
+const utcDateValidationSchema = Joi.string()
+  .custom((value, helpers) => {
+    // First check if it's a string
+    if (typeof value !== 'string') {
+      return helpers.error('date.format');
+    }
+    
+    // Check if it's in UTC format
+    if (!isUTCFormat(value)) {
+      return helpers.error('date.utc');
+    }
+    
+    // Validate the date range and format
+    const validation = validateUTCDate(value, 10);
+    if (!validation.valid) {
+      if (validation.error?.includes('future')) {
+        return helpers.error('date.max');
+      } else if (validation.error?.includes('past')) {
+        return helpers.error('date.min');
+      } else if (validation.error?.includes('Invalid')) {
+        return helpers.error('date.invalid');
+      } else {
+        return helpers.error('date.utc');
+      }
+    }
+    
+    return value;
+  })
+  .messages({
+    'date.format': 'Date must be a string in ISO 8601 format',
+    'date.utc': 'Date must be in UTC format (YYYY-MM-DDTHH:mm:ss.sssZ or YYYY-MM-DDTHH:mm:ssZ)',
+    'date.invalid': 'Invalid date format',
+    'date.max': 'Date cannot be in the future',
+    'date.min': 'Date cannot be more than 10 years in the past'
+  });
+
+// Keep the old schema name for backward compatibility but use UTC validation
+const dateValidationSchema = utcDateValidationSchema;
+
 const createExpenseSchema = Joi.object({
   groupId: Joi.string().required(),
   paidBy: Joi.string().required(),
   amount: Joi.number().positive().required(),
   description: Joi.string().trim().min(1).max(200).required(),
   category: Joi.string().trim().min(1).max(50).required(),
-  date: Joi.string().required(),
+  date: dateValidationSchema.required(),
   splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).required(),
   participants: Joi.array().items(Joi.string()).min(1).required(),
   splits: Joi.array().items(expenseSplitSchema).optional(),
@@ -53,7 +95,7 @@ const updateExpenseSchema = Joi.object({
   amount: Joi.number().positive().optional(),
   description: Joi.string().trim().min(1).max(200).optional(),
   category: Joi.string().trim().min(1).max(50).optional(),
-  date: Joi.string().optional(),
+  date: dateValidationSchema.optional(),
   splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).optional(),
   participants: Joi.array().items(Joi.string()).min(1).optional(),
   splits: Joi.array().items(expenseSplitSchema).optional(),
@@ -110,7 +152,7 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
       errorMessage = 'Category must be between 1 and 50 characters';
     } else if (firstError.path.includes('date')) {
       errorCode = 'INVALID_DATE';
-      errorMessage = 'Date is required';
+      errorMessage = firstError.message || 'Invalid date format';
     } else if (firstError.path.includes('splitType')) {
       errorCode = 'INVALID_SPLIT_TYPE';
       errorMessage = 'Split type must be equal, exact, or percentage';
@@ -122,11 +164,7 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
     throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
   }
 
-  const expenseDate = new Date(value.date);
-  if (isNaN(expenseDate.getTime())) {
-    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', 'Invalid date format');
-  }
-
+  // Date validation is now handled by Joi schema
   if (!value.participants.includes(value.paidBy)) {
     throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
   }
@@ -207,7 +245,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
       errorMessage = 'Category must be between 1 and 50 characters';
     } else if (firstError.path.includes('date')) {
       errorCode = 'INVALID_DATE';
-      errorMessage = 'Date is required';
+      errorMessage = firstError.message || 'Invalid date format';
     } else if (firstError.path.includes('splitType')) {
       errorCode = 'INVALID_SPLIT_TYPE';
       errorMessage = 'Split type must be equal, exact, or percentage';
@@ -237,10 +275,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
   }
 
   if ('date' in value) {
-    const expenseDate = new Date(value.date);
-    if (isNaN(expenseDate.getTime())) {
-      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_DATE', 'Invalid date format');
-    }
+    // Date validation is now handled by Joi schema
     update.date = value.date;
   }
 

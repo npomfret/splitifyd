@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import { FirestoreCollections } from '../types/webapp-shared-types';
+import { createServerTimestamp } from '../utils/dateHelpers';
 
 export interface ExpenseMetadata {
   expenseCount: number;
@@ -46,7 +47,7 @@ export const calculateExpenseMetadata = async (groupId: string): Promise<Expense
     lastExpense: {
       description: latestExpenseData.description,
       amount: latestExpenseData.amount,
-      date: latestExpenseData.date?.toDate() ?? latestExpenseData.createdAt?.toDate() ?? new Date()
+      date: latestExpenseData.date?.toDate() ?? latestExpenseData.createdAt?.toDate() ?? createServerTimestamp().toDate()
     }
   };
 };

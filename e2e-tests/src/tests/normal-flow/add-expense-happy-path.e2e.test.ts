@@ -40,6 +40,10 @@ test.describe('Add Expense E2E', () => {
     const submitButton = groupDetailPage.getSaveExpenseButton();
     
     await expect(submitButton).toBeVisible();
+    
+    // Check if button is enabled and get validation errors if not
+    await groupDetailPage.expectSubmitButtonEnabled();
+    
     await submitButton.click();
     
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });

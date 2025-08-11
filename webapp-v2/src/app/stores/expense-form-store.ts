@@ -4,6 +4,7 @@ import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
 import { logWarning } from '../../utils/browser-logger';
+import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
 
 export interface ExpenseFormStore {
   // Form fields
@@ -58,6 +59,7 @@ const getTodayDate = (): string => {
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
 
 // Signals for form state
 const descriptionSignal = signal<string>('');
@@ -142,6 +144,41 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
   get saving() { return savingSignal.value; }
   get error() { return errorSignal.value; }
   get validationErrors() { return validationErrorsSignal.value; }
+  
+  // Computed property to check if form is valid
+  get isFormValid(): boolean {
+    // Check all required fields
+    if (!descriptionSignal.value?.trim()) return false;
+    if (!amountSignal.value || parseFloat(amountSignal.value.toString()) <= 0) return false;
+    if (!dateSignal.value) return false;
+    if (!paidBySignal.value) return false;
+    if (participantsSignal.value.length === 0) return false;
+    
+    // Check for any validation errors
+    const errors: Record<string, string> = {};
+    
+    // Validate each field
+    const descError = this.validateField('description');
+    if (descError) return false;
+    
+    const amountError = this.validateField('amount');
+    if (amountError) return false;
+    
+    const dateError = this.validateField('date');
+    if (dateError) return false;
+    
+    const paidByError = this.validateField('paidBy');
+    if (paidByError) return false;
+    
+    const participantsError = this.validateField('participants');
+    if (participantsError) return false;
+    
+    const splitsError = this.validateField('splits');
+    if (splitsError) return false;
+    
+    // Check if there are any existing validation errors
+    return Object.keys(validationErrorsSignal.value).length === 0;
+  }
 
   updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void {
     errorSignal.value = null;
@@ -388,11 +425,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         if (!dt) {
           return 'Date is required';
         }
-        // Check if date is in the future
-        const selectedDate = new Date(dt);
-        const today = new Date();
-        today.setHours(23, 59, 59, 999);
-        if (selectedDate > today) {
+        // Check if date is in the future (compares local dates properly)
+        if (isDateInFuture(dt)) {
           return 'Date cannot be in the future';
         }
         break;
@@ -453,11 +487,20 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     if (splitsError) errors.splits = splitsError;
     
     validationErrorsSignal.value = errors;
-    return Object.keys(errors).length === 0;
+    const isValid = Object.keys(errors).length === 0;
+    
+    // Log validation failures to console for test visibility
+    if (!isValid) {
+      console.warn('[ExpenseForm] Validation failed:', errors);
+    }
+    
+    return isValid;
   }
 
   async saveExpense(groupId: string): Promise<ExpenseData> {
     if (!this.validateForm()) {
+      const errors = validationErrorsSignal.value;
+      console.warn('[ExpenseForm] Cannot submit form due to validation errors:', errors);
       throw new Error('Please fix validation errors');
     }
     
@@ -465,9 +508,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     errorSignal.value = null;
     
     try {
-      // Convert date string to ISO format with time
-      const dateTime = new Date(dateSignal.value);
-      dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      // Convert date string to UTC midnight (always send UTC to server)
+      const utcDate = getUTCMidnight(dateSignal.value);
       
       const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       const request: CreateExpenseRequest = {
@@ -476,7 +518,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         amount: numericAmount,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
-        date: dateTime.toISOString(),
+        date: utcDate,
         splitType: splitTypeSignal.value,
         participants: participantsSignal.value,
         splits: splitsSignal.value
@@ -521,9 +563,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     errorSignal.value = null;
     
     try {
-      // Convert date string to ISO format with time
-      const dateTime = new Date(dateSignal.value);
-      dateTime.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      // Convert date string to UTC midnight (always send UTC to server)
+      const utcDate = getUTCMidnight(dateSignal.value);
       
       // For updates, only include fields that can be changed
       // Backend doesn't allow changing: groupId, paidBy
@@ -532,7 +573,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         description: descriptionSignal.value.trim(),
         amount: numericAmount,
         category: categorySignal.value,
-        date: dateTime.toISOString(),
+        date: utcDate,
         splitType: splitTypeSignal.value,
         participants: participantsSignal.value,
         splits: splitsSignal.value

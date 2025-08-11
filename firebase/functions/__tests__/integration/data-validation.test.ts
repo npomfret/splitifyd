@@ -28,7 +28,7 @@ describe('Enhanced Data Validation Tests', () => {
   });
 
   describe('Date Validation', () => {
-    test('should accept expenses with future dates (API currently allows)', async () => {
+    test('should reject expenses with future dates (security improvement)', async () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 30); // 30 days in the future
 
@@ -39,17 +39,15 @@ describe('Enhanced Data Validation Tests', () => {
         .withParticipants([users[0].uid, users[1].uid])
         .build();
 
-      // NOTE: API currently accepts future dates - this might be a validation gap
-      const response = await driver.createExpense(expenseData, users[0].token);
-      expect(response.id).toBeDefined();
-
-      const createdExpense = await driver.getExpense(response.id, users[0].token);
-      expect(new Date(createdExpense.date).getTime()).toBeCloseTo(futureDate.getTime(), -3);
+      // API now correctly rejects future dates to prevent client-side date manipulation
+      await expect(driver.createExpense(expenseData, users[0].token))
+        .rejects
+        .toThrow(/Date cannot be in the future/);
     });
 
-    test('should accept expenses with dates up to 1 day in the future', async () => {
+    test('should reject expenses with dates even 1 hour in the future', async () => {
       const nearFutureDate = new Date();
-      nearFutureDate.setHours(nearFutureDate.getHours() + 12); // 12 hours in the future
+      nearFutureDate.setHours(nearFutureDate.getHours() + 1); // 1 hour in the future
 
       const expenseData = new ExpenseBuilder()
         .withGroupId(testGroup.id)
@@ -58,11 +56,10 @@ describe('Enhanced Data Validation Tests', () => {
         .withParticipants([users[0].uid, users[1].uid])
         .build();
 
-      const response = await driver.createExpense(expenseData, users[0].token);
-      expect(response.id).toBeDefined();
-
-      const createdExpense = await driver.getExpense(response.id, users[0].token);
-      expect(new Date(createdExpense.date).getTime()).toBeCloseTo(nearFutureDate.getTime(), -3);
+      // API now correctly rejects any future dates, even just 1 hour ahead
+      await expect(driver.createExpense(expenseData, users[0].token))
+        .rejects
+        .toThrow(/Date cannot be in the future/);
     });
 
     test('should accept expenses with very old dates (API currently allows)', async () => {

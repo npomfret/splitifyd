@@ -90,6 +90,43 @@ export class GroupDetailPage extends BasePage {
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
   }
+  
+  /**
+   * Checks if the submit button is enabled and provides detailed error reporting
+   * @returns Promise that resolves if button is enabled, rejects with validation errors if disabled
+   */
+  async expectSubmitButtonEnabled() {
+    const submitButton = this.getSaveExpenseButton();
+    const isDisabled = await submitButton.isDisabled();
+    
+    if (isDisabled) {
+      // Look for validation error messages in the form
+      const errorMessages = await this.page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
+      
+      // Also check the button's title attribute for hints
+      const buttonTitle = await submitButton.getAttribute('title');
+      
+      // Build a detailed error message
+      let errorDetail = 'Submit button is disabled.';
+      if (errorMessages.length > 0) {
+        errorDetail += ` Validation errors found: ${errorMessages.join(', ')}`;
+      }
+      if (buttonTitle) {
+        errorDetail += ` Button hint: ${buttonTitle}`;
+      }
+      
+      throw new Error(errorDetail);
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Gets all validation error messages currently displayed in the form
+   */
+  async getValidationErrors(): Promise<string[]> {
+    return await this.page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
+  }
 
   // Split type accessors
   getSplitSection() {

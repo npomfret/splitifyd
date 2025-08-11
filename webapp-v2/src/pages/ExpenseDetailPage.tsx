@@ -8,7 +8,7 @@ import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
-import { formatDistanceToNow } from '../utils/dateUtils';
+import { formatDistanceToNow, formatLocalDate, formatLocalDateTime } from '../utils/dateUtils';
 import type { ExpenseData } from '@shared/types/webapp-shared-types';
 import { logError } from '../utils/browser-logger';
 
@@ -209,7 +209,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    {new Date(expense.value.date).toLocaleDateString()}
+                    {formatLocalDate(expense.value.date)}
                   </p>
                 </div>
                 
@@ -284,12 +284,12 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             <div className="text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center justify-between">
                 <span>Added {formatDistanceToNow(new Date(expense.value.createdAt))}</span>
-                <span className="text-xs">{new Date(expense.value.createdAt).toLocaleString()}</span>
+                <span className="text-xs">{formatLocalDateTime(expense.value.createdAt)}</span>
               </div>
               {expense.value.updatedAt !== expense.value.createdAt && (
                 <div className="flex items-center justify-between mt-1">
                   <span>Last updated {formatDistanceToNow(new Date(expense.value.updatedAt))}</span>
-                  <span className="text-xs">{new Date(expense.value.updatedAt).toLocaleString()}</span>
+                  <span className="text-xs">{formatLocalDateTime(expense.value.updatedAt)}</span>
                 </div>
               )}
             </div>

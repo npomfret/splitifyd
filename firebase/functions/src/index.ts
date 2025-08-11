@@ -10,6 +10,7 @@ import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
+import { createServerTimestamp, timestampToISO } from './utils/dateHelpers';
 import {
   createExpense,
   getExpense,
@@ -118,7 +119,7 @@ function setupRoutes(app: express.Application): void {
 
   const firestoreStart = Date.now();
   const testRef = admin.firestore().collection('_health_check').doc('test');
-  await testRef.set({ timestamp: new Date() }, { merge: true });
+  await testRef.set({ timestamp: createServerTimestamp() }, { merge: true });
   await testRef.get();
   checks.firestore = {
     status: 'healthy',
@@ -140,7 +141,7 @@ function setupRoutes(app: express.Application): void {
   const memUsage = process.memoryUsage();
   
   res.json({
-    timestamp: new Date().toISOString(),
+    timestamp: timestampToISO(createServerTimestamp()),
     uptime: process.uptime(),
     memory: {
       rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
@@ -264,7 +265,7 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
       violation,
       userAgent: req.get('User-Agent'),
       ip: req.ip,
-      timestamp: new Date().toISOString()
+      timestamp: timestampToISO(createServerTimestamp())
     });
     res.status(204).send();
   } catch (error) {

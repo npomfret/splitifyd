@@ -9,6 +9,7 @@ import type {
 import { apiClient } from '../../app/apiClient';
 import { groupDetailStore } from '../../app/stores/group-detail-store';
 import { useAuthRequired } from '../../app/hooks/useAuthRequired';
+import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
 
 const payerIdSignal = signal('');
 const payeeIdSignal = signal('');
@@ -110,11 +111,8 @@ export function SettlementForm({
       return 'Please select a date';
     }
     
-    const selectedDate = new Date(dateSignal.value);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    
-    if (selectedDate > today) {
+    // Check if date is in the future (compares local dates properly)
+    if (isDateInFuture(dateSignal.value)) {
       return 'Date cannot be in the future';
     }
     
@@ -126,6 +124,7 @@ export function SettlementForm({
     
     const validationError = validateForm();
     if (validationError) {
+      console.warn('[SettlementForm] Validation failed:', validationError);
       setValidationError(validationError);
       return;
     }
@@ -139,7 +138,7 @@ export function SettlementForm({
         payerId: payerIdSignal.value,
         payeeId: payeeIdSignal.value,
         amount: parseFloat(amountSignal.value),
-        date: new Date(dateSignal.value).toISOString(),
+        date: getUTCMidnight(dateSignal.value),  // Always send UTC to server
         note: noteSignal.value.trim() || undefined
       };
 

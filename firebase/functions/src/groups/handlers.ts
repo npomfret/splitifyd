@@ -1,9 +1,9 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
+import { createServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
 import {
   validateCreateGroup,
   validateUpdateGroup,
@@ -168,7 +168,7 @@ export const createGroup = async (
     const sanitizedData = sanitizeGroupData(groupData);
 
     // Initialize group structure
-    const now = new Date();
+    const now = createServerTimestamp();
     const docRef = getGroupsCollection().doc();
   
   const newGroup: Group = {
@@ -177,16 +177,16 @@ export const createGroup = async (
     description: sanitizedData.description ?? '',
     createdBy: userId,
     memberIds: sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId],
-    createdAt: now.toISOString(),
-    updatedAt: now.toISOString(),
+    createdAt: timestampToISO(now),
+    updatedAt: timestampToISO(now),
   };
 
   // Store in Firestore (using old structure during migration)
   await docRef.set({
     userId,
     data: newGroup,
-    createdAt: Timestamp.fromDate(now),
-    updatedAt: Timestamp.fromDate(now),
+    createdAt: now,
+    updatedAt: now,
   });
 
   logger.info('Group created successfully', {
@@ -265,7 +265,7 @@ export const updateGroup = async (
   const updatedData = {
     ...group,
     ...sanitizedUpdates,
-    updatedAt: new Date(),
+    updatedAt: createServerTimestamp().toDate(),
   };
 
   // Update in Firestore (using old structure during migration)
@@ -273,7 +273,7 @@ export const updateGroup = async (
     'data.name': updatedData.name,
     'data.description': updatedData.description,
     'data.updatedAt': updatedData.updatedAt.toISOString(),
-    updatedAt: Timestamp.fromDate(updatedData.updatedAt),
+    updatedAt: createServerTimestamp(),
   });
 
   logger.info('Group updated successfully', {
@@ -420,17 +420,12 @@ export const listGroups = async (
 
 /**
  * Format a date as relative time (e.g., "2 hours ago")
+ * Now uses centralized date helpers for consistency
  */
 const formatRelativeTime = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
-  if (seconds < 2592000) return `${Math.floor(seconds / 604800)} weeks ago`;
-  if (seconds < 31536000) return `${Math.floor(seconds / 2592000)} months ago`;
-  return `${Math.floor(seconds / 31536000)} years ago`;
+  const timestamp = parseISOToTimestamp(dateStr);
+  if (!timestamp) {
+    return 'unknown';
+  }
+  return getRelativeTime(timestamp);
 };

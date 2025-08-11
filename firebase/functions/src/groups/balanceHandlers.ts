@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { ApiError } from '../utils/errors';
+import { timestampToISO } from '../utils/dateHelpers';
 import { FirestoreCollections } from '../types/webapp-shared-types';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
@@ -23,10 +24,21 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
     }
     
     const groupData = groupDoc.data()!;
-    const memberIds = groupData.data!.memberIds!;
-    if (memberIds.length === 0) {
-        throw new Error(`Group ${groupId} has no members`);
+    
+    // Handle group structure variations (old vs new format)
+    let memberIds: string[];
+    if (groupData.data?.memberIds) {
+        memberIds = groupData.data.memberIds;
+    } else if (groupData.memberIds) {
+        memberIds = groupData.memberIds;
+    } else {
+        throw new ApiError(400, 'INVALID_GROUP_STATE', 'Group has invalid member structure');
     }
+    
+    if (!memberIds || memberIds.length === 0) {
+        throw new ApiError(400, 'INVALID_GROUP_STATE', `Group ${groupId} has no members`);
+    }
+    
     if (!memberIds.includes(userId)) {
         throw new ApiError(403, 'FORBIDDEN', 'User is not a member of this group');
     }
@@ -38,6 +50,6 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
         groupId: balances.groupId,
         userBalances: balances.userBalances,
         simplifiedDebts: balances.simplifiedDebts,
-        lastUpdated: balances.lastUpdated.toDate().toISOString()
+        lastUpdated: timestampToISO(balances.lastUpdated)
     });
 }

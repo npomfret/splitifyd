@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
+import { timestampToISO, createServerTimestamp } from './dateHelpers';
 
 /**
  * Standard error response interface
@@ -69,7 +70,7 @@ export const sendHealthCheckResponse = (res: Response, checks: Record<string, { 
   const overallStatus = Object.values(checks).every(check => check.status === 'healthy') ? 'healthy' : 'unhealthy';
   const response: HealthCheckResponse = {
     status: overallStatus,
-    timestamp: new Date().toISOString(),
+    timestamp: timestampToISO(createServerTimestamp()),
     checks,
   };
   

@@ -1,10 +1,9 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
-import { toISOString } from '../utils/date';
+import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import {
@@ -120,9 +119,9 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
       settlementData.payeeId
     ]);
     
-    const now = Timestamp.now();
+    const now = createServerTimestamp();
     const settlementDate = settlementData.date 
-      ? Timestamp.fromDate(new Date(settlementData.date))
+      ? safeParseISOToTimestamp(settlementData.date)
       : now;
     
     const settlementId = getSettlementsCollection().doc().id;
@@ -148,9 +147,9 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
     
     const responseData: Settlement = {
       ...settlement,
-      date: toISOString(settlementDate),
-      createdAt: toISOString(now),
-      updatedAt: toISOString(now)
+      date: timestampToISO(settlementDate),
+      createdAt: timestampToISO(now),
+      updatedAt: timestampToISO(now)
     };
     
     logger.info(`Settlement created: ${settlementId} by user: ${userId}`);
@@ -213,7 +212,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
     }
     
     const updates: any = {
-      updatedAt: Timestamp.now()
+      updatedAt: createServerTimestamp()
     };
     
     if (updateData.amount !== undefined) {
@@ -221,7 +220,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
     }
     
     if (updateData.date !== undefined) {
-      updates.date = Timestamp.fromDate(new Date(updateData.date));
+      updates.date = safeParseISOToTimestamp(updateData.date);
     }
     
     if (updateData.note !== undefined) {
@@ -240,9 +239,9 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
     
     const responseData: Settlement = {
       ...updatedSettlement,
-      date: toISOString(updatedSettlement!.date),
-      createdAt: toISOString(updatedSettlement!.createdAt),
-      updatedAt: toISOString(updatedSettlement!.updatedAt)
+      date: timestampToISO(updatedSettlement!.date),
+      createdAt: timestampToISO(updatedSettlement!.createdAt),
+      updatedAt: timestampToISO(updatedSettlement!.updatedAt)
     } as Settlement;
     
     logger.info(`Settlement updated: ${settlementId} by user: ${userId}`);
@@ -357,9 +356,9 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
       payer: payerData,
       payee: payeeData,
       amount: settlement.amount,
-      date: toISOString(settlement.date),
+      date: timestampToISO(settlement.date),
       note: settlement.note,
-      createdAt: toISOString(settlement.createdAt)
+      createdAt: timestampToISO(settlement.createdAt)
     };
     
     res.status(HTTP_STATUS.OK).json({
@@ -416,11 +415,11 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
     }
     
     if (startDate) {
-      query = query.where('date', '>=', Timestamp.fromDate(new Date(startDate)));
+      query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
     }
     
     if (endDate) {
-      query = query.where('date', '<=', Timestamp.fromDate(new Date(endDate)));
+      query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
     }
     
     if (cursor) {
@@ -447,9 +446,9 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
           payee: payeeData,
           amount: data.amount,
           currency: data.currency,
-          date: toISOString(data.date),
+          date: timestampToISO(data.date),
           note: data.note,
-          createdAt: toISOString(data.createdAt)
+          createdAt: timestampToISO(data.createdAt)
         };
       })
     );

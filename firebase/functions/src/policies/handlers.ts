@@ -5,6 +5,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
+import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
 import {
   PolicyDocument,
   CreatePolicyRequest,
@@ -190,7 +191,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
 
     // Calculate hash for new version
     const versionHash = calculatePolicyHash(text);
-    const now = new Date().toISOString();
+    const now = timestampToISO(createServerTimestamp());
 
     const newVersion: PolicyVersion = {
       text,
@@ -281,7 +282,7 @@ export const publishPolicyInternal = async (id: string, versionHash: string): Pr
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
     }
 
-    const now = new Date().toISOString();
+    const now = timestampToISO(createServerTimestamp());
 
     // Update policy to make this version current
     await firestore.collection(FirestoreCollections.POLICIES).doc(id).update({
@@ -342,7 +343,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
     // Update current version hash
     await policyDoc.ref.update({
       currentVersionHash: versionHash,
-      publishedAt: new Date().toISOString(),
+      publishedAt: timestampToISO(createServerTimestamp()),
       publishedBy: req.user?.uid
     });
 
@@ -392,7 +393,7 @@ export const createPolicyInternal = async (policyName: string, text: string, cus
 
     // Calculate hash for initial version
     const versionHash = calculatePolicyHash(text);
-    const now = new Date().toISOString();
+    const now = timestampToISO(createServerTimestamp());
 
     const initialVersion: PolicyVersion = {
       text,
@@ -452,7 +453,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
 
     // Calculate hash for initial version
     const versionHash = calculatePolicyHash(text);
-    const now = new Date().toISOString();
+    const now = timestampToISO(createServerTimestamp());
 
     const initialVersion: PolicyVersion = {
       text,
@@ -543,7 +544,7 @@ export const deletePolicyVersion = async (req: AuthenticatedRequest, res: Respon
 
     await policyDoc.ref.update({
       versions: updatedVersions,
-      updatedAt: new Date().toISOString()
+      updatedAt: timestampToISO(createServerTimestamp())
     });
 
     logger.info('Policy version deleted', { 

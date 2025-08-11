@@ -175,7 +175,7 @@ describe('Expense Validation', () => {
       amount: 100.50,
       description: 'Dinner at restaurant',
       category: 'food',
-      date: '2024-01-15',
+      date: '2024-01-15T00:00:00.000Z',  // UTC format required
       splitType: 'equal',
       participants: ['user123', 'user456'],
       receiptUrl: 'https://example.com/receipt.jpg'

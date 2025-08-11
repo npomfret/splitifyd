@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 import { CreateSettlementRequest, UpdateSettlementRequest } from '../types/webapp-shared-types';
+import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 
 const amountSchema = Joi.number()
   .positive()
@@ -21,13 +22,39 @@ const noteSchema = Joi.string()
     'string.max': 'Note cannot exceed 500 characters'
   });
 
-const dateSchema = Joi.date()
-  .iso()
-  .max('now')
+// UTC-only date validation for settlements
+const dateSchema = Joi.string()
+  .custom((value, helpers) => {
+    // Optional field - allow undefined
+    if (value === undefined || value === null) {
+      return value;
+    }
+    
+    // Check if it's in UTC format
+    if (!isUTCFormat(value)) {
+      return helpers.error('date.utc');
+    }
+    
+    // Validate the date range and format
+    const validation = validateUTCDate(value, 10);
+    if (!validation.valid) {
+      if (validation.error?.includes('future')) {
+        return helpers.error('date.max');
+      } else if (validation.error?.includes('past')) {
+        return helpers.error('date.min');
+      } else if (validation.error?.includes('Invalid')) {
+        return helpers.error('date.invalid');
+      }
+    }
+    
+    return value;
+  })
   .optional()
   .messages({
-    'date.format': 'Date must be in ISO format',
-    'date.max': 'Date cannot be in the future'
+    'date.utc': 'Date must be in UTC format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+    'date.invalid': 'Invalid date format',
+    'date.max': 'Date cannot be in the future',
+    'date.min': 'Date cannot be more than 10 years in the past'
   });
 
 export const createSettlementSchema = Joi.object<CreateSettlementRequest>({

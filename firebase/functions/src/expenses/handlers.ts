@@ -1,10 +1,9 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
-import { toISOString } from '../utils/date';
+import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import {
@@ -129,7 +128,7 @@ export const createExpense = async (
   }
   const memberIds = groupData.data.memberIds;
 
-  const now = new Date();
+  const now = createServerTimestamp();
   const docRef = getExpensesCollection().doc();
   
   const splits = calculateSplits(
@@ -147,13 +146,13 @@ export const createExpense = async (
     amount: expenseData.amount,
     description: expenseData.description,
     category: expenseData.category,
-    date: Timestamp.fromDate(new Date(expenseData.date)),
+    date: parseISOToTimestamp(expenseData.date) || createServerTimestamp(),
     splitType: expenseData.splitType,
     participants: expenseData.participants,
     splits,
     memberIds,
-    createdAt: Timestamp.fromDate(now),
-    updatedAt: Timestamp.fromDate(now),
+    createdAt: now,
+    updatedAt: now,
     deletedAt: null,
     deletedBy: null,
   };
@@ -197,9 +196,9 @@ export const createExpense = async (
     // Convert Firestore Timestamps to ISO strings for the response
     const responseExpense = {
       ...expense,
-      date: toISOString(expense.date),
-      createdAt: toISOString(expense.createdAt),
-      updatedAt: toISOString(expense.updatedAt),
+      date: timestampToISO(expense.date),
+      createdAt: timestampToISO(expense.createdAt),
+      updatedAt: timestampToISO(expense.updatedAt),
     };
 
     res.status(HTTP_STATUS.CREATED).json(responseExpense);
@@ -231,13 +230,13 @@ export const getExpense = async (
     amount: expense.amount,
     description: expense.description,
     category: expense.category,
-    date: toISOString(expense.date),
+    date: timestampToISO(expense.date),
     splitType: expense.splitType,
     participants: expense.participants,
     splits: expense.splits,
     receiptUrl: expense.receiptUrl,
-    createdAt: toISOString(expense.createdAt),
-    updatedAt: toISOString(expense.updatedAt),
+    createdAt: timestampToISO(expense.createdAt),
+    updatedAt: timestampToISO(expense.updatedAt),
   });
 };
 
@@ -263,11 +262,11 @@ export const updateExpense = async (
   // that gets transformed before being passed to Firestore
   const updates: any = {
     ...updateData,
-    updatedAt: Timestamp.now(),
+    updatedAt: createServerTimestamp(),
   };
 
   if (updateData.date) {
-    updates.date = Timestamp.fromDate(new Date(updateData.date));
+    updates.date = parseISOToTimestamp(updateData.date) || createServerTimestamp();
   }
 
   if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
@@ -295,7 +294,7 @@ export const updateExpense = async (
     // Create a snapshot of the current expense state for history
     const historyEntry = {
       ...expense,
-      modifiedAt: Timestamp.now(),
+      modifiedAt: createServerTimestamp(),
       modifiedBy: userId,
       changeType: 'update' as const,
       changes: Object.keys(updateData)
@@ -364,13 +363,13 @@ export const updateExpense = async (
       amount: updatedExpense.amount,
       category: updatedExpense.category,
       description: updatedExpense.description,
-      date: toISOString(updatedExpense.date),
+      date: timestampToISO(updatedExpense.date),
       splitType: updatedExpense.splitType,
       participants: updatedExpense.participants,
       splits: updatedExpense.splits,
       receiptUrl: updatedExpense.receiptUrl || undefined,
-      createdAt: toISOString(updatedExpense.createdAt),
-      updatedAt: toISOString(updatedExpense.updatedAt),
+      createdAt: timestampToISO(updatedExpense.createdAt),
+      updatedAt: timestampToISO(updatedExpense.updatedAt),
     });
   } catch (error) {
     logger.error('Failed to update expense', {
@@ -411,7 +410,7 @@ export const deleteExpense = async (
       
       // Soft delete the expense
       transaction.update(docRef, {
-        [DELETED_AT_FIELD]: Timestamp.now(),
+        [DELETED_AT_FIELD]: createServerTimestamp(),
         deletedBy: userId
       });
       
@@ -485,8 +484,8 @@ export const listGroupExpenses = async (
       
       if (cursorData.date && cursorData.createdAt) {
         query = query.startAfter(
-          new Date(cursorData.date),
-          new Date(cursorData.createdAt)
+          parseISOToTimestamp(cursorData.date) || createServerTimestamp(),
+          parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp()
         );
       }
     } catch (error) {
@@ -509,14 +508,14 @@ export const listGroupExpenses = async (
         amount: data.amount,
         description: data.description,
         category: data.category,
-        date: toISOString(data.date),
+        date: timestampToISO(data.date),
         splitType: data.splitType,
         participants: data.participants,
         splits: data.splits,
         receiptUrl: data.receiptUrl,
-        createdAt: toISOString(data.createdAt),
-        updatedAt: toISOString(data.updatedAt),
-        deletedAt: data.deletedAt ? toISOString(data.deletedAt) : null,
+        createdAt: timestampToISO(data.createdAt),
+        updatedAt: timestampToISO(data.updatedAt),
+        deletedAt: data.deletedAt ? timestampToISO(data.deletedAt) : null,
         deletedBy: data.deletedBy || null,
       };
     });
@@ -526,8 +525,8 @@ export const listGroupExpenses = async (
     const lastDoc = snapshot.docs[limit - 1];
     const lastDocData = lastDoc.data() as Expense;
     const cursorData = {
-      date: toISOString(lastDocData.date),
-      createdAt: toISOString(lastDocData.createdAt),
+      date: timestampToISO(lastDocData.date),
+      createdAt: timestampToISO(lastDocData.createdAt),
       id: lastDoc.id,
     };
     nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
@@ -569,8 +568,8 @@ export const listUserExpenses = async (
       
       if (cursorData.date && cursorData.createdAt) {
         query = query.startAfter(
-          new Date(cursorData.date),
-          new Date(cursorData.createdAt)
+          parseISOToTimestamp(cursorData.date) || createServerTimestamp(),
+          parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp()
         );
       }
     } catch (error) {
@@ -593,14 +592,14 @@ export const listUserExpenses = async (
         amount: data.amount,
         description: data.description,
         category: data.category,
-        date: toISOString(data.date),
+        date: timestampToISO(data.date),
         splitType: data.splitType,
         participants: data.participants,
         splits: data.splits,
         receiptUrl: data.receiptUrl,
-        createdAt: toISOString(data.createdAt),
-        updatedAt: toISOString(data.updatedAt),
-        deletedAt: data.deletedAt ? toISOString(data.deletedAt) : null,
+        createdAt: timestampToISO(data.createdAt),
+        updatedAt: timestampToISO(data.updatedAt),
+        deletedAt: data.deletedAt ? timestampToISO(data.deletedAt) : null,
         deletedBy: data.deletedBy || null,
       };
     });
@@ -610,8 +609,8 @@ export const listUserExpenses = async (
     const lastDoc = snapshot.docs[limit - 1];
     const lastDocData = lastDoc.data() as Expense;
     const cursorData = {
-      date: toISOString(lastDocData.date),
-      createdAt: toISOString(lastDocData.createdAt),
+      date: timestampToISO(lastDocData.date),
+      createdAt: timestampToISO(lastDocData.createdAt),
       id: lastDoc.id,
     };
     nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
@@ -646,14 +645,14 @@ export const getExpenseHistory = async (
     const data = doc.data();
     return {
       id: doc.id,
-      modifiedAt: toISOString(data.modifiedAt),
+      modifiedAt: timestampToISO(data.modifiedAt),
       modifiedBy: data.modifiedBy,
       changeType: data.changeType,
       changes: data.changes,
       previousAmount: data.amount,
       previousDescription: data.description,
       previousCategory: data.category,
-      previousDate: data.date ? toISOString(data.date) : undefined,
+      previousDate: data.date ? timestampToISO(data.date) : undefined,
       previousSplits: data.splits
     };
   });
