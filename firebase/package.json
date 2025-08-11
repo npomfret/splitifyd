@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
+    "build": "cd functions && npm run build",
     "link-webapp": "ln -sf ../webapp-v2/dist public",
     "start-emulators": "tsx scripts/generate-firebase-config.ts && tsx scripts/start-with-data.ts",
     "generate-test-data": "cd functions && tsx scripts/generate-test-data.ts",
