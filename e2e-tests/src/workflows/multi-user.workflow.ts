@@ -218,6 +218,7 @@ export class MultiUserWorkflow {
       description,
       amount,
       paidBy: user.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
 

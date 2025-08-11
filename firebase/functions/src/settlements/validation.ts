@@ -68,6 +68,7 @@ export const createSettlementSchema = Joi.object<CreateSettlementRequest>({
     'any.required': 'Payee ID is required'
   }),
   amount: amountSchema,
+  currency: Joi.string().length(3).uppercase().required(),
   date: dateSchema,
   note: noteSchema
 }).custom((value, helpers) => {
@@ -90,6 +91,7 @@ export const updateSettlementSchema = Joi.object<UpdateSettlementRequest>({
       'number.positive': 'Amount must be greater than 0',
       'number.max': 'Amount cannot exceed 999,999.99'
     }),
+  currency: Joi.string().length(3).uppercase().optional(),
   date: dateSchema,
   note: noteSchema
 }).min(1).messages({

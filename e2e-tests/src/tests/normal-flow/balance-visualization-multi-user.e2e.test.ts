@@ -43,6 +43,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'User1 Equal Payment',
       amount: 100,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -53,6 +54,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'User2 Equal Payment', 
       amount: 100,
       paidBy: user2.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -107,6 +109,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'One Person Pays',
       amount: 200,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -164,6 +167,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'Large User1 Payment',
       amount: 300,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -174,6 +178,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'Small User2 Payment',
       amount: 100,
       paidBy: user2.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -231,6 +236,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'Create Debt',
       amount: 100,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -253,6 +259,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'Balance Debt',
       amount: 100,
       paidBy: user2.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -299,6 +306,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       description: 'Currency Test',
       amount: 123.45,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -365,6 +373,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       description: 'Test Expense for Settlement',
       amount: 200,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     
@@ -501,6 +510,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       description: 'One Person Pays',
       amount: 150,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     });
     

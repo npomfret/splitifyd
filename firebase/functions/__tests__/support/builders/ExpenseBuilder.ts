@@ -2,6 +2,7 @@ export interface TestExpense {
   groupId: string;
   description: string;
   amount: number;
+  currency: string;
   paidBy: string;
   splitType: 'equal' | 'exact' | 'percentage';
   participants: string[];
@@ -22,6 +23,7 @@ export class ExpenseBuilder {
       groupId: 'default-group-id',
       description: 'Test Expense',
       amount: 100,
+      currency: 'USD',
       paidBy: 'default-user-id',
       splitType: 'equal',
       participants: ['default-user-id'],
@@ -75,6 +77,11 @@ export class ExpenseBuilder {
     return this;
   }
 
+  withCurrency(currency: string): this {
+    this.expense.currency = currency;
+    return this;
+  }
+
   withReceiptUrl(receiptUrl: string): this {
     this.expense.receiptUrl = receiptUrl;
     return this;
@@ -85,6 +92,7 @@ export class ExpenseBuilder {
       groupId: this.expense.groupId,
       description: this.expense.description,
       amount: this.expense.amount,
+      currency: this.expense.currency,
       paidBy: this.expense.paidBy,
       splitType: this.expense.splitType,
       participants: [...this.expense.participants],

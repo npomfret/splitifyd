@@ -5,6 +5,7 @@ import { HEADINGS, BUTTON_TEXTS, MESSAGES, FORM_LABELS, ARIA_ROLES } from '../co
 interface ExpenseData {
   description: string;
   amount: number;
+  currency: string; // Required: must be explicitly provided
   paidBy: string;
   splitType: 'equal' | 'exact' | 'percentage';
   participants?: string[]; // Optional: if not provided, selects all members
@@ -396,6 +397,9 @@ export class GroupDetailPage extends BasePage {
     
     const amountField = this.getExpenseAmountField();
     await this.fillPreactInput(amountField, expense.amount.toString());
+    
+    // TODO: Add currency selector when UI component is ready
+    // For now, the form defaults to USD
     
     // Handle paidBy field - select who paid for the expense
     // The "Who paid?" section uses radio buttons inside label elements

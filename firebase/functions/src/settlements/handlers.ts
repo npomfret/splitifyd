@@ -132,6 +132,7 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
       payerId: settlementData.payerId,
       payeeId: settlementData.payeeId,
       amount: settlementData.amount,
+      currency: settlementData.currency,
       date: settlementDate,
       createdBy: userId,
       createdAt: now,
@@ -217,6 +218,10 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
     
     if (updateData.amount !== undefined) {
       updates.amount = updateData.amount;
+    }
+    
+    if (updateData.currency !== undefined) {
+      updates.currency = updateData.currency;
     }
     
     if (updateData.date !== undefined) {
@@ -356,6 +361,7 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
       payer: payerData,
       payee: payeeData,
       amount: settlement.amount,
+      currency: settlement.currency || 'USD',
       date: timestampToISO(settlement.date),
       note: settlement.note,
       createdAt: timestampToISO(settlement.createdAt)
@@ -445,7 +451,7 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
           payer: payerData,
           payee: payeeData,
           amount: data.amount,
-          currency: data.currency,
+          currency: data.currency || 'USD',
           date: timestampToISO(data.date),
           note: data.note,
           createdAt: timestampToISO(data.createdAt)

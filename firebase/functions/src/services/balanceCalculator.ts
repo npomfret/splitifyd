@@ -66,6 +66,9 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     });
 
     const userBalances: Record<string, UserBalance> = {};
+    
+    // Determine currency from the first expense (all expenses should have the same currency)
+    const currency = expenses.length > 0 ? expenses[0].currency || 'USD' : 'USD';
 
     for (const expense of expenses) {
         const payerId = expense.paidBy;
@@ -209,7 +212,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         userNames.set(userId, profile.displayName);
     }
     
-    const simplifiedDebts = simplifyDebts(userBalances);
+    const simplifiedDebts = simplifyDebts(userBalances, currency);
 
     return {
         groupId,

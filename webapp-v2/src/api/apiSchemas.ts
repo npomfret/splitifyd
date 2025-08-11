@@ -114,6 +114,7 @@ export const ExpenseDataSchema = z.object({
   groupId: z.string().min(1),
   description: z.string().min(1),
   amount: z.number(),
+  currency: z.string().length(3),
   paidBy: z.string().min(1),
   paidByName: z.string().min(1).optional(),
   category: z.string().min(1),
@@ -145,7 +146,8 @@ export const UserBalanceSchema = z.object({
 export const SimplifiedDebtSchema = z.object({
   from: z.object({ userId: z.string() }),
   to: z.object({ userId: z.string() }),
-  amount: z.number()
+  amount: z.number(),
+  currency: z.string().length(3)
 });
 
 export const GroupBalancesSchema = z.object({
@@ -229,6 +231,7 @@ export const SettlementSchema = z.object({
   payerId: z.string().min(1),
   payeeId: z.string().min(1),
   amount: z.number().positive(),
+  currency: z.string().length(3),
   date: z.string(),
   note: z.string().optional(),
   createdBy: z.string().min(1),
@@ -250,6 +253,7 @@ export const SettlementListItemSchema = z.object({
     email: z.string().email().optional()
   }),
   amount: z.number().positive(),
+  currency: z.string().length(3),
   date: z.string(),
   note: z.string().optional(),
   createdBy: z.string().min(1).optional(),

@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { SimplifiedDebt } from '../utils/debtSimplifier';
+import { SimplifiedDebt } from '../shared/shared-types';
 
 export interface GroupBalance {
     groupId: string;

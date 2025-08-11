@@ -100,6 +100,7 @@ test.describe('Three User Settlement Management', () => {
       description: 'Group dinner expense',
       amount: 120,
       paidBy: user1.displayName,
+      currency: 'USD',
       splitType: 'equal'
     }, allPages);
     

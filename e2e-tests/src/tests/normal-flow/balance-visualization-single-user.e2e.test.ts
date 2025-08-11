@@ -51,6 +51,7 @@ test.describe('Single User Balance Visualization', () => {
     await groupDetailPage.addExpense({
       description: 'Dinner',
       amount: 120,
+      currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
     });
@@ -58,6 +59,7 @@ test.describe('Single User Balance Visualization', () => {
     await groupDetailPage.addExpense({
       description: 'Groceries',
       amount: 80,
+      currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
     });
@@ -107,6 +109,7 @@ test.describe('Single User Balance Visualization', () => {
     await groupDetailPage.addExpense({
       description: 'International expense',
       amount: 250,
+      currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
     });

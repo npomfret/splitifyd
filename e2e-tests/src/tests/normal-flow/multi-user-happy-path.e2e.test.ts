@@ -72,6 +72,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage.addExpense({
       description: 'User 1 Lunch',
       amount: 25,
+      currency: 'USD',
       paidBy: user1.displayName,
       splitType: 'equal'
     });
@@ -79,6 +80,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage2.addExpense({
       description: 'User 2 Dinner',
       amount: 40,
+      currency: 'USD',
       paidBy: user2.displayName,
       splitType: 'equal'
     });
@@ -121,6 +123,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       await groupDetailPage.addExpense({
         description: expense.description,
         amount: expense.amount,
+        currency: 'USD',
         paidBy: user.displayName,
         splitType: 'equal'
       });
@@ -160,6 +163,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage.addExpense({
       description: 'Shared Meal',
       amount: 100,
+      currency: 'USD',
       paidBy: user1.displayName,
       splitType: 'equal'
     });

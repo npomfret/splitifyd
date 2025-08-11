@@ -135,6 +135,7 @@ export function SettlementForm({
         payerId: payerIdSignal.value,
         payeeId: payeeIdSignal.value,
         amount: parseFloat(amountSignal.value),
+        currency: 'USD', // FIXME: This should come from a currency selector form field
         date: getUTCMidnight(dateSignal.value),  // Always send UTC to server
         note: noteSignal.value.trim() || undefined
       };

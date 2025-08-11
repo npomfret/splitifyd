@@ -17,6 +17,7 @@ test.describe('Basic Expense Operations E2E', () => {
     await groupDetailPage.addExpense({
       description: 'Test Expense Lifecycle',
       amount: 50,
+      currency: 'USD',
       paidBy: groupInfo.user.displayName,
       splitType: 'equal'
     });

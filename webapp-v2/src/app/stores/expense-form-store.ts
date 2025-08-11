@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import {CreateExpenseRequest, ExpenseCategory, ExpenseData, ExpenseSplit, SplitTypes, PREDEFINED_EXPENSE_CATEGORIES} from '../../../../firebase/functions/src/shared/shared-types';
+import {CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes} from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
@@ -45,6 +45,7 @@ export interface ExpenseFormStore {
 interface ExpenseFormData {
   description: string;
   amount: string | number;  // Allow string to preserve user input
+  currency: string;
   date: string;
   paidBy: string;
   category: string;
@@ -64,6 +65,7 @@ const getTodayDate = (): string => {
 // Signals for form state
 const descriptionSignal = signal<string>('');
 const amountSignal = signal<string | number>('');  // Store as string to preserve user input
+const currencySignal = signal<string>('USD');  // Default to USD since UI doesn't expose currency selection yet
 const dateSignal = signal<string>(getTodayDate());
 const paidBySignal = signal<string>('');
 const categorySignal = signal<string>('food');
@@ -154,9 +156,6 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     if (!paidBySignal.value) return false;
     if (participantsSignal.value.length === 0) return false;
     
-    // Check for any validation errors
-    const errors: Record<string, string> = {};
-    
     // Validate each field
     const descError = this.validateField('description');
     if (descError) return false;
@@ -205,6 +204,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
           });
           splitsSignal.value = currentSplits;
         }
+        break;
+      case 'currency':
+        currencySignal.value = value as string;
         break;
       case 'date':
         dateSignal.value = value as string;
@@ -420,6 +422,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }
         break;
         
+      case 'currency':
+        const curr = value ?? currencySignal.value;
+        if (!curr || curr.trim() === '') {
+          return 'Currency is required';
+        }
+        if (curr.length !== 3) {
+          return 'Currency must be a 3-letter code (e.g., USD, EUR)';
+        }
+        break;
+        
       case 'date':
         const dt = value ?? dateSignal.value;
         if (!dt) {
@@ -474,6 +486,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     const amountError = this.validateField('amount');
     if (amountError) errors.amount = amountError;
     
+    const currencyError = this.validateField('currency');
+    if (currencyError) errors.currency = currencyError;
+    
     const dateError = this.validateField('date');
     if (dateError) errors.date = dateError;
     
@@ -516,6 +531,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         groupId,
         description: descriptionSignal.value.trim(),
         amount: numericAmount,
+        currency: currencySignal.value,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
         date: utcDate,
@@ -572,6 +588,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const updateRequest = {
         description: descriptionSignal.value.trim(),
         amount: numericAmount,
+        currency: currencySignal.value,
         category: categorySignal.value,
         date: utcDate,
         splitType: splitTypeSignal.value,
@@ -615,6 +632,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
   reset(): void {
     descriptionSignal.value = '';
     amountSignal.value = '';  // Reset to empty string
+    currencySignal.value = 'USD';  // Default to USD
     dateSignal.value = getTodayDate();
     paidBySignal.value = '';
     categorySignal.value = 'food';
@@ -631,6 +649,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     return (
       descriptionSignal.value.trim() !== '' ||
       hasAmount ||
+      currencySignal.value !== 'USD' ||
       dateSignal.value !== getTodayDate() ||
       paidBySignal.value !== '' ||
       categorySignal.value !== 'food' ||
@@ -646,6 +665,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const draftData = {
         description: descriptionSignal.value,
         amount: amountSignal.value,
+        currency: currencySignal.value,
         date: dateSignal.value,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
@@ -683,6 +703,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       // Restore form data
       descriptionSignal.value = draftData.description || '';
       amountSignal.value = draftData.amount || 0;
+      currencySignal.value = draftData.currency || 'USD';  // Default to USD
       dateSignal.value = draftData.date || getTodayDate();
       paidBySignal.value = draftData.paidBy || '';
       categorySignal.value = draftData.category || 'food';

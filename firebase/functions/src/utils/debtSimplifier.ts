@@ -1,3 +1,5 @@
+import { SimplifiedDebt } from '../shared/shared-types';
+
 export interface UserBalance {
     userId: string;
     owes: Record<string, number>;
@@ -10,19 +12,9 @@ export interface NetBalance {
     netAmount: number;
 }
 
-export interface SimplifiedDebt {
-    from: {
-        userId: string;
-    };
-    to: {
-        userId: string;
-    };
-    amount: number;
-}
-
-export function simplifyDebts(balances: Record<string, UserBalance>): SimplifiedDebt[] {
+export function simplifyDebts(balances: Record<string, UserBalance>, currency: string = 'USD'): SimplifiedDebt[] {
     const netBalances = calculateNetBalances(balances);
-    return createOptimalTransactions(netBalances);
+    return createOptimalTransactions(netBalances, currency);
 }
 
 function calculateNetBalances(balances: Record<string, UserBalance>): Record<string, NetBalance> {
@@ -50,7 +42,7 @@ function calculateNetBalances(balances: Record<string, UserBalance>): Record<str
     return netBalances;
 }
 
-function createOptimalTransactions(netBalances: Record<string, NetBalance>): SimplifiedDebt[] {
+function createOptimalTransactions(netBalances: Record<string, NetBalance>, currency: string): SimplifiedDebt[] {
     const transactions: SimplifiedDebt[] = [];
     const creditors: NetBalance[] = [];
     const debtors: NetBalance[] = [];
@@ -83,7 +75,8 @@ function createOptimalTransactions(netBalances: Record<string, NetBalance>): Sim
                 to: {
                     userId: creditor.userId
                 },
-                amount: transferAmount
+                amount: transferAmount,
+                currency: currency
             });
         }
         
