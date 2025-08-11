@@ -64,11 +64,15 @@ export class GroupDetailPage extends BasePage {
   }
 
   getCategorySelect() {
-    return this.page.getByRole('combobox').first();
+    // Category input is an actual input element with aria-haspopup
+    // (not the currency selector which is a div with role=combobox)
+    return this.page.locator('input[aria-haspopup="listbox"]').first();
   }
 
   getCategoryInput() {
-    return this.page.getByRole('combobox').first();
+    // Category input is an actual input element with aria-haspopup
+    // (not the currency selector which is a div with role=combobox)
+    return this.page.locator('input[aria-haspopup="listbox"]').first();
   }
 
   getCategorySuggestion(text: string) {

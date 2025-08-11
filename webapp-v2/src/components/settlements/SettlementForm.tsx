@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { Button, Form } from '../ui';
+import { Button, Form, CurrencySelector } from '../ui';
+import { CurrencyService } from '../../app/services/currencyService';
 import type { 
   CreateSettlementRequest, 
   User, 
@@ -14,6 +15,7 @@ import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
 const payerIdSignal = signal('');
 const payeeIdSignal = signal('');
 const amountSignal = signal('');
+const currencySignal = signal('USD');
 const dateSignal = signal(new Date().toISOString().split('T')[0]);
 const noteSignal = signal('');
 
@@ -46,12 +48,12 @@ export function SettlementForm({
         payerIdSignal.value = preselectedDebt.from.userId;
         payeeIdSignal.value = preselectedDebt.to.userId;
         amountSignal.value = preselectedDebt.amount.toFixed(2);
-        // Currency is always USD
+        currencySignal.value = preselectedDebt.currency || 'USD';
       } else if (currentUser) {
         payerIdSignal.value = currentUser.uid;
         payeeIdSignal.value = '';
         amountSignal.value = '';
-        // Currency is always USD
+        currencySignal.value = 'USD';
       }
       
       dateSignal.value = new Date().toISOString().split('T')[0];
@@ -102,7 +104,9 @@ export function SettlementForm({
       return 'Amount cannot exceed 999,999.99';
     }
     
-    // Currency is always USD, no need to validate
+    if (!currencySignal.value || currencySignal.value.length !== 3) {
+      return 'Please select a valid currency';
+    }
     
     if (!dateSignal.value) {
       return 'Please select a date';
@@ -135,7 +139,7 @@ export function SettlementForm({
         payerId: payerIdSignal.value,
         payeeId: payeeIdSignal.value,
         amount: parseFloat(amountSignal.value),
-        currency: 'USD', // FIXME: This should come from a currency selector form field
+        currency: currencySignal.value,
         date: getUTCMidnight(dateSignal.value),  // Always send UTC to server
         note: noteSignal.value.trim() || undefined
       };
@@ -250,24 +254,41 @@ export function SettlementForm({
               </select>
             </div>
 
-            {/* Amount */}
-            <div>
-              <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                Amount
-              </label>
-              <input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                max="999999.99"
-                placeholder="0.00"
-                value={amountSignal.value}
-                onInput={(e: Event) => amountSignal.value = (e.target as HTMLInputElement).value}
-                disabled={isSubmitting}
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            {/* Amount and Currency */}
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
+                  Amount
+                </label>
+                <input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max="999999.99"
+                  placeholder="0.00"
+                  value={amountSignal.value}
+                  onInput={(e: Event) => amountSignal.value = (e.target as HTMLInputElement).value}
+                  disabled={isSubmitting}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <CurrencySelector
+                  value={currencySignal.value}
+                  onChange={(value) => {
+                    currencySignal.value = value;
+                    CurrencyService.getInstance().addToRecentCurrencies(value);
+                  }}
+                  label="Currency"
+                  placeholder="Select currency..."
+                  required
+                  disabled={isSubmitting}
+                  recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
+                />
+              </div>
             </div>
 
             {/* Date */}

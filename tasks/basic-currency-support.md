@@ -283,12 +283,12 @@ To make creating expenses faster, the currency field should have a smart default
   - ✅ Currency metadata caching and validation
   - ✅ Search functionality with recent currencies
 
-### 🔄 Phase 3: UI Components Update - IN PROGRESS
+### ✅ Phase 3: UI Components Update - COMPLETE
 - ✅ **Expense Form Store**: Updated to handle currency field with USD default
-- ✅ **Settlement Form**: Basic currency support (hardcoded USD with FIXME)
-- ⏳ **Currency Selector Component**: Not yet implemented
-- ⏳ **Multi-Currency Balance Display**: Not yet implemented
-- ⏳ **Expense Form UI Integration**: Currency selector not added to form
+- ✅ **Settlement Form**: Full currency selector integration complete
+- ✅ **Currency Selector Component**: Implemented with search, recent currencies, and grouping
+- ✅ **Expense Form UI Integration**: Currency selector fully integrated into expense form
+- ✅ **Expense Display**: Updated to show proper currency symbols using formatCurrency
 
 ### ✅ Phase 4: Backend Logic Updates - COMPLETE
 - ✅ **Balance Calculator**: Updated to handle currency field in calculations
@@ -317,20 +317,34 @@ To make creating expenses faster, the currency field should have a smart default
 - ✅ Form store integration with currency handling
 - ✅ E2E test infrastructure ready for currency testing
 
+**What's Working:**
+- ✅ Currency field support across entire data model
+- ✅ Backend validation and processing
+- ✅ Comprehensive currency utility library
+- ✅ Smart defaults with locale detection
+- ✅ Form store integration with currency handling
+- ✅ E2E test infrastructure ready for currency testing
+- ✅ Currency selector UI component with search and grouping
+- ✅ Full integration in expense and settlement forms
+- ✅ Proper currency display with symbols
+
 **What's Missing:**
-- 🚫 Currency selector UI component in expense forms
-- 🚫 Multi-currency balance display components  
+- 🚫 Multi-currency balance display components (separate balances by currency)
 - 🚫 Comprehensive E2E tests for multi-currency scenarios
 - 🚫 Performance optimization and caching
-- 🚫 Visual currency separation in UI
+- 🚫 Visual currency separation in balance displays
 
 **Next Priority:**
-1. Implement currency selector component for expense forms
-2. Add multi-currency balance display components
+1. Create MultiCurrencyBalance component for displaying balances grouped by currency
+2. Update BalanceSummary to show per-currency breakdowns
 3. Create comprehensive E2E tests as specified in the task
 4. Performance testing and optimization
 
-**Recent Commit:** Added foundational currency support with comprehensive utilities, backend validation, and form store integration. Ready for UI component implementation.
+**Recent Updates (August 11, 2025):** 
+- Implemented complete CurrencySelector UI component with search, recent currencies, and proper grouping
+- Integrated currency selector into both ExpenseForm and SettlementForm
+- Updated expense displays to show proper currency symbols using formatCurrency utility
+- Fixed all TypeScript compilation errors and updated tests
 
 ## Future Enhancements (Separate Tasks)
 

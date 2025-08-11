@@ -1,10 +1,12 @@
-import { Card, CategorySuggestionInput } from '../ui';
+import { Card, CategorySuggestionInput, CurrencySelector } from '../ui';
 import { Stack } from '../ui/Stack';
 import { ExpenseCategory } from '@shared/shared-types';
+import { CurrencyService } from '../../app/services/currencyService';
 
 interface ExpenseBasicFieldsProps {
   description: string;
   amount: string | number;
+  currency: string;
   date: string;
   category: string;
   validationErrors: any;
@@ -17,6 +19,7 @@ interface ExpenseBasicFieldsProps {
 export function ExpenseBasicFields({
   description,
   amount,
+  currency,
   date,
   category,
   validationErrors,
@@ -26,6 +29,8 @@ export function ExpenseBasicFields({
   PREDEFINED_EXPENSE_CATEGORIES
 }: ExpenseBasicFieldsProps) {
   const recentAmounts = getRecentAmounts();
+  const currencyService = CurrencyService.getInstance();
+  const recentCurrencies = currencyService.getRecentCurrencies();
   
   return (
     <Card>
@@ -58,12 +63,12 @@ export function ExpenseBasicFields({
           )}
         </div>
         
-        {/* Amount and Category */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Amount, Currency and Category */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Amount ($) <span className="text-red-500">*</span>
+              Amount <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -101,6 +106,23 @@ export function ExpenseBasicFields({
                 {validationErrors.amount}
               </p>
             )}
+          </div>
+          
+          {/* Currency */}
+          <div>
+            <CurrencySelector
+              value={currency}
+              onChange={(value) => {
+                updateField('currency', value);
+                currencyService.addToRecentCurrencies(value);
+              }}
+              label="Currency"
+              placeholder="Select currency..."
+              required
+              recentCurrencies={recentCurrencies}
+              error={validationErrors.currency}
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
           </div>
           
           {/* Category */}

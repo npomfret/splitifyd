@@ -10,6 +10,7 @@ export interface ExpenseFormStore {
   // Form fields
   description: string;
   amount: string | number;  // Allow string to preserve user input like "50.00"
+  currency: string;
   date: string;
   paidBy: string;
   category: string;
@@ -136,6 +137,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
   // State getters
   get description() { return descriptionSignal.value; }
   get amount() { return amountSignal.value; }
+  get currency() { return currencySignal.value; }
   get date() { return dateSignal.value; }
   get paidBy() { return paidBySignal.value; }
   get category() { return categorySignal.value; }
