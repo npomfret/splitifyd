@@ -6,9 +6,18 @@ This document defines the rules, standards, and best practices.
 
 ## General
 
+Only do EXACTLY what you were asked to do. No more, no less...
+
+* Do no write documentation unless you have been instructed to do so
+* If you have ideas, suggest them BUT DO NOT IMPLEMENT THEM
+* Do not comment code unless it explains something non-obvious
+
+Also...
+
+* Strive for elegance, not simplicity.
 * Always run `pwd` before running any shell commands to confirm your working directory
 * NEVER ever take over the system default browser.  Always use chromium.
-
+    
 ## No "test code" mixed in with prod code
 
 When running the app, the code paths used MUST be identical to when it's running in a deployed environment. So...
