@@ -120,10 +120,30 @@ export class UserPool {
     const tempContext = await browser.newContext();
     const tempPage = await tempContext.newPage();
 
+    // Add console error reporting to catch JavaScript errors during user creation
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    
+    tempPage.on('console', (msg: any) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(`CONSOLE ERROR: ${msg.text()}`);
+      }
+    });
+    
+    tempPage.on('pageerror', (error: Error) => {
+      pageErrors.push(`PAGE ERROR: ${error.message}`);
+    });
+
     try {
       // Navigate to register page with full URL
       await tempPage.goto(`${EMULATOR_URL}/register`);
       await tempPage.waitForLoadState('networkidle');
+      
+      // Check for errors before waiting for form
+      if (consoleErrors.length > 0 || pageErrors.length > 0) {
+        const errorMessage = `Registration page has errors:\n${consoleErrors.join('\n')}\n${pageErrors.join('\n')}`;
+        throw new Error(errorMessage);
+      }
       
       // Wait for form to be visible
       await tempPage.waitForSelector('input[placeholder="Enter your full name"]');
