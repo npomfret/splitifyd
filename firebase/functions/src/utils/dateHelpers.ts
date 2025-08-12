@@ -55,7 +55,12 @@ export const isDateInValidRange = (
   const now = Date.now();
   const dateTime = date.getTime();
   const minTime = now - (maxYearsAgo * 365.25 * 24 * 60 * 60 * 1000); // Account for leap years
-  return dateTime >= minTime && dateTime <= now;
+  
+  // Allow up to 24 hours in the future to account for timezone differences
+  // This prevents rejecting "today" when converted from different timezones
+  const maxTime = now + (24 * 60 * 60 * 1000); // 24 hours buffer
+  
+  return dateTime >= minTime && dateTime <= maxTime;
 };
 
 /**
