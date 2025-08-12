@@ -46,16 +46,12 @@ export class DashboardPage extends BasePage {
     return this.page.getByRole('button', { name: /Create.*Group/i }).first();
   }
 
-  getUserMenuButton(displayName?: string) {
-    // If displayName is provided, use it directly for precise matching
-    if (displayName) {
-      return this.page.getByRole('button', { name: displayName });
-    }
-    // Fallback to finding any button with Pool prefix (for backward compatibility)
-    return this.page.getByRole('button').filter({ hasText: /^Pool \w{8}$/ }).first();
+  getUserMenuButton() {
+    // Use data-testid for stable selection
+    return this.page.locator('[data-testid="user-menu-button"]');
   }
 
-  async waitForUserMenu(displayName?: string): Promise<void> {
+  async waitForUserMenu(): Promise<void> {
     // Wait for authentication state to be fully loaded first
     await this.waitForNetworkIdle();
     
@@ -64,10 +60,11 @@ export class DashboardPage extends BasePage {
     await expect(this.getGroupsHeading()).toBeVisible();
     
     // Now wait for the user menu button to be available with fast timeout
-    await expect(this.getUserMenuButton(displayName)).toBeVisible();
+    await expect(this.getUserMenuButton()).toBeVisible();
   }
   getSignOutButton() {
-    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_OUT });
+    // Use data-testid for stable selection
+    return this.page.locator('[data-testid="sign-out-button"]');
   }
 
   getSignInButton() {
@@ -94,12 +91,16 @@ export class DashboardPage extends BasePage {
     // Wait for the main dashboard content to appear
     await this.page.locator('h3:has-text("Your Groups")').waitFor();
     
-    // Wait for groups loading to complete by ensuring loading spinner disappears
-    // The loading spinner has text "Loading your groups..."
+    // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
     const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
-    if (await loadingSpinner.isVisible().catch(() => false)) {
-      await loadingSpinner.waitFor({ state: 'hidden' });
+    try {
+      await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
+    } catch {
+      // Spinner never appeared or disappeared quickly - expected behavior
     }
+    
+    // Brief stabilization delay
+    await this.page.waitForTimeout(100);
     
     // Ensure dashboard content is stabilized - wait for either groups grid or empty state
     // Use more specific selectors to avoid conflicts with footer grid

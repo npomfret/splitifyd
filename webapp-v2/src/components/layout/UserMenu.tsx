@@ -23,8 +23,11 @@ export function UserMenu({ user }: UserMenuProps) {
     };
 
     if (isOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      // Use capture phase and add delay to prevent race conditions
+      setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, true);
+      }, 0);
+      return () => document.removeEventListener('click', handleClickOutside, true);
     }
   }, [isOpen]);
 
@@ -37,7 +40,11 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <div class="relative" ref={menuRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        data-testid="user-menu-button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         class="flex items-center space-x-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
       >
         <div class="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center">
@@ -62,8 +69,11 @@ export function UserMenu({ user }: UserMenuProps) {
         </svg>
       </button>
 
-      {isOpen && (
-        <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+      <div 
+        data-testid="user-dropdown-menu"
+        class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+        style={{ display: isOpen ? 'block' : 'none' }}
+      >
           <div class="px-4 py-2 border-b border-gray-100">
             <p class="text-sm font-medium text-gray-900">{userName}</p>
             <p class="text-xs text-gray-500">{user.email}</p>
@@ -86,7 +96,9 @@ export function UserMenu({ user }: UserMenuProps) {
           <hr class="my-1 border-gray-100" />
           
           <button
-            onClick={async () => {
+            data-testid="sign-out-button"
+            onClick={async (e) => {
+              e.stopPropagation();
               try {
                 await authStore.logout();
                 // Force immediate redirect to login
@@ -101,8 +113,7 @@ export function UserMenu({ user }: UserMenuProps) {
           >
             {authStore.loading ? 'Signing out...' : 'Sign out'}
           </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
