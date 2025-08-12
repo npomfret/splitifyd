@@ -361,7 +361,7 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
       payer: payerData,
       payee: payeeData,
       amount: settlement.amount,
-      currency: settlement.currency || 'USD',
+      currency: settlement.currency,
       date: timestampToISO(settlement.date),
       note: settlement.note,
       createdAt: timestampToISO(settlement.createdAt)
@@ -451,7 +451,7 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
           payer: payerData,
           payee: payeeData,
           amount: data.amount,
-          currency: data.currency || 'USD',
+          currency: data.currency,
           date: timestampToISO(data.date),
           note: data.note,
           createdAt: timestampToISO(data.createdAt)

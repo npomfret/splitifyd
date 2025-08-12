@@ -1,10 +1,11 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'preact/hooks';
 import { 
-  currencies, 
+  getCurrenciesAsync, 
   getCurrency, 
   COMMON_CURRENCIES,
   type Currency
 } from '../../utils/currency';
+import { useDebounce } from '../../utils/debounce';
 
 interface CurrencySelectorProps {
   value: string;
@@ -32,18 +33,34 @@ export function CurrencySelector({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [isLoadingCurrencies, setIsLoadingCurrencies] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputId = `currency-selector-${Math.random().toString(36).substr(2, 9)}`;
 
   const selectedCurrency = useMemo(() => getCurrency(value), [value]);
+  
+  // Debounce search term to avoid excessive filtering
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Prepare currency list with grouping
+  // Load currencies when dropdown opens
+  useEffect(() => {
+    if (isOpen && currencies.length === 0 && !isLoadingCurrencies) {
+      setIsLoadingCurrencies(true);
+      getCurrenciesAsync().then((loadedCurrencies) => {
+        setCurrencies(loadedCurrencies);
+        setIsLoadingCurrencies(false);
+      });
+    }
+  }, [isOpen, currencies.length, isLoadingCurrencies]);
+
+  // Prepare currency list with grouping - use debounced search term
   const { groupedCurrencies, flatList } = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = debouncedSearchTerm.toLowerCase();
     
     // Filter currencies based on search
-    const filtered = searchTerm.trim()
+    const filtered = debouncedSearchTerm.trim()
       ? currencies.filter(
           (currency) =>
             currency.acronym.toLowerCase().includes(searchLower) ||
@@ -77,7 +94,7 @@ export function CurrencySelector({
       groupedCurrencies: { recent, common, others },
       flatList: flat
     };
-  }, [searchTerm, recentCurrencies]);
+  }, [debouncedSearchTerm, recentCurrencies, currencies]);
 
   // Handle click outside
   useEffect(() => {
@@ -211,6 +228,8 @@ export function CurrencySelector({
             <button
               key={currency.acronym}
               type="button"
+              role="option"
+              aria-selected={value === currency.acronym}
               onClick={() => handleCurrencySelect(currency)}
               className={`
                 w-full text-left px-3 py-2 text-sm
@@ -225,11 +244,11 @@ export function CurrencySelector({
               onMouseEnter={() => setHighlightedIndex(globalIndex)}
             >
               <div className="flex items-center gap-2">
-                <span className="font-medium">{currency.symbol}</span>
-                <span className={isHighlighted ? 'text-white' : 'text-gray-900'}>
+                <span className="font-medium" aria-label="Currency symbol">{currency.symbol}</span>
+                <span className={isHighlighted ? 'text-white' : 'text-gray-900'} aria-label="Currency code">
                   {currency.acronym}
                 </span>
-                <span className={`text-xs ${isHighlighted ? 'text-indigo-100' : 'text-gray-500'}`}>
+                <span className={`text-xs ${isHighlighted ? 'text-indigo-100' : 'text-gray-500'}`} aria-label="Currency name">
                   {currency.name}
                 </span>
               </div>
@@ -316,18 +335,32 @@ export function CurrencySelector({
             className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-80 rounded-md py-1 overflow-auto ring-1 ring-black ring-opacity-5 focus:outline-none"
           >
             <div className="sticky top-0 bg-white px-3 py-2 border-b">
+              <label htmlFor={`${inputId}-search`} className="sr-only">
+                Search currencies
+              </label>
               <input
+                id={`${inputId}-search`}
                 type="text"
                 value={searchTerm}
                 onChange={handleSearchChange}
                 placeholder="Search currencies..."
+                aria-label="Search currencies"
+                aria-autocomplete="list"
+                aria-controls={`${inputId}-listbox`}
                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-600"
                 autoFocus
               />
             </div>
 
-            {flatList.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-500">No currencies found</div>
+            {isLoadingCurrencies ? (
+              <div className="px-3 py-4 text-sm text-gray-500 text-center" aria-live="polite">
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                <span className="ml-2">Loading currencies...</span>
+              </div>
+            ) : flatList.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-gray-500" role="status" aria-live="polite">
+                No currencies found
+              </div>
             ) : (
               <>
                 {renderCurrencyGroup(

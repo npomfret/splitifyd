@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { Button, Form, CurrencySelector } from '../ui';
+import { Button, Form, CurrencyAmountInput } from '../ui';
 import { CurrencyService } from '../../app/services/currencyService';
 import type { 
   CreateSettlementRequest, 
@@ -48,7 +48,7 @@ export function SettlementForm({
         payerIdSignal.value = preselectedDebt.from.userId;
         payeeIdSignal.value = preselectedDebt.to.userId;
         amountSignal.value = preselectedDebt.amount.toFixed(2);
-        currencySignal.value = preselectedDebt.currency || 'USD';
+        currencySignal.value = preselectedDebt.currency;
       } else if (currentUser) {
         payerIdSignal.value = currentUser.uid;
         payeeIdSignal.value = '';
@@ -254,41 +254,24 @@ export function SettlementForm({
               </select>
             </div>
 
-            {/* Amount and Currency */}
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
-                </label>
-                <input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max="999999.99"
-                  placeholder="0.00"
-                  value={amountSignal.value}
-                  onInput={(e: Event) => amountSignal.value = (e.target as HTMLInputElement).value}
-                  disabled={isSubmitting}
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <CurrencySelector
-                  value={currencySignal.value}
-                  onChange={(value) => {
-                    currencySignal.value = value;
-                    CurrencyService.getInstance().addToRecentCurrencies(value);
-                  }}
-                  label="Currency"
-                  placeholder="Select currency..."
-                  required
-                  disabled={isSubmitting}
-                  recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
-                />
-              </div>
+            {/* Amount with integrated Currency selector */}
+            <div>
+              <CurrencyAmountInput
+                amount={amountSignal.value}
+                currency={currencySignal.value}
+                onAmountChange={(value) => {
+                  amountSignal.value = value;
+                }}
+                onCurrencyChange={(value) => {
+                  currencySignal.value = value;
+                  CurrencyService.getInstance().addToRecentCurrencies(value);
+                }}
+                label="Amount"
+                required
+                disabled={isSubmitting}
+                placeholder="0.00"
+                recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
+              />
             </div>
 
             {/* Date */}

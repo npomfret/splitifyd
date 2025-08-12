@@ -148,6 +148,7 @@ describe('RESTful Group Endpoints', () => {
         groupId: testGroup.id,
         description: 'Test expense',
         amount: 100,
+        currency: 'USD',
         paidBy: users[0].uid,
         participants: [users[0].uid],
         splitType: 'equal' as const,
@@ -294,6 +295,7 @@ describe('RESTful Group Endpoints', () => {
         groupId: testGroup.id,
         description: 'Test expense',
         amount: 50,
+        currency: 'USD',
         paidBy: users[0].uid,
         participants: [users[0].uid],
         splitType: 'equal' as const,
@@ -462,6 +464,7 @@ describe('RESTful Group Endpoints', () => {
         groupId: testGroup.id,
         description: 'Dinner for everyone',
         amount: 150, // $1.50
+        currency: 'USD',
         paidBy: users[0].uid,
         participants: [users[0].uid, users[1].uid, users[2].uid],
         splitType: 'equal' as const,
@@ -503,6 +506,7 @@ describe('RESTful Group Endpoints', () => {
           groupId: testGroup.id,
           description: 'Lunch',
           amount: 60, // $0.60
+          currency: 'USD',
           paidBy: users[0].uid,
           participants: [users[0].uid, users[1].uid],
           splitType: 'equal' as const,
@@ -513,6 +517,7 @@ describe('RESTful Group Endpoints', () => {
           groupId: testGroup.id,
           description: 'Coffee',
           amount: 20, // $0.20
+          currency: 'USD',
           paidBy: users[1].uid,
           participants: [users[0].uid, users[1].uid],
           splitType: 'equal' as const,
@@ -607,6 +612,7 @@ describe('RESTful Group Endpoints', () => {
           groupId: testGroup.id,
           description: 'User 0 pays for all',
           amount: 300, // $3.00
+          currency: 'USD',
           paidBy: users[0].uid,
           participants: [users[0].uid, users[1].uid, users[2].uid],
           splitType: 'equal' as const,
@@ -617,6 +623,7 @@ describe('RESTful Group Endpoints', () => {
           groupId: testGroup.id,
           description: 'User 1 pays for User 0 and 2',
           amount: 120, // $1.20
+          currency: 'USD',
           paidBy: users[1].uid,
           participants: [users[0].uid, users[1].uid, users[2].uid],
           splitType: 'equal' as const,

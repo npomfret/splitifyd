@@ -1,3 +1,4 @@
+import { useMemo } from 'preact/hooks';
 import { formatDistanceToNow } from '../../utils/dateUtils';
 import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
 import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/shared/shared-types';
@@ -13,6 +14,12 @@ export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
   const paidByUser = members.find(m => m.uid === expense.paidBy);
   const isDeleted = expense[DELETED_AT_FIELD] !== null && expense[DELETED_AT_FIELD] !== undefined;
   const deletedByUser = expense.deletedBy ? members.find(m => m.uid === expense.deletedBy) : null;
+  
+  // Memoize the formatted currency to avoid recalculation on every render
+  const formattedAmount = useMemo(
+    () => formatCurrency(expense.amount, expense.currency),
+    [expense.amount, expense.currency]
+  );
   
   return (
     <div 
@@ -44,7 +51,7 @@ export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
         </div>
         <div className="text-right">
           <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>
-            {formatCurrency(expense.amount, expense.currency || 'USD')}
+            {formattedAmount}
           </p>
           <p className="text-xs text-gray-500">{expense.category}</p>
         </div>

@@ -191,7 +191,7 @@ pageTest.describe('Form Validation E2E', () => {
       
       // Fill required fields
       await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Test expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25.00');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25');
       
       // Should now allow submission
       await submitButton.click();
@@ -215,7 +215,7 @@ pageTest.describe('Form Validation E2E', () => {
       
       // Fill basic expense details
       await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Split Test Expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100.00');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
       
       // Select exact split type
       await page.getByText('Exact amounts').click();
@@ -245,7 +245,7 @@ pageTest.describe('Form Validation E2E', () => {
       
       // Fill basic expense details
       await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Percentage Test Expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100.00');
+      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
       
       // Select percentage split type
       await page.getByText('Percentage', { exact: true }).click();

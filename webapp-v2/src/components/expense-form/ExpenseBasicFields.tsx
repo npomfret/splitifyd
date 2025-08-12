@@ -1,7 +1,8 @@
-import { Card, CategorySuggestionInput, CurrencySelector } from '../ui';
+import { Card, CategorySuggestionInput, CurrencyAmountInput } from '../ui';
 import { Stack } from '../ui/Stack';
 import { ExpenseCategory } from '@shared/shared-types';
 import { CurrencyService } from '../../app/services/currencyService';
+import { formatCurrency } from '../../utils/currency';
 
 interface ExpenseBasicFieldsProps {
   description: string;
@@ -63,23 +64,26 @@ export function ExpenseBasicFields({
           )}
         </div>
         
-        {/* Amount, Currency and Category */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Amount */}
+        {/* Amount with Currency and Category */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Combined Amount and Currency */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Amount <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={amount || ''}
-              onInput={handleAmountChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="0.00"
-              step="0.01"
-              min="0.01"
-              inputMode="decimal"
+            <CurrencyAmountInput
+              amount={amount || ''}
+              currency={currency}
+              onAmountChange={(value) => {
+                const numValue = parseFloat(value) || 0;
+                updateField('amount', numValue);
+              }}
+              onCurrencyChange={(value) => {
+                updateField('currency', value);
+                currencyService.addToRecentCurrencies(value);
+              }}
+              label="Amount"
               required
+              placeholder="0.00"
+              error={validationErrors.amount || validationErrors.currency}
+              recentCurrencies={recentCurrencies}
             />
             
             {/* Recent amounts buttons */}
@@ -94,35 +98,12 @@ export function ExpenseBasicFields({
                       onClick={() => updateField('amount', amt)}
                       className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                     >
-                      ${amt.toFixed(2)}
+                      {formatCurrency(amt, currency)}
                     </button>
                   ))}
                 </div>
               </div>
             )}
-            
-            {validationErrors.amount && (
-              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                {validationErrors.amount}
-              </p>
-            )}
-          </div>
-          
-          {/* Currency */}
-          <div>
-            <CurrencySelector
-              value={currency}
-              onChange={(value) => {
-                updateField('currency', value);
-                currencyService.addToRecentCurrencies(value);
-              }}
-              label="Currency"
-              placeholder="Select currency..."
-              required
-              recentCurrencies={recentCurrencies}
-              error={validationErrors.currency}
-              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
-            />
           </div>
           
           {/* Category */}

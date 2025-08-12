@@ -66,7 +66,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
               // Populate form with existing expense data
               expenseFormStore.updateField('description', expense.description);
               expenseFormStore.updateField('amount', expense.amount);
-              expenseFormStore.updateField('currency', expense.currency || 'USD');
+              expenseFormStore.updateField('currency', expense.currency);
               expenseFormStore.updateField('date', expense.date.split('T')[0]); // Extract date part
               expenseFormStore.updateField('paidBy', expense.paidBy);
               expenseFormStore.updateField('category', expense.category);

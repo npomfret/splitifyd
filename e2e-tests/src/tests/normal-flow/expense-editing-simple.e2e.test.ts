@@ -32,7 +32,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     
     // Fill expense form
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Amount Edit Test');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '50.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '50');
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
     // Save expense
@@ -101,7 +101,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), "High Amount Expense");
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), "150.00");
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), "150");
     await groupDetailPage.selectCategoryFromSuggestions("Food & Dining");
     
     await groupDetailPage.getSaveExpenseButton().click();
@@ -211,7 +211,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Permission Test Expense');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
     await groupDetailPage.getSaveExpenseButton().click();

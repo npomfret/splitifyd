@@ -1,3 +1,4 @@
+import { useMemo } from 'preact/hooks';
 import { Card } from '../ui/Card';
 import { SidebarCard } from '../ui/SidebarCard';
 import { Stack } from '../ui/Stack';
@@ -17,10 +18,12 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
     return member?.displayName || 'Unknown';
   };
 
-  // Group debts by currency for proper display
-  const groupDebtsByCurrency = (debts: SimplifiedDebt[]) => {
-    const grouped = debts.reduce((acc, debt) => {
-      const currency = debt.currency || 'USD';
+  // Group debts by currency for proper display - memoized to avoid recalculation
+  const groupedDebts = useMemo(() => {
+    if (!balances?.simplifiedDebts) return [];
+    
+    const grouped = balances.simplifiedDebts.reduce((acc, debt) => {
+      const currency = debt.currency;
       if (!acc[currency]) {
         acc[currency] = [];
       }
@@ -39,7 +42,7 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
       currency,
       debts: grouped[currency]
     }));
-  };
+  }, [balances?.simplifiedDebts]);
 
   const content = !balances ? (
     <p className="text-gray-600 text-sm">Loading balances...</p>
@@ -47,21 +50,45 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
     <p className="text-gray-600 text-sm">All settled up!</p>
   ) : (
     <div className={variant === 'sidebar' ? 'space-y-4' : 'space-y-6'}>
-      {groupDebtsByCurrency(balances.simplifiedDebts).map(({ currency, debts }) => (
-        <div key={currency} className={variant === 'sidebar' ? '' : 'border-b border-gray-100 pb-4 last:border-0'}>
-          {groupDebtsByCurrency(balances.simplifiedDebts).length > 1 && (
-            <h3 className={variant === 'sidebar' ? 'text-xs font-semibold text-gray-500 mb-2' : 'text-sm font-semibold text-gray-700 mb-3'}>
-              {currency}
+      {groupedDebts.map(({ currency, debts }, groupIndex) => (
+        <div 
+          key={currency} 
+          className={
+            variant === 'sidebar' 
+              ? 'border-l-2 border-gray-200 pl-3' 
+              : `border-b border-gray-200 pb-4 last:border-0 ${groupIndex > 0 ? 'pt-4' : ''}`
+          }
+        >
+          {groupedDebts.length > 1 && (
+            <h3 className={
+              variant === 'sidebar' 
+                ? 'text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider' 
+                : 'text-base font-bold text-gray-800 mb-3 flex items-center gap-2'
+            }>
+              <span className={variant === 'sidebar' ? '' : 'bg-gray-100 px-2 py-1 rounded'}>
+                {currency}
+              </span>
             </h3>
           )}
-          <div className={variant === 'sidebar' ? 'space-y-2' : 'space-y-2'}>
+          <div className={variant === 'sidebar' ? 'space-y-2' : 'space-y-3'}>
             {debts.map((debt, index) => (
-              <div key={`${currency}-${index}`} className={variant === 'sidebar' ? 'border-b border-gray-50 pb-2 last:border-0' : 'flex justify-between items-center py-1'}>
-                <div className={variant === 'sidebar' ? '' : 'text-sm'}>
-                  <span className={variant === 'sidebar' ? 'text-xs block' : 'font-medium'}>
+              <div 
+                key={`${currency}-${index}`} 
+                className={
+                  variant === 'sidebar' 
+                    ? 'border-b border-gray-50 pb-2 last:border-0' 
+                    : 'flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'
+                }
+              >
+                <div className={variant === 'sidebar' ? 'flex flex-col gap-1' : 'flex justify-between items-center w-full'}>
+                  <span className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}>
                     {getUserName(debt.from.userId)} → {getUserName(debt.to.userId)}
                   </span>
-                  <span className={variant === 'sidebar' ? 'text-sm font-semibold text-red-600' : 'font-semibold text-red-600 ml-auto'}>
+                  <span className={
+                    variant === 'sidebar' 
+                      ? 'text-sm font-bold text-red-600' 
+                      : 'text-lg font-bold text-red-600'
+                  }>
                     {formatCurrency(debt.amount, debt.currency)}
                   </span>
                 </div>

@@ -32,7 +32,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.fillPreactInput(descriptionField, 'Test Dinner');
     
     await expect(amountField).toBeVisible();
-    await groupDetailPage.fillPreactInput(amountField, '50.00');
+    await groupDetailPage.fillPreactInput(amountField, '50');
     
     await expect(categorySelect).toBeVisible();
     await groupDetailPage.typeCategoryText('dinner');
@@ -82,7 +82,7 @@ test.describe('Add Expense E2E', () => {
     expect(newCategory).not.toBe(initialCategory);
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Dinner with category');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '45.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '45');
     
     await groupDetailPage.getSaveExpenseButton().click();
     await page.waitForLoadState('networkidle');
@@ -103,7 +103,7 @@ test.describe('Add Expense E2E', () => {
     await page.waitForLoadState('domcontentloaded');
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Movie Tickets');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '24.99');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25');
     
     await groupDetailPage.getSaveExpenseButton().click();
     
@@ -111,7 +111,7 @@ test.describe('Add Expense E2E', () => {
     
     await expect(groupDetailPage.getExpenseByDescription('Movie Tickets')).toBeVisible();
     
-    const amountText = groupDetailPage.getExpenseAmount('$24.99');
+    const amountText = groupDetailPage.getExpenseAmount('$25.00');
     await expect(amountText).toBeVisible();
     
     await expect(page.getByText(/paid by|Paid:/i)).toBeVisible();
@@ -137,7 +137,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.typeCategoryText('Custom Office Supplies');
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Custom category expense');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '15.99');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '16');
     
     await groupDetailPage.getSaveExpenseButton().click();
     

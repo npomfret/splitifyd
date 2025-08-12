@@ -31,6 +31,20 @@ export abstract class BasePage {
    */
   private async validateInputValue(input: Locator, expectedValue: string): Promise<void> {
     const actualValue = await input.inputValue();
+    const inputType = await input.getAttribute('type');
+    
+    // For number inputs, compare numeric values to handle normalization (e.g., "75.50" -> "75.5")
+    if (inputType === 'number') {
+      const expectedNum = parseFloat(expectedValue);
+      const actualNum = parseFloat(actualValue);
+      
+      // Check if both parse as valid numbers and are equal
+      if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
+        return; // Values are numerically equal
+      }
+    }
+    
+    // For non-number inputs or if number comparison failed, do string comparison
     // Allow trimmed values to match (UI may trim whitespace from inputs)
     if (actualValue !== expectedValue && actualValue !== expectedValue.trim()) {
       const fieldIdentifier = await this.getFieldIdentifier(input);
@@ -61,8 +75,14 @@ export abstract class BasePage {
         // Ensure still focused before typing
         await this.waitForFocus(input);
         await this.page.waitForLoadState('domcontentloaded');
-        await input.pressSequentially(value);
-        // await input.fill(value);
+        
+        // Check if this is a number input - use fill() for number inputs to handle decimals correctly
+        const inputType = await input.getAttribute('type');
+        if (inputType === 'number') {
+          await input.fill(value);
+        } else {
+          await input.pressSequentially(value);
+        }
 
         // Blur to trigger Preact validation
         await input.blur();

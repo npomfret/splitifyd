@@ -94,8 +94,9 @@ export class GroupDetailPage extends BasePage {
 
   // Currency selector accessors and methods
   getCurrencySelector() {
-    // Currency selector uses div with role="combobox" (different from category input)
-    return this.page.locator('div[role="combobox"][aria-haspopup="listbox"]').first();
+    // Currency selector is now a button with aria-label="Select currency"
+    // It's part of the CurrencyAmountInput component
+    return this.page.locator('button[aria-label="Select currency"]').first();
   }
 
   async selectCurrency(currencyCode: string) {
@@ -115,8 +116,8 @@ export class GroupDetailPage extends BasePage {
       await this.page.waitForTimeout(200); // Brief wait for search results
     }
     
-    // Click on the currency option - look for button with currency code
-    const currencyOption = this.page.getByRole('button').filter({ hasText: currencyCode }).first();
+    // Click on the currency option - look for button with role="option" containing the currency code
+    const currencyOption = this.page.locator('[role="listbox"] button[role="option"]').filter({ hasText: currencyCode }).first();
     await expect(currencyOption).toBeVisible();
     await currencyOption.click();
   }
@@ -124,9 +125,22 @@ export class GroupDetailPage extends BasePage {
   async getCurrencySelectorValue(): Promise<string> {
     const currencySelector = this.getCurrencySelector();
     const text = await currencySelector.textContent();
-    // Extract currency code from text like "$ USD United States Dollar"
+    
+    // The button contains the currency symbol and possibly code
+    // Look for a 3-letter currency code pattern
     const match = text?.match(/([A-Z]{3})/);
-    return match ? match[1] : '';
+    if (match) {
+      return match[1];
+    }
+    
+    // If no currency code found in button text, try to infer from symbol
+    // This is a fallback for cases where only the symbol is shown
+    if (text?.includes('$')) return 'USD';
+    if (text?.includes('€')) return 'EUR';
+    if (text?.includes('£')) return 'GBP';
+    if (text?.includes('¥')) return 'JPY';
+    
+    return '';
   }
 
   getSaveExpenseButton() {

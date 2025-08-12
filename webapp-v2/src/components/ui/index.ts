@@ -12,5 +12,6 @@ export { Avatar } from './Avatar';
 export { ConfirmDialog } from './ConfirmDialog';
 export { CategorySuggestionInput } from './CategorySuggestionInput';
 export { CurrencySelector } from './CurrencySelector';
+export { CurrencyAmountInput } from './CurrencyAmountInput';
 export { SidebarCard } from './SidebarCard';
 export { WarningBanner } from './WarningBanner';
