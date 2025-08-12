@@ -1,9 +1,10 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
-import { groupDetailStore } from '../app/stores/group-detail-store';
+import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { logInfo } from '../utils/browser-logger';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -31,13 +32,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const showDeletedExpenses = useSignal(false);
 
   // Computed values from store
-  const group = useComputed(() => groupDetailStore.group);
-  const expenses = useComputed(() => groupDetailStore.expenses);
-  const balances = useComputed(() => groupDetailStore.balances);
-  const members = useComputed(() => groupDetailStore.members);
-  const loading = useComputed(() => groupDetailStore.loading);
-  const loadingMembers = useComputed(() => groupDetailStore.loadingMembers);
-  const error = useComputed(() => groupDetailStore.error);
+  const group = useComputed(() => enhancedGroupDetailStore.group);
+  const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
+  const balances = useComputed(() => enhancedGroupDetailStore.balances);
+  const members = useComputed(() => enhancedGroupDetailStore.members);
+  const loading = useComputed(() => enhancedGroupDetailStore.loading);
+  const loadingMembers = useComputed(() => enhancedGroupDetailStore.loadingMembers);
+  const error = useComputed(() => enhancedGroupDetailStore.error);
   
   // Auth store via hook
   const authStore = useAuthRequired();
@@ -60,7 +61,21 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     const loadGroup = async () => {
       try {
-        await groupDetailStore.fetchGroup(groupId);
+        await enhancedGroupDetailStore.loadGroup(groupId);
+        
+        // Setup real-time subscriptions for this group
+        // IMPORTANT: Wait for auth to be fully initialized before starting Firestore subscriptions
+        // Otherwise subscriptions fail with permission errors due to security rules
+        if (authStore.initialized && authStore.user) {
+          logInfo('Auth verified, starting Firestore subscriptions', { userId: authStore.user.uid });
+          enhancedGroupDetailStore.subscribeToChanges(authStore.user.uid);
+        } else {
+          logInfo('Waiting for authentication before starting subscriptions', {
+            initialized: authStore.initialized,
+            hasUser: !!authStore.user
+          });
+        }
+        
         isInitialized.value = true;
       } catch (error) {
         logError('Failed to load group page', error, { groupId });
@@ -73,7 +88,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     // Cleanup on unmount
     return () => {
-      groupDetailStore.reset();
+      enhancedGroupDetailStore.reset();
     };
   }, [groupId, currentUser.value]);
 
@@ -81,6 +96,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   if (!currentUser.value) {
     return null;
   }
+
+  // Watch for auth changes and start subscriptions when auth is ready
+  useEffect(() => {
+    if (!groupId) return;
+    
+    // If auth becomes ready after initial load, start subscriptions
+    if (authStore.initialized && authStore.user && isInitialized.value) {
+      logInfo('Auth now ready, starting delayed Firestore subscriptions', { userId: authStore.user.uid });
+      enhancedGroupDetailStore.subscribeToChanges(authStore.user.uid);
+    }
+  }, [authStore.initialized, authStore.user, groupId, isInitialized.value]);
 
   // Handle loading state
   if (loading.value && !isInitialized.value) {
@@ -209,15 +235,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <ExpensesList 
               expenses={expenses.value}
               members={members.value}
-              hasMore={groupDetailStore.hasMoreExpenses}
-              loading={groupDetailStore.loadingExpenses}
-              onLoadMore={() => groupDetailStore.loadMoreExpenses()}
+              hasMore={enhancedGroupDetailStore.hasMoreExpenses}
+              loading={enhancedGroupDetailStore.loadingExpenses}
+              onLoadMore={() => enhancedGroupDetailStore.loadMoreExpenses()}
               onExpenseClick={handleExpenseClick}
               isGroupOwner={isGroupOwner.value ?? false}
               showDeletedExpenses={showDeletedExpenses.value}
               onShowDeletedChange={(show) => {
                 showDeletedExpenses.value = show;
-                groupDetailStore.refetchExpenses(show);
+                enhancedGroupDetailStore.fetchExpenses();
               }}
             />
 
@@ -282,7 +308,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         groupId={groupId!}
         onSuccess={() => {
           // Refresh balances after successful settlement
-          groupDetailStore.fetchBalances();
+          enhancedGroupDetailStore.fetchBalances();
         }}
       />
     </BaseLayout>

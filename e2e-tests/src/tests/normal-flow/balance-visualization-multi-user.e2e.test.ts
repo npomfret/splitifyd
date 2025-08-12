@@ -35,10 +35,15 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult.reason}`);
     }
     
+    // Emulator workaround: reload to ensure sync
+    await page.reload();
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // Both users pay equal amounts → GUARANTEED settled up
-    // Key insight: If both users add equal expenses → ALWAYS settled up
+    // Also ensure second user sees both members
+    await page2.reload();
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // Equal payments should result in settled state
     await groupDetailPage.addExpense({
       description: 'User1 Equal Payment',
       amount: 100,
@@ -61,18 +66,16 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Wait for second expense to be fully processed
     await groupDetailPage.waitForBalanceUpdate();
     
-    // Refresh to ensure all balance calculations are complete and visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for balance calculations to complete via real-time updates
+    await groupDetailPage.waitForRealTimeUpdate();
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // No Promise.race() needed - we KNOW this will be settled up
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
+    // Check that "All settled up!" exists
     const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
     expect(hasSettledMessage).toBe(true);
     
-    // Also verify NO debt messages are present (double-check settled state)
+    // Verify no debt messages are present
     const hasNoDebts = await groupDetailPage.hasNoDebtMessages();
     expect(hasNoDebts).toBe(true);
     
@@ -103,8 +106,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // Only User1 pays $200 → User2 MUST owe User1 $100 (never settled up)
-    // Key insight: In 2-person groups, if only 1 person adds expense → NEVER settled up
+    // Only User1 pays $200, User2 should owe User1 $100
     await groupDetailPage.addExpense({
       description: 'One Person Pays',
       amount: 200,
@@ -116,9 +118,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Wait for expense to be fully processed and balance to update
     await groupDetailPage.waitForBalanceUpdate();
     
-    // Also reload to ensure data is fresh
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for real-time data updates
+    await groupDetailPage.waitForRealTimeUpdate();
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -185,9 +186,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Wait for second expense to be fully processed
     await groupDetailPage.waitForBalanceUpdate();
     
-    // Reload to ensure all balance calculations are complete and visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for balance calculations to complete via real-time updates
+    await groupDetailPage.waitForRealTimeUpdate();
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -240,9 +240,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Reload to ensure the expense and balance updates are visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for expense and balance updates via real-time streaming
+    await groupDetailPage.waitForRealTimeUpdate();
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -263,9 +262,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Refresh to ensure balance calculations are updated
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for balance calculations via real-time updates
+    await groupDetailPage.waitForRealTimeUpdate();
     
     // Guaranteed settled up: both paid $100
     // Check that "All settled up!" exists (might be in collapsed section on mobile)
@@ -310,9 +308,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Reload to ensure the expense and balance updates are visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for expense and balance updates via real-time streaming
+    await groupDetailPage.waitForRealTimeUpdate();
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -381,9 +378,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(page.getByText('Test Expense for Settlement')).toBeVisible();
     await expect(groupDetailPage.getCurrencyAmount('200.00')).toBeVisible();
     
-    // Step 8: Verify User 2 sees expense
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
+    // Step 8: Wait for User 2 to see expense via streaming
+    await groupDetailPage2.waitForRealTimeUpdate();
     await expect(page2.getByText('Test Expense for Settlement')).toBeVisible();
     await expect(page2.getByText('$200.00')).toBeVisible();
     
@@ -462,9 +458,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       }
     }
     
-    // Step 17: Verify User 2 also sees updated balance
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
+    // Step 17: Wait for User 2 to see updated balance via streaming
+    await groupDetailPage2.waitForRealTimeUpdate();
     
     const balancesSection2 = page2.locator('.bg-white').filter({ 
       has: page2.getByRole('heading', { name: 'Balances' }) 
@@ -517,9 +512,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Wait for expense to be fully processed and balance to update
     await groupDetailPage.waitForBalanceUpdate();
     
-    // Reload to ensure data is fresh
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for fresh data via real-time updates
+    await groupDetailPage.waitForRealTimeUpdate();
     
     // Wait for expense to appear and balance to calculate
     await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
@@ -599,9 +593,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const hasSettledMessage2 = await secondUser.groupDetailPage.hasSettledUpMessage();
     expect(hasSettledMessage2).toBe(true);
     
-    // Both users should see the expenses
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
+    // Both users should see the expenses via real-time updates
+    await groupDetailPage2.waitForRealTimeUpdate();
     
     await expect(secondUser.groupDetailPage.getExpensesHeading()).toBeVisible();
     await expect(page2.getByText('One Person Pays')).toBeVisible();

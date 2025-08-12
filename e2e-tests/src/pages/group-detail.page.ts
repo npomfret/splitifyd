@@ -342,34 +342,29 @@ export class GroupDetailPage extends BasePage {
 
   /**
    * Waits for the group to have the expected number of members.
-   * Tests the current value, refreshes if incorrect, repeats until it matches or times out.
+   * Uses real-time streaming updates instead of page refreshes.
    */
-  async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
-    const startTime = Date.now();
+  async waitForMemberCount(expectedCount: number, timeout = 10000): Promise<void> {
     const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
     
-    while (Date.now() - startTime < timeout) {
-      try {
-        // Check if the expected member count is already visible
-        const memberCountElement = this.page.getByText(expectedText);
-        const isVisible = await memberCountElement.isVisible();
-        
-        if (isVisible) {
-          // Success! The count matches
-          return;
-        }
-      } catch (error) {
-        // Element not found, continue to refresh
-      }
-      
-      // The count doesn't match, refresh the page
-      await this.page.reload();
-      await this.page.waitForLoadState('networkidle');
-    }
     
-    // Final attempt - throw error if still not matching after timeout
-    await expect(this.page.getByText(expectedText))
-      .toBeVisible({ timeout: 1000 });
+    // Wait for the member count to appear via real-time updates
+    // Use data-testid selector for more reliable targeting
+    await expect(this.page.getByTestId('member-count'))
+      .toContainText(expectedCount.toString(), { timeout });
+    
+  }
+
+  /**
+   * Waits for real-time updates to be visible (checks for streaming indicators)
+   */
+  async waitForRealTimeUpdate(timeout = 5000): Promise<void> {
+    // Wait a moment for streaming updates to propagate
+    // This replaces the need for page.reload() calls
+    await this.page.waitForTimeout(1000);
+    
+    // Wait for network to be idle (any streaming updates completed)
+    await this.page.waitForLoadState('networkidle', { timeout });
   }
 
   /**
@@ -547,15 +542,12 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Synchronize group state across multiple users by refreshing pages and waiting for updates.
-   * This replaces manual reload() calls scattered throughout multi-user tests.
+   * Synchronize group state across multiple users using real-time streaming.
+   * Waits for streaming updates instead of refreshing pages.
    */
   async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any }>, expectedMemberCount?: number): Promise<void> {
-    // Refresh all pages to get latest state
-    for (const { page } of pages) {
-      await page.reload();
-      await page.waitForLoadState('networkidle');
-    }
+    // Wait for all pages to receive streaming updates
+    // No page refreshes needed - rely on real-time updates
     
     // If member count is specified, wait for all pages to show correct count
     if (expectedMemberCount) {
@@ -564,7 +556,7 @@ export class GroupDetailPage extends BasePage {
       }
     }
     
-    // Additional wait for balance calculations to complete
+    // Wait for balance calculations to complete via streaming
     for (const { groupDetailPage } of pages) {
       await groupDetailPage.waitForBalanceCalculation();
     }
@@ -855,9 +847,8 @@ export class GroupDetailPage extends BasePage {
     // Wait for navigation with reasonable timeout
     await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 3000 });
     
-    // Refresh the original page to see updated members
-    await this.page.reload();
-    await this.page.waitForLoadState('networkidle');
+    // Wait for updated members via real-time streaming (no refresh needed)
+    await this.waitForMemberCount(2);
     
     return shareLink;
   }

@@ -11,7 +11,8 @@ interface FirebaseConfig {
 
 interface AppConfiguration {
   firebase: FirebaseConfig;
-  firebaseAuthUrl?: string;
+  firebaseAuthUrl?: string;// must only set when running in emulator
+  firebaseFirestoreUrl?: string;// must only set when running in emulator
   environment: {
     warningBanner?: WarningBanner;
   };

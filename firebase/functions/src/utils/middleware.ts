@@ -44,7 +44,6 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     // Log incoming request
     logger.request(req, logMessage, {
       ...(functionName && { functionName }),
-      userAgent: req.headers['user-agent'],
       contentLength: req.headers['content-length'],
     });
     

@@ -218,6 +218,7 @@ export class JoinGroupPage {
     // Attempt to join
     try {
       await this.joinGroup();
+      
       return {
         success: true,
         reason: 'Successfully joined group',

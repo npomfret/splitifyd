@@ -1,17 +1,8 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { 
-  getAuth, 
-  Auth,
-  connectAuthEmulator,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  User as FirebaseUser,
-  AuthError
-} from 'firebase/auth';
-import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { firebaseConfigManager } from './firebase-config';
+import {FirebaseApp, initializeApp} from 'firebase/app';
+import {Auth, connectAuthEmulator, getAuth, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser} from 'firebase/auth';
+import {connectFirestoreEmulator, Firestore, getFirestore} from 'firebase/firestore';
+import {firebaseConfigManager} from './firebase-config';
+import {logInfo} from "@/utils/browser-logger.ts";
 
 class FirebaseService {
   private app: FirebaseApp | null = null;
@@ -24,39 +15,29 @@ class FirebaseService {
       return;
     }
 
-    // Fetch configuration from API
-    const config = await firebaseConfigManager.getConfig();
-    
-    // Initialize Firebase with config from API
-    this.app = initializeApp(config.firebase);
+    /*
+    you should see this in the console logs
+    2025-08-12T22:48:38.714Z fb config: {"timestamp":"2025-08-12T22:48:38.714Z","firebase":{"apiKey":"AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg","authDomain":"","projectId":"splitifyd","storageBucket":"","messagingSenderId":"","appId":"","measurementId":""},"firebaseAuthUrl":"http://127.0.0.1:6002","firebaseFirestoreUrl":"http://127.0.0.1:6004"}
+    2025-08-12T22:48:38.716Z emulator detected: {"timestamp":"2025-08-12T22:48:38.716Z","firebaseAuthUrl":"http://127.0.0.1:6002","firebaseFirestoreUrl":"http://127.0.0.1:6004"}
+     */
+
+    const {firebase, firebaseAuthUrl, firebaseFirestoreUrl} = await firebaseConfigManager.getConfig();
+
+    logInfo("fb config", {firebase, firebaseAuthUrl, firebaseFirestoreUrl});
+
+    this.app = initializeApp(firebase);
     this.auth = getAuth(this.app);
     this.firestore = getFirestore(this.app);
-    
-    // Connect to emulators in development (server provides URLs only in emulator mode)
-    if (config.firebaseAuthUrl) {
-      try {
-        connectAuthEmulator(this.auth, config.firebaseAuthUrl, { disableWarnings: true });
-      } catch (error) {
-        const authError = error as AuthError;
-        if (authError.code !== 'auth/emulator-config-failed') {
-          throw error;
-        }
-        // Emulator already connected, continue
-      }
+
+    const isEmulator = firebaseAuthUrl!!;// this is only set in emulator config
+    if(isEmulator) {
+      logInfo("emulator detected", {firebaseAuthUrl, firebaseFirestoreUrl})
+
+      connectAuthEmulator(this.auth, firebaseAuthUrl!, {disableWarnings: true});
+      const firestoreUrl = new URL(firebaseFirestoreUrl!);
+      connectFirestoreEmulator(this.firestore, firestoreUrl.hostname, parseInt(firestoreUrl.port));
     }
-    
-    // Connect Firestore emulator if available
-    if (config.firebaseAuthUrl) {
-      // Extract host and port from auth URL for Firestore
-      const authUrl = new URL(config.firebaseAuthUrl);
-      const firestorePort = 8080; // Standard Firestore emulator port
-      try {
-        connectFirestoreEmulator(this.firestore, authUrl.hostname, firestorePort);
-      } catch (error) {
-        // Emulator already connected, continue
-      }
-    }
-    
+
     this.initialized = true;
   }
 
