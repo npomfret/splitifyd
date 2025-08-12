@@ -16,7 +16,7 @@ Also...
 
 * Strive for elegance, not simplicity.
 * Always run `pwd` before running any shell commands to confirm your working directory
-* NEVER ever take over the system default browser.  Always use chromium.
+* NEVER ever take over the system default browser - always use chromium
     
 ## No "test code" mixed in with prod code
 
