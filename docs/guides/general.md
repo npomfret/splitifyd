@@ -43,7 +43,6 @@ The app must run reliably across all supported environments.
 * No bodges: don’t add quick fixes just to make it work in the name of _"simplicity"_
 * No silent fallbacks in case _"in case config isn't present"_ or _"in case the data might not be what we expect"_ - NO! the app must (and will) run perfectly every time
 * In almost every situation: just errors bubble up and **avoid** adding any `try/catch` blocks - we **need** to know when things are broken
-* Test code adheres to the same rules as production code
 * Always reference the latest API docs (use mcp servers)
 
 ## Type Safety
