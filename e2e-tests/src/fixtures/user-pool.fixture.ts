@@ -164,10 +164,9 @@ export class UserPool {
       // Wait for redirect to dashboard
       await tempPage.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
       
-      // Logout so the user can be used later
-      await tempPage.click(`button:has-text("${displayName}")`);
-      await tempPage.waitForSelector('text=Sign out', { timeout: TIMEOUTS.EXTENDED });
-      await tempPage.click('text=Sign out');
+      // Logout so the user can be used later - now simple with stable selectors
+      await tempPage.click('[data-testid="user-menu-button"]');
+      await tempPage.click('[data-testid="sign-out-button"]');
       
       // Wait for logout to complete
       await tempPage.waitForURL((url: URL) => !url.toString().includes('/dashboard'), { 

@@ -24,10 +24,10 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
     await expect(createGroupButton).toBeEnabled();
     
     // Phase 2: Test authentication persistence on reload
-    await dashboardPage.waitForUserMenu(user.displayName);
+    await dashboardPage.waitForUserMenu();
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard/);
-    await dashboardPage.waitForUserMenu(user.displayName);
+    await dashboardPage.waitForUserMenu();
   });
 
   authenticatedPageTest('should handle complete group creation and navigation workflow', async ({ authenticatedPage, dashboardPage, groupDetailPage, createGroupModalPage }) => {
@@ -69,11 +69,11 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
     
     // Navigate back to dashboard and verify we have user data
     await dashboardPage.navigate();
-    await dashboardPage.waitForUserMenu(user.displayName);
+    await dashboardPage.waitForUserMenu();
     await expect(dashboardPage.isLoggedIn()).resolves.toBe(true);
     
     // Phase 2: Perform logout
-    await dashboardPage.getUserMenuButton(user.displayName).click();
+    await dashboardPage.getUserMenuButton().click();
     await dashboardPage.getSignOutButton().click();
     
     // Phase 3: Verify immediate logout effects
