@@ -72,7 +72,7 @@ export const BUTTON_TEXTS = {
   SAVE_EXPENSE: /save expense/i,
   UPDATE_EXPENSE: /update expense/i,
   SHARE: /share/i,
-  SIGN_OUT: /Sign Out|Logout/i,
+  SIGN_OUT: /^Sign out$/i,
   SIGN_IN: /Sign In|Login/i,
   EDIT: /edit/i,
   SETTINGS: /settings/i,

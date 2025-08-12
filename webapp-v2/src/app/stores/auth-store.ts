@@ -6,6 +6,8 @@ import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '../../constants';
 import { logError } from '../../utils/browser-logger';
 import { AuthErrors } from '@shared/shared-types';
+import { groupsStore } from './groups-store';
+import { groupDetailStore } from './group-detail-store';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -51,6 +53,10 @@ class AuthStoreImpl implements AuthStore {
           userSignal.value = null;
           apiClient.setAuthToken(null);
           localStorage.removeItem(USER_ID_KEY);
+          
+          // Clear all stores when user becomes null (logout or session expired)
+          groupsStore.reset();
+          groupDetailStore.reset();
         }
         loadingSignal.value = false;
         initializedSignal.value = true;
@@ -112,6 +118,11 @@ class AuthStoreImpl implements AuthStore {
       await firebaseService.signOut();
       apiClient.setAuthToken(null);
       localStorage.removeItem(USER_ID_KEY);
+      
+      // Clear all store data on logout
+      groupsStore.reset();
+      groupDetailStore.reset();
+      
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {
       errorSignal.value = this.getAuthErrorMessage(error);

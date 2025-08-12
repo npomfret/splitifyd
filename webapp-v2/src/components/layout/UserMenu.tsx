@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
+import { route } from 'preact-router';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 
 interface UserMenuProps {
@@ -85,7 +86,16 @@ export function UserMenu({ user }: UserMenuProps) {
           <hr class="my-1 border-gray-100" />
           
           <button
-            onClick={() => authStore.logout()}
+            onClick={async () => {
+              try {
+                await authStore.logout();
+                // Force immediate redirect to login
+                route('/login', true);
+              } catch (error) {
+                // Error is already handled in authStore
+                console.error('Logout failed:', error);
+              }
+            }}
             class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
             disabled={authStore.loading}
           >
