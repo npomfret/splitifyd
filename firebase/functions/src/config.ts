@@ -22,6 +22,7 @@ const envSchema = z.object({
   FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),
   DEV_FORM_EMAIL: z.string().optional(),
   DEV_FORM_PASSWORD: z.string().optional(),
+  WARNING_BANNER: z.string().optional(),
 });
 
 // Type for the CONFIG object
@@ -113,9 +114,7 @@ function buildConfig(): Config {
       email: env.DEV_FORM_EMAIL ?? '',
       password: env.DEV_FORM_PASSWORD ?? '',
     },
-    warningBanner: isProduction 
-      ? '⚠️ this is a demo - your data will be deleted without notice' 
-      : '⚠️ emulator data will not be retained',
+    warningBanner: env.WARNING_BANNER ?? '',
   };
 }
 

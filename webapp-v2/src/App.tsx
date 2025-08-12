@@ -1,6 +1,6 @@
 import Router, { Route } from 'preact-router';
 import { Suspense, lazy } from 'preact/compat';
-import { LoadingState } from './components/ui';
+import { LoadingState, WarningBanner } from './components/ui';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
@@ -47,6 +47,7 @@ export function App() {
 
   return (
     <ErrorBoundary>
+      <WarningBanner />
       <Router>
         <Route path="/" component={(props: any) => <LazyRoute component={LandingPage} {...props} />} />
         

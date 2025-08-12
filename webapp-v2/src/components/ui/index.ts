@@ -13,3 +13,4 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { CategorySuggestionInput } from './CategorySuggestionInput';
 export { CurrencySelector } from './CurrencySelector';
 export { SidebarCard } from './SidebarCard';
+export { WarningBanner } from './WarningBanner';
