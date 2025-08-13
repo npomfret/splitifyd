@@ -91,16 +91,4 @@ export class GroupWorkflow {
 
     return groupId;
   }
-
-  /**
-   * Static convenience method for backward compatibility.
-   */
-  static async createTestGroup(
-    page: Page,
-    groupName?: string,
-    groupDescription?: string
-  ): Promise<TestGroup> {
-    const workflow = new GroupWorkflow(page);
-    return workflow.createGroupWithUser(groupName, groupDescription);
-  }
 }

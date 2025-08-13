@@ -93,15 +93,3 @@ export const FORM_LABELS = {
   AMOUNT: /amount/i,
   NOTE: /note/i,
 } as const;
-
-export const CLASS_SELECTORS = {
-  WHITE_BACKGROUND: '.bg-white',
-  RED_TEXT: '.text-red-600',
-  GRAY_TEXT: '.text-sm.font-medium.text-gray-700',
-} as const;
-
-export const LINKS = {
-  TERMS: '/terms',
-  COOKIES: '/cookies',
-  PRIVACY: '/privacy',
-} as const;

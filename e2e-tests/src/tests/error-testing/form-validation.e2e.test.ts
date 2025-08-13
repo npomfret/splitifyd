@@ -275,7 +275,7 @@ pageTest.describe('Form Validation E2E', () => {
       // Test minimum length validation - single character should not be enough
       const nameInput = createGroupModalPage.getGroupNameInput();
       await nameInput.click();
-      await nameInput.type('T');
+      await createGroupModalPage.fillPreactInput(nameInput, 'T');
       await page.keyboard.press('Tab');
       await page.waitForLoadState('domcontentloaded');
       
@@ -283,8 +283,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(submitButton).toBeDisabled();
       
       // Fill with valid group name
-      await nameInput.clear();
-      await nameInput.type(generateTestGroupName());
+      await createGroupModalPage.fillPreactInput(nameInput, generateTestGroupName());
       await page.keyboard.press('Tab');
       await page.waitForLoadState('domcontentloaded');
       

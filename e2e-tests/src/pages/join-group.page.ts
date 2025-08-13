@@ -236,17 +236,6 @@ export class JoinGroupPage {
     }
   }
 
-  // Utility methods for testing
-  async waitForJoinPageLoad(): Promise<void> {
-    await this.getJoinGroupHeading().waitFor({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-  }
-
-  async getGroupName(): Promise<string> {
-    const heading = this.getGroupNameHeading();
-    await heading.waitFor({ timeout: 3000 });
-    return await heading.textContent() || '';
-  }
-
   async takeDebugScreenshot(name: string = 'join-group-debug'): Promise<void> {
     await this.page.screenshot({ 
       path: `tmp/debug-screenshots/${name}-${Date.now()}.png`,
