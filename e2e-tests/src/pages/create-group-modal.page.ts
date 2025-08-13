@@ -93,10 +93,4 @@ export class CreateGroupModalPage extends BasePage {
     return this.page.locator(SELECTORS.MODAL_OVERLAY).filter({ has: this.page.getByText('Create New Group') }).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
   }
 
-  /**
-   * Get create group button within form context (for test refactoring)
-   */
-  getFormCreateGroupButton() {
-    return this.page.locator('form').getByRole('button', { name: 'Create Group' });
-  }
 }

@@ -94,20 +94,4 @@ export class LoginPage extends BasePage {
   getPasswordLabel() {
     return this.page.getByText('Password *');
   }
-
-  // Direct fill methods for test refactoring
-  
-  /**
-   * Fill email input directly (without Preact wrapper)
-   */
-  async fillEmail(email: string) {
-    await this.page.fill('input[type="email"]', email);
-  }
-
-  /**
-   * Fill password input directly (without Preact wrapper)
-   */
-  async fillPassword(password: string) {
-    await this.page.fill('input[type="password"]', password);
-  }
 }

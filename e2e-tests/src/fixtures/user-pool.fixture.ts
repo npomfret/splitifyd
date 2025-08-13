@@ -174,26 +174,6 @@ export class UserPool {
       displayName
     };
   }
-
-  /**
-   * Get pool statistics for debugging.
-   */
-  getStats() {
-    return {
-      available: this.availableUsers.length,
-      inUse: this.usersInUse.size,
-      total: this.availableUsers.length + this.usersInUse.size
-    };
-  }
-
-  /**
-   * Clear the pool (for cleanup).
-   */
-  clear(): void {
-    this.availableUsers = [];
-    this.usersInUse.clear();
-    console.log('🧹 User pool cleared');
-  }
 }
 
 // Global pool instance per worker process

@@ -120,16 +120,6 @@ export abstract class BasePage {
     await this.page.waitForLoadState('networkidle');
   }
   
-  async waitForNavigation(urlPattern: RegExp, timeout = 2000) {
-    await waitForURLWithContext(this.page, urlPattern, { timeout });
-  }
-  
-  async clickButtonWithText(text: string) {
-    const button = this.page.getByRole('button', { name: text });
-    await this.expectButtonEnabled(button, text);
-    await button.click();
-  }
-
   /**
    * Expects a button to be enabled before clicking.
    * Provides detailed error messages if the button is disabled.
