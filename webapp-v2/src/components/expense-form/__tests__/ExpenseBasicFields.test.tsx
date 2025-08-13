@@ -58,6 +58,7 @@ describe('ExpenseBasicFields', () => {
     amount: '',
     currency: 'USD',
     date: '2024-01-15',
+    time: '',
     category: '',
     validationErrors: {},
     updateField: mockUpdateField,
@@ -88,6 +89,7 @@ describe('ExpenseBasicFields', () => {
       description: 'Dinner at restaurant',
       amount: '45.50',
       date: '2024-01-15',
+      time: '18:30',
       category: 'Food & Drinks'
     };
 

@@ -1,10 +1,9 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
-import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
+import { groupDetailStore } from '../app/stores/group-detail-store';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { logInfo } from '../utils/browser-logger';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -32,13 +31,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   const showDeletedExpenses = useSignal(false);
 
   // Computed values from store
-  const group = useComputed(() => enhancedGroupDetailStore.group);
-  const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
-  const balances = useComputed(() => enhancedGroupDetailStore.balances);
-  const members = useComputed(() => enhancedGroupDetailStore.members);
-  const loading = useComputed(() => enhancedGroupDetailStore.loading);
-  const loadingMembers = useComputed(() => enhancedGroupDetailStore.loadingMembers);
-  const error = useComputed(() => enhancedGroupDetailStore.error);
+  const group = useComputed(() => groupDetailStore.group);
+  const expenses = useComputed(() => groupDetailStore.expenses);
+  const balances = useComputed(() => groupDetailStore.balances);
+  const members = useComputed(() => groupDetailStore.members);
+  const loading = useComputed(() => groupDetailStore.loading);
+  const loadingMembers = useComputed(() => groupDetailStore.loadingMembers);
+  const error = useComputed(() => groupDetailStore.error);
   
   // Auth store via hook
   const authStore = useAuthRequired();
@@ -61,21 +60,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     const loadGroup = async () => {
       try {
-        await enhancedGroupDetailStore.loadGroup(groupId);
-        
-        // Setup real-time subscriptions for this group
-        // IMPORTANT: Wait for auth to be fully initialized before starting Firestore subscriptions
-        // Otherwise subscriptions fail with permission errors due to security rules
-        if (authStore.initialized && authStore.user) {
-          logInfo('Auth verified, starting Firestore subscriptions', { userId: authStore.user.uid });
-          enhancedGroupDetailStore.subscribeToChanges(authStore.user.uid);
-        } else {
-          logInfo('Waiting for authentication before starting subscriptions', {
-            initialized: authStore.initialized,
-            hasUser: !!authStore.user
-          });
-        }
-        
+        await groupDetailStore.fetchGroup(groupId);
         isInitialized.value = true;
       } catch (error) {
         logError('Failed to load group page', error, { groupId });
@@ -88,7 +73,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     // Cleanup on unmount
     return () => {
-      enhancedGroupDetailStore.reset();
+      groupDetailStore.reset();
     };
   }, [groupId, currentUser.value]);
 
@@ -96,17 +81,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   if (!currentUser.value) {
     return null;
   }
-
-  // Watch for auth changes and start subscriptions when auth is ready
-  useEffect(() => {
-    if (!groupId) return;
-    
-    // If auth becomes ready after initial load, start subscriptions
-    if (authStore.initialized && authStore.user && isInitialized.value) {
-      logInfo('Auth now ready, starting delayed Firestore subscriptions', { userId: authStore.user.uid });
-      enhancedGroupDetailStore.subscribeToChanges(authStore.user.uid);
-    }
-  }, [authStore.initialized, authStore.user, groupId, isInitialized.value]);
 
   // Handle loading state
   if (loading.value && !isInitialized.value) {
@@ -191,49 +165,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     // TODO: Implement group settings functionality
   };
 
-  const handleLeaveGroup = async () => {
-    if (!groupId) return;
-    
-    // Confirm before leaving
-    if (!confirm('Are you sure you want to leave this group? You can only leave if you have no outstanding balance.')) {
-      return;
-    }
-    
-    try {
-      const response = await enhancedGroupDetailStore.leaveGroup(groupId);
-      if (response.success) {
-        // Navigate back to dashboard after successful leave
-        route('/dashboard');
-      }
-    } catch (error) {
-      // Error will be handled by the store
-      logError('Failed to leave group', error);
-    }
-  };
-
-  const handleRemoveMember = async (memberId: string) => {
-    if (!groupId) return;
-    
-    const memberToRemove = members.value.find(m => m.uid === memberId);
-    const memberName = memberToRemove?.displayName || 'this member';
-    
-    // Confirm before removing
-    if (!confirm(`Are you sure you want to remove ${memberName} from the group? They can only be removed if they have no outstanding balance.`)) {
-      return;
-    }
-    
-    try {
-      const response = await enhancedGroupDetailStore.removeMember(groupId, memberId);
-      if (response.success) {
-        // Refresh group data after successful removal
-        await enhancedGroupDetailStore.fetchGroup(groupId);
-      }
-    } catch (error) {
-      // Error will be handled by the store
-      logError('Failed to remove member', error);
-    }
-  };
-
   // Render group detail
   return (
     <BaseLayout 
@@ -249,8 +180,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
               createdBy={group.value!.createdBy || ''}
               loading={loadingMembers.value}
               variant="sidebar"
-              onLeaveGroup={handleLeaveGroup}
-              onRemoveMember={handleRemoveMember}
             />
             
             <QuickActions 
@@ -280,15 +209,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <ExpensesList 
               expenses={expenses.value}
               members={members.value}
-              hasMore={enhancedGroupDetailStore.hasMoreExpenses}
-              loading={enhancedGroupDetailStore.loadingExpenses}
-              onLoadMore={() => enhancedGroupDetailStore.loadMoreExpenses()}
+              hasMore={groupDetailStore.hasMoreExpenses}
+              loading={groupDetailStore.loadingExpenses}
+              onLoadMore={() => groupDetailStore.loadMoreExpenses()}
               onExpenseClick={handleExpenseClick}
               isGroupOwner={isGroupOwner.value ?? false}
               showDeletedExpenses={showDeletedExpenses.value}
               onShowDeletedChange={(show) => {
                 showDeletedExpenses.value = show;
-                enhancedGroupDetailStore.fetchExpenses();
+                groupDetailStore.refetchExpenses(show);
               }}
             />
 
@@ -298,8 +227,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 members={members.value} 
                 createdBy={group.value!.createdBy || ''}
                 loading={loadingMembers.value}
-                onLeaveGroup={handleLeaveGroup}
-                onRemoveMember={handleRemoveMember}
               />
             </div>
 
@@ -355,7 +282,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         groupId={groupId!}
         onSuccess={() => {
           // Refresh balances after successful settlement
-          enhancedGroupDetailStore.fetchBalances();
+          groupDetailStore.fetchBalances();
         }}
       />
     </BaseLayout>

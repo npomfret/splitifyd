@@ -9,13 +9,23 @@ import { z } from 'zod';
 import { UserRoles, SplitTypes } from '@shared/shared-types';
 
 // Base schemas
+export const UserThemeColorSchema = z.object({
+  light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
+  dark: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
+  name: z.string().min(1).max(50),
+  pattern: z.enum(['solid', 'dots', 'stripes', 'diagonal']),
+  assignedAt: z.string().datetime(),
+  colorIndex: z.number().int().min(0)
+});
+
 export const MemberSchema = z.object({
   uid: z.string().min(1),
   name: z.string().min(1),
   initials: z.string().min(1),
   email: z.string().email().optional(),
   displayName: z.string().min(1).optional(),
-  joinedAt: z.string().optional()
+  joinedAt: z.string().optional(),
+  themeColor: UserThemeColorSchema.optional()
 });
 
 export const FirebaseConfigSchema = z.object({
@@ -166,7 +176,8 @@ export const GroupMembersResponseSchema = z.object({
     role: z.enum([UserRoles.ADMIN, UserRoles.USER]).optional(),
     termsAcceptedAt: z.any().optional(),
     cookiePolicyAcceptedAt: z.any().optional(),
-    acceptedPolicies: z.record(z.string(), z.string()).optional()
+    acceptedPolicies: z.record(z.string(), z.string()).optional(),
+    themeColor: UserThemeColorSchema.optional()
   })),
   totalCount: z.number(),
   hasMore: z.boolean(),

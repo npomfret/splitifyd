@@ -86,6 +86,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 amount={formState.amount}
                 currency={formState.currency}
                 date={formState.date}
+                time={formState.time}
                 category={formState.category}
                 validationErrors={formState.validationErrors}
                 updateField={formState.updateField}

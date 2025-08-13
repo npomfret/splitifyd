@@ -91,6 +91,23 @@ export class UserPool {
   }
 
   /**
+   * Optional: Pre-warm the pool with users for better performance.
+   * This is now optional - the pool works fine with on-demand creation.
+   * @deprecated Consider removing this method entirely
+   */
+  async preWarmPool(browser: any, count: number): Promise<void> {
+    console.log(`🔥 Pre-warming pool with ${count} users (optional optimization)...`);
+    
+    for (let i = 0; i < count; i++) {
+      const user = await this.createUser(browser, `prewarm-${i}`);
+      this.availableUsers.push(user);
+      console.log(`✅ Created pool user ${i + 1}/${count}: ${user.email}`);
+    }
+    
+    console.log(`✅ Pool pre-warmed with ${count} users`);
+  }
+
+  /**
    * Create a new test user using a temporary browser context.
    * The temporary context is closed after user creation to avoid empty browser windows.
    */
@@ -121,7 +138,7 @@ export class UserPool {
     try {
       // Navigate to register page with full URL
       await tempPage.goto(`${EMULATOR_URL}/register`);
-      await tempPage.waitForLoadState('domcontentloaded');
+      await tempPage.waitForLoadState('networkidle');
       
       // Check for errors before waiting for form
       if (consoleErrors.length > 0 || pageErrors.length > 0) {
@@ -153,8 +170,6 @@ export class UserPool {
       
       // Logout so the user can be used later - now simple with stable selectors
       await tempPage.click('[data-testid="user-menu-button"]');
-      // Wait for the dropdown menu to be visible before clicking sign-out
-      await tempPage.waitForSelector('[data-testid="sign-out-button"]', { state: 'visible', timeout: 5000 });
       await tempPage.click('[data-testid="sign-out-button"]');
       
       // Wait for logout to complete
@@ -170,6 +185,17 @@ export class UserPool {
       uid: uniqueId,
       email,
       displayName
+    };
+  }
+
+  /**
+   * Get pool statistics for debugging.
+   */
+  getStats() {
+    return {
+      available: this.availableUsers.length,
+      inUse: this.usersInUse.size,
+      total: this.availableUsers.length + this.usersInUse.size
     };
   }
 

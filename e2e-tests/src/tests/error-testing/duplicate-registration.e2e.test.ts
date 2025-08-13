@@ -49,7 +49,7 @@ test.describe('Duplicate User Registration E2E', () => {
     });
     
     // Wait for register page to load
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // Fill form again with same email using page object methods
     const nameInput = registerPage.getFullNameInput();
@@ -120,7 +120,7 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Second attempt - navigate to register page
     await registerPage.navigate();
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // Fill form using the shared helper to trigger Preact signals
     const nameInput = registerPage.getFullNameInput();
@@ -181,7 +181,7 @@ test.describe('Duplicate User Registration E2E', () => {
     
     // Try duplicate (should fail)
     await registerPage.navigate();
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // Use shared helper for Preact input handling
     const nameInput = registerPage.getFullNameInput();

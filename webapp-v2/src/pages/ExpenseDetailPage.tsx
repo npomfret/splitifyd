@@ -8,7 +8,7 @@ import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
-import { formatDistanceToNow, formatLocalDate, formatLocalDateTime } from '../utils/dateUtils';
+import { formatDistanceToNow, formatLocalDate, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
 import type { ExpenseData } from '@shared/shared-types';
 import { logError } from '../utils/browser-logger';
 
@@ -209,7 +209,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    {formatLocalDate(expense.value.date)}
+                    {formatExpenseDateTime(expense.value.date)}
                   </p>
                 </div>
                 

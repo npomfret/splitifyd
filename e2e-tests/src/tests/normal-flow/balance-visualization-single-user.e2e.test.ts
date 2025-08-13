@@ -21,14 +21,16 @@ test.describe('Single User Balance Visualization', () => {
     const balancesHeading = groupDetailPage.getBalancesHeading();
     await expect(balancesHeading).toBeVisible();
     
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
+    // Wait for the page to fully load and settle
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Additional wait for dynamic content
     
-    // Verify "All settled up!" exists in the DOM
+    // The "All settled up!" message exists but might be in a collapsed section
+    // Just verify it exists in the DOM (don't check visibility since section might be collapsed on mobile)
     const settledElements = await groupDetailPage.getAllSettledUpElementsCount();
     expect(settledElements).toBeGreaterThan(0);
     
-    // Members section should show the creator
+    // Members section should show the creator - use first() since display name might appear multiple times
     await expect(groupDetailPage.getMainSection().getByText(user.displayName).first()).toBeVisible();
     
     // Expenses section should show empty state
@@ -62,8 +64,9 @@ test.describe('Single User Balance Visualization', () => {
       splitType: 'equal'
     });
     
-    // Wait for real-time updates to process the expenses
-    await groupDetailPage.waitForRealTimeUpdate();
+    // Refresh to ensure UI is updated (matches pattern from other tests)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     
     // Verify Balances section shows settled up for single-user groups
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -111,8 +114,9 @@ test.describe('Single User Balance Visualization', () => {
       splitType: 'equal'
     });
     
-    // Wait for real-time updates to process the expense
-    await groupDetailPage.waitForRealTimeUpdate();
+    // Refresh to ensure UI is updated (matches pattern from other tests)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     
     // Check for currency formatting in expense section
     await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();

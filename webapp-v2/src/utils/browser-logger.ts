@@ -33,6 +33,7 @@ function getUserContext(): Record<string, any> {
     sessionId: SESSION_ID,
     timestamp: new Date().toISOString(),
     url: window.location.href,
+    userAgent: navigator.userAgent,
   };
 
   // Try to get user ID from localStorage
@@ -102,9 +103,9 @@ export function logUserAction(
   };
 
   console.log(
-    `${new Date().toISOString()}  %c🎯 USER ACTION: ${action}`,
+    `%c🎯 USER ACTION: ${action}`,
     LOG_STYLES.userAction,
-    JSON.stringify(logData)
+    JSON.stringify(logData)// put it on one line
   );
 }
 
@@ -130,7 +131,7 @@ export function logButtonClick(
   };
 
   console.log(
-    `${new Date().toISOString()}  %c🔘 BUTTON CLICK: ${buttonText}`,
+    `%c🔘 BUTTON CLICK: ${buttonText}`,
     LOG_STYLES.buttonClick,
     JSON.stringify(logData)
   );
@@ -167,7 +168,7 @@ export function logApiRequest(
   }
 
   console.log(
-    `${new Date().toISOString()}  %c📤 API REQUEST: ${method} ${endpoint}`,
+    `%c📤 API REQUEST: ${method} ${endpoint}`,
     LOG_STYLES.apiRequest,
     JSON.stringify(logData)
   );
@@ -203,9 +204,9 @@ export function logApiResponse(
   const style = isError ? LOG_STYLES.error : LOG_STYLES.apiResponse;
 
   console.log(
-    `${new Date().toISOString()}  %c${icon} API RESPONSE: ${method} ${endpoint} - ${status}`,
+    `%c${icon} API RESPONSE: ${method} ${endpoint} - ${status}`,
     style,
-    JSON.stringify(logData)
+    JSON.stringify(logData),// keep it on a single line
   );
 }
 
@@ -227,7 +228,7 @@ export function logNavigation(
   };
 
   console.log(
-    `${new Date().toISOString()}  %c🧭 NAVIGATION: ${from} → ${to}`,
+    `%c🧭 NAVIGATION: ${from} → ${to}`,
     LOG_STYLES.navigation,
     JSON.stringify(logData)
   );
@@ -260,25 +261,7 @@ export function logError(message: string, error?: unknown, data?: Record<string,
   }
 
   // Single line log with message followed by JSON
-  console.error(`${new Date().toISOString()} ${message}:`, JSON.stringify(logData));
-}
-
-/**
- * Logs an informational message with context
- * @param message - Info message describing what happened
- * @param data - Optional data to include in the log
- */
-export function logInfo(message: string, data?: Record<string, any>): void {
-  const logData: Record<string, any> = {
-    timestamp: new Date().toISOString(),
-  };
-
-  if (data) {
-    Object.assign(logData, data);
-  }
-
-  // Single line log with message followed by JSON
-  console.info(`${new Date().toISOString()} ${message}:`, JSON.stringify(logData));
+  console.error(`${message}:`, JSON.stringify(logData));
 }
 
 /**
@@ -296,5 +279,5 @@ export function logWarning(message: string, data?: Record<string, any>): void {
   }
 
   // Single line log with message followed by JSON
-  console.warn(`${new Date().toISOString()} ${message}:`, JSON.stringify(logData));
+  console.warn(`${message}:`, JSON.stringify(logData));
 }

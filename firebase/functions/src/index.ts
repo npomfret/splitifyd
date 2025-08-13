@@ -22,7 +22,7 @@ import {
 } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
-import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberHandlers';
+import { getGroupMembers } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import {
   createGroup,
@@ -268,6 +268,7 @@ app.post('/csp-violation-report', (req: express.Request, res: express.Response) 
     const violation = req.body;
     logger.warn('CSP violation detected', {
       violation,
+      userAgent: req.get('User-Agent'),
       ip: req.ip,
       timestamp: timestampToISO(createServerTimestamp())
     });
@@ -313,8 +314,6 @@ app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(join
 // Parameterized routes come last
 app.get(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(getGroup));
 app.get(`/${FirestoreCollections.GROUPS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
-app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
-app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
 app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
 
@@ -377,6 +376,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     correlationId,
     method: req.method,
     path: req.path,
+    userAgent: req.headers['user-agent'],
     ip: req.ip || req.connection.remoteAddress,
   });
   
@@ -403,9 +403,3 @@ export const api = onRequest({
   app(req, res);
 });
 
-// Phase 1 Streaming Infrastructure: Change detection and cleanup
-export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
-export { cleanupChanges, manualCleanupChanges } from './scheduled/cleanup';
-
-// Phase 4 Monitoring & Analytics: Metrics collection and alerting
-export { collectStreamingMetrics } from './monitoring/streaming-metrics';

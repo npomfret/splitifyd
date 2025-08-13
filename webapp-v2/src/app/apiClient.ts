@@ -642,20 +642,6 @@ export class ApiClient {
     });
   }
 
-  async leaveGroup(groupId: string): Promise<{ success: boolean; message: string }> {
-    return this.request({
-      endpoint: `/groups/${groupId}/leave`,
-      method: 'POST'
-    });
-  }
-
-  async removeGroupMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }> {
-    return this.request({
-      endpoint: `/groups/${groupId}/members/${memberId}`,
-      method: 'DELETE'
-    });
-  }
-
   async getExpenses(groupId: string, limit?: number, cursor?: string, includeDeleted?: boolean): Promise<{ expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string }> {
     const query: Record<string, string> = { groupId };
     if (limit !== undefined) {

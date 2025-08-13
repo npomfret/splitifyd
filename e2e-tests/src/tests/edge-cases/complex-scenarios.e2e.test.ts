@@ -64,7 +64,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     
     // Refresh Alice's page to ensure latest data
     await alicePage.reload();
-    await alicePage.waitForLoadState('domcontentloaded');
+    await alicePage.waitForLoadState('networkidle');
     // Wait for balance section to be visible - indicates data loaded
     await expect(alicePage.getByRole('heading', { name: /balance/i })).toBeVisible();
     

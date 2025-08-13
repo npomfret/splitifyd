@@ -53,17 +53,15 @@ test.describe('Multi-User Collaboration E2E', () => {
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const user2 = secondUser.user;
-    const joinGroupPage2 = new JoinGroupPage(page2);
     
     await page2.goto(shareLink);
-    await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
-    await joinGroupPage2.getJoinGroupButton().click();
+    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
+    await groupDetailPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // CRITICAL: In emulator, real-time streaming from Firestore doesn't work for groups created via REST API
-    // This is a known limitation - Functions and Firestore emulators don't share data properly
-    // Using page reload as workaround until production deployment
+    // CRITICAL FIX: Refresh first user's page to see the new member, then wait for synchronization
     await page.reload();
+    await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Also ensure second user sees both members
@@ -87,10 +85,10 @@ test.describe('Multi-User Collaboration E2E', () => {
       splitType: 'equal'
     });
     
-    // Wait for balance calculations - using page reload due to emulator limitation
+    // Wait for balance calculations before verifying
     await page.reload();
     await groupDetailPage.waitForBalanceCalculation();
-    await page2.reload();
+    await page2.reload(); 
     await groupDetailPage2.waitForBalanceCalculation();
     
     // Verify expenses
@@ -156,10 +154,9 @@ test.describe('Multi-User Collaboration E2E', () => {
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const user2 = secondUser.user;
-    const joinGroupPage2 = new JoinGroupPage(page2);
     await page2.goto(shareLink);
-    await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
-    await joinGroupPage2.getJoinGroupButton().click();
+    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
+    await groupDetailPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // User 1 pays for shared expense
@@ -171,8 +168,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       splitType: 'equal'
     });
     
-    // Verify balance shows User 2 owes User 1 via real-time updates
-    await groupDetailPage.waitForRealTimeUpdate();
+    // Verify balance shows User 2 owes User 1
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     
     // Check if Balances section might be collapsed and expand it if needed
     const balancesHeading = groupDetailPage.getBalancesHeading();

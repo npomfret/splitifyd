@@ -45,39 +45,21 @@ describe('Enhanced Data Validation Tests', () => {
         .toThrow(/Date cannot be in the future/);
     });
 
-    test('should reject expenses with dates beyond 24 hour buffer', async () => {
-      const farFutureDate = new Date();
-      farFutureDate.setHours(farFutureDate.getHours() + 25); // 25 hours in the future (beyond 24-hour buffer)
+    test('should reject expenses with dates even 1 hour in the future', async () => {
+      const nearFutureDate = new Date();
+      nearFutureDate.setHours(nearFutureDate.getHours() + 1); // 1 hour in the future
 
       const expenseData = new ExpenseBuilder()
         .withGroupId(testGroup.id)
-        .withDate(farFutureDate.toISOString()) // Far future date - this is what the test is about
+        .withDate(nearFutureDate.toISOString()) // Near future date - this is what the test is about
         .withPaidBy(users[0].uid)
         .withParticipants([users[0].uid, users[1].uid])
         .build();
 
-      // API correctly rejects dates beyond 24-hour buffer
+      // API now correctly rejects any future dates, even just 1 hour ahead
       await expect(driver.createExpense(expenseData, users[0].token))
         .rejects
         .toThrow(/Date cannot be in the future/);
-    });
-
-    test('should accept expenses with dates within 24-hour buffer', async () => {
-      const recentFutureDate = new Date();
-      recentFutureDate.setHours(recentFutureDate.getHours() + 23); // 23 hours in the future (within buffer)
-
-      const expenseData = new ExpenseBuilder()
-        .withGroupId(testGroup.id)
-        .withDate(recentFutureDate.toISOString()) // Recent future date within buffer
-        .withPaidBy(users[0].uid)
-        .withParticipants([users[0].uid, users[1].uid])
-        .build();
-
-      const response = await driver.createExpense(expenseData, users[0].token);
-      expect(response.id).toBeDefined();
-
-      const createdExpense = await driver.getExpense(response.id, users[0].token);
-      expect(new Date(createdExpense.date).getTime()).toBeCloseTo(recentFutureDate.getTime(), -3);
     });
 
     test('should accept expenses with very old dates (API currently allows)', async () => {

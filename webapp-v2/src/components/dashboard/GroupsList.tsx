@@ -1,5 +1,5 @@
 import { route } from 'preact-router';
-import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
+import { groupsStore } from '@/app/stores/groups-store.ts';
 import { LoadingSpinner } from '../ui';
 import { GroupCard } from './GroupCard';
 import { EmptyGroupsState } from './EmptyGroupsState';
@@ -9,7 +9,7 @@ interface GroupsListProps {
 }
 
 export function GroupsList({ onCreateGroup }: GroupsListProps) {
-  if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
+  if (groupsStore.loading && !groupsStore.initialized) {
     return (
       <div class="flex items-center justify-center py-8">
         <LoadingSpinner />
@@ -18,7 +18,7 @@ export function GroupsList({ onCreateGroup }: GroupsListProps) {
     );
   }
 
-  if (enhancedGroupsStore.error) {
+  if (groupsStore.error) {
     return (
       <div class="text-center py-8">
         <div class="text-red-600 mb-4">
@@ -26,12 +26,12 @@ export function GroupsList({ onCreateGroup }: GroupsListProps) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
           <h4 class="text-lg font-medium text-red-800">Failed to load groups</h4>
-          <p class="text-red-600 mt-1">{enhancedGroupsStore.error}</p>
+          <p class="text-red-600 mt-1">{groupsStore.error}</p>
         </div>
         <button
           onClick={() => {
-            enhancedGroupsStore.clearError();
-            enhancedGroupsStore.refreshGroups();
+            groupsStore.clearError();
+            groupsStore.refreshGroups();
           }}
           class="bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 transition-colors text-sm font-medium"
         >
@@ -41,13 +41,13 @@ export function GroupsList({ onCreateGroup }: GroupsListProps) {
     );
   }
 
-  if (enhancedGroupsStore.groups.length === 0) {
+  if (groupsStore.groups.length === 0) {
     return <EmptyGroupsState onCreateGroup={onCreateGroup} />;
   }
 
   return (
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {enhancedGroupsStore.groups.map(group => (
+      {groupsStore.groups.map(group => (
         <GroupCard 
           key={group.id} 
           group={group}

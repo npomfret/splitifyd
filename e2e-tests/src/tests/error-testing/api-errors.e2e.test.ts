@@ -30,7 +30,7 @@ test.describe('API Error Handling', () => {
     
     // Reload to trigger API call
     await page.reload();
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // App should still be functional despite malformed response
     const createButton = page.getByRole('button', { name: 'Create Group' });

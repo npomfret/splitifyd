@@ -247,7 +247,7 @@ test.describe('Freeform Categories E2E', () => {
     await expenseElement.click();
     
     // Should navigate to expense detail or edit page
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // Look for edit button and click it
     const editButton = page.getByRole('button', { name: /edit/i });

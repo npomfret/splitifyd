@@ -6,6 +6,7 @@ interface LogContext {
   correlationId?: string;
   userId?: string;
   requestId?: string;
+  userAgent?: string;
   ip?: string;
   method?: string;
   path?: string;
@@ -43,6 +44,7 @@ export const logger = {
       correlationId,
       method: req.method,
       path: req.path,
+      userAgent: req.headers['user-agent'],
       ip: req.ip ?? req.connection.remoteAddress ?? 'unknown',
       ...additionalContext,
     };

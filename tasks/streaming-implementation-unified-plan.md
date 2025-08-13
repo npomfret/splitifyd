@@ -1,14 +1,5 @@
 # Unified Streaming Implementation Plan
 
-## Implementation Status
-
-| Phase | Status | Completion Date | Notes |
-|-------|--------|----------------|-------|
-| Phase 1: Core Infrastructure | ✅ **COMPLETED** | 2025-08-11 | All components implemented and tested |
-| Phase 2: Smart REST | ✅ **COMPLETED** | 2025-08-11 | Enhanced endpoints, smart refresh, optimistic updates |
-| Phase 3: Progressive Streaming | ✅ **COMPLETED** | 2025-08-11 | Hybrid streaming, collaborative features, animations |
-| Phase 4: Production Polish | ✅ **COMPLETED** | 2025-08-11 | Performance optimization, error handling, monitoring, environment configuration |
-
 ## Executive Summary
 
 This document consolidates the best aspects of both streaming implementation approaches into a comprehensive plan for migrating Splitifyd to real-time capabilities. The plan combines the **Notification-Driven REST** architecture with gradual migration to full streaming where beneficial, providing both immediate value and long-term scalability.
@@ -39,10 +30,12 @@ This document consolidates the best aspects of both streaming implementation app
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure & Change Detection ✅ **COMPLETED**
-**Completion**: 2025-08-11 | **Files**: 6 created/modified | **Status**: Ready for testing ([guide](./phase1-testing.md))
+### Phase 1: Core Infrastructure & Change Detection (Week 1)
 
-**Achievements**: Change detection triggers, connection management, debouncing (500ms/300ms), priority classification, auto-cleanup, full TypeScript support
+#### Objectives
+- Establish change detection infrastructure
+- Implement connection state management
+- Set up rate limiting and debouncing
 
 #### Technical Implementation
 
@@ -258,10 +251,12 @@ export const cleanupChanges = functions.pubsub
 
 ---
 
-### Phase 2: Smart REST with Auto-Refresh ✅ **COMPLETED**
-**Completion**: 2025-08-11 | **Files**: 5 created/modified | **Status**: Ready for testing ([guide](./phase2-testing.md))
+### Phase 2: Smart REST with Auto-Refresh (Week 1-2)
 
-**Achievements**: Enhanced REST with metadata, smart client refresh, change detection subscription, user context preservation, optimistic updates with conflict resolution, connection-aware debouncing
+#### Objectives
+- Implement paginated REST endpoints with metadata
+- Add smart client-side refresh logic
+- Preserve user context during updates
 
 #### Technical Implementation
 
@@ -643,46 +638,236 @@ class GroupsStore {
 
 ---
 
-### Phase 3: Progressive Streaming Migration ✅ **COMPLETED**
-**Completion**: 2025-08-11 | **Files**: 6 created | **Status**: Ready for testing ([guide](./phase3-testing.md))
+### Phase 3: Progressive Streaming Migration (Week 2-3)
 
-**Achievements**: Hybrid streaming architecture, client-side balance calculation, collaborative presence system, real-time animations, performance optimization
+#### Objectives
+- Migrate high-frequency data to full streaming
+- Implement hybrid approach (streaming + REST)
+- Add collaborative features
 
-#### Key Components Created
+#### Technical Implementation
 
-✅ **Enhanced Group Detail Store** - Hybrid streaming approach:
-- Group metadata: Full streaming (real-time updates)
-- Expenses: Notification-driven refresh (efficient for large datasets) 
-- Balances: Real-time streaming with animations
-- User context preservation during updates
-- Smart refresh with diff detection and animations
+##### 3.1 Group Detail Streaming
+```typescript
+// webapp-v2/src/app/stores/group-detail-store.ts
+class GroupDetailStore {
+  // Hybrid approach: stream metadata, fetch data via REST
+  
+  private groupListener: (() => void) | null = null;
+  private expensesListener: (() => void) | null = null;
+  private balanceListener: (() => void) | null = null;
+  
+  async loadGroup(groupId: string) {
+    // Initial load via REST
+    const group = await apiClient.getGroup(groupId);
+    this.group.value = group;
+    
+    // Then subscribe to changes
+    this.subscribeToGroup(groupId);
+    this.subscribeToExpenses(groupId);
+    this.subscribeToBalances(groupId);
+  }
+  
+  private subscribeToGroup(groupId: string) {
+    // Full streaming for group metadata (small payload)
+    const groupDoc = doc(db, 'groups', groupId);
+    
+    this.groupListener = onSnapshot(
+      groupDoc,
+      { includeMetadataChanges: false },
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          
+          // Smart update - only update changed fields
+          batch(() => {
+            Object.keys(data).forEach(key => {
+              if (this.group.value[key] !== data[key]) {
+                this.group.value = {
+                  ...this.group.value,
+                  [key]: data[key]
+                };
+              }
+            });
+          });
+        }
+      },
+      (error) => {
+        console.error('Group streaming error:', error);
+        this.fallbackToREST(groupId);
+      }
+    );
+  }
+  
+  private subscribeToExpenses(groupId: string) {
+    // Notification-driven for expenses (large payload)
+    const changesQuery = query(
+      collection(db, 'expense-changes'),
+      where('groupId', '==', groupId),
+      where('timestamp', '>', Date.now() - 60000),
+      orderBy('timestamp', 'desc'),
+      limit(1)
+    );
+    
+    this.expensesListener = onSnapshot(
+      changesQuery,
+      (snapshot) => {
+        if (!snapshot.empty && !snapshot.metadata.fromCache) {
+          // Refresh current page of expenses
+          this.refreshExpenses();
+        }
+      }
+    );
+  }
+  
+  private subscribeToBalances(groupId: string) {
+    // Full streaming for balances (critical, small payload)
+    const balancesQuery = query(
+      collection(db, 'group-balances'),
+      where('groupId', '==', groupId)
+    );
+    
+    this.balanceListener = onSnapshot(
+      balancesQuery,
+      { includeMetadataChanges: false },
+      (snapshot) => {
+        const balances = {};
+        snapshot.forEach(doc => {
+          balances[doc.id] = doc.data();
+        });
+        
+        // Update balances with animation
+        this.updateBalancesWithAnimation(balances);
+      }
+    );
+  }
+  
+  private async refreshExpenses() {
+    // Smart refresh with diff detection
+    const oldExpenses = this.expenses.value;
+    const newExpenses = await apiClient.getExpenses({
+      groupId: this.groupId,
+      page: this.currentPage.value,
+      limit: this.pageSize.value
+    });
+    
+    // Detect changes and animate
+    const changes = this.detectExpenseChanges(oldExpenses, newExpenses);
+    
+    if (changes.added.length > 0 || changes.modified.length > 0) {
+      this.animateExpenseChanges(changes);
+    }
+    
+    this.expenses.value = newExpenses;
+  }
+  
+  dispose() {
+    [this.groupListener, this.expensesListener, this.balanceListener]
+      .forEach(listener => listener?.());
+  }
+}
+```
 
-✅ **Client-Side Balance Calculator** - Intelligent calculation strategy:
-- <100 expenses: Client-side calculation (faster, offline capable)
-- >100 expenses: Server-side calculation (handles complexity)
-- Optimized settlement algorithm (minimizes transactions)
-- Balance validation and audit trail
-- Performance monitoring and fallback handling
-
-✅ **Collaborative Presence System** - Real-time user awareness:
-- User presence tracking (viewing/editing/typing states)
-- Location-based presence (group/expense-form/expense-detail)
-- Typing indicators with auto-timeout
-- Connection-aware presence updates
-- Cleanup on disconnect/visibility change
-
-✅ **Real-Time Animation Manager** - Smooth update animations:
-- Balance update animations (number counting, visual emphasis)
-- Expense change animations (add/modify/remove with stagger)
-- Presence change animations (join/leave/activity change)
-- Performance monitoring and reduced motion support
-- Intersection observer optimization
-
-✅ **Collaborative UI Components** - Rich presence indicators:
-- Avatar-based presence indicators with activity states
-- Typing indicators with user names
-- Activity feed for group changes
-- Real-time update animations and visual feedback
+##### 3.2 Client-Side Balance Calculation
+```typescript
+// webapp-v2/src/utils/balance-calculator.ts
+export class BalanceCalculator {
+  private static readonly CLIENT_CALC_THRESHOLD = 100; // Max expenses for client-side
+  
+  static async calculateBalances(
+    groupId: string, 
+    expenses: Expense[]
+  ): Promise<BalanceResult> {
+    // Check if we should calculate client-side
+    if (expenses.length <= this.CLIENT_CALC_THRESHOLD) {
+      return this.calculateClientSide(expenses);
+    }
+    
+    // Otherwise use server calculation
+    return apiClient.calculateBalances(groupId);
+  }
+  
+  private static calculateClientSide(expenses: Expense[]): BalanceResult {
+    const balances = new Map<string, number>();
+    const owes = new Map<string, Map<string, number>>();
+    
+    // Calculate net balances
+    expenses.forEach(expense => {
+      const { paidBy, splits, amount } = expense;
+      
+      // Add payment
+      balances.set(paidBy, (balances.get(paidBy) || 0) + amount);
+      
+      // Subtract splits
+      Object.entries(splits).forEach(([userId, splitAmount]) => {
+        balances.set(userId, (balances.get(userId) || 0) - splitAmount);
+        
+        // Track who owes whom
+        if (userId !== paidBy) {
+          if (!owes.has(userId)) {
+            owes.set(userId, new Map());
+          }
+          const userOwes = owes.get(userId)!;
+          userOwes.set(paidBy, (userOwes.get(paidBy) || 0) + splitAmount);
+        }
+      });
+    });
+    
+    // Optimize settlements
+    const settlements = this.optimizeSettlements(balances, owes);
+    
+    return {
+      balances: Object.fromEntries(balances),
+      settlements,
+      calculated: 'client',
+      timestamp: Date.now()
+    };
+  }
+  
+  private static optimizeSettlements(
+    balances: Map<string, number>,
+    owes: Map<string, Map<string, number>>
+  ): Settlement[] {
+    // Implementation of debt simplification algorithm
+    const settlements: Settlement[] = [];
+    const netBalances = new Map(balances);
+    
+    // Sort users by balance
+    const creditors = Array.from(netBalances.entries())
+      .filter(([_, balance]) => balance > 0.01)
+      .sort((a, b) => b[1] - a[1]);
+    
+    const debtors = Array.from(netBalances.entries())
+      .filter(([_, balance]) => balance < -0.01)
+      .sort((a, b) => a[1] - b[1]);
+    
+    // Match creditors with debtors
+    let creditorIndex = 0;
+    let debtorIndex = 0;
+    
+    while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
+      const [creditorId, creditAmount] = creditors[creditorIndex];
+      const [debtorId, debtAmount] = debtors[debtorIndex];
+      
+      const settlementAmount = Math.min(creditAmount, Math.abs(debtAmount));
+      
+      settlements.push({
+        from: debtorId,
+        to: creditorId,
+        amount: Number(settlementAmount.toFixed(2))
+      });
+      
+      creditors[creditorIndex][1] -= settlementAmount;
+      debtors[debtorIndex][1] += settlementAmount;
+      
+      if (creditors[creditorIndex][1] < 0.01) creditorIndex++;
+      if (Math.abs(debtors[debtorIndex][1]) < 0.01) debtorIndex++;
+    }
+    
+    return settlements;
+  }
+}
+```
 
 #### Success Criteria
 - Group details update in real-time
@@ -699,64 +884,313 @@ class GroupsStore {
 
 ---
 
-### Phase 4: Optimization & Production Polish ✅ **COMPLETED**
-**Completion**: 2025-08-11 | **Files**: 8 created | **Status**: Production ready ([guide](./phase4-testing.md))
+### Phase 4: Optimization & Production Polish (Week 4)
 
-**Achievements**: Performance optimization with batching, advanced error handling with circuit breakers, comprehensive monitoring and analytics, enhanced UX with real-time indicators, environment-based deployment control
+#### Objectives
+- Optimize performance and reduce costs
+- Enhance error handling and resilience
+- Add monitoring and analytics
+- Polish user experience
 
-#### Key Components Created
+#### Technical Implementation
 
-✅ **Performance Optimization System** - Intelligent update batching:
-- Update queue with priority-based processing (high/medium/low)
-- Animation frame scheduling for 60fps performance
-- Selective updates to prevent unnecessary re-renders
-- Memory leak prevention with managed listeners
-- Performance metrics tracking and optimization
+##### 4.1 Performance Optimization
+```typescript
+// webapp-v2/src/utils/performance-optimizer.ts
+export class PerformanceOptimizer {
+  private updateQueue: Update[] = [];
+  private batchTimeout: NodeJS.Timeout | null = null;
+  private renderFrame: number | null = null;
+  
+  // Batch rapid updates
+  queueUpdate(update: Update) {
+    this.updateQueue.push(update);
+    
+    if (!this.batchTimeout) {
+      this.batchTimeout = setTimeout(() => {
+        this.processBatch();
+      }, 16); // One frame at 60fps
+    }
+  }
+  
+  private processBatch() {
+    if (this.renderFrame) {
+      cancelAnimationFrame(this.renderFrame);
+    }
+    
+    // Process updates in next animation frame
+    this.renderFrame = requestAnimationFrame(() => {
+      const updates = this.updateQueue.splice(0);
+      
+      // Group updates by type
+      const grouped = this.groupUpdates(updates);
+      
+      // Apply updates efficiently
+      batch(() => {
+        grouped.forEach(group => {
+          this.applyUpdateGroup(group);
+        });
+      });
+      
+      this.batchTimeout = null;
+      this.renderFrame = null;
+    });
+  }
+  
+  // Selective field updates
+  static createSelectiveListener(fields: string[]) {
+    return (snapshot: DocumentSnapshot) => {
+      const data = snapshot.data();
+      const updates: Partial<any> = {};
+      let hasChanges = false;
+      
+      fields.forEach(field => {
+        if (data?.[field] !== undefined) {
+          updates[field] = data[field];
+          hasChanges = true;
+        }
+      });
+      
+      return hasChanges ? updates : null;
+    };
+  }
+  
+  // Memory leak prevention
+  static createManagedListener(
+    query: Query,
+    callback: (snapshot: QuerySnapshot) => void
+  ): ManagedListener {
+    let unsubscribe: (() => void) | null = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const subscribe = () => {
+      unsubscribe = onSnapshot(
+        query,
+        { includeMetadataChanges: false },
+        (snapshot) => {
+          retryCount = 0; // Reset on success
+          callback(snapshot);
+        },
+        (error) => {
+          console.error('Listener error:', error);
+          
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(subscribe, 1000 * Math.pow(2, retryCount));
+          }
+        }
+      );
+    };
+    
+    subscribe();
+    
+    return {
+      unsubscribe: () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      },
+      resubscribe: subscribe
+    };
+  }
+}
+```
 
-✅ **Advanced Error Handling** - Circuit breaker pattern:
-- Circuit breaker per feature with configurable thresholds
-- Smart retry logic with exponential backoff
-- Graceful degradation to REST on failures
-- User-friendly error notifications and recovery
-- Error statistics tracking for analytics
+##### 4.2 Advanced Error Handling
+```typescript
+// webapp-v2/src/utils/error-handler.ts
+export class StreamingErrorHandler {
+  private circuitBreaker = new Map<string, CircuitBreakerState>();
+  private readonly errorThreshold = 5;
+  private readonly resetTimeout = 60000; // 1 minute
+  
+  handleError(error: FirestoreError, context: ErrorContext) {
+    // Track errors per feature
+    const breaker = this.getCircuitBreaker(context.feature);
+    
+    switch (error.code) {
+      case 'permission-denied':
+        this.handlePermissionError(context);
+        break;
+        
+      case 'unavailable':
+        this.handleUnavailableError(context, breaker);
+        break;
+        
+      case 'resource-exhausted':
+        this.handleRateLimitError(context, breaker);
+        break;
+        
+      case 'deadline-exceeded':
+        this.handleTimeoutError(context, breaker);
+        break;
+        
+      default:
+        this.handleGenericError(error, context, breaker);
+    }
+  }
+  
+  private handlePermissionError(context: ErrorContext) {
+    // Silently fallback to REST
+    console.debug(`Permission denied for ${context.feature}, using REST fallback`);
+    context.fallbackToREST();
+    
+    // Notify user if critical feature
+    if (context.isCritical) {
+      this.notifyUser('Some features may be limited. Please refresh if issues persist.');
+    }
+  }
+  
+  private handleUnavailableError(context: ErrorContext, breaker: CircuitBreakerState) {
+    breaker.failures++;
+    
+    if (breaker.failures >= this.errorThreshold) {
+      // Open circuit breaker
+      breaker.state = 'open';
+      breaker.nextRetry = Date.now() + this.resetTimeout;
+      
+      // Switch to offline mode
+      context.setOfflineMode(true);
+      this.notifyUser('Working offline. Changes will sync when connection restored.');
+    } else {
+      // Retry with backoff
+      const delay = Math.min(1000 * Math.pow(2, breaker.failures), 30000);
+      setTimeout(() => context.retry(), delay);
+    }
+  }
+  
+  private handleRateLimitError(context: ErrorContext, breaker: CircuitBreakerState) {
+    // Increase debounce time
+    context.increaseDebounceTime(breaker.failures * 1000);
+    
+    // Notify user after multiple failures
+    if (breaker.failures > 3) {
+      this.notifyUser('High activity detected. Updates may be delayed.');
+    }
+  }
+  
+  private getCircuitBreaker(feature: string): CircuitBreakerState {
+    if (!this.circuitBreaker.has(feature)) {
+      this.circuitBreaker.set(feature, {
+        state: 'closed',
+        failures: 0,
+        nextRetry: 0
+      });
+    }
+    return this.circuitBreaker.get(feature)!;
+  }
+  
+  private notifyUser(message: string) {
+    // Show non-intrusive notification
+    showToast({
+      message,
+      type: 'info',
+      duration: 5000,
+      position: 'bottom-right'
+    });
+  }
+}
+```
 
-✅ **Monitoring & Analytics System** - Comprehensive metrics:
-- Hourly performance metrics collection
-- Cost tracking and savings calculations
-- Automated alerting for anomalies
-- Historical metrics storage for trends
-- Real-time monitoring dashboard
+##### 4.3 Monitoring & Analytics
+```typescript
+// firebase/functions/src/monitoring/streaming-metrics.ts
+export const collectStreamingMetrics = functions.pubsub
+  .schedule('every 1 hour')
+  .onRun(async () => {
+    const metrics = await gatherMetrics();
+    
+    // Performance metrics
+    const performance = {
+      avgRefreshRate: metrics.refreshes / metrics.activeUsers,
+      avgLatency: metrics.totalLatency / metrics.refreshes,
+      p95Latency: calculatePercentile(metrics.latencies, 95),
+      errorRate: metrics.errors / metrics.totalRequests
+    };
+    
+    // Cost metrics
+    const costs = {
+      firestoreReads: metrics.firestoreReads,
+      estimatedCost: calculateFirestoreCost(metrics),
+      savingsVsFullStreaming: calculateSavings(metrics)
+    };
+    
+    // Alert on anomalies
+    if (performance.avgRefreshRate > 60) {
+      await sendAlert('High refresh rate detected', performance);
+    }
+    
+    if (costs.firestoreReads > 100000) {
+      await sendAlert('High Firestore usage', costs);
+    }
+    
+    // Log to monitoring dashboard
+    await logToMonitoring({
+      timestamp: Date.now(),
+      performance,
+      costs,
+      usage: metrics
+    });
+    
+    // Store for historical analysis
+    await admin.firestore()
+      .collection('streaming-metrics')
+      .add({
+        ...performance,
+        ...costs,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+  });
+```
 
-✅ **User Experience Enhancements** - Production polish:
-- Real-time connection indicators with status
-- Smooth update animations with accessibility support
-- Toast notification system for user feedback
-- Staggered animations for list updates
-- Balance update animations with number counting
+##### 4.4 User Experience Enhancements
+```typescript
+// webapp-v2/src/components/ui/RealTimeIndicator.tsx
+export function RealTimeIndicator() {
+  const connectionManager = ConnectionManager.getInstance();
+  const isOnline = connectionManager.isOnline;
+  const quality = connectionManager.connectionQuality;
+  
+  return (
+    <div className="real-time-indicator">
+      {isOnline.value ? (
+        <div className={`status-dot ${quality.value}`} title="Real-time updates active">
+          <span className="pulse-animation" />
+        </div>
+      ) : (
+        <div className="status-dot offline" title="Working offline">
+          <OfflineIcon />
+        </div>
+      )}
+    </div>
+  );
+}
 
-✅ **Environment-Based Configuration** - Deployment control:
-- Environment-specific settings for development vs production
-- Firebase function-level deployment for gradual rollout
-- Configuration variables for debounce times and cleanup intervals
-- Independent function deployment and rollback capability
-
-#### Objectives (Achieved)
-- ✅ Optimize performance and reduce costs
-- ✅ Enhance error handling and resilience  
-- ✅ Add monitoring and analytics
-- ✅ Polish user experience
-
-#### Technical Implementation (Compressed)
-
-**Performance Optimization**: Update batching with 60fps scheduling, selective listeners, managed cleanup, memory leak prevention
-
-**Error Handling**: Circuit breaker pattern per feature, smart retry with exponential backoff, graceful degradation, user notifications
-
-**Monitoring**: Hourly metrics collection, cost tracking, automated alerts, historical analysis, real-time dashboard
-
-**UX Enhancements**: Real-time indicators, update animations, toast notifications, accessibility support
-
-**Configuration**: Environment-based settings, function-level deployment control
+// webapp-v2/src/components/ui/UpdateAnimation.tsx
+export function UpdateAnimation({ children, hasUpdate }) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  useEffect(() => {
+    if (hasUpdate) {
+      setIsAnimating(true);
+      const timeout = setTimeout(() => setIsAnimating(false), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [hasUpdate]);
+  
+  return (
+    <div className={`update-container ${isAnimating ? 'updating' : ''}`}>
+      {children}
+      {isAnimating && (
+        <div className="update-overlay">
+          <div className="update-shimmer" />
+        </div>
+      )}
+    </div>
+  );
+}
+```
 
 #### Success Criteria
 - Performance metrics within targets
@@ -831,13 +1265,15 @@ Each phase independently reversible:
 - **Phase 3**: Disable streaming, keep REST updates
 - **Phase 4**: Remove optimizations if issues arise
 
-### Environment Configuration
+### Feature Flags
 ```typescript
-const CONFIG = {
+const FEATURE_FLAGS = {
   streaming: {
-    enabled: process.env.NODE_ENV === 'production',
-    debounceMs: process.env.NODE_ENV === 'development' ? 100 : 500,
-    cleanupIntervalMinutes: process.env.NODE_ENV === 'development' ? 1 : 5
+    enabled: process.env.ENABLE_STREAMING === 'true',
+    groups: true,
+    expenses: true,
+    balances: true,
+    progressiveRollout: 0.1 // 10% of users
   },
   optimizations: {
     batching: true,

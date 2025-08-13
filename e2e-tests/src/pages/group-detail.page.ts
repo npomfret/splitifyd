@@ -12,9 +12,17 @@ interface ExpenseData {
 }
 
 export class GroupDetailPage extends BasePage {
+  // Element accessors for group information
+  getGroupTitle() {
+    return this.page.getByRole('heading').first();
+  }
 
   getGroupTitleByName(name: string) {
     return this.page.getByRole('heading', { name });
+  }
+
+  getGroupTextByName(name: string) {
+    return this.page.getByText(name);
   }
 
   getGroupDescription() {
@@ -114,6 +122,27 @@ export class GroupDetailPage extends BasePage {
     await currencyOption.click();
   }
 
+  async getCurrencySelectorValue(): Promise<string> {
+    const currencySelector = this.getCurrencySelector();
+    const text = await currencySelector.textContent();
+    
+    // The button contains the currency symbol and possibly code
+    // Look for a 3-letter currency code pattern
+    const match = text?.match(/([A-Z]{3})/);
+    if (match) {
+      return match[1];
+    }
+    
+    // If no currency code found in button text, try to infer from symbol
+    // This is a fallback for cases where only the symbol is shown
+    if (text?.includes('$')) return 'USD';
+    if (text?.includes('€')) return 'EUR';
+    if (text?.includes('£')) return 'GBP';
+    if (text?.includes('¥')) return 'JPY';
+    
+    return '';
+  }
+
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
   }
@@ -125,6 +154,13 @@ export class GroupDetailPage extends BasePage {
   async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
     const button = submitButton || this.getSaveExpenseButton();
     await this.expectButtonEnabled(button, 'Save Expense');
+  }
+  
+  /**
+   * Gets all validation error messages currently displayed in the form
+   */
+  async getValidationErrors(): Promise<string[]> {
+    return await this.page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
   }
 
   // Split type accessors
@@ -185,12 +221,70 @@ export class GroupDetailPage extends BasePage {
     return this.getShareModal().getByRole('textbox');
   }
 
+  getJoinGroupHeading() {
+    return this.page.getByRole('heading', { name: 'Join Group' });
+  }
+
+  getJoinGroupButton() {
+    return this.page.getByRole('button', { name: 'Join Group' });
+  }
+
   // User-related accessors
   getUserName(displayName: string) {
     return this.page.getByText(displayName).first();
   }
 
   // CONTEXT-SPECIFIC SELECTORS TO FIX STRICT MODE VIOLATIONS
+  
+  /**
+   * Gets debt amount specifically from the balance/debt summary section.
+   * This avoids strict mode violations when the same amount appears in expense history.
+   */
+  getDebtAmountInBalanceSection(amount: string) {
+    // Look for the debt amount within the context of the balances section
+    const balancesSection = this.page.locator('section, div').filter({ 
+      has: this.page.getByRole('heading', { name: 'Balances' }) 
+    });
+    return balancesSection.getByText(amount).first();
+  }
+
+  /**
+   * Gets expense amount specifically from the expense history section.
+   * This avoids confusion with debt amounts in balance section.
+   */
+  getExpenseAmountInHistorySection(amount: string) {
+    // Look for the expense amount within the context of the expenses/history section
+    const expensesSection = this.page.locator('section, div').filter({ 
+      has: this.page.getByRole('heading', { name: /expenses|history/i }) 
+    });
+    return expensesSection.getByText(amount).first();
+  }
+
+  /**
+   * Gets a specific debt message in the balance section
+   * UI now uses arrow notation: "User A → User B" instead of "owes"
+   */
+  getDebtMessageInBalanceSection(debtorName: string, creditorName: string) {
+    const balancesSection = this.page.locator('section, div').filter({ 
+      has: this.page.getByRole('heading', { name: 'Balances' }) 
+    });
+    // Try both formats - arrow notation (new UI) and "owes" (legacy)
+    return balancesSection.getByText(`${debtorName} → ${creditorName}`)
+      .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`))
+      .first();
+  }
+
+  /**
+   * Gets the "All settled up!" message specifically from balance section
+   */
+  getSettledUpMessageInBalanceSection() {
+    const balancesSection = this.page.locator('section, div').filter({ 
+      has: this.page.getByRole('heading', { name: 'Balances' }) 
+    });
+    // Use .first() to get the first occurrence since there might be multiple
+    return balancesSection.getByText('All settled up!').first();
+  }
+
   /**
    * Checks if "All settled up!" exists in the balance section (regardless of visibility)
    * Use this when the balance section might be collapsed on mobile
@@ -229,26 +323,53 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Waits for the group to have the expected number of members.
-   * Uses real-time streaming updates instead of page refreshes.
+   * Gets group name/title from the specific header context, accounting for dynamic names
    */
-  async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
-    // Wait for the member count to appear via real-time updates
-    // Use data-testid selector for more reliable targeting
-    await expect(this.page.getByTestId('member-count'))
-      .toContainText(expectedCount.toString(), { timeout });
+  getGroupNameInHeader() {
+    // Get the actual group title from the header, not a hardcoded expectation
+    return this.page.getByRole('heading').first();
   }
 
   /**
-   * Waits for real-time updates to be visible (checks for streaming indicators)
+   * Waits for and gets a group name that matches a pattern (for dynamic names)
    */
-  async waitForRealTimeUpdate(timeout = 1000): Promise<void> {
-    // Wait a moment for streaming updates to propagate
-    // This replaces the need for page.reload() calls
-    await this.page.waitForTimeout(timeout);
+  async getGroupNameContaining(pattern: string) {
+    // Wait for any heading that contains the pattern
+    const heading = this.page.getByRole('heading').filter({ hasText: new RegExp(pattern, 'i') }).first();
+    await expect(heading).toBeVisible();
+    return heading;
+  }
+
+  /**
+   * Waits for the group to have the expected number of members.
+   * Tests the current value, refreshes if incorrect, repeats until it matches or times out.
+   */
+  async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
+    const startTime = Date.now();
+    const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
     
-    // Wait for DOM updates to complete (streaming connections won't idle)
-    await this.page.waitForLoadState('domcontentloaded');
+    while (Date.now() - startTime < timeout) {
+      try {
+        // Check if the expected member count is already visible
+        const memberCountElement = this.page.getByText(expectedText);
+        const isVisible = await memberCountElement.isVisible();
+        
+        if (isVisible) {
+          // Success! The count matches
+          return;
+        }
+      } catch (error) {
+        // Element not found, continue to refresh
+      }
+      
+      // The count doesn't match, refresh the page
+      await this.page.reload();
+      await this.page.waitForLoadState('networkidle');
+    }
+    
+    // Final attempt - throw error if still not matching after timeout
+    await expect(this.page.getByText(expectedText))
+      .toBeVisible({ timeout: 1000 });
   }
 
   /**
@@ -262,10 +383,8 @@ export class GroupDetailPage extends BasePage {
     await expect(this.page.getByText(user1Name).first()).toBeVisible();
     await expect(this.page.getByText(user2Name).first()).toBeVisible();
     
-    // Wait for DOM to be stable instead of network idle (streaming connections)
-    await this.page.waitForLoadState('domcontentloaded');
-    // Small delay to ensure updates are rendered
-    await this.page.waitForTimeout(500);
+    // Wait for any async operations to complete
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**
@@ -283,10 +402,20 @@ export class GroupDetailPage extends BasePage {
     // Wait for loading to disappear
     await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 1000 });
     
-    // Use domcontentloaded instead of networkidle for streaming connections
-    await this.page.waitForLoadState('domcontentloaded');
-    // Small delay to ensure balance calculations are rendered
-    await this.page.waitForTimeout(300);
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Reliably get debt amount from balance section
+   */
+  async getDebtAmount(): Promise<string> {
+    await this.waitForBalanceCalculation();
+    
+    const debtElement = this.page.locator('.text-red-600').first();
+    await expect(debtElement).toBeVisible();
+    
+    const debtText = await debtElement.textContent();
+    return debtText?.replace(/[$,]/g, '') || '0';
   }
 
   async waitForBalanceUpdate(): Promise<void> {
@@ -294,10 +423,8 @@ export class GroupDetailPage extends BasePage {
     const balanceSection = this.page.getByRole('heading', { name: 'Balances' }).locator('..');
     await expect(balanceSection).toBeVisible();
     
-    // Use domcontentloaded for streaming connections
-    await this.page.waitForLoadState('domcontentloaded');
-    // Small delay to ensure updates are rendered
-    await this.page.waitForTimeout(300);
+    // Wait for network requests to complete
+    await this.page.waitForLoadState('networkidle');
   }
 
   async addExpense(expense: ExpenseData): Promise<void> {
@@ -311,7 +438,7 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Wait for form to be fully loaded
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState('networkidle');
     const descriptionField = this.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
     
@@ -368,8 +495,7 @@ export class GroupDetailPage extends BasePage {
     await expect(this.page.getByText(expense.description)).toBeVisible();
     
     // Wait for balance calculation to complete
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(300);
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**
@@ -421,12 +547,15 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Synchronize group state across multiple users using real-time streaming.
-   * Waits for streaming updates instead of refreshing pages.
+   * Synchronize group state across multiple users by refreshing pages and waiting for updates.
+   * This replaces manual reload() calls scattered throughout multi-user tests.
    */
   async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any }>, expectedMemberCount?: number): Promise<void> {
-    // Wait for all pages to receive streaming updates
-    // No page refreshes needed - rely on real-time updates
+    // Refresh all pages to get latest state
+    for (const { page } of pages) {
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+    }
     
     // If member count is specified, wait for all pages to show correct count
     if (expectedMemberCount) {
@@ -435,7 +564,7 @@ export class GroupDetailPage extends BasePage {
       }
     }
     
-    // Wait for balance calculations to complete via streaming
+    // Additional wait for balance calculations to complete
     for (const { groupDetailPage } of pages) {
       await groupDetailPage.waitForBalanceCalculation();
     }
@@ -600,8 +729,7 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForTimeout(500);
     
     // Wait for settlement to be processed
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(500);
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**
@@ -626,6 +754,11 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SELECT_ALL });
   }
 
+  getRecordPaymentButton() {
+    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.RECORD_PAYMENT });
+  }
+
+  // Modal and form elements
   getSettlementModal() {
     return this.page.getByRole(ARIA_ROLES.DIALOG);
   }
@@ -633,12 +766,36 @@ export class GroupDetailPage extends BasePage {
   getSettlementAmountInput() {
     return this.page.getByRole('spinbutton', { name: FORM_LABELS.AMOUNT });
   }
+
+  /**
+   * Gets settlement amount within the history dialog/modal.
+   * This avoids strict mode violations when multiple amounts appear on the page.
+   * @param amount The amount to look for (e.g., '100.00')
+   */
+  getSettlementAmountInHistory(amount: string) {
+    // Look for amount within the settlement history dialog context
+    const historyDialog = this.page.getByRole(ARIA_ROLES.DIALOG);
+    
+    // Look for amount within settlement cards (has specific styling classes)
+    // All amounts are in USD now
+    return historyDialog.locator('.text-lg.font-bold').filter({ hasText: amount }).first();
+  }
+
   getPayerSelect() {
     return this.page.getByRole(ARIA_ROLES.COMBOBOX, { name: FORM_LABELS.WHO_PAID });
   }
 
   getPayeeSelect() {
     return this.page.getByRole(ARIA_ROLES.COMBOBOX, { name: FORM_LABELS.WHO_RECEIVED_PAYMENT });
+  }
+
+  getNoteInput() {
+    return this.page.getByRole(ARIA_ROLES.TEXTBOX, { name: FORM_LABELS.NOTE });
+  }
+
+  // Messages
+  getSettledUpMessage() {
+    return this.page.getByText(MESSAGES.ALL_SETTLED_UP);
   }
 
   getNoExpensesText() {
@@ -660,6 +817,19 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByText(`$${amount}`);
   }
 
+  // Utility method for debt messages
+  getDebtMessage(debtorName: string, creditorName: string) {
+    // UI now uses arrow notation: "User A → User B" instead of "owes"
+    // On desktop (lg breakpoint), balance is shown in sidebar
+    // On mobile, it's shown in main content but hidden on desktop with lg:hidden
+    // We need to find ALL instances and filter for the visible one
+    const debtText = `${debtorName} → ${creditorName}`;
+    const legacyText = `${debtorName} owes ${creditorName}`;
+    
+    // Look for all instances of the debt text
+    return this.page.getByText(debtText).or(this.page.getByText(legacyText));
+  }
+
   /**
    * Shares the group and waits for another user to join.
    * This encapsulates the entire share/join flow to avoid code duplication.
@@ -674,7 +844,7 @@ export class GroupDetailPage extends BasePage {
     
     // Have the second user navigate to share link and join with fast timeout
     await joinerPage.goto(shareLink);
-    await joinerPage.waitForLoadState('domcontentloaded');
+    await joinerPage.waitForLoadState('networkidle');
     
     // Click join button with fast timeout
     const joinButton = joinerPage.getByRole('button', { name: /join group/i });
@@ -685,8 +855,9 @@ export class GroupDetailPage extends BasePage {
     // Wait for navigation with reasonable timeout
     await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 3000 });
     
-    // Wait for updated members via real-time streaming (no refresh needed)
-    await this.waitForMemberCount(2);
+    // Refresh the original page to see updated members
+    await this.page.reload();
+    await this.page.waitForLoadState('networkidle');
     
     return shareLink;
   }
@@ -713,6 +884,17 @@ export class GroupDetailPage extends BasePage {
     }).first();
   }
 
+  /**
+   * Gets a user display button by display name
+   * Replaces direct getByRole calls in tests
+   */
+  getUserDisplayButton(displayName: string) {
+    return this.page.getByRole('button', { name: displayName });
+  }
+
+  /**
+   * Gets any text element - centralizes getByText calls
+   */
   getTextElement(text: string | RegExp) {
     return this.page.getByText(text);
   }
@@ -754,8 +936,26 @@ export class GroupDetailPage extends BasePage {
     await confirmButton.click();
     
     // Wait for deletion to complete
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(300);
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Gets the join group button on share link page
+   * This is the most frequently violated selector
+   */
+  getJoinGroupButtonOnSharePage() {
+    return this.page.getByRole('button', { name: /join group/i });
+  }
+
+  /**
+   * Clicks the join group button and waits for navigation
+   * @deprecated Use JoinGroupPage.joinGroup() instead for better reliability
+   */
+  async clickJoinGroup() {
+    const joinButton = this.getJoinGroupButtonOnSharePage();
+    await expect(joinButton).toBeEnabled();
+    await joinButton.click();
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
   }
 
   /**
@@ -769,7 +969,7 @@ export class GroupDetailPage extends BasePage {
 
     // Pre-check: Ensure we're on a group page and page is ready
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 2000 });
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState('networkidle');
     
     // Pre-check: Ensure group title is visible (indicates page is ready)
     const groupTitle = this.page.getByRole('heading').first();
@@ -786,12 +986,11 @@ export class GroupDetailPage extends BasePage {
         await shareButton.click();
 
         // Get share link from dialog with progressive timeout
-        const timeout = 700 + (attempts * 200); // Start at 700ms, increase per attempt
-        const dialog = this.page.getByRole('dialog', { name: /share group/i });
+        const timeout = 500 + (attempts * 200); // Start at 500ms, increase per attempt
+        const dialog = this.page.getByRole('dialog');
         await dialog.waitFor({ state: 'visible', timeout });
         
-        // Use direct locator for textbox within dialog
-        const shareLinkInput = dialog.getByRole('textbox');
+        const shareLinkInput = this.getShareLinkInput();
         await shareLinkInput.waitFor({ state: 'visible', timeout });
         
         shareLink = await shareLinkInput.inputValue();
@@ -848,7 +1047,58 @@ export class GroupDetailPage extends BasePage {
    */
   async navigateToShareLink(shareLink: string): Promise<void> {
     await this.page.goto(shareLink);
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Gets heading by exact or partial text match
+   */
+  getHeading(name: string | RegExp) {
+    return this.page.getByRole('heading', { name });
+  }
+
+  /**
+   * Gets the first visible heading (for dynamic group names)
+   */
+  getFirstHeading() {
+    return this.page.getByRole('heading').first();
+  }
+
+  /**
+   * Helper to check if expense is visible
+   */
+  async isExpenseVisible(description: string): Promise<boolean> {
+    return await this.getExpenseByDescription(description).isVisible();
+  }
+
+  /**
+   * Helper to check if text is visible
+   */
+  async isTextVisible(text: string | RegExp): Promise<boolean> {
+    return await this.getTextElement(text).isVisible();
+  }
+
+  /**
+   * Gets the show history button
+   */
+  getHistoryButton() {
+    return this.page.getByRole('button', { name: 'Show History' });
+  }
+
+  /**
+   * Opens the history modal
+   */
+  async openHistory() {
+    const historyButton = this.getHistoryButton();
+    await expect(historyButton).toBeEnabled();
+    await historyButton.click();
+  }
+
+  /**
+   * Closes any open modal using Escape
+   */
+  async closeModal() {
+    await this.page.keyboard.press('Escape');
   }
 
   /**
@@ -859,6 +1109,15 @@ export class GroupDetailPage extends BasePage {
     // UI now uses arrow notation: "User A → User B" instead of "owes"
     return balancesSection.getByText(`${debtorName} → ${creditorName}`)
       .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
+  }
+
+  /**
+   * Checks if users are settled up
+   */
+  async areUsersSettledUp(): Promise<boolean> {
+    const balancesSection = this.getBalancesSection();
+    const settledMessage = balancesSection.getByText('All settled up!');
+    return await settledMessage.isVisible();
   }
 
   /**
@@ -890,6 +1149,31 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Get balances section with specific filter
+   */
+  getBalancesSectionByFilter() {
+    return this.page.locator("section, div").filter({ 
+      has: this.page.getByRole("heading", { name: "Balances" }) 
+    });
+  }
+
+  /**
+   * Get debt amount by regex pattern (e.g., for amounts with rounding variations)
+   */
+  getDebtAmountPattern(pattern: RegExp) {
+    const balancesSection = this.getBalancesSectionByFilter();
+    return balancesSection.getByText(pattern).first();
+  }
+
+  /**
+   * Check if a debt amount matching a pattern exists in the DOM
+   */
+  async hasDebtAmountPattern(pattern: RegExp): Promise<boolean> {
+    const count = await this.page.getByText(pattern).count();
+    return count > 0;
+  }
+
+  /**
    * Get the amount input field (for expense or settlement forms)
    */
   getAmountInput() {
@@ -901,6 +1185,20 @@ export class GroupDetailPage extends BasePage {
    */
   getDescriptionInput() {
     return this.page.getByPlaceholder('What was this expense for?');
+  }
+
+  /**
+   * Get the settings button
+   */
+  getSettingsButton() {
+    return this.page.getByRole('button', { name: /settings/i });
+  }
+
+  /**
+   * Get the edit button
+   */
+  getEditButton() {
+    return this.page.getByRole('button', { name: /edit/i });
   }
 
   /**
@@ -980,6 +1278,13 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Get the update expense button
+   */
+  getUpdateExpenseButton() {
+    return this.page.getByRole('button', { name: /update expense/i });
+  }
+
+  /**
    * Get the settle up button (already exists but adding for clarity)
    */
   getSettleUpButtonDirect() {
@@ -1000,6 +1305,28 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('spinbutton', { name: /amount/i });
   }
 
+
+  /**
+   * Get the note textbox in settlement form
+   */
+  getNoteTextbox() {
+    return this.page.getByRole('textbox', { name: /note/i });
+  }
+
+  /**
+   * Wait for listbox (dropdown options) to appear
+   */
+  async waitForListbox(timeout = 5000) {
+    await this.page.waitForSelector('[role="listbox"]', { timeout });
+  }
+
+  /**
+   * Get all options in a listbox
+   */
+  async getListboxOptions() {
+    return await this.page.locator('[role="option"]').all();
+  }
+
   /**
    * Get a specific input by its minimum value attribute
    */
@@ -1007,4 +1334,45 @@ export class GroupDetailPage extends BasePage {
     return this.page.locator(`input[type="number"][step="0.01"][min="${minValue}"]`);
   }
 
+  /**
+   * Get member count text by regex
+   */
+  getMemberCountByRegex(pattern: RegExp) {
+    return this.page.getByText(pattern);
+  }
+
+  /**
+   * Get admin text element
+   */
+  getAdminText() {
+    return this.page.getByText(/admin/i).first();
+  }
+
+  /**
+   * Get exact amounts text element
+   */
+  getExactAmountsTextElement() {
+    return this.page.getByText('Exact amounts');
+  }
+
+  /**
+   * Get percentage text element (exact match)
+   */
+  getPercentageTextElement() {
+    return this.page.getByText('Percentage', { exact: true });
+  }
+
+  /**
+   * Get form element
+   */
+  getForm() {
+    return this.page.locator('form');
+  }
+
+  /**
+   * Get create group button within form context
+   */
+  getFormCreateGroupButton() {
+    return this.getForm().getByRole('button', { name: 'Create Group' });
+  }
 }
