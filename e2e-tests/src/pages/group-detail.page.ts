@@ -1065,4 +1065,18 @@ export class GroupDetailPage extends BasePage {
     return this.page.locator('form');
   }
 
+  /**
+   * Get the join group heading on the join group page
+   */
+  getJoinGroupHeading() {
+    return this.page.getByRole('heading', { name: /join group/i });
+  }
+
+  /**
+   * Get the join group button on the join group page
+   */
+  getJoinGroupButton() {
+    return this.page.getByRole('button', { name: /join group/i });
+  }
+
 }
