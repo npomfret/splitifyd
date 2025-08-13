@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { multiUserTest } from '../../fixtures/multi-user-test';
+import { multiUserTest } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
+import { MultiUserWorkflow } from '../../workflows';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
