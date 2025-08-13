@@ -203,7 +203,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const firstSplitInput = splitInputs.first();
     // Assert field is clear before testing
     const initialValue = await firstSplitInput.inputValue();
-    expect(initialValue).toBe('');
+    expect(initialValue).toBe('');//todo: not sure this is correct - even split is the default so it should be 50, maybe?
     // Use direct fill for invalid value - UI should validate but not format/clear
     await firstSplitInput.fill('-50');
     
