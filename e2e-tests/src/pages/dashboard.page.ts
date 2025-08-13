@@ -83,7 +83,7 @@ export class DashboardPage extends BasePage {
 
   async waitForDashboard() {
     // Wait for navigation to dashboard if not already there - handle both /dashboard and /dashboard/
-    await this.page.waitForURL(/\/dashboard\/?$/, { timeout: 5000 });
+    await this.page.waitForURL(/\/dashboard\/?$/);
     
     // Wait for the dashboard to be fully loaded
     await this.waitForNetworkIdle();
@@ -94,7 +94,7 @@ export class DashboardPage extends BasePage {
     // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
     const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
     try {
-      await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
+      await loadingSpinner.waitFor({ state: 'hidden', timeout: 1000 });
     } catch {
       // Spinner never appeared or disappeared quickly - expected behavior
     }

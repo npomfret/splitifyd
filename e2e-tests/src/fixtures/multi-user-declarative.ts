@@ -79,22 +79,21 @@ export const multiUserTest = base.extend<MultiUserFixtures>({
     const userPool = getUserPool();
     
     try {
-      // For the first user, reuse the default Playwright page/context
-      // For additional users, create new contexts
-      const userPromises: Promise<UserFixture>[] = [];
-      
+      // Create and authenticate users sequentially to avoid race conditions
+      // Parallel authentication can cause login failures in the Firebase emulator
       for (let i = 0; i < userCount; i++) {
+        let userFixture: UserFixture;
+        
         if (i === 0) {
           // First user: reuse default page/context
-          userPromises.push(createUserFixture(browser, page, context));
+          userFixture = await createUserFixture(browser, page, context);
         } else {
           // Additional users: create new contexts
-          userPromises.push(createUserFixture(browser));
+          userFixture = await createUserFixture(browser);
         }
+        
+        users.push(userFixture);
       }
-      
-      const createdUsers = await Promise.all(userPromises);
-      users.push(...createdUsers);
       
       await use(users);
       
