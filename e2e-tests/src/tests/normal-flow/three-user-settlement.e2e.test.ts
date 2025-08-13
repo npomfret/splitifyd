@@ -44,7 +44,7 @@ test.describe('Three User Settlement Management', () => {
     
     
     // 1. Create a group with 3 users
-    await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
+    const groupId = await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
 
     // Get share link and have users join
     await groupDetailPage.getShareButton().click();
@@ -60,10 +60,16 @@ test.describe('Three User Settlement Management', () => {
       throw new Error(`Second user failed to join group: ${joinResult2.reason}`);
     }
     
+    // Verify second user can actually access the group page
+    const page2Url = page2.url();
+    if (!page2Url.includes(`/groups/${groupId}`)) {
+      throw new Error(`Second user join verification failed. Expected to be on /groups/${groupId}, but on: ${page2Url}`);
+    }
+    
     // Synchronize to see the second member
     await groupDetailPage.synchronizeMultiUserState([
       { page, groupDetailPage }
-    ], 2);
+    ], 2, groupId);
     
     // Third user joins using robust JoinGroupPage
     const groupDetailPage3 = thirdUser.groupDetailPage;
@@ -74,12 +80,18 @@ test.describe('Three User Settlement Management', () => {
       throw new Error(`Third user failed to join group: ${joinResult3.reason}`);
     }
     
+    // Verify third user can actually access the group page
+    const page3Url = page3.url();
+    if (!page3Url.includes(`/groups/${groupId}`)) {
+      throw new Error(`Third user join verification failed. Expected to be on /groups/${groupId}, but on: ${page3Url}`);
+    }
+    
     // Synchronize all pages to see all 3 members
     await groupDetailPage.synchronizeMultiUserState([
       { page, groupDetailPage },
       { page: page2, groupDetailPage: groupDetailPage2 },
       { page: page3, groupDetailPage: groupDetailPage3 }
-    ], 3);
+    ], 3, groupId);
     
     
     // 2. User 1 makes a expense for 120, split equally
@@ -102,7 +114,7 @@ test.describe('Three User Settlement Management', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, allPages);
+    }, allPages, 3, groupId);
     
     // Verify expense appears across all pages
     await groupDetailPage.verifyExpenseAcrossPages(allPages, 'Group dinner expense', '$120.00');
@@ -131,7 +143,7 @@ test.describe('Three User Settlement Management', () => {
       payeeName: user1.displayName,
       amount: '30',
       note: 'Partial payment from user2'
-    }, allPages);
+    }, allPages, 3, groupId);
     
     // Verify settlement appears in history across all pages
     await groupDetailPage.verifySettlementInHistory(allPages, 'Partial payment from user2');
@@ -160,7 +172,7 @@ test.describe('Three User Settlement Management', () => {
       payeeName: user1.displayName,
       amount: '10',
       note: 'Final payment from user2 - all settled!'
-    }, allPages);
+    }, allPages, 3, groupId);
     
     // 7. Assert final state after all settlements
     // EXPECTED FINAL STATE:

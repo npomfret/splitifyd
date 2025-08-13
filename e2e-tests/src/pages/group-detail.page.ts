@@ -243,7 +243,7 @@ export class GroupDetailPage extends BasePage {
    * Waits for the group to have the expected number of members.
    * Tests the current value, refreshes if incorrect, repeats until it matches or times out.
    */
-  async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
+  async waitForMemberCount(expectedCount: number, timeout = 2000): Promise<void> {
     const startTime = Date.now();
     const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
     
@@ -287,9 +287,17 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Enhanced method to wait for balance updates with proper timing
+   * Wait for the Balances section to be visible and loaded
    */
-  async waitForBalanceCalculation(): Promise<void> {
+  async waitForBalancesToLoad(groupId: string): Promise<void> {
+    // Assert we're on the correct group page before trying to find balances
+    const currentUrl = this.page.url();
+    if (!currentUrl.includes(`/groups/${groupId}`)) {
+      throw new Error(
+        `waitForBalancesToLoad called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`
+      );
+    }
+    
     // More specific locator to avoid strict mode violation
     const balancesSection = this.page.locator('.bg-white').filter({ 
       has: this.page.getByRole('heading', { name: 'Balances' }) 
@@ -435,24 +443,34 @@ export class GroupDetailPage extends BasePage {
   /**
    * Synchronize group state across multiple users by refreshing pages and waiting for updates.
    * This replaces manual reload() calls scattered throughout multi-user tests.
+   * Auto-navigates users to the group page if they're not already there.
    */
-  async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any }>, expectedMemberCount?: number): Promise<void> {
-    // Refresh all pages to get latest state
-    for (const { page } of pages) {
-      await page.reload();
-      await page.waitForLoadState('networkidle');
-    }
+  async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any }>, expectedMemberCount: number, groupId: string): Promise<void> {
+    const targetGroupUrl = `/groups/${groupId}`;
     
-    // If member count is specified, wait for all pages to show correct count
-    if (expectedMemberCount) {
-      for (const { groupDetailPage } of pages) {
-        await groupDetailPage.waitForMemberCount(expectedMemberCount);
+    // Navigate all users to the specific group
+    for (let i = 0; i < pages.length; i++) {
+      const { page } = pages[i];
+      await page.goto(targetGroupUrl);
+      await page.waitForLoadState('networkidle');
+      
+      // Assert we're actually on the group page
+      const currentUrl = page.url();
+      if (!currentUrl.includes(targetGroupUrl)) {
+        throw new Error(
+          `Navigation failed for user ${i + 1}. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`
+        );
       }
     }
     
-    // Additional wait for balance calculations to complete
+    // Wait for all pages to show correct member count
     for (const { groupDetailPage } of pages) {
-      await groupDetailPage.waitForBalanceCalculation();
+      await groupDetailPage.waitForMemberCount(expectedMemberCount);
+    }
+    
+    // Wait for balances section to load on all pages
+    for (const { groupDetailPage } of pages) {
+      await groupDetailPage.waitForBalancesToLoad(groupId);
     }
   }
 
@@ -511,10 +529,11 @@ export class GroupDetailPage extends BasePage {
   async addExpenseAndSync(
     expense: ExpenseData, 
     pages: Array<{ page: any; groupDetailPage: any }>,
-    expectedMemberCount?: number
+    expectedMemberCount: number,
+    groupId: string
   ): Promise<void> {
     await this.addExpense(expense);
-    await this.synchronizeMultiUserState(pages, expectedMemberCount);
+    await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
   /**
@@ -527,10 +546,12 @@ export class GroupDetailPage extends BasePage {
       amount: string;
       note: string;
     },
-    pages: Array<{ page: any; groupDetailPage: any }>
+    pages: Array<{ page: any; groupDetailPage: any }>,
+    expectedMemberCount: number,
+    groupId: string
   ): Promise<void> {
     await this.recordSettlementByUser(settlementOptions);
-    await this.synchronizeMultiUserState(pages);
+    await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
   /**

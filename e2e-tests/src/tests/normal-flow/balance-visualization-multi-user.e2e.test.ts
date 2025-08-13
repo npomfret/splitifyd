@@ -342,7 +342,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Step 1: Create group and verify
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
+    const groupId = await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
     await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
     // Step 2: Get share link using reliable method
@@ -388,7 +388,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(page2.getByText('$200.00')).toBeVisible();
     
     // Step 9: Verify initial debt (User 2 owes User 1 $100)
-    await groupDetailPage.waitForBalanceCalculation();
+    await groupDetailPage.waitForBalancesToLoad(groupId);
     const balancesSection = groupDetailPage.getBalancesSection();
     
     // UI now uses arrow notation: "User A → User B" instead of "owes"
@@ -409,8 +409,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Step 13: Wait for settlement to propagate and refresh all pages
     // This pattern is from the working three-user test
     await page.waitForLoadState('networkidle');
-    await groupDetailPage.waitForBalanceCalculation();
-    await groupDetailPage2.waitForBalanceCalculation();
+    await groupDetailPage.waitForBalancesToLoad(groupId);
+    await groupDetailPage2.waitForBalancesToLoad(groupId);
     
     // Step 14: Verify settlement appears in history for both users
     const showHistoryButton = groupDetailPage.getShowHistoryButton();
@@ -485,7 +485,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const multiUserWorkflow = new MultiUserWorkflow(null);
     
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
+    const groupId = await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
     // Get share link using reliable method
     const shareLink = await multiUserWorkflow.getShareLink(page);
@@ -523,7 +523,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Wait for expense to appear and balance to calculate
     await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
-    await groupDetailPage.waitForBalanceCalculation();
+    await groupDetailPage.waitForBalancesToLoad(groupId);
     
     // Verify debt exists and capture the actual amount
     // Check if debt exists in DOM (might be in hidden mobile section or visible desktop sidebar)
@@ -554,8 +554,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Wait for settlement to propagate and refresh all pages
     // This pattern is from the working three-user test
     await page.waitForLoadState('networkidle');
-    await groupDetailPage.waitForBalanceCalculation();
-    await secondUser.groupDetailPage.waitForBalanceCalculation();
+    await groupDetailPage.waitForBalancesToLoad(groupId);
+    await secondUser.groupDetailPage.waitForBalancesToLoad(groupId);
     
     // Check if settlement was recorded by looking at payment history
     const showHistoryButton = groupDetailPage.getShowHistoryButton();

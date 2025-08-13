@@ -95,7 +95,7 @@ export class UserPool {
    */
   private async createUser(browser: any, prefix: string): Promise<BaseUser> {
     const uniqueId = generateShortId();
-    const displayName = generateTestUserName('Pool');
+    const displayName = generateTestUserName('u');
     const email = generateTestEmail(prefix);
     const password = 'TestPassword123!';
 
