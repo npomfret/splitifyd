@@ -165,6 +165,49 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     // TODO: Implement group settings functionality
   };
 
+  const handleLeaveGroup = async () => {
+    if (!groupId) return;
+    
+    // Confirm before leaving
+    if (!confirm('Are you sure you want to leave this group? You can only leave if you have no outstanding balance.')) {
+      return;
+    }
+    
+    try {
+      const response = await groupDetailStore.leaveGroup(groupId);
+      if (response.success) {
+        // Navigate back to dashboard after successful leave
+        route('/dashboard');
+      }
+    } catch (error) {
+      // Error will be handled by the store
+      logError('Failed to leave group', error);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!groupId) return;
+    
+    const memberToRemove = members.value.find(m => m.uid === memberId);
+    const memberName = memberToRemove?.displayName || 'this member';
+    
+    // Confirm before removing
+    if (!confirm(`Are you sure you want to remove ${memberName} from the group? They can only be removed if they have no outstanding balance.`)) {
+      return;
+    }
+    
+    try {
+      const response = await groupDetailStore.removeMember(groupId, memberId);
+      if (response.success) {
+        // Refresh group data after successful removal
+        await groupDetailStore.fetchGroup(groupId);
+      }
+    } catch (error) {
+      // Error will be handled by the store
+      logError('Failed to remove member', error);
+    }
+  };
+
   // Render group detail
   return (
     <BaseLayout 
@@ -180,6 +223,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
               createdBy={group.value!.createdBy || ''}
               loading={loadingMembers.value}
               variant="sidebar"
+              onLeaveGroup={handleLeaveGroup}
+              onRemoveMember={handleRemoveMember}
             />
             
             <QuickActions 
@@ -227,6 +272,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 members={members.value} 
                 createdBy={group.value!.createdBy || ''}
                 loading={loadingMembers.value}
+                onLeaveGroup={handleLeaveGroup}
+                onRemoveMember={handleRemoveMember}
               />
             </div>
 

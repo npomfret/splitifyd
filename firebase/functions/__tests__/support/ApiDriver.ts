@@ -336,6 +336,14 @@ export class ApiDriver {
     return await this.apiRequest(endpoint, method, body, token);
   }
 
+  async leaveGroup(groupId: string, token: string): Promise<{ success: boolean; message: string }> {
+    return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
+  }
+
+  async removeGroupMember(groupId: string, memberId: string, token: string): Promise<{ success: boolean; message: string }> {
+    return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
+  }
+
   private async pollUntil<T>(
       fetcher: () => Promise<T>,
       matcher: Matcher<T>,

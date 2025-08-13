@@ -59,36 +59,38 @@ A thorough review of the codebase confirms the following ways a user's membershi
 
 ## 4. Recommendations
 
-### P0 - CRITICAL: Fix Invalid User ID Bug in Expenses
+### P0 - CRITICAL: Fix Invalid User ID Bug in Expenses ✅ IMPLEMENTED
 
-This security bug must be fixed immediately to prevent invalid data from entering the system.
+**STATUS: COMPLETED** - This security fix has been successfully implemented on 2025-08-13.
 
-**Required Changes in `firebase/functions/src/expenses/handlers.ts`:**
+**Implementation Summary:**
+- Added `verifyUsersInGroup` function to validate all user IDs are group members
+- Updated `createExpense` to validate paidBy and participants before creation
+- Updated `updateExpense` to validate users when participants or paidBy change
+- Tests updated and passing
 
-1. **In `createExpense` function (after line 129):**
-   ```typescript
-   // Validate that paidBy is a group member
-   if (!memberIds.includes(expenseData.paidBy)) {
-     throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
-   }
-   
-   // Validate that all participants are group members
-   for (const participantId of expenseData.participants) {
-     if (!memberIds.includes(participantId)) {
-       throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', 
-         `Participant ${participantId} is not a member of the group`);
-     }
-   }
-   ```
+This security bug has been fixed to prevent invalid data from entering the system.
 
-2. **In `updateExpense` function:** Add similar validation before updating
+**Changes Made:**
 
-3. **Add tests** to verify:
-   - Cannot create expense with non-member as paidBy
-   - Cannot create expense with non-members in participants
-   - Cannot update expense to use non-member IDs
+1. **Added `verifyUsersInGroup` function (line 72-98):**
+   - Validates that all specified user IDs are members of the group
+   - Includes both group owner and all members in validation
+   - Throws clear error messages for invalid users
 
-**Note:** The settlements feature already has proper validation via the `verifyUsersInGroup` function, which correctly validates that both payer and payee are group members. The expense handlers should follow the same pattern.
+2. **Updated `createExpense` function (lines 163-166):**
+   - Added validation after fetching group members
+   - Validates both paidBy and all participants before creating expense
+
+3. **Updated `updateExpense` function (lines 300-315):**
+   - Added validation when participants or paidBy are being updated
+   - Ensures all users are valid group members before allowing update
+
+4. **Test Updates:**
+   - Fixed integration tests that were attempting to use non-members
+   - All expense tests now passing with the security validation in place
+
+**Note:** The settlements feature already had proper validation via a similar `verifyUsersInGroup` function, and the expense handlers now follow the same secure pattern.
 
 ### P0/P1 - Address Group Creation Member Handling
 
@@ -124,9 +126,62 @@ Remove unused code paths for clarity:
 2.  Remove `members` validation from the create group schema
 3.  Document that share links are the only way to add members
 
-### P1 - High Priority: Implement Member Management Features
+### P1 - High Priority: Implement Member Management Features ✅ IMPLEMENTED
 
-As outlined in the `e2e-test-gap-analysis.md`, the following features should be implemented to provide a complete group management lifecycle.
+**STATUS: COMPLETED** - Leave and remove functionality has been successfully implemented on 2025-08-13.
 
-1.  **Implement "Leave Group"**: A user should be able to voluntarily leave a group. The system should check for and handle any outstanding debts before allowing the user to leave.
-2.  **Implement "Remove Member"**: A group admin should have the ability to remove another member from the group.
+**Implementation Summary:**
+1. **Backend Endpoints:**
+   - `POST /groups/:id/leave` - Allows users to voluntarily leave a group
+   - `DELETE /groups/:id/members/:memberId` - Allows group creators to remove members
+   
+2. **Security & Business Logic:**
+   - Balance checking prevents leaving/removal with outstanding balance
+   - Group creators cannot leave (must transfer ownership or delete group)
+   - Only group creators can remove other members
+   - Cannot remove the group creator
+
+3. **Frontend Implementation:**
+   - Added leave/remove buttons to MembersList component
+   - Integrated with GroupDetailPage with confirmation dialogs
+   - Auto-refresh of member list and balances after removal
+   - Different UI for creators (remove buttons) vs members (leave button)
+
+**Files Modified:**
+- Backend: `memberHandlers.ts`, `index.ts`
+- Frontend: `apiClient.ts`, `group-detail-store.ts`, `MembersList.tsx`, `GroupDetailPage.tsx`
+
+## Implementation Status
+
+### ✅ Completed
+1. **Security Bug Fix - Invalid User IDs in Expenses**
+   - Added `verifyUsersInGroup` function to validate all user IDs
+   - Updated createExpense and updateExpense to verify participants
+   - Fixed test data to use valid group members
+   - Status: **COMPLETE** (2025-08-13)
+
+2. **Leave/Remove Group Functionality**
+   - Backend endpoints for leaving groups (`POST /groups/:id/leave`)
+   - Backend endpoint for removing members (`DELETE /groups/:id/members/:memberId`)
+   - Balance checking before removal (prevents leaving with outstanding balance)
+   - Frontend API client methods for leave/remove
+   - UI components with leave/remove buttons
+   - Confirmation dialogs for destructive actions
+   - Auto-refresh after successful removal
+   - Status: **COMPLETE** (2025-08-13)
+
+### 🚧 In Progress
+None currently.
+
+### 📋 TODO
+1. **Tests for Leave/Remove Functionality**
+   - Unit tests for backend endpoints
+   - Integration tests for balance checking
+   - Frontend component tests
+   - Status: **NOT STARTED**
+
+2. **Additional Features (Optional)**
+   - Transfer group ownership before creator leaves
+   - Bulk member management for admins
+   - Audit log for membership changes
+   - Status: **NOT PLANNED**
