@@ -200,7 +200,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     }
     
     try {
-      const response = await groupDetailStore.leaveGroup(groupId);
+      const response = await enhancedGroupDetailStore.leaveGroup(groupId);
       if (response.success) {
         // Navigate back to dashboard after successful leave
         route('/dashboard');
@@ -223,10 +223,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     }
     
     try {
-      const response = await groupDetailStore.removeMember(groupId, memberId);
+      const response = await enhancedGroupDetailStore.removeMember(groupId, memberId);
       if (response.success) {
         // Refresh group data after successful removal
-        await groupDetailStore.fetchGroup(groupId);
+        await enhancedGroupDetailStore.fetchGroup(groupId);
       }
     } catch (error) {
       // Error will be handled by the store

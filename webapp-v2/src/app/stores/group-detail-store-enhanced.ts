@@ -28,6 +28,9 @@ export interface EnhancedGroupDetailStore {
   fetchBalances(): Promise<void>;
   loadMoreExpenses(): Promise<void>;
   refreshAll(): Promise<void>;
+  leaveGroup(groupId: string): Promise<{ success: boolean; message: string }>;
+  removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }>;
+  fetchGroup(id: string): Promise<void>;
 }
 
 // State signals
@@ -247,6 +250,38 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     });
     
     this.currentGroupId = null;
+  }
+
+  async leaveGroup(groupId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await apiClient.leaveGroup(groupId);
+      return response;
+    } catch (error) {
+      errorSignal.value = error instanceof Error ? error.message : 'Failed to leave group';
+      throw error;
+    }
+  }
+
+  async removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await apiClient.removeGroupMember(groupId, memberId);
+      // Refresh members and balances after successful removal
+      if (response.success) {
+        await Promise.all([
+          this.fetchMembers(),
+          this.fetchBalances()
+        ]);
+      }
+      return response;
+    } catch (error) {
+      errorSignal.value = error instanceof Error ? error.message : 'Failed to remove member';
+      throw error;
+    }
+  }
+
+  async fetchGroup(id: string): Promise<void> {
+    // Alias for loadGroup to maintain compatibility
+    return this.loadGroup(id);
   }
 }
 
