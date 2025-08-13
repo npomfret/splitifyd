@@ -1,5 +1,5 @@
 import { pageTest, expect } from '../../fixtures';
-import { RegisterPage } from '../../page-objects';
+import { RegisterPage } from '../../pages';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 
 setupConsoleErrorReporting();
