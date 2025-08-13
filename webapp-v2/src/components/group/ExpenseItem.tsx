@@ -1,5 +1,5 @@
 import { useMemo } from 'preact/hooks';
-import { formatDistanceToNow } from '../../utils/dateUtils';
+import { formatDistanceToNow, formatExpenseDateTime } from '../../utils/dateUtils';
 import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
 import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/shared/shared-types';
 import { formatCurrency } from '../../utils/currency';
@@ -41,7 +41,7 @@ export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
             )}
           </div>
           <p className="text-sm text-gray-600">
-            Paid by {paidByUser?.displayName || 'Unknown'} • {formatDistanceToNow(new Date(expense.date))}
+            Paid by {paidByUser?.displayName || 'Unknown'} • {formatExpenseDateTime(expense.date)}
             {isDeleted && expense.deletedAt && (
               <span className="ml-2 text-red-600">
                 • Deleted by {deletedByUser?.displayName || 'Unknown'} {formatDistanceToNow(new Date(expense.deletedAt))}

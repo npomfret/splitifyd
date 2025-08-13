@@ -7,6 +7,7 @@ import { apiClient } from '../apiClient';
 import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/shared-types';
 import { logError } from '../../utils/browser-logger';
 import { useAuth } from './useAuth';
+import { extractTimeFromISO } from '../../utils/dateUtils';
 
 interface UseExpenseFormOptions {
   groupId: string;
@@ -31,6 +32,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
   const amount = useComputed(() => expenseFormStore.amount);
   const currency = useComputed(() => expenseFormStore.currency);
   const date = useComputed(() => expenseFormStore.date);
+  const time = useComputed(() => expenseFormStore.time);
   const paidBy = useComputed(() => expenseFormStore.paidBy);
   const category = useComputed(() => expenseFormStore.category);
   const splitType = useComputed(() => expenseFormStore.splitType);
@@ -68,6 +70,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
               expenseFormStore.updateField('amount', expense.amount);
               expenseFormStore.updateField('currency', expense.currency);
               expenseFormStore.updateField('date', expense.date.split('T')[0]); // Extract date part
+              expenseFormStore.updateField('time', extractTimeFromISO(expense.date)); // Extract time part
               expenseFormStore.updateField('paidBy', expense.paidBy);
               expenseFormStore.updateField('category', expense.category);
               expenseFormStore.updateField('splitType', expense.splitType);
@@ -126,7 +129,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
       
       return () => clearTimeout(timer);
     }
-  }, [description.value, amount.value, date.value, paidBy.value, category.value, 
+  }, [description.value, amount.value, date.value, time.value, paidBy.value, category.value, 
       splitType.value, participants.value, splits.value, isEditMode, isInitialized.value]);
   
   const handleSubmit = async (e: Event) => {
@@ -205,6 +208,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
     amount: amount.value,
     currency: currency.value,
     date: date.value,
+    time: time.value,
     paidBy: paidBy.value,
     category: category.value,
     splitType: splitType.value,

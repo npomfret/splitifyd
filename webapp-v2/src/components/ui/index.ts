@@ -15,3 +15,4 @@ export { CurrencySelector } from './CurrencySelector';
 export { CurrencyAmountInput } from './CurrencyAmountInput';
 export { SidebarCard } from './SidebarCard';
 export { WarningBanner } from './WarningBanner';
+export { TimeInput } from './TimeInput';
