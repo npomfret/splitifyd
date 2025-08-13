@@ -1,6 +1,6 @@
 import { test as base, Page, BrowserContext } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
-import { AuthenticationWorkflow } from '../helpers/index';
+import { AuthenticationWorkflow } from '../workflows';
 import { 
   LoginPage, 
   RegisterPage, 
@@ -9,7 +9,7 @@ import {
   DashboardPage,
   GroupDetailPage,
   CreateGroupModalPage
-} from '../pages/index';
+} from '../pages';
 import type {User as BaseUser} from "@shared/shared-types";
 
 export interface PageObjects {

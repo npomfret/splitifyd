@@ -1,10 +1,10 @@
-import { multiUserTest, expect } from '../../fixtures/multi-user-test';
+import { multiUserTest, expect } from '../../fixtures';
 import { GroupWorkflow } from '../../workflows';
-import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
+import { MultiUserWorkflow } from '../../workflows';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import {generateShortId} from "../../utils/test-helpers.ts";
-import { GroupDetailPage } from '../../pages/group-detail.page';
-import { JoinGroupPage } from '../../pages/join-group.page';
+import { GroupDetailPage } from '../../pages';
+import { JoinGroupPage } from '../../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
