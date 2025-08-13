@@ -13,12 +13,14 @@ A thorough review of the codebase confirms the following ways a user's membershi
 ### Group Creation
 
 -   **Finding:** When a group is created, only the user who creates it is added as a member.
--   **Design Intent:** This is the intended behavior. Groups are designed to start with only the creator as the sole member. The `sanitizeGroupData` function in `firebase/functions/src/groups/validation.ts` intentionally does not copy any `members` array from the incoming request, ensuring that the `memberIds` array is initialized with only the creator's ID.
+-   **Design Consideration:** There are two perspectives on this behavior:
+    - **As Intended Design:** Groups are designed to start with only the creator as the sole member, with share links as the sole mechanism for adding members.
+    - **As Bug:** The `sanitizeGroupData` function in `firebase/functions/src/groups/validation.ts` fails to copy the `members` array from the incoming request, preventing members from being added during creation.
 
 ### Adding New Members
 
 -   **Finding:** The only way to add a new member to a group is via a shareable link.
--   **Design Intent:** This is by design. Share links are the **sole intended mechanism** for adding members to groups. The `joinGroupByLink` function in `firebase/functions/src/groups/shareHandlers.ts` handles this functionality. No other methods for adding members (e.g., direct invite, admin adding a user, or adding members during group creation) should be implemented as they are not part of the intended design.
+-   **Implementation:** The `joinGroupByLink` function in `firebase/functions/src/groups/shareHandlers.ts` handles this functionality. No other methods for adding members (e.g., direct invite, admin adding a user) are currently implemented.
 
 ### Leaving or Being Removed from a Group
 
@@ -50,8 +52,10 @@ A thorough review of the codebase confirms the following ways a user's membershi
 
 ### Other Issues
 
-1.  **Missing Core Feature:** The lack of a "leave group" or "remove member" feature is a significant gap in the application's core functionality.
-2.  **Code Cleanup Opportunity:** The codebase contains unused code paths related to adding members during group creation (e.g., `members` field in `CreateGroupRequest` type and validation schema) that could be removed for clarity since this is not part of the intended design.
+1.  **Group Creation Behavior:** The `sanitizeGroupData` function doesn't copy the `members` array during group creation. This is either:
+    - A bug preventing intended functionality of adding multiple members at creation time, OR
+    - Intentional design where share links are the sole mechanism for adding members
+2.  **Missing Core Feature:** The lack of a "leave group" or "remove member" feature is a significant gap in the application's core functionality.
 
 ## 4. Recommendations
 
@@ -86,19 +90,43 @@ This security bug must be fixed immediately to prevent invalid data from enterin
 
 **Note:** The settlements feature already has proper validation via the `verifyUsersInGroup` function, which correctly validates that both payer and payee are group members. The expense handlers should follow the same pattern.
 
+### P0/P1 - Address Group Creation Member Handling
+
+Depending on the intended design:
+
+**Option A: If members during creation is a desired feature:**
+Fix the `sanitizeGroupData` function in `firebase/functions/src/groups/validation.ts`:
+
+```typescript
+export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequest>(data: T): T => {
+  const sanitized: any = {};
+  
+  if ('name' in data && data.name) {
+    sanitized.name = sanitizeString(data.name);
+  }
+  
+  if ('description' in data && data.description !== undefined) {
+    sanitized.description = sanitizeString(data.description);
+  }
+  
+  // Add this block to preserve the members array
+  if ('members' in data && data.members) {
+    sanitized.members = data.members;
+  }
+  
+  return sanitized as T;
+};
+```
+
+**Option B: If share links are the sole intended mechanism:**
+Remove unused code paths for clarity:
+1.  Remove `members` field from `CreateGroupRequest` interface
+2.  Remove `members` validation from the create group schema
+3.  Document that share links are the only way to add members
+
 ### P1 - High Priority: Implement Member Management Features
 
 As outlined in the `e2e-test-gap-analysis.md`, the following features should be implemented to provide a complete group management lifecycle.
 
 1.  **Implement "Leave Group"**: A user should be able to voluntarily leave a group. The system should check for and handle any outstanding debts before allowing the user to leave.
 2.  **Implement "Remove Member"**: A group admin should have the ability to remove another member from the group.
-
-### P2 - Code Cleanup: Remove Unused Member Creation Code
-
-Since groups are designed to only start with the creator as a member, the following code should be removed for clarity:
-
-1.  **Remove `members` field** from `CreateGroupRequest` interface in `firebase/functions/src/shared/shared-types.ts`
-2.  **Remove `members` validation** from the create group schema in `firebase/functions/src/groups/validation.ts`
-3.  **Simplify the group creation logic** in `firebase/functions/src/groups/handlers.ts` to always use `[userId]` for `memberIds`
-
-This cleanup will make the codebase clearer about the intended design that share links are the sole mechanism for adding members to groups.
