@@ -11,7 +11,7 @@ test.describe('Share Link Error Handling', () => {
     const invalidShareLink = `${page.url().split('/dashboard')[0]}/join?linkId=invalid-group-id`;
     
     await groupDetailPage.navigateToShareLink(invalidShareLink);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // The app now shows an error message for invalid links instead of 404
     await expect(page.getByText('Unable to Join Group')).toBeVisible();

@@ -111,7 +111,6 @@ export function setupConsoleErrorReporting() {
       console.log(`File: ${testInfo.file}`);
       console.log(`\nAll browser console messages (${consoleMessages.length} total):\n`);
       
-      // Output each message separately to avoid truncation
       consoleMessages.forEach((msg, index) => {
         console.log(`[Browser Console ${msg.type.toUpperCase()}]: ${msg.message}`);
         if (msg.location?.url) {
@@ -119,7 +118,6 @@ export function setupConsoleErrorReporting() {
         }
       });
       console.log('='.repeat(80) + '\n');
-      
     }
 
     if ((hasConsoleErrors || hasPageErrors) && !skipErrorChecking) {

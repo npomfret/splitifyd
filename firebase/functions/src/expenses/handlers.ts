@@ -65,38 +65,6 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
   throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
 };
 
-/**
- * Verify that all specified users are members of the group
- * SECURITY: This prevents expenses being created with invalid user IDs
- */
-const verifyUsersInGroup = async (groupId: string, userIds: string[]): Promise<void> => {
-  const groupDoc = await getGroupsCollection().doc(groupId).get();
-  
-  if (!groupDoc.exists) {
-    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-  }
-
-  const groupData = groupDoc.data();
-  const groupDataTyped = groupData?.data as GroupData;
-  
-  // Include both the group owner and all members
-  const allMemberIds = [
-    groupData?.userId,
-    ...(groupDataTyped.memberIds || [])
-  ].filter(Boolean);
-  
-  // Check each user ID to ensure they're a group member
-  for (const userId of userIds) {
-    if (!allMemberIds.includes(userId)) {
-      throw new ApiError(
-        HTTP_STATUS.BAD_REQUEST,
-        'USER_NOT_IN_GROUP',
-        `User ${userId} is not a member of this group`
-      );
-    }
-  }
-};
-
 const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference, expense: Expense }> => {
   const docRef = getExpensesCollection().doc(expenseId);
   const doc = await docRef.get();
@@ -159,11 +127,6 @@ export const createExpense = async (
     throw new Error(`Group ${expenseData.groupId} not found or missing member data`);
   }
   const memberIds = groupData.data.memberIds;
-
-  // SECURITY FIX: Verify that paidBy and all participants are group members
-  // This prevents "Unknown User" displays by ensuring all user IDs are valid
-  const usersToValidate = [expenseData.paidBy, ...expenseData.participants];
-  await verifyUsersInGroup(expenseData.groupId, usersToValidate);
 
   const now = createServerTimestamp();
   const docRef = getExpensesCollection().doc();
@@ -295,23 +258,6 @@ export const updateExpense = async (
   const isOwner = await isGroupOwner(expense.groupId, userId);
   if (expense.createdBy !== userId && !isOwner) {
     throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'Only the expense creator or group owner can edit this expense');
-  }
-
-  // SECURITY FIX: If participants or paidBy are being updated, verify they are group members
-  if (updateData.participants || updateData.paidBy) {
-    const usersToValidate: string[] = [];
-    
-    // Add paidBy to validation (either new or existing)
-    const paidBy = updateData.paidBy || expense.paidBy;
-    usersToValidate.push(paidBy);
-    
-    // Add all participants to validation
-    if (updateData.participants) {
-      usersToValidate.push(...updateData.participants);
-    }
-    
-    // Ensure all users are valid group members
-    await verifyUsersInGroup(expense.groupId, usersToValidate);
   }
 
   // Type note: This is intentionally `any` because we're building a dynamic update object

@@ -4,7 +4,7 @@ import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
 import { logWarning } from '../../utils/browser-logger';
-import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
+import { getUTCDateTime, isDateInFuture, extractTimeFromISO } from '../../utils/dateUtils';
 
 export interface ExpenseFormStore {
   // Form fields
@@ -12,6 +12,7 @@ export interface ExpenseFormStore {
   amount: string | number;  // Allow string to preserve user input like "50.00"
   currency: string;
   date: string;
+  time: string;  // Time in HH:mm format (24-hour)
   paidBy: string;
   category: string;
   splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
@@ -48,6 +49,7 @@ interface ExpenseFormData {
   amount: string | number;  // Allow string to preserve user input
   currency: string;
   date: string;
+  time: string;  // Time in HH:mm format (24-hour)
   paidBy: string;
   category: string;
   splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
@@ -68,6 +70,7 @@ const descriptionSignal = signal<string>('');
 const amountSignal = signal<string | number>('');  // Store as string to preserve user input
 const currencySignal = signal<string>('USD');  // Default to USD since UI doesn't expose currency selection yet
 const dateSignal = signal<string>(getTodayDate());
+const timeSignal = signal<string>('12:00');  // Default to noon (12:00 PM)
 const paidBySignal = signal<string>('');
 const categorySignal = signal<string>('food');
 const splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
@@ -139,6 +142,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
   get amount() { return amountSignal.value; }
   get currency() { return currencySignal.value; }
   get date() { return dateSignal.value; }
+  get time() { return timeSignal.value; }
   get paidBy() { return paidBySignal.value; }
   get category() { return categorySignal.value; }
   get splitType() { return splitTypeSignal.value; }
@@ -212,6 +216,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         break;
       case 'date':
         dateSignal.value = value as string;
+        break;
+      case 'time':
+        timeSignal.value = value as string;
         break;
       case 'paidBy':
         paidBySignal.value = value as string;
@@ -525,8 +532,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     errorSignal.value = null;
     
     try {
-      // Convert date string to UTC midnight (always send UTC to server)
-      const utcDate = getUTCMidnight(dateSignal.value);
+      // Convert date and time to UTC timestamp
+      const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
       
       const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
       const request: CreateExpenseRequest = {
@@ -536,7 +543,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         currency: currencySignal.value,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
-        date: utcDate,
+        date: utcDateTime,
         splitType: splitTypeSignal.value,
         participants: participantsSignal.value,
         splits: splitsSignal.value
@@ -581,8 +588,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     errorSignal.value = null;
     
     try {
-      // Convert date string to UTC midnight (always send UTC to server)
-      const utcDate = getUTCMidnight(dateSignal.value);
+      // Convert date and time to UTC timestamp
+      const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
       
       // For updates, only include fields that can be changed
       // Backend doesn't allow changing: groupId, paidBy
@@ -592,7 +599,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         amount: numericAmount,
         currency: currencySignal.value,
         category: categorySignal.value,
-        date: utcDate,
+        date: utcDateTime,
         splitType: splitTypeSignal.value,
         participants: participantsSignal.value,
         splits: splitsSignal.value
@@ -636,6 +643,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     amountSignal.value = '';  // Reset to empty string
     currencySignal.value = 'USD';  // Default to USD
     dateSignal.value = getTodayDate();
+    timeSignal.value = '12:00';  // Default to noon
     paidBySignal.value = '';
     categorySignal.value = 'food';
     splitTypeSignal.value = SplitTypes.EQUAL;
@@ -669,6 +677,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         amount: amountSignal.value,
         currency: currencySignal.value,
         date: dateSignal.value,
+        time: timeSignal.value,
         paidBy: paidBySignal.value,
         category: categorySignal.value,
         splitType: splitTypeSignal.value,
@@ -707,6 +716,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       amountSignal.value = draftData.amount || 0;
       currencySignal.value = draftData.currency || 'USD';  // Default to USD
       dateSignal.value = draftData.date || getTodayDate();
+      timeSignal.value = draftData.time || '12:00';  // Default to noon
       paidBySignal.value = draftData.paidBy || '';
       categorySignal.value = draftData.category || 'food';
       splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;

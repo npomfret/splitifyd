@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { enhancedGroupsStore } from '../../app/stores/groups-store-enhanced';
+import { groupsStore } from '../../app/stores/groups-store';
 import { Input, Button, Form } from '../ui';
 import type { CreateGroupRequest } from '../../../../firebase/functions/src/shared/shared-types';
 
@@ -84,7 +84,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
       description: groupDescriptionSignal.value.trim() || undefined,
     };
 
-    const newGroup = await enhancedGroupsStore.createGroup(groupData);
+    const newGroup = await groupsStore.createGroup(groupData);
     
     // Success! Close modal and optionally callback
     if (onSuccess) {
@@ -170,7 +170,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             </div>
 
             {/* Error Display */}
-            {enhancedGroupsStore.error && (
+            {groupsStore.error && (
               <div class="bg-red-50 border border-red-200 rounded-md p-3">
                 <div class="flex">
                   <div class="flex-shrink-0">
@@ -179,7 +179,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     </svg>
                   </div>
                   <div class="ml-3">
-                    <p class="text-sm text-red-800">{enhancedGroupsStore.error}</p>
+                    <p class="text-sm text-red-800">{groupsStore.error}</p>
                   </div>
                 </div>
               </div>

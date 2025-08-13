@@ -342,7 +342,6 @@ export const listGroups = async (
   );
   const cursor = req.query.cursor as string;
   const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
-  const includeMetadata = req.query.includeMetadata !== 'false'; // Default true
 
   // Build base query - groups where user is a member
   const baseQuery = getGroupsCollection()
@@ -357,24 +356,8 @@ export const listGroups = async (
     limit + 1
   );
 
-  // Parallel queries for performance
-  const queries: Promise<any>[] = [paginatedQuery.get()];
-  
-  // Add change detection query if metadata requested
-  if (includeMetadata) {
-    const changesQuery = admin.firestore()
-      .collection('group-changes')
-      .where('timestamp', '>', Date.now() - 60000) // Last minute
-      .where('metadata.affectedUsers', 'array-contains', userId)
-      .orderBy('timestamp', 'desc')
-      .limit(10)
-      .get();
-    queries.push(changesQuery);
-  }
-
-  const results = await Promise.all(queries);
-  const snapshot = results[0];
-  const changesSnapshot = results[1];
+  // Execute query
+  const snapshot = await paginatedQuery.get();
   const documents = snapshot.docs;
 
   // Determine if there are more results
@@ -383,7 +366,7 @@ export const listGroups = async (
 
   // Transform documents to groups
   const groups: Group[] = await Promise.all(
-    returnedDocs.map(async (doc: admin.firestore.DocumentSnapshot) => {
+    returnedDocs.map(async (doc) => {
       const group = transformGroupDocument(doc);
       
       // Calculate balance for each group on-demand
@@ -421,7 +404,7 @@ export const listGroups = async (
     });
   }
 
-  const response: any = {
+  const response = {
     groups,
     count: groups.length,
     hasMore,
@@ -431,23 +414,6 @@ export const listGroups = async (
       order,
     },
   };
-
-  // Add metadata if requested and available
-  if (includeMetadata && changesSnapshot && !changesSnapshot.empty) {
-    response.metadata = {
-      lastChangeTimestamp: changesSnapshot.docs[0].data().timestamp,
-      changeCount: changesSnapshot.size,
-      serverTime: Date.now(),
-      hasRecentChanges: true
-    };
-  } else if (includeMetadata) {
-    response.metadata = {
-      lastChangeTimestamp: 0,
-      changeCount: 0,
-      serverTime: Date.now(),
-      hasRecentChanges: false
-    };
-  }
 
   res.json(response);
 };

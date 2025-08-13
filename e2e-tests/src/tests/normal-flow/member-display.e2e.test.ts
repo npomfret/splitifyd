@@ -1,7 +1,7 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
+import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
 import { GroupDetailPage } from '../../pages/group-detail.page';
 import { GroupWorkflow } from '../../workflows';
 

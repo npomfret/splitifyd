@@ -41,7 +41,7 @@ test.describe('Error Handling', () => {
     await createGroupModalPage.submitForm();
     
     // Wait for error handling
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // Verify some error indication is shown (generic check)
     const errorText = page.getByText(/error|failed|try again/i);
@@ -113,7 +113,7 @@ test.describe('Error Handling', () => {
     await createGroupModalPage.fillGroupForm('Server Error Test', 'Testing 500 error');
     await createGroupModalPage.submitForm();
     
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // Should show some error indication
     const errorIndication = page.getByText(/error|failed|wrong/i);
@@ -153,7 +153,7 @@ test.describe('Error Handling', () => {
     
     // Reload to trigger API call
     await page.reload();
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     
     // App should still be functional despite malformed response
     const createButton = page.getByRole('button', { name: 'Create Group' });

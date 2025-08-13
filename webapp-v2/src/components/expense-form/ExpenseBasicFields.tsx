@@ -1,4 +1,4 @@
-import { Card, CategorySuggestionInput, CurrencyAmountInput } from '../ui';
+import { Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput } from '../ui';
 import { Stack } from '../ui/Stack';
 import { ExpenseCategory } from '@shared/shared-types';
 import { CurrencyService } from '../../app/services/currencyService';
@@ -9,6 +9,7 @@ interface ExpenseBasicFieldsProps {
   amount: string | number;
   currency: string;
   date: string;
+  time: string;
   category: string;
   validationErrors: any;
   updateField: (field: string, value: any) => void;
@@ -22,6 +23,7 @@ export function ExpenseBasicFields({
   amount,
   currency,
   date,
+  time,
   category,
   validationErrors,
   updateField,
@@ -119,27 +121,41 @@ export function ExpenseBasicFields({
           </div>
         </div>
         
-        {/* Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            value={date}
-            onInput={(e) => updateField('date', (e.target as HTMLInputElement).value)}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
-              validationErrors.date 
-                ? 'border-red-500 dark:border-red-500' 
-                : 'border-gray-300 dark:border-gray-600'
-            }`}
-            required
-          />
-          {validationErrors.date && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-              {validationErrors.date}
-            </p>
-          )}
+        {/* Date and Time */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Date <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              value={date}
+              onInput={(e) => updateField('date', (e.target as HTMLInputElement).value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                validationErrors.date 
+                  ? 'border-red-500 dark:border-red-500' 
+                  : 'border-gray-300 dark:border-gray-600'
+              }`}
+              required
+            />
+            {validationErrors.date && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                {validationErrors.date}
+              </p>
+            )}
+          </div>
+
+          {/* Time */}
+          <div>
+            <TimeInput
+              value={time}
+              onChange={(newTime) => updateField('time', newTime)}
+              label="Time"
+              error={validationErrors.time}
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+          </div>
         </div>
       </Stack>
     </Card>

@@ -1,7 +1,14 @@
 import { Page, expect } from '@playwright/test';
 import { DashboardPage, CreateGroupModalPage } from '../pages';
+import { AuthenticationWorkflow } from './authentication.workflow';
 import type {User as BaseUser} from "@shared/shared-types";
 import { generateTestGroupName } from '../utils/test-helpers';
+
+export interface TestGroup {
+  name: string;
+  description?: string;
+  user: BaseUser;
+}
 
 /**
  * Group workflow class that handles group creation and management flows.
@@ -9,6 +16,28 @@ import { generateTestGroupName } from '../utils/test-helpers';
  */
 export class GroupWorkflow {
   constructor(private page: Page) {}
+
+  /**
+   * Creates a test group with an authenticated user.
+   * This replaces the createTestGroupWithUser helper function.
+   */
+  async createGroupWithUser(
+    groupName: string = generateTestGroupName(),
+    groupDescription?: string
+  ): Promise<TestGroup> {
+    // Create and login user first
+    const authWorkflow = new AuthenticationWorkflow(this.page);
+    const user = await authWorkflow.createAndLoginTestUser();
+    
+    // Create group using workflow
+    await this.createGroupAndNavigate(groupName, groupDescription);
+    
+    return {
+      name: groupName,
+      description: groupDescription,
+      user
+    };
+  }
 
   /**
    * Creates a group for an already authenticated user.
@@ -22,85 +51,56 @@ export class GroupWorkflow {
   }
 
   /**
-   * Creates a group and navigates to it with comprehensive assertions at every step
+   * Creates a group and navigates to it, returning the group ID.
+   * This encapsulates the multi-step workflow of group creation.
    */
   async createGroupAndNavigate(name: string, description?: string): Promise<string> {
-    const context = `createGroupAndNavigate(${name})`;
-    
-    // Assert 1: Validate inputs
-    if (!name || name.trim().length === 0) {
-      throw new Error(`${context}: Group name is required and cannot be empty`);
-    }
-    console.log(`${context}: ✓ Input validation passed - name: "${name}", description: "${description || 'none'}"`);
-    
-    // Assert 2: Check authentication state
-    const currentUrl = this.page.url();
-    console.log(`${context}: Current URL: ${currentUrl}`);
-    
-    if (currentUrl.includes('/login')) {
-      throw new Error(`${context}: Authentication lost - redirected to login page: ${currentUrl}`);
-    }
-    console.log(`${context}: ✓ Authentication state verified`);
-    
-    // Assert 3: Navigate to dashboard if needed
     const dashboard = new DashboardPage(this.page);
     
-    if (!currentUrl.includes('/dashboard')) {
-      console.log(`${context}: Navigating to dashboard...`);
-      await dashboard.navigate();
-      console.log(`${context}: ✓ Navigated to dashboard`);
-    } else {
-      console.log(`${context}: ✓ Already on dashboard`);
+    // Check if authentication is still valid before proceeding
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/login')) {
+      throw new Error(
+        `Authentication lost: User was redirected to login page. ` +
+        `This indicates session expiration or authentication state loss. ` +
+        `Current URL: ${currentUrl}`
+      );
     }
     
-    // Assert 4: Dashboard is fully loaded
-    console.log(`${context}: Waiting for dashboard to load...`);
+    // Ensure we're on dashboard and fully loaded
+    if (!currentUrl.includes('/dashboard')) {
+      await dashboard.navigate();
+    }
     await dashboard.waitForDashboard();
-    console.log(`${context}: ✓ Dashboard loaded`);
     
-    // Assert 5: Open create group modal
-    console.log(`${context}: Opening create group modal...`);
+    // Open modal and create group
     const createGroupModal = new CreateGroupModalPage(this.page);
     await dashboard.openCreateGroupModal();
-    console.log(`${context}: ✓ Create group modal opened`);
-    
-    // Assert 6: Create group via modal
-    console.log(`${context}: Creating group via modal...`);
     await createGroupModal.createGroup(name, description);
-    console.log(`${context}: ✓ Group creation form submitted`);
     
-    // Assert 7: Wait for navigation to group page
-    console.log(`${context}: Waiting for navigation to group page...`);
-    try {
-      await dashboard.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
-      console.log(`${context}: ✓ Navigated to group page`);
-    } catch (error) {
-      const urlAfterCreation = this.page.url();
-      throw new Error(`${context}: Failed to navigate to group page after creation. Current URL: ${urlAfterCreation}. Error: ${(error as Error).message}`);
-    }
+    // Wait for navigation and verify URL
+    await dashboard.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
 
-    // Assert 8: Extract group ID from URL
-    console.log(`${context}: Extracting group ID from URL...`);
-    const groupId = dashboard.getUrlParam('groupId');
-    if (!groupId) {
-      const finalUrl = this.page.url();
-      throw new Error(`${context}: Failed to extract group ID from URL: ${finalUrl}`);
-    }
-    console.log(`${context}: ✓ Group ID extracted: ${groupId}`);
+    // Extract and return group ID
+    const groupId = dashboard.getUrlParam('groupId')!;
     
-    // Assert 9: Verify correct group page URL
-    console.log(`${context}: Verifying group page URL matches expected pattern...`);
-    const expectedUrlPattern = new RegExp(`/groups/${groupId}$`);
-    await expect(this.page, `${context}: URL does not match expected group page pattern`).toHaveURL(expectedUrlPattern);
-    console.log(`${context}: ✓ Group page URL verified`);
+    // Verify we're on the correct group page by checking URL contains the pattern
+    await expect(this.page).toHaveURL(new RegExp(`/groups/${groupId}$`));
 
-    // Assert 10: Verify group name is visible on page
-    console.log(`${context}: Verifying group name is visible on page...`);
-    await expect(this.page.getByText(name), `${context}: Group name "${name}" not visible on page`).toBeVisible({ timeout: 5000 });
-    console.log(`${context}: ✓ Group name verified as visible`);
-    
-    console.log(`${context}: 🎉 COMPLETE - Group created successfully with ID: ${groupId}`);
+    await expect(this.page.getByText(name)).toBeVisible();
+
     return groupId;
   }
 
+  /**
+   * Static convenience method for backward compatibility.
+   */
+  static async createTestGroup(
+    page: Page,
+    groupName?: string,
+    groupDescription?: string
+  ): Promise<TestGroup> {
+    const workflow = new GroupWorkflow(page);
+    return workflow.createGroupWithUser(groupName, groupDescription);
+  }
 }
