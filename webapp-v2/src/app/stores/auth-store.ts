@@ -22,6 +22,10 @@ class AuthStoreImpl implements AuthStore {
   get error() { return errorSignal.value; }
   get initialized() { return initializedSignal.value; }
 
+  // Token refresh management
+  private refreshPromise: Promise<string> | null = null;
+  private refreshTimer: NodeJS.Timeout | null = null;
+
   private constructor() {
     // Private constructor - use static create() method instead
   }
@@ -46,6 +50,9 @@ class AuthStoreImpl implements AuthStore {
             const idToken = await firebaseUser.getIdToken();
             apiClient.setAuthToken(idToken);
             localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
+            
+            // Schedule token refresh
+            this.scheduleNextRefresh(idToken);
           } catch (error) {
             logError('Failed to get ID token', error);
           }
@@ -57,6 +64,9 @@ class AuthStoreImpl implements AuthStore {
           // Clear all stores when user becomes null (logout or session expired)
           groupsStore.reset();
           groupDetailStore.reset();
+          
+          // Clean up token refresh
+          this.cleanup();
         }
         loadingSignal.value = false;
         initializedSignal.value = true;
@@ -80,6 +90,9 @@ class AuthStoreImpl implements AuthStore {
       const idToken = await userCredential.user.getIdToken();
       apiClient.setAuthToken(idToken);
       localStorage.setItem(USER_ID_KEY, userCredential.user.uid);
+      
+      // Schedule token refresh
+      this.scheduleNextRefresh(idToken);
       
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {
@@ -123,6 +136,9 @@ class AuthStoreImpl implements AuthStore {
       groupsStore.reset();
       groupDetailStore.reset();
       
+      // Clean up token refresh
+      this.cleanup();
+      
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {
       errorSignal.value = this.getAuthErrorMessage(error);
@@ -145,6 +161,80 @@ class AuthStoreImpl implements AuthStore {
 
   clearError(): void {
     errorSignal.value = null;
+  }
+
+  async refreshAuthToken(): Promise<string> {
+    // Deduplicate concurrent refresh requests
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+    
+    this.refreshPromise = this.performTokenRefresh();
+    
+    try {
+      const token = await this.refreshPromise;
+      return token;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+  
+  private async performTokenRefresh(): Promise<string> {
+    const firebaseAuth = firebaseService.getAuth();
+    const currentUser = firebaseAuth.currentUser;
+    
+    if (!currentUser) {
+      throw new Error('No authenticated user');
+    }
+    
+    try {
+      const freshToken = await currentUser.getIdToken(true); // Force refresh
+      apiClient.setAuthToken(freshToken);
+      this.scheduleNextRefresh(freshToken);
+      return freshToken;
+    } catch (error) {
+      logError('Token refresh failed', error);
+      throw error;
+    }
+  }
+  
+  private scheduleNextRefresh(token: string): void {
+    // Clear existing timer
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+    
+    try {
+      // Decode token to get expiration (basic JWT decode)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiresAt = payload.exp * 1000; // Convert to milliseconds
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      
+      // Refresh 5 minutes before expiration
+      const refreshIn = Math.max(0, timeUntilExpiry - (5 * 60 * 1000));
+      
+      this.refreshTimer = setTimeout(() => {
+        this.refreshAuthToken().catch(error => {
+          logError('Scheduled token refresh failed', error);
+        });
+      }, refreshIn);
+    } catch (error) {
+      // Fallback to 50-minute refresh if decode fails
+      this.refreshTimer = setTimeout(() => {
+        this.refreshAuthToken().catch(error => {
+          logError('Scheduled token refresh failed', error);
+        });
+      }, 50 * 60 * 1000);
+    }
+  }
+  
+  private cleanup(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+    this.refreshPromise = null;
   }
 
   private getAuthErrorMessage(error: any): string {

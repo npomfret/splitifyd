@@ -12,7 +12,8 @@ const mockAuthStore = {
   register: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   resetPassword: () => Promise.resolve(),
-  clearError: () => {}
+  clearError: () => {},
+  refreshAuthToken: () => Promise.resolve('mock-token')
 };
 
 // Custom render function that wraps components with providers

@@ -159,6 +159,7 @@ interface RequestConfig<T = any> {
   schema?: z.ZodSchema<T>;  // Optional runtime validation override
   skipAuth?: boolean;      // Skip auth token for public endpoints
   skipRetry?: boolean;     // Skip retry for specific requests
+  __retried?: boolean;     // Internal flag to prevent infinite retry loops
 }
 
 // Legacy interface for backward compatibility
@@ -204,6 +205,12 @@ export class ApiClient {
   private authToken: string | null = null;
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
+  private refreshingToken = false;
+  private failedQueue: Array<{
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+    config: RequestConfig;
+  }> = [];
 
   constructor() {
     // Try to get auth token from localStorage (skip during SSG)
@@ -213,6 +220,9 @@ export class ApiClient {
         this.authToken = token;
       }
     }
+    
+    // Set up 401 response interceptor
+    this.setup401Interceptor();
   }
 
   // Add request interceptor
@@ -249,6 +259,82 @@ export class ApiClient {
         localStorage.removeItem(AUTH_TOKEN_KEY);
       }
     }
+  }
+
+  // Set up 401 response interceptor
+  private setup401Interceptor(): void {
+    this.addResponseInterceptor(async (response, config) => {
+      // Check if this is a 401/UNAUTHORIZED error
+      if (response instanceof ApiError && 
+          (response.code === 'UNAUTHORIZED' || 
+           response.code === 'INVALID_TOKEN' ||
+           response.requestContext?.status === 401)) {
+        
+        // Skip retry if already attempted or auth is disabled for this request
+        if (config.skipAuth || config.__retried) {
+          throw response;
+        }
+        
+        // If already refreshing, queue this request
+        if (this.refreshingToken) {
+          return new Promise((resolve, reject) => {
+            this.failedQueue.push({ resolve, reject, config });
+          });
+        }
+        
+        this.refreshingToken = true;
+        
+        try {
+          // Dynamically import to avoid circular dependency
+          const { getAuthStore } = await import('./stores/auth-store');
+          const authStore = await getAuthStore();
+          
+          // Refresh the token
+          await authStore.refreshAuthToken();
+          
+          // Process queued requests
+          this.processQueue(null);
+          
+          // Retry original request
+          return this.request({
+            ...config,
+            __retried: true
+          });
+        } catch (refreshError) {
+          // Process queue with error
+          this.processQueue(refreshError);
+          
+          // If refresh failed, logout the user
+          try {
+            const { getAuthStore } = await import('./stores/auth-store');
+            const authStore = await getAuthStore();
+            await authStore.logout();
+          } catch (logoutError) {
+            logError('Failed to logout after token refresh failure', logoutError);
+          }
+          
+          throw response;
+        } finally {
+          this.refreshingToken = false;
+        }
+      }
+      
+      return response;
+    });
+  }
+
+  // Process queued requests after token refresh
+  private processQueue(error: any): void {
+    this.failedQueue.forEach(({ resolve, reject, config }) => {
+      if (error) {
+        reject(error);
+      } else {
+        // Retry the request
+        this.request(config).then(resolve).catch(reject);
+      }
+    });
+    
+    this.failedQueue = [];
   }
 
   // Enhanced request method with RequestConfig support

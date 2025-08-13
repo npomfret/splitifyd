@@ -17,11 +17,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const initializeAuthStore = async () => {
       try {
         const store = await getAuthStore();
+        
+        if (!mounted) return;
+        
+        // Start token refresh if user is authenticated
+        if (store.user) {
+          try {
+            await store.refreshAuthToken();
+          } catch (refreshError) {
+            // Don't fail initialization if token refresh fails
+            logError('Initial token refresh failed', refreshError);
+          }
+        }
+        
         setAuthStore(store);
       } catch (error) {
+        if (!mounted) return;
         logError('Failed to initialize auth store', error);
         setInitError(error instanceof Error ? error.message : 'Auth initialization failed');
       }
@@ -29,6 +45,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
     initializeAuthStore();
+
+    // Cleanup on unmount
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (initError) {

@@ -21,6 +21,7 @@ export interface AuthActions {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
+  refreshAuthToken: () => Promise<string>;
 }
 
 export interface AuthStore extends AuthState, AuthActions {}
