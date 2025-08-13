@@ -1,6 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
-import { waitForURLWithContext } from '../helpers/wait-helpers';
 
 export abstract class BasePage {
   constructor(protected page: Page) {}
@@ -117,17 +116,10 @@ export abstract class BasePage {
   }
 
   async waitForNetworkIdle() {
-    await this.page.waitForLoadState('networkidle');
-  }
-  
-  async waitForNavigation(urlPattern: RegExp, timeout = 2000) {
-    await waitForURLWithContext(this.page, urlPattern, { timeout });
-  }
-  
-  async clickButtonWithText(text: string) {
-    const button = this.page.getByRole('button', { name: text });
-    await this.expectButtonEnabled(button, text);
-    await button.click();
+    // Use domcontentloaded instead of networkidle for streaming compatibility
+    await this.page.waitForLoadState('domcontentloaded');
+    // Small delay to ensure updates are rendered
+    await this.page.waitForTimeout(200);
   }
 
   /**

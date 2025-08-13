@@ -121,14 +121,6 @@ export const multiUserTest = base.extend<MultiUserFixtures>({
   }
 });
 
-// Dynamic user count test - allows tests to specify user count at runtime
-export const dynamicUserTest = multiUserTest;
-
-// Pre-configured convenience fixtures
-export const singleUserTest = multiUserTest.extend({ userCount: 1 });
-export const twoUserTest = multiUserTest.extend({ userCount: 2 });
-export const threeUserTest = multiUserTest.extend({ userCount: 3 });
 export const fourUserTest = multiUserTest.extend({ userCount: 4 });
-export const fiveUserTest = multiUserTest.extend({ userCount: 5 });
 
 export { expect } from '@playwright/test';

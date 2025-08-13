@@ -4,7 +4,6 @@ import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import {generateShortId} from "../../utils/test-helpers.ts";
 import { GroupDetailPage } from '../../pages/group-detail.page';
-import { JoinGroupPage } from '../../pages/join-group.page';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -15,25 +14,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
-    
+    const multiUserWorkflow = new MultiUserWorkflow();
+
     // Setup 2-person group with unique ID
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
 
-    // Get share link using direct method like working tests
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    // Get share link using reliable method
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'equal-payments-settled');
     
-    // User2 joins using robust JoinGroupPage
-    const joinGroupPage = new JoinGroupPage(page2);
-    const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult.success) {
-      throw new Error(`Failed to join group: ${joinResult.reason}`);
-    }
+    // User2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     // Emulator workaround: reload to ensure sync
     await page.reload();
@@ -86,23 +77,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
-    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const multiUserWorkflow = new MultiUserWorkflow();
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
     // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'single-payer-debt');
     
-    // User2 joins using robust JoinGroupPage
-    const joinGroupPage2 = new JoinGroupPage(page2);
-    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult2.success) {
-      throw new Error(`Failed to join group: ${joinResult2.reason}`);
-    }
+    // User2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
@@ -140,23 +125,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should calculate complex debts correctly', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
-    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const multiUserWorkflow = new MultiUserWorkflow();
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
 
     // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'complex-debt-calc');
     
-    // User2 joins using robust JoinGroupPage
-    const joinGroupPage2 = new JoinGroupPage(page2);
-    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult2.success) {
-      throw new Error(`Failed to join group: ${joinResult2.reason}`);
-    }
+    // User2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     // Wait for both users to be properly synchronized
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -207,23 +186,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
-    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const multiUserWorkflow = new MultiUserWorkflow();
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
 
     // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'state-transitions');
     
-    // User2 joins using robust JoinGroupPage
-    const joinGroupPage2 = new JoinGroupPage(page2);
-    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult2.success) {
-      throw new Error(`Failed to join group: ${joinResult2.reason}`);
-    }
+    // User2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     
     // State 1: Empty group → ALWAYS settled up
@@ -281,23 +254,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
   multiUserTest('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2, user: user2 } = secondUser;
-    const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const multiUserWorkflow = new MultiUserWorkflow();
     
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
     // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'currency-formatting');
     
-    // User2 joins using robust JoinGroupPage
-    const joinGroupPage2 = new JoinGroupPage(page2);
-    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult2.success) {
-      throw new Error(`Failed to join group: ${joinResult2.reason}`);
-    }
+    // User2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     // User1 pays $123.45 → User2 owes exactly $61.73 (or $61.72 depending on rounding)
     await groupDetailPage.addExpense({
@@ -335,7 +302,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const multiUserWorkflow = new MultiUserWorkflow();
     
     // Step 1: Create group and verify
     const uniqueId = generateShortId();
@@ -343,15 +310,10 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
     // Step 2: Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'partial-settlement');
     
-    // Step 3: User 2 joins using robust JoinGroupPage
-    const joinGroupPageStep3 = new JoinGroupPage(page2);
-    const joinResultStep3 = await joinGroupPageStep3.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResultStep3.success) {
-      throw new Error(`Failed to join group: ${joinResultStep3.reason}`);
-    }
+    // Step 3: User 2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     // Step 4: Synchronize both users and verify member count
     await groupDetailPage.waitForMemberCount(2);
@@ -404,7 +366,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Step 13: Wait for settlement to propagate and refresh all pages
     // This pattern is from the working three-user test
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForBalanceCalculation();
     await groupDetailPage2.waitForBalanceCalculation();
     
@@ -477,21 +439,16 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const multiUserWorkflow = new MultiUserWorkflow();
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
     // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    const shareLink = await multiUserWorkflow.getShareLink(page, 'exact-settlement');
     
-    // User2 joins using robust JoinGroupPage
-    const joinGroupPage2 = new JoinGroupPage(page2);
-    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult2.success) {
-      throw new Error(`Failed to join group: ${joinResult2.reason}`);
-    }
+    // User2 joins the group
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     // Critical: Ensure both users are synchronized before creating expenses
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -547,7 +504,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Wait for settlement to propagate and refresh all pages
     // This pattern is from the working three-user test
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForBalanceCalculation();
     await secondUser.groupDetailPage.waitForBalanceCalculation();
     

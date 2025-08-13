@@ -15,15 +15,9 @@ class FirebaseService {
       return;
     }
 
-    /*
-    you should see this in the console logs
-    2025-08-12T22:48:38.714Z fb config: {"timestamp":"2025-08-12T22:48:38.714Z","firebase":{"apiKey":"AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg","authDomain":"","projectId":"splitifyd","storageBucket":"","messagingSenderId":"","appId":"","measurementId":""},"firebaseAuthUrl":"http://127.0.0.1:6002","firebaseFirestoreUrl":"http://127.0.0.1:6004"}
-    2025-08-12T22:48:38.716Z emulator detected: {"timestamp":"2025-08-12T22:48:38.716Z","firebaseAuthUrl":"http://127.0.0.1:6002","firebaseFirestoreUrl":"http://127.0.0.1:6004"}
-     */
-
     const {firebase, firebaseAuthUrl, firebaseFirestoreUrl} = await firebaseConfigManager.getConfig();
 
-    logInfo("fb config", {firebase, firebaseAuthUrl, firebaseFirestoreUrl});
+    // Initialize Firebase - do not log config as it contains sensitive data
 
     this.app = initializeApp(firebase);
     this.auth = getAuth(this.app);

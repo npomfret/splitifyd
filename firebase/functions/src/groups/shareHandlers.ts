@@ -207,7 +207,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
   const { linkId } = req.body;
   const userId = req.user!.uid;
   const userEmail = req.user!.email;
-  const userName = userEmail.split('@')[0];
+  const userName = req.user!.displayName;
 
   try {
     const groupsQuery = await admin.firestore()
@@ -264,8 +264,6 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       // Add user to memberIds and members
       allMemberIds.push(userId);
       
-      console.log(`🕐 SERVER-TRANSACTION: About to update memberIds for group ${groupId} at ${Date.now()}, adding user ${userId}`);
-      
       // Create member object for the new user
       const newMember = {
         userId,
@@ -283,8 +281,6 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
         updatedAt: Timestamp.now(),
       });
       
-      console.log(`🕐 SERVER-TRANSACTION: MemberIds updated for group ${groupId} at ${Date.now()}, new count: ${allMemberIds.length}`);
-
       return {
         groupName: groupData.data!.name!
       };
@@ -300,8 +296,6 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       linkId: linkId.substring(0, 4) + '...',
       duration: joinDuration,
     });
-
-    console.log(`🕐 SERVER-COMPLETE: User ${userId} joined group ${groupId} completed at ${joinEndTime}, total duration: ${joinDuration}ms`);
 
     res.status(HTTP_STATUS.OK).json({
       groupId,

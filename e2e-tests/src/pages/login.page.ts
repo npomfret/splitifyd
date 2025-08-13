@@ -66,16 +66,8 @@ export class LoginPage extends BasePage {
     return this.page.locator(SELECTORS.PASSWORD_INPUT);
   }
 
-  getRememberMeCheckbox() {
-    return this.page.locator(SELECTORS.CHECKBOX);
-  }
-
   getSubmitButton() {
     return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signInButton });
-  }
-
-  getSignUpLink() {
-    return this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink });
   }
 
   getForgotPasswordLink() {
@@ -95,19 +87,4 @@ export class LoginPage extends BasePage {
     return this.page.getByText('Password *');
   }
 
-  // Direct fill methods for test refactoring
-  
-  /**
-   * Fill email input directly (without Preact wrapper)
-   */
-  async fillEmail(email: string) {
-    await this.page.fill('input[type="email"]', email);
-  }
-
-  /**
-   * Fill password input directly (without Preact wrapper)
-   */
-  async fillPassword(password: string) {
-    await this.page.fill('input[type="password"]', password);
-  }
 }

@@ -45,6 +45,7 @@ const expenseCursorSignal = signal<string | null>(null);
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
   private expenseChangeListener: (() => void) | null = null;
+  private groupChangeListener: (() => void) | null = null;
   private changeDetector = new ChangeDetector();
   private currentGroupId: string | null = null;
 
@@ -91,7 +92,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
       return;
     }
     
-    logInfo('Setting up expense change subscription', { 
+    logInfo('Setting up change subscriptions', { 
       groupId: this.currentGroupId, 
       userId 
     });
@@ -100,20 +101,49 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     this.expenseChangeListener = this.changeDetector.subscribeToExpenseChanges(
       this.currentGroupId,
       () => {
+        // Defensive check: ignore changes if currentGroupId is null (component disposed)
+        if (!this.currentGroupId) {
+          logInfo("Ignoring expense change - currentGroupId is null (component disposed)");
+          return;
+        }
         // Any change = refresh everything
         logApiResponse('CHANGE', 'expense_change', 200, { 
           action: 'REFRESHING_ALL',
           groupId: this.currentGroupId 
         });
         this.refreshAll().catch(error => 
-          logError('Failed to refresh after change', error)
+          logError('Failed to refresh after expense change', error)
         );
       }
     );
     
-    logInfo('Expense change subscription setup complete', { 
+    // Subscribe to group changes (member additions/removals, group updates)
+    this.groupChangeListener = this.changeDetector.subscribeToGroupChanges(
+      userId,
+      () => {
+        // Defensive check: ignore changes if currentGroupId is null (component disposed)
+        if (!this.currentGroupId) {
+          logInfo("Ignoring group change - currentGroupId is null (component disposed)");
+          return;
+        }
+        // Group change = refresh group data and members
+        logApiResponse('CHANGE', 'group_change', 200, { 
+          action: 'REFRESHING_GROUP_AND_MEMBERS',
+          groupId: this.currentGroupId 
+        });
+        Promise.all([
+          this.loadGroup(this.currentGroupId!),
+          this.fetchMembers()
+        ]).catch(error => 
+          logError('Failed to refresh after group change', error)
+        );
+      }
+    );
+    
+    logInfo('Change subscriptions setup complete', { 
       groupId: this.currentGroupId,
-      hasListener: !!this.expenseChangeListener 
+      hasExpenseListener: !!this.expenseChangeListener,
+      hasGroupListener: !!this.groupChangeListener
     });
   }
 
@@ -191,6 +221,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     if (this.expenseChangeListener) {
       this.expenseChangeListener();
       this.expenseChangeListener = null;
+    }
+    if (this.groupChangeListener) {
+      this.groupChangeListener();
+      this.groupChangeListener = null;
     }
   }
 

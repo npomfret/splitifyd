@@ -53,10 +53,11 @@ test.describe('Multi-User Collaboration E2E', () => {
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const user2 = secondUser.user;
+    const joinGroupPage2 = new JoinGroupPage(page2);
     
     await page2.goto(shareLink);
-    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
-    await groupDetailPage2.getJoinGroupButton().click();
+    await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
+    await joinGroupPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // CRITICAL: In emulator, real-time streaming from Firestore doesn't work for groups created via REST API
@@ -155,9 +156,10 @@ test.describe('Multi-User Collaboration E2E', () => {
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const user2 = secondUser.user;
+    const joinGroupPage2 = new JoinGroupPage(page2);
     await page2.goto(shareLink);
-    await expect(groupDetailPage2.getJoinGroupHeading()).toBeVisible();
-    await groupDetailPage2.getJoinGroupButton().click();
+    await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
+    await joinGroupPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // User 1 pays for shared expense

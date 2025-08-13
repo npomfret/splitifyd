@@ -21,7 +21,7 @@ test.describe('Single User Balance Visualization', () => {
     const balancesHeading = groupDetailPage.getBalancesHeading();
     await expect(balancesHeading).toBeVisible();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     
     // Verify "All settled up!" exists in the DOM

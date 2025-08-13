@@ -402,7 +402,7 @@ export const api = onRequest({
 });
 
 // Phase 1 Streaming Infrastructure: Change detection and cleanup
-export { trackGroupChanges, trackExpenseChanges } from './triggers/change-tracker';
+export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 export { cleanupChanges, manualCleanupChanges } from './scheduled/cleanup';
 
 // Phase 4 Monitoring & Analytics: Metrics collection and alerting

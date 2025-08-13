@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { fourUserTest } from '../../fixtures/multi-user-declarative';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
@@ -22,7 +22,7 @@ test.describe('Share Link - Edge Cases', () => {
       const groupWorkflow = new GroupWorkflow(creatorPage);
       await groupWorkflow.createGroup(`Rapid Join Test ${uniqueId}`, 'Testing rapid multiple joins');
 
-      const multiUserWorkflow = new MultiUserWorkflow(null);
+      const multiUserWorkflow = new MultiUserWorkflow();
       const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
 
       // Have the other 3 users join rapidly

@@ -315,3 +315,103 @@ function calculatePriority(
   // All other changes are low priority
   return 'low';
 }
+
+/**
+ * Track changes to settlements collection and emit change notifications
+ * Settlements affect balances, so we need to notify about expense changes
+ */
+export const trackSettlementChanges = onDocumentWritten(
+  {
+    document: 'settlements/{settlementId}',
+    region: 'us-central1',
+    memory: '256MiB',
+    timeoutSeconds: 60
+  },
+  async (event) => {
+    const { settlementId } = event.params;
+    const change = event.data;
+    
+    if (!change) {
+      return;
+    }
+    
+    try {
+      await processSettlementChange(settlementId, change);
+    } catch (error: any) {
+      logger.error('Error in trackSettlementChanges', { error: error as Error, settlementId });
+    }
+  }
+);
+
+/**
+ * Process settlement changes
+ */
+async function processSettlementChange(
+  settlementId: string, 
+  change: any
+): Promise<void> {
+  const beforeData = change.before?.data();
+  const afterData = change.after?.data();
+  
+  // Determine change type
+  let changeType: 'created' | 'modified' | 'deleted';
+  if (!change.before.exists && change.after.exists) {
+    changeType = 'created';
+  } else if (change.before.exists && !change.after.exists) {
+    changeType = 'deleted';
+  } else {
+    changeType = 'modified';
+  }
+  
+  // Get the relevant data (after for create/modify, before for delete)
+  const settlementData = changeType === 'deleted' ? beforeData : afterData;
+  if (!settlementData || !settlementData.groupId) {
+    logger.warn('Settlement data missing groupId', { settlementId, changeType });
+    return;
+  }
+  
+  const { groupId, payerId, payeeId, amount } = settlementData;
+  
+  // Get all affected users (both payer and payee)
+  const affectedUsers = [payerId, payeeId].filter(Boolean);
+  
+  // Determine priority based on amount
+  const priority = amount > 100 ? 'high' : amount > 50 ? 'medium' : 'low';
+  
+  logger.info('Processing settlement change', {
+    settlementId,
+    groupId,
+    changeType,
+    amount,
+    affectedUsers
+  });
+  
+  // Create an expense change notification since settlements affect balances
+  // The client will refresh expenses and balances when it sees this
+  const changeDoc: ChangeNotification = {
+    groupId,
+    timestamp: Date.now(),
+    type: changeType,
+    fields: ['settlement'],
+    metadata: {
+      priority,
+      affectedUsers
+    }
+  };
+  
+  try {
+    await admin.firestore()
+      .collection('expense-changes')
+      .add(changeDoc);
+    logger.info('Settlement change notification created', { 
+      settlementId, 
+      groupId,
+      changeType 
+    });
+  } catch (error: any) {
+    logger.error('Error adding settlement change notification', { 
+      error: error.message,
+      changeDoc 
+    });
+  }
+}
