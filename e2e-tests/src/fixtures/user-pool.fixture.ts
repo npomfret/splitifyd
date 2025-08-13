@@ -166,6 +166,8 @@ export class UserPool {
       
       // Logout so the user can be used later - now simple with stable selectors
       await tempPage.click('[data-testid="user-menu-button"]');
+      // Wait for the dropdown menu to be visible before clicking sign-out
+      await tempPage.waitForSelector('[data-testid="sign-out-button"]', { state: 'visible', timeout: 5000 });
       await tempPage.click('[data-testid="sign-out-button"]');
       
       // Wait for logout to complete
