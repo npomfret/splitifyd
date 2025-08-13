@@ -69,6 +69,7 @@ export class CreateGroupModalPage extends BasePage {
     
     await this.fillGroupForm(name, description);
     await this.submitForm();
+    await this.waitForModalToClose();
   }
   
   async waitForModalToClose() {
