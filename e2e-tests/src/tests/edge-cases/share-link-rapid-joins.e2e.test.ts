@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { fourUserTest } from '../../fixtures/multi-user-declarative';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { MultiUserWorkflow } from '../../workflows/multi-user.workflow';
-import { GroupWorkflow } from '../../workflows/group.workflow';
+import { MultiUserWorkflow } from '../../workflows';
+import { GroupWorkflow } from '../../workflows';
 import { generateShortId } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();

@@ -1,7 +1,7 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupDetailPage } from '../../pages';
-import { JoinGroupPage } from '../../pages/join-group.page';
+import { JoinGroupPage } from '../../pages';
 import { GroupWorkflow } from '../../workflows';
 
 // Enable console error reporting and MCP debugging

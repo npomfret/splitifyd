@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
-import { CreateGroupModalPage } from './create-group-modal.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 
 export class DashboardPage extends BasePage {

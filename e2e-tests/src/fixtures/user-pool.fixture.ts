@@ -1,7 +1,7 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/shared-types";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
-import { EMULATOR_URL } from '../helpers/index';
+import { EMULATOR_URL } from '../helpers';
 
 /**
  * Simple in-memory user pool implementation.
@@ -88,25 +88,6 @@ export class UserPool {
     this.availableUsers.push(user);
     // console.log(`📥 Released user back to pool: ${user.email}`);
   }
-
-
-  /**
-   * Optional: Pre-warm the pool with users for better performance.
-   * This is now optional - the pool works fine with on-demand creation.
-   * @deprecated Consider removing this method entirely
-   */
-  async preWarmPool(browser: any, count: number): Promise<void> {
-    console.log(`🔥 Pre-warming pool with ${count} users (optional optimization)...`);
-    
-    for (let i = 0; i < count; i++) {
-      const user = await this.createUser(browser, `prewarm-${i}`);
-      this.availableUsers.push(user);
-      console.log(`✅ Created pool user ${i + 1}/${count}: ${user.email}`);
-    }
-    
-    console.log(`✅ Pool pre-warmed with ${count} users`);
-  }
-
   /**
    * Create a new test user using a temporary browser context.
    * The temporary context is closed after user creation to avoid empty browser windows.

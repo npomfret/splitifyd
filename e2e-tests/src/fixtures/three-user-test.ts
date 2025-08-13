@@ -9,7 +9,7 @@ import type {
   DashboardPage,
   GroupDetailPage,
   CreateGroupModalPage
-} from '../pages/index';
+} from '../pages';
 import type {User as BaseUser} from "@shared/shared-types";
 
 export interface ThreeUserFixtures extends MultiUserFixtures {
