@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { groupsStore } from '../app/stores/groups-store';
+import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
 import { GroupsList } from '../components/dashboard/GroupsList';
@@ -21,13 +21,16 @@ export function DashboardPage() {
     }
   }, [authStore.user]);
 
-  // Fetch groups when component mounts and user is authenticated
+  // Fetch groups and setup real-time updates when component mounts and user is authenticated
   useEffect(() => {
-    if (authStore.user && !groupsStore.initialized) {
+    if (authStore.user && !enhancedGroupsStore.initialized) {
       // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
-      groupsStore.fetchGroups();
+      enhancedGroupsStore.fetchGroups();
+      
+      // Setup real-time change subscriptions
+      enhancedGroupsStore.subscribeToChanges(authStore.user.uid);
     }
-  }, [authStore.user, groupsStore.initialized]);
+  }, [authStore.user, enhancedGroupsStore.initialized]);
 
   // Redirect if user is not authenticated (will happen in useEffect)
   if (!authStore.user) {
@@ -51,7 +54,7 @@ export function DashboardPage() {
             </div>
 
             {/* Welcome Section - Only show for first-time users (no groups) */}
-            {groupsStore.groups.length === 0 && (
+            {enhancedGroupsStore.groups.length === 0 && (
               <div class="mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 mb-2">
                   Welcome to Splitifyd, {user.displayName || user.email.split('@')[0]}!

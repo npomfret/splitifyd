@@ -48,7 +48,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     await expenseElement.click();
     
     // Wait for expense detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Look for edit button (following working pattern with proper timeout)
     const editButton = page.getByRole('button', { name: /edit/i });
@@ -111,7 +111,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     const expenseElement = groupDetailPage.getExpenseByDescription("High Amount Expense");
     await expect(expenseElement).toBeVisible();
     await expenseElement.click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     
     const editButton = page.getByRole("button", { name: /edit/i });
     await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
@@ -168,7 +168,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     // Edit the description
     const expenseElement = groupDetailPage.getExpenseByDescription('Original Description');
     await expenseElement.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const editButton = page.getByRole('button', { name: /edit/i });
     await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
@@ -221,7 +221,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     const expenseElement = groupDetailPage.getExpenseByDescription('Permission Test Expense');
     await expect(expenseElement).toBeVisible();
     await expenseElement.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Creator should see edit button
     const editButton = page.getByRole('button', { name: /edit/i });

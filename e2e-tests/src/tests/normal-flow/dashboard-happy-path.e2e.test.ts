@@ -59,7 +59,7 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
   });
 
   authenticatedPageTest('should properly clear all state and prevent unauthorized access after logout', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-    const { page, user } = authenticatedPage;
+    const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Phase 1: Create some user data before logout to verify it gets cleared

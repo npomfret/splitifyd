@@ -1,7 +1,9 @@
+import { useEffect } from 'preact/hooks';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { formatDistanceToNow } from '../../utils/dateUtils';
 import type { Group } from '../../../../firebase/functions/src/shared/shared-types';
+import { logInfo } from '../../utils/browser-logger';
 
 interface GroupHeaderProps {
   group: Group;
@@ -9,6 +11,16 @@ interface GroupHeaderProps {
 }
 
 export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
+  // Add timing for member count changes
+  useEffect(() => {
+    const componentRenderTime = Date.now();
+    logInfo('GroupHeader memberIds.length changed', { 
+      memberCount: group.memberIds?.length || 0,
+      timestamp: componentRenderTime,
+      groupId: group.id || 'unknown'
+    });
+  }, [group.memberIds?.length, group.id]);
+
   return (
     <Card className="p-6">
       <div className="flex justify-between items-start mb-4">
@@ -28,7 +40,7 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
       </div>
       
       <div className="flex gap-6 text-sm text-gray-600">
-        <div>
+        <div data-testid="member-count">
           <span className="font-medium">{group.memberIds.length}</span> members
         </div>
         <div>

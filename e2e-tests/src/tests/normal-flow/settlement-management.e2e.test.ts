@@ -11,15 +11,44 @@ test.describe('Settlement Management', () => {
   // as they are better covered by the comprehensive three-user-settlement test
   
   test('should validate settlement form', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-    const { page } = authenticatedPage;
+    const { page, user: user1 } = authenticatedPage;
+    const { page: page2, user: user2 } = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
 
-    // Share and join
-    const page2 = secondUser.page;
-    await groupDetailPage.shareGroupAndWaitForJoin(page2);
+    // Get share link using the direct approach that works in other tests
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await page.keyboard.press('Escape');
+    
+    // Second user joins
+    await page2.goto(shareLink);
+    await page2.waitForLoadState('domcontentloaded');
+    const joinButton = page2.getByRole('button', { name: /join group/i });
+    await expect(joinButton).toBeVisible();
+    await joinButton.click();
+    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    
+    // Wait for both users to be in the group
+    await groupDetailPage.waitForMemberCount(2);
+    
+    // Verify both users are visible
+    await expect(groupDetailPage.getTextElement(user1.displayName).first()).toBeVisible();
+    await expect(groupDetailPage.getTextElement(user2.displayName).first()).toBeVisible();
+    
+    // Add an expense first so there's something to settle
+    await groupDetailPage.addExpense({
+      description: 'Test expense for settlement',
+      amount: 100,
+      paidBy: user1.displayName,
+      currency: 'USD',
+      splitType: 'equal'
+    });
+    
+    // Wait for balance calculation
+    await groupDetailPage.waitForBalanceCalculation();
     
     // Open settlement form
     const settleButton = groupDetailPage.getSettleUpButton();

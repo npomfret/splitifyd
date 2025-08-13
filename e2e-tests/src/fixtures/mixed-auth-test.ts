@@ -1,5 +1,4 @@
 import { test as base, Page, BrowserContext } from '@playwright/test';
-import { multiUserTest } from './multi-user-declarative';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../helpers/index';
 import { 

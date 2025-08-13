@@ -65,72 +65,6 @@ export async function waitForURLWithContext(
 }
 
 /**
- * Waits for navigation to complete and verifies the URL matches the expected pattern.
- * Provides detailed error information if the navigation doesn't complete as expected.
- * 
- * @param page - The Playwright page object
- * @param action - The action that triggers navigation (e.g., button click)
- * @param expectedUrlPattern - The expected URL pattern after navigation
- * @param options - Options for the wait operation
- */
-export async function waitForNavigationWithContext(
-  page: Page,
-  action: () => Promise<void>,
-  expectedUrlPattern: string | RegExp,
-  options: WaitForURLOptions = {}
-): Promise<void> {
-  const { timeout = 5000 } = options;
-  const startURL = page.url();
-  const startTime = Date.now();
-  
-  try {
-    // Perform the action and wait for navigation
-    await Promise.all([
-      page.waitForURL(expectedUrlPattern, { timeout }),
-      action()
-    ]);
-  } catch (error) {
-    // Check if it's a timeout error by examining the error message
-    if (error instanceof Error && error.message.includes('Timeout')) {
-      const currentURL = page.url();
-      const elapsedTime = Date.now() - startTime;
-      const patternStr = expectedUrlPattern instanceof RegExp ? expectedUrlPattern.toString() : expectedUrlPattern;
-      
-      // Get navigation state
-      const didNavigate = currentURL !== startURL;
-      const pageTitle = await page.title().catch(() => 'Unable to get title');
-      
-      // Build detailed error message
-      const errorDetails = [
-        `Navigation timeout after ${elapsedTime}ms`,
-        `Expected URL pattern: ${patternStr}`,
-        `Start URL: ${startURL}`,
-        `Current URL: ${currentURL}`,
-        `Navigation occurred: ${didNavigate}`,
-        `Page title: ${pageTitle}`,
-      ];
-      
-      // Check for network activity
-      const pendingRequests = await page.evaluate(() => {
-        // @ts-ignore - performance.getEntriesByType exists in browsers
-        const entries = performance.getEntriesByType('resource');
-        return entries.filter((entry: any) => 
-          entry.responseEnd === 0 && 
-          Date.now() - entry.startTime < 5000
-        ).length;
-      }).catch(() => 0);
-      
-      if (pendingRequests > 0) {
-        errorDetails.push(`Pending network requests: ${pendingRequests}`);
-      }
-      
-      throw new Error(errorDetails.join('\n  '));
-    }
-    throw error;
-  }
-}
-
-/**
  * Helper to build a group detail URL pattern
  */
 export function groupDetailUrlPattern(groupId?: string): RegExp {
@@ -150,16 +84,6 @@ export function expenseDetailUrlPattern(groupId?: string, expenseId?: string): R
     return new RegExp(`/groups/${groupId}/expenses/[a-zA-Z0-9]+$`);
   }
   return /\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+$/;
-}
-
-/**
- * Helper to build an add expense URL pattern
- */
-export function addExpenseUrlPattern(groupId?: string): RegExp {
-  if (groupId) {
-    return new RegExp(`/groups/${groupId}/add-expense`);
-  }
-  return /\/groups\/[a-zA-Z0-9]+\/add-expense/;
 }
 
 /**

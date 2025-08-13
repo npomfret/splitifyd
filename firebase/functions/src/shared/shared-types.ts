@@ -134,6 +134,13 @@ export interface AppConfiguration {
    * Format: http://localhost:xxxx (or whatever port the auth emulator is running on)
    */
   firebaseAuthUrl?: string;
+  
+  /**
+   * URL for Firestore emulator - only populated in development.
+   * Used by the client to connect to the local Firestore emulator instead of production Firestore.
+   * Format: http://localhost:xxxx (or whatever port the Firestore emulator is running on)
+   */
+  firebaseFirestoreUrl?: string;
 }
 
 // ========================================================================

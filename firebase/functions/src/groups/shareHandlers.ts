@@ -188,6 +188,9 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
 }
 
 export async function joinGroupByLink(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const joinStartTime = Date.now();
+  console.log(`🕐 SERVER-START: User join initiated at ${joinStartTime}`);
+  
   const validationRules = {
     linkId: { type: 'string', required: true },
   };
@@ -204,7 +207,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
   const { linkId } = req.body;
   const userId = req.user!.uid;
   const userEmail = req.user!.email;
-  const userName = userEmail.split('@')[0];
+  const userName = req.user!.displayName;
 
   try {
     const groupsQuery = await admin.firestore()
@@ -241,6 +244,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP', 'Group missing memberIds');
       }
       const currentMemberIds = groupData.data.memberIds;
+      const currentMembers = groupData.data.members || [];
       
       // Ensure group owner is in memberIds (but no duplicates)
       const allMemberIds = [...currentMemberIds];
@@ -257,24 +261,40 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
         );
       }
       
-      // Add user to memberIds
+      // Add user to memberIds and members
       allMemberIds.push(userId);
+      
+      // Create member object for the new user
+      const newMember = {
+        userId,
+        email: userEmail,
+        displayName: userName,
+        role: 'member' as const,
+        joinedAt: Timestamp.now()
+      };
+      
+      const updatedMembers = [...currentMembers, newMember];
       
       transaction.update(groupRef, {
         'data.memberIds': allMemberIds,
+        'data.members': updatedMembers,
         updatedAt: Timestamp.now(),
       });
-
+      
       return {
         groupName: groupData.data!.name!
       };
     });
 
+    const joinEndTime = Date.now();
+    const joinDuration = joinEndTime - joinStartTime;
+    
     logger.info('User joined group via share link', {
       groupId,
       userId,
       userName,
       linkId: linkId.substring(0, 4) + '...',
+      duration: joinDuration,
     });
 
     res.status(HTTP_STATUS.OK).json({

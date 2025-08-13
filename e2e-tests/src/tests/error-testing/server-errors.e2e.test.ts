@@ -35,7 +35,7 @@ test.describe('Server Error Handling', () => {
     await createGroupModalPage.fillGroupForm('Server Error Test', 'Testing 500 error');
     await createGroupModalPage.submitForm();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Should show some error indication
     const errorIndication = page.getByText(/error|failed|wrong/i);

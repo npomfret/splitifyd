@@ -37,6 +37,7 @@ const AppConfigurationSchema = z.object({
   environment: EnvironmentConfigSchema,
   formDefaults: FormDefaultsSchema,
   firebaseAuthUrl: z.string().optional(),
+  firebaseFirestoreUrl: z.string().optional(),
 });
 
 export function validateAppConfiguration(config: unknown): AppConfiguration {

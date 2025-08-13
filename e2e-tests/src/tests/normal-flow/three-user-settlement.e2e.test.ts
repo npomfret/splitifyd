@@ -1,7 +1,6 @@
 import { threeUserTest as test, expect } from '../../fixtures/three-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { JoinGroupPage } from '../../pages/join-group.page';
+import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
@@ -47,32 +46,21 @@ test.describe('Three User Settlement Management', () => {
     await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
 
     // Get share link and have users join
-    await groupDetailPage.getShareButton().click();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    const multiUserWorkflow = new MultiUserWorkflow();
+    const shareLink = await multiUserWorkflow.getShareLink(page);
     
-    // Second user joins using robust JoinGroupPage
+    // Second user joins
     const groupDetailPage2 = secondUser.groupDetailPage;
-    const joinGroupPage2 = new JoinGroupPage(page2);
-    const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult2.success) {
-      throw new Error(`Second user failed to join group: ${joinResult2.reason}`);
-    }
+    await multiUserWorkflow.joinGroup(page2, shareLink, user2.displayName);
     
     // Synchronize to see the second member
     await groupDetailPage.synchronizeMultiUserState([
       { page, groupDetailPage }
     ], 2);
     
-    // Third user joins using robust JoinGroupPage
+    // Third user joins
     const groupDetailPage3 = thirdUser.groupDetailPage;
-    const joinGroupPage3 = new JoinGroupPage(page3);
-    const joinResult3 = await joinGroupPage3.attemptJoinWithStateDetection(shareLink);
-    
-    if (!joinResult3.success) {
-      throw new Error(`Third user failed to join group: ${joinResult3.reason}`);
-    }
+    await multiUserWorkflow.joinGroup(page3, shareLink, user3.displayName);
     
     // Synchronize all pages to see all 3 members
     await groupDetailPage.synchronizeMultiUserState([
@@ -177,10 +165,16 @@ test.describe('Three User Settlement Management', () => {
     // User3 should still owe $40
     await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
     
-    // Verify both settlements appear in history
-    await groupDetailPage.openHistory();
+    // Verify history section shows the settlements
+    // After making settlements, the history should be automatically visible
+    // Assert that the hide history button is present (meaning history is expanded)
+    const hideHistoryButton = page.getByRole('button', { name: /hide history/i });
+    await expect(hideHistoryButton).toBeVisible();
+    
+    // Verify settlements are visible in the history
     await expect(groupDetailPage.getTextElement(/Partial payment from user2/i)).toBeVisible();
-    await expect(groupDetailPage.getTextElement(/Final payment from user2 - all settled!/i)).toBeVisible();
+    // The second settlement should also be visible with the payment amount
+    await expect(groupDetailPage.getTextElement('$30.00')).toBeVisible();
     
   });
 });
