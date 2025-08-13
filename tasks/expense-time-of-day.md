@@ -65,4 +65,117 @@ This feature allows users to specify the exact time of day for an expense. This 
     -   "20:00"
     -   "8:15a"
     -   "9.30"
--   Libraries like `date-fns` or `moment.js` (if already in the project) can be used for this parsing.
+-   **No external libraries** - Use native JavaScript Date parsing per project guidelines
+
+## Implementation Plan
+
+### Phase 1: Backend Updates
+
+#### 1.1 Date Validation Changes (`firebase/functions/src/expenses/validation.ts`)
+- **Current**: Validates dates must be at UTC midnight
+- **Change**: Accept any valid UTC timestamp with time component
+- **No fallbacks**: Invalid timestamps will cause validation errors
+
+#### 1.2 No Data Model Changes Required
+- The `date` field in `ExpenseData` already stores full ISO timestamps
+- Current implementation sets all times to midnight, but field supports any time
+
+### Phase 2: Frontend Time Components
+
+#### 2.1 Create TimeInput Component (`webapp-v2/src/components/ui/TimeInput.tsx`)
+```typescript
+interface TimeInputProps {
+  value: string; // "14:30" format
+  onChange: (time: string) => void;
+  label?: string;
+  required?: boolean;
+  error?: string;
+}
+```
+- Click-to-edit interaction (shows label, converts to input on click)
+- Generates suggestions at 15-minute intervals
+- Filters suggestions based on typed input
+- No fallback behavior - invalid input causes validation error
+
+#### 2.2 Time Parser Utility (`webapp-v2/src/utils/timeParser.ts`)
+```typescript
+export function parseTimeString(input: string): { hours: number; minutes: number } | null
+```
+- Parse formats: "8pm", "20:00", "8:15a", "9.30", "8:15 PM"
+- Return null for invalid input (no fallbacks)
+- Use native JavaScript string manipulation and regex
+
+### Phase 3: Form Integration
+
+#### 3.1 Update ExpenseBasicFields Component
+- Add time field next to date input
+- Default to "12:00" (noon) for new expenses
+- Combine date and time for UTC conversion
+
+#### 3.2 Update Date Utilities (`webapp-v2/src/utils/dateUtils.ts`)
+```typescript
+// Replace getUTCMidnight with:
+export const getUTCDateTime = (localDateString: string, timeString: string): string
+```
+- Combine date and time into full UTC timestamp
+- No fallback - throw error if invalid
+
+#### 3.3 Update Expense Form Store
+- Add `time` field to form state (default: "12:00")
+- Update `saveExpense` to use `getUTCDateTime(date, time)`
+- Add time validation to `validateField`
+
+### Phase 4: Display Updates
+
+#### 4.1 Update ExpenseItem Component
+```typescript
+// Show time only if not default noon
+const isDefaultTime = expense.date.includes('T12:00:00');
+const displayFormat = isDefaultTime ? 'MMM d, yyyy' : 'MMM d, yyyy \'at\' h:mm a';
+```
+
+#### 4.2 Create Date Display Utilities
+```typescript
+export function formatExpenseDateTime(isoString: string): string
+export function isNoonTime(isoString: string): boolean
+```
+
+### Phase 5: Testing
+
+#### 5.1 E2E Tests (`e2e-tests/src/tests/normal-flow/expense-time.e2e.test.ts`)
+- Test click-to-edit time input interaction
+- Test suggestion filtering
+- Test freeform time input parsing
+- Test invalid time rejection (no fallbacks)
+
+#### 5.2 Integration Tests
+- Verify UTC conversion accuracy
+- Test timezone handling
+- Validate time persistence and retrieval
+
+### Technical Decisions
+
+1. **No Migration Needed**: No existing data to migrate
+2. **No External Libraries**: Use native JavaScript per project guidelines
+3. **No Fallbacks**: Invalid times cause errors (let it break principle)
+4. **Default Time**: 12:00 PM distinguishes from legacy midnight pattern
+5. **Storage**: Use existing `date` field with full timestamp
+
+### File Changes Summary
+
+**Backend:**
+- `firebase/functions/src/expenses/validation.ts` - Remove midnight-only validation
+- `firebase/functions/src/utils/dateHelpers.ts` - Update validation functions
+
+**Frontend:**
+- `webapp-v2/src/components/ui/TimeInput.tsx` - New component
+- `webapp-v2/src/components/expense-form/ExpenseBasicFields.tsx` - Add time field
+- `webapp-v2/src/app/stores/expense-form-store.ts` - Add time state
+- `webapp-v2/src/utils/dateUtils.ts` - Add time handling functions
+- `webapp-v2/src/utils/timeParser.ts` - New parsing utility
+- `webapp-v2/src/components/group/ExpenseItem.tsx` - Update display
+- `webapp-v2/src/pages/ExpenseDetailPage.tsx` - Update display
+
+**Tests:**
+- `e2e-tests/src/tests/normal-flow/expense-time.e2e.test.ts` - New test file
+- `firebase/functions/__tests__/validation.test.ts` - Update validation tests
