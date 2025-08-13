@@ -24,15 +24,20 @@ test.describe('Security and Access Control', () => {
     
     // User 2 (already authenticated via fixture) tries to access User 1's group
     await page2.goto(groupUrl);
-    await page2.waitForLoadState('domcontentloaded');
+    await page2.waitForLoadState('networkidle');
     
-    // Just verify the page loads without crashing
-    // The app may or may not have access control implemented
-    const pageLoaded = await page2.evaluate(() => document.readyState === 'complete');
-    expect(pageLoaded).toBe(true);
+    // Wait for redirect to 404 page
+    await page2.waitForURL('**/404', { timeout: 5000 });
     
-    // Verify that access control works - non-members should not see group details
-    // The group name should NOT be visible to unauthorized users
-    await expect(secondUser.groupDetailPage.getTextElement(groupName)).not.toBeVisible();
+    // Verify that User 2 is redirected to 404 page when trying to access a group they're not a member of
+    const currentUrl = page2.url();
+    expect(currentUrl).toContain('/404');
+    
+    // Verify the 404 page is displayed
+    const heading = await page2.locator('h1').textContent();
+    expect(heading).toBe('404');
+    
+    // Verify the group name is NOT visible to unauthorized users
+    await expect(page2.locator(`text=${groupName}`)).not.toBeVisible();
   });
 });
