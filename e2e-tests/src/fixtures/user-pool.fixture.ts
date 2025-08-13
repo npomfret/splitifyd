@@ -90,6 +90,7 @@ export class UserPool {
     // console.log(`📥 Released user back to pool: ${user.email}`);
   }
 
+
   /**
    * Optional: Pre-warm the pool with users for better performance.
    * This is now optional - the pool works fine with on-demand creation.
@@ -168,8 +169,17 @@ export class UserPool {
       // Wait for redirect to dashboard
       await tempPage.waitForURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
       
-      // Logout so the user can be used later - now simple with stable selectors
+      // Logout so the user can be used later
+      // Wait for page to be stable before clicking menu
+      await tempPage.waitForLoadState('domcontentloaded');
+      await tempPage.waitForTimeout(200); // Small delay for DOM stability
+      
       await tempPage.click('[data-testid="user-menu-button"]');
+      
+      // Wait for dropdown and ensure it's stable
+      await tempPage.waitForSelector('[data-testid="sign-out-button"]', { state: 'visible', timeout: 5000 });
+      await tempPage.waitForTimeout(100); // Small delay for dropdown animation
+      
       await tempPage.click('[data-testid="sign-out-button"]');
       
       // Wait for logout to complete

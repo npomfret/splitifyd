@@ -6,9 +6,11 @@ import { EmptyGroupsState } from './EmptyGroupsState';
 
 interface GroupsListProps {
   onCreateGroup: () => void;
+  onInvite?: (groupId: string) => void;
+  onAddExpense?: (groupId: string) => void;
 }
 
-export function GroupsList({ onCreateGroup }: GroupsListProps) {
+export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {
   if (groupsStore.loading && !groupsStore.initialized) {
     return (
       <div class="flex items-center justify-center py-8">
@@ -54,6 +56,8 @@ export function GroupsList({ onCreateGroup }: GroupsListProps) {
           onClick={() => {
             route(`/groups/${group.id}`);
           }}
+          onInvite={onInvite}
+          onAddExpense={onAddExpense}
         />
       ))}
     </div>

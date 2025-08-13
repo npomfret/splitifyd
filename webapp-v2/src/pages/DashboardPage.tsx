@@ -8,10 +8,16 @@ import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
+import { ShareGroupModal } from '../components/group/ShareGroupModal';
 
 export function DashboardPage() {
   const authStore = useAuthRequired();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: string; groupName: string }>({
+    isOpen: false,
+    groupId: '',
+    groupName: ''
+  });
 
   // Redirect to login if not authenticated  
   useEffect(() => {
@@ -35,6 +41,22 @@ export function DashboardPage() {
   }
 
   const user = authStore.user;
+
+  // Action handlers for group shortcuts
+  const handleInvite = (groupId: string) => {
+    const group = groupsStore.groups.find(g => g.id === groupId);
+    if (group) {
+      setShareModalState({
+        isOpen: true,
+        groupId: groupId,
+        groupName: group.name
+      });
+    }
+  };
+
+  const handleAddExpense = (groupId: string) => {
+    route(`/groups/${groupId}/add-expense`);
+  };
 
   return (
     <BaseLayout 
@@ -77,6 +99,8 @@ export function DashboardPage() {
               {/* Groups Content */}
               <GroupsList 
                 onCreateGroup={() => setIsCreateModalOpen(true)}
+                onInvite={handleInvite}
+                onAddExpense={handleAddExpense}
               />
             </div>
           </>
@@ -100,6 +124,14 @@ export function DashboardPage() {
           setIsCreateModalOpen(false);
           route(`/groups/${groupId}`);
         }}
+      />
+
+      {/* Share/Invite Group Modal */}
+      <ShareGroupModal
+        isOpen={shareModalState.isOpen}
+        onClose={() => setShareModalState({ isOpen: false, groupId: '', groupName: '' })}
+        groupId={shareModalState.groupId}
+        groupName={shareModalState.groupName}
       />
     </BaseLayout>
   );
