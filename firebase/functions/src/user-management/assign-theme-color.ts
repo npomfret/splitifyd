@@ -2,9 +2,8 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import type { UserThemeColor } from '../shared/shared-types';
 
-const db = getFirestore();
-
 export async function assignThemeColor(userId: string): Promise<UserThemeColor> {
+  const db = getFirestore();
   const systemDoc = db.collection('system').doc('colorAssignment');
   
   // Atomic counter increment with transaction
