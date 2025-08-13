@@ -2,6 +2,7 @@ import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/shared-types";
 import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
 import { EMULATOR_URL } from '../helpers/index';
+import { RegisterPage } from '../pages/register.page';
 
 /**
  * Simple in-memory user pool implementation.
@@ -131,11 +132,14 @@ export class UserPool {
       // Wait for form to be visible
       await tempPage.waitForSelector('input[placeholder="Enter your full name"]');
       
-      // Fill registration form
-      await tempPage.fill('input[placeholder="Enter your full name"]', displayName);
-      await tempPage.fill('input[placeholder="Enter your email"]', email);
-      await tempPage.fill('input[placeholder="Create a strong password"]', password);
-      await tempPage.fill('input[placeholder="Confirm your password"]', password);
+      // Use RegisterPage to properly fill form with Preact input handling
+      const registerPage = new RegisterPage(tempPage);
+      
+      // Fill registration form using fillPreactInput to handle form defaults
+      await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', displayName);
+      await registerPage.fillPreactInput('input[placeholder="Enter your email"]', email);
+      await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', password);
+      await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', password);
       
       // Check both terms and cookie policy checkboxes (first and last)
       await tempPage.locator('input[type="checkbox"]').first().check();

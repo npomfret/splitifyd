@@ -702,3 +702,25 @@ The authentication token timeout issue has been **successfully resolved** with a
 - **Seamless user experience** with zero service interruption
 
 Users will no longer experience authentication timeouts after periods of inactivity, and the application will maintain session continuity indefinitely through automatic token refresh cycles.
+
+---
+
+## Additional Fix: E2E Test User Naming Issue
+
+### Problem Identified
+E2E tests were failing because a "test" user was appearing instead of the expected generated test users (e.g., "Pool l1mqmahc").
+
+### Root Cause
+The Firebase config was setting `formDefaults.displayName` to 'test' in emulator mode, which prefilled the registration form. This caused confusion in multi-user E2E tests where dynamically generated user names were expected.
+
+### Solution Applied
+1. **Removed the default 'test' displayName** from Firebase config (`firebase/functions/src/config.ts`)
+   - Changed from `displayName: isEmulator ? 'test' : ''` to `displayName: ''`
+2. **Enhanced user pool fixture** (`e2e-tests/src/fixtures/user-pool.fixture.ts`)
+   - Added explicit `.clear()` calls before filling form fields
+   - Ensures test users always get their intended generated names
+
+### Impact
+- E2E tests now correctly create users with their intended display names
+- No more confusion from hardcoded "test" user appearing in multi-user scenarios
+- Test isolation improved with proper form field clearing

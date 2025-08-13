@@ -21,6 +21,9 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Try to enter negative amount
     const amountField = groupDetailPage.getAmountInput();
+    // Assert field is clear before testing
+    const initialValue = await amountField.inputValue();
+    expect(initialValue).toBe('');
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-50');
     
@@ -69,6 +72,9 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Try to enter zero amount
     const amountField = groupDetailPage.getAmountInput();
+    // Assert field is clear before testing
+    const initialValue = await amountField.inputValue();
+    expect(initialValue).toBe('');
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('0');
     await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Zero expense');
@@ -123,6 +129,9 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Try to enter negative amount
     const amountInput = groupDetailPage.getSettlementAmountSpinbutton();
+    // Assert field is clear before testing
+    const initialValue = await amountInput.inputValue();
+    expect(initialValue).toBe('');
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountInput.fill('-50');
     
@@ -192,6 +201,9 @@ authenticatedTest.describe('Negative Value Validation', () => {
     // Try to enter negative split amount
     const splitInputs = groupDetailPage.getInputWithMinValue('0.01');
     const firstSplitInput = splitInputs.first();
+    // Assert field is clear before testing
+    const initialValue = await firstSplitInput.inputValue();
+    expect(initialValue).toBe('');
     // Use direct fill for invalid value - UI should validate but not format/clear
     await firstSplitInput.fill('-50');
     
@@ -228,6 +240,10 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     const amountField = groupDetailPage.getAmountInput();
     
+    // Assert field is initially clear
+    const initialValue = await amountField.inputValue();
+    expect(initialValue).toBe('');
+    
     // Test various invalid inputs
     const testCases = [
       { value: '-100', shouldBeInvalid: true, description: 'negative number' },
@@ -239,6 +255,11 @@ authenticatedTest.describe('Negative Value Validation', () => {
     ];
     
     for (const testCase of testCases) {
+      // Clear field before each test
+      await amountField.clear();
+      // Assert field is clear before testing each value
+      const clearedValue = await amountField.inputValue();
+      expect(clearedValue).toBe('');
       // Use direct fill for test values - UI should validate but not format/clear
       await amountField.fill(testCase.value);
       
