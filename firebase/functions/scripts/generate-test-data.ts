@@ -9,38 +9,6 @@ import type {Group} from '../src/shared/shared-types';
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
 
-// Retry logic with exponential backoff
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxAttempts = 3,
-  initialDelay = 1000
-): Promise<T> {
-  let lastError: any;
-  
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fn();
-    } catch (error: any) {
-      lastError = error;
-      
-      // Check if error is a transaction lock timeout
-      const errorMessage = error?.message || String(error);
-      const isTransactionTimeout = errorMessage.includes('Transaction lock timeout') ||
-                                  errorMessage.includes('transaction lock') ||
-                                  errorMessage.includes('ABORTED');
-      
-      if (attempt < maxAttempts && isTransactionTimeout) {
-        const delay = initialDelay * Math.pow(2, attempt - 1);
-        logger.warn(`Attempt ${attempt} failed with transaction timeout, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        throw error;
-      }
-    }
-  }
-  
-  throw lastError;
-}
 
 interface TestUser {
   email: string;
@@ -205,38 +173,20 @@ const generateRandomExpense = (): TestExpense => {
 };
 
 async function createTestUser(userInfo: TestUser): Promise<User> {
-  try {
-    return await driver.createUser(userInfo);
-  } catch (error: unknown) {
-    logger.error(`✗ Failed to create user ${userInfo.email}`, { error: error instanceof Error ? error : new Error(String(error)) });
-    throw error;
-  }
+  return await driver.createUser(userInfo);
 }
 
 async function createGroupWithInvite(name: string, description: string, createdBy: User): Promise<GroupWithInvite> {
-  try {
-    // Create group with just the creator initially (with retry)
-    const group = await retryWithBackoff(
-      () => driver.createGroupWithMembers(name, [createdBy], createdBy.token),
-      3,
-      500
-    );
-    
-    // Generate shareable link (with retry)
-    const shareLink = await retryWithBackoff(
-      () => driver.generateShareLink(group.id, createdBy.token),
-      3,
-      500
-    );
-    
-    return {
-      ...group,
-      inviteLink: shareLink.linkId
-    } as GroupWithInvite;
-  } catch (error) {
-    logger.error(`✗ Failed to create group ${name}`, { error: error instanceof Error ? error : new Error(String(error)) });
-    throw error;
-  }
+  // Create group with just the creator initially
+  const group = await driver.createGroupWithMembers(name, [createdBy], createdBy.token);
+  
+  // Generate shareable link
+  const shareLink = await driver.generateShareLink(group.id, createdBy.token);
+  
+  return {
+    ...group,
+    inviteLink: shareLink.linkId
+  } as GroupWithInvite;
 }
 
 async function createGroups(createdBy: User, config: TestDataConfig): Promise<GroupWithInvite[]> {
@@ -322,17 +272,8 @@ async function joinGroupsRandomly(users: User[], groups: GroupWithInvite[]): Pro
       
       if (shouldJoin) {
         joinPromises.push(
-          retryWithBackoff(
-            () => driver.joinGroupViaShareLink(group.inviteLink, user.token),
-            3,
-            500
-          )
+          driver.joinGroupViaShareLink(group.inviteLink, user.token)
             .then(() => joinedCount++)
-            .catch((joinError) => {
-              logger.warn(`Failed to add ${user.email} to group ${group.name}`, { 
-                error: joinError instanceof Error ? joinError : new Error(String(joinError))
-              });
-            })
         );
       }
     }
@@ -348,30 +289,25 @@ async function createTestExpense(
   participants: User[], 
   createdBy: User
 ): Promise<any> {
-  try {
-    const participantIds = participants.map(p => p.uid);
-    
-    const expenseData = new ExpenseBuilder()
-      .withGroupId(groupId)
-      .withAmount(expense.amount)
-      .withDescription(expense.description)
-      .withCategory(expense.category)
-      .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
-      .withSplitType('equal')
-      .withParticipants(participantIds)
-      .withPaidBy(createdBy.uid)
-      .build();
+  const participantIds = participants.map(p => p.uid);
+  
+  // Randomly choose between GBP and EUR
+  const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+  
+  const expenseData = new ExpenseBuilder()
+    .withGroupId(groupId)
+    .withAmount(expense.amount)
+    .withCurrency(currency)
+    .withDescription(expense.description)
+    .withCategory(expense.category)
+    .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
+    .withSplitType('equal')
+    .withParticipants(participantIds)
+    .withPaidBy(createdBy.uid)
+    .build();
 
-    // Create expense via ApiDriver with retry logic
-    return await retryWithBackoff(
-        () => driver.createExpense(expenseData, createdBy.token),
-        3,  // max attempts
-        500 // initial delay 500ms
-    );
-  } catch (error) {
-    logger.error(`✗ Failed to create expense ${expense.description}`, { error: error instanceof Error ? error : new Error(String(error)) });
-    throw error;
-  }
+  // Create expense via ApiDriver
+  return await driver.createExpense(expenseData, createdBy.token);
 }
 
 async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
@@ -423,13 +359,6 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
           
           expensePromises.push(
             createTestExpense(group.id, expense, participants, user)
-              .catch(error => {
-                logger.error(`Failed to create expense in group ${group.name}`, {
-                  groupId: group.id,
-                  error: error instanceof Error ? error : new Error(String(error))
-                });
-                throw error;
-              })
           );
         }
       }
@@ -478,22 +407,13 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
       category: 'food'
     };
     
-    try {
-      await createTestExpense(settledGroup.id, expense, groupMembers, payer);
-      createdCount++;
-      logger.info(`Created balanced expense ${index + 1}/${groupMembers.length}`, {
-        groupId: settledGroup.id,
-        payer: payer.displayName,
-        amount: totalAmount
-      });
-    } catch (error) {
-      logger.error(`Failed to create balanced expense ${index + 1}`, {
-        groupId: settledGroup.id,
-        payer: payer.displayName,
-        error: error instanceof Error ? error : new Error(String(error))
-      });
-      throw error;
-    }
+    await createTestExpense(settledGroup.id, expense, groupMembers, payer);
+    createdCount++;
+    logger.info(`Created balanced expense ${index + 1}/${groupMembers.length}`, {
+      groupId: settledGroup.id,
+      payer: payer.displayName,
+      amount: totalAmount
+    });
   });
   
   await Promise.all(expensePromises);
@@ -591,34 +511,24 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Us
           'Groceries split', 'Tip payback', 'Breakfast split', 'Snacks'
         ];
         
+        // Randomly choose between GBP and EUR for settlements
+        const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+        
         const settlementData = {
           groupId: group.id,
           payerId: payer.uid,
           payeeId: payee.uid,
           amount: paymentAmount,
-          currency: 'USD',
+          currency: currency,
           note: paymentNotes[Math.floor(Math.random() * paymentNotes.length)],
           date: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString() // Random date within last 15 days
         };
         
         settlementPromises.push(
-          retryWithBackoff(
-            () => driver.createSettlement(settlementData, payer.token),
-            3,
-            500
-          )
+          driver.createSettlement(settlementData, payer.token)
             .then(() => {
-              logger.info(`Created small payment: ${payer.displayName} → ${payee.displayName} $${paymentAmount} in ${group.name}`);
-            })
-            .catch(error => {
-              logger.warn(`Failed to create settlement in group ${group.name}`, {
-                groupId: group.id,
-                payer: payer.displayName,
-                payee: payee.displayName,
-                amount: paymentAmount,
-                error: error instanceof Error ? error : new Error(String(error))
-              });
-              // Don't throw - continue with other settlements
+              const currencySymbol = currency === 'GBP' ? '£' : '€';
+              logger.info(`Created small payment: ${payer.displayName} → ${payee.displayName} ${currencySymbol}${paymentAmount} in ${group.name}`);
             })
         );
       }
@@ -640,87 +550,45 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Us
   let totalDeleted = 0;
   
   for (const group of groupsWithExpenses) {
-    try {
-      // Get a group member to perform the deletion (preferably the creator)
-      const deleter = users.find(u => u.uid === group.createdBy) || users.find(u => group.memberIds?.includes(u.uid));
-      if (!deleter) {
-        logger.warn(`No valid user found to delete expenses from group: ${group.name}`);
-        continue;
-      }
-      
-      // Get expenses for this group
-      const { expenses } = await driver.getGroupExpenses(group.id, deleter.token);
-      
-      if (!expenses || expenses.length === 0) {
-        logger.info(`No expenses found in group: ${group.name}`);
-        continue;
-      }
-      
-      // Determine how many to delete (1-2 expenses, but at least 1 per group)
-      const deleteCount = Math.min(
-        Math.floor(Math.random() * 2) + 1, // 1 or 2 expenses
-        Math.max(1, Math.floor(expenses.length * 0.2)) // Or 20% of expenses, whichever is less
-      );
-      
-      // Randomly select expenses to delete
-      const shuffled = [...expenses].sort(() => 0.5 - Math.random());
-      const expensesToDelete = shuffled.slice(0, deleteCount);
-      
-      // Delete the selected expenses
-      for (const expense of expensesToDelete) {
-        try {
-          await retryWithBackoff(
-            () => driver.deleteExpense(expense.id, deleter.token),
-            2,
-            500
-          );
-          totalDeleted++;
-          logger.info(`Deleted expense: "${expense.description}" ($${expense.amount}) from ${group.name}`);
-        } catch (error) {
-          logger.warn(`Failed to delete expense ${expense.id} from group ${group.name}`, {
-            error: error instanceof Error ? error : new Error(String(error))
-          });
-        }
-      }
-      
-      logger.info(`Deleted ${deleteCount} expense(s) from group: ${group.name}`);
-      
-    } catch (error) {
-      logger.error(`Failed to process expense deletion for group ${group.name}`, {
-        error: error instanceof Error ? error : new Error(String(error))
-      });
+    // Get a group member to perform the deletion (preferably the creator)
+    const deleter = users.find(u => u.uid === group.createdBy) || users.find(u => group.memberIds?.includes(u.uid));
+    if (!deleter) {
+      logger.warn(`No valid user found to delete expenses from group: ${group.name}`);
+      continue;
     }
+    
+    // Get expenses for this group
+    const { expenses } = await driver.getGroupExpenses(group.id, deleter.token);
+    
+    if (!expenses || expenses.length === 0) {
+      logger.info(`No expenses found in group: ${group.name}`);
+      continue;
+    }
+    
+    // Determine how many to delete (1-2 expenses, but at least 1 per group)
+    const deleteCount = Math.min(
+      Math.floor(Math.random() * 2) + 1, // 1 or 2 expenses
+      Math.max(1, Math.floor(expenses.length * 0.2)) // Or 20% of expenses, whichever is less
+    );
+    
+    // Randomly select expenses to delete
+    const shuffled = [...expenses].sort(() => 0.5 - Math.random());
+    const expensesToDelete = shuffled.slice(0, deleteCount);
+    
+    // Delete the selected expenses
+    for (const expense of expensesToDelete) {
+      await driver.deleteExpense(expense.id, deleter.token);
+      totalDeleted++;
+      const currencySymbol = expense.currency === 'GBP' ? '£' : (expense.currency === 'EUR' ? '€' : '$');
+      logger.info(`Deleted expense: "${expense.description}" (${currencySymbol}${expense.amount}) from ${group.name}`);
+    }
+    
+    logger.info(`Deleted ${deleteCount} expense(s) from group: ${group.name}`);
   }
   
   logger.info(`✓ Finished deleting expenses. Total deleted: ${totalDeleted} expenses across all groups`);
 }
 
-async function waitForApiReady(): Promise<void> {
-  // ApiDriver will handle checking if the API is ready
-  // We can simply try to make a request and it will work when ready
-  const maxAttempts = 10;
-  let attempts = 0;
-  
-  while (attempts < maxAttempts) {
-    attempts++;
-    try {
-      // Try to list groups as a health check
-      await driver.listGroups('test-token');
-      return;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
-        // This is expected - API is ready but we're using a fake token
-        return;
-      }
-      
-      // If functions aren't ready yet, wait and retry
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-  }
-  
-  throw new Error('API functions failed to become ready within timeout');
-}
 
 export async function generateTestData(): Promise<void> {
   const config = getTestConfig();
@@ -733,13 +601,7 @@ export async function generateTestData(): Promise<void> {
     logger.info(`⏱️  ${phase} completed in ${duration}ms`);
   };
   
-  try {
-    logger.info(`🚀 Starting test data generation in ${config.mode} mode`);
-
-    // Wait for API to be ready before proceeding
-    const apiCheckStart = Date.now();
-    await waitForApiReady();
-    logTiming('API readiness check', apiCheckStart);
+  logger.info(`🚀 Starting test data generation in ${config.mode} mode`);
 
     // Generate users based on config
     const TEST_USERS = generateTestUsers(config);
@@ -829,11 +691,6 @@ export async function generateTestData(): Promise<void> {
       testCredentials: TEST_USERS.map(u => ({ email: u.email, password: u.password })),
       inviteLinks: refreshedGroups.map(g => ({ name: g.name, inviteLink: g.inviteLink }))
     });
-
-  } catch (error) {
-    logger.error('❌ Test data generation failed', { error: error instanceof Error ? error : new Error(String(error)) });
-    process.exit(1);
-  }
 }
 
 // Run the script
@@ -844,8 +701,5 @@ if (require.main === module) {
   
   generateTestData().then(() => {
     process.exit(0);
-  }).catch(error => {
-    logger.error('❌ Script failed', { error: error instanceof Error ? error : new Error(String(error)) });
-    process.exit(1);
   });
 }

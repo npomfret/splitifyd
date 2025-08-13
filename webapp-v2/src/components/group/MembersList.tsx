@@ -1,6 +1,8 @@
 import { Card } from '../ui/Card';
 import { SidebarCard } from '../ui/SidebarCard';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { Button } from '../ui/Button';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import type { User } from '../../../../firebase/functions/src/shared/shared-types';
 
 interface MembersListProps {
@@ -8,9 +10,15 @@ interface MembersListProps {
   createdBy: string;
   loading?: boolean;
   variant?: 'default' | 'sidebar';
+  onLeaveGroup?: () => void;
+  onRemoveMember?: (memberId: string) => void;
 }
 
-export function MembersList({ members, createdBy, loading = false, variant = 'default' }: MembersListProps) {
+export function MembersList({ members, createdBy, loading = false, variant = 'default', onLeaveGroup, onRemoveMember }: MembersListProps) {
+  const authStore = useAuthRequired();
+  const currentUser = authStore.user;
+  const isCreator = currentUser?.uid === createdBy;
+  
   const content = loading ? (
     <div className="flex justify-center py-8">
       <LoadingSpinner size="md" />
@@ -30,26 +38,75 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
               <p className="text-xs text-gray-500">Admin</p>
             )}
           </div>
+          {/* Show remove button for admin, but not for themselves */}
+          {isCreator && member.uid !== createdBy && onRemoveMember && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onRemoveMember(member.uid)}
+              className="text-red-600 hover:text-red-700"
+            >
+              Remove
+            </Button>
+          )}
         </div>
       ))}
+      {/* Show leave button for non-creators */}
+      {!isCreator && currentUser && onLeaveGroup && (
+        <div className="pt-2 mt-2 border-t">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onLeaveGroup}
+            className="w-full text-red-600 border-red-300 hover:bg-red-50"
+          >
+            Leave Group
+          </Button>
+        </div>
+      )}
     </div>
   ) : (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      {members.map((member) => (
-        <div key={member.uid} className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-primary-700">
-              {(member.displayName || member.email || 'U').charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-            {member.uid === createdBy && (
-              <p className="text-xs text-gray-500">Admin</p>
+    <div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {members.map((member) => (
+          <div key={member.uid} className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-primary-700">
+                {(member.displayName || member.email || 'U').charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
+              {member.uid === createdBy && (
+                <p className="text-xs text-gray-500">Admin</p>
+              )}
+            </div>
+            {/* Show remove button for admin, but not for themselves */}
+            {isCreator && member.uid !== createdBy && onRemoveMember && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onRemoveMember(member.uid)}
+                className="text-red-600 hover:text-red-700"
+              >
+                Remove
+              </Button>
             )}
           </div>
+        ))}
+      </div>
+      {/* Show leave button for non-creators */}
+      {!isCreator && currentUser && onLeaveGroup && (
+        <div className="mt-4 pt-4 border-t">
+          <Button
+            variant="secondary"
+            onClick={onLeaveGroup}
+            className="text-red-600 border-red-300 hover:bg-red-50"
+          >
+            Leave Group
+          </Button>
         </div>
-      ))}
+      )}
     </div>
   );
 

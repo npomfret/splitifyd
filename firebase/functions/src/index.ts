@@ -22,7 +22,7 @@ import {
 } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
-import { getGroupMembers } from './groups/memberHandlers';
+import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import {
   createGroup,
@@ -313,6 +313,8 @@ app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(join
 // Parameterized routes come last
 app.get(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(getGroup));
 app.get(`/${FirestoreCollections.GROUPS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
+app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
+app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
 app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
 
