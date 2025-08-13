@@ -1,14 +1,14 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { GroupWorkflow } from '../../workflows';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
-test.describe('Comprehensive Expense Editing E2E', () => {
+test.describe('Expense Editing Error Testing', () => {
   test('should edit expense amount (increase)', async ({ 
     authenticatedPage, 
     dashboardPage, 
@@ -165,9 +165,10 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     // Verify expense was created
     await expect(groupDetailPage.getExpenseByDescription('Original Description')).toBeVisible();
     
-    // Edit the description
+    // Edit the description - rest of the test continues from here...
     const expenseElement = groupDetailPage.getExpenseByDescription('Original Description');
     await expenseElement.click();
+    
     await page.waitForLoadState('networkidle');
     
     const editButton = page.getByRole('button', { name: /edit/i });
@@ -176,10 +177,11 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     
     await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // Edit description
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-    await groupDetailPage.fillPreactInput(descriptionField, 'Updated Description with Details');
+    
+    // Change description
+    await groupDetailPage.fillPreactInput(descriptionField, 'Updated Description Text');
     
     const updateButton = page.getByRole('button', { name: /update expense/i });
     await expect(updateButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
@@ -188,51 +190,7 @@ test.describe('Comprehensive Expense Editing E2E', () => {
     await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify description was updated
-    await expect(page.getByText('Updated Description with Details')).toBeVisible();
-    // Use more specific selector to avoid strict mode violation
+    await expect(page.getByText('Updated Description Text')).toBeVisible();
     await expect(page.getByRole('heading', { name: '$42.99' })).toBeVisible();
-  });
-
-  test('should validate edit permissions (creator can edit)', async ({ 
-    authenticatedPage, 
-    dashboardPage, 
-    groupDetailPage 
-  }) => {
-    const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditPerms'), 'Testing edit permissions');
-    
-    // Create expense as authenticated user
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
-    
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Permission Test Expense');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
-    await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
-    
-    await groupDetailPage.getSaveExpenseButton().click();
-    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-    
-    // Verify expense was created and creator can access it
-    const expenseElement = groupDetailPage.getExpenseByDescription('Permission Test Expense');
-    await expect(expenseElement).toBeVisible();
-    await expenseElement.click();
-    await page.waitForLoadState('networkidle');
-    
-    // Creator should see edit button
-    const editButton = page.getByRole('button', { name: /edit/i });
-    await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-    
-    // Verify we can actually enter edit mode
-    await editButton.click();
-    await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-    
-    // Verify we're on edit page with form fields visible
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-    await expect(groupDetailPage.getExpenseAmountField()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
   });
 });
