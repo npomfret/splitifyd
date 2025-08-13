@@ -10,22 +10,21 @@ export interface AuthenticatedFixtures {
     user: BaseUser;
   };
 }
-
-export const authenticatedTest = base.extend<AuthenticatedFixtures>({
+base.extend<AuthenticatedFixtures>({
   authenticatedPage: async ({ page, context, browser }, use, testInfo) => {
     const userPool = getUserPool();
-    
+
     // Clear any existing auth state to ensure clean test environment
     await context.clearCookies();
     await page.goto('about:blank');
-    
+
     // Claim a user from the pool (creates on-demand if needed)
     const user = await userPool.claimUser(browser);  // Pass browser instead of page
-    
+
     // Authenticate the existing user via login
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);
-    
+
     try {
       await use({ page, user });
     } finally {
