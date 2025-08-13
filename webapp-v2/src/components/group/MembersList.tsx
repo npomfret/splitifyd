@@ -1,6 +1,7 @@
 import { Card } from '../ui/Card';
 import { SidebarCard } from '../ui/SidebarCard';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { Avatar } from '../ui/Avatar';
 import type { User } from '../../../../firebase/functions/src/shared/shared-types';
 
 interface MembersListProps {
@@ -19,11 +20,12 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
     <div className="space-y-3">
       {members.map((member) => (
         <div key={member.uid} className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-medium text-purple-700">
-              {(member.displayName || member.email || 'U').charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <Avatar
+            displayName={member.displayName || member.email || 'Unknown User'}
+            userId={member.uid}
+            size="sm"
+            themeColor={member.themeColor}
+          />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
             {member.uid === createdBy && (
@@ -37,11 +39,12 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
       {members.map((member) => (
         <div key={member.uid} className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-primary-700">
-              {(member.displayName || member.email || 'U').charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <Avatar
+            displayName={member.displayName || member.email || 'Unknown User'}
+            userId={member.uid}
+            size="md"
+            themeColor={member.themeColor}
+          />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
             {member.uid === createdBy && (

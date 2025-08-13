@@ -9,6 +9,7 @@ export { ErrorState } from './ErrorState';
 export { Container } from './Container';
 export { Stack } from './Stack';
 export { Avatar } from './Avatar';
+export { UserIndicator, UserIndicatorList } from './UserIndicator';
 export { ConfirmDialog } from './ConfirmDialog';
 export { CategorySuggestionInput } from './CategorySuggestionInput';
 export { CurrencySelector } from './CurrencySelector';

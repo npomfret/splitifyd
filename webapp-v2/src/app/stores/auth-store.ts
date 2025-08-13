@@ -8,6 +8,7 @@ import { logError } from '../../utils/browser-logger';
 import { AuthErrors } from '@shared/shared-types';
 import { groupsStore } from './groups-store';
 import { groupDetailStore } from './group-detail-store';
+import { themeStore } from './theme-store';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -39,7 +40,11 @@ class AuthStoreImpl implements AuthStore {
       // Set up auth state listener
       firebaseService.onAuthStateChanged(async (firebaseUser) => {
         if (firebaseUser) {
-          userSignal.value = mapFirebaseUser(firebaseUser);
+          const user = mapFirebaseUser(firebaseUser);
+          userSignal.value = user;
+          
+          // Apply user's theme colors
+          themeStore.updateCurrentUserTheme(user);
           
           // Get and store ID token for API authentication
           try {
@@ -57,6 +62,7 @@ class AuthStoreImpl implements AuthStore {
           // Clear all stores when user becomes null (logout or session expired)
           groupsStore.reset();
           groupDetailStore.reset();
+          themeStore.reset();
         }
         loadingSignal.value = false;
         initializedSignal.value = true;
@@ -122,6 +128,7 @@ class AuthStoreImpl implements AuthStore {
       // Clear all store data on logout
       groupsStore.reset();
       groupDetailStore.reset();
+      themeStore.reset();
       
       // User state will be updated by onAuthStateChanged listener
     } catch (error: any) {

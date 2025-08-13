@@ -6,6 +6,7 @@ import { validateRegisterRequest } from './validation';
 import { getCurrentPolicyVersions } from './policy-helpers';
 import { FirestoreCollections, UserRoles, AuthErrors } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
+import { assignThemeColor } from '../user-management/assign-theme-color';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(req.body);
@@ -22,6 +23,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Get current policy versions for user acceptance
     const currentPolicyVersions = await getCurrentPolicyVersions();
 
+    // Assign theme color for new user
+    const themeColor = await assignThemeColor(userRecord.uid);
+
     // Create user document in Firestore
     const firestore = admin.firestore();
     const userDoc: any = {
@@ -30,7 +34,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       role: UserRoles.USER, // Default role for new users
       createdAt: createServerTimestamp(),
       updatedAt: createServerTimestamp(),
-      acceptedPolicies: currentPolicyVersions // Capture current policy versions
+      acceptedPolicies: currentPolicyVersions, // Capture current policy versions
+      themeColor // Add automatic theme color assignment
     };
     
     // Only set acceptance timestamps if the user actually accepted the terms

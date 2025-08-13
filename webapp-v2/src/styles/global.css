@@ -2,9 +2,186 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dynamic theme variables */
+:root {
+  /* Default theme colors (Ocean Blue) */
+  --theme-primary: #3B82F6;
+  --theme-primary-light: #3B82F620;
+  --theme-primary-dark: #60A5FA;
+  --theme-name: "Ocean Blue";
+  --theme-pattern: solid;
+  
+  /* System colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+}
+
 /* Base styles */
 @layer base {
   body {
     @apply antialiased;
+  }
+  
+  /* Ensure theme color meta is updated */
+  html {
+    color-scheme: light dark;
+  }
+}
+
+/* Theme-aware component styles */
+@layer components {
+  /* Theme-aware button variants */
+  .btn-theme-primary {
+    background-color: var(--theme-primary);
+    color: white;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .btn-theme-primary:hover {
+    background-color: var(--theme-primary-dark);
+    transform: translateY(-1px);
+  }
+  
+  .btn-theme-outline {
+    background-color: transparent;
+    color: var(--theme-primary);
+    border: 2px solid var(--theme-primary);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .btn-theme-outline:hover {
+    background-color: var(--theme-primary);
+    color: white;
+  }
+  
+  /* Theme-aware card */
+  .card-theme-accent {
+    border-left: 4px solid var(--theme-primary);
+    background: linear-gradient(to right, var(--theme-primary-light), transparent 50%);
+  }
+  
+  /* User indicator dot */
+  .user-indicator {
+    @apply w-3 h-3 rounded-full relative inline-block;
+    background-color: var(--theme-primary);
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Expense item with user theming */
+  .expense-item-themed {
+    @apply border-l-4 bg-gradient-to-r from-transparent to-transparent;
+    border-left-color: var(--theme-primary);
+    background-image: linear-gradient(to right, var(--theme-primary-light), transparent 50%);
+  }
+  
+  /* Focus states using theme color */
+  .focus-theme {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    --tw-ring-color: var(--theme-primary);
+  }
+}
+
+/* Utility classes for theme colors */
+@layer utilities {
+  /* Background utilities */
+  .bg-theme-primary {
+    background-color: var(--theme-primary);
+  }
+  
+  .bg-theme-light {
+    background-color: var(--theme-primary-light);
+  }
+  
+  /* Text utilities */
+  .text-theme-primary {
+    color: var(--theme-primary);
+  }
+  
+  /* Border utilities */
+  .border-theme-primary {
+    border-color: var(--theme-primary);
+  }
+  
+  .border-l-theme-primary {
+    border-left-color: var(--theme-primary);
+  }
+  
+  /* Ring utilities */
+  .ring-theme-primary {
+    --tw-ring-color: var(--theme-primary);
+  }
+  
+  /* Hover states */
+  .hover\:bg-theme-primary:hover {
+    background-color: var(--theme-primary);
+  }
+  
+  .hover\:text-theme-primary:hover {
+    color: var(--theme-primary);
+  }
+  
+  /* Pattern utilities for accessibility */
+  .pattern-dots {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.3) 2px, transparent 2px);
+    background-size: 8px 8px;
+  }
+  
+  .pattern-stripes {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--theme-primary),
+      var(--theme-primary) 4px,
+      rgba(255,255,255,0.2) 4px,
+      rgba(255,255,255,0.2) 8px
+    );
+  }
+  
+  .pattern-diagonal {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--theme-primary),
+      var(--theme-primary) 3px,
+      rgba(255,255,255,0.2) 3px,
+      rgba(255,255,255,0.2) 6px
+    );
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --theme-primary-light: #3B82F610; /* Reduced opacity for dark mode */
+  }
+  
+  .user-indicator {
+    border-color: #374151; /* gray-700 for dark mode */
+  }
+  
+  /* Adjust patterns for dark mode */
+  .pattern-dots {
+    background-image: radial-gradient(circle, rgba(0,0,0,0.3) 2px, transparent 2px);
+  }
+  
+  .pattern-stripes {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--theme-primary),
+      var(--theme-primary) 4px,
+      rgba(0,0,0,0.2) 4px,
+      rgba(0,0,0,0.2) 8px
+    );
+  }
+  
+  .pattern-diagonal {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--theme-primary),
+      var(--theme-primary) 3px,
+      rgba(0,0,0,0.2) 3px,
+      rgba(0,0,0,0.2) 6px
+    );
   }
 }

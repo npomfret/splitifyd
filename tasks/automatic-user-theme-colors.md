@@ -431,11 +431,11 @@ class UserThemeStoreImpl {
 4. **Dark Mode Support**: Automatic light/dark theme color variants
 5. **Consistent Branding**: Maintains app identity while adding personalization
 6. **Performance Optimized**: CSS custom properties for instant theme switching
-7. **Error Resilient**: Multiple fallback mechanisms for color assignment
+7. **Strict Assignment**: No fallbacks - theme assignment must succeed or fail cleanly
 
 **Architecture Highlights:**
 - **Atomic Assignment**: Firestore transactions prevent race conditions
-- **Hash Fallback**: Consistent colors even if transactions fail
+- **No Fallbacks**: Clean failure modes without backward compatibility cruft
 - **Signal-Based Reactivity**: Instant UI updates with Preact signals
 - **CSS Custom Properties**: Dynamic theming without style rebuilding
 - **Type Safety**: Full TypeScript coverage from backend to frontend

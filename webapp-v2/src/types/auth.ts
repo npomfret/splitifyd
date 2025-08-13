@@ -1,4 +1,5 @@
 import type { User as FirebaseUser } from 'firebase/auth';
+import type { UserThemeColor } from '@shared/shared-types';
 
 export interface User {
   uid: string;
@@ -6,6 +7,7 @@ export interface User {
   displayName: string;
   emailVerified: boolean;
   photoURL: string | null;
+  themeColor?: UserThemeColor;
 }
 
 export interface AuthState {

@@ -1,6 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import * as admin from 'firebase-admin';
+import type { ColorPattern } from '../constants/user-colors';
 
 // ========================================================================
 // Constants
@@ -140,6 +141,15 @@ export interface AppConfiguration {
 // User Types
 // ========================================================================
 
+export interface UserThemeColor {
+  light: string;
+  dark: string;
+  name: string;
+  pattern: ColorPattern;
+  assignedAt: string; // ISO timestamp
+  colorIndex: number;
+}
+
 export interface User {
   uid: string;
   email: string;
@@ -148,6 +158,7 @@ export interface User {
   termsAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
   cookiePolicyAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
   acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
+  themeColor?: UserThemeColor; // Automatic theme color assignment
 }
 
 // ========================================================================
