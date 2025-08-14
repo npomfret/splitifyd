@@ -45,9 +45,9 @@ describe('Enhanced Data Validation Tests', () => {
         .toThrow(/Date cannot be in the future/);
     });
 
-    test('should reject expenses with dates even 1 hour in the future', async () => {
+    test('should accept expenses with dates up to 24 hours in the future (timezone buffer)', async () => {
       const nearFutureDate = new Date();
-      nearFutureDate.setHours(nearFutureDate.getHours() + 1); // 1 hour in the future
+      nearFutureDate.setHours(nearFutureDate.getHours() + 23); // 23 hours in the future (within buffer)
 
       const expenseData = new ExpenseBuilder()
         .withGroupId(testGroup.id)
@@ -56,10 +56,9 @@ describe('Enhanced Data Validation Tests', () => {
         .withParticipants([users[0].uid, users[1].uid])
         .build();
 
-      // API now correctly rejects any future dates, even just 1 hour ahead
-      await expect(driver.createExpense(expenseData, users[0].token))
-        .rejects
-        .toThrow(/Date cannot be in the future/);
+      // API allows up to 24 hours in the future to account for timezone differences
+      const response = await driver.createExpense(expenseData, users[0].token);
+      expect(response.id).toBeDefined();
     });
 
     test('should accept expenses with very old dates (API currently allows)', async () => {
