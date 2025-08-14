@@ -11,6 +11,9 @@ pageTest.describe('Terms Acceptance Error Testing', () => {
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'This test may have expected registration errors' });
     
     const registerPage = new RegisterPage(page);
+    // Navigate to the register page first
+    await registerPage.navigate();
+    
     // Fill form completely
     await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
     await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-submit-${Date.now()}@example.com`);
