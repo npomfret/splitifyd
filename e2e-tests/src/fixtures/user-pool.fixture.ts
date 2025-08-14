@@ -1,6 +1,6 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/shared-types";
-import { generateShortId, generateTestEmail, generateTestUserName } from '../utils/test-helpers';
+import { generateShortId } from '../utils/test-helpers';
 import { EMULATOR_URL } from '../helpers';
 import { RegisterPage } from '../pages/register.page';
 

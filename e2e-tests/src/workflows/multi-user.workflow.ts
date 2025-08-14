@@ -1,6 +1,4 @@
 import { Page } from '@playwright/test';
-import { AuthenticationWorkflow } from './authentication.workflow';
-import { GroupWorkflow } from './group.workflow';
 import { GroupDetailPage, DashboardPage, JoinGroupPage, LoginPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import type {User as BaseUser} from "@shared/shared-types";

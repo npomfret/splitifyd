@@ -171,21 +171,6 @@ export function filterTimeSuggestions(input: string, suggestions: string[]): str
 }
 
 /**
- * Check if a time string represents noon (12:00 PM)
- */
-export function isNoonTime(timeString: string): boolean {
-  const parsed = parseTimeString(timeString);
-  return parsed !== null && parsed.hours === 12 && parsed.minutes === 0;
-}
-
-/**
- * Get default time string (12:00 PM)
- */
-export function getDefaultTime(): string {
-  return '12:00';
-}
-
-/**
  * Convert 24-hour time string to 12-hour display format
  */
 export function convertTo12HourDisplay(time24: string): string {

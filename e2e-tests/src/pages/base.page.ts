@@ -1,6 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
-import { waitForURLWithContext } from '../helpers/wait-helpers';
 
 export abstract class BasePage {
   constructor(protected page: Page) {}

@@ -124,27 +124,3 @@ export const getGroupMembers = async (
     throw error;
   }
 };
-
-/**
- * Add a member to a group
- * Future endpoint for adding members to existing groups
- */
-export const addGroupMember = async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  // TODO: Implement when needed
-  throw new Error('Add group member functionality coming soon');
-};
-
-/**
- * Remove a member from a group
- * Future endpoint for removing members from groups
- */
-export const removeGroupMember = async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  // TODO: Implement when needed
-  throw new Error('Remove group member functionality coming soon');
-};

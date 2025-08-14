@@ -2,17 +2,6 @@ import { useState, useEffect } from 'preact/hooks';
 import { logError } from '../utils/browser-logger';
 import { PolicyIds } from '@shared/shared-types';
 
-// Policy-related types
-interface PolicySummary {
-  policyName: string;
-  currentVersionHash: string;
-}
-
-interface CurrentPoliciesResponse {
-  policies: Record<string, PolicySummary>;
-  count: number;
-}
-
 interface PolicyResponse {
   id: string;
   policyName: string;
@@ -34,14 +23,6 @@ const getApiBaseUrl = () => {
   return apiBaseUrl + '/api';
 };
 
-// Policy fetch functions
-async function fetchCurrentPolicies(): Promise<CurrentPoliciesResponse> {
-  const response = await fetch(getApiBaseUrl() + '/policies/current');
-  if (!response.ok) {
-    throw new Error('Failed to fetch policies: ' + response.status);
-  }
-  return response.json();
-}
 
 async function fetchCurrentPolicy(policyId: string): Promise<PolicyResponse> {
   const response = await fetch(getApiBaseUrl() + '/policies/' + policyId + '/current');
@@ -90,45 +71,4 @@ export function usePolicy(policyId: keyof typeof PolicyIds) {
   }, [policyId]);
 
   return { policy, loading, error };
-}
-
-// Hook for fetching all policies
-export function usePolicies() {
-  const [policies, setPolicies] = useState<CurrentPoliciesResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    
-    const fetchPolicies = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const policiesData = await fetchCurrentPolicies();
-        
-        if (!cancelled) {
-          setPolicies(policiesData);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const errorMessage = err instanceof Error ? err.message : 'Failed to load policies';
-          setError(errorMessage);
-          logError('Failed to fetch policies', err as Error);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchPolicies();
-    
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { policies, loading, error };
 }

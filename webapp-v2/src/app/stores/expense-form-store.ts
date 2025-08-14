@@ -4,7 +4,7 @@ import { apiClient, ApiError } from '../apiClient';
 import { groupDetailStore } from './group-detail-store';
 import { groupsStore } from './groups-store';
 import { logWarning } from '../../utils/browser-logger';
-import { getUTCDateTime, isDateInFuture, extractTimeFromISO } from '../../utils/dateUtils';
+import { getUTCDateTime, isDateInFuture } from '../../utils/dateUtils';
 
 export interface ExpenseFormStore {
   // Form fields

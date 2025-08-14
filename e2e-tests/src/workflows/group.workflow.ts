@@ -16,31 +16,8 @@ export interface TestGroup {
  */
 export class GroupWorkflow {
   constructor(private page: Page) {}
-
-  /**
-   * Creates a test group with an authenticated user.
-   * This replaces the createTestGroupWithUser helper function.
-   */
-  async createGroupWithUser(
-    groupName: string = generateTestGroupName(),
-    groupDescription?: string
-  ): Promise<TestGroup> {
-    // Create and login user first
-    const authWorkflow = new AuthenticationWorkflow(this.page);
-    const user = await authWorkflow.createAndLoginTestUser();
-    
-    // Create group using workflow
-    await this.createGroupAndNavigate(groupName, groupDescription);
-    
-    return {
-      name: groupName,
-      description: groupDescription,
-      user
-    };
-  }
-
-  /**
-   * Creates a group for an already authenticated user.
+    /**
+     * Creates a group for an already authenticated user.
    * Use this when you need to create multiple groups for the same user.
    */
   async createGroup(

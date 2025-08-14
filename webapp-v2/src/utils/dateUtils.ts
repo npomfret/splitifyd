@@ -1,29 +1,4 @@
 /**
- * Date utilities for UTC-only client-server communication
- * 
- * IMPORTANT: All dates sent to the server MUST be in UTC format (ending with 'Z')
- * The UI should display dates in the user's local timezone
- */
-
-/**
- * Convert a Date object to UTC ISO string for server communication
- * @param date - JavaScript Date object
- * @returns UTC ISO string (always ends with 'Z')
- */
-export const toUTCString = (date: Date): string => {
-  return date.toISOString(); // toISOString() always returns UTC
-};
-
-/**
- * Parse UTC string from server to local Date object
- * @param utcString - UTC ISO string from server
- * @returns JavaScript Date object (in local timezone for display)
- */
-export const fromUTCString = (utcString: string): Date => {
-  return new Date(utcString);
-};
-
-/**
  * Format UTC date string for local display with date and time
  * @param utcString - UTC ISO string from server
  * @returns Localized date and time string
@@ -41,16 +16,6 @@ export const formatLocalDateTime = (utcString: string): string => {
 export const formatLocalDate = (utcString: string): string => {
   const date = new Date(utcString);
   return date.toLocaleDateString();
-};
-
-/**
- * Format UTC date string for local display (time only)
- * @param utcString - UTC ISO string from server
- * @returns Localized time string
- */
-export const formatLocalTime = (utcString: string): string => {
-  const date = new Date(utcString);
-  return date.toLocaleTimeString();
 };
 
 /**
@@ -152,96 +117,6 @@ export const isDateInFuture = (dateString: string): boolean => {
   
   // Compare dates
   return inputDate > today;
-};
-
-/**
- * Get today's date at UTC midnight
- * @returns UTC ISO string for today at midnight UTC
- */
-export const getTodayUTCMidnight = (): string => {
-  const now = new Date();
-  const date = new Date(Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-    0, 0, 0, 0
-  ));
-  return date.toISOString();
-};
-
-/**
- * Convert a local Date to UTC date at midnight
- * @param localDate - JavaScript Date object in local timezone
- * @returns UTC ISO string at midnight UTC for that date
- */
-export const localDateToUTCMidnight = (localDate: Date): string => {
-  const date = new Date(Date.UTC(
-    localDate.getFullYear(),
-    localDate.getMonth(),
-    localDate.getDate(),
-    0, 0, 0, 0
-  ));
-  return date.toISOString();
-};
-
-/**
- * Check if a date string is in UTC format
- * @param dateString - Date string to check
- * @returns true if the string ends with 'Z' or '+00:00'
- */
-export const isUTCFormat = (dateString: string): boolean => {
-  return /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]00:00)$/.test(dateString);
-};
-
-/**
- * Get a relative time string (e.g., "2 hours ago")
- * @param utcString - UTC ISO string from server
- * @returns Relative time string
- */
-export const getRelativeTime = (utcString: string): string => {
-  const date = new Date(utcString);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
-  
-  return date.toLocaleDateString();
-};
-
-/**
- * Format date for display with custom options
- * @param utcString - UTC ISO string from server
- * @param options - Intl.DateTimeFormatOptions for customization
- * @returns Formatted date string
- */
-export const formatDateCustom = (
-  utcString: string,
-  options: Intl.DateTimeFormatOptions = {}
-): string => {
-  const date = new Date(utcString);
-  return date.toLocaleDateString(undefined, options);
-};
-
-/**
- * Get timezone offset string for display
- * @returns Timezone offset string (e.g., "GMT-5" or "GMT+2")
- */
-export const getTimezoneOffset = (): string => {
-  const offset = new Date().getTimezoneOffset();
-  const hours = Math.floor(Math.abs(offset) / 60);
-  const sign = offset <= 0 ? '+' : '-';
-  return `GMT${sign}${hours}`;
-};
-
-/**
- * Get the user's timezone name
- * @returns IANA timezone name (e.g., "America/New_York")
- */
-export const getTimezoneName = (): string => {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone;
 };
 
 /**
