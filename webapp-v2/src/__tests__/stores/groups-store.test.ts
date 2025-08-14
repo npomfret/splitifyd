@@ -17,14 +17,7 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     balance: {
-      userBalance: {
-        userId: 'test-user',
-        netBalance: 0,
-        owes: {},
-        owedBy: {}
-      },
-      totalOwed: 0,
-      totalOwing: 0
+      balancesByCurrency: {}
     },
     lastActivity: 'Just created',
     lastActivityRaw: new Date().toISOString(),
@@ -61,14 +54,7 @@ describe('GroupsStore', () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           balance: {
-            userBalance: {
-              userId: 'test-user',
-              netBalance: 0,
-              owes: {},
-              owedBy: {}
-            },
-            totalOwed: 0,
-            totalOwing: 0
+            balancesByCurrency: {}
           },
           lastActivity: 'Just created',
           lastActivityRaw: new Date().toISOString()
@@ -81,14 +67,14 @@ describe('GroupsStore', () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           balance: {
-            userBalance: {
-              userId: 'test-user',
-              netBalance: 50,
-              owes: {},
-              owedBy: { 'user-2': 50 }
-            },
-            totalOwed: 50,
-            totalOwing: 0
+            balancesByCurrency: {
+              USD: {
+                currency: 'USD',
+                netBalance: 50,
+                totalOwed: 50,
+                totalOwing: 0
+              }
+            }
           },
           lastActivity: '2 hours ago',
           lastActivityRaw: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()

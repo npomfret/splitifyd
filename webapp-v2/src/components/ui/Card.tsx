@@ -7,6 +7,7 @@ interface CardProps {
   onClick?: () => void;
   className?: string;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  'data-testid'?: string;
 }
 
 export function Card({
@@ -15,7 +16,8 @@ export function Card({
   children,
   onClick,
   className = '',
-  padding = 'md'
+  padding = 'md',
+  'data-testid': dataTestId
 }: CardProps) {
   const paddingClasses = {
     none: 'p-0',
@@ -54,6 +56,7 @@ export function Card({
         onClick={onClick}
         role="button"
         tabIndex={0}
+        data-testid={dataTestId}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -66,5 +69,5 @@ export function Card({
     );
   }
 
-  return <div className={baseClasses}>{content}</div>;
+  return <div className={baseClasses} data-testid={dataTestId}>{content}</div>;
 }

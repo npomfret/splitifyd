@@ -65,13 +65,46 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         memberIds
     });
 
-    const userBalances: Record<string, UserBalance> = {};
+    // Track balances per currency
+    const balancesByCurrency: Record<string, Record<string, UserBalance>> = {};
     
-    // Determine currency from the first expense (all expenses should have the same currency)
-    const currency = expenses.length > 0 ? expenses[0].currency : 'USD';
+    // Group expenses by currency
+    const expensesByCurrency = expenses.reduce((acc, expense) => {
+        const currency = expense.currency || 'USD';
+        if (!acc[currency]) {
+            acc[currency] = [];
+        }
+        acc[currency].push(expense);
+        return acc;
+    }, {} as Record<string, any[]>);
+    
+    // Group settlements by currency
+    const settlementsByCurrency = settlements.reduce((acc, settlement) => {
+        const currency = settlement.currency || 'USD';
+        if (!acc[currency]) {
+            acc[currency] = [];
+        }
+        acc[currency].push(settlement);
+        return acc;
+    }, {} as Record<string, any[]>);
+    
+    // Get all unique currencies
+    const allCurrencies = new Set([
+        ...Object.keys(expensesByCurrency),
+        ...Object.keys(settlementsByCurrency)
+    ]);
 
-    for (const expense of expenses) {
-        const payerId = expense.paidBy;
+    // Process expenses for each currency
+    for (const currency of allCurrencies) {
+        if (!balancesByCurrency[currency]) {
+            balancesByCurrency[currency] = {};
+        }
+        
+        const currencyExpenses = expensesByCurrency[currency] || [];
+        const userBalances = balancesByCurrency[currency];
+        
+        for (const expense of currencyExpenses) {
+            const payerId = expense.paidBy;
         
         logger.info('[BalanceCalculator] Processing expense', {
             expenseId: expense.id,
@@ -115,12 +148,15 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
                 userBalances[payerId].owedBy[splitUserId] += split.amount;
             }
         }
-    }
+        }
 
-    for (const settlement of settlements) {
-        const payerId = settlement.payerId;
-        const payeeId = settlement.payeeId;
-        const amount = settlement.amount;
+        // Process settlements for this currency
+        const currencySettlements = settlementsByCurrency[currency] || [];
+        
+        for (const settlement of currencySettlements) {
+            const payerId = settlement.payerId;
+            const payeeId = settlement.payeeId;
+            const amount = settlement.amount;
         
         logger.info('[BalanceCalculator] Processing settlement', {
             settlementId: settlement.id,
@@ -186,39 +222,54 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
             }
             userBalances[payerId].owedBy[payeeId] += amount;
         }
+        }
     }
 
-    const netBalances: Record<string, number> = {};
-    for (const userId in userBalances) {
-        const user = userBalances[userId];
-        let netBalance = 0;
-        
-        for (const amount of Object.values(user.owes)) {
-            netBalance -= amount;
+    // Calculate net balances for each currency
+    for (const currency of allCurrencies) {
+        const userBalances = balancesByCurrency[currency];
+        for (const userId in userBalances) {
+            const user = userBalances[userId];
+            let netBalance = 0;
+            
+            for (const amount of Object.values(user.owes)) {
+                netBalance -= amount;
+            }
+            
+            for (const amount of Object.values(user.owedBy)) {
+                netBalance += amount;
+            }
+            
+            userBalances[userId].netBalance = netBalance;
         }
-        
-        for (const amount of Object.values(user.owedBy)) {
-            netBalance += amount;
-        }
-        
-        netBalances[userId] = netBalance;
-        userBalances[userId].netBalance = netBalance;
     }
 
-    logger.info('[BalanceCalculator] Final userBalances after settlements', { userBalances });
+    // For the legacy interface, create empty balances structure
+    const userBalances: Record<string, UserBalance> = {};
+    
+    logger.info('[BalanceCalculator] Final balances by currency', { balancesByCurrency });
     
     const userNames = new Map<string, string>();
     for (const [userId, profile] of memberProfiles) {
         userNames.set(userId, profile.displayName);
     }
     
-    const simplifiedDebts = simplifyDebts(userBalances, currency);
+    // Create simplified debts for each currency
+    const allSimplifiedDebts: any[] = [];
+    for (const currency of allCurrencies) {
+        const currencyBalances = balancesByCurrency[currency];
+        if (currencyBalances) {
+            const currencyDebts = simplifyDebts(currencyBalances, currency);
+            allSimplifiedDebts.push(...currencyDebts);
+        }
+    }
 
     return {
         groupId,
-        userBalances,
-        simplifiedDebts,
-        lastUpdated: Timestamp.now()
+        userBalances, // Keep for backward compatibility
+        simplifiedDebts: allSimplifiedDebts,
+        lastUpdated: Timestamp.now(),
+        balancesByCurrency // Add new field for per-currency balances
     };
 }
 

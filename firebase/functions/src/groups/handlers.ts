@@ -14,7 +14,7 @@ import {
   Group,
   GroupWithBalance,
 } from '../types/group-types';
-import { UserBalance, FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
@@ -62,34 +62,30 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
 const addComputedFields = async (group: Group, userId: string): Promise<Group> => {
   // Calculate real balance for the user
   const groupBalances = await calculateGroupBalances(group.id);
-  const userBalanceData = groupBalances.userBalances[userId];
   
   // Calculate expense metadata on-demand
   const expenseMetadata = await calculateExpenseMetadata(group.id);
   
-  let userBalance: UserBalance | null = null;
-  let totalOwed = 0;
-  let totalOwing = 0;
-  
-  if (userBalanceData) {
-    userBalance = {
-      userId: userId,
-      netBalance: userBalanceData.netBalance,
-      owes: userBalanceData.owes,
-      owedBy: userBalanceData.owedBy
-    };
-    
-    // Calculate totals from user's balance data
-    totalOwed = Object.values(userBalanceData.owedBy as Record<string, number>).reduce((sum: number, amount: number) => sum + amount, 0);
-    totalOwing = Object.values(userBalanceData.owes as Record<string, number>).reduce((sum: number, amount: number) => sum + amount, 0);
+  // Calculate currency-specific balances
+  const balancesByCurrency: Record<string, any> = {};
+  if (groupBalances.balancesByCurrency) {
+    for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
+      const currencyUserBalance = currencyBalances[userId];
+      if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+        balancesByCurrency[currency] = {
+          currency,
+          netBalance: currencyUserBalance.netBalance,
+          totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+          totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+        };
+      }
+    }
   }
 
   return {
     ...group,
     balance: {
-      userBalance,
-      totalOwed,
-      totalOwing
+      balancesByCurrency,
     },
     lastActivity: expenseMetadata.lastExpenseTime ? 
       `Last expense ${expenseMetadata.lastExpenseTime.toLocaleDateString()}` : 
@@ -226,14 +222,27 @@ export const getGroup = async (
 
   // Calculate balance information on-demand
   const groupBalances = await calculateGroupBalances(groupId);
-  const userBalance = groupBalances.userBalances[userId] || null;
+  
+  // Calculate currency-specific balances
+  const balancesByCurrency: Record<string, any> = {};
+  if (groupBalances.balancesByCurrency) {
+    for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
+      const currencyUserBalance = currencyBalances[userId];
+      if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+        balancesByCurrency[currency] = {
+          currency,
+          netBalance: currencyUserBalance.netBalance,
+          totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+          totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+        };
+      }
+    }
+  }
   
   const groupWithBalance: GroupWithBalance = {
     ...group,
     balance: {
-      userBalance: userBalance,
-      totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
-      totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
+      balancesByCurrency,
     },
   };
 
@@ -380,7 +389,21 @@ export const listGroups = async (
       
       // Calculate balance for each group on-demand
       const groupBalances = await calculateGroupBalances(group.id);
-      const userBalance = groupBalances.userBalances[userId] || null;
+      // Calculate currency-specific balances
+      const balancesByCurrency: Record<string, any> = {};
+      if (groupBalances.balancesByCurrency) {
+        for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
+          const currencyUserBalance = currencyBalances[userId];
+          if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+            balancesByCurrency[currency] = {
+              currency,
+              netBalance: currencyUserBalance.netBalance,
+              totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+              totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+            };
+          }
+        }
+      }
 
       // Calculate expense metadata for each group
       const expenseMetadata = await calculateExpenseMetadata(group.id);
@@ -392,9 +415,7 @@ export const listGroups = async (
       return {
         ...group,
         balance: {
-          userBalance: userBalance,
-          totalOwed: userBalance && userBalance.netBalance > 0 ? userBalance.netBalance : 0,
-          totalOwing: userBalance && userBalance.netBalance < 0 ? Math.abs(userBalance.netBalance) : 0,
+          balancesByCurrency,
         },
         lastActivity,
         lastActivityRaw: lastActivityDate.toISOString(),

@@ -44,9 +44,7 @@ class JoinGroupStore {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         balance: {
-          userBalance: null,
-          totalOwed: 0,
-          totalOwing: 0
+          balancesByCurrency: {}
         },
         lastActivity: 'Never',
         lastActivityRaw: new Date().toISOString()
