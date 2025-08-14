@@ -2,7 +2,7 @@ import { simplifyDebts, UserBalance } from '../src/utils/debtSimplifier';
 
 describe('simplifyDebts', () => {
     it('should return empty array for empty balances', () => {
-        const result = simplifyDebts({});
+        const result = simplifyDebts({}, 'USD');
         expect(result).toEqual([]);
     });
 
@@ -11,7 +11,7 @@ describe('simplifyDebts', () => {
             user1: { userId: 'user1', owes: {}, owedBy: {}, netBalance: 0 },
             user2: { userId: 'user2', owes: {}, owedBy: {}, netBalance: 0 }
         };
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         expect(result).toEqual([]);
     });
 
@@ -31,13 +31,14 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
             from: { userId: 'user1' },
             to: { userId: 'user2' },
-            amount: 50
+            amount: 50,
+            currency: 'USD'
         });
     });
 
@@ -57,13 +58,14 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
             from: { userId: 'user1' },
             to: { userId: 'user2' },
-            amount: 20
+            amount: 20,
+            currency: 'USD'
         });
     });
 
@@ -89,7 +91,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         
         expect(result).toHaveLength(0);
     });
@@ -122,7 +124,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         
         // Calculate net balances:
         // Alice: owes 90 (40+30+20), owed 30 = net -60
@@ -140,7 +142,9 @@ describe('simplifyDebts', () => {
             expect(transaction).toHaveProperty('from');
             expect(transaction).toHaveProperty('to');
             expect(transaction).toHaveProperty('amount');
+            expect(transaction).toHaveProperty('currency');
             expect(transaction.amount).toBeGreaterThan(0);
+            expect(transaction.currency).toBe('USD');
         });
     });
 
@@ -160,7 +164,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         expect(result).toHaveLength(0);
     });
 
@@ -192,7 +196,7 @@ describe('simplifyDebts', () => {
             }
         };
         
-        const result = simplifyDebts(balances);
+        const result = simplifyDebts(balances, 'USD');
         
         expect(result).toHaveLength(2);
         
@@ -203,9 +207,11 @@ describe('simplifyDebts', () => {
         expect(sortedResult[0].from.userId).toBe('user1');
         expect(sortedResult[0].to.userId).toBe('user3');
         expect(sortedResult[0].amount).toBe(50);
+        expect(sortedResult[0].currency).toBe('USD');
         
         expect(sortedResult[1].from.userId).toBe('user1');
         expect(sortedResult[1].to.userId).toBe('user4');
         expect(sortedResult[1].amount).toBe(50);
+        expect(sortedResult[1].currency).toBe('USD');
     });
 });
