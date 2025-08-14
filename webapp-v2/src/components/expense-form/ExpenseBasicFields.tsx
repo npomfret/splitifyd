@@ -1,8 +1,9 @@
-import { Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput } from '../ui';
+import { Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput, Button } from '../ui';
 import { Stack } from '../ui/Stack';
 import { ExpenseCategory } from '@shared/shared-types';
 import { CurrencyService } from '../../app/services/currencyService';
 import { formatCurrency } from '../../utils/currency';
+import { getToday, getYesterday, getThisMorning, getLastNight } from '../../utils/dateUtils';
 
 interface ExpenseBasicFieldsProps {
   description: string;
@@ -144,6 +145,66 @@ export function ExpenseBasicFields({
                 {validationErrors.date}
               </p>
             )}
+            
+            {/* Convenience Date Buttons */}
+            <div className="mt-2 flex flex-wrap gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  const today = getToday();
+                  const dateStr = today.toISOString().split('T')[0];
+                  updateField('date', dateStr);
+                }}
+                className="text-xs"
+              >
+                Today
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  const yesterday = getYesterday();
+                  const dateStr = yesterday.toISOString().split('T')[0];
+                  updateField('date', dateStr);
+                }}
+                className="text-xs"
+              >
+                Yesterday
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  const thisMorning = getThisMorning();
+                  const dateStr = thisMorning.toISOString().split('T')[0];
+                  const timeStr = '09:00';
+                  updateField('date', dateStr);
+                  updateField('time', timeStr);
+                }}
+                className="text-xs"
+              >
+                This Morning
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  const lastNight = getLastNight();
+                  const dateStr = lastNight.toISOString().split('T')[0];
+                  const timeStr = '20:00';
+                  updateField('date', dateStr);
+                  updateField('time', timeStr);
+                }}
+                className="text-xs"
+              >
+                Last Night
+              </Button>
+            </div>
           </div>
 
           {/* Time */}

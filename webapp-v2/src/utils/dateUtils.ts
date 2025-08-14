@@ -154,3 +154,30 @@ export function formatDistanceToNow(date: Date): string {
   const diffInYears = Math.floor(diffInMonths / 12);
   return `${diffInYears} year${diffInYears !== 1 ? 's' : ''} ago`;
 }
+
+/**
+ * Convenience date functions for quick date selection
+ */
+
+export const getToday = (): Date => {
+  return new Date();
+};
+
+export const getYesterday = (): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return date;
+};
+
+export const getThisMorning = (): Date => {
+  const date = new Date();
+  date.setHours(9, 0, 0, 0);
+  return date;
+};
+
+export const getLastNight = (): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  date.setHours(20, 0, 0, 0);
+  return date;
+};

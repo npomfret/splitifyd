@@ -77,8 +77,25 @@ To speed up the process of adding and editing expenses, this feature introduces 
 
 ## Implementation Status
 
-- [ ] Date utility functions created
-- [ ] ExpenseFormPage updated with convenience buttons
-- [ ] State management integrated
-- [ ] E2E tests written and passing
-- [ ] Manual testing completed
+- [x] Date utility functions created
+- [x] ExpenseFormPage updated with convenience buttons
+- [x] State management integrated
+- [x] E2E tests written and passing
+- [x] Manual testing completed
+
+## Implementation Date
+
+**Completed:** August 14, 2025
+
+## Summary
+
+Successfully implemented convenience date selection buttons below the date picker in the expense form. The feature includes:
+
+- **Four convenience buttons**: Today, Yesterday, This Morning, Last Night
+- **Native JavaScript Date API** for calculations (no external libraries)
+- **Ghost button styling** using existing Tailwind CSS patterns
+- **Integration with existing form state** through expense-form-store
+- **Comprehensive E2E tests** following project guidelines
+- **Time setting for morning/night buttons** (9:00 AM for morning, 8:00 PM for night)
+
+The implementation provides a significant UX improvement by reducing the number of clicks required to enter recent expenses, which is the most common use case for the application.
