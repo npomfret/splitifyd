@@ -241,34 +241,38 @@ export class GroupDetailPage extends BasePage {
 
   /**
    * Waits for the group to have the expected number of members.
-   * Tests the current value, refreshes if incorrect, repeats until it matches or times out.
+   * Relies on real-time updates to show the correct member count.
    */
-  async waitForMemberCount(expectedCount: number, timeout = 2000): Promise<void> {
-    const startTime = Date.now();
-    const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
-    
-    while (Date.now() - startTime < timeout) {
-      try {
-        // Check if the expected member count is already visible
-        const memberCountElement = this.page.getByText(expectedText);
-        const isVisible = await memberCountElement.isVisible();
-        
-        if (isVisible) {
-          // Success! The count matches
-          return;
-        }
-      } catch (error) {
-        // Element not found, continue to refresh
-      }
-      
-      // The count doesn't match, refresh the page
-      await this.page.reload();
-      await this.page.waitForLoadState('networkidle');
+  async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
+    // Assert we're on a group page before waiting for member count
+    const currentUrl = this.page.url();
+    if (!currentUrl.includes('/groups/') && !currentUrl.includes('/group/')) {
+      throw new Error(
+        `waitForMemberCount called but not on a group page. Current URL: ${currentUrl}`
+      );
     }
     
-    // Final attempt - throw error if still not matching after timeout
+    // First, wait for any loading spinner in the Members section to disappear
+    const membersSection = this.page.locator('text=Members').locator('..');
+    const loadingSpinner = membersSection.locator('.animate-spin, [role="status"]');
+    const spinnerCount = await loadingSpinner.count();
+    if (spinnerCount > 0) {
+      await expect(loadingSpinner.first()).not.toBeVisible({ timeout });
+    }
+    
+    const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
+    
+    // Wait for the expected member count to appear (real-time updates should make it visible)
     await expect(this.page.getByText(expectedText))
-      .toBeVisible({ timeout: 1000 });
+      .toBeVisible({ timeout });
+    
+    // Double-check we're still on the group page after waiting
+    const finalUrl = this.page.url();
+    if (!finalUrl.includes('/groups/') && !finalUrl.includes('/group/')) {
+      throw new Error(
+        `Navigation changed during waitForMemberCount. Now on: ${finalUrl}`
+      );
+    }
   }
 
   /**
@@ -309,7 +313,16 @@ export class GroupDetailPage extends BasePage {
     // Wait for loading to disappear
     await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 1000 });
     
-    await this.page.waitForLoadState('networkidle');
+    // Wait for the members section to stop loading
+    // Check if there's a loading spinner in the Members section
+    const membersSection = this.page.locator('text=Members').locator('..');
+    const loadingSpinner = membersSection.locator('.animate-spin, [role="status"]');
+    
+    // Wait for spinner to disappear if it exists
+    const spinnerCount = await loadingSpinner.count();
+    if (spinnerCount > 0) {
+      await expect(loadingSpinner.first()).not.toBeVisible({ timeout: 5000 });
+    }
   }
 
   async waitForBalanceUpdate(): Promise<void> {
@@ -445,32 +458,104 @@ export class GroupDetailPage extends BasePage {
    * This replaces manual reload() calls scattered throughout multi-user tests.
    * Auto-navigates users to the group page if they're not already there.
    */
-  async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any }>, expectedMemberCount: number, groupId: string): Promise<void> {
+  async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any; userName?: string }>, expectedMemberCount: number, groupId: string): Promise<void> {
     const targetGroupUrl = `/groups/${groupId}`;
     
     // Navigate all users to the specific group
     for (let i = 0; i < pages.length; i++) {
-      const { page } = pages[i];
+      const { page, userName } = pages[i];
+      const userIdentifier = userName || `User ${i + 1}`;
+      
       await page.goto(targetGroupUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      
+      // Check current URL after navigation
+      const currentUrl = page.url();
+      
+      // Check if we got redirected to 404
+      if (currentUrl.includes('/404')) {
+        throw new Error(`${userIdentifier} was redirected to 404 page. Group access denied or group doesn't exist.`);
+      }
+      
+      // If not on 404, check if we're on the dashboard (another redirect case)
+      if (currentUrl.includes('/dashboard')) {
+        throw new Error(`${userIdentifier} was redirected to dashboard. Expected ${targetGroupUrl}, but got: ${currentUrl}`);
+      }
       
       // Assert we're actually on the group page
-      const currentUrl = page.url();
       if (!currentUrl.includes(targetGroupUrl)) {
-        throw new Error(
-          `Navigation failed for user ${i + 1}. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`
-        );
+        // Take screenshot before throwing error
+        const sanitizedUserName = userName ? userName.replace(/\s+/g, '-') : `user-${i + 1}`;
+        await page.screenshot({ 
+          path: `playwright-report/ad-hoc/navigation-failure-${sanitizedUserName}-${Date.now()}.png`,
+          fullPage: false 
+        });
+        throw new Error(`Navigation failed for ${userIdentifier}. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
       }
     }
     
     // Wait for all pages to show correct member count
-    for (const { groupDetailPage } of pages) {
-      await groupDetailPage.waitForMemberCount(expectedMemberCount);
+    for (let i = 0; i < pages.length; i++) {
+      const { page, groupDetailPage, userName } = pages[i];
+      const userIdentifier = userName || `User ${i + 1}`;
+      
+      // Verify user is still on the group page before checking member count
+      const currentUrl = page.url();
+      if (!currentUrl.includes(targetGroupUrl)) {
+        throw new Error(`${userIdentifier} navigated away from group before member count check. Expected: ${targetGroupUrl}, Got: ${currentUrl}`);
+      }
+      
+      try {
+        await groupDetailPage.waitForMemberCount(expectedMemberCount);
+      } catch (error) {
+        throw new Error(`${userIdentifier} failed waiting for member count: ${error}`);
+      }
+      
+      // Verify still on group page after member count check
+      const afterMemberCountUrl = page.url();
+      if (!afterMemberCountUrl.includes(targetGroupUrl)) {
+        throw new Error(`${userIdentifier} navigated away during member count wait. Expected: ${targetGroupUrl}, Got: ${afterMemberCountUrl}`);
+      }
     }
     
     // Wait for balances section to load on all pages
-    for (const { groupDetailPage } of pages) {
-      await groupDetailPage.waitForBalancesToLoad(groupId);
+    for (let i = 0; i < pages.length; i++) {
+      const { page, groupDetailPage, userName } = pages[i];
+      const userIdentifier = userName || `User ${i + 1}`;
+      
+      // Verify user is still on the group page before checking balances
+      const currentUrl = page.url();
+      if (!currentUrl.includes(targetGroupUrl)) {
+        // Take screenshot before throwing error
+        const sanitizedUserName = userName ? userName.replace(/\s+/g, '-') : `user-${i + 1}`;
+        await page.screenshot({ 
+          path: `playwright-report/ad-hoc/balance-check-wrong-page-${sanitizedUserName}-${Date.now()}.png`,
+          fullPage: false 
+        });
+        throw new Error(
+          `${userIdentifier} not on group page before balance check. Expected: ${targetGroupUrl}, Got: ${currentUrl}`
+        );
+      }
+      
+      try {
+        await groupDetailPage.waitForBalancesToLoad(groupId);
+      } catch (error) {
+        // Take screenshot on failure
+        const sanitizedUserName = userName ? userName.replace(/\s+/g, '-') : `user-${i + 1}`;
+        await page.screenshot({ 
+          path: `playwright-report/ad-hoc/balance-load-failure-${sanitizedUserName}-${Date.now()}.png`,
+          fullPage: false 
+        });
+        throw new Error(`${userIdentifier} failed waiting for balances to load: ${error}`);
+      }
+      
+      // Final check that user is still on the group page
+      const finalUrl = page.url();
+      if (!finalUrl.includes(targetGroupUrl)) {
+        throw new Error(
+          `${userIdentifier} navigated away during balance wait. Expected: ${targetGroupUrl}, Got: ${finalUrl}`
+        );
+      }
     }
   }
 
@@ -528,7 +613,7 @@ export class GroupDetailPage extends BasePage {
    */
   async addExpenseAndSync(
     expense: ExpenseData, 
-    pages: Array<{ page: any; groupDetailPage: any }>,
+    pages: Array<{ page: any; groupDetailPage: any; userName?: string }>,
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {
@@ -546,7 +631,7 @@ export class GroupDetailPage extends BasePage {
       amount: string;
       note: string;
     },
-    pages: Array<{ page: any; groupDetailPage: any }>,
+    pages: Array<{ page: any; groupDetailPage: any; userName?: string }>,
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {

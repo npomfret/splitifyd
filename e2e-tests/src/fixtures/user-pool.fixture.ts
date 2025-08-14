@@ -94,9 +94,10 @@ export class UserPool {
    * The temporary context is closed after user creation to avoid empty browser windows.
    */
   private async createUser(browser: any, prefix: string): Promise<BaseUser> {
+    // Use the same ID for both display name and email so they match
     const uniqueId = generateShortId();
-    const displayName = generateTestUserName('u');
-    const email = generateTestEmail(prefix);
+    const displayName = `${prefix} ${uniqueId}`;
+    const email = `${prefix}-${uniqueId}@example.com`;
     const password = 'TestPassword123!';
 
     // Create a temporary context and page for user registration

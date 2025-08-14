@@ -103,9 +103,9 @@ test.describe('Three User Settlement Management', () => {
     // - User2 owes: $40 to User1
     // - User3 owes: $40 to User1
     const allPages = [
-      { page, groupDetailPage },
-      { page: page2, groupDetailPage: groupDetailPage2 },
-      { page: page3, groupDetailPage: groupDetailPage3 }
+      { page, groupDetailPage, userName: user1.displayName },
+      { page: page2, groupDetailPage: groupDetailPage2, userName: user2.displayName },
+      { page: page3, groupDetailPage: groupDetailPage3, userName: user3.displayName }
     ];
     
     await groupDetailPage.addExpenseAndSync({
