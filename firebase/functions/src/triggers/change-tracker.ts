@@ -171,16 +171,22 @@ export const trackSettlementChanges = onDocumentWritten(
         return;
       }
       
-      // Get affected users (from and to)
+      // Get affected users (payerId and payeeId for API settlements, or from/to for legacy)
       const affectedUsers = new Set<string>();
       
       if (afterData) {
-        affectedUsers.add(afterData.from);
-        affectedUsers.add(afterData.to);
+        // Support both new API format (payerId/payeeId) and legacy format (from/to)
+        const payer = afterData.payerId || afterData.from;
+        const payee = afterData.payeeId || afterData.to;
+        if (payer) affectedUsers.add(payer);
+        if (payee) affectedUsers.add(payee);
       }
       if (beforeData) {
-        affectedUsers.add(beforeData.from);
-        affectedUsers.add(beforeData.to);
+        // Support both new API format (payerId/payeeId) and legacy format (from/to)
+        const payer = beforeData.payerId || beforeData.from;
+        const payee = beforeData.payeeId || beforeData.to;
+        if (payer) affectedUsers.add(payer);
+        if (payee) affectedUsers.add(payee);
       }
       
       // Create change document
