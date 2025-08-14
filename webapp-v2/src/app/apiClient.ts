@@ -178,8 +178,12 @@ const RETRY_CONFIG = {
   backoffMultiplier: 2
 };
 
-// Helper functions for retry logic
-function isRetryableMethod(method: string): boolean {
+// Helper functions for retry logic  
+function isRetryableMethod(method: string, config: RequestConfig): boolean {
+  // If skipRetry is explicitly set to false, this specific request opts into retries
+  if (config.skipRetry === false) {
+    return true;
+  }
   return RETRY_CONFIG.retryableHttpMethods.includes(method as any);
 }
 
@@ -523,7 +527,7 @@ export class ApiClient {
       if (error instanceof ApiError) {
         if (!config.skipRetry && 
             shouldRetryError(error) && 
-            isRetryableMethod(options.method) && 
+            isRetryableMethod(options.method, config) && 
             attemptNumber < RETRY_CONFIG.maxAttempts) {
           
           const delayMs = calculateRetryDelay(attemptNumber);
@@ -569,7 +573,7 @@ export class ApiClient {
       // Check if we should retry this network error
       if (!config.skipRetry && 
           shouldRetryError(networkError) && 
-          isRetryableMethod(options.method) && 
+          isRetryableMethod(options.method, config) && 
           attemptNumber < RETRY_CONFIG.maxAttempts) {
         
         const delayMs = calculateRetryDelay(attemptNumber);
@@ -768,7 +772,9 @@ export class ApiClient {
     const response = await this.request({
       endpoint: '/groups/join',
       method: 'POST',
-      body: { linkId }
+      body: { linkId },
+      // Override: This POST is safe to retry because joining a group is idempotent
+      skipRetry: false  
     });
     
     // Transform the response to match Group interface
