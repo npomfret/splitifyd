@@ -1221,12 +1221,32 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Open settlement history modal and verify content
+   */
+  async openHistoryAndVerifySettlement(settlementText: string | RegExp): Promise<void> {
+    const showHistoryButton = this.getShowHistoryButton();
+    await showHistoryButton.click();
+    
+    // Wait for settlement history modal content to be rendered and verify it's visible
+    await expect(this.page.locator('div').filter({ hasText: settlementText }).first()).toBeVisible();
+  }
+
+  /**
    * Get balances section with specific context (for multi-page tests)
    */
   getBalancesSectionByContext() {
     return this.page.locator('.bg-white').filter({
       has: this.page.getByRole('heading', { name: 'Balances' })
     }).first();
+  }
+
+  /**
+   * Verify debt relationship and amount in balances section
+   */
+  async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
+    const balancesSection = this.getBalancesSectionByContext();
+    await expect(balancesSection.getByText(`${debtorName} → ${creditorName}`)).toBeVisible();
+    await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible();
   }
 
   /**

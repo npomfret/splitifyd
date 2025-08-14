@@ -45,8 +45,10 @@ test.describe('Freeform Categories E2E', () => {
     const categoryValue = await categoryInput.inputValue();
     expect(categoryValue).toBe('food');
     
-    // Submit expense
-    await groupDetailPage.getSaveExpenseButton().click();
+    // Wait for button to be enabled and submit expense
+    const saveButton = groupDetailPage.getSaveExpenseButton();
+    await expect(saveButton).toBeEnabled({ timeout: 3000 });
+    await saveButton.click();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created
@@ -73,7 +75,7 @@ test.describe('Freeform Categories E2E', () => {
     
     // Fill basic expense details
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Team building activity');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '120.00');
+    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '120');
     
     // Test custom category input
     const customCategory = 'Corporate Team Building';
@@ -84,8 +86,10 @@ test.describe('Freeform Categories E2E', () => {
     const categoryValue = await categoryInput.inputValue();
     expect(categoryValue).toBe(customCategory);
     
-    // Submit expense
-    await groupDetailPage.getSaveExpenseButton().click();
+    // Wait for button to be enabled and submit expense
+    const saveButton = groupDetailPage.getSaveExpenseButton();
+    await expect(saveButton).toBeEnabled();
+    await saveButton.click();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created with custom category

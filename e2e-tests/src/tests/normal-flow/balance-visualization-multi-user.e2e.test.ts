@@ -399,33 +399,18 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await groupDetailPage2.waitForBalancesToLoad(groupId);
     
     // Verify settlement appears in history for both users
-    const showHistoryButton = groupDetailPage.getShowHistoryButton();
-    await showHistoryButton.click();
-    
-    // Wait for settlement history modal content to be rendered and verify it's visible
-    await expect(page.locator('div').filter({ hasText: /Partial payment of \$60/ }).first()).toBeVisible();
+    await groupDetailPage.openHistoryAndVerifySettlement(/Partial payment of \$60/);
     await groupDetailPage.closeModalWithEscape();
     
-    const showHistoryButton2 = groupDetailPage2.getShowHistoryButton();
-    await showHistoryButton2.click();
-    
-    // Wait for settlement history modal content to be rendered and verify it's visible
-    await expect(page2.locator('div').filter({ hasText: /Partial payment of \$60/ }).first()).toBeVisible();
+    await groupDetailPage2.openHistoryAndVerifySettlement(/Partial payment of \$60/);
     await groupDetailPage2.closeModalWithEscape();
     
     // Assert final balance ($100 - $60 = $40 remaining)
-    const updatedBalancesSection = groupDetailPage.getBalancesSectionByContext();
-    
     // Verify updated debt relationship and amount after partial settlement
-    await expect(updatedBalancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
-    await expect(updatedBalancesSection.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
+    await groupDetailPage.verifyDebtRelationship(user2.displayName, user1.displayName, '$40.00');
     
     // Verify User 2 also sees updated balance via real-time updates
-    const balancesSection2 = groupDetailPage2.getBalancesSectionByContext();
-    
-    // Verify debt from user2's perspective
-    await expect(balancesSection2.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
-    await expect(balancesSection2.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
+    await groupDetailPage2.verifyDebtRelationship(user2.displayName, user1.displayName, '$40.00');
   });
 
   multiUserTest('should show settled up after exact settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
