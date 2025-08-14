@@ -802,13 +802,15 @@ describe('Comprehensive API Test Suite', () => {
       
       // Verify balance data structure is present
       expect(testGroupInList!.balance).toBeDefined();
-      expect(testGroupInList!.balance).toHaveProperty('totalOwed');
-      expect(testGroupInList!.balance).toHaveProperty('totalOwing');
+      expect(testGroupInList!.balance).toHaveProperty('userBalance');
+      expect(testGroupInList!.balance).toHaveProperty('balancesByCurrency');
       
-      // userBalance is optional for groups without expenses or balance calculations
+      // userBalance should contain the balance properties
       if (testGroupInList!.balance.userBalance) {
         expect(typeof testGroupInList!.balance.userBalance).toBe('object');
         expect(testGroupInList!.balance.userBalance).toHaveProperty('netBalance');
+        expect(testGroupInList!.balance.userBalance).toHaveProperty('totalOwed');
+        expect(testGroupInList!.balance.userBalance).toHaveProperty('totalOwing');
       }
       
       // User 0 paid 100, split equally between 2 users = User 0 should be owed 50

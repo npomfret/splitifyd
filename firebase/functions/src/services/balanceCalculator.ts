@@ -22,7 +22,8 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     
     logger.info('[BalanceCalculator] Found expenses', { 
         totalExpenses: expensesSnapshot.size,
-        nonDeletedExpenses: expenses.length 
+        nonDeletedExpenses: expenses.length,
+        expenseDetails: expenses.map(e => ({ id: e.id!, amount: e.amount!, currency: e.currency!, paidBy: e.paidBy! }))
     });
 
     const settlementsSnapshot = await db
@@ -68,9 +69,12 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
     // Track balances per currency
     const balancesByCurrency: Record<string, Record<string, UserBalance>> = {};
     
-    // Group expenses by currency
+    // Group expenses by currency - every expense MUST have a currency
     const expensesByCurrency = expenses.reduce((acc, expense) => {
-        const currency = expense.currency || 'USD';
+        if (!expense.currency) {
+            throw new Error(`Expense ${expense.id} is missing currency - invalid state`);
+        }
+        const currency = expense.currency;
         if (!acc[currency]) {
             acc[currency] = [];
         }
@@ -78,9 +82,12 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         return acc;
     }, {} as Record<string, any[]>);
     
-    // Group settlements by currency
+    // Group settlements by currency - every settlement MUST have a currency  
     const settlementsByCurrency = settlements.reduce((acc, settlement) => {
-        const currency = settlement.currency || 'USD';
+        if (!settlement.currency) {
+            throw new Error(`Settlement ${settlement.id} is missing currency - invalid state`);
+        }
+        const currency = settlement.currency;
         if (!acc[currency]) {
             acc[currency] = [];
         }
@@ -227,9 +234,9 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
 
     // Calculate net balances for each currency
     for (const currency of allCurrencies) {
-        const userBalances = balancesByCurrency[currency];
-        for (const userId in userBalances) {
-            const user = userBalances[userId];
+        const currencyUserBalances = balancesByCurrency[currency];
+        for (const userId in currencyUserBalances) {
+            const user = currencyUserBalances[userId];
             let netBalance = 0;
             
             for (const amount of Object.values(user.owes)) {
@@ -240,14 +247,25 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
                 netBalance += amount;
             }
             
-            userBalances[userId].netBalance = netBalance;
+            currencyUserBalances[userId].netBalance = netBalance;
         }
     }
 
-    // For the legacy interface, create empty balances structure
+    // Populate userBalances from first available currency
+    // This is for the single-currency userBalances API response
     const userBalances: Record<string, UserBalance> = {};
+    if (allCurrencies.size > 0) {
+        const firstCurrency = Array.from(allCurrencies)[0];
+        if (balancesByCurrency[firstCurrency]) {
+            Object.assign(userBalances, balancesByCurrency[firstCurrency]);
+        }
+    }
     
-    logger.info('[BalanceCalculator] Final balances by currency', { balancesByCurrency });
+    logger.info('[BalanceCalculator] Final balances by currency', { 
+        balancesByCurrency,
+        userBalances: userBalances,
+        allCurrencies: Array.from(allCurrencies)
+    });
     
     const userNames = new Map<string, string>();
     for (const [userId, profile] of memberProfiles) {
@@ -266,10 +284,10 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
 
     return {
         groupId,
-        userBalances, // Keep for backward compatibility
+        userBalances,
         simplifiedDebts: allSimplifiedDebts,
         lastUpdated: Timestamp.now(),
-        balancesByCurrency // Add new field for per-currency balances
+        balancesByCurrency
     };
 }
 

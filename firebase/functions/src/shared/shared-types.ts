@@ -219,6 +219,11 @@ export interface CurrencyBalance {
 }
 
 export interface GroupBalance {
+  userBalance?: {
+    netBalance: number;
+    totalOwed: number;
+    totalOwing: number;
+  } | null;
   balancesByCurrency: Record<string, CurrencyBalance>;
 }
 

@@ -12,7 +12,7 @@ export interface NetBalance {
     netAmount: number;
 }
 
-export function simplifyDebts(balances: Record<string, UserBalance>, currency: string = 'USD'): SimplifiedDebt[] {
+export function simplifyDebts(balances: Record<string, UserBalance>, currency: string): SimplifiedDebt[] {
     const netBalances = calculateNetBalances(balances);
     return createOptimalTransactions(netBalances, currency);
 }

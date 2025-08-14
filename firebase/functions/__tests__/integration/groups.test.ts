@@ -372,8 +372,8 @@ describe('RESTful Group Endpoints', () => {
       expect(firstGroup).toHaveProperty('name');
       expect(firstGroup).toHaveProperty('memberIds');
       expect(firstGroup).toHaveProperty('balance');
-      expect(firstGroup.balance).toHaveProperty('totalOwed');
-      expect(firstGroup.balance).toHaveProperty('totalOwing');
+      expect(firstGroup.balance).toHaveProperty('userBalance');
+      expect(firstGroup.balance).toHaveProperty('balancesByCurrency');
       // userBalance is null for groups without balances
       expect(firstGroup).toHaveProperty('lastActivity');
       // expenseCount and lastExpense removed - calculated on demand

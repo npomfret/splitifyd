@@ -3,7 +3,7 @@ import { SimplifiedDebt, UserBalance } from '../shared/shared-types';
 
 export interface GroupBalance {
     groupId: string;
-    userBalances: Record<string, UserBalance>; // Legacy - kept for compatibility with existing functions
+    userBalances: Record<string, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: Timestamp;
     balancesByCurrency: Record<string, Record<string, UserBalance>>;

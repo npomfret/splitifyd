@@ -104,8 +104,8 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     expect(groupWithBalance.balance).toBeDefined();
     expect(groupWithBalance.balance.userBalance).toBeDefined();
     expect(groupWithBalance.balance.userBalance!.netBalance).toBe(34000); // Alice is owed $340
-    expect(groupWithBalance.balance.totalOwed).toBe(34000); // Total Alice is owed
-    expect(groupWithBalance.balance.totalOwing).toBe(0); // Alice owes nothing
+    expect(groupWithBalance.balance.userBalance!.totalOwed).toBe(34000); // Total Alice is owed
+    expect(groupWithBalance.balance.userBalance!.totalOwing).toBe(0); // Alice owes nothing
   });
 
   test('should replicate settlement balance bug from failing E2E test', async () => {

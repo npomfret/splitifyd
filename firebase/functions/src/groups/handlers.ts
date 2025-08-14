@@ -242,9 +242,25 @@ export const getGroup = async (
     }
   }
   
+  // Get user's balance from first available currency
+  let userBalance: any = null;
+  if (groupBalances.balancesByCurrency) {
+    const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0];
+    
+    if (currencyBalances && currencyBalances[userId]) {
+      const balance = currencyBalances[userId];
+      userBalance = {
+        netBalance: balance.netBalance,
+        totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+        totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+      };
+    }
+  }
+  
   const groupWithBalance: GroupWithBalance = {
     ...group,
     balance: {
+      userBalance,
       balancesByCurrency,
     },
   };
@@ -417,9 +433,25 @@ export const listGroups = async (
       const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
       const lastActivity = formatRelativeTime(lastActivityDate.toISOString());
 
+      // Get user's balance from first available currency
+      let userBalance: any = null;
+      if (groupBalances.balancesByCurrency) {
+        const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0];
+        
+        if (currencyBalances && currencyBalances[userId]) {
+          const balance = currencyBalances[userId];
+          userBalance = {
+            netBalance: balance.netBalance,
+            totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+            totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+          };
+        }
+      }
+
       return {
         ...group,
         balance: {
+          userBalance,
           balancesByCurrency,
         },
         lastActivity,
