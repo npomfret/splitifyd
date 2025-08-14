@@ -41,6 +41,18 @@ export class JoinGroupPage {
   // Authentication state detection
   async isUserLoggedIn(): Promise<boolean> {
     try {
+      // Check if we see "Checking authentication..." text (indicates checking auth state)
+      const checkingAuth = await this.page.getByText('Checking authentication...').isVisible({ timeout: 500 }).catch(() => false);
+      if (checkingAuth) {
+        // Wait a bit for the redirect to happen
+        await this.page.waitForTimeout(200);
+        // Check if we've been redirected to login
+        const currentUrl = this.page.url();
+        if (currentUrl.includes('/login')) {
+          return false; // Not logged in, redirected to login
+        }
+      }
+      
       // Check if we see login/register buttons (indicates not logged in)
       const loginVisible = await this.getLoginButton().isVisible({ timeout: 1000 });
       const registerVisible = await this.getRegisterButton().isVisible({ timeout: 1000 });
@@ -168,6 +180,21 @@ export class JoinGroupPage {
     error: boolean;
   }> {
     await this.navigateToShareLink(shareLink);
+    
+    // Wait a moment for any redirects to happen
+    await this.page.waitForTimeout(300);
+    
+    // Check if we've been redirected to login page
+    const currentUrl = this.page.url();
+    if (currentUrl.includes('/login')) {
+      return {
+        success: false,
+        reason: 'User needs to log in first',
+        needsLogin: true,
+        alreadyMember: false,
+        error: false
+      };
+    }
 
     // Check various states
     const needsLogin = !(await this.isUserLoggedIn());
