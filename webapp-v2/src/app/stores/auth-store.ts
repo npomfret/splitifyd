@@ -7,7 +7,7 @@ import { USER_ID_KEY } from '../../constants';
 import { logError } from '../../utils/browser-logger';
 import { AuthErrors } from '@shared/shared-types';
 import { groupsStore } from './groups-store';
-import { groupDetailStore } from './group-detail-store';
+import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { themeStore } from './theme-store';
 
 // Signals for auth state
@@ -68,7 +68,7 @@ class AuthStoreImpl implements AuthStore {
           
           // Clear all stores when user becomes null (logout or session expired)
           groupsStore.reset();
-          groupDetailStore.reset();
+          enhancedGroupDetailStore.reset();
           themeStore.reset();
           
           // Clean up token refresh
@@ -140,7 +140,7 @@ class AuthStoreImpl implements AuthStore {
       
       // Clear all store data on logout
       groupsStore.reset();
-      groupDetailStore.reset();
+      enhancedGroupDetailStore.reset();
       themeStore.reset();
       
       // Clean up token refresh

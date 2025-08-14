@@ -1,7 +1,7 @@
 import { signal } from '@preact/signals';
 import {CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes} from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient, ApiError } from '../apiClient';
-import { groupDetailStore } from './group-detail-store';
+import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { groupsStore } from './groups-store';
 import { logWarning } from '../../utils/browser-logger';
 import { getUTCDateTime, isDateInFuture } from '../../utils/dateUtils';
@@ -558,7 +558,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       // Refresh group data to show the new expense immediately
       try {
         await Promise.all([
-          groupDetailStore.refreshAll(),
+          enhancedGroupDetailStore.refreshAll(),
           groupsStore.refreshGroups()
         ]);
       } catch (refreshError) {
@@ -614,7 +614,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       // Refresh group data to show the updated expense immediately
       try {
         await Promise.all([
-          groupDetailStore.refreshAll(),
+          enhancedGroupDetailStore.refreshAll(),
           groupsStore.refreshGroups()
         ]);
       } catch (refreshError) {

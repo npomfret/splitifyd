@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
-import { groupDetailStore } from '../app/stores/group-detail-store';
+import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
 import { Stack } from '../components/ui/Stack';
@@ -33,8 +33,8 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   
   // Get group data from store if available
-  const group = useComputed(() => groupDetailStore.group);
-  const members = useComputed(() => groupDetailStore.members);
+  const group = useComputed(() => enhancedGroupDetailStore.group);
+  const members = useComputed(() => enhancedGroupDetailStore.members);
   
   // Create member lookup map
   const memberMap = useComputed(() => {
@@ -58,7 +58,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
         
         // Ensure group data is loaded
         if (!group.value || group.value.id !== groupId) {
-          await groupDetailStore.fetchGroup(groupId);
+          await enhancedGroupDetailStore.fetchGroup(groupId);
         }
         
         // Fetch expense data

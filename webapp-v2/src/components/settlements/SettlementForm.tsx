@@ -8,7 +8,7 @@ import type {
   SimplifiedDebt 
 } from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient } from '../../app/apiClient';
-import { groupDetailStore } from '../../app/stores/group-detail-store';
+import { enhancedGroupDetailStore } from '../../app/stores/group-detail-store-enhanced';
 import { useAuthRequired } from '../../app/hooks/useAuthRequired';
 import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
 
@@ -40,7 +40,7 @@ export function SettlementForm({
   const modalRef = useRef<HTMLDivElement>(null);
   
   const currentUser = authStore.user;
-  const members = groupDetailStore.members || [];
+  const members = enhancedGroupDetailStore.members || [];
 
   useEffect(() => {
     if (isOpen) {
@@ -125,7 +125,6 @@ export function SettlementForm({
     
     const validationError = validateForm();
     if (validationError) {
-      console.warn('[SettlementForm] Validation failed:', validationError);
       setValidationError(validationError);
       return;
     }
@@ -144,9 +143,8 @@ export function SettlementForm({
         note: noteSignal.value.trim() || undefined
       };
 
-      await apiClient.createSettlement(settlementData);
-      
-      await groupDetailStore.fetchGroup(groupId);
+      const createdSettlement = await apiClient.createSettlement(settlementData);
+      await enhancedGroupDetailStore.refreshAll();
       
       if (onSuccess) {
         onSuccess();

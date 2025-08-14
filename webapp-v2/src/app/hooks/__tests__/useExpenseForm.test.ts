@@ -55,8 +55,8 @@ vi.mock('../../stores/expense-form-store', () => ({
   getRecentAmounts: vi.fn(() => [25.50, 45.00, 12.75])
 }));
 
-vi.mock('../../stores/group-detail-store', () => ({
-  groupDetailStore: {
+vi.mock('../../stores/group-detail-store-enhanced', () => ({
+  enhancedGroupDetailStore: {
     group: {
       id: 'test-group',
       name: 'Test Group',
@@ -67,7 +67,7 @@ vi.mock('../../stores/group-detail-store', () => ({
       { uid: 'user2', displayName: 'Bob Smith' }
     ],
     loading: false,
-    fetchGroupIfNeeded: vi.fn()
+    fetchGroup: vi.fn()
   }
 }));
 

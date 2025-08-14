@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, getRecentAmounts } from '../stores/expense-form-store';
-import { groupDetailStore } from '../stores/group-detail-store';
+import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { apiClient } from '../apiClient';
 import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/shared-types';
 import { logError } from '../../utils/browser-logger';
@@ -20,9 +20,9 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
   const authStore = useAuth();
   
   // Computed values from stores
-  const group = useComputed(() => groupDetailStore.group);
-  const members = useComputed(() => groupDetailStore.members);
-  const loading = useComputed(() => groupDetailStore.loading);
+  const group = useComputed(() => enhancedGroupDetailStore.group);
+  const members = useComputed(() => enhancedGroupDetailStore.members);
+  const loading = useComputed(() => enhancedGroupDetailStore.loading);
   const saving = useComputed(() => expenseFormStore.saving);
   const formError = useComputed(() => expenseFormStore.error);
   const validationErrors = useComputed(() => expenseFormStore.validationErrors);
@@ -53,7 +53,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
         
         // Ensure group data is loaded
         if (!group.value || group.value.id !== groupId) {
-          await groupDetailStore.fetchGroup(groupId);
+          await enhancedGroupDetailStore.fetchGroup(groupId);
         }
         
         if (isEditMode && expenseId) {
@@ -98,7 +98,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
           }
         } else {
           // Create mode: Set default payer
-          const currentUser = groupDetailStore.members.find(m => m.uid === authStore?.user?.uid);
+          const currentUser = enhancedGroupDetailStore.members.find(m => m.uid === authStore?.user?.uid);
           if (currentUser) {
             expenseFormStore.updateField('paidBy', currentUser.uid);
           }

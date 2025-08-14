@@ -401,12 +401,16 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     // Verify settlement appears in history for both users
     const showHistoryButton = groupDetailPage.getShowHistoryButton();
     await showHistoryButton.click();
-    await groupDetailPage.verifySettlementInHistoryVisible('Partial payment of $60');
+    
+    // Wait for settlement history modal content to be rendered and verify it's visible
+    await expect(page.locator('div').filter({ hasText: /Partial payment of \$60/ }).first()).toBeVisible();
     await groupDetailPage.closeModalWithEscape();
     
     const showHistoryButton2 = groupDetailPage2.getShowHistoryButton();
     await showHistoryButton2.click();
-    await groupDetailPage2.verifySettlementInHistoryVisible('Partial payment of $60');
+    
+    // Wait for settlement history modal content to be rendered and verify it's visible
+    await expect(page2.locator('div').filter({ hasText: /Partial payment of \$60/ }).first()).toBeVisible();
     await groupDetailPage2.closeModalWithEscape();
     
     // Assert final balance ($100 - $60 = $40 remaining)

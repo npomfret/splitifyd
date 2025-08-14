@@ -27,6 +27,7 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
     }
   }, [groupId, userId]);
 
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const today = new Date();
