@@ -68,7 +68,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page2.reload();
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // Now add expenses
+    // SEQUENTIAL EXPENSE ADDITION: User 1 adds expense first
     await groupDetailPage.addExpense({
       description: 'User 1 Lunch',
       amount: 25,
@@ -77,6 +77,17 @@ test.describe('Multi-User Collaboration E2E', () => {
       splitType: 'equal'
     });
     
+    // Wait for User 1's expense to be fully processed and synced
+    await page.reload();
+    await groupDetailPage.waitForBalancesToLoad(groupId);
+    await page2.reload();
+    await groupDetailPage2.waitForBalancesToLoad(groupId);
+    
+    // Verify User 1's expense is visible to both users before proceeding
+    await expect(groupDetailPage.getExpenseByDescription('User 1 Lunch')).toBeVisible();
+    await expect(groupDetailPage2.getExpenseByDescription('User 1 Lunch')).toBeVisible();
+    
+    // SEQUENTIAL EXPENSE ADDITION: User 2 adds expense ONLY AFTER User 1's expense is synchronized
     await groupDetailPage2.addExpense({
       description: 'User 2 Dinner',
       amount: 40,
@@ -85,7 +96,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       splitType: 'equal'
     });
     
-    // Wait for balance calculations before verifying
+    // Wait for User 2's expense to be fully processed and synced
     await page.reload();
     await groupDetailPage.waitForBalancesToLoad(groupId);
     await page2.reload(); 
@@ -141,7 +152,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('balances update correctly with multiple users and expenses', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Balance'), 'Testing balance calculations');
+    const groupId = await groupWorkflow.createGroup(generateTestGroupName('Balance'), 'Testing balance calculations');
     const groupInfo = { user };
     const user1 = groupInfo.user;
     
@@ -159,7 +170,13 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // User 1 pays for shared expense
+    // WAIT for user synchronization before adding expense
+    await page.reload();
+    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+    await page2.reload();
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // User 1 pays for shared expense AFTER synchronization
     await groupDetailPage.addExpense({
       description: 'Shared Meal',
       amount: 100,
@@ -167,6 +184,9 @@ test.describe('Multi-User Collaboration E2E', () => {
       paidBy: user1.displayName,
       splitType: 'equal'
     });
+    
+    // Wait for expense to be fully processed
+    await groupDetailPage.waitForBalancesToLoad(groupId);
     
     // Verify balance shows User 2 owes User 1
     await page.reload();

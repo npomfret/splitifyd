@@ -46,12 +46,12 @@ test.describe('Three User Settlement Management', () => {
     // 1. Create a group with 3 users
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
 
-    // Get share link and have users join
+    // Get share link and have users join SEQUENTIALLY (not concurrently)
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
-    // Second user joins using robust JoinGroupPage
+    // SEQUENTIAL JOIN 1: Second user joins first
     const groupDetailPage2 = secondUser.groupDetailPage;
     const joinGroupPage2 = new JoinGroupPage(page2);
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
@@ -66,12 +66,13 @@ test.describe('Three User Settlement Management', () => {
       throw new Error(`Second user join verification failed. Expected to be on /groups/${groupId}, but on: ${page2Url}`);
     }
     
-    // Synchronize to see the second member
+    // WAIT for second user to be fully synchronized before third user joins
     await groupDetailPage.synchronizeMultiUserState([
-      { page, groupDetailPage }
+      { page, groupDetailPage },
+      { page: page2, groupDetailPage: groupDetailPage2 }
     ], 2, groupId);
     
-    // Third user joins using robust JoinGroupPage
+    // SEQUENTIAL JOIN 2: Third user joins ONLY AFTER second user is fully synchronized
     const groupDetailPage3 = thirdUser.groupDetailPage;
     const joinGroupPage3 = new JoinGroupPage(page3);
     const joinResult3 = await joinGroupPage3.attemptJoinWithStateDetection(shareLink);

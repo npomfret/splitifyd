@@ -35,9 +35,16 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult.reason}`);
     }
     
+    // Wait for synchronization on BOTH pages after join
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // Both users pay equal amounts → GUARANTEED settled up
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // SEQUENTIAL EXPENSES: User1 adds expense first
     // Key insight: If both users add equal expenses → ALWAYS settled up
     await groupDetailPage.addExpense({
       description: 'User1 Equal Payment',
@@ -47,10 +54,19 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for first expense to be fully processed
+    // Wait for first expense to be fully processed and synced
     await groupDetailPage.waitForBalanceUpdate();
+    await page.reload();
+    await page2.reload();
+    await page.waitForLoadState('networkidle');
+    await page2.waitForLoadState('networkidle');
+    
+    // Verify first expense is visible to both users before adding second
+    await expect(page.getByText('User1 Equal Payment')).toBeVisible();
+    await expect(page2.getByText('User1 Equal Payment')).toBeVisible();
 
-    await groupDetailPage.addExpense({
+    // SEQUENTIAL: User2 adds expense ONLY AFTER User1's is synchronized
+    await groupDetailPage2.addExpense({
       description: 'User2 Equal Payment', 
       amount: 100,
       paidBy: user2.displayName,
@@ -59,7 +75,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     });
     
     // Wait for second expense to be fully processed
-    await groupDetailPage.waitForBalanceUpdate();
+    await groupDetailPage2.waitForBalanceUpdate();
     
     // Refresh to ensure all balance calculations are complete and visible
     await page.reload();
@@ -67,14 +83,13 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // No Promise.race() needed - we KNOW this will be settled up
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage).toBe(true);
+    // Verify settled up state
+    const balancesSection = groupDetailPage.getBalancesSection();
+    await expect(balancesSection.getByText('All settled up!')).toBeVisible();
     
-    // Also verify NO debt messages are present (double-check settled state)
-    const hasNoDebts = await groupDetailPage.hasNoDebtMessages();
-    expect(hasNoDebts).toBe(true);
+    // Verify NO debt messages are present
+    await expect(balancesSection.getByText(`${user1.displayName} → ${user2.displayName}`)).not.toBeVisible();
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).not.toBeVisible();
     
     await expect(page.getByText('User1 Equal Payment')).toBeVisible();
     await expect(page.getByText('User2 Equal Payment')).toBeVisible();
@@ -101,7 +116,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
+    // Wait for synchronization on BOTH pages after join
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Only User1 pays $200 → User2 MUST owe User1 $100 (never settled up)
     // Key insight: In 2-person groups, if only 1 person adds expense → NEVER settled up
@@ -122,15 +144,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // No race condition - we KNOW there will be debt
-    // Check if debt exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasDebt = await groupDetailPage.hasDebtMessage(user2.displayName, user1.displayName);
-    expect(hasDebt).toBe(true);
-    
-    // We KNOW the exact amount: $200 / 2 = $100
-    // Check if amount exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasAmount = await groupDetailPage.hasDebtAmount("$100.00");
-    expect(hasAmount).toBe(true);
+    // Verify debt exists with exact amount: $200 / 2 = $100
+    const balancesSection = groupDetailPage.getBalancesSection();
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
+    await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
     await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
     await expect(groupDetailPage.getCurrencyAmount('200.00')).toBeVisible();
@@ -157,10 +174,16 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
-    // Wait for both users to be properly synchronized
+    // Wait for synchronization on BOTH pages after join
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // User1 pays $300, User2 pays $100 → User2 owes User1 exactly $100
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // SEQUENTIAL EXPENSES: User1 pays $300 first
     // Complex but predictable: User1 paid $300, User2 paid $100
     // Total: $400, each owes $200, net: User2 owes User1 $100
     await groupDetailPage.addExpense({
@@ -171,10 +194,19 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for first expense to be fully processed
+    // Wait for first expense to be fully processed and synced
     await groupDetailPage.waitForBalanceUpdate();
+    await page.reload();
+    await page2.reload();
+    await page.waitForLoadState('networkidle');
+    await page2.waitForLoadState('networkidle');
+    
+    // Verify first expense is visible before adding second
+    await expect(page.getByText('Large User1 Payment')).toBeVisible();
+    await expect(page2.getByText('Large User1 Payment')).toBeVisible();
 
-    await groupDetailPage.addExpense({
+    // SEQUENTIAL: User2 adds expense AFTER User1's is synchronized
+    await groupDetailPage2.addExpense({
       description: 'Small User2 Payment',
       amount: 100,
       paidBy: user2.displayName,
@@ -183,7 +215,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     });
     
     // Wait for second expense to be fully processed
-    await groupDetailPage.waitForBalanceUpdate();
+    await groupDetailPage2.waitForBalanceUpdate();
     
     // Reload to ensure all balance calculations are complete and visible
     await page.reload();
@@ -191,14 +223,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Predictable outcome: (300-100)/2 = 100
-    // Check if debt exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasDebt = await groupDetailPage.hasDebtMessage(user2.displayName, user1.displayName);
-    expect(hasDebt).toBe(true);
-    
-    // Check if amount exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasAmount2 = await groupDetailPage.hasDebtAmount("$100.00");
-    expect(hasAmount2).toBe(true);
+    // Verify complex debt calculation: (300-100)/2 = 100
+    const balancesSection = groupDetailPage.getBalancesSection();
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
+    await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
     await expect(page.getByText('Large User1 Payment')).toBeVisible();
     await expect(page.getByText('Small User2 Payment')).toBeVisible();
@@ -225,11 +253,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
+    // Wait for synchronization on BOTH pages after join
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // State 1: Empty group → ALWAYS settled up
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage).toBe(true);
+    await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
     
     // State 2: User1 pays $100 → User2 MUST owe $50
     await groupDetailPage.addExpense({
@@ -246,16 +280,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Check if debt exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasDebt = await groupDetailPage.hasDebtMessage(user2.displayName, user1.displayName);
-    expect(hasDebt).toBe(true);
-    
-    // Check if the debt amount exists (use hasDebtAmount to avoid strict mode violations)
-    const hasDebtAmount = await groupDetailPage.hasDebtAmount('$50.00');
-    expect(hasDebtAmount).toBe(true);
+    // Verify debt exists with amount $50.00
+    const balancesSection = groupDetailPage.getBalancesSection();
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
+    await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$50.00' })).toBeVisible();
     
     // State 3: User2 pays $100 → MUST be settled up
-    await groupDetailPage.addExpense({
+    // SEQUENTIAL: User2 adds balancing expense
+    await groupDetailPage2.addExpense({
       description: 'Balance Debt',
       amount: 100,
       paidBy: user2.displayName,
@@ -268,13 +300,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await page.waitForLoadState('networkidle');
     
     // Guaranteed settled up: both paid $100
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage2 = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage2).toBe(true);
+    await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
     
-    // Verify NO debt messages remain
-    const hasNoDebts2 = await groupDetailPage.hasNoDebtMessages();
-    expect(hasNoDebts2).toBe(true);
+    // Verify NO debt messages remain by checking specific debt doesn't exist
+    await expect(groupDetailPage.getBalancesSection().getByText(`${user2.displayName} → ${user1.displayName}`)).not.toBeVisible();
     
     await expect(page.getByText('Create Debt')).toBeVisible();
     await expect(page.getByText('Balance Debt')).toBeVisible();
@@ -301,7 +330,16 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
-    // User1 pays $123.45 → User2 owes exactly $61.73 (or $61.72 depending on rounding)
+    // Wait for synchronization on BOTH pages after join
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    
+    // User1 pays $123.45 → User2 owes exactly $61.73
     await groupDetailPage.addExpense({
       description: 'Currency Test',
       amount: 123.45,
@@ -316,19 +354,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Check if debt exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasDebt = await groupDetailPage.hasDebtMessage(user2.displayName, user1.displayName);
-    expect(hasDebt).toBe(true);
-    
-    // Calculate exact debt amount: $123.45 / 2 = $61.73 (standard rounding)
-    // Note: JavaScript's toFixed() rounds 61.725 to 61.73
+    // Verify debt with calculated amount: $123.45 / 2 = $61.73
+    const balancesSection = groupDetailPage.getBalancesSection();
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     const expectedDebt = groupDetailPage.calculateEqualSplitDebt(123.45, 2);
-    // Check if the exact amount exists in the DOM
-    const hasDebtAmount = await groupDetailPage.hasDebtAmount(`$${expectedDebt}`);
-    expect(hasDebtAmount).toBe(true);
+    await expect(balancesSection.locator('.text-red-600').filter({ hasText: `$${expectedDebt}` })).toBeVisible();
     
-    // Check if the original expense amount is visible (also use .first() to avoid strict mode)
-    await expect(groupDetailPage.getCurrencyAmount('123.45').first()).toBeVisible();
+    // Verify the original expense amount is visible
+    await expect(groupDetailPage.getCurrencyAmount('123.45')).toBeVisible();
   });
 });
 
@@ -357,13 +390,18 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     }
     
     // Step 4: Synchronize both users and verify member count
+    // Need to reload pages to see the join
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
     await groupDetailPage.waitForMemberCount(2);
-    await expect(groupDetailPage.getTextElement(user1.displayName).first()).toBeVisible();
-    await expect(groupDetailPage.getTextElement(user2.displayName).first()).toBeVisible();
+    await expect(page.getByText(user1.displayName)).toBeVisible();
+    await expect(page.getByText(user2.displayName)).toBeVisible();
     
     await groupDetailPage2.waitForMemberCount(2);
-    await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
-    await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
+    await expect(page2.getByText(user1.displayName)).toBeVisible();
+    await expect(page2.getByText(user2.displayName)).toBeVisible();
     
     // Step 5: Verify no expenses yet
     await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
@@ -391,10 +429,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await groupDetailPage.waitForBalancesToLoad(groupId);
     const balancesSection = groupDetailPage.getBalancesSection();
     
-    // UI now uses arrow notation: "User A → User B" instead of "owes"
-    const debtText = balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)
-      .or(balancesSection.getByText(`${user2.displayName} owes ${user1.displayName}`));
-    await expect(debtText).toBeVisible();
+    // Verify debt relationship is shown
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
     // Step 10: Record partial settlement of $60
@@ -428,39 +464,9 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       has: page.getByRole('heading', { name: 'Balances' }) 
     }).first();
     
-    // UI now uses arrow notation: "User A → User B" instead of "owes"
-    const updatedDebtText = updatedBalancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)
-      .or(updatedBalancesSection.getByText(`${user2.displayName} owes ${user1.displayName}`));
-    await expect(updatedDebtText).toBeVisible();
-    
-    // Check what amount is actually shown
-    const debtElements = updatedBalancesSection.locator('.text-red-600');
-    const debtCount = await debtElements.count();
-    
-    let actualAmount = null;
-    for (let i = 0; i < debtCount; i++) {
-      const text = await debtElements.nth(i).textContent();
-      if (text && text.includes('$')) {
-        actualAmount = text;
-      }
-    }
-    
-    // The expected behavior is $40 ($100 - $60)
-    // But there might be a bug where it shows a different amount
-    if (actualAmount === '$40.00') {
-      await expect(updatedBalancesSection.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
-    } else if (actualAmount === '$160.00') {
-      await expect(updatedBalancesSection.locator('.text-red-600').filter({ hasText: '$160.00' })).toBeVisible();
-    } else if (actualAmount) {
-      // For now, just verify the debt element exists
-      await expect(debtElements.first()).toBeVisible();
-    } else {
-      // Check if it shows "All settled up" instead
-      const settledText = updatedBalancesSection.getByText('All settled up!');
-      if (await settledText.isVisible({ timeout: 1000 }).catch(() => false)) {
-        // App shows "All settled up" but should show remaining $40 debt
-      }
-    }
+    // Verify updated debt relationship and amount after partial settlement
+    await expect(updatedBalancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
+    await expect(updatedBalancesSection.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
     
     // Step 17: Verify User 2 also sees updated balance
     await page2.reload();
@@ -470,10 +476,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       has: page2.getByRole('heading', { name: 'Balances' }) 
     }).first();
     
-    // UI now uses arrow notation: "User A → User B" instead of "owes"
-    const debtText2 = balancesSection2.getByText(`${user2.displayName} → ${user1.displayName}`)
-      .or(balancesSection2.getByText(`${user2.displayName} owes ${user1.displayName}`));
-    await expect(debtText2).toBeVisible();
+    // Verify debt from user2's perspective
+    await expect(balancesSection2.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     await expect(balancesSection2.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
   });
 
@@ -514,8 +518,11 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       splitType: 'equal'
     });
     
-    // Wait for expense to be fully processed and balance to update
+    // Wait for expense to be fully processed and synced to both users
     await groupDetailPage.waitForBalanceUpdate();
+    await page2.reload();
+    await page2.waitForLoadState('networkidle');
+    await groupDetailPage2.waitForBalancesToLoad(groupId);
     
     // Reload to ensure data is fresh
     await page.reload();
@@ -525,22 +532,11 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
     await groupDetailPage.waitForBalancesToLoad(groupId);
     
-    // Verify debt exists and capture the actual amount
-    // Check if debt exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasDebt = await groupDetailPage.hasDebtMessage(user2.displayName, user1.displayName);
-    expect(hasDebt).toBe(true);
-    
-    // We know the exact debt: $150 split between 2 = $75 each
+    // Verify debt exists with exact amount: $150 / 2 = $75
+    const balancesSection = groupDetailPage.getBalancesSection();
+    await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     const expectedDebtAmount = '75.00';
-    
-    // Verify the initial debt amount is displayed correctly
-    const balancesSectionBefore = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
-    }).first();
-    
-    // Check if amount exists in DOM (might be in hidden mobile section or visible desktop sidebar)
-    const hasAmount3 = await groupDetailPage.hasDebtAmount('$75.00');
-    expect(hasAmount3).toBe(true);
+    await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$75.00' })).toBeVisible();
     
     // User2 pays User1 the exact debt amount ($75) → MUST be settled up
     // Use the new recordSettlementByUser method with display names
@@ -580,9 +576,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     }).first();
 
     // Should be settled up after paying the full debt amount
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage).toBe(true);
+    await expect(balanceSection.getByText('All settled up!')).toBeVisible();
     
     // Verify expenses still appear after settlement in user1's browser
     await expect(groupDetailPage.getExpensesHeading()).toBeVisible();
@@ -595,9 +589,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(secondUser.groupDetailPage.getLoadingBalancesText()).not.toBeVisible();
     
     // Both users should see settled up
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage2 = await secondUser.groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage2).toBe(true);
+    const balanceSection2 = secondUser.groupDetailPage.getBalancesSection();
+    await expect(balanceSection2.getByText('All settled up!')).toBeVisible();
     
     // Both users should see the expenses
     await page2.reload();
