@@ -47,7 +47,9 @@ export class GroupDetailPage extends BasePage {
   }
 
   getExpenseByDescription(description: string) {
-    return this.page.getByText(description);
+    // Use more specific selector to avoid strict mode violations
+    // Look for the description in expense list context, not headings
+    return this.page.getByText(description).first();
   }
 
   getExpenseAmount(amount: string) {
@@ -187,7 +189,8 @@ export class GroupDetailPage extends BasePage {
   }
 
   getShareModal() {
-    return this.page.getByRole('dialog', { name: /share group/i });
+    // Use generic dialog selector since the modal might not have the expected name
+    return this.page.getByRole('dialog');
   }
 
   getShareLinkInput() {

@@ -103,11 +103,11 @@ test.describe('Member Management E2E', () => {
     await shareButton.click();
     
     // Share modal should open with link
-    const shareModal = groupDetailPage.getShareModalDialog();
+    const shareModal = groupDetailPage.getShareModal();
     await expect(shareModal).toBeVisible();
     
     // Should show share link
-    const shareLink = groupDetailPage.getShareLinkTextbox();
+    const shareLink = groupDetailPage.getShareLinkInput();
     await expect(shareLink).toBeVisible();
     
     // Link should contain the join URL with linkId parameter
