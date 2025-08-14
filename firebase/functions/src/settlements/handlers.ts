@@ -21,6 +21,7 @@ import {
   FirestoreCollections
 } from '../shared/shared-types';
 import { GroupData } from '../types/group-types';
+import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
 const getSettlementsCollection = () => {
   return admin.firestore().collection(FirestoreCollections.SETTLEMENTS);
@@ -237,7 +238,16 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
       }
     }
     
-    await settlementRef.update(updates);
+    // Update with optimistic locking
+    await admin.firestore().runTransaction(async (transaction) => {
+      const freshDoc = await transaction.get(settlementRef);
+      if (!freshDoc.exists) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+      }
+      
+      const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+      await updateWithTimestamp(transaction, settlementRef, updates, originalUpdatedAt);
+    });
     
     const updatedDoc = await settlementRef.get();
     const updatedSettlement = updatedDoc.data();
@@ -301,7 +311,31 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
       throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can delete this settlement');
     }
     
-    await settlementRef.delete();
+    // Delete with optimistic locking to prevent concurrent modifications
+    await admin.firestore().runTransaction(async (transaction) => {
+      // Step 1: Do ALL reads first
+      const freshDoc = await transaction.get(settlementRef);
+      if (!freshDoc.exists) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+      }
+      
+      const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+      
+      // Step 2: Check for concurrent updates inline (no additional reads needed)
+      const currentTimestamp = freshDoc.data()?.updatedAt;
+      if (!currentTimestamp || !currentTimestamp.isEqual(originalUpdatedAt)) {
+        logger.warn('Concurrent update detected', {
+          settlementId: settlementRef.id,
+          originalTimestamp: originalUpdatedAt.toDate().toISOString(),
+          currentTimestamp: currentTimestamp?.toDate().toISOString()
+        });
+        throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+      }
+      
+      // Step 3: Now do ALL writes
+      // Delete the settlement
+      transaction.delete(settlementRef);
+    });
     
     logger.info(`Settlement deleted: ${settlementId} by user: ${userId}`);
     

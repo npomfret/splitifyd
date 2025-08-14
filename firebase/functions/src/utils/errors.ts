@@ -95,6 +95,7 @@ export const Errors = {
   // Resource errors
   NOT_FOUND: (resource: string) => new ApiError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', `${resource} not found`),
   ALREADY_EXISTS: (resource: string) => new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_EXISTS', `${resource} already exists`),
+  CONCURRENT_UPDATE: () => new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified by another user. Please retry with fresh data.'),
   
   // Rate limiting
   RATE_LIMIT_EXCEEDED: () => new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED', 'Too many requests, please try again later'),

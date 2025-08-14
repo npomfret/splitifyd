@@ -15,6 +15,7 @@ import {
 } from './validation';
 import { GroupData } from '../types/group-types';
 import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/shared-types';
+import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
 const getExpensesCollection = () => {
   return admin.firestore().collection(FirestoreCollections.EXPENSES);
@@ -305,6 +306,15 @@ export const updateExpense = async (
     // If date is being updated, we need to update group metadata too
     if (updateData.date) {
       await admin.firestore().runTransaction(async (transaction) => {
+        // IMPORTANT: All reads must happen before any writes in Firestore transactions
+        
+        // Step 1: Do ALL reads first
+        const expenseDoc = await transaction.get(docRef);
+        if (!expenseDoc.exists) {
+          throw Errors.NOT_FOUND('Expense');
+        }
+        const originalExpenseTimestamp = getUpdatedAtTimestamp(expenseDoc.data());
+        
         const groupDocRef = getGroupsCollection().doc(expense.groupId);
         const groupDoc = await transaction.get(groupDocRef);
         
@@ -312,12 +322,24 @@ export const updateExpense = async (
           throw new Error(`Group ${expense.groupId} not found`);
         }
         
-        // Add history entry
+        // Step 2: Check for concurrent updates inline (no additional reads needed)
+        // We already have the document data, just verify the timestamp
+        const currentTimestamp = expenseDoc.data()?.updatedAt;
+        if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
+          logger.warn('Concurrent update detected', {
+            expenseId: docRef.id,
+            originalTimestamp: originalExpenseTimestamp.toDate().toISOString(),
+            currentTimestamp: currentTimestamp?.toDate().toISOString()
+          });
+          throw Errors.CONCURRENT_UPDATE();
+        }
+        
+        // Step 3: Now do ALL writes
         const historyRef = docRef.collection('history').doc();
         transaction.set(historyRef, historyEntry);
         
-        // Update the expense
-        transaction.update(docRef, updates);
+        // Update the expense (updateWithTimestamp no longer does reads)
+        await updateWithTimestamp(transaction, docRef, updates, originalExpenseTimestamp);
         
         // Note: Group metadata will be updated by the balance aggregation trigger
         
@@ -330,12 +352,33 @@ export const updateExpense = async (
     } else {
       // No date change, update expense with history in transaction
       await admin.firestore().runTransaction(async (transaction) => {
-        // Add history entry
+        // IMPORTANT: All reads must happen before any writes in Firestore transactions
+        
+        // Step 1: Do ALL reads first
+        const expenseDoc = await transaction.get(docRef);
+        if (!expenseDoc.exists) {
+          throw Errors.NOT_FOUND('Expense');
+        }
+        const originalExpenseTimestamp = getUpdatedAtTimestamp(expenseDoc.data());
+        
+        // Step 2: Check for concurrent updates inline (no additional reads needed)
+        // We already have the document data, just verify the timestamp
+        const currentTimestamp = expenseDoc.data()?.updatedAt;
+        if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
+          logger.warn('Concurrent update detected', {
+            expenseId: docRef.id,
+            originalTimestamp: originalExpenseTimestamp.toDate().toISOString(),
+            currentTimestamp: currentTimestamp?.toDate().toISOString()
+          });
+          throw Errors.CONCURRENT_UPDATE();
+        }
+        
+        // Step 3: Now do ALL writes
         const historyRef = docRef.collection('history').doc();
         transaction.set(historyRef, historyEntry);
         
-        // Update the expense
-        transaction.update(docRef, updates);
+        // Update the expense (updateWithTimestamp no longer does reads)
+        await updateWithTimestamp(transaction, docRef, updates, originalExpenseTimestamp);
         
         logger.info('Transaction: Updating expense with history', {
           expenseId,
@@ -404,6 +447,15 @@ export const deleteExpense = async (
   try {
     // Use transaction to delete expense and update group metadata atomically
     await admin.firestore().runTransaction(async (transaction) => {
+      // IMPORTANT: All reads must happen before any writes in Firestore transactions
+      
+      // Step 1: Do ALL reads first
+      const expenseDoc = await transaction.get(docRef);
+      if (!expenseDoc.exists) {
+        throw Errors.NOT_FOUND('Expense');
+      }
+      const originalExpenseTimestamp = getUpdatedAtTimestamp(expenseDoc.data());
+      
       const groupDocRef = getGroupsCollection().doc(expense.groupId);
       const groupDoc = await transaction.get(groupDocRef);
       
@@ -411,11 +463,23 @@ export const deleteExpense = async (
         throw new Error(`Group ${expense.groupId} not found`);
       }
       
-      // Soft delete the expense
-      transaction.update(docRef, {
+      // Step 2: Check for concurrent updates inline (no additional reads needed)
+      const currentTimestamp = expenseDoc.data()?.updatedAt;
+      if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
+        logger.warn('Concurrent update detected', {
+          expenseId: docRef.id,
+          originalTimestamp: originalExpenseTimestamp.toDate().toISOString(),
+          currentTimestamp: currentTimestamp?.toDate().toISOString()
+        });
+        throw Errors.CONCURRENT_UPDATE();
+      }
+      
+      // Step 3: Now do ALL writes
+      // Soft delete the expense (updateWithTimestamp no longer does reads)
+      await updateWithTimestamp(transaction, docRef, {
         [DELETED_AT_FIELD]: createServerTimestamp(),
         deletedBy: userId
-      });
+      }, originalExpenseTimestamp);
       
       const groupData = groupDoc.data();
       if (!groupData?.data) {
