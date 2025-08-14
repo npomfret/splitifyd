@@ -91,6 +91,8 @@ class JoinGroupStore {
         errorMessage = 'This invitation link is invalid or has expired';
       } else if (error.code === 'GROUP_NOT_FOUND') {
         errorMessage = 'This group no longer exists';
+      } else if (error.code === 'CONCURRENT_UPDATE') {
+        errorMessage = 'The group was being updated by another user. Please try again.';
       } else if (error.message) {
         errorMessage = error.message;
       }

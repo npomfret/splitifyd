@@ -346,16 +346,32 @@ describe('Optimistic Locking - [Collection]', () => {
    - Proves optimistic locking is actively detecting concurrent operations
    - Shows timing-based conflicts are now caught
 
-### ⏳ Webapp Issue Identified - IN PROGRESS
-**Current Problem**: Webapp incorrectly handles 409 Conflict responses
+### ✅ Webapp Issue Fixed - COMPLETED
+**Problem**: Webapp incorrectly handled 409 Conflict responses
 
-**Expected Behavior**: Users should stay on same page with error message
-**Actual Behavior**: Users get redirected to dashboard instead
+**Root Cause**: 
+- API client only retried `NETWORK_ERROR`, not `CONCURRENT_UPDATE` errors
+- POST method (used for joining groups) wasn't included in retryable methods
+- Join group store lacked specific error handling for concurrent updates
 
-**Root Cause**: Webapp doesn't handle `CONCURRENT_UPDATE` (409) errors properly
-- Error handling redirects users away from current page  
-- Should show retry message and keep user in place
-- Needs graceful retry logic with exponential backoff
+**Solution Implemented**:
+1. **API Client Updates** (`webapp-v2/src/app/apiClient.ts`):
+   - Enhanced `isRetryableMethod()` to allow specific POST operations to opt-in to retries  
+   - `joinGroupByLink()` now uses `skipRetry: false` to enable retries for network errors
+   - **409 errors fail fast** (no automatic retry since fresh data is needed)
+   - Network errors get automatic exponential backoff (100ms, 200ms, 400ms) for up to 3 attempts
+
+2. **Join Group Store Updates** (`webapp-v2/src/app/stores/join-group-store.ts`):
+   - Added specific error handling for `CONCURRENT_UPDATE` code
+   - Shows user-friendly message: "The group was being updated by another user. Please try again."
+   - Users can manually retry with fresh data
+
+**Result**: 
+- ✅ Users stay on same page during concurrent operations
+- ✅ Clear error messages for different failure types
+- ✅ No more dashboard redirects on 409 conflicts  
+- ✅ Fast failure for optimistic locking conflicts (as intended)
+- ✅ Network error retries still work for connectivity issues
 
 ## Implementation Status
 - **Investigation**: ✅ Complete
