@@ -1,6 +1,6 @@
-import { expect, Locator } from '@playwright/test';
-import { BasePage } from './base.page';
-import { HEADINGS, BUTTON_TEXTS, MESSAGES, FORM_LABELS, ARIA_ROLES } from '../constants/selectors';
+import {expect, Locator} from '@playwright/test';
+import {BasePage} from './base.page';
+import {ARIA_ROLES, BUTTON_TEXTS, FORM_LABELS, HEADINGS, MESSAGES} from '../constants/selectors';
 
 interface ExpenseData {
   description: string;
@@ -481,61 +481,32 @@ export class GroupDetailPage extends BasePage {
       if (currentUrl.includes('/dashboard')) {
         throw new Error(`${userIdentifier} was redirected to dashboard. Expected ${targetGroupUrl}, but got: ${currentUrl}`);
       }
-      
-      // Assert we're actually on the group page
-      if (!currentUrl.includes(targetGroupUrl)) {
-        // Take screenshot before throwing error
-        const sanitizedUserName = userName ? userName.replace(/\s+/g, '-') : `user-${i + 1}`;
-        await page.screenshot({ 
-          path: `playwright-report/ad-hoc/navigation-failure-${sanitizedUserName}-${Date.now()}.png`,
-          fullPage: false 
-        });
-        throw new Error(`Navigation failed for ${userIdentifier}. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
-      }
+
+      await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
     }
     
     // Wait for all pages to show correct member count
     for (let i = 0; i < pages.length; i++) {
       const { page, groupDetailPage, userName } = pages[i];
       const userIdentifier = userName || `User ${i + 1}`;
-      
-      // Verify user is still on the group page before checking member count
-      const currentUrl = page.url();
-      if (!currentUrl.includes(targetGroupUrl)) {
-        throw new Error(`${userIdentifier} navigated away from group before member count check. Expected: ${targetGroupUrl}, Got: ${currentUrl}`);
-      }
+
+      await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
       
       try {
         await groupDetailPage.waitForMemberCount(expectedMemberCount);
       } catch (error) {
         throw new Error(`${userIdentifier} failed waiting for member count: ${error}`);
       }
-      
-      // Verify still on group page after member count check
-      const afterMemberCountUrl = page.url();
-      if (!afterMemberCountUrl.includes(targetGroupUrl)) {
-        throw new Error(`${userIdentifier} navigated away during member count wait. Expected: ${targetGroupUrl}, Got: ${afterMemberCountUrl}`);
-      }
+
+      await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
     }
     
     // Wait for balances section to load on all pages
     for (let i = 0; i < pages.length; i++) {
       const { page, groupDetailPage, userName } = pages[i];
       const userIdentifier = userName || `User ${i + 1}`;
-      
-      // Verify user is still on the group page before checking balances
-      const currentUrl = page.url();
-      if (!currentUrl.includes(targetGroupUrl)) {
-        // Take screenshot before throwing error
-        const sanitizedUserName = userName ? userName.replace(/\s+/g, '-') : `user-${i + 1}`;
-        await page.screenshot({ 
-          path: `playwright-report/ad-hoc/balance-check-wrong-page-${sanitizedUserName}-${Date.now()}.png`,
-          fullPage: false 
-        });
-        throw new Error(
-          `${userIdentifier} not on group page before balance check. Expected: ${targetGroupUrl}, Got: ${currentUrl}`
-        );
-      }
+
+      await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
       
       try {
         await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -548,14 +519,21 @@ export class GroupDetailPage extends BasePage {
         });
         throw new Error(`${userIdentifier} failed waiting for balances to load: ${error}`);
       }
-      
-      // Final check that user is still on the group page
-      const finalUrl = page.url();
-      if (!finalUrl.includes(targetGroupUrl)) {
-        throw new Error(
-          `${userIdentifier} navigated away during balance wait. Expected: ${targetGroupUrl}, Got: ${finalUrl}`
-        );
-      }
+
+      await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
+    }
+  }
+
+  private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string, userName: string, page: any) {
+    // Assert we're actually on the group page
+    if (!currentUrl.includes(targetGroupUrl)) {
+      // Take screenshot before throwing error
+      const sanitizedUserName = userName.replace(/\s+/g, '-');
+      await page.screenshot({
+        path: `playwright-report/ad-hoc/navigation-failure-${sanitizedUserName}-${Date.now()}.png`,
+        fullPage: false
+      });
+      throw new Error(`Navigation failed for ${userName}. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
     }
   }
 
