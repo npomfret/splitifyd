@@ -20,8 +20,7 @@ import type {
   CreateExpenseRequest,
   CreateSettlementRequest,
   Settlement,
-  SettlementListItem,
-  Policy
+  SettlementListItem
 } from '@shared/shared-types';
 
 // Define HealthCheckResponse locally since it's not in shared types

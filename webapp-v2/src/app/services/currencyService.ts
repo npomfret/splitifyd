@@ -5,8 +5,7 @@ import {
   Currency,
   getCurrency,
   isValidCurrency,
-  COMMON_CURRENCIES,
-  DEFAULT_CURRENCY
+  COMMON_CURRENCIES
 } from '../../utils/currency';
 import type { ExpenseData } from '@shared/shared-types';
 
