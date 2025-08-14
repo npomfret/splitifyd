@@ -201,9 +201,12 @@ authenticatedTest.describe('Negative Value Validation', () => {
     // Try to enter negative split amount
     const splitInputs = groupDetailPage.getInputWithMinValue('0.01');
     const firstSplitInput = splitInputs.first();
-    // Assert field is clear before testing
+    // When switching to "Exact amounts" mode, the app pre-populates each person's share
+    // by dividing the total amount equally among selected participants (e.g., $100 / 4 = $25 each)
+    // This is correct UX behavior - we just need to verify the field has a value
     const initialValue = await firstSplitInput.inputValue();
-    expect(initialValue).toBe('');//todo: not sure this is correct - even split is the default so it should be 50, maybe?
+    expect(initialValue).toBeTruthy();
+    expect(Number(initialValue)).toBeGreaterThan(0);
     // Use direct fill for invalid value - UI should validate but not format/clear
     await firstSplitInput.fill('-50');
     
