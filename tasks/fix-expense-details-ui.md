@@ -58,3 +58,53 @@ The current Expense Details page has a generic, static layout that doesn't provi
 -   **Context:** The dynamic header provides immediate, at-a-glance information about the expense.
 -   **Improved UX:** The relative timestamp makes the information easier to process for users.
 -   **Consistency:** Aligns the page with modern UI patterns where the page title reflects the content.
+
+---
+
+## Implementation Plan
+
+### Analysis Results
+After analyzing the current `ExpenseDetailPage.tsx` implementation, the task assessment was accurate:
+
+**Critical Issues Confirmed:**
+- **Line 199**: `${expense.value.amount.toFixed(2)}` - Hardcoded `$` symbol
+- **Line 108**: `$${expense.value?.amount.toFixed(2)}` - Hardcoded `$` in share text  
+- **Line 171**: `$${expense.value.amount.toFixed(2)}` - Hardcoded `$` in meta description
+- **Line 182-183**: Static "Expense Details" header instead of dynamic content
+
+**Available Resources:**
+- ✅ `formatCurrency` utility exists and is robust
+- ✅ `formatDistanceToNow` already imported and used
+- ✅ Component has access to full expense object including currency
+- ✅ Component structure is well-organized
+
+### Implementation Steps
+
+#### 1. **Currency Bug Fixes (Critical Priority)**
+- Replace hardcoded `$` symbols on lines 108, 171, and 199 with `formatCurrency` utility calls
+- Import `formatCurrency` from `../utils/currency/currencyFormatter`
+- Ensure expense currency field is passed to formatter
+- Fix display in: main amount display, share text, and meta description
+
+#### 2. **Dynamic Page Header (UX Improvement)**  
+- Replace static "Expense Details" title with dynamic format: `"{description} - {formatted_amount}"`
+- Add description truncation (40 chars + ellipsis) for mobile responsiveness
+- Update both the page header (line 182-183) and BaseLayout title (line 170)
+
+#### 3. **Enhanced Relative Timestamp (UX Improvement)**
+- Move relative timestamp from metadata section to more prominent location
+- Display below the absolute date in the main info section (around line 212)
+- Keep existing metadata section as secondary reference
+
+### Files to Modify
+- `webapp-v2/src/pages/ExpenseDetailPage.tsx` (main changes)
+
+### Testing Approach
+- Verify currency symbols display correctly for EUR, GBP, USD expenses
+- Test header truncation on different screen sizes  
+- Confirm relative timestamps show correctly in both locations
+
+### Risk Assessment
+- **Low Risk**: Changes are isolated and use existing utilities
+- **High Impact**: Fixes critical currency bug affecting multi-currency support
+- **Good ROI**: Small changes with significant UX improvements
