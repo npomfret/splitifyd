@@ -8,13 +8,18 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   User as FirebaseUser,
-  AuthError
 } from 'firebase/auth';
+import {
+  getFirestore, 
+  Firestore, 
+  connectFirestoreEmulator 
+} from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
 class FirebaseService {
   private app: FirebaseApp | null = null;
   private auth: Auth | null = null;
+  private firestore: Firestore | null = null;
   private initialized = false;
 
   async initialize(): Promise<void> {
@@ -22,24 +27,22 @@ class FirebaseService {
       return;
     }
 
-    // Fetch configuration from API
-    const config = await firebaseConfigManager.getConfig();
+    const {firebase, firebaseAuthUrl, firebaseFirestoreUrl} = await firebaseConfigManager.getConfig();
     
     // Initialize Firebase with config from API
-    this.app = initializeApp(config.firebase);
+    this.app = initializeApp(firebase);
     this.auth = getAuth(this.app);
+    this.firestore = getFirestore(this.app);
     
-    // Connect to auth emulator in development (server provides URL only in emulator mode)
-    if (config.firebaseAuthUrl) {
-      try {
-        connectAuthEmulator(this.auth, config.firebaseAuthUrl, { disableWarnings: true });
-      } catch (error) {
-        const authError = error as AuthError;
-        if (authError.code !== 'auth/emulator-config-failed') {
-          throw error;
-        }
-        // Emulator already connected, continue
-      }
+    // Connect to emulators in development (server provides URLs only in emulator mode)
+    const isEmulator = firebaseAuthUrl!!;// this is only set in emulator config
+    if (isEmulator) {
+        const firestoreUrl = new URL(firebaseFirestoreUrl!);
+        const firestorePort = parseInt(firestoreUrl.port);
+        console.log("emulator detected", {firebaseAuthUrl, firebaseFirestoreUrl, firestorePort})
+
+        connectAuthEmulator(this.auth, firebaseAuthUrl!, {disableWarnings: true});
+        connectFirestoreEmulator(this.firestore, firestoreUrl.hostname, firestorePort);
     }
     
     this.initialized = true;
@@ -50,6 +53,13 @@ class FirebaseService {
       throw new Error('Firebase not initialized - call initialize() first');
     }
     return this.auth;
+  }
+
+  getFirestore(): Firestore {
+    if (!this.firestore) {
+      throw new Error('Firebase not initialized - call initialize() first');
+    }
+    return this.firestore;
   }
 
   // Auth methods
@@ -72,3 +82,6 @@ class FirebaseService {
 }
 
 export const firebaseService = new FirebaseService();
+
+// Export a getter for db to ensure initialization
+export const getDb = () => firebaseService.getFirestore();

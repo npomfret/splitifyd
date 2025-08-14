@@ -124,3 +124,134 @@ export const getGroupMembers = async (
     throw error;
   }
 };
+
+/**
+ * Leave a group
+ * Removes the current user from the group
+ */
+export const leaveGroup = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const userId = req.user?.uid;
+  if (!userId) {
+    throw Errors.UNAUTHORIZED();
+  }
+
+  const groupId = validateGroupId(req.params.id);
+  
+  try {
+    const docRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      throw Errors.NOT_FOUND('Group');
+    }
+    
+    const group = transformGroupDocument(doc);
+    
+    // Check if user is a member
+    if (!group.memberIds.includes(userId)) {
+      throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
+    }
+    
+    // Can't leave if you're the only member
+    if (group.memberIds.length === 1) {
+      throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
+    }
+    
+    // Remove user from members list
+    const updatedMembers = group.memberIds.filter(id => id !== userId);
+    
+    // Update group
+    await docRef.update({
+      'data.memberIds': updatedMembers,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    logger.info('User left group', { userId, groupId });
+    
+    res.json({
+      success: true,
+      message: 'Successfully left the group'
+    });
+  } catch (error) {
+    logger.error('Error in leaveGroup', { 
+      error: error instanceof Error ? error : new Error(String(error)),
+      groupId,
+      userId
+    });
+    throw error;
+  }
+};
+
+/**
+ * Remove a member from a group
+ * Only group creators can remove other members
+ */
+export const removeGroupMember = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const userId = req.user?.uid;
+  if (!userId) {
+    throw Errors.UNAUTHORIZED();
+  }
+
+  const groupId = validateGroupId(req.params.id);
+  const memberId = req.params.memberId;
+  
+  if (!memberId) {
+    throw Errors.MISSING_FIELD('memberId');
+  }
+  
+  try {
+    const docRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      throw Errors.NOT_FOUND('Group');
+    }
+    
+    const group = transformGroupDocument(doc);
+    
+    // Check if user is the group creator
+    if (group.createdBy !== userId) {
+      throw Errors.FORBIDDEN();
+    }
+    
+    // Check if member exists in group
+    if (!group.memberIds.includes(memberId)) {
+      throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
+    }
+    
+    // Can't remove yourself as creator
+    if (memberId === userId) {
+      throw Errors.INVALID_INPUT({ message: 'Cannot remove yourself as the group creator' });
+    }
+    
+    // Remove member from group
+    const updatedMembers = group.memberIds.filter(id => id !== memberId);
+    
+    // Update group
+    await docRef.update({
+      'data.memberIds': updatedMembers,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    logger.info('Member removed from group', { userId, groupId, memberId });
+    
+    res.json({
+      success: true,
+      message: 'Member successfully removed from the group'
+    });
+  } catch (error) {
+    logger.error('Error in removeGroupMember', { 
+      error: error instanceof Error ? error : new Error(String(error)),
+      groupId,
+      userId,
+      memberId
+    });
+    throw error;
+  }
+};

@@ -20,6 +20,7 @@ const envSchema = z.object({
   CLIENT_APP_ID: z.string().optional(),
   CLIENT_MEASUREMENT_ID: z.string().optional(),
   FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),
+  FIRESTORE_EMULATOR_HOST: z.string().optional(),
   DEV_FORM_EMAIL: z.string().optional(),
   DEV_FORM_PASSWORD: z.string().optional(),
   WARNING_BANNER: z.string().optional(),
@@ -141,6 +142,24 @@ function getFirebaseAuthUrl(config: Config, env: z.infer<typeof envSchema>): str
   return `http://${authHost}`;
 }
 
+function getFirebaseFirestoreUrl(config: Config, env: z.infer<typeof envSchema>): string | undefined {
+  if (config.isProduction) {
+    return undefined;
+  }
+  
+  // Get Firestore URL from Firebase environment variable - required in development
+  const firestoreHost = env.FIRESTORE_EMULATOR_HOST;
+  if (!firestoreHost) {
+    throw new Error('FIRESTORE_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
+  }
+  
+  if(!/127\.0\.0\.1:\d{4}/.test(firestoreHost)) {
+    throw Error(`firestoreHost looks wrong: ${firestoreHost}`);
+  }
+  
+  return `http://${firestoreHost}`;
+}
+
 function getWarningBanner(config: Config): WarningBanner | undefined {
   if (!config.warningBanner) return undefined;
   
@@ -154,7 +173,7 @@ function getWarningBanner(config: Config): WarningBanner | undefined {
 function buildAppConfiguration(): AppConfiguration {
   const config = getConfig();
   const env = getEnv();
-  const projectId = config.isProduction ? env.GCLOUD_PROJECT! : 'emulator-project-id';
+  const projectId = config.isProduction ? env.GCLOUD_PROJECT! : 'splitifyd';
   
   // Build firebase config based on environment
   const firebase: FirebaseConfig = config.isProduction ? {
@@ -167,13 +186,13 @@ function buildAppConfiguration(): AppConfiguration {
     measurementId: env.CLIENT_MEASUREMENT_ID,
   } : {
     // Minimal config for development - these values are not used by the emulator
-    apiKey: 'emulator-api-key',
-    authDomain: 'localhost',
-    projectId: projectId,
-    storageBucket: 'emulator-storage',
-    messagingSenderId: 'emulator-sender-id',
-    appId: 'emulator-app-id',
-    measurementId: undefined
+      apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+      authDomain: '',
+      projectId,
+      storageBucket: '',
+      messagingSenderId: '',
+      appId: '',
+      measurementId: '',
   };
   
   // Validate required fields in production
@@ -195,7 +214,8 @@ function buildAppConfiguration(): AppConfiguration {
     firebase,
     environment,
     formDefaults: config.formDefaults,
-    firebaseAuthUrl: getFirebaseAuthUrl(config, env)
+    firebaseAuthUrl: getFirebaseAuthUrl(config, env),
+    firebaseFirestoreUrl: getFirebaseFirestoreUrl(config, env)
   };
 }
 

@@ -64,7 +64,8 @@ export const AppConfigurationSchema = z.object({
   api: ApiConfigSchema,
   environment: EnvironmentConfigSchema,
   formDefaults: FormDefaultsSchema,
-  firebaseAuthUrl: z.string().optional()
+  firebaseAuthUrl: z.string().optional(),
+  firebaseFirestoreUrl: z.string().optional()
 });
 
 // Group schemas

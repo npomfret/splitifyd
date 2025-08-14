@@ -22,7 +22,7 @@ import {
 } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
-import { getGroupMembers } from './groups/memberHandlers';
+import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import {
   createGroup,
@@ -57,6 +57,10 @@ import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from './shared/shared-types';
+
+// Import triggers and scheduled functions
+import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
+import { cleanupChanges } from './scheduled/cleanup';
 
 // Test emulator connections when running locally
 if (process.env.FUNCTIONS_EMULATOR === 'true') {
@@ -316,6 +320,8 @@ app.get(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(getGro
 app.get(`/${FirestoreCollections.GROUPS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
 app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
 app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
+app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
+app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
 // Settlement endpoints (requires auth)
 app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));
@@ -402,4 +408,10 @@ export const api = onRequest({
   const app = getApp();
   app(req, res);
 });
+
+// Export Firestore triggers for realtime change tracking
+export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
+
+// Export scheduled functions
+export { cleanupChanges };
 

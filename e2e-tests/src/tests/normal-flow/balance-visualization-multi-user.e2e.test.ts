@@ -17,7 +17,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     // Setup 2-person group with unique ID
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
+    const groupId = await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
+    console.log('Group ID:', groupId);
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -33,9 +34,23 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult.reason}`);
     }
     
-    // Wait for synchronization on BOTH pages - no reloads needed with real-time updates
-    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    // Try to wait for synchronization but don't fail the test
+    try {
+      await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+      await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+    } catch (error) {
+      console.log('Synchronization failed - pausing for inspection');
+      console.log('Group ID:', groupId);
+      console.log('User1:', user1.displayName, 'URL:', page.url());
+      console.log('User2:', user2.displayName, 'URL:', page2.url());
+      
+      // Pause for manual inspection
+      await page.pause();
+      await page2.pause();
+      
+      // Rethrow to fail the test after inspection
+      throw error;
+    }
     
     // SEQUENTIAL EXPENSES: User1 adds expense first
     await groupDetailPage.addExpense({

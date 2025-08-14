@@ -141,20 +141,25 @@
   },
   "emulators": {
     "auth": {
-      "port": {{EMULATOR_AUTH_PORT}}
+      "port": {{EMULATOR_AUTH_PORT}},
+      "host": "0.0.0.0"
     },
     "functions": {
-      "port": {{EMULATOR_FUNCTIONS_PORT}}
+      "port": {{EMULATOR_FUNCTIONS_PORT}},
+      "host": "0.0.0.0"
     },
     "firestore": {
-      "port": {{EMULATOR_FIRESTORE_PORT}}
+      "port": {{EMULATOR_FIRESTORE_PORT}},
+      "host": "0.0.0.0"
     },
     "hosting": {
-      "port": {{EMULATOR_HOSTING_PORT}}
+      "port": {{EMULATOR_HOSTING_PORT}},
+      "host": "0.0.0.0"
     },
     "ui": {
       "enabled": true,
-      "port": {{EMULATOR_UI_PORT}}
+      "port": {{EMULATOR_UI_PORT}},
+      "host": "0.0.0.0"
     },
     "singleProjectMode": true
   }

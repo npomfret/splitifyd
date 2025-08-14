@@ -12,6 +12,7 @@ interface FirebaseConfig {
 interface AppConfiguration {
   firebase: FirebaseConfig;
   firebaseAuthUrl?: string;
+  firebaseFirestoreUrl?: string;
   environment: {
     warningBanner?: WarningBanner;
   };

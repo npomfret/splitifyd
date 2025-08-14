@@ -281,3 +281,21 @@ export function logWarning(message: string, data?: Record<string, any>): void {
   // Single line log with message followed by JSON
   console.warn(`${message}:`, JSON.stringify(logData));
 }
+
+/**
+ * Logs an informational message with context information
+ * @param message - Info message describing what happened
+ * @param data - Optional data to include in the log
+ */
+export function logInfo(message: string, data?: Record<string, any>): void {
+  const logData: Record<string, any> = {
+    timestamp: new Date().toISOString(),
+  };
+
+  if (data) {
+    Object.assign(logData, data);
+  }
+
+  // Single line log with message followed by JSON
+  console.info(`${message}:`, JSON.stringify(logData));
+}
