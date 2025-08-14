@@ -344,3 +344,45 @@ When adding new tests:
 5. Verify tests work with browser reuse
 6. Add meaningful descriptions to test names
 7. Group related tests logically
+
+## Test Infrastructure Details
+
+### Screenshot and Report Locations
+- Playwright HTML reports are saved to `e2e-tests/playwright-report/<type>/` (where type is typically `ad-hoc`, `normal`, `errors` or `edge` depending on the test group being run)
+- The main report file is `index.html` in the specified directory
+- Screenshots and other assets are automatically organized in subdirectories (e.g., `data/`)
+- This is Playwright's default behavior for HTML reports
+
+### Real-Time Updates and Synchronization
+**Important**: The app uses real-time updates. Tests should rely on these rather than manual refreshes.
+
+**Best Practices**:
+- Avoid using `page.reload()` as it can hide real-time update bugs
+- Wait for loading spinners to disappear before assertions
+- Use `waitForLoadState('domcontentloaded')` instead of `networkidle` to avoid timeouts
+- Check for specific elements like `.animate-spin` or `[role="status"]` to detect loading states
+
+### Multi-User Test Patterns
+When testing with multiple users, pass user names for better error reporting:
+```typescript
+const allPages = [
+  { page, groupDetailPage, userName: user1.displayName },
+  { page: page2, groupDetailPage: groupDetailPage2, userName: user2.displayName },
+  { page: page3, groupDetailPage: groupDetailPage3, userName: user3.displayName }
+];
+
+await groupDetailPage.synchronizeMultiUserState(allPages, 3, groupId);
+```
+
+The `synchronizeMultiUserState` method:
+1. Navigates all users to the group page
+2. Checks for 404 or dashboard redirects
+3. Waits for member count to update
+4. Waits for balances to load
+5. Takes screenshots on failure with user identification
+
+To debug navigation issues:
+1. Check screenshots in `playwright-report/ad-hoc/data/` to see actual page state
+2. Look for user identification in error messages
+3. Review console logs for API errors or unexpected redirects
+4. Consider whether real-time updates are causing navigation issues
