@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
-import { createServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
+import { createOptimisticTimestamp, createTrueServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
 import {
   validateCreateGroup,
   validateUpdateGroup,
@@ -164,9 +164,12 @@ export const createGroup = async (
     // Sanitize group data
     const sanitizedData = sanitizeGroupData(groupData);
 
-    // Initialize group structure
-    const now = createServerTimestamp();
+    // Initialize group structure with server timestamps
     const docRef = getGroupsCollection().doc();
+    const serverTimestamp = createTrueServerTimestamp(); // This returns FieldValue.serverTimestamp()
+    
+    // For the data field, we need actual timestamps for the response
+    const now = createOptimisticTimestamp();
   
   const newGroup: Group = {
     id: docRef.id,
@@ -178,12 +181,12 @@ export const createGroup = async (
     updatedAt: timestampToISO(now),
   };
 
-  // Store in Firestore (using old structure during migration)
+  // Store in Firestore with true server timestamps for the document-level timestamps
   await docRef.set({
     userId,
     data: newGroup,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: serverTimestamp,  // True server timestamp
+    updatedAt: serverTimestamp,  // True server timestamp
   });
 
   logger.info('Group created successfully', {
@@ -271,22 +274,24 @@ export const updateGroup = async (
   // Fetch group with write access check
   const { docRef, group } = await fetchGroupWithAccess(groupId, userId, true);
 
-  // Update only allowed fields
-  const updatedData = {
-    ...group,
-    ...sanitizedUpdates,
-    updatedAt: createServerTimestamp().toDate(),
-  };
-
-  // Update with optimistic locking
+  // Update with optimistic locking (timestamp is handled by optimistic locking system)
   await admin.firestore().runTransaction(async (transaction) => {
     const freshDoc = await transaction.get(docRef);
     if (!freshDoc.exists) {
       throw Errors.NOT_FOUND('Group');
     }
     
-    const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+    const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
     
+    // Create updated data with current timestamp (will be converted to ISO in the data field)
+    const now = createOptimisticTimestamp();
+    const updatedData = {
+      ...group,
+      ...sanitizedUpdates,
+      updatedAt: now.toDate(),
+    };
+    
+    // Use existing pattern since we already have the fresh document from transaction read
     await updateWithTimestamp(transaction, docRef, {
       'data.name': updatedData.name,
       'data.description': updatedData.description,

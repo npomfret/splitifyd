@@ -1,16 +1,61 @@
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 /**
  * Date handling utilities for consistent timestamp management across the application.
- * All timestamps should be created server-side to prevent client clock manipulation.
+ * 
+ * IMPORTANT: With optimistic locking now implemented, timestamps are CRITICAL for data integrity.
+ * Two approaches are provided depending on use case:
+ * 
+ * 1. For optimistic locking: Use createPreciseTimestamp() - returns actual Timestamp for comparison
+ * 2. For general updates: Use createServerTimestamp() - returns FieldValue for true server-side timing
  */
 
 /**
- * Creates a server-side timestamp
- * @returns Firestore Timestamp with server time
+ * 🎯 CRITICAL: Creates timestamps for optimistic locking - ALWAYS use this for updatedAt in optimistic scenarios
+ * This ensures consistent timestamp creation across all optimistic locking operations.
+ * 
+ * USE FOR: Any operation that uses optimistic locking (Groups, Expenses, Settlements, etc.)
+ * 
+ * @returns Firestore Timestamp with current time (set at function execution for consistent comparison)
+ */
+export const createOptimisticTimestamp = (): Timestamp => {
+  return Timestamp.now();
+};
+
+/**
+ * Creates a server-side timestamp (maintains backward compatibility)
+ * ⚠️ DEPRECATED: Use createOptimisticTimestamp() for optimistic locking or createServerTimestamp() for general use
+ * @returns Firestore Timestamp with current time
+ */
+export const createPreciseTimestamp = (): Timestamp => {
+  return Timestamp.now();
+};
+
+/**
+ * Creates a server-side timestamp (maintains backward compatibility)
+ * @deprecated Use createOptimisticTimestamp() for optimistic locking or createTrueServerTimestamp() for server timestamps
+ * @returns Firestore Timestamp with current time
  */
 export const createServerTimestamp = (): Timestamp => {
   return Timestamp.now();
+};
+
+/**
+ * Creates a true server-side timestamp placeholder
+ * USE FOR: Document creation or general updates where precise timing isn't critical for logic
+ * 
+ * @returns FieldValue.serverTimestamp() - set when Firestore processes the write
+ */
+export const createTrueServerTimestamp = (): FieldValue => {
+  return FieldValue.serverTimestamp();
+};
+
+/**
+ * Creates a precise timestamp for optimistic locking (alias for clarity)
+ * @deprecated Use createOptimisticTimestamp() for better clarity
+ */
+export const createOptimisticLockTimestamp = (): Timestamp => {
+  return createOptimisticTimestamp();
 };
 
 /**

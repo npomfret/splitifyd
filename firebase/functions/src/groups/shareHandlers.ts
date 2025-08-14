@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { FirestoreCollections } from '../shared/shared-types';
-import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { getUpdatedAtTimestamp, updateWithTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 
 const generateShareToken = (): string => {
   const bytes = randomBytes(12);
@@ -253,14 +253,14 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       }
       const currentMemberIds = groupData.data.memberIds;
       
-      // Ensure group owner is in memberIds (but no duplicates)
-      const allMemberIds = [...currentMemberIds];
-      if (!allMemberIds.includes(groupData.userId)) {
-        allMemberIds.push(groupData.userId);
-      }
+      // 🎯 FIXED: Use Set for atomic deduplication to prevent race conditions
+      const allMemberIds = new Set([...currentMemberIds]);
       
-      // Check if user is already a member
-      if (allMemberIds.includes(userId)) {
+      // Ensure group owner is in memberIds
+      allMemberIds.add(groupData.userId);
+      
+      // Check if user is already a member BEFORE attempting to add
+      if (allMemberIds.has(userId)) {
         throw new ApiError(
           HTTP_STATUS.CONFLICT,
           'ALREADY_MEMBER',
@@ -268,12 +268,15 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
         );
       }
       
-      // Add user to memberIds
-      allMemberIds.push(userId);
+      // Add user to memberIds (Set prevents duplicates)
+      allMemberIds.add(userId);
       
-      // Use optimistic locking to prevent concurrent updates
-      await updateWithTimestamp(transaction, groupRef, {
-        'data.memberIds': allMemberIds,
+      // Convert back to array for Firestore
+      const newMemberIds = Array.from(allMemberIds);
+      
+      // 🎯 FIXED: Use the proper transaction function with correct read/write order
+      await checkAndUpdateWithTimestamp(transaction, groupRef, {
+        'data.memberIds': newMemberIds,
       }, originalUpdatedAt);
 
       return {
