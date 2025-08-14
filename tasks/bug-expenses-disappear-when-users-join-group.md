@@ -102,8 +102,10 @@ After thorough investigation including creating integration tests and reproducin
 ### Implementation Plan
 We will implement **optimistic locking using the existing `updatedAt` timestamp field** to prevent concurrent update conflicts. This is a production-grade solution that fixes the root cause at the database level.
 
+**IMPORTANT**: This pattern must be applied to ALL updatable documents across all collections, not just groups.
+
 ### How It Works
-1. **Read Phase**: Store the current `updatedAt` timestamp when reading a group document
+1. **Read Phase**: Store the current `updatedAt` timestamp when reading a document
 2. **Validation Phase**: Before updating, verify the `updatedAt` hasn't changed
 3. **Write Phase**: Only update if timestamp matches, otherwise reject with `CONCURRENT_UPDATE` error
 4. **Client Retry**: Client receives 409 Conflict and retries with fresh data
@@ -112,80 +114,124 @@ We will implement **optimistic locking using the existing `updatedAt` timestamp 
 - **No schema changes needed** - Uses existing `updatedAt` field
 - **Database-level guarantee** - Prevents dirty writes regardless of client implementation
 - **Standard pattern** - Well-understood optimistic locking mechanism
-- **Handles true concurrency** - Works when users join at exactly the same time
+- **Handles true concurrency** - Works when operations happen at exactly the same time
+- **Comprehensive protection** - Applied to all collections prevents race conditions everywhere
 
 ### Server-Side Changes Required
 
-1. **Update `joinGroupByLink` transaction** (`shareHandlers.ts`):
-   ```typescript
-   const groupDoc = await transaction.get(groupRef);
-   const originalUpdatedAt = groupDoc.data().updatedAt;
-   
-   // Before updating, verify timestamp hasn't changed
-   const freshDoc = await transaction.get(groupRef);
-   if (!freshDoc.data().updatedAt.isEqual(originalUpdatedAt)) {
-     throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
-       'Group was modified by another user. Please retry.');
-   }
-   
-   transaction.update(groupRef, {
-     'data.memberIds': newMemberIds,
-     'updatedAt': Timestamp.now()
-   });
-   ```
+#### Phase 1: Core Infrastructure
+1. **Create Optimistic Locking Utilities** (`utils/optimistic-locking.ts`):
+   - `checkTimestampConflict(transaction, docRef, originalTimestamp)`
+   - `updateWithTimestamp(transaction, docRef, updates)`
+   - Reusable across all collections
 
-2. **Update `updateGroup` operation** (`handlers.ts`):
-   - Add same timestamp validation logic
-   - Ensure all group modifications check timestamp
+2. **Add CONCURRENT_UPDATE Error** (`utils/errors.ts`):
+   - HTTP 409 Conflict status
+   - Clear retry message
+   - Used by all collections
 
-3. **Update `generateShareableLink`** (`shareHandlers.ts`):
-   - Add timestamp checking when creating share links
+#### Phase 2: Apply to All Collections
 
-4. **Add new error type**:
-   - `CONCURRENT_UPDATE` error with 409 Conflict status
-   - Clear message indicating retry is needed
+**Groups Collection** (`groups/handlers.ts`, `groups/shareHandlers.ts`):
+- `joinGroupByLink` - validate timestamp before adding members
+- `updateGroup` - validate timestamp before updating
+- `generateShareableLink` - validate timestamp before adding link
+
+**Expenses Collection** (`expenses/handlers.ts`):
+- `updateExpense` - validate timestamp before modifying
+- `deleteExpense` - validate timestamp before deletion
+
+**Settlements Collection** (`settlements/handlers.ts`):
+- `updateSettlement` - validate timestamp before modifying
+- `deleteSettlement` - validate timestamp before deletion
+
+**Users Collection** (`auth/handlers.ts`, `policies/user-handlers.ts`):
+- Policy acceptance updates
+- Profile updates
+- Theme color assignments
+
+**Policies Collection** (`policies/handlers.ts`):
+- `updatePolicy` - validate timestamp before updating
+
+#### Example Implementation Pattern:
+```typescript
+// In any transaction that updates a document
+const docRef = collection.doc(id);
+const doc = await transaction.get(docRef);
+const originalUpdatedAt = doc.data().updatedAt;
+
+// ... prepare updates ...
+
+// Verify timestamp hasn't changed
+const freshDoc = await transaction.get(docRef);
+if (!freshDoc.data().updatedAt.isEqual(originalUpdatedAt)) {
+  throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
+    'Document was modified by another user. Please retry.');
+}
+
+// Apply update with new timestamp
+transaction.update(docRef, {
+  ...updates,
+  updatedAt: Timestamp.now()
+});
+```
 
 ### Client-Side Changes Required
 
-**IMPORTANT**: The webapp must handle the new `CONCURRENT_UPDATE` (409 Conflict) response gracefully:
+**IMPORTANT**: The webapp must handle the new `CONCURRENT_UPDATE` (409 Conflict) response gracefully across ALL stores:
 
-1. **Automatic Retry Logic**:
-   - When receiving 409 Conflict error
-   - Re-fetch the latest group data
-   - Retry the operation with updated data
-   - Maximum 3 retries with exponential backoff
+#### Phase 1: Generic Retry Handler
+Create a reusable retry utility (`utils/retry-handler.ts`):
+```typescript
+async function retryOnConflict<T>(
+  operation: () => Promise<T>, 
+  maxRetries = 3
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error.code === 'CONCURRENT_UPDATE' && attempt < maxRetries - 1) {
+        // Exponential backoff: 100ms, 200ms, 400ms
+        await new Promise(resolve => 
+          setTimeout(resolve, Math.pow(2, attempt) * 100)
+        );
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
 
-2. **Example Client Implementation**:
-   ```typescript
-   async function updateGroupWithRetry(groupId: string, updates: any, maxRetries = 3) {
-     for (let attempt = 0; attempt < maxRetries; attempt++) {
-       try {
-         // Fetch latest group data
-         const group = await fetchGroup(groupId);
-         
-         // Apply updates to fresh data
-         const updatedData = { ...group, ...updates };
-         
-         // Try to save
-         return await saveGroup(groupId, updatedData);
-       } catch (error) {
-         if (error.code === 'CONCURRENT_UPDATE' && attempt < maxRetries - 1) {
-           // Wait with exponential backoff
-           await new Promise(resolve => 
-             setTimeout(resolve, Math.pow(2, attempt) * 100)
-           );
-           continue;
-         }
-         throw error;
-       }
-     }
-   }
-   ```
+#### Phase 2: Apply to All Stores
+- **groups-store.ts**: Handle conflicts on group updates
+- **expense-form-store.ts**: Handle conflicts on expense save/update
+- **settlement-store.ts**: Handle conflicts on settlement operations
+- **auth-store.ts**: Handle conflicts on profile/policy updates
+- **join-group-store.ts**: Handle conflicts when joining groups
 
-3. **User Feedback**:
-   - Show loading state during retries
-   - If all retries fail, show user-friendly error
-   - "Another user is updating this group. Please try again."
+#### Example Store Implementation:
+```typescript
+// In any store that updates documents
+async updateDocument(id: string, updates: any) {
+  return retryOnConflict(async () => {
+    // Fetch fresh data
+    const doc = await fetchDocument(id);
+    
+    // Apply updates to fresh data
+    const updatedData = { ...doc, ...updates };
+    
+    // Save with potential conflict
+    return await saveDocument(id, updatedData);
+  });
+}
+```
+
+#### User Feedback:
+- Show loading spinner during retries
+- If all retries fail: "Another user is updating this. Please try again."
+- Log retry attempts for debugging
 
 ### Benefits
 - **True fix**: Solves the race condition at its root
@@ -214,11 +260,50 @@ Once fixed, the `three-user-settlement.e2e.test.ts` test should:
    - **Status**: All tests pass, confirming backend handles atomic updates correctly
 
 ### Integration Tests Needed After Fix
-2. **timestamp-optimistic-locking.test.ts** (TO CREATE):
-   - Test concurrent updates are detected via timestamp
+
+2. **Generic Optimistic Locking Tests** (`optimistic-locking.test.ts`):
+   - Test pattern that works for all collections
    - Verify CONCURRENT_UPDATE errors are thrown
    - Test retry logic with fresh data succeeds
-   - Ensure only one concurrent update succeeds, others retry
+   - Ensure only one concurrent update succeeds
+
+3. **Collection-Specific Tests**:
+   - **group-optimistic-locking.test.ts**: Test group update conflicts
+   - **expense-optimistic-locking.test.ts**: Test expense update conflicts
+   - **settlement-optimistic-locking.test.ts**: Test settlement conflicts
+   - **user-optimistic-locking.test.ts**: Test user profile conflicts
+   - **policy-optimistic-locking.test.ts**: Test policy update conflicts
+
+### Test Pattern for Each Collection:
+```typescript
+describe('Optimistic Locking - [Collection]', () => {
+  test('detects concurrent updates', async () => {
+    // Create document
+    const doc = await createDocument();
+    
+    // Simulate two concurrent updates
+    const update1 = updateDocument(doc.id, { field1: 'value1' });
+    const update2 = updateDocument(doc.id, { field2: 'value2' });
+    
+    // Run concurrently
+    const results = await Promise.allSettled([update1, update2]);
+    
+    // One should succeed, one should get CONCURRENT_UPDATE
+    const successes = results.filter(r => r.status === 'fulfilled');
+    const conflicts = results.filter(r => 
+      r.status === 'rejected' && 
+      r.reason.code === 'CONCURRENT_UPDATE'
+    );
+    
+    expect(successes).toHaveLength(1);
+    expect(conflicts).toHaveLength(1);
+  });
+  
+  test('retry succeeds with fresh data', async () => {
+    // Test that retrying with fresh data works
+  });
+});
+```
 
 ### E2E Test Validation
 - **three-user-settlement.e2e.test.ts** (CURRENTLY FAILING):
@@ -229,10 +314,24 @@ Once fixed, the `three-user-settlement.e2e.test.ts` test should:
 ## Implementation Status
 - **Investigation**: ✅ Complete
 - **Root Cause**: ✅ Identified (missing optimistic locking)
-- **Solution Design**: ✅ Complete (timestamp-based optimistic locking)
-- **Server Implementation**: ⏳ Pending
-- **Client Implementation**: ⏳ Pending
-- **Testing**: ⏳ Pending final validation
+- **Solution Design**: ✅ Complete (timestamp-based optimistic locking for ALL collections)
+- **Scope Expanded**: ✅ Apply to all updatable documents, not just groups
+- **Server Implementation**: ⏳ Pending (5 collections to update)
+- **Client Implementation**: ⏳ Pending (generic retry handler + all stores)
+- **Testing**: ⏳ Pending (generic + collection-specific tests needed)
+
+## Implementation Priority
+1. **Groups Collection** (Fixes immediate bug)
+2. **Expenses & Settlements** (Core user-facing features)
+3. **Users Collection** (Profile/policy updates)
+4. **Policies Collection** (Admin operations)
+
+## Key Insights
+- The bug revealed a systemic issue: **NO collection has optimistic locking protection**
+- This could cause race conditions anywhere in the app, not just groups
+- The solution must be comprehensive to prevent similar bugs elsewhere
+- Using existing `updatedAt` field avoids schema migrations
+- Generic utilities ensure consistent implementation across all collections
 
 ## Additional Notes
 - Bug was discovered while debugging flaky E2E tests
@@ -240,3 +339,4 @@ Once fixed, the `three-user-settlement.e2e.test.ts` test should:
 - The solution uses existing `updatedAt` field instead of adding a new version field
 - Client must handle 409 Conflict responses with retry logic
 - This is a standard optimistic locking pattern used in production systems
+- Implementation must be consistent across ALL collections to prevent future race conditions
