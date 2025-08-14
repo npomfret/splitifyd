@@ -51,11 +51,3 @@ export function useConfig() {
 
   return configSignal.value;
 }
-
-export function useConfigLoading() {
-  return loadingSignal.value;
-}
-
-export function useConfigError() {
-  return errorSignal.value;
-}

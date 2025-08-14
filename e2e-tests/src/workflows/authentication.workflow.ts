@@ -55,13 +55,4 @@ export class AuthenticationWorkflow {
     const dashboardPage = new DashboardPage(this.page);
     await dashboardPage.waitForDashboard();
   }
-
-  /**
-   * Static convenience method for backward compatibility.
-   * Use instance method for better testability and page object encapsulation.
-   */
-  static async createTestUser(page: Page): Promise<BaseUser> {
-    const workflow = new AuthenticationWorkflow(page);
-    return workflow.createAndLoginTestUser();
-  }
 }

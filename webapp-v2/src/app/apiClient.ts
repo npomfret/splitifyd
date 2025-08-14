@@ -43,10 +43,6 @@ interface AcceptPolicyRequest {
   versionHash: string;
 }
 
-interface AcceptMultiplePoliciesRequest {
-  acceptances: AcceptPolicyRequest[];
-}
-
 interface PolicyAcceptanceStatus {
   policyId: string;
   currentVersionHash: string;

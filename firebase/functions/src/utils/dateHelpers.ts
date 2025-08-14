@@ -233,10 +233,3 @@ export const validateUTCDate = (
   
   return { valid: true };
 };
-
-// Future timezone support interface
-export interface TimezoneAwareDate {
-  timestamp: Timestamp;
-  timezone: string; // IANA timezone (e.g., "America/New_York")
-  localISOString: string; // Local time in that timezone
-}
