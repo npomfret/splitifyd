@@ -1,8 +1,7 @@
 import { multiUserTest, expect } from '../../fixtures';
 import { GroupWorkflow } from '../../workflows';
-import { MultiUserWorkflow } from '../../workflows';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import {generateShortId} from "../../utils/test-helpers.ts";
+import { generateShortId } from "../../utils/test-helpers.ts";
 import { GroupDetailPage } from '../../pages';
 import { JoinGroupPage } from '../../pages';
 
@@ -15,17 +14,16 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
     // Setup 2-person group with unique ID
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
 
-    // Get share link using direct method like working tests
+    // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
     await groupDetailPage.getShareButton().click();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    await groupDetailPage.closeModalWithEscape();
     
     // User2 joins using robust JoinGroupPage
     const joinGroupPage = new JoinGroupPage(page2);
@@ -35,17 +33,11 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult.reason}`);
     }
     
-    // Wait for synchronization on BOTH pages after join
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for synchronization on BOTH pages - no reloads needed with real-time updates
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // SEQUENTIAL EXPENSES: User1 adds expense first
-    // Key insight: If both users add equal expenses → ALWAYS settled up
     await groupDetailPage.addExpense({
       description: 'User1 Equal Payment',
       amount: 100,
@@ -54,18 +46,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for first expense to be fully processed and synced
+    // Wait for first expense to be synced via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
-    await page.reload();
-    await page2.reload();
-    await page.waitForLoadState('networkidle');
-    await page2.waitForLoadState('networkidle');
     
-    // Verify first expense is visible to both users before adding second
-    await expect(page.getByText('User1 Equal Payment')).toBeVisible();
-    await expect(page2.getByText('User1 Equal Payment')).toBeVisible();
+    // Verify first expense is visible to both users via real-time updates
+    await groupDetailPage.verifyExpenseVisible('User1 Equal Payment');
+    await groupDetailPage2.verifyExpenseVisible('User1 Equal Payment');
 
-    // SEQUENTIAL: User2 adds expense ONLY AFTER User1's is synchronized
+    // User2 adds expense AFTER User1's is synchronized
     await groupDetailPage2.addExpense({
       description: 'User2 Equal Payment', 
       amount: 100,
@@ -74,12 +62,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for second expense to be fully processed
+    // Wait for second expense to be processed
     await groupDetailPage2.waitForBalanceUpdate();
-    
-    // Refresh to ensure all balance calculations are complete and visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -91,8 +75,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await expect(balancesSection.getByText(`${user1.displayName} → ${user2.displayName}`)).not.toBeVisible();
     await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).not.toBeVisible();
     
-    await expect(page.getByText('User1 Equal Payment')).toBeVisible();
-    await expect(page.getByText('User2 Equal Payment')).toBeVisible();
+    await groupDetailPage.verifyExpenseVisible('User1 Equal Payment');
+    await groupDetailPage.verifyExpenseVisible('User2 Equal Payment');
   });
 
   multiUserTest('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
@@ -100,15 +84,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
-    // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    // Get share link directly
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await groupDetailPage.closeModalWithEscape();
     
-    // User2 joins using robust JoinGroupPage
+    // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
     
@@ -116,17 +102,11 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
-    // Wait for synchronization on BOTH pages after join
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for synchronization - no reloads needed
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // Only User1 pays $200 → User2 MUST owe User1 $100 (never settled up)
-    // Key insight: In 2-person groups, if only 1 person adds expense → NEVER settled up
+    // Only User1 pays $200 → User2 MUST owe User1 $100
     await groupDetailPage.addExpense({
       description: 'One Person Pays',
       amount: 200,
@@ -135,12 +115,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for expense to be fully processed and balance to update
+    // Wait for expense to be processed via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
-    
-    // Also reload to ensure data is fresh
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -158,15 +134,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
 
-    // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    // Get share link directly
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await groupDetailPage.closeModalWithEscape();
     
-    // User2 joins using robust JoinGroupPage
+    // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
     
@@ -174,18 +152,11 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
-    // Wait for synchronization on BOTH pages after join
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for synchronization - no reloads needed
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    // SEQUENTIAL EXPENSES: User1 pays $300 first
-    // Complex but predictable: User1 paid $300, User2 paid $100
-    // Total: $400, each owes $200, net: User2 owes User1 $100
+    // User1 pays $300 first
     await groupDetailPage.addExpense({
       description: 'Large User1 Payment',
       amount: 300,
@@ -194,18 +165,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for first expense to be fully processed and synced
+    // Wait for first expense to be synced via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
-    await page.reload();
-    await page2.reload();
-    await page.waitForLoadState('networkidle');
-    await page2.waitForLoadState('networkidle');
     
-    // Verify first expense is visible before adding second
-    await expect(page.getByText('Large User1 Payment')).toBeVisible();
-    await expect(page2.getByText('Large User1 Payment')).toBeVisible();
+    // Verify first expense is visible via real-time updates
+    await groupDetailPage.verifyExpenseVisible('Large User1 Payment');
+    await groupDetailPage2.verifyExpenseVisible('Large User1 Payment');
 
-    // SEQUENTIAL: User2 adds expense AFTER User1's is synchronized
+    // User2 adds expense AFTER User1's is synchronized
     await groupDetailPage2.addExpense({
       description: 'Small User2 Payment',
       amount: 100,
@@ -214,12 +181,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Wait for second expense to be fully processed
+    // Wait for second expense to be processed
     await groupDetailPage2.waitForBalanceUpdate();
-    
-    // Reload to ensure all balance calculations are complete and visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -228,8 +191,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
-    await expect(page.getByText('Large User1 Payment')).toBeVisible();
-    await expect(page.getByText('Small User2 Payment')).toBeVisible();
+    await groupDetailPage.verifyExpenseVisible('Large User1 Payment');
+    await groupDetailPage.verifyExpenseVisible('Small User2 Payment');
   });
   
   multiUserTest('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
@@ -237,15 +200,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
 
-    // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    // Get share link directly
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await groupDetailPage.closeModalWithEscape();
     
-    // User2 joins using robust JoinGroupPage
+    // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
     
@@ -253,13 +218,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
-    // Wait for synchronization on BOTH pages after join
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for synchronization - no reloads needed
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // State 1: Empty group → ALWAYS settled up
@@ -274,10 +234,6 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Reload to ensure the expense and balance updates are visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
     // Verify debt exists with amount $50.00
@@ -286,7 +242,6 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$50.00' })).toBeVisible();
     
     // State 3: User2 pays $100 → MUST be settled up
-    // SEQUENTIAL: User2 adds balancing expense
     await groupDetailPage2.addExpense({
       description: 'Balance Debt',
       amount: 100,
@@ -295,18 +250,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       splitType: 'equal'
     });
     
-    // Refresh to ensure balance calculations are updated
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for balance calculations to be updated via real-time updates
+    await groupDetailPage2.waitForBalanceUpdate();
     
     // Guaranteed settled up: both paid $100
     await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
     
-    // Verify NO debt messages remain by checking specific debt doesn't exist
+    // Verify NO debt messages remain
     await expect(groupDetailPage.getBalancesSection().getByText(`${user2.displayName} → ${user1.displayName}`)).not.toBeVisible();
     
-    await expect(page.getByText('Create Debt')).toBeVisible();
-    await expect(page.getByText('Balance Debt')).toBeVisible();
+    await groupDetailPage.verifyExpenseVisible('Create Debt');
+    await groupDetailPage.verifyExpenseVisible('Balance Debt');
   });
   
   multiUserTest('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
@@ -314,15 +268,17 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
     const uniqueId = generateShortId();
-    const groupId = await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
+    await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
-    // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    // Get share link directly
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await groupDetailPage.closeModalWithEscape();
     
-    // User2 joins using robust JoinGroupPage
+    // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
     
@@ -330,13 +286,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
     
-    // Wait for synchronization on BOTH pages after join
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for synchronization - no reloads needed
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // User1 pays $123.45 → User2 owes exactly $61.73
@@ -347,10 +298,6 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       currency: 'USD',
       splitType: 'equal'
     });
-    
-    // Reload to ensure the expense and balance updates are visible
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -371,42 +318,34 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
-    // Step 1: Create group and verify
+    // Create group and verify
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
     await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
-    // Step 2: Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    // Get share link directly
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await groupDetailPage.closeModalWithEscape();
     
-    // Step 3: User 2 joins using robust JoinGroupPage
-    const joinGroupPageStep3 = new JoinGroupPage(page2);
-    const joinResultStep3 = await joinGroupPageStep3.attemptJoinWithStateDetection(shareLink);
+    // User 2 joins
+    const joinGroupPage = new JoinGroupPage(page2);
+    const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
     
-    if (!joinResultStep3.success) {
-      throw new Error(`Failed to join group: ${joinResultStep3.reason}`);
+    if (!joinResult.success) {
+      throw new Error(`Failed to join group: ${joinResult.reason}`);
     }
     
-    // Step 4: Synchronize both users and verify member count
-    // Need to reload pages to see the join
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    await groupDetailPage.waitForMemberCount(2);
-    await expect(page.getByText(user1.displayName)).toBeVisible();
-    await expect(page.getByText(user2.displayName)).toBeVisible();
+    // Synchronize both users - no reloads needed with real-time updates
+    await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+    await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
-    await groupDetailPage2.waitForMemberCount(2);
-    await expect(page2.getByText(user1.displayName)).toBeVisible();
-    await expect(page2.getByText(user2.displayName)).toBeVisible();
-    
-    // Step 5: Verify no expenses yet
+    // Verify no expenses yet
     await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
     
-    // Step 6: Create expense directly
+    // Create expense directly
     await groupDetailPage.addExpense({
       description: 'Test Expense for Settlement',
       amount: 200,
@@ -415,17 +354,15 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       splitType: 'equal'
     });
     
-    // Step 7: Verify expense appears for User 1
-    await expect(page.getByText('Test Expense for Settlement')).toBeVisible();
+    // Verify expense appears for User 1
+    await groupDetailPage.verifyExpenseVisible('Test Expense for Settlement');
     await expect(groupDetailPage.getCurrencyAmount('200.00')).toBeVisible();
     
-    // Step 8: Verify User 2 sees expense
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    await expect(page2.getByText('Test Expense for Settlement')).toBeVisible();
-    await expect(page2.getByText('$200.00')).toBeVisible();
+    // Verify User 2 sees expense via real-time updates
+    await groupDetailPage2.verifyExpenseVisible('Test Expense for Settlement');
+    await groupDetailPage2.verifyCurrencyAmountVisible('200.00');
     
-    // Step 9: Verify initial debt (User 2 owes User 1 $100)
+    // Verify initial debt (User 2 owes User 1 $100)
     await groupDetailPage.waitForBalancesToLoad(groupId);
     const balancesSection = groupDetailPage.getBalancesSection();
     
@@ -433,48 +370,39 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
-    // Step 10: Record partial settlement of $60
-    // Use the recordSettlement helper with display names
+    // Record partial settlement of $60
     await groupDetailPage.recordSettlementByUser({
-      payerName: user2.displayName,  // User who owes money pays
-      payeeName: user1.displayName,  // User who is owed receives
+      payerName: user2.displayName,
+      payeeName: user1.displayName,
       amount: '60',
       note: 'Partial payment of $60'
     });
     
-    // Step 13: Wait for settlement to propagate and refresh all pages
-    // This pattern is from the working three-user test
+    // Wait for settlement to propagate via real-time updates
     await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForBalancesToLoad(groupId);
     await groupDetailPage2.waitForBalancesToLoad(groupId);
     
-    // Step 14: Verify settlement appears in history for both users
+    // Verify settlement appears in history for both users
     const showHistoryButton = groupDetailPage.getShowHistoryButton();
     await showHistoryButton.click();
-    await expect(page.getByText('Partial payment of $60')).toBeVisible();
-    await page.keyboard.press('Escape');
+    await groupDetailPage.verifySettlementInHistoryVisible('Partial payment of $60');
+    await groupDetailPage.closeModalWithEscape();
     
     const showHistoryButton2 = groupDetailPage2.getShowHistoryButton();
     await showHistoryButton2.click();
-    await expect(page2.getByText('Partial payment of $60')).toBeVisible();
-    await page2.keyboard.press('Escape');
+    await groupDetailPage2.verifySettlementInHistoryVisible('Partial payment of $60');
+    await groupDetailPage2.closeModalWithEscape();
     
-    // Step 16: Assert final balance ($100 - $60 = $40 remaining)
-    const updatedBalancesSection = page.locator('.bg-white').filter({ 
-      has: page.getByRole('heading', { name: 'Balances' }) 
-    }).first();
+    // Assert final balance ($100 - $60 = $40 remaining)
+    const updatedBalancesSection = groupDetailPage.getBalancesSectionByContext();
     
     // Verify updated debt relationship and amount after partial settlement
     await expect(updatedBalancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
     await expect(updatedBalancesSection.locator('.text-red-600').filter({ hasText: '$40.00' })).toBeVisible();
     
-    // Step 17: Verify User 2 also sees updated balance
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    
-    const balancesSection2 = page2.locator('.bg-white').filter({ 
-      has: page2.getByRole('heading', { name: 'Balances' }) 
-    }).first();
+    // Verify User 2 also sees updated balance via real-time updates
+    const balancesSection2 = groupDetailPage2.getBalancesSectionByContext();
     
     // Verify debt from user2's perspective
     await expect(balancesSection2.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
@@ -486,30 +414,29 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const multiUserWorkflow = new MultiUserWorkflow(null);
     
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
-    // Get share link using reliable method
-    const shareLink = await multiUserWorkflow.getShareLink(page);
+    // Get share link directly
+    await expect(groupDetailPage.getShareButton()).toBeVisible();
+    await groupDetailPage.getShareButton().click();
+    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
+    await groupDetailPage.closeModalWithEscape();
     
-    // User2 joins using robust JoinGroupPage
+    // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
     
     if (!joinResult2.success) {
       throw new Error(`Failed to join group: ${joinResult2.reason}`);
     }
-    
-    // Critical: Ensure both users are synchronized before creating expenses
+
+    // Wait for synchronization - no reloads needed
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    
-    // Also ensure user2 sees both members
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Create known debt: User1 pays $150 → User2 owes $75
-    // In 2-person group: debt = amount / 2
     await groupDetailPage.addExpense({
       description: 'One Person Pays',
       amount: 150,
@@ -518,15 +445,9 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       splitType: 'equal'
     });
     
-    // Wait for expense to be fully processed and synced to both users
+    // Wait for expense to be processed via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
     await groupDetailPage2.waitForBalancesToLoad(groupId);
-    
-    // Reload to ensure data is fresh
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     // Wait for expense to appear and balance to calculate
     await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
@@ -539,16 +460,14 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$75.00' })).toBeVisible();
     
     // User2 pays User1 the exact debt amount ($75) → MUST be settled up
-    // Use the new recordSettlementByUser method with display names
     await groupDetailPage.recordSettlementByUser({
-      payerName: user2.displayName,  // User who owes money pays
-      payeeName: user1.displayName,  // User who is owed receives
+      payerName: user2.displayName,
+      payeeName: user1.displayName,
       amount: expectedDebtAmount,
       note: 'Full settlement payment'
     });
     
-    // Wait for settlement to propagate and refresh all pages
-    // This pattern is from the working three-user test
+    // Wait for settlement to propagate via real-time updates
     await page.waitForLoadState('networkidle');
     await groupDetailPage.waitForBalancesToLoad(groupId);
     await secondUser.groupDetailPage.waitForBalancesToLoad(groupId);
@@ -557,33 +476,29 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const showHistoryButton = groupDetailPage.getShowHistoryButton();
     await showHistoryButton.click();
     
-    const settlementEntry = page.getByText(/Full settlement payment/i);
-    await expect(settlementEntry).toBeVisible();
-    await page.keyboard.press('Escape'); // Close history modal
+    await groupDetailPage.verifySettlementInHistoryVisible('Full settlement payment');
+    await groupDetailPage.closeModalWithEscape();
     
-    // Also verify user2 can see the settlement
+    // Also verify user2 can see the settlement via real-time updates
     const showHistoryButton2 = groupDetailPage2.getShowHistoryButton();
     await showHistoryButton2.click();
-    await expect(page2.getByText(/Full settlement payment/i)).toBeVisible();
-    await page2.keyboard.press('Escape');
+    await groupDetailPage2.verifySettlementInHistoryVisible('Full settlement payment');
+    await groupDetailPage2.closeModalWithEscape();
     
-    // Test user1's browser (page)
+    // Test user1's browser
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Use more specific selector for the balance section
-    const balanceSection = page.locator('.bg-white').filter({
-      has: page.getByRole('heading', { name: 'Balances' })
-    }).first();
+    const balanceSection = groupDetailPage.getBalancesSectionByContext();
 
     // Should be settled up after paying the full debt amount
     await expect(balanceSection.getByText('All settled up!')).toBeVisible();
     
-    // Verify expenses still appear after settlement in user1's browser
+    // Verify expenses still appear after settlement
     await expect(groupDetailPage.getExpensesHeading()).toBeVisible();
     await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
     await expect(groupDetailPage.getCurrencyAmount('150.00')).toBeVisible();
     
-    // Test user2's browser (page2) - should show same data
+    // Test user2's browser - should show same data via real-time updates
     await expect(secondUser.groupDetailPage.getBalancesHeading()).toBeVisible();
     
     await expect(secondUser.groupDetailPage.getLoadingBalancesText()).not.toBeVisible();
@@ -592,12 +507,9 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const balanceSection2 = secondUser.groupDetailPage.getBalancesSection();
     await expect(balanceSection2.getByText('All settled up!')).toBeVisible();
     
-    // Both users should see the expenses
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    
+    // Both users should see the expenses via real-time updates
     await expect(secondUser.groupDetailPage.getExpensesHeading()).toBeVisible();
-    await expect(page2.getByText('One Person Pays')).toBeVisible();
-    await expect(page2.getByText('$150.00')).toBeVisible();
+    await groupDetailPage2.verifyExpenseVisible('One Person Pays');
+    await groupDetailPage2.verifyCurrencyAmountVisible('150.00');
   });
 });
