@@ -211,10 +211,15 @@ export interface UserBalance {
   netBalance: number;
 }
 
-export interface GroupBalance {
-  userBalance: UserBalance | null;
+export interface CurrencyBalance {
+  currency: string;
+  netBalance: number;
   totalOwed: number;
   totalOwing: number;
+}
+
+export interface GroupBalance {
+  balancesByCurrency: Record<string, CurrencyBalance>;
 }
 
 // ========================================================================
@@ -232,9 +237,7 @@ export interface Group {
   updatedAt: string;  // ISO string
   // Computed fields (only in API responses)
   balance?: {
-    userBalance: UserBalance | null;
-    totalOwed: number;
-    totalOwing: number;
+    balancesByCurrency: Record<string, CurrencyBalance>;
   };
   lastActivity?: string;
   lastActivityRaw?: string;

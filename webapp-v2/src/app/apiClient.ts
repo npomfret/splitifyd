@@ -787,9 +787,7 @@ export class ApiClient {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       balance: {
-        userBalance: null,
-        totalOwed: 0,
-        totalOwing: 0
+        balancesByCurrency: {}
       },
       lastActivity: 'just now',
       lastActivityRaw: new Date().toISOString()

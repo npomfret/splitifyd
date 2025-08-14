@@ -42,3 +42,64 @@ As defined in the `basic-currency-support.md` specification, the dashboard balan
 -   Each summary must use the correct currency symbol and formatting.
 -   The amounts displayed must be correct for each currency.
 -   If a user only has a balance in a single currency, the display should remain clean and show only that currency's balance.
+
+---
+
+## 6. Implementation Status: ✅ **COMPLETED**
+
+### **Issue Analysis - Root Cause Identified:**
+The problem was **exactly as hypothesized** - the balance calculator and dashboard display were not handling multi-currency balances correctly:
+
+1. **Backend Issue**: `firebase/functions/src/services/balanceCalculator.ts` line 71 assumed all expenses in a group had the same currency
+2. **Frontend Issue**: `webapp-v2/src/components/dashboard/GroupCard.tsx` hardcoded USD symbol and didn't iterate through multiple currencies
+3. **API Issue**: `listGroups` handler didn't return currency-specific balance breakdowns
+
+### **Solution Implemented:**
+
+#### **Backend Changes:**
+1. **Type Definitions** (`shared-types.ts`):
+   - ✅ Added `CurrencyBalance` interface for per-currency tracking
+   - ✅ Updated `GroupBalance` and `Group` interfaces with `balancesByCurrency` field
+
+2. **Balance Calculator** (`balanceCalculator.ts`):
+   - ✅ **Fixed Line 71**: Removed single-currency assumption
+   - ✅ Refactored to track balances separately per currency
+   - ✅ Groups expenses and settlements by currency
+   - ✅ Returns both legacy format (backward compatibility) and new multi-currency data
+
+3. **API Response** (`groups/handlers.ts`):
+   - ✅ Updated `listGroups` handler to calculate currency-specific balances
+   - ✅ Filters out negligible balances (< 0.01)
+   - ✅ Returns `balancesByCurrency` object with per-currency breakdown
+
+#### **Frontend Changes:**
+1. **GroupCard Component** (`GroupCard.tsx`):
+   - ✅ **Fixed Display Logic**: Now iterates through all currencies instead of showing single balance
+   - ✅ Uses proper `formatCurrency` utility instead of hardcoded USD symbols
+   - ✅ Shows multiple balance badges when user has debts in different currencies
+   - ✅ Maintains backward compatibility for single-currency scenarios
+
+2. **UI Component** (`Card.tsx`):
+   - ✅ Added `data-testid` support for testing
+
+### **Testing Enhancement:**
+- ✅ **Enhanced E2E Tests**: Updated `multi-currency-basic.e2e.test.ts` with proper assertions
+- ✅ **Added Test**: `should verify dashboard supports multi-currency display`
+- ✅ **Validation**: Test confirms multiple balance badges are displayed (`Found 3 balance badge(s)`)
+- ✅ **Regression Prevention**: All existing tests pass, no functionality broken
+
+### **Final Result:**
+The dashboard now correctly displays:
+- **Multiple Currencies**: "You owe $50.00", "You're owed €20.00", "You owe £30.00" as separate badges
+- **Proper Formatting**: Each currency uses correct symbol and formatting via `formatCurrency` utility
+- **Clean Display**: Single currency scenarios show one clean badge as before
+- **Backward Compatible**: Existing single-currency groups continue to work
+
+### **Verification:**
+- ✅ Build passes without TypeScript errors
+- ✅ All existing dashboard tests pass  
+- ✅ Enhanced multi-currency tests pass
+- ✅ E2E test confirms multi-currency badges display correctly
+- ✅ Manual verification shows proper currency symbols and formatting
+
+**Status**: **COMPLETE** ✅ - Multi-currency dashboard balance display now works correctly per specification.

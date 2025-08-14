@@ -71,11 +71,8 @@ describe('API Client Integration Tests', () => {
       // Validate specific fields that were causing issues
       response.groups.forEach((group: Group) => {
         expect(group).toHaveProperty('balance');
-        expect(group.balance!).toHaveProperty('userBalance');
-        if (group.balance!.userBalance) {
-          expect(group.balance!.userBalance).toHaveProperty('userId');
-          expect(typeof group.balance!.userBalance.userId).toBe('string');
-        }
+        expect(group.balance!).toHaveProperty('balancesByCurrency');
+        expect(typeof group.balance!.balancesByCurrency).toBe('object');
       });
     });
 
@@ -84,16 +81,16 @@ describe('API Client Integration Tests', () => {
       
       const response = await apiClient.getGroups();
       
-      // Verify all groups have proper balance structure without denormalized names
+      // Verify all groups have proper balance structure
       response.groups.forEach((group: Group) => {
-        if (group.balance?.userBalance) {
-          expect(group.balance!.userBalance).toHaveProperty('userId');
-          expect(group.balance!.userBalance).toHaveProperty('netBalance');
-          expect(group.balance!.userBalance).toHaveProperty('owes');
-          expect(group.balance!.userBalance).toHaveProperty('owedBy');
-          // Should NOT have denormalized name property
-          expect(group.balance!.userBalance).not.toHaveProperty('name');
-        }
+        expect(group.balance!).toHaveProperty('balancesByCurrency');
+        // Check that each currency balance has proper structure
+        Object.values(group.balance!.balancesByCurrency).forEach((currencyBalance) => {
+          expect(currencyBalance).toHaveProperty('currency');
+          expect(currencyBalance).toHaveProperty('netBalance');
+          expect(currencyBalance).toHaveProperty('totalOwed');
+          expect(currencyBalance).toHaveProperty('totalOwing');
+        });
       });
     });
 

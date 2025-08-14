@@ -1,5 +1,6 @@
 import type { Group } from '@shared/shared-types';
 import { Card } from '../ui';
+import { formatCurrency } from '../../utils/currency';
 
 interface GroupCardProps {
   group: Group;
@@ -9,12 +10,14 @@ interface GroupCardProps {
 }
 
 export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardProps) {
-  // Determine balance color and text
-  const getBalanceDisplay = (balance: number) => {
+  // Get all currency balances
+  const currencyBalances = group.balance?.balancesByCurrency || {};
+  
+  // Determine balance display for currencies
+  const getBalanceDisplay = (balance: number, currency: string) => {
     const absBalance = Math.abs(balance);
-    const formattedBalance = absBalance.toFixed(2);
     
-    if (balance === 0) {
+    if (absBalance < 0.01) {
       return {
         text: 'Settled up',
         color: 'text-blue-400',
@@ -22,20 +25,29 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
       };
     } else if (balance > 0) {
       return {
-        text: `You're owed $${formattedBalance}`,
+        text: `You're owed ${formatCurrency(absBalance, currency)}`,
         color: 'text-green-600',
         bgColor: 'bg-green-50'
       };
     } else {
       return {
-        text: `You owe $${formattedBalance}`,
+        text: `You owe ${formatCurrency(absBalance, currency)}`,
         color: 'text-red-600',
         bgColor: 'bg-red-50'
       };
     }
   };
 
-  const balanceInfo = getBalanceDisplay(group.balance?.userBalance?.netBalance || 0);
+  // Create balance displays for all currencies
+  const balanceDisplays = Object.values(currencyBalances).map(balance => 
+    getBalanceDisplay(balance.netBalance, balance.currency)
+  );
+  
+  // Determine overall status color (prioritize owed > owing > settled)
+  const hasOwed = Object.values(currencyBalances).some(b => b.netBalance < 0);
+  const hasOwing = Object.values(currencyBalances).some(b => b.netBalance > 0);
+  const overallColor = hasOwed ? 'text-red-600' : hasOwing ? 'text-green-600' : 'text-blue-400';
+  const overallBgColor = hasOwed ? 'bg-red-50' : hasOwing ? 'bg-green-50' : 'bg-blue-50';
 
   const handleActionClick = (e: Event, action: () => void) => {
     e.preventDefault();
@@ -48,6 +60,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
       onClick={onClick}
       className="hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-gray-200 h-full flex flex-col group"
       padding="md"
+      data-testid="group-card"
     >
       <div class="flex-1 relative">
         {/* Action buttons - positioned absolutely in top right */}
@@ -85,9 +98,26 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
           <h4 class="font-semibold text-gray-900 text-lg mb-1">
             {group.name}
           </h4>
-          <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceInfo.bgColor} ${balanceInfo.color}`}>
-            {balanceInfo.text}
-          </div>
+          {balanceDisplays.length === 0 ? (
+            // No balances - show settled up
+            <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-400">
+              Settled up
+            </div>
+          ) : balanceDisplays.length > 1 ? (
+            // Multiple currencies - show each balance
+            <div class="space-y-1">
+              {balanceDisplays.map((display, index) => (
+                <div key={index} class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color} mr-2`}>
+                  {display.text}
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Single currency
+            <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplays[0].bgColor} ${balanceDisplays[0].color}`}>
+              {balanceDisplays[0].text}
+            </div>
+          )}
         </div>
 
         {/* Group stats */}

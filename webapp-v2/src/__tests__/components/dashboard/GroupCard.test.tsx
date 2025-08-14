@@ -13,14 +13,7 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     balance: {
-      userBalance: {
-        userId: 'test-user',
-        netBalance: 0,
-        owes: {},
-        owedBy: {}
-      },
-      totalOwed: 0,
-      totalOwing: 0
+      balancesByCurrency: {}
     },
     lastActivity: 'Just created',
     lastActivityRaw: new Date().toISOString(),
@@ -63,14 +56,7 @@ describe('GroupCard', () => {
     const group = createTestGroup({
       name: 'Apartment Bills',
       balance: {
-        userBalance: {
-          userId: 'test-user',
-          netBalance: 0,
-          owes: {},
-          owedBy: {}
-        },
-        totalOwed: 0,
-        totalOwing: 0
+        balancesByCurrency: {}
       }
     });
 
@@ -85,14 +71,14 @@ describe('GroupCard', () => {
     const group = createTestGroup({
       name: 'Dinner Split',
       balance: {
-        userBalance: {
-          userId: 'test-user',
-          netBalance: -25.50,
-          owes: { 'user-2': 25.50 },
-          owedBy: {}
-        },
-        totalOwed: 0,
-        totalOwing: 25.50
+        balancesByCurrency: {
+          USD: {
+            currency: 'USD',
+            netBalance: -25.50,
+            totalOwed: 0,
+            totalOwing: 25.50
+          }
+        }
       }
     });
 
@@ -107,14 +93,14 @@ describe('GroupCard', () => {
     const group = createTestGroup({
       name: 'Grocery Run',
       balance: {
-        userBalance: {
-          userId: 'test-user',
-          netBalance: 42.75,
-          owes: {},
-          owedBy: { 'user-2': 42.75 }
-        },
-        totalOwed: 42.75,
-        totalOwing: 0
+        balancesByCurrency: {
+          USD: {
+            currency: 'USD',
+            netBalance: 42.75,
+            totalOwed: 42.75,
+            totalOwing: 0
+          }
+        }
       }
     });
 

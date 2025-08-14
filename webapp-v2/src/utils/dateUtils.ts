@@ -64,13 +64,6 @@ export const isDateInFuture = (dateString: string): boolean => {
   return inputDate > today;
 };
 
-<<<<<<< HEAD
-/**
- * Legacy function - kept for backward compatibility
- * Use getRelativeTime() instead for UTC dates
- */
-=======
->>>>>>> d0388e1 (refactor: remove unused code and comments from date/time utilities)
 export function formatDistanceToNow(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
