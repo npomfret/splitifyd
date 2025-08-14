@@ -1,12 +1,12 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
 import { randomBytes } from 'crypto';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { FirestoreCollections } from '../shared/shared-types';
+import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
 const generateShareToken = (): string => {
   const bytes = randomBytes(12);
@@ -82,9 +82,18 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
 
     const shareToken = generateShareToken();
     
-    await groupRef.update({
-      'data.shareableLink': shareToken,
-      updatedAt: Timestamp.now(),
+    // Use optimistic locking for generating share link
+    await admin.firestore().runTransaction(async (transaction) => {
+      const freshGroupDoc = await transaction.get(groupRef);
+      if (!freshGroupDoc.exists) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+      }
+      
+      const originalUpdatedAt = getUpdatedAtTimestamp(freshGroupDoc.data());
+      
+      await updateWithTimestamp(transaction, groupRef, {
+        'data.shareableLink': shareToken,
+      }, originalUpdatedAt);
     });
 
     // Server only returns the path, webapp will construct the full URL
@@ -237,6 +246,8 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       }
 
       const groupData = groupSnapshot.data()!;
+      const originalUpdatedAt = getUpdatedAtTimestamp(groupData);
+      
       if (!groupData.data?.memberIds) {
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP', 'Group missing memberIds');
       }
@@ -260,10 +271,10 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
       // Add user to memberIds
       allMemberIds.push(userId);
       
-      transaction.update(groupRef, {
+      // Use optimistic locking to prevent concurrent updates
+      await updateWithTimestamp(transaction, groupRef, {
         'data.memberIds': allMemberIds,
-        updatedAt: Timestamp.now(),
-      });
+      }, originalUpdatedAt);
 
       return {
         groupName: groupData.data!.name!

@@ -19,6 +19,7 @@ import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
+import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
 /**
  * Get the groups collection reference
@@ -268,12 +269,20 @@ export const updateGroup = async (
     updatedAt: createServerTimestamp().toDate(),
   };
 
-  // Update in Firestore (using old structure during migration)
-  await docRef.update({
-    'data.name': updatedData.name,
-    'data.description': updatedData.description,
-    'data.updatedAt': updatedData.updatedAt.toISOString(),
-    updatedAt: createServerTimestamp(),
+  // Update with optimistic locking
+  await admin.firestore().runTransaction(async (transaction) => {
+    const freshDoc = await transaction.get(docRef);
+    if (!freshDoc.exists) {
+      throw Errors.NOT_FOUND('Group');
+    }
+    
+    const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+    
+    await updateWithTimestamp(transaction, docRef, {
+      'data.name': updatedData.name,
+      'data.description': updatedData.description,
+      'data.updatedAt': updatedData.updatedAt.toISOString(),
+    }, originalUpdatedAt);
   });
 
   logger.info('Group updated successfully', {
