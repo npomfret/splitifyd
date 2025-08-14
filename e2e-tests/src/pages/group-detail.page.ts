@@ -55,6 +55,10 @@ export class GroupDetailPage extends BasePage {
   getExpenseAmount(amount: string) {
     return this.page.getByText(amount);
   }
+  
+  getExpensePaidByText() {
+    return this.page.getByText(/paid by|Paid:/i);
+  }
 
   // Element accessors for expense form
   getExpenseDescriptionField() {
@@ -127,6 +131,7 @@ export class GroupDetailPage extends BasePage {
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
   }
+
   
   /**
    * Override the base expectSubmitButtonEnabled to provide expense-specific behavior
@@ -455,6 +460,137 @@ export class GroupDetailPage extends BasePage {
         throw new Error(`Expected at least ${minOptions} valid options, but found ${validOptions.length}`);
       }
     }).toPass({ timeout });
+  }
+
+  /**
+   * Wait for members to be loaded in the expense form
+   * This ensures the "Who paid?" and "Split between" sections have user options
+   */
+  async waitForMembersInExpenseForm(): Promise<void> {
+    // Wait for the "Who paid?" section to be visible
+    const payerSection = this.page.locator('text="Who paid?"').locator('..');
+    await expect(payerSection).toBeVisible().catch(() => {
+      throw new Error('Who paid? section is not visible on the expense form');
+    });
+    
+    // Wait for member options to appear in the payer section
+    // This will retry until members are loaded from the API
+    await expect(async () => {
+      const payerLabels = payerSection.locator('label');
+      const payerCount = await payerLabels.count();
+      
+      if (payerCount === 0) {
+        throw new Error('No member options in "Who paid?" section - members have not loaded from API yet');
+      }
+      
+      // Verify at least one member option contains a user display name
+      const payerTexts = await payerLabels.allTextContents();
+      const hasValidMembers = payerTexts.some(text => text.trim().length > 0);
+      
+      if (!hasValidMembers) {
+        throw new Error(`Payer section has ${payerCount} labels but no valid member names. Content: ${payerTexts.join(', ')}`);
+      }
+    }).toPass({ 
+      timeout: 10000,
+      intervals: [500, 1000, 2000] // Retry at these intervals
+    });
+    
+    // Now verify the Split between section
+    const splitSection = this.page.locator('text="Split between"').locator('..');
+    await expect(splitSection).toBeVisible();
+    
+    // After members load, Select all button should work
+    const selectAllBtn = this.getSelectAllButton();
+    if (await selectAllBtn.isVisible()) {
+      await selectAllBtn.click();
+      
+      // Verify members appeared after clicking Select all
+      await expect(async () => {
+        const splitContent = await splitSection.textContent();
+        if (!splitContent || splitContent === 'Select allSelect none') {
+          throw new Error('No members visible after clicking Select all - member data not loaded');
+        }
+      }).toPass({ timeout: 2000 });
+    }
+  }
+
+  /**
+   * Select a payer by their display name
+   */
+  async selectPayer(displayName: string): Promise<void> {
+    // Find the payer option in the "Who paid?" section
+    const payerSection = this.page.locator('text="Who paid?"').locator('..');
+    
+    // Validate the payer section exists
+    await expect(payerSection).toBeVisible({ 
+      timeout: 3000 
+    }).catch(() => {
+      throw new Error('Who paid? section is not visible on the expense form');
+    });
+    
+    // Try to find the payer option (could be a label with radio or a button)
+    const payerOption = payerSection.locator(`label:has-text("${displayName}"), button:has-text("${displayName}")`).first();
+    
+    // Check if the payer option exists
+    const optionCount = await payerOption.count();
+    if (optionCount === 0) {
+      // List available options for better debugging
+      const availableOptions = await payerSection.locator('label, button').allTextContents();
+      throw new Error(`Cannot find payer "${displayName}" in Who paid? section. Available options: ${availableOptions.join(', ')}`);
+    }
+    
+    await payerOption.click();
+    
+    // Verify the selection was made by checking for a selected state indicator
+    // This could be a checked radio, selected class, or aria-selected attribute
+    const radioButton = payerOption.locator('input[type="radio"]');
+    if (await radioButton.count() > 0) {
+      await expect(radioButton).toBeChecked();
+    }
+  }
+
+  /**
+   * Select all participants for the expense split
+   */
+  async selectAllParticipants(): Promise<void> {
+    // Find the split section
+    const splitSection = this.page.locator('text="Split between"').locator('..');
+    
+    // Validate the split section exists
+    await expect(splitSection).toBeVisible({ 
+      timeout: 3000 
+    }).catch(() => {
+      throw new Error('Split between section is not visible on the expense form');
+    });
+    
+    // Look for Select all button
+    const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
+    
+    // Check if the button exists and is visible
+    const buttonVisible = await selectAllButton.isVisible();
+    if (!buttonVisible) {
+      // Check if participants are already selected by default
+      const selectedParticipants = splitSection.locator('label, button').filter({ hasText: /u\s*[a-z0-9]/i });
+      const participantCount = await selectedParticipants.count();
+      
+      if (participantCount === 0) {
+        throw new Error('No participants found in Split between section and no Select all button available');
+      }
+      // If participants are already visible, we're good
+      return;
+    }
+    
+    // Button is visible, click it
+    await expect(selectAllButton).toBeEnabled().catch(() => {
+      throw new Error('Select all button is visible but not enabled');
+    });
+    await selectAllButton.click();
+    
+    // Verify participants are now selected by checking they are visible
+    const selectedParticipants = splitSection.locator('label, button').filter({ hasText: /u\s*[a-z0-9]/i });
+    await expect(selectedParticipants.first()).toBeVisible({ timeout: 2000 }).catch(() => {
+      throw new Error('After clicking Select all, no participants appear to be selected');
+    });
   }
 
   /**

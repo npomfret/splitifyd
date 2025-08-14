@@ -12,15 +12,25 @@ test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
     
     // Wait for page to be fully loaded after group creation
     await page.waitForLoadState('domcontentloaded');
+    
+    // Wait for group data to be loaded
+    await groupDetailPage.waitForBalancesToLoad(groupId);
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     
     await expect(addExpenseButton).toBeVisible();
     await addExpenseButton.click();
+    
+    // Wait for navigation to add expense page
+    await page.waitForURL(`**/groups/${groupId}/add-expense`);
+    await page.waitForLoadState('domcontentloaded');
+    
+    // Verify members have loaded in the expense form
+    await groupDetailPage.waitForMembersInExpenseForm();
     
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -58,15 +68,23 @@ test.describe('Add Expense E2E', () => {
   test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
     
     // Wait for page to be fully loaded after group creation
     await page.waitForLoadState('domcontentloaded');
     
+    // Wait for group data to be loaded
+    await groupDetailPage.waitForBalancesToLoad(groupId);
+    
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();
     
+    // Wait for navigation to add expense page
+    await page.waitForURL(`**/groups/${groupId}/add-expense`);
     await page.waitForLoadState('domcontentloaded');
+    
+    // Verify members have loaded in the expense form
+    await groupDetailPage.waitForMembersInExpenseForm();
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
@@ -87,24 +105,38 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.getSaveExpenseButton().click();
     await page.waitForLoadState('domcontentloaded');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
     await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
   });
 
   test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
     
     // Wait for page to be fully loaded after group creation
     await page.waitForLoadState('domcontentloaded');
     
+    // Wait for group data to be loaded (members, balances, etc.)
+    await groupDetailPage.waitForBalancesToLoad(groupId);
+    
+    // Click add expense button
     await groupDetailPage.getAddExpenseButton().click();
+    
+    // Wait for navigation to add expense page
+    await page.waitForURL(`**/groups/${groupId}/add-expense`);
     await page.waitForLoadState('domcontentloaded');
     
+    // Verify members have loaded in the expense form
+    // This also clicks Select all if needed
+    await groupDetailPage.waitForMembersInExpenseForm();
+    
+    // Fill in the expense details
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Movie Tickets');
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25');
     
+    // Now the save button should be enabled
+    await expect(groupDetailPage.getSaveExpenseButton()).toBeEnabled();
     await groupDetailPage.getSaveExpenseButton().click();
     
     await page.waitForLoadState('domcontentloaded');
@@ -114,21 +146,29 @@ test.describe('Add Expense E2E', () => {
     const amountText = groupDetailPage.getExpenseAmount('$25.00');
     await expect(amountText).toBeVisible();
     
-    await expect(page.getByText(/paid by|Paid:/i)).toBeVisible();
+    await expect(groupDetailPage.getExpensePaidByText()).toBeVisible();
   });
 
   test('should allow custom category input', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
     
     // Wait for page to be fully loaded after group creation
     await page.waitForLoadState('domcontentloaded');
     
+    // Wait for group data to be loaded
+    await groupDetailPage.waitForBalancesToLoad(groupId);
+    
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();
     
+    // Wait for navigation to add expense page
+    await page.waitForURL(`**/groups/${groupId}/add-expense`);
     await page.waitForLoadState('domcontentloaded');
+    
+    // Verify members have loaded in the expense form
+    await groupDetailPage.waitForMembersInExpenseForm();
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
