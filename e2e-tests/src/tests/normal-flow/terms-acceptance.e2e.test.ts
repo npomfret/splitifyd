@@ -4,7 +4,7 @@ import { RegisterPage } from '../../pages';
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
   pageTest.beforeEach(async ({ page }) => {
     await page.goto('/register');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   pageTest('should display both terms and cookie policy checkboxes', async ({ page }) => {

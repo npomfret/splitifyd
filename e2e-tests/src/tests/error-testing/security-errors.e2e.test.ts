@@ -24,7 +24,7 @@ test.describe('Security and Access Control', () => {
     
     // User 2 (already authenticated via fixture) tries to access User 1's group
     await page2.goto(groupUrl);
-    await page2.waitForLoadState('networkidle');
+    await page2.waitForLoadState('domcontentloaded');
     
     // Wait for redirect to 404 page
     await page2.waitForURL('**/404', { timeout: 5000 });

@@ -36,7 +36,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
           
           // Authenticate the user in their own browser context
           await page.goto('/login');
-          await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('domcontentloaded');
           
           // Fill login form
           await page.fill('input[type="email"]', user.email);
@@ -45,7 +45,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
           
           // Wait for login to complete
           await page.waitForURL(/\/dashboard/);
-          await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('domcontentloaded');
           
           contexts.push(context);
           pages.push(page);
@@ -102,7 +102,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             
             // Navigate to share link
             await page.goto(shareLink);
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('domcontentloaded');
             
             // Attempt to join
             const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
@@ -149,7 +149,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         console.log('Synchronizing all user pages...');
         
         // Give time for real-time updates to propagate
-        await Promise.all(pages.map(page => page.waitForLoadState('networkidle')));
+        await Promise.all(pages.map(page => page.waitForLoadState('domcontentloaded')));
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         // 6. Verify all users see the complete member list
@@ -158,9 +158,6 @@ test.describe('Parallel Group Joining Edge Cases', () => {
           const groupDetailPage = groupDetailPages[index];
           
           try {
-            // Refresh page to ensure latest state
-            await page.reload();
-            await page.waitForLoadState('networkidle');
             
             // Wait for member count to update
             await groupDetailPage.waitForMemberCount(totalUsers, 15000);
@@ -235,7 +232,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         
         // Authenticate the user in their own browser context
         await page.goto('/login');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         
         // Fill login form
         await page.fill('input[type="email"]', user.email);
@@ -244,7 +241,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         
         // Wait for login to complete
         await page.waitForURL(/\/dashboard/);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         
         contexts.push(context);
         pages.push(page);
@@ -311,7 +308,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       
       // Verify creator page is still functional
       await creatorPage.reload();
-      await creatorPage.waitForLoadState('networkidle');
+      await creatorPage.waitForLoadState('domcontentloaded');
       await expect(creatorGroupDetailPage.getGroupTitle()).toBeVisible();
       
       console.log(`✅ Race condition test completed: System remained stable with ${successCount}/${users.length - 1} successful joins`);

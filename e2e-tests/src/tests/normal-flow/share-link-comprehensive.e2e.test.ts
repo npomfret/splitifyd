@@ -108,7 +108,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
       // Log out user2 to test login flow
       await page2.goto(`${EMULATOR_URL}/dashboard`);
-      await page2.waitForLoadState('networkidle');
+      await page2.waitForLoadState('domcontentloaded');
       // Click user menu to show logout option
       await page2.getByRole('button', { name: user2.displayName }).click();
       await page2.getByRole('button', { name: /logout|sign out/i }).click();
@@ -181,7 +181,7 @@ test.describe('Comprehensive Share Link Testing', () => {
         
         // Navigate back to dashboard for next iteration
         await page.goto(`${EMULATOR_URL}/dashboard`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
       
       // All share links should be valid and unique

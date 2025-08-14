@@ -394,7 +394,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     });
     
     // Wait for settlement to propagate via real-time updates
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForBalancesToLoad(groupId);
     await groupDetailPage2.waitForBalancesToLoad(groupId);
     
@@ -483,7 +483,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     });
     
     // Wait for settlement to propagate via real-time updates
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForBalancesToLoad(groupId);
     await secondUser.groupDetailPage.waitForBalancesToLoad(groupId);
     

@@ -80,7 +80,7 @@ multiUserTest.describe('Removed User Access', () => {
     // User 2 is still a member, so the expense should succeed
     
     // Wait to see what happens
-    await user2Page.waitForLoadState('networkidle');
+    await user2Page.waitForLoadState('domcontentloaded');
     
     // Check current state
     const currentUrl = user2Page.url();

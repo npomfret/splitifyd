@@ -48,7 +48,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseElement.click();
     
     // Wait for expense detail page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Look for edit button (following working pattern with proper timeout)
     const editButton = page.getByRole('button', { name: /edit/i });
@@ -169,7 +169,7 @@ test.describe('Expense Editing Error Testing', () => {
     const expenseElement = groupDetailPage.getExpenseByDescription('Original Description');
     await expenseElement.click();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const editButton = page.getByRole('button', { name: /edit/i });
     await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });

@@ -184,7 +184,6 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     
     // Navigate back to dashboard
     await page.goto('/dashboard');
-    await page.reload(); // Ensure fresh data
     
     // Verify the group card displays properly
     const groupCard = page.locator('[data-testid="group-card"]').first();

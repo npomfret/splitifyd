@@ -59,13 +59,10 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage2.getJoinGroupButton().click();
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // CRITICAL FIX: Refresh first user's page to see the new member, then wait for synchronization
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    // Wait for synchronization of users
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Also ensure second user sees both members
-    await page2.reload();
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // SEQUENTIAL EXPENSE ADDITION: User 1 adds expense first
@@ -78,9 +75,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
     
     // Wait for User 1's expense to be fully processed and synced
-    await page.reload();
     await groupDetailPage.waitForBalancesToLoad(groupId);
-    await page2.reload();
     await groupDetailPage2.waitForBalancesToLoad(groupId);
     
     // Verify User 1's expense is visible to both users before proceeding
@@ -97,9 +92,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
     
     // Wait for User 2's expense to be fully processed and synced
-    await page.reload();
     await groupDetailPage.waitForBalancesToLoad(groupId);
-    await page2.reload(); 
     await groupDetailPage2.waitForBalancesToLoad(groupId);
     
     // Verify expenses
@@ -171,9 +164,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // WAIT for user synchronization before adding expense
-    await page.reload();
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-    await page2.reload();
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // User 1 pays for shared expense AFTER synchronization
@@ -189,8 +180,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage.waitForBalancesToLoad(groupId);
     
     // Verify balance shows User 2 owes User 1
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     // Check if Balances section might be collapsed and expand it if needed
     const balancesHeading = groupDetailPage.getBalancesHeading();

@@ -11,7 +11,7 @@ test.describe('Share Link - Error Scenarios', () => {
     const { page } = authenticatedPage;
     
     // Get the base URL from the current page
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const baseUrl = page.url().split('/dashboard')[0];
     const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
     
@@ -23,7 +23,7 @@ test.describe('Share Link - Error Scenarios', () => {
     const { page } = authenticatedPage;
     
     // Get the base URL from the current page
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const baseUrl = page.url().split('/dashboard')[0];
     
     // Test various malformed links

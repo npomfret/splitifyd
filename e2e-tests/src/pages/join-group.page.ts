@@ -78,7 +78,7 @@ export class JoinGroupPage {
   // Navigation and join operations
   async navigateToShareLink(shareLink: string): Promise<void> {
     await this.page.goto(shareLink);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -101,7 +101,7 @@ export class JoinGroupPage {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         // Wait for page to be ready
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
 
         // Check if user is already a member
         if (await this.isUserAlreadyMember()) {
@@ -147,7 +147,7 @@ export class JoinGroupPage {
           await this.page.waitForTimeout(1000 * attempt);
           
           // Refresh page state
-          await this.page.waitForLoadState('networkidle');
+          await this.page.waitForLoadState('domcontentloaded');
         }
       }
     }

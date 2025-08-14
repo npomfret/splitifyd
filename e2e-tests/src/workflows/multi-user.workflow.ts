@@ -38,7 +38,7 @@ export class MultiUserWorkflow {
       if (result.success) {
         // Wait for group page to load completely
         await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         return;
       }
 
@@ -104,7 +104,7 @@ export class MultiUserWorkflow {
     
     // Wait for redirect to group page
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   }
 
   /**

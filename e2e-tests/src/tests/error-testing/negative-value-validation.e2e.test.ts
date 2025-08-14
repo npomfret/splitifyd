@@ -105,7 +105,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
     // Wait to see both members
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForMemberCount(2);
     
     // Create an expense first
@@ -181,7 +181,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
     // Wait to see both members
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForMemberCount(2);
     
     // Navigate to add expense

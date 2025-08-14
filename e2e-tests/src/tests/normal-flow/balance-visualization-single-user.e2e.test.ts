@@ -21,10 +21,6 @@ test.describe('Single User Balance Visualization', () => {
     const balancesHeading = groupDetailPage.getBalancesHeading();
     await expect(balancesHeading).toBeVisible();
     
-    // Wait for the page to fully load and settle
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Additional wait for dynamic content
-    
     // The "All settled up!" message exists but might be in a collapsed section
     // Just verify it exists in the DOM (don't check visibility since section might be collapsed on mobile)
     const settledElements = await groupDetailPage.getAllSettledUpElementsCount();
@@ -63,10 +59,6 @@ test.describe('Single User Balance Visualization', () => {
       paidBy: user.displayName,
       splitType: 'equal'
     });
-    
-    // Refresh to ensure UI is updated (matches pattern from other tests)
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     // Verify Balances section shows settled up for single-user groups
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -113,10 +105,6 @@ test.describe('Single User Balance Visualization', () => {
       paidBy: user.displayName,
       splitType: 'equal'
     });
-    
-    // Refresh to ensure UI is updated (matches pattern from other tests)
-    await page.reload();
-    await page.waitForLoadState('networkidle');
     
     // Check for currency formatting in expense section
     await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();

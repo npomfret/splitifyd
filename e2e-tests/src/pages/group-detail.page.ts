@@ -276,7 +276,7 @@ export class GroupDetailPage extends BasePage {
       
       // Wait a bit more for real-time updates and try again
       await this.page.waitForTimeout(2000);
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('domcontentloaded');
       
       // Final attempt with the expected text
       await expect(this.page.getByText(expectedText))
@@ -300,7 +300,7 @@ export class GroupDetailPage extends BasePage {
     const totalUsers = allUserNames.length;
     
     // Wait for network to be idle first to allow any join operations to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     // Primary approach: verify all users are visible in the group (more reliable than member count)
     for (const userName of allUserNames) {
@@ -316,7 +316,7 @@ export class GroupDetailPage extends BasePage {
     }
     
     // Final network idle wait to ensure all updates have propagated
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -360,7 +360,7 @@ export class GroupDetailPage extends BasePage {
     await expect(balanceSection).toBeVisible();
     
     // Wait for network requests to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async addExpense(expense: ExpenseData): Promise<void> {
@@ -374,7 +374,7 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Wait for form to be fully loaded
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     const descriptionField = this.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
     
@@ -431,7 +431,7 @@ export class GroupDetailPage extends BasePage {
     await expect(this.page.getByText(expense.description)).toBeVisible();
     
     // Wait for balance calculation to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -728,7 +728,7 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForTimeout(500);
     
     // Wait for settlement to be processed
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -803,7 +803,7 @@ export class GroupDetailPage extends BasePage {
     
     // Have the second user navigate to share link and join with fast timeout
     await joinerPage.goto(shareLink);
-    await joinerPage.waitForLoadState('networkidle');
+    await joinerPage.waitForLoadState('domcontentloaded');
     
     // Click join button with fast timeout
     const joinButton = joinerPage.getByRole('button', { name: /join group/i });
@@ -816,7 +816,7 @@ export class GroupDetailPage extends BasePage {
     
     // Refresh the original page to see updated members
     await this.page.reload();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     return shareLink;
   }
@@ -887,7 +887,7 @@ export class GroupDetailPage extends BasePage {
     await confirmButton.click();
     
     // Wait for deletion to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -909,7 +909,7 @@ export class GroupDetailPage extends BasePage {
 
     // Pre-check: Ensure we're on a group page and page is ready
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 2000 });
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     // Pre-check: Ensure group title is visible (indicates page is ready)
     const groupTitle = this.page.getByRole('heading').first();
@@ -987,7 +987,7 @@ export class GroupDetailPage extends BasePage {
    */
   async navigateToShareLink(shareLink: string): Promise<void> {
     await this.page.goto(shareLink);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**

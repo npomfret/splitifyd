@@ -15,7 +15,7 @@ test.describe('Add Expense E2E', () => {
     await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
     
     // Wait for page to be fully loaded after group creation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     
@@ -47,7 +47,7 @@ test.describe('Add Expense E2E', () => {
     await submitButton.click();
     
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible();
     await expect(groupDetailPage.getExpenseAmount('$50.00')).toBeVisible();
@@ -61,12 +61,12 @@ test.describe('Add Expense E2E', () => {
     await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
     
     // Wait for page to be fully loaded after group creation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
@@ -85,7 +85,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '45');
     
     await groupDetailPage.getSaveExpenseButton().click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
@@ -97,7 +97,7 @@ test.describe('Add Expense E2E', () => {
     await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
     
     // Wait for page to be fully loaded after group creation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await groupDetailPage.getAddExpenseButton().click();
     await page.waitForLoadState('domcontentloaded');
@@ -107,7 +107,7 @@ test.describe('Add Expense E2E', () => {
     
     await groupDetailPage.getSaveExpenseButton().click();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(groupDetailPage.getExpenseByDescription('Movie Tickets')).toBeVisible();
     
@@ -123,12 +123,12 @@ test.describe('Add Expense E2E', () => {
     await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
     
     // Wait for page to be fully loaded after group creation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const addExpenseButton = groupDetailPage.getAddExpenseButton();
     await addExpenseButton.first().click();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
@@ -142,7 +142,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.getSaveExpenseButton().click();
     
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();
   });

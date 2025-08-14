@@ -121,7 +121,7 @@ export class UserPool {
     try {
       // Navigate to register page with full URL
       await tempPage.goto(`${EMULATOR_URL}/register`);
-      await tempPage.waitForLoadState('networkidle');
+      await tempPage.waitForLoadState('domcontentloaded');
       
       // Check for errors before waiting for form
       if (consoleErrors.length > 0 || pageErrors.length > 0) {

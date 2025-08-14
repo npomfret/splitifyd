@@ -116,7 +116,7 @@ export abstract class BasePage {
   }
 
   async waitForNetworkIdle() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
   
   /**
