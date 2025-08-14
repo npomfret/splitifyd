@@ -311,14 +311,60 @@ describe('Optimistic Locking - [Collection]', () => {
    - Validates the complete user flow works correctly
    - Ensures no users are redirected to dashboard incorrectly
 
+## Implementation Progress
+
+### ✅ Server-Side Optimistic Locking - COMPLETED
+**All collections now have optimistic locking protection using `updatedAt` timestamps:**
+
+1. **Core Infrastructure Created**:
+   - `utils/optimistic-locking.ts` - Reusable utilities for all collections
+   - `getUpdatedAtTimestamp()` - Extract original timestamps
+   - `checkTimestampConflict()` - Detect concurrent modifications  
+   - `updateWithTimestamp()` - Apply updates with new timestamps
+   - `withOptimisticLocking()` - Transaction wrapper
+
+2. **Collections Updated**:
+   - **Groups**: `handlers.ts`, `shareHandlers.ts` - Join, update, share link generation
+   - **Expenses**: `handlers.ts` - Create, update, delete operations
+   - **Settlements**: `handlers.ts` - Create, update, delete operations  
+   - **Users**: Policy acceptance, profile updates
+   - **Policies**: Policy creation and updates
+
+3. **Error Handling**:
+   - Added `CONCURRENT_UPDATE` error (409 Conflict)
+   - Server returns clear retry message
+   - Proper logging of conflict detection
+
+### ✅ Testing Infrastructure - COMPLETED
+1. **Integration Tests Created**:
+   - `optimistic-locking.test.ts` - Core functionality tests
+   - `test-expense-locking.test.ts` - Specific expense conflict scenarios
+   - All tests passing, confirming server-side protection works
+
+2. **Conflict Demonstration**:
+   - `run-until-fail.sh` - Successfully triggers 409 conflicts on first run
+   - Proves optimistic locking is actively detecting concurrent operations
+   - Shows timing-based conflicts are now caught
+
+### ⏳ Webapp Issue Identified - IN PROGRESS
+**Current Problem**: Webapp incorrectly handles 409 Conflict responses
+
+**Expected Behavior**: Users should stay on same page with error message
+**Actual Behavior**: Users get redirected to dashboard instead
+
+**Root Cause**: Webapp doesn't handle `CONCURRENT_UPDATE` (409) errors properly
+- Error handling redirects users away from current page  
+- Should show retry message and keep user in place
+- Needs graceful retry logic with exponential backoff
+
 ## Implementation Status
 - **Investigation**: ✅ Complete
 - **Root Cause**: ✅ Identified (missing optimistic locking)
 - **Solution Design**: ✅ Complete (timestamp-based optimistic locking for ALL collections)
 - **Scope Expanded**: ✅ Apply to all updatable documents, not just groups
-- **Server Implementation**: ⏳ Pending (5 collections to update)
-- **Client Implementation**: ⏳ Pending (generic retry handler + all stores)
-- **Testing**: ⏳ Pending (generic + collection-specific tests needed)
+- **Server Implementation**: ✅ **COMPLETED** (all 5 collections updated with optimistic locking)
+- **Client Implementation**: ⏳ **IN PROGRESS** (needs 409 error handling in webapp)
+- **Testing**: ✅ **COMPLETED** (integration tests created and passing)
 
 ## Implementation Priority
 1. **Groups Collection** (Fixes immediate bug)
@@ -333,6 +379,47 @@ describe('Optimistic Locking - [Collection]', () => {
 - Using existing `updatedAt` field avoids schema migrations
 - Generic utilities ensure consistent implementation across all collections
 
+## Timestamp Mechanism Analysis
+
+### Current Timestamp Management 
+With optimistic locking now implemented, the `updatedAt` timestamp has become **EXTREMELY IMPORTANT** for data integrity. Analysis of the current mechanism reveals opportunities for improvement:
+
+#### Two Competing Approaches:
+1. **`createServerTimestamp()`** → `Timestamp.now()` (in `dateHelpers.ts`)
+2. **`Timestamp.now()`** directly (in `optimistic-locking.ts`)
+
+Both ultimately create the same client-side timestamp, but create developer confusion.
+
+#### Current Issues:
+1. **Inconsistent Creation**: 20+ locations manually set `updatedAt: createServerTimestamp()`
+2. **Manual Management**: Developers must remember to update timestamps in every handler
+3. **Client vs Server Time**: Using `Timestamp.now()` instead of true server-side timestamps
+4. **Cognitive Load**: Manual optimistic locking requires extracting, checking, and updating timestamps
+
+### Next Phase: Timestamp System Improvements
+
+#### Phase 1: Centralize Timestamp Strategy
+- Standardize on `admin.firestore.FieldValue.serverTimestamp()` for write operations
+- Eliminate confusion between `createServerTimestamp()` vs `Timestamp.now()`  
+- Single source of truth for timestamp management
+
+#### Phase 2: Automatic Timestamp Management
+- Create `withAutomaticTimestamps()` wrapper functions
+- Automatically extract original timestamps on read
+- Automatically apply new timestamps on write
+- Handle conflict detection transparently
+
+#### Phase 3: Enhanced Optimistic Locking
+- Build automatic retry logic with exponential backoff
+- Create declarative transaction helpers
+- Reduce handler boilerplate by 80%
+
+### Expected Benefits:
+- **Consistency**: Single timestamp creation mechanism
+- **Reduced Errors**: Automatic timestamp management
+- **Developer Experience**: Less cognitive load, fewer bugs
+- **Maintainability**: Centralized conflict handling logic
+
 ## Additional Notes
 - Bug was discovered while debugging flaky E2E tests
 - User pool was also fixed to use consistent IDs for email and display name for better debugging
@@ -340,3 +427,4 @@ describe('Optimistic Locking - [Collection]', () => {
 - Client must handle 409 Conflict responses with retry logic
 - This is a standard optimistic locking pattern used in production systems
 - Implementation must be consistent across ALL collections to prevent future race conditions
+- **Timestamp mechanism is now critical infrastructure** - improvements will benefit all collections
