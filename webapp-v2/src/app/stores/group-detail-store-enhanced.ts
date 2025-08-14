@@ -1,7 +1,7 @@
 import { signal, batch } from '@preact/signals';
 import { ChangeDetector } from '../../utils/change-detector';
 import {logApiResponse, logWarning, logError, logInfo} from '../../utils/browser-logger';
-import type { ExpenseData, Group, GroupBalances, User } from '../../../../firebase/functions/src/shared/shared-types';
+import type { ExpenseData, Group, GroupBalances, User, SettlementListItem } from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient } from '../apiClient';
 
 export interface EnhancedGroupDetailStore {
@@ -10,13 +10,17 @@ export interface EnhancedGroupDetailStore {
   members: User[];
   expenses: ExpenseData[];
   balances: GroupBalances | null;
+  settlements: SettlementListItem[];
   loading: boolean;
   loadingMembers: boolean;
   loadingExpenses: boolean;
   loadingBalances: boolean;
+  loadingSettlements: boolean;
   error: string | null;
   hasMoreExpenses: boolean;
   expenseCursor: string | null;
+  hasMoreSettlements: boolean;
+  settlementsCursor: string | null;
   
   // Methods
   loadGroup(id: string): Promise<void>;
@@ -26,7 +30,9 @@ export interface EnhancedGroupDetailStore {
   fetchMembers(): Promise<void>;
   fetchExpenses(cursor?: string, includeDeleted?: boolean): Promise<void>;
   fetchBalances(): Promise<void>;
+  fetchSettlements(cursor?: string, userId?: string): Promise<void>;
   loadMoreExpenses(): Promise<void>;
+  loadMoreSettlements(): Promise<void>;
   refreshAll(): Promise<void>;
   leaveGroup(groupId: string): Promise<{ success: boolean; message: string }>;
   removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }>;
@@ -38,13 +44,17 @@ const groupSignal = signal<Group | null>(null);
 const membersSignal = signal<User[]>([]);
 const expensesSignal = signal<ExpenseData[]>([]);
 const balancesSignal = signal<GroupBalances | null>(null);
+const settlementsSignal = signal<SettlementListItem[]>([]);
 const loadingSignal = signal<boolean>(false);
 const loadingMembersSignal = signal<boolean>(false);
 const loadingExpensesSignal = signal<boolean>(false);
 const loadingBalancesSignal = signal<boolean>(false);
+const loadingSettlementsSignal = signal<boolean>(false);
 const errorSignal = signal<string | null>(null);
 const hasMoreExpensesSignal = signal<boolean>(true);
 const expenseCursorSignal = signal<string | null>(null);
+const hasMoreSettlementsSignal = signal<boolean>(false);
+const settlementsCursorSignal = signal<string | null>(null);
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
   private expenseChangeListener: (() => void) | null = null;
@@ -64,6 +74,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
   get error() { return errorSignal.value; }
   get hasMoreExpenses() { return hasMoreExpensesSignal.value; }
   get expenseCursor() { return expenseCursorSignal.value; }
+  get settlements() { return settlementsSignal.value; }
+  get loadingSettlements() { return loadingSettlementsSignal.value; }
+  get hasMoreSettlements() { return hasMoreSettlementsSignal.value; }
+  get settlementsCursor() { return settlementsCursorSignal.value; }
 
   async loadGroup(groupId: string): Promise<void> {
     loadingSignal.value = true;
@@ -76,7 +90,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         apiClient.getGroup(groupId),
         this.fetchMembers(),
         this.fetchExpenses(),
-        this.fetchBalances()
+        this.fetchBalances(),
+        this.fetchSettlements()
       ]);
       
       groupSignal.value = groupData;
@@ -204,9 +219,43 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
   }
 
+  async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
+    if (!this.currentGroupId) return;
+    
+    // Remember the userId filter for loadMore operations
+    this.currentSettlementsUserId = userId;
+    
+    loadingSettlementsSignal.value = true;
+    try {
+      const response = await apiClient.listSettlements(this.currentGroupId, 20, cursor, userId);
+      
+      if (cursor) {
+        // Append to existing settlements
+        settlementsSignal.value = [...settlementsSignal.value, ...response.settlements];
+      } else {
+        // Replace settlements
+        settlementsSignal.value = response.settlements;
+      }
+      
+      hasMoreSettlementsSignal.value = response.hasMore;
+      settlementsCursorSignal.value = response.nextCursor || null;
+    } catch (error) {
+      logWarning('Failed to fetch settlements', { error });
+    } finally {
+      loadingSettlementsSignal.value = false;
+    }
+  }
+
   async loadMoreExpenses(): Promise<void> {
     if (!hasMoreExpensesSignal.value || !expenseCursorSignal.value) return;
     await this.fetchExpenses(expenseCursorSignal.value);
+  }
+
+  private currentSettlementsUserId?: string;
+  
+  async loadMoreSettlements(): Promise<void> {
+    if (!hasMoreSettlementsSignal.value || !settlementsCursorSignal.value) return;
+    await this.fetchSettlements(settlementsCursorSignal.value, this.currentSettlementsUserId);
   }
 
   async refreshAll(): Promise<void> {
@@ -215,7 +264,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     await Promise.all([
       this.fetchExpenses(),
       this.fetchBalances(),
-      this.fetchMembers()
+      this.fetchMembers(),
+      this.fetchSettlements()
     ]);
   }
 
@@ -240,13 +290,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
       membersSignal.value = [];
       expensesSignal.value = [];
       balancesSignal.value = null;
+      settlementsSignal.value = [];
       loadingSignal.value = false;
       loadingMembersSignal.value = false;
       loadingExpensesSignal.value = false;
       loadingBalancesSignal.value = false;
+      loadingSettlementsSignal.value = false;
       errorSignal.value = null;
       hasMoreExpensesSignal.value = true;
       expenseCursorSignal.value = null;
+      hasMoreSettlementsSignal.value = false;
+      settlementsCursorSignal.value = null;
     });
     
     this.currentGroupId = null;

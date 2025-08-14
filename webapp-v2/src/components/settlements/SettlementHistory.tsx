@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { LoadingSpinner } from '../ui';
 import type { SettlementListItem } from '../../../../firebase/functions/src/shared/shared-types';
-import { apiClient } from '../../app/apiClient';
 import { useAuthRequired } from '../../app/hooks/useAuthRequired';
+import { enhancedGroupDetailStore } from '../../app/stores/group-detail-store-enhanced';
 
 interface SettlementHistoryProps {
   groupId: string;
@@ -12,44 +12,19 @@ interface SettlementHistoryProps {
 
 export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHistoryProps) {
   const authStore = useAuthRequired();
-  const [settlements, setSettlements] = useState<SettlementListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [cursor, setCursor] = useState<string | undefined>();
-  
   const currentUser = authStore.user;
-
-  const loadSettlements = async (loadMore = false) => {
-    try {
-      setIsLoading(!loadMore);
-      setError(null);
-      
-      const response = await apiClient.listSettlements(
-        groupId,
-        limit,
-        loadMore ? cursor : undefined,
-        userId
-      );
-      
-      if (loadMore) {
-        setSettlements(prev => [...prev, ...response.settlements]);
-      } else {
-        setSettlements(response.settlements);
-      }
-      
-      setHasMore(response.hasMore);
-      setCursor(response.nextCursor);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load payment history');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
+  // Use store state
+  const settlements = enhancedGroupDetailStore.settlements;
+  const isLoading = enhancedGroupDetailStore.loadingSettlements;
+  const hasMore = enhancedGroupDetailStore.hasMoreSettlements;
 
   useEffect(() => {
-    // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
-    loadSettlements();
+    // Always load settlements when component mounts or parameters change
+    // This ensures we have fresh data when the history modal opens
+    if (groupId) {
+      enhancedGroupDetailStore.fetchSettlements(undefined, userId);
+    }
   }, [groupId, userId]);
 
   const formatDate = (dateString: string): string => {
@@ -86,19 +61,7 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
     );
   }
 
-  if (error) {
-    return (
-      <div class="p-4 bg-red-50 border border-red-200 rounded-md">
-        <p class="text-sm text-red-600">{error}</p>
-        <button 
-          onClick={() => loadSettlements()} 
-          class="mt-2 text-sm text-red-700 underline hover:no-underline"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
+  // Remove error handling - the store manages errors now
 
   if (settlements.length === 0) {
     return (
@@ -173,7 +136,7 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
       {hasMore && (
         <div class="text-center pt-4">
           <button
-            onClick={() => loadSettlements(true)}
+            onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
             disabled={isLoading}
             class="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
           >
