@@ -9,6 +9,7 @@ import { Stack } from '../components/ui/Stack';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
+import { formatCurrency } from '../utils/currency/currencyFormatter';
 import type { ExpenseData } from '@shared/shared-types';
 import { logError } from '../utils/browser-logger';
 
@@ -16,6 +17,14 @@ interface ExpenseDetailPageProps {
   groupId?: string;
   expenseId?: string;
 }
+
+// Helper function to truncate description for display
+const truncateDescription = (description: string, maxLength: number = 40): string => {
+  if (description.length <= maxLength) {
+    return description;
+  }
+  return description.slice(0, maxLength) + '...';
+};
 
 export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailPageProps) {
   const expense = useSignal<ExpenseData | null>(null);
@@ -105,7 +114,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (navigator.share) {
       navigator.share({
         title: `Expense: ${expense.value?.description}`,
-        text: `Check out this expense: ${expense.value?.description} - $${expense.value?.amount.toFixed(2)}`,
+        text: `Check out this expense: ${expense.value?.description} - ${formatCurrency(expense.value?.amount || 0, expense.value?.currency || 'USD')}`,
         url: url
       }).catch((error) => {
         // Fallback to clipboard if share fails
@@ -167,8 +176,8 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
   
   return (
     <BaseLayout
-      title={`${expense.value.description} - Expense Details`}
-      description={`Expense for ${expense.value.description} - $${expense.value.amount.toFixed(2)}`}
+      title={`${truncateDescription(expense.value.description)} - ${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
+      description={`Expense for ${expense.value.description} - ${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
       headerVariant="dashboard"
     >
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -180,7 +189,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 ← Back
               </Button>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Expense Details
+                {truncateDescription(expense.value.description)} - {formatCurrency(expense.value.amount, expense.value.currency || 'USD')}
               </h1>
               <div className="w-16"></div> {/* Spacer for centered title */}
             </div>
@@ -196,7 +205,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
               {/* Top Section - Amount & Description */}
               <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  ${expense.value.amount.toFixed(2)}
+                  {formatCurrency(expense.value.amount, expense.value.currency || 'USD')}
                 </h2>
                 <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
                   {expense.value.description}
@@ -210,6 +219,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                   <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {formatExpenseDateTime(expense.value.date)}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    ({formatDistanceToNow(new Date(expense.value.date))} ago)
                   </p>
                 </div>
                 
