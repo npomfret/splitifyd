@@ -50,6 +50,7 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
         groupId: balances.groupId,
         userBalances: balances.userBalances,
         simplifiedDebts: balances.simplifiedDebts,
-        lastUpdated: timestampToISO(balances.lastUpdated)
+        lastUpdated: timestampToISO(balances.lastUpdated),
+        balancesByCurrency: balances.balancesByCurrency || {}
     });
 }
