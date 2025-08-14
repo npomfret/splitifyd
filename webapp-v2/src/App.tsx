@@ -81,6 +81,9 @@ export function App() {
         <Route path="/cookies-policy" component={(props: any) => <LazyRoute component={CookiePolicyPage} {...props} />} />
         <Route path="/cookies" component={(props: any) => <LazyRoute component={CookiePolicyPage} {...props} />} />
         
+        {/* Explicit 404 route */}
+        <Route path="/404" component={(props: any) => <LazyRoute component={NotFoundPage} {...props} />} />
+        
         <Route default component={(props: any) => <LazyRoute component={NotFoundPage} {...props} />} />
       </Router>
       

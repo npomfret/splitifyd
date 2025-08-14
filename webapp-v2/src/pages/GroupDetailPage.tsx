@@ -95,6 +95,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
   // Handle error state
   if (error.value) {
+    // Check if it's a 404 error (group not found or no access)
+    if (error.value.includes('not found') || error.value.includes('Not Found')) {
+      // Navigate to 404 page for consistent experience
+      route('/404', true);
+      return null;
+    }
+    
+    // Other errors show inline
     return (
       <BaseLayout>
         <div className="container mx-auto px-4 py-8">
@@ -116,22 +124,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
   // Handle no group found or still loading
   if (!group.value) {
     if (isInitialized.value) {
-      return (
-        <BaseLayout>
-          <div className="container mx-auto px-4 py-8">
-            <Card className="p-6 text-center">
-              <h2 className="text-xl font-semibold mb-2">Group Not Found</h2>
-              <p className="text-gray-600 mb-4">This group doesn't exist or you don't have access to it.</p>
-              <Button 
-                variant="primary" 
-                onClick={() => route('/dashboard')}
-              >
-                Back to Dashboard
-              </Button>
-            </Card>
-          </div>
-        </BaseLayout>
-      );
+      // Group not found after loading - navigate to 404
+      route('/404', true);
+      return null;
     } else {
       // Still loading
       return (
