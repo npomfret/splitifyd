@@ -449,8 +449,11 @@ export class GroupDetailPage extends BasePage {
    * Use this when the balance section might be collapsed on mobile
    */
   async hasSettledUpMessage(): Promise<boolean> {
-    // Simply check if "All settled up!" exists on the page
-    // The text is clearly visible in the Balances section
+    // Wait a moment for any dynamic content to load
+    await this.page.waitForLoadState('domcontentloaded');
+    
+    // Check if "All settled up!" exists on the page
+    // The text should be in the Balances section
     const count = await this.page.getByText('All settled up!').count();
     return count > 0;
   }
