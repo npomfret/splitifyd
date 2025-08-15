@@ -106,10 +106,15 @@ export class DashboardPage extends BasePage {
     const emptyStateHeading = this.page.locator('h4:has-text("No groups yet")');
     
     // Wait for one of these to be visible (groups exist or empty state)
-    await Promise.race([
-      groupsGrid.waitFor({ state: 'visible' }),
-      emptyStateHeading.waitFor({ state: 'visible' })
-    ]);
+    try {
+      await Promise.race([
+        groupsGrid.waitFor({ state: 'visible' }),
+        emptyStateHeading.waitFor({ state: 'visible' })
+      ]);
+    } catch (error) {
+      // If both fail, provide better error message
+      throw new Error(`Dashboard failed to load properly. Neither groups grid nor empty state became visible. Error: ${error}`);
+    }
   }
 
 }
