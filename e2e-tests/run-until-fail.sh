@@ -1,7 +1,7 @@
 #!/bin/bash
 
-TEST_FILE="src/tests/normal-flow/dashboard-happy-path.e2e.test.ts"
-TEST_FILTER="should properly clear all state and prevent unauthorized access after logout"
+TEST_FILE="src/tests/normal-flow/share-link-comprehensive.e2e.test.ts"
+TEST_FILTER="should redirect non-logged-in user to login then to group after login"
 
 RUN_COUNT=0
 START_TIME=$(date +%s)

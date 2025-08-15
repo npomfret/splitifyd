@@ -181,6 +181,17 @@ export class JoinGroupPage extends BasePage {
     // Wait for any redirects to complete
     await this.page.waitForLoadState('domcontentloaded');
     
+    // Wait for either login page or join page to appear
+    try {
+      await this.page.waitForFunction(() => {
+        return window.location.href.includes('/login') || 
+               window.location.href.includes('/join') ||
+               document.querySelector('[data-testid="join-group-heading"]') !== null;
+      }, { timeout: 3000 });
+    } catch {
+      // Continue if timeout - will be handled by URL check below
+    }
+    
     // Check if we've been redirected to login page
     const currentUrl = this.page.url();
     if (currentUrl.includes('/login')) {

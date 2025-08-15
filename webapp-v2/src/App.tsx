@@ -44,7 +44,10 @@ function ProtectedRoute({ component: Component, ...props }: any) {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (authStore.initialized && !authStore.user) {
-      route('/login', true);
+      // Store current URL for redirect after login
+      const currentUrl = window.location.pathname + window.location.search;
+      const redirectUrl = encodeURIComponent(currentUrl);
+      route(`/login?returnUrl=${redirectUrl}`, true);
     }
   }, [authStore.initialized, authStore.user]);
   
@@ -98,8 +101,8 @@ export function App() {
         {/* Expense Detail Route - Protected */}
         <Route path="/groups/:groupId/expenses/:expenseId" component={(props: any) => <ProtectedRoute component={ExpenseDetailPage} {...props} />} />
         
-        {/* Join Group Route */}
-        <Route path="/join" component={(props: any) => <LazyRoute component={JoinGroupPage} {...props} />} />
+        {/* Join Group Route - Protected */}
+        <Route path="/join" component={(props: any) => <ProtectedRoute component={JoinGroupPage} {...props} />} />
         
         {/* Static Pages */}
         <Route path="/pricing" component={(props: any) => <LazyRoute component={PricingPage} {...props} />} />

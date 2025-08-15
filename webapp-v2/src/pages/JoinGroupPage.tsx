@@ -23,7 +23,7 @@ interface JoinGroupPageProps {
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
   const authStore = useAuthRequired();
-  const isAuthenticated = !!authStore.user;
+  // Note: Since this route is now protected by ProtectedRoute, user is guaranteed to be authenticated
   const {
     group,
     loadingPreview,
@@ -47,21 +47,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
       return;
     }
 
-    if (!isAuthenticated) {
-      // Not authenticated - redirect to login with return URL after a short delay
-      // to allow authentication state to settle
-      setTimeout(() => {
-        if (!authStore.user) {
-          const returnUrl = encodeURIComponent(`/join?linkId=${actualLinkId}`);
-          route(`/login?returnUrl=${returnUrl}`);
-        }
-      }, 100);
-      return;
-    }
-
+    // User is guaranteed to be authenticated due to ProtectedRoute
     // Load group preview - intentionally not awaited (useEffect cannot be async)
     joinGroupStore.loadGroupPreview(actualLinkId);
-  }, [actualLinkId, isAuthenticated]);
+  }, [actualLinkId]);
 
   // Auto-redirect on successful join
   useEffect(() => {
@@ -82,16 +71,14 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     }
   };
 
-  // Show loading state while checking authentication or loading preview
-  if (!isAuthenticated || loadingPreview) {
+  // Show loading state while loading preview
+  if (loadingPreview) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <div className="text-center py-8">
             <LoadingSpinner size="lg" />
-            <p className="text-gray-600 mt-4">
-              {!isAuthenticated ? 'Checking authentication...' : 'Loading group information...'}
-            </p>
+            <p className="text-gray-600 mt-4">Loading group information...</p>
           </div>
         </Card>
       </div>
