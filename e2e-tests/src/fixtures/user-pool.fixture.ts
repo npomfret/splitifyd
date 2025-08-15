@@ -3,6 +3,7 @@ import type {User as BaseUser} from "@shared/shared-types";
 import { generateShortId } from '../utils/test-helpers';
 import { EMULATOR_URL } from '../helpers';
 import { RegisterPage } from '../pages/register.page';
+import { expect } from '@playwright/test';
 
 /**
  * Simple in-memory user pool implementation.
@@ -154,15 +155,19 @@ export class UserPool {
       // Logout so the user can be used later
       // Wait for page to be stable before clicking menu
       await tempPage.waitForLoadState('domcontentloaded');
-      await tempPage.waitForTimeout(200); // Small delay for DOM stability
       
-      await tempPage.click('[data-testid="user-menu-button"]');
+      // Wait for user menu button to be ready and clickable
+      const userMenuButton = tempPage.locator('[data-testid="user-menu-button"]');
+      await userMenuButton.waitFor({ state: 'visible' });
+      await userMenuButton.click();
       
-      // Wait for dropdown and ensure it's stable
-      await tempPage.waitForSelector('[data-testid="sign-out-button"]', { state: 'visible', timeout: 5000 });
-      await tempPage.waitForTimeout(100); // Small delay for dropdown animation
+      // Wait for dropdown to be visible and stable (animation complete)
+      const signOutButton = tempPage.locator('[data-testid="sign-out-button"]');
+      await signOutButton.waitFor({ state: 'visible' });
       
-      await tempPage.click('[data-testid="sign-out-button"]');
+      // Ensure the dropdown is fully rendered by checking it's in the viewport
+      await expect(signOutButton).toBeInViewport();
+      await signOutButton.click();
       
       // Wait for logout to complete
       await tempPage.waitForURL((url: URL) => !url.toString().includes('/dashboard'), { 
