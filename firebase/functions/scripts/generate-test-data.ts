@@ -201,10 +201,10 @@ async function createGroups(createdBy: User, config: TestDataConfig): Promise<Gr
   groups.push(emptyGroup);
   logger.info(`Created special empty group: ${emptyGroup.name} with invite link: ${emptyGroup.inviteLink}`);
   
-  // Create special "Settled Group" for balanced expenses where no one owes
+  // Create special "Settled Group" with multi-currency expenses and settlements
   const settledGroup = await createGroupWithInvite(
     'Settled Group',
-    'All expenses are balanced - no one owes anything',
+    'Multi-currency group with many expenses and settlements - fully settled up',
     createdBy
   );
   groups.push(settledGroup);
@@ -373,7 +373,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
   const settledGroup = groups.find(g => g.name === 'Settled Group');
   if (!settledGroup) return;
   
-  logger.info('Creating balanced expenses for "Settled Group" so no one owes anything');
+  logger.info('Creating balanced expenses and settlements for "Settled Group" so no one owes anything');
   
   // Get all members of this group from the refreshed data
   const groupMembers = users.filter(user => 
@@ -382,43 +382,172 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
   
   if (groupMembers.length < 2) return;
   
-  // Create a perfectly balanced set of expenses where everyone pays and owes equally
-  // Example with 3 users (A, B, C):
-  // - A pays $60 for everyone (A owes $20, B owes $20, C owes $20)
-  // - B pays $60 for everyone (A owes $20, B owes $20, C owes $20)
-  // - C pays $60 for everyone (A owes $20, B owes $20, C owes $20)
-  // Result: Everyone paid $60 and owes $60 total, so net = $0
-  
-  const amountPerPerson = 20; // Each person's share per expense
-  const totalAmount = amountPerPerson * groupMembers.length;
-  
   logger.info(`Creating balanced expenses for ${groupMembers.length} members in Settled Group`, {
     groupId: settledGroup.id,
     memberIds: groupMembers.map(m => m.uid),
     memberNames: groupMembers.map(m => m.displayName)
   });
   
-  // Create one expense per member where they pay for everyone
-  let createdCount = 0;
-  const expensePromises = groupMembers.map(async (payer, index) => {
-    const expense: TestExpense = {
-      description: `Group dinner ${index + 1}`,
-      amount: totalAmount,
-      category: 'food'
-    };
-    
-    await createTestExpense(settledGroup.id, expense, groupMembers, payer);
-    createdCount++;
-    logger.info(`Created balanced expense ${index + 1}/${groupMembers.length}`, {
-      groupId: settledGroup.id,
-      payer: payer.displayName,
-      amount: totalAmount
-    });
-  });
+  // Create various expenses in both currencies
+  const expenseScenarios = [
+    { description: 'Restaurant dinner', amount: 120, currency: 'GBP', category: 'food' },
+    { description: 'Hotel booking', amount: 350, currency: 'EUR', category: 'accommodation' },
+    { description: 'Concert tickets', amount: 180, currency: 'GBP', category: 'entertainment' },
+    { description: 'Car rental', amount: 240, currency: 'EUR', category: 'transport' },
+    { description: 'Grocery shopping', amount: 85, currency: 'GBP', category: 'food' },
+    { description: 'Train tickets', amount: 150, currency: 'EUR', category: 'transport' },
+    { description: 'Museum passes', amount: 60, currency: 'GBP', category: 'entertainment' },
+    { description: 'Wine tasting tour', amount: 180, currency: 'EUR', category: 'entertainment' }
+  ];
   
+  // Create expenses with different payers and participants
+  const expensePromises = [];
+  for (let i = 0; i < Math.min(expenseScenarios.length, groupMembers.length * 2); i++) {
+    const scenario = expenseScenarios[i % expenseScenarios.length];
+    const payer = groupMembers[i % groupMembers.length];
+    
+    // Vary the participants - sometimes everyone, sometimes a subset
+    let participants: User[];
+    if (i % 3 === 0) {
+      // Everyone participates
+      participants = [...groupMembers];
+    } else {
+      // Random subset (at least 2 including payer)
+      const shuffled = [...groupMembers].sort(() => 0.5 - Math.random());
+      const participantCount = Math.min(groupMembers.length, Math.floor(Math.random() * 3) + 2);
+      participants = shuffled.slice(0, participantCount);
+      if (!participants.includes(payer)) {
+        participants[0] = payer;
+      }
+    }
+    
+    const participantIds = participants.map(p => p.uid);
+    
+    const expenseData = new ExpenseBuilder()
+      .withGroupId(settledGroup.id)
+      .withAmount(scenario.amount)
+      .withCurrency(scenario.currency)
+      .withDescription(scenario.description)
+      .withCategory(scenario.category)
+      .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
+      .withSplitType('equal')
+      .withParticipants(participantIds)
+      .withPaidBy(payer.uid)
+      .build();
+    
+    expensePromises.push(
+      driver.createExpense(expenseData, payer.token).then(() => {
+        logger.info(`Created expense: ${payer.displayName} paid ${scenario.currency} ${scenario.amount} for "${scenario.description}"`);
+      })
+    );
+  }
+  
+  // Wait for all expenses to be created
   await Promise.all(expensePromises);
   
-  logger.info(`Successfully created ${createdCount}/${groupMembers.length} balanced expenses for "Settled Group"`);
+  // Now fetch the actual balances from the API to see what needs settling
+  logger.info('Fetching current balances to calculate settlements...');
+  
+  const balancesResponse = await driver.getGroupBalances(settledGroup.id, groupMembers[0].token);
+  const balancesByCurrency = balancesResponse.balancesByCurrency || {};
+  
+  // Create settlements to zero out all balances
+  const settlementPromises = [];
+  
+  for (const currency of ['GBP', 'EUR']) {
+    const currencyBalances = balancesByCurrency[currency];
+    if (!currencyBalances) continue;
+    
+    // Find who owes and who is owed
+    const debtors: { user: User, amount: number }[] = [];
+    const creditors: { user: User, amount: number }[] = [];
+    
+    for (const member of groupMembers) {
+      const balance = currencyBalances[member.uid];
+      if (balance && balance.netBalance) {
+        if (balance.netBalance < -0.01) {
+          // This person owes money
+          debtors.push({ user: member, amount: Math.abs(balance.netBalance) });
+        } else if (balance.netBalance > 0.01) {
+          // This person is owed money
+          creditors.push({ user: member, amount: balance.netBalance });
+        }
+      }
+    }
+    
+    // Sort debtors and creditors by amount (largest first)
+    debtors.sort((a, b) => b.amount - a.amount);
+    creditors.sort((a, b) => b.amount - a.amount);
+    
+    // Create settlements using a greedy algorithm
+    let debtorIndex = 0;
+    let creditorIndex = 0;
+    
+    while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+      const debtor = debtors[debtorIndex];
+      const creditor = creditors[creditorIndex];
+      
+      // Calculate settlement amount
+      const settlementAmount = Math.min(debtor.amount, creditor.amount);
+      
+      if (settlementAmount > 0.01) {
+        const settlementData = {
+          groupId: settledGroup.id,
+          payerId: debtor.user.uid,
+          payeeId: creditor.user.uid,
+          amount: Math.round(settlementAmount * 100) / 100,
+          currency: currency,
+          note: `Settling up ${currency} expenses`,
+          date: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString()
+        };
+        
+        settlementPromises.push(
+          driver.createSettlement(settlementData, debtor.user.token).then(() => {
+            const symbol = currency === 'GBP' ? '£' : '€';
+            logger.info(`Created settlement: ${debtor.user.displayName} → ${creditor.user.displayName} ${symbol}${settlementData.amount}`);
+          }).catch(err => {
+            logger.error(`Failed to create settlement: ${err.message}`, {
+              from: debtor.user.displayName,
+              to: creditor.user.displayName,
+              amount: settlementData.amount,
+              currency
+            });
+          })
+        );
+        
+        // Update remaining amounts
+        debtor.amount -= settlementAmount;
+        creditor.amount -= settlementAmount;
+      }
+      
+      // Move to next debtor or creditor
+      if (debtor.amount < 0.01) debtorIndex++;
+      if (creditor.amount < 0.01) creditorIndex++;
+    }
+  }
+  
+  await Promise.all(settlementPromises);
+  
+  // Verify final balances
+  const finalBalances = await driver.getGroupBalances(settledGroup.id, groupMembers[0].token);
+  
+  logger.info('Final balances in Settled Group (should all be ~0):');
+  for (const currency of ['GBP', 'EUR']) {
+    const currencyBalances = finalBalances.balancesByCurrency?.[currency];
+    if (currencyBalances) {
+      logger.info(`  ${currency}:`);
+      for (const member of groupMembers) {
+        const balance = currencyBalances[member.uid];
+        if (balance) {
+          const netBalance = Math.round((balance.netBalance || 0) * 100) / 100;
+          const symbol = currency === 'GBP' ? '£' : '€';
+          logger.info(`    ${member.displayName}: ${symbol}${netBalance}`);
+        }
+      }
+    }
+  }
+  
+  logger.info(`✓ Successfully created balanced multi-currency expenses and settlements for "Settled Group"`);
 }
 
 async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
@@ -470,8 +599,11 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
 }
 
 async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
-  // Skip empty group but process all other groups including settled and large groups
-  const groupsWithPayments = groups.filter(g => g.name !== 'Empty Group');
+  // Skip empty group AND settled group (to preserve its settled state)
+  const groupsWithPayments = groups.filter(g => 
+    g.name !== 'Empty Group' && 
+    g.name !== 'Settled Group'
+  );
   
   logger.info(`Creating small payments/settlements for ${groupsWithPayments.length} groups`);
   
@@ -542,8 +674,11 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Us
 }
 
 async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
-  // Skip empty group (it has no expenses to delete)
-  const groupsWithExpenses = groups.filter(g => g.name !== 'Empty Group');
+  // Skip empty group and settled group (to preserve their states)
+  const groupsWithExpenses = groups.filter(g => 
+    g.name !== 'Empty Group' && 
+    g.name !== 'Settled Group'
+  );
   
   logger.info(`Deleting some expenses from ${groupsWithExpenses.length} groups to test deletion functionality`);
   
