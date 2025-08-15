@@ -408,11 +408,13 @@ export class GroupDetailPage extends BasePage {
   }
 
   getExactAmountInput() {
-    return this.page.locator('input[type="number"][step="0.01"]').first();
+    // Match text inputs with class w-24 for exact amounts (appears in split section)
+    return this.page.locator('input.w-24[type="text"]').first();
   }
 
   getPercentageInput() {
-    return this.page.locator('input[type="number"][max="100"]').first();
+    // Match text inputs with class w-20 for percentages (appears in split section)
+    return this.page.locator('input.w-20[type="text"]').first();
   }
 
   // Share functionality accessors
