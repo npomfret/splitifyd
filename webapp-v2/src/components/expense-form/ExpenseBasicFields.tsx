@@ -225,10 +225,7 @@ export function ExpenseBasicFields({
               />
             ) : (
               /* Show clock icon button when time field is hidden */
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Time
-                </label>
+              <div className="flex items-center h-[68px]">
                 <button
                   type="button"
                   onClick={() => {
@@ -241,6 +238,7 @@ export function ExpenseBasicFields({
                   }}
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   title="Add specific time"
+                  aria-label="Add specific time"
                 >
                   <ClockIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
                 </button>
