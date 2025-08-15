@@ -49,7 +49,7 @@ pageTest.describe('Performance Monitoring E2E', () => {
     await expect(passwordInput).toHaveValue('TestPassword123');
     
     // Test form validation - clear email and check submit is disabled
-    await emailInput.clear();
+    await loginPage.fillPreactInput(emailInput, '');
     await expect(submitButton).toBeDisabled();
     
     // Re-fill email
