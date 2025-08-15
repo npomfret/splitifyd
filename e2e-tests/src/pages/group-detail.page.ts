@@ -963,7 +963,8 @@ export class GroupDetailPage extends BasePage {
     // Fill form with display name-based selection
     const payerSelect = modal.getByRole('combobox', { name: /who paid/i });
     const payeeSelect = modal.getByRole('combobox', { name: /who received the payment/i });
-    const amountInput = modal.getByRole('spinbutton', { name: /amount/i });
+    // Amount input is now a text input with inputMode="decimal" instead of type="number"
+    const amountInput = modal.locator('input[inputMode="decimal"]').first();
     const noteInput = modal.getByRole('textbox', { name: /note/i });
     
     // Wait for payer dropdown to be populated with user data
@@ -1051,7 +1052,8 @@ export class GroupDetailPage extends BasePage {
   }
 
   getSettlementAmountInput() {
-    return this.page.getByRole('spinbutton', { name: FORM_LABELS.AMOUNT });
+    // Amount input is now a text input with inputMode="decimal" instead of type="number"
+    return this.page.getByRole(ARIA_ROLES.DIALOG).locator('input[inputMode="decimal"]').first();
   }
 
   getPayerSelect() {
