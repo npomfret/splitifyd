@@ -62,9 +62,8 @@ test.describe('Single User Balance Visualization', () => {
     // Verify Balances section shows settled up for single-user groups
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Just verify the message exists in the DOM (may be collapsed)
-    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage).toBe(true);
+    // Wait for the "All settled up!" message to appear
+    await groupDetailPage.waitForSettledUpMessage();
     
     // Verify expenses are tracked in the expense section
     await expect(groupDetailPage.getCurrencyAmount('120.00')).toBeVisible();
@@ -82,9 +81,8 @@ test.describe('Single User Balance Visualization', () => {
     // Verify Balances section shows settled up initially
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage).toBe(true);
+    // Wait for the "All settled up!" message to appear
+    await groupDetailPage.waitForSettledUpMessage();
   });
 
   test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
@@ -109,8 +107,7 @@ test.describe('Single User Balance Visualization', () => {
     await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();
     
     // Balance section should still show settled up for single user
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
-    const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
-    expect(hasSettledMessage).toBe(true);
+    // Wait for the "All settled up!" message to appear
+    await groupDetailPage.waitForSettledUpMessage();
   });
 });

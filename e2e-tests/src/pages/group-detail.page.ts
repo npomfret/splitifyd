@@ -445,43 +445,22 @@ export class GroupDetailPage extends BasePage {
 
 
   /**
-   * Checks if "All settled up!" exists in the balance section (regardless of visibility)
-   * Use this when the balance section might be collapsed on mobile
-   */
-  async hasSettledUpMessage(): Promise<boolean> {
-    // Wait a moment for any dynamic content to load
-    await this.page.waitForLoadState('domcontentloaded');
-    
-    // Check if "All settled up!" exists on the page
-    // The text should be in the Balances section
-    const count = await this.page.getByText('All settled up!').count();
-    return count > 0;
-  }
-
-  /**
    * Waits for "All settled up!" message to appear in the balance section
-   * Useful for waiting for balance calculations to complete
+   * The Balances section is always visible (no collapse/expand functionality)
+   * This method waits for the text to appear as balances are calculated
    */
   async waitForSettledUpMessage(timeout: number = 5000): Promise<void> {
-    // Wait for the text to exist in DOM (not necessarily visible)
-    await this.page.waitForSelector('text="All settled up!"', { 
-      timeout, 
-      state: 'attached' // Just wait for it to be in DOM, not visible
+    // Wait for at least one "All settled up!" text to appear in the DOM
+    // Using polling to handle dynamic rendering
+    await expect(async () => {
+      const count = await this.page.getByText('All settled up!').count();
+      if (count === 0) {
+        throw new Error('No "All settled up!" text found yet');
+      }
+    }).toPass({ 
+      timeout,
+      intervals: [100, 200, 300, 400, 500, 1000]
     });
-    
-    // Use nth(0) to get the first occurrence
-    const settledText = this.page.getByText('All settled up!').nth(0);
-    
-    // Try to make it visible by expanding the Balances section
-    const balancesHeading = this.getBalancesHeading();
-    if (await balancesHeading.isVisible()) {
-      // Click to expand if collapsed
-      await balancesHeading.click();
-      await this.page.waitForTimeout(300); // Small wait for animation
-    }
-    
-    // Now the text should be visible
-    await expect(settledText).toBeVisible({ timeout: 2000 });
   }
 
   /**
