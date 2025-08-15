@@ -63,7 +63,10 @@ test.describe('Single User Balance Visualization', () => {
     // Verify Balances section shows settled up for single-user groups
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
-    // Check that "All settled up!" exists (might be in collapsed section on mobile)
+    // Wait for the settled message to appear (balance calculation might be async)
+    await groupDetailPage.waitForSettledUpMessage();
+    
+    // Now verify it exists in the DOM
     const hasSettledMessage = await groupDetailPage.hasSettledUpMessage();
     expect(hasSettledMessage).toBe(true);
     

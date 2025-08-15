@@ -435,6 +435,14 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
+   * Waits for "All settled up!" message to appear in the balance section
+   * Useful for waiting for balance calculations to complete
+   */
+  async waitForSettledUpMessage(timeout: number = 5000): Promise<void> {
+    await expect(this.page.getByText('All settled up!')).toBeVisible({ timeout });
+  }
+
+  /**
    * Checks if debt amount exists in the DOM (regardless of visibility)
    * Use this when checking for amounts that might be in hidden sections
    */
