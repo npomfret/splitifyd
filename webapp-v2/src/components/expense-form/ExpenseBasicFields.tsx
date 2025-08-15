@@ -15,7 +15,6 @@ interface ExpenseBasicFieldsProps {
   category: string;
   validationErrors: any;
   updateField: (field: string, value: any) => void;
-  handleAmountChange: (e: Event) => void;
   getRecentAmounts: () => number[];
   PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[];
 }
@@ -29,7 +28,6 @@ export function ExpenseBasicFields({
   category,
   validationErrors,
   updateField,
-  handleAmountChange,
   getRecentAmounts,
   PREDEFINED_EXPENSE_CATEGORIES
 }: ExpenseBasicFieldsProps) {

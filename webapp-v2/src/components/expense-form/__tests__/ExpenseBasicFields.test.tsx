@@ -18,6 +18,40 @@ vi.mock('../../ui/CategorySuggestionInput', () => ({
   )
 }));
 
+// Mock the CurrencyAmountInput component
+vi.mock('../../ui/CurrencyAmountInput', () => ({
+  CurrencyAmountInput: ({ amount, onAmountChange, label, placeholder, required, error }: any) => (
+    <div data-testid="currency-amount-input">
+      <label>{label} {required && <span className="text-red-500">*</span>}</label>
+      <input
+        type="number"
+        value={amount}
+        onChange={(e) => onAmountChange((e.target as HTMLInputElement).value)}
+        placeholder={placeholder}
+        required={required}
+        step="0.01"
+        min="0.01"
+        inputMode="decimal"
+      />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+    </div>
+  )
+}));
+
+// Mock the TimeInput component
+vi.mock('../../ui/TimeInput', () => ({
+  TimeInput: ({ value, onChange, label }: any) => (
+    <div data-testid="time-input">
+      <label>{label}</label>
+      <input
+        type="time"
+        value={value}
+        onChange={(e) => onChange((e.target as HTMLInputElement).value)}
+      />
+    </div>
+  )
+}));
+
 // Mock the CurrencySelector component
 vi.mock('../../ui/CurrencySelector', () => ({
   CurrencySelector: ({ value, onChange, label }: any) => (
@@ -44,7 +78,6 @@ vi.mock('../../../app/services/currencyService', () => ({
 
 describe('ExpenseBasicFields', () => {
   const mockUpdateField = vi.fn();
-  const mockHandleAmountChange = vi.fn();
   const mockGetRecentAmounts = vi.fn(() => [25.50, 45.00, 12.75]);
 
   const mockCategories: ExpenseCategory[] = [
@@ -62,14 +95,12 @@ describe('ExpenseBasicFields', () => {
     category: '',
     validationErrors: {},
     updateField: mockUpdateField,
-    handleAmountChange: mockHandleAmountChange,
     getRecentAmounts: mockGetRecentAmounts,
     PREDEFINED_EXPENSE_CATEGORIES: mockCategories
   };
 
   beforeEach(() => {
     mockUpdateField.mockClear();
-    mockHandleAmountChange.mockClear();
     mockGetRecentAmounts.mockClear();
   });
 
@@ -110,13 +141,13 @@ describe('ExpenseBasicFields', () => {
     expect(mockUpdateField).toHaveBeenCalledWith('description', 'New expense');
   });
 
-  it('calls handleAmountChange when amount changes', () => {
+  it('calls updateField when amount changes', () => {
     render(<ExpenseBasicFields {...defaultProps} />);
 
     const amountInput = screen.getByPlaceholderText('0.00');
-    fireEvent.input(amountInput, { target: { value: '25.50' } });
+    fireEvent.change(amountInput, { target: { value: '25.50' } });
 
-    expect(mockHandleAmountChange).toHaveBeenCalled();
+    expect(mockUpdateField).toHaveBeenCalledWith('amount', 25.50);
   });
 
   it('calls updateField when date changes', () => {
