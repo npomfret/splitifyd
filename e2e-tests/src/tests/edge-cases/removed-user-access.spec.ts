@@ -1,11 +1,13 @@
 import { multiUserTest, expect } from '../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
+import { generateTestGroupName } from '../../utils/test-helpers';
 
+setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
-multiUserTest.describe('Removed User Access', () => {
-  multiUserTest('user removed from group while actively using it', async ({ 
+multiUserTest.describe('Multi-User Group Access', () => {
+  multiUserTest('multiple users can collaborate in shared group', async ({ 
     authenticatedPage,
     dashboardPage,
     groupDetailPage,
@@ -14,105 +16,52 @@ multiUserTest.describe('Removed User Access', () => {
     const { page: user1Page, user: user1 } = authenticatedPage;
     const { page: user2Page, user: user2 } = secondUser;
     const { 
-      dashboardPage: dashboardPage2,
       groupDetailPage: groupDetailPage2
     } = secondUser;
 
-    // Step 1: User 1 creates a group
+    // Verify both users start on dashboard
     await expect(user1Page).toHaveURL(/\/dashboard/);
-    const groupWorkflow1 = new GroupWorkflow(user1Page);
-    const groupId = await groupWorkflow1.createGroupAndNavigate('Test Group for Removal', 'Testing user removal');
-    await expect(user1Page).toHaveURL(new RegExp(`/groups/${groupId}`));
-    
-    // Get the share link
-    const shareLink = await groupDetailPage.getShareLink();
+    await expect(user2Page).toHaveURL(/\/dashboard/);
 
-    // Step 2: User 2 joins the group and navigates to it
-    await user2Page.goto(shareLink);
-    await user2Page.getByRole('button', { name: 'Join Group' }).click();
-    await expect(user2Page).toHaveURL(new RegExp(`/groups/${groupId}`));
+    // User 1 creates a group
+    const groupWorkflow = new GroupWorkflow(user1Page);
+    const groupName = generateTestGroupName('Collaboration');
+    const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Multi-user testing');
+    await expect(user1Page).toHaveURL(`/groups/${groupId}`);
     
-    // Verify user 2 can see the group
-    await expect(user2Page.locator('h1')).toContainText('Test Group for Removal');
+    // User 2 joins via share link using proper workflow
+    const multiUserWorkflow = new MultiUserWorkflow(null);
+    const shareLink = await multiUserWorkflow.getShareLink(user1Page);
+    await multiUserWorkflow.joinGroupViaShareLink(user2Page, shareLink, user2);
     
-    // Wait for member count to update for user 1
-    await user1Page.reload();
-    await expect(user1Page.getByText('2 members')).toBeVisible({ timeout: 5000 });
+    // Verify user 2 is in the group
+    await expect(user2Page).toHaveURL(`/groups/${groupId}`);
+    await groupDetailPage2.waitForMemberCount(2);
+    
+    // Verify both users are visible in the group
+    await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
+    await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
 
-    // Step 3: User 1 removes user 2 from the group
-    // NOTE: Member removal UI is not yet implemented in the application
-    // When implemented, User 1 would remove User 2 here
-    
-    console.log('⚠️ Member removal functionality not yet implemented');
-    console.log('Expected behavior (based on security-errors.e2e.test.ts):');
-    console.log('- Removed users should be redirected to /404 page');
-    console.log('- Same as users accessing groups they never belonged to');
-    console.log('');
-    console.log('Current test will verify what happens WITHOUT removal:');
-
-    // Step 4: User 2 attempts to add an expense
-    // This should fail with proper error handling
-    const addExpenseButton = groupDetailPage2.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
-    
-    // Wait for expense form to load
+    // User 2 adds an expense using existing page object methods
+    await groupDetailPage2.clickAddExpenseButton();
     await user2Page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
-    // Fill expense form
     const descriptionField = groupDetailPage2.getExpenseDescriptionField();
     const amountField = groupDetailPage2.getExpenseAmountField();
     
-    await groupDetailPage2.fillPreactInput(descriptionField, 'Test Expense After Removal');
-    await groupDetailPage2.fillPreactInput(amountField, '50');
+    await groupDetailPage2.fillPreactInput(descriptionField, 'Shared Expense');
+    await groupDetailPage2.fillPreactInput(amountField, '25.50');
     
-    // Try to submit the expense
     const submitButton = groupDetailPage2.getSaveExpenseButton();
     await expect(submitButton).toBeVisible();
     await submitButton.click();
     
-    // What SHOULD happen (once member removal is implemented):
-    // Based on security-errors.e2e.test.ts, removed users should be redirected to /404
-    // just like users who try to access groups they never belonged to
+    // Verify expense was created and we're back on group page
+    await expect(user2Page).toHaveURL(`/groups/${groupId}`);
+    await expect(groupDetailPage2.getTextElement('Shared Expense').first()).toBeVisible();
     
-    // Current behavior (without removal):
-    // User 2 is still a member, so the expense should succeed
-    
-    // Wait to see what happens
-    await user2Page.waitForLoadState('domcontentloaded');
-    
-    // Check current state
-    const currentUrl = user2Page.url();
-    const isOn404 = currentUrl.includes('/404');
-    const isOnGroupPage = currentUrl.includes(`/groups/${groupId}`);
-    const stillOnExpenseForm = currentUrl.includes('/add-expense');
-    
-    // Log what actually happened
-    console.log('');
-    console.log('Actual Results (User 2 still a member):');
-    console.log(`- Current URL: ${currentUrl}`);
-    console.log(`- Redirected to 404: ${isOn404}`);
-    console.log(`- Back on group page: ${isOnGroupPage}`);
-    console.log(`- Still on expense form: ${stillOnExpenseForm}`);
-    
-    if (isOnGroupPage) {
-      // Check if expense was created
-      const expenseVisible = await user2Page.getByText('Test Expense After Removal').isVisible().catch(() => false);
-      console.log(`- Expense created successfully: ${expenseVisible}`);
-    }
-    
-    // Document the expected behavior
-    console.log('');
-    console.log('✅ Expected behavior AFTER member removal is implemented:');
-    console.log('1. User should be redirected to /404 page');
-    console.log('2. Same as security-errors.e2e.test.ts line 30');
-    console.log('3. Group content should not be accessible');
-    
-    // Since removal isn't implemented, we expect the expense to succeed
-    // This documents the current state for future comparison
-    if (!isOn404) {
-      console.log('');
-      console.log('⚠️ Current state: User can still add expenses (removal not implemented)');
-    }
+    // Verify user 1 can also see the expense (after refresh)
+    await user1Page.reload();
+    await expect(groupDetailPage.getTextElement('Shared Expense').first()).toBeVisible();
   });
 });
