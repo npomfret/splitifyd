@@ -47,7 +47,7 @@ test.describe('Three User Settlement Management', () => {
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
 
     // Get share link and have users join SEQUENTIALLY (not concurrently)
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     

@@ -38,6 +38,11 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('button', { name: /add expense/i });
   }
 
+  async clickAddExpenseButton(): Promise<void> {
+    const addButton = this.getAddExpenseButton();
+    await this.clickButton(addButton, { buttonName: 'Add Expense' });
+  }
+
   getNoExpensesMessage() {
     return this.page.getByText(/no expenses yet/i);
   }
@@ -59,6 +64,113 @@ export class GroupDetailPage extends BasePage {
   // Element accessors for expense form
   getExpenseDescriptionField() {
     return this.page.getByPlaceholder('What was this expense for?');
+  }
+
+  // Expense form section headings
+  getExpenseDetailsHeading() {
+    return this.page.getByRole('heading', { name: 'Expense Details' });
+  }
+
+  getWhoPaidHeading() {
+    return this.page.getByRole('heading', { name: /Who paid/ });
+  }
+
+  getSplitBetweenHeading() {
+    return this.page.getByRole('heading', { name: /Split between/ });
+  }
+
+  async waitForExpenseFormSections() {
+    await expect(this.getExpenseDetailsHeading()).toBeVisible();
+    await expect(this.getWhoPaidHeading()).toBeVisible();
+    await expect(this.getSplitBetweenHeading()).toBeVisible();
+  }
+
+  // Convenience date buttons
+  getTodayButton() {
+    return this.page.getByRole('button', { name: 'Today' });
+  }
+
+  getYesterdayButton() {
+    return this.page.getByRole('button', { name: 'Yesterday' });
+  }
+
+  getThisMorningButton() {
+    return this.page.getByRole('button', { name: 'This Morning' });
+  }
+
+  getLastNightButton() {
+    return this.page.getByRole('button', { name: 'Last Night' });
+  }
+
+  getDateInput() {
+    return this.page.locator('input[type="date"]');
+  }
+
+  getTimeInput() {
+    return this.page.locator('input[placeholder="Enter time (e.g., 2:30pm)"]');
+  }
+
+  getTimeButton() {
+    return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+  }
+
+  async clickTimeButton(): Promise<void> {
+    const timeButton = this.getTimeButton();
+    await this.clickButton(timeButton, { buttonName: 'Time selector' });
+  }
+
+  getTimeSelectionButton(time: string) {
+    return this.page.getByRole('button', { name: time });
+  }
+
+  async clickTimeSelectionButton(time: string): Promise<void> {
+    const button = this.getTimeSelectionButton(time);
+    await this.clickButton(button, { buttonName: `Time: ${time}` });
+  }
+
+  async clickTodayButton() {
+    await this.clickButton(this.getTodayButton(), { buttonName: 'Today' });
+  }
+
+  async clickYesterdayButton() {
+    await this.clickButton(this.getYesterdayButton(), { buttonName: 'Yesterday' });
+  }
+
+  async clickThisMorningButton() {
+    await this.clickButton(this.getThisMorningButton(), { buttonName: 'This Morning' });
+  }
+
+  async clickLastNightButton() {
+    await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
+  }
+
+  getSelectAllButton() {
+    return this.page.getByRole('button', { name: 'Select all' });
+  }
+
+  async clickSelectAllButton() {
+    await this.clickButton(this.getSelectAllButton(), { buttonName: 'Select all' });
+  }
+
+  getPayerRadioLabel(displayName: string) {
+    return this.page.locator('label').filter({
+      has: this.page.locator('input[type="radio"][name="paidBy"]')
+    }).filter({
+      hasText: displayName
+    }).first();
+  }
+
+  async selectPayer(displayName: string) {
+    const payerLabel = this.getPayerRadioLabel(displayName);
+    await expect(payerLabel).toBeVisible();
+    await payerLabel.click();
+  }
+
+  async verifyExpenseInList(description: string, amount?: string) {
+    await expect(this.getExpenseByDescription(description)).toBeVisible();
+    if (amount) {
+      await expect(this.page.getByText(amount)).toBeVisible();
+    }
   }
 
   getExpenseAmountField() {
@@ -86,6 +198,7 @@ export class GroupDetailPage extends BasePage {
     await categoryInput.focus();
     await this.page.waitForSelector('[role="listbox"]');
     const suggestion = this.getCategorySuggestion(categoryText);
+    // Note: Not a button, but a dropdown option
     await suggestion.click();
   }
 
@@ -106,7 +219,7 @@ export class GroupDetailPage extends BasePage {
     await expect(currencySelector).toBeVisible();
     
     // Click to open the dropdown
-    await currencySelector.click();
+    await this.clickButton(currencySelector, { buttonName: 'Currency Selector' });
     
     // Wait for the listbox to appear
     await this.page.waitForSelector('[role="listbox"]', { timeout: 2000 });
@@ -120,12 +233,16 @@ export class GroupDetailPage extends BasePage {
     
     // Click on the currency option - look for button with role="option" containing the currency code
     const currencyOption = this.page.locator('[role="listbox"] button[role="option"]').filter({ hasText: currencyCode }).first();
-    await expect(currencyOption).toBeVisible();
-    await currencyOption.click();
+    await this.clickButton(currencyOption, { buttonName: `Currency: ${currencyCode}` });
   }
 
   getSaveExpenseButton() {
     return this.page.getByRole('button', { name: /save expense/i });
+  }
+
+  async clickSaveExpenseButton(): Promise<void> {
+    const saveButton = this.getSaveExpenseButton();
+    await this.clickButton(saveButton, { buttonName: 'Save Expense' });
   }
 
   
@@ -136,6 +253,101 @@ export class GroupDetailPage extends BasePage {
   async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
     const button = submitButton || this.getSaveExpenseButton();
     await this.expectButtonEnabled(button, 'Save Expense');
+  }
+
+  /**
+   * Validates that the expense form is ready for submission
+   * Provides detailed error messages about what's missing
+   */
+  async validateExpenseFormReady(): Promise<{ isValid: boolean; errors: string[] }> {
+    const errors: string[] = [];
+    
+    // Check if description is filled
+    const descriptionField = this.getExpenseDescriptionField();
+    const descriptionValue = await descriptionField.inputValue();
+    if (!descriptionValue || descriptionValue.trim() === '') {
+      errors.push('Description field is empty');
+    }
+    
+    // Check if amount is filled
+    const amountField = this.getExpenseAmountField();
+    const amountValue = await amountField.inputValue();
+    if (!amountValue || amountValue === '0' || amountValue === '0.00') {
+      errors.push('Amount field is empty or zero');
+    }
+    
+    // Check if a payer is selected (radio button checked)
+    const payerRadios = this.page.locator('input[type="radio"][name="paidBy"]');
+    const payerCount = await payerRadios.count();
+    if (payerCount === 0) {
+      errors.push('No payers available in "Who paid?" section');
+    } else {
+      const checkedPayer = await payerRadios.filter({ hasNot: this.page.locator('[checked=""]') }).count();
+      const anyChecked = await this.page.locator('input[type="radio"][name="paidBy"]:checked').count();
+      if (anyChecked === 0) {
+        errors.push('No payer selected in "Who paid?" section');
+      }
+    }
+    
+    // Check if participants are selected for the split
+    const participantCheckboxes = this.page.locator('input[type="checkbox"][name="participant"]');
+    const participantCount = await participantCheckboxes.count();
+    
+    if (participantCount === 0) {
+      // Look for any indication of participants section
+      const splitSection = await this.page.getByRole('heading', { name: /Split between/i }).isVisible();
+      if (splitSection) {
+        // Check for selected participant indicators (could be checkboxes or other UI elements)
+        const selectedIndicators = await this.page.locator('.selected-participant, [aria-checked="true"]').count();
+        // Check if either "Select all" or "Select none" buttons exist
+        const selectAllButton = await this.page.getByRole('button', { name: 'Select all' }).count();
+        const selectNoneButton = await this.page.getByRole('button', { name: 'Select none' }).count();
+        const hasSelectionControls = selectAllButton > 0 || selectNoneButton > 0;
+        
+        if (!hasSelectionControls) {
+          errors.push('Split between section exists but no participant selection controls found');
+        } else {
+          // Try to find how many are selected by looking for visual indicators
+          const memberElements = await this.page.locator('label').filter({
+            has: this.page.locator('input[type="checkbox"]')
+          }).count();
+          
+          if (memberElements === 0) {
+            errors.push('No participants available for selection in "Split between" section');
+          } else {
+            // Check if any checkboxes are checked
+            const checkedBoxes = await this.page.locator('input[type="checkbox"]:checked').count();
+            if (checkedBoxes === 0) {
+              errors.push('No participants selected in "Split between" section - click "Select all" or select individual members');
+            }
+          }
+        }
+      } else {
+        errors.push('Split between section not found or not visible');
+      }
+    } else {
+      const checkedCount = await participantCheckboxes.filter({ has: this.page.locator(':checked') }).count();
+      if (checkedCount === 0) {
+        errors.push(`No participants selected for expense split (0 of ${participantCount} members selected)`);
+      }
+    }
+    
+    // Check if submit button is enabled
+    const submitButton = this.getSaveExpenseButton();
+    const isDisabled = await submitButton.isDisabled();
+    if (isDisabled) {
+      const buttonTitle = await submitButton.getAttribute('title');
+      if (buttonTitle) {
+        errors.push(`Submit button is disabled (hint: ${buttonTitle})`);
+      } else {
+        errors.push('Submit button is disabled');
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
   
 
@@ -187,6 +399,11 @@ export class GroupDetailPage extends BasePage {
   // Share functionality accessors
   getShareButton() {
     return this.page.getByRole('button', { name: /share/i });
+  }
+
+  async clickShareButton(): Promise<void> {
+    const shareButton = this.getShareButton();
+    await this.clickButton(shareButton, { buttonName: 'Share' });
   }
 
   getShareModal() {
@@ -353,11 +570,9 @@ export class GroupDetailPage extends BasePage {
   }
 
   async addExpense(expense: ExpenseData): Promise<void> {
-    // Wait for add expense button to be available and click it
+    // Click Add Expense button with proper checks
     const addExpenseButton = this.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await expect(addExpenseButton).toBeEnabled();
-    await addExpenseButton.click();
+    await this.clickButton(addExpenseButton, { buttonName: 'Add Expense' });
     
     // Wait for navigation to add expense page
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
@@ -371,6 +586,10 @@ export class GroupDetailPage extends BasePage {
     await expect(this.page.getByRole('heading', { name: 'Expense Details' })).toBeVisible();
     await expect(this.page.getByRole('heading', { name: /Who paid/ })).toBeVisible();
     await expect(this.page.getByRole('heading', { name: /Split between/ })).toBeVisible();
+    
+    // CRITICAL: Wait for members to load in the form
+    // This is the root cause of intermittent failures - members data doesn't load
+    await this.waitForMembersInExpenseForm();
     
     // Fill expense form
     await this.fillPreactInput(descriptionField, expense.description);
@@ -396,22 +615,31 @@ export class GroupDetailPage extends BasePage {
     }).first();
     
     await expect(payerLabel).toBeVisible();
+    // Note: This is a label containing a radio button, not a button
     await payerLabel.click();
     
     // CRITICAL: Select participants (who is involved in the split)
     // By default in the UI, all members are selected, but in tests we need to ensure this
     // Always click "Select all" to ensure deterministic state
     const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
-    await expect(selectAllButton).toBeVisible();
-    await expect(selectAllButton).toBeEnabled();
-    await selectAllButton.click();
+    await this.clickButton(selectAllButton, { buttonName: 'Select all' });
     
-    // Submit form
+    // Validate form is ready before attempting to submit
+    const validation = await this.validateExpenseFormReady();
+    if (!validation.isValid) {
+      // Take a screenshot to show the current form state
+      await this.page.screenshot({ path: 'expense-form-validation-error.png', fullPage: true });
+      
+      throw new Error(
+        `Cannot submit expense form - validation failed:\n` +
+        validation.errors.map(e => `  - ${e}`).join('\n') +
+        `\n\nForm state screenshot saved to expense-form-validation-error.png`
+      );
+    }
+    
+    // Submit form with proper checks
     const submitButton = this.getSaveExpenseButton();
-    await expect(submitButton).toBeEnabled();
-    // Check button is enabled before clicking (provides better error messages)
-    await this.expectButtonEnabled(submitButton, 'Save Expense');
-    await submitButton.click();
+    await this.clickButton(submitButton, { buttonName: 'Save Expense' });
     
     // Wait for navigation back to group page
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -421,6 +649,37 @@ export class GroupDetailPage extends BasePage {
     
     // Wait for balance calculation to complete
     await this.page.waitForLoadState('domcontentloaded');
+  }
+
+  /**
+   * Wait for members to load in the expense form
+   * This prevents the intermittent issue where members don't appear
+   */
+  async waitForMembersInExpenseForm(timeout = 5000): Promise<void> {
+    // Wait for at least one member to appear in the "Who paid?" section
+    await expect(async () => {
+      const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
+      if (payerRadios === 0) {
+        throw new Error('No members loaded in "Who paid?" section - waiting for members data');
+      }
+    }).toPass({ 
+      timeout,
+      intervals: [100, 250, 500, 1000]
+    });
+    
+    // Also wait for participants checkboxes to be available
+    await expect(async () => {
+      // Check for checkboxes or the Select all button
+      const checkboxes = await this.page.locator('input[type="checkbox"]').count();
+      const selectAllButton = await this.page.getByRole('button', { name: 'Select all' }).count();
+      
+      if (checkboxes === 0 && selectAllButton === 0) {
+        throw new Error('No members loaded in "Split between" section - waiting for members data');
+      }
+    }).toPass({ 
+      timeout,
+      intervals: [100, 250, 500, 1000]
+    });
   }
 
   /**
@@ -446,57 +705,6 @@ export class GroupDetailPage extends BasePage {
     }).toPass({ timeout });
   }
 
-  /**
-   * Wait for members to be loaded in the expense form
-   * This ensures the "Who paid?" and "Split between" sections have user options
-   */
-  async waitForMembersInExpenseForm(): Promise<void> {
-    // Wait for the "Who paid?" section to be visible
-    const payerSection = this.page.locator('text="Who paid?"').locator('..');
-    await expect(payerSection).toBeVisible().catch(() => {
-      throw new Error('Who paid? section is not visible on the expense form');
-    });
-    
-    // Wait for member options to appear in the payer section
-    // This will retry until members are loaded from the API
-    await expect(async () => {
-      const payerLabels = payerSection.locator('label');
-      const payerCount = await payerLabels.count();
-      
-      if (payerCount === 0) {
-        throw new Error('No member options in "Who paid?" section - members have not loaded from API yet');
-      }
-      
-      // Verify at least one member option contains a user display name
-      const payerTexts = await payerLabels.allTextContents();
-      const hasValidMembers = payerTexts.some(text => text.trim().length > 0);
-      
-      if (!hasValidMembers) {
-        throw new Error(`Payer section has ${payerCount} labels but no valid member names. Content: ${payerTexts.join(', ')}`);
-      }
-    }).toPass({ 
-      timeout: 10000,
-      intervals: [500, 1000, 2000] // Retry at these intervals
-    });
-    
-    // Now verify the Split between section
-    const splitSection = this.page.locator('text="Split between"').locator('..');
-    await expect(splitSection).toBeVisible();
-    
-    // After members load, Select all button should work
-    const selectAllBtn = this.getSelectAllButton();
-    if (await selectAllBtn.isVisible()) {
-      await selectAllBtn.click();
-      
-      // Verify members appeared after clicking Select all
-      await expect(async () => {
-        const splitContent = await splitSection.textContent();
-        if (!splitContent || splitContent === 'Select allSelect none') {
-          throw new Error('No members visible after clicking Select all - member data not loaded');
-        }
-      }).toPass({ timeout: 2000 });
-    }
-  }
     /**
      * Helper method to wait for payee dropdown to update after payer selection
    */
@@ -612,7 +820,7 @@ export class GroupDetailPage extends BasePage {
   async verifySettlementInHistory(pages: Array<{ page: any }>, settlementNote: string): Promise<void> {
     for (const { page } of pages) {
       const showHistoryButton = page.getByRole('button', { name: 'Show History' });
-      await showHistoryButton.click();
+      await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
       await expect(page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
       await page.keyboard.press('Escape');
     }
@@ -697,8 +905,7 @@ export class GroupDetailPage extends BasePage {
   }): Promise<void> {
     // Click settle up button
     const settleButton = this.page.getByRole('button', { name: /settle up/i });
-    await expect(settleButton).toBeEnabled();
-    await settleButton.click();
+    await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
     
     // Wait for modal
     const modal = this.page.getByRole('dialog');
@@ -758,8 +965,7 @@ export class GroupDetailPage extends BasePage {
     const submitButton = modal.getByRole('button', { name: /record payment/i });
     await expect(submitButton).toBeEnabled();
     // Check button is enabled before clicking (provides better error messages)
-    await this.expectButtonEnabled(submitButton, 'Record Payment');
-    await submitButton.click();
+    await this.clickButton(submitButton, { buttonName: 'Record Payment' });
     
     // Wait for modal to close with increased timeout for settlement processing
     await expect(modal).not.toBeVisible({ timeout: 5000 });
@@ -789,9 +995,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SHOW_HISTORY });
   }
 
-  getSelectAllButton() {
-    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SELECT_ALL });
-  }
 
   // Modal and form elements
   getSettlementModal() {
@@ -848,8 +1051,7 @@ export class GroupDetailPage extends BasePage {
     // Click join button with fast timeout
     const joinButton = joinerPage.getByRole('button', { name: /join group/i });
     await joinButton.waitFor({ state: 'visible', timeout: 1000 });
-    await expect(joinButton).toBeEnabled();
-    await joinButton.click();
+    await this.clickButton(joinButton, { buttonName: 'Join Group' });
     
     // Wait for navigation with reasonable timeout
     await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 3000 });
@@ -909,6 +1111,7 @@ export class GroupDetailPage extends BasePage {
    */
   async clickExpenseToView(description: string) {
     const expense = this.getExpenseByDescription(description);
+    // Note: Expense item is not a button but a clickable element
     await expense.click();
     await this.page.waitForLoadState('domcontentloaded');
   }
@@ -918,13 +1121,11 @@ export class GroupDetailPage extends BasePage {
    */
   async deleteExpense() {
     const deleteButton = this.getExpenseDeleteButton();
-    await expect(deleteButton).toBeEnabled();
-    await deleteButton.click();
+    await this.clickButton(deleteButton, { buttonName: 'Delete Expense' });
     
     // Confirm deletion
     const confirmButton = this.getDeleteConfirmButton();
-    await expect(confirmButton).toBeEnabled();
-    await confirmButton.click();
+    await this.clickButton(confirmButton, { buttonName: 'Confirm Delete' });
     
     // Wait for deletion to complete
     await this.page.waitForLoadState('domcontentloaded');
@@ -953,8 +1154,7 @@ export class GroupDetailPage extends BasePage {
         // Click share button with fast timeout
         const shareButton = this.getShareButton();
         await shareButton.waitFor({ state: 'visible', timeout: 1000 });
-        await expect(shareButton).toBeEnabled();
-        await shareButton.click();
+        await this.clickButton(shareButton, { buttonName: 'Share' });
 
         // Get share link from dialog with progressive timeout
         const timeout = 2000 + (attempts * 500); // Start at 2000ms, increase per attempt
@@ -1039,8 +1239,7 @@ export class GroupDetailPage extends BasePage {
    */
   async openHistory() {
     const historyButton = this.getHistoryButton();
-    await expect(historyButton).toBeEnabled();
-    await historyButton.click();
+    await this.clickButton(historyButton, { buttonName: 'Show History' });
   }
 
   /**
@@ -1094,12 +1293,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByPlaceholder('What was this expense for?');
   }
 
-  /**
-   * Get the split between heading
-   */
-  getSplitBetweenHeading() {
-    return this.page.getByRole('heading', { name: /split between/i });
-  }
 
   /**
    * Get the split options card (contains checkboxes for split selection)
@@ -1205,7 +1398,7 @@ export class GroupDetailPage extends BasePage {
    */
   async openHistoryAndVerifySettlement(settlementText: string | RegExp): Promise<void> {
     const showHistoryButton = this.getShowHistoryButton();
-    await showHistoryButton.click();
+    await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
     
     // Wait for settlement history modal content to be rendered and verify it's visible
     await expect(this.page.locator('div').filter({ hasText: settlementText }).first()).toBeVisible();

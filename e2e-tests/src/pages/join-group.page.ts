@@ -1,13 +1,12 @@
 import { Page, expect, Locator } from '@playwright/test';
-
+import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 /**
  * Page object for join group functionality via share links.
  * Handles different authentication states and provides robust join operations.
  */
-export class JoinGroupPage {
-  constructor(private page: Page) {}
+export class JoinGroupPage extends BasePage {
 
   // Core selectors with retry logic
   getJoinGroupHeading(): Locator {
@@ -135,11 +134,8 @@ export class JoinGroupPage {
         await joinButton.waitFor({ state: 'visible', timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
         await joinButton.waitFor({ state: 'attached', timeout: 1000 });
 
-        // Ensure button is clickable
-        await expect(joinButton).toBeEnabled();
-
-        // Click the join button
-        await joinButton.click();
+        // Click the join button using standardized method
+        await this.clickButton(joinButton, { buttonName: 'Join Group' });
 
         // Wait for redirect unless skipped
         if (!skipRedirectWait) {

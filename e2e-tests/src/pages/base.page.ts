@@ -145,6 +145,69 @@ export abstract class BasePage {
   }
 
   /**
+   * Standard button click method that ensures button is visible and enabled before clicking.
+   * Provides clear error messages if the button cannot be clicked.
+   * This should be the default way to click any button in tests.
+   * 
+   * @param button - The button locator
+   * @param options - Optional configuration
+   * @returns Promise that resolves when button is clicked
+   */
+  async clickButton(
+    button: Locator, 
+    options?: {
+      buttonName?: string;  // Human-readable name for error messages
+      skipEnabledCheck?: boolean;  // Skip the enabled check (for special cases)
+      timeout?: number;  // Custom timeout for visibility check
+    }
+  ): Promise<void> {
+    const { buttonName, skipEnabledCheck = false, timeout = 5000 } = options || {};
+    
+    // Get button text for error messages if not provided
+    const buttonText = buttonName || await button.textContent() || 'button';
+    
+    // Check visibility with clear error message
+    try {
+      await expect(button).toBeVisible({ timeout });
+    } catch (error) {
+      // Check if button exists in DOM
+      const exists = await button.count() > 0;
+      if (!exists) {
+        throw new Error(`Button "${buttonText}" not found in the DOM. Check your selector.`);
+      }
+      
+      // Button exists but not visible
+      const isHidden = await button.isHidden();
+      if (isHidden) {
+        throw new Error(`Button "${buttonText}" exists but is hidden. It may be behind a modal or collapsed section.`);
+      }
+      
+      throw new Error(`Button "${buttonText}" is not visible after ${timeout}ms timeout.`);
+    }
+    
+    // Check if enabled (unless explicitly skipped)
+    if (!skipEnabledCheck) {
+      try {
+        await expect(button).toBeEnabled({ timeout: 1000 });
+      } catch (error) {
+        // Use our detailed error reporting for disabled buttons
+        await this.expectButtonEnabled(button, buttonText);
+      }
+    }
+    
+    // Click the button
+    try {
+      await button.click();
+    } catch (error: any) {
+      // Provide context for click failures
+      if (error.message?.includes('intercept')) {
+        throw new Error(`Cannot click button "${buttonText}" - it may be covered by another element.`);
+      }
+      throw new Error(`Failed to click button "${buttonText}": ${error.message}`);
+    }
+  }
+
+  /**
    * Helper specifically for submit buttons with detailed validation error reporting.
    * Use this before clicking submit buttons in forms.
    */

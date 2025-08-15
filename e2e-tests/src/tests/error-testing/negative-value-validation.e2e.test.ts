@@ -16,7 +16,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupWorkflow.createGroup(generateTestGroupName('NegativeValidation'), 'Testing negative value validation');
 
     // Navigate to add expense
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Try to enter negative amount
@@ -67,7 +67,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupWorkflow.createGroup(generateTestGroupName('ZeroValidation'), 'Testing zero value validation');
 
     // Navigate to add expense
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Try to enter zero amount
@@ -185,7 +185,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupDetailPage.waitForMemberCount(2);
     
     // Navigate to add expense
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Fill expense details
@@ -238,7 +238,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupWorkflow.createGroup(generateTestGroupName('HTML5Validation'), 'Testing HTML5 validation');
 
     // Navigate to add expense
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     const amountField = groupDetailPage.getAmountInput();

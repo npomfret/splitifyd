@@ -121,7 +121,7 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.waitForBalancesToLoad(groupId);
     
     // Click add expense button
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     
     // Wait for navigation to add expense page
     await page.waitForURL(`**/groups/${groupId}/add-expense`);

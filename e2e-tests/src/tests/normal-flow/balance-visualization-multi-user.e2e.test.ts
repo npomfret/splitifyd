@@ -22,7 +22,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     
@@ -105,7 +105,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     
@@ -155,7 +155,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     
@@ -221,7 +221,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     
@@ -289,7 +289,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     
@@ -341,7 +341,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     
@@ -424,7 +424,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await groupDetailPage.closeModalWithEscape();
     

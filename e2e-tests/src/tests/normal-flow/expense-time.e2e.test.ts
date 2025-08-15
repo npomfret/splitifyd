@@ -24,7 +24,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense form
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Check that time input shows default "at 12:00 PM"
@@ -43,7 +43,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     // Navigate to expense form
     await expect(page).toHaveURL(/\/dashboard/);
     const groupId = await groupWorkflow.createGroupAndNavigate('Time Edit Test');
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Click on time button to start editing
@@ -67,7 +67,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     // Navigate to expense form
     await expect(page).toHaveURL(/\/dashboard/);
     const groupId = await groupWorkflow.createGroupAndNavigate('Time Suggestions Test');
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Click to edit time
@@ -93,7 +93,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     // Navigate to expense form
     await expect(page).toHaveURL(/\/dashboard/);
     const groupId = await groupWorkflow.createGroupAndNavigate('Time Selection Test');
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Edit time and select suggestion
@@ -116,7 +116,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     // Navigate to expense form
     await expect(page).toHaveURL(/\/dashboard/);
     const groupId = await groupWorkflow.createGroupAndNavigate('Freeform Time Test');
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Edit time with freeform input
@@ -142,7 +142,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     // Navigate to expense form
     await expect(page).toHaveURL(/\/dashboard/);
     const groupId = await groupWorkflow.createGroupAndNavigate('Time Creation Test');
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Fill out expense form with time
@@ -176,7 +176,7 @@ authenticatedPageTest.describe('Expense Time Selection', () => {
     // Navigate to expense form  
     await expect(page).toHaveURL(/\/dashboard/);
     const groupId = await groupWorkflow.createGroupAndNavigate('Default Time Test');
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Create expense with default noon time (don't change time)

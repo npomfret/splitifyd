@@ -30,10 +30,9 @@ export class LoginPage extends BasePage {
   }
   
   async submitForm() {
-    // Check button is enabled before clicking (provides better error messages)
+    // Use standardized button click with proper error handling
     const submitButton = this.getSubmitButton();
-    await this.expectButtonEnabled(submitButton, this.signInButton);
-    await submitButton.click();
+    await this.clickButton(submitButton, { buttonName: this.signInButton });
   }
   
   async login(email: string, password: string, rememberMe = false) {
@@ -47,12 +46,14 @@ export class LoginPage extends BasePage {
 
   async clickSignUp() {
     const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink }).first();
+    // Note: Links aren't buttons, but we can still ensure they're enabled
     await expect(link).toBeEnabled();
     await link.click();
   }
   
   async clickForgotPassword() {
     const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
+    // Note: Links aren't buttons, but we can still ensure they're enabled
     await expect(link).toBeEnabled();
     await link.click();
   }
