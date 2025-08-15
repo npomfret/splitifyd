@@ -64,8 +64,39 @@ async function createAuthenticatedUser(browser: any): Promise<{
 }
 
 async function createUnauthenticatedUser(browser: any): Promise<UnauthenticatedUserFixture> {
-  const context = await browser.newContext();
+  // Create a completely fresh browser context to ensure no authentication state
+  const context = await browser.newContext({
+    // Clear all storage to ensure clean state
+    storageState: undefined,
+    // Use incognito mode equivalent settings
+    ignoreHTTPSErrors: true
+  });
+  
   const page = await context.newPage();
+  
+  // Navigate to the app's homepage first to have a proper domain for storage access
+  await page.goto('http://localhost:6005/');
+  await page.waitForLoadState('domcontentloaded');
+  
+  // Clear all possible authentication storage from the app domain
+  await page.evaluate(() => {
+    try {
+      // Clear localStorage
+      localStorage.clear();
+      // Clear sessionStorage  
+      sessionStorage.clear();
+      // Clear any cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+    } catch (e) {
+      // Ignore any errors - storage might not be available
+      console.log('Storage clearing error (expected):', e);
+    }
+  });
+  
+  // Navigate to a neutral page to establish clean state
+  await page.goto('about:blank');
   
   return {
     page,

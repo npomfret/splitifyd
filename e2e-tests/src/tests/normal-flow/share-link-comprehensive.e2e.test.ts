@@ -77,6 +77,18 @@ test.describe('Comprehensive Share Link Testing', () => {
       const { page: page1, user: user1 } = authenticatedUsers[0];
       const { page: page2, joinGroupPage } = unauthenticatedUsers[0];
       
+      // Verify starting authentication states
+      await expect(page1).toHaveURL(/\/dashboard/); // Authenticated user on dashboard
+      expect(page2.url()).toBe('about:blank'); // Unauthenticated user on clean slate
+      
+      // Verify unauthenticated user cannot access protected pages
+      await page2.goto('http://localhost:6005/dashboard');
+      await page2.waitForLoadState('domcontentloaded');
+      
+      // Should be redirected to login or show login UI
+      const isLoggedIn = await joinGroupPage.isUserLoggedIn();
+      expect(isLoggedIn).toBe(false); // Confirm user is not logged in
+      
       // Create group with authenticated user
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
@@ -85,7 +97,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);
       
-      // Navigate to share link while not logged in
+      // Navigate to share link with unauthenticated user
       const result = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
       
       expect(result.success).toBe(false);

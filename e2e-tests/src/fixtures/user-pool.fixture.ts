@@ -75,6 +75,9 @@ export class UserPool {
   /**
    * Release a user back to the pool for reuse.
    * This is optional - tests don't have to return users.
+   * Note: Users are not automatically logged out here since they may be 
+   * used immediately by another test that expects them to be logged in.
+   * Authentication state management is handled by the test fixtures.
    */
   releaseUser(user: BaseUser): void {
     // Only accept users that were claimed from this pool

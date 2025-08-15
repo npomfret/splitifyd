@@ -40,24 +40,52 @@ export class JoinGroupPage extends BasePage {
   // Authentication state detection
   async isUserLoggedIn(): Promise<boolean> {
     try {
-      // Check if we see "Checking authentication..." text (indicates checking auth state)
+      // First check: If we're on the login page, definitely not logged in
+      const currentUrl = this.page.url();
+      if (currentUrl.includes('/login') || currentUrl.includes('/register')) {
+        return false;
+      }
+      
+      // Second check: Look for authentication loading states
       const checkingAuth = await this.page.getByText('Checking authentication...').isVisible({ timeout: 500 }).catch(() => false);
       if (checkingAuth) {
         // Wait for auth check to complete
         await this.page.waitForLoadState('domcontentloaded');
-        // Check if we've been redirected to login
-        const currentUrl = this.page.url();
-        if (currentUrl.includes('/login')) {
-          return false; // Not logged in, redirected to login
+        // Re-check URL after auth check
+        if (this.page.url().includes('/login')) {
+          return false;
         }
       }
       
-      // Check if we see login/register buttons (indicates not logged in)
-      const loginVisible = await this.getLoginButton().isVisible({ timeout: 1000 });
-      const registerVisible = await this.getRegisterButton().isVisible({ timeout: 1000 });
-      return !loginVisible && !registerVisible;
+      // Critical check: Look for login/register UI elements (most reliable indicator)
+      const loginVisible = await this.getLoginButton().isVisible({ timeout: 1000 }).catch(() => false);
+      const registerVisible = await this.getRegisterButton().isVisible({ timeout: 1000 }).catch(() => false);
+      
+      // If we see login/register buttons, user is definitely not logged in
+      if (loginVisible || registerVisible) {
+        return false;
+      }
+      
+      // Look for user-specific UI elements that indicate login
+      const userMenuVisible = await this.page.locator('[data-testid="user-menu-button"]').isVisible({ timeout: 1000 }).catch(() => false);
+      
+      // If we see user menu, definitely logged in
+      if (userMenuVisible) {
+        return true;
+      }
+      
+      // Final check: Look for other authenticated UI patterns
+      const dashboardContent = await this.page.getByText(/create group|your groups|my groups/i).isVisible({ timeout: 1000 }).catch(() => false);
+      
+      if (dashboardContent) {
+        return true;
+      }
+      
+      // Default: If no login buttons and no clear auth indicators, assume not logged in for safety
+      return false;
     } catch {
-      return true; // Assume logged in if we can't detect login buttons
+      // If we can't determine state, assume not logged in for safety
+      return false;
     }
   }
 
