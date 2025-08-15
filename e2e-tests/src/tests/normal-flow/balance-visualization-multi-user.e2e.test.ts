@@ -1,11 +1,10 @@
 import { multiUserTest, expect } from '../../fixtures';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { generateShortId } from "../../utils/test-helpers.ts";
 import { GroupDetailPage } from '../../pages';
 import { JoinGroupPage } from '../../pages';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 multiUserTest.describe('Multi-User Balance Visualization - Deterministic States', () => {

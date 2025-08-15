@@ -1,9 +1,8 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
 
 // Enable debugging helpers
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('Expense Time Selection', () => {

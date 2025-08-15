@@ -1,8 +1,7 @@
 import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('Convenience Date Selection', () => {

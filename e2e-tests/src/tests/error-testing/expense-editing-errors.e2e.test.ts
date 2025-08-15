@@ -1,11 +1,10 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { GroupWorkflow } from '../../workflows';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Expense Editing Error Testing', () => {

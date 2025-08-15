@@ -1,10 +1,9 @@
 import { pageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Auth Navigation E2E', () => {
   pageTest('should navigate between login and register pages', async ({ loginPage, registerPage }) => {

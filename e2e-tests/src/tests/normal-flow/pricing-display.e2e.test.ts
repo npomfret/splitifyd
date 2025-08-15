@@ -1,7 +1,5 @@
 import { pageTest as test, expect } from "../../fixtures/page-fixtures";
-import { setupConsoleErrorReporting } from '../../helpers';
 
-setupConsoleErrorReporting();
 
 // Simplified E2E test for pricing page - just verify it loads without errors
 test.describe('Pricing Page E2E', () => {

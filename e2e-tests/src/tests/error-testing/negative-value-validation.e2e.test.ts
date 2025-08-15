@@ -1,10 +1,9 @@
 import { authenticatedPageTest as authenticatedTest, expect } from '../../fixtures/authenticated-page-test';
 import { multiUserTest } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 authenticatedTest.describe('Negative Value Validation', () => {

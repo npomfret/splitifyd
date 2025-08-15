@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { multiUserTest } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { MultiUserWorkflow } from '../../workflows';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Share Link - Error Scenarios', () => {

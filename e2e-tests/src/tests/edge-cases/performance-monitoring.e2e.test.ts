@@ -1,11 +1,10 @@
 import { pageTest, expect } from '../../fixtures';
-import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { waitForApp, setupMCPDebugOnFailure } from '../../helpers';
 import { SELECTORS } from '../../constants/selectors';
 import { TIMEOUTS } from '../../config/timeouts';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Performance Monitoring E2E', () => {
   pageTest('should load pages within acceptable time', async ({ homepagePage }) => {
@@ -38,6 +37,6 @@ pageTest.describe('Performance Monitoring E2E', () => {
     await expect(emailInput).toHaveValue('test@example.com');
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 });

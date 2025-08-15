@@ -1,6 +1,6 @@
 import { pageTest, expect } from '../../fixtures';
 import { authenticatedPageTest } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
 import { GroupDetailPage } from '../../pages';
@@ -8,7 +8,6 @@ import { GroupWorkflow } from '../../workflows';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Form Validation E2E', () => {
   pageTest.describe('Login Form', () => {
@@ -65,7 +64,7 @@ pageTest.describe('Form Validation E2E', () => {
       // Submit button should now be enabled
       await expect(submitButton).toBeEnabled();
       
-      // Console errors are automatically captured by setupConsoleErrorReporting
+      // Console errors are automatically captured by 
     });
   });
 
@@ -100,7 +99,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(submitButton).toBeEnabled();
       
       // No console errors
-      // Console errors are automatically captured by setupConsoleErrorReporting
+      // Console errors are automatically captured by 
     });
 
     pageTest('should require all fields', async ({ registerPageNavigated }) => {
@@ -120,7 +119,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(page.getByText('Confirm Password *')).toBeVisible();
       
       // No console errors
-      // Console errors are automatically captured by setupConsoleErrorReporting
+      // Console errors are automatically captured by 
     });
 
     pageTest('should validate email format on register', async ({ registerPageNavigated }) => {
@@ -160,7 +159,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(submitButton).toBeEnabled();
       
       // No console errors
-      // Console errors are automatically captured by setupConsoleErrorReporting
+      // Console errors are automatically captured by 
     });
   });
 

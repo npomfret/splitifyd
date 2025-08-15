@@ -1,10 +1,9 @@
 import { pageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { SELECTORS } from '../../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Form Accessibility', () => {
   pageTest('should navigate login form with keyboard', async ({ loginPageNavigated }) => {
@@ -30,7 +29,7 @@ pageTest.describe('Form Accessibility', () => {
     // Just verify no errors occurred during keyboard navigation
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 
   pageTest('should have proper ARIA labels', async ({ loginPageNavigated }) => {
@@ -50,6 +49,6 @@ pageTest.describe('Form Accessibility', () => {
     await expect(passwordInput).toBeVisible();
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 });

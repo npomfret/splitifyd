@@ -1,7 +1,5 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting } from '../../helpers';
 
-setupConsoleErrorReporting();
 
 // Simplified SEO test - just verify pages have titles and no errors
 test.describe('SEO E2E', () => {

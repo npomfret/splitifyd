@@ -1,10 +1,9 @@
 import { threeUserTest as test, expect } from '../../fixtures/three-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 // Increase timeout for this complex multi-user test

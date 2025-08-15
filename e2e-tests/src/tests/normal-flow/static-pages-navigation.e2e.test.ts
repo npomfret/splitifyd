@@ -1,9 +1,8 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 test.describe('Static Pages E2E', () => {
   test('should navigate to terms of service', async ({ page, loginPage }) => {

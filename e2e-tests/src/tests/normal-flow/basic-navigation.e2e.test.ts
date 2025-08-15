@@ -1,7 +1,5 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
-import { setupConsoleErrorReporting } from '../../helpers';
 
-setupConsoleErrorReporting();
 
 // Simplified navigation tests - just verify pages load without errors
 test.describe('Navigation E2E', () => {

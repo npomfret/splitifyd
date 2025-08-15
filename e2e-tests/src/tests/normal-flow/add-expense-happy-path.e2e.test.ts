@@ -1,11 +1,10 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern } from '../../helpers/wait-helpers';
 import { GroupWorkflow } from '../../workflows';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Add Expense E2E', () => {

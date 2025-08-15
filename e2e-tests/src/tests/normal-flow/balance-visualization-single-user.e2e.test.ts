@@ -1,9 +1,8 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import {generateShortId} from "../../utils/test-helpers.ts";
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Single User Balance Visualization', () => {

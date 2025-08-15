@@ -1,9 +1,8 @@
 import { multiUserTest, expect } from '../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 multiUserTest.describe('Optimistic Locking Behavior', () => {
