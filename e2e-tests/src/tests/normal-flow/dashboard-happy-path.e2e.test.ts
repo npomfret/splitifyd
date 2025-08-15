@@ -122,8 +122,8 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
     // This would catch the bug where stores aren't cleared
     await page.goto(groupUrl, { waitUntil: 'domcontentloaded' });
     
-    // Wait a moment to see if any redirect happens
-    await page.waitForTimeout(1000);
+    // Wait for navigation to complete and verify we're on login page
+    await page.waitForLoadState('networkidle');
     
     // Should be on login page, not showing any user data
     const currentUrl = page.url();

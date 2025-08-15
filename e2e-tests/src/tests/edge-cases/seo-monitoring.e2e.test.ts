@@ -6,10 +6,14 @@ import { SELECTORS } from '../../constants/selectors';
 setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
-// TODO: CANDIDATE FOR UNIT TEST
+// TODO: CONVERT TO UNIT TEST
 // This test only checks static meta tags without any user interaction.
 // Should be converted to a unit test on the SEO component/head component.
 // E2E tests are slow and this doesn't need browser automation.
+// 
+// To convert: Create a unit test in webapp-v2 that renders the head component
+// and verifies the meta tags are present with correct content.
+// This would run 100x faster as a unit test.
 pageTest.describe('SEO Monitoring E2E', () => {
   pageTest('should have proper meta tags for SEO', async ({ page, homepagePage }) => {
     await homepagePage.navigate();

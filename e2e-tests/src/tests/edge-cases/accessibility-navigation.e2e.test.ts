@@ -7,8 +7,12 @@ setupMCPDebugOnFailure();
 setupConsoleErrorReporting();
 
 // TODO: PARTIAL CANDIDATE FOR UNIT TEST
-// The "should have proper ARIA labels" test just checks element existence
+// The "should have proper ARIA labels" test just checks element attributes
 // and could be a unit test. The keyboard navigation test is valid E2E.
+//
+// To convert: The ARIA labels test should be a unit test in webapp-v2
+// that renders form components and checks for proper accessibility attributes.
+// Keep the keyboard navigation test as E2E since it tests actual interaction.
 pageTest.describe('Form Accessibility', () => {
   pageTest('should navigate login form with keyboard', async ({ loginPageNavigated }) => {
     const { page } = loginPageNavigated;

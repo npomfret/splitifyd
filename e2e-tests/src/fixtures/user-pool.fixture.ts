@@ -153,14 +153,12 @@ export class UserPool {
       
       // Logout so the user can be used later
       // Wait for page to be stable before clicking menu
-      await tempPage.waitForLoadState('domcontentloaded');
-      await tempPage.waitForTimeout(200); // Small delay for DOM stability
+      await tempPage.waitForLoadState('networkidle');
       
       await tempPage.click('[data-testid="user-menu-button"]');
       
-      // Wait for dropdown and ensure it's stable
+      // Wait for dropdown to be visible
       await tempPage.waitForSelector('[data-testid="sign-out-button"]', { state: 'visible', timeout: 5000 });
-      await tempPage.waitForTimeout(100); // Small delay for dropdown animation
       
       await tempPage.click('[data-testid="sign-out-button"]');
       

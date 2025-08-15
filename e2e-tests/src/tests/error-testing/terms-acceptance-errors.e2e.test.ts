@@ -32,8 +32,8 @@ pageTest.describe('Terms Acceptance Error Testing', () => {
     // Note: We don't test the full registration flow as that's covered elsewhere
     await submitButton.click();
     
-    // Wait a moment to ensure no immediate validation errors
-    await page.waitForTimeout(500);
+    // Wait for any validation or network activity to complete
+    await page.waitForLoadState('networkidle');
     
     // At this point, the form has passed client-side validation and attempted submission
     // The actual registration success/failure is tested in other test files
