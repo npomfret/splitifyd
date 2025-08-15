@@ -1,5 +1,6 @@
-import Router, { Route } from 'preact-router';
+import Router, { Route, route } from 'preact-router';
 import { Suspense, lazy } from 'preact/compat';
+import { useEffect } from 'preact/hooks';
 import { LoadingState, WarningBanner } from './components/ui';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
@@ -24,6 +25,34 @@ const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then(m => ({ de
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute({ component: Component, ...props }: any) {
+  return (
+    <Suspense fallback={<LoadingState fullPage message="Loading page..." />}>
+      <Component {...props} />
+    </Suspense>
+  );
+}
+
+// Auth guard wrapper for protected routes
+function ProtectedRoute({ component: Component, ...props }: any) {
+  const authStore = useAuth();
+  
+  // Wait for auth initialization
+  if (!authStore.initialized) {
+    return <LoadingState fullPage message="Loading..." />;
+  }
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (authStore.initialized && !authStore.user) {
+      route('/login', true);
+    }
+  }, [authStore.initialized, authStore.user]);
+  
+  // Don't render protected content if not authenticated
+  if (!authStore.user) {
+    return null;
+  }
+  
   return (
     <Suspense fallback={<LoadingState fullPage message="Loading page..." />}>
       <Component {...props} />
@@ -56,18 +85,18 @@ export function App() {
         <Route path="/register" component={(props: any) => <LazyRoute component={RegisterPage} {...props} />} />
         <Route path="/reset-password" component={(props: any) => <LazyRoute component={ResetPasswordPage} {...props} />} />
         
-        {/* Dashboard Routes */}
-        <Route path="/dashboard" component={(props: any) => <LazyRoute component={DashboardPage} {...props} />} />
+        {/* Dashboard Routes - Protected */}
+        <Route path="/dashboard" component={(props: any) => <ProtectedRoute component={DashboardPage} {...props} />} />
         
-        {/* Group Routes */}
-        <Route path="/groups/:id" component={(props: any) => <LazyRoute component={GroupDetailPage} {...props} />} />
-        <Route path="/group/:id" component={(props: any) => <LazyRoute component={GroupDetailPage} {...props} />} />
+        {/* Group Routes - Protected */}
+        <Route path="/groups/:id" component={(props: any) => <ProtectedRoute component={GroupDetailPage} {...props} />} />
+        <Route path="/group/:id" component={(props: any) => <ProtectedRoute component={GroupDetailPage} {...props} />} />
         
-        {/* Add Expense Route */}
-        <Route path="/groups/:groupId/add-expense" component={(props: any) => <LazyRoute component={AddExpensePage} {...props} />} />
+        {/* Add Expense Route - Protected */}
+        <Route path="/groups/:groupId/add-expense" component={(props: any) => <ProtectedRoute component={AddExpensePage} {...props} />} />
         
-        {/* Expense Detail Route */}
-        <Route path="/groups/:groupId/expenses/:expenseId" component={(props: any) => <LazyRoute component={ExpenseDetailPage} {...props} />} />
+        {/* Expense Detail Route - Protected */}
+        <Route path="/groups/:groupId/expenses/:expenseId" component={(props: any) => <ProtectedRoute component={ExpenseDetailPage} {...props} />} />
         
         {/* Join Group Route */}
         <Route path="/join" component={(props: any) => <LazyRoute component={JoinGroupPage} {...props} />} />

@@ -46,13 +46,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     currentUser.value && group.value && group.value.createdBy === currentUser.value.uid
   );
 
-  // Redirect to login if not authenticated  
-  useEffect(() => {
-    if (!currentUser.value) {
-      route('/login', true);
-      return;
-    }
-  }, [currentUser.value]);
+  // Component should only render if user is authenticated (handled by ProtectedRoute)
+  if (!currentUser.value) {
+    return null;
+  }
 
   // Fetch group data on mount and subscribe to realtime updates
   useEffect(() => {
@@ -82,10 +79,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
   }, [groupId, currentUser.value]);
 
-  // Redirect if user is not authenticated (will happen in useEffect)
-  if (!currentUser.value) {
-    return null;
-  }
 
   // Handle loading state
   if (loading.value && !isInitialized.value) {

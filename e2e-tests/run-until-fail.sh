@@ -1,5 +1,8 @@
 #!/bin/bash
-TEST_FILE="src/tests/normal-flow/advanced-splitting-happy-path.e2e.test.ts"
+
+TEST_FILE="src/tests/normal-flow/dashboard-happy-path.e2e.test.ts"
+TEST_FILTER="should properly clear all state and prevent unauthorized access after logout"
+
 RUN_COUNT=0
 START_TIME=$(date +%s)
 
@@ -8,6 +11,7 @@ echo "🧹 Cleaning up existing screenshots in playwright-report/ad-hoc..."
 rm -f playwright-report/ad-hoc/*.png 2>/dev/null
 
 echo "🚀 Starting repeated test runs for: $TEST_FILE"
+echo "🎯 Test filter: '$TEST_FILTER'"
 echo "📍 Working directory: $(pwd)"
 echo "⏰ Started at: $(date)"
 echo ""
@@ -22,7 +26,7 @@ while true; do
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # Run the test
-    npm run build && PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=playwright-report/ad-hoc npx playwright test --workers=1 --headed --project=chromium --reporter=html "$TEST_FILE"
+    npm run build && PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=playwright-report/ad-hoc npx playwright test --workers=1 --headed --project=chromium --reporter=html "$TEST_FILE" --grep "$TEST_FILTER"
     
     # Check exit code
     if [ $? -ne 0 ]; then

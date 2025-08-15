@@ -9,6 +9,7 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 import { ShareGroupModal } from '../components/group/ShareGroupModal';
+import { LoadingSpinner } from '../components/ui';
 
 export function DashboardPage() {
   const authStore = useAuthRequired();
@@ -19,13 +20,10 @@ export function DashboardPage() {
     groupName: ''
   });
 
-  // Redirect to login if not authenticated  
-  useEffect(() => {
-    if (!authStore.user) {
-      route('/login', true);
-      return;
-    }
-  }, [authStore.user]);
+  // Component should only render if user is authenticated (handled by ProtectedRoute)
+  if (!authStore.user) {
+    return null;
+  }
 
   // Fetch groups when component mounts and user is authenticated
   useEffect(() => {
@@ -41,11 +39,6 @@ export function DashboardPage() {
       enhancedGroupsStore.dispose();
     };
   }, [authStore.user, enhancedGroupsStore.initialized]);
-
-  // Redirect if user is not authenticated (will happen in useEffect)
-  if (!authStore.user) {
-    return null;
-  }
 
   const user = authStore.user;
 

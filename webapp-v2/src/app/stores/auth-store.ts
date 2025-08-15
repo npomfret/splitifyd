@@ -23,6 +23,12 @@ class AuthStoreImpl implements AuthStore {
   get error() { return errorSignal.value; }
   get initialized() { return initializedSignal.value; }
 
+  // Signal accessors for reactive components
+  get userSignal() { return userSignal; }
+  get loadingSignal() { return loadingSignal; }
+  get errorSignal() { return errorSignal; }
+  get initializedSignal() { return initializedSignal; }
+
   // Token refresh management
   private refreshPromise: Promise<string> | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;

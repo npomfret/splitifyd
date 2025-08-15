@@ -117,28 +117,12 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
     await page.reload();
     await expect(page).toHaveURL(/\/login/);
     
-    // Phase 9: Verify no user menu is visible if we somehow get to a protected page
-    // This would catch the bug where stores aren't cleared
-    await page.goto(groupUrl, { waitUntil: 'domcontentloaded' });
+    // Phase 9: Verify protected pages redirect to login after logout
+    // Navigate to group URL and wait for auth redirect to complete
+    await page.goto(groupUrl);
     
-    // Wait for navigation to complete and verify we're on login page
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Should be on login page, not showing any user data
-    const currentUrl = page.url();
-    if (currentUrl.includes('/groups/')) {
-      // This should NOT happen - if we're still on group page, check for user data
-      const userMenuVisible = await page.locator('.text-sm.font-medium.text-gray-700').first().isVisible().catch(() => false);
-      expect(userMenuVisible).toBe(false); // User menu should NOT be visible
-      
-      // Additional check: should see login/signup buttons in header
-      const loginLinkVisible = await page.getByText('Login').isVisible().catch(() => false);
-      const signUpLinkVisible = await page.getByText('Sign Up').isVisible().catch(() => false);
-      expect(loginLinkVisible || signUpLinkVisible).toBe(true); // Should see auth links, not user menu
-      
-      throw new Error(`SECURITY BUG: Group page ${groupUrl} is accessible after logout with user data visible`);
-    }
-    
-    await expect(page).toHaveURL(/\/login/);
+    // Wait for the redirect to login page to complete
+    // The auth guard should redirect unauthenticated users
+    await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
   });
 });
