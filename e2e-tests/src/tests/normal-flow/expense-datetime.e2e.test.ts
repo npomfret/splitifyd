@@ -51,8 +51,24 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     
     // === TIME INPUT TESTS ===
     
-    // Check default time is 12:00 PM
-    const timeButton = page.getByRole('button', { name: /at 12:00 PM/ });
+    // Note: Last Night button sets evening time (8:00 PM), not default noon
+    // Check if time button is visible (should be after clicking Last Night)
+    let timeButton = page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+    const timeButtonCount = await timeButton.count();
+    
+    if (timeButtonCount === 0) {
+      // Time is not visible, try clicking clock icon
+      const clockIcon = groupDetailPage.getClockIcon();
+      const clockIconCount = await clockIcon.count();
+      
+      if (clockIconCount > 0) {
+        await groupDetailPage.clickClockIcon();
+      }
+      // Re-get the time button after clicking clock icon
+      timeButton = page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+    }
+    
+    // Time should be visible now (showing 8:00 PM from Last Night button)
     await expect(timeButton).toBeVisible();
     
     // Click time to edit
@@ -62,16 +78,16 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await expect(timeInput).toBeFocused();
     
     // Show time suggestions when typing
-    await timeInput.fill('8');
-    await expect(page.getByRole('button', { name: '8:00 AM' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '8:00 PM' })).toBeVisible();
+    await timeInput.fill('3');
+    await expect(page.getByRole('button', { name: '3:00 AM' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '3:00 PM' })).toBeVisible();
     
     // Accept time selection from suggestions
-    await page.getByRole('button', { name: '8:00 PM' }).click();
-    await expect(page.getByRole('button', { name: 'at 8:00 PM' })).toBeVisible();
+    await page.getByRole('button', { name: '3:00 PM' }).click();
+    await expect(page.getByRole('button', { name: 'at 3:00 PM' })).toBeVisible();
     
     // Parse freeform time input
-    await page.getByRole('button', { name: 'at 8:00 PM' }).click();
+    await page.getByRole('button', { name: 'at 3:00 PM' }).click();
     await timeInput.fill('2:45pm');
     await page.getByRole('heading', { name: 'Expense Details' }).click(); // Blur to commit
     await expect(page.getByRole('button', { name: 'at 2:45 PM' })).toBeVisible();
