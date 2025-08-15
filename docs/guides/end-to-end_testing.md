@@ -34,7 +34,269 @@ In general, the end-to-end test suite is quite slow.  During development, ONLY r
 
 The tests are split into 3 group; normal flow (happy path), error testing, and edge cases).
 
+# E2E Testing Guide for Splitifyd
+
+## Overview
+
+This project uses Playwright for end-to-end testing with a robust architecture designed for parallel execution, test isolation, and maintainability. The tests run against the Firebase emulator to ensure a consistent and isolated testing environment.
+
+In general, the end-to-end test suite is quite slow. During development, ONLY run selected tests (relevant to the stuff you are working on). Only at the end run the entire suite.
+
+## Core Principles: The Foundation of a Stable Test Suite
+
+Our E2E tests are the ultimate guarantee of quality. They must be fast, reliable, and deterministic. Adherence to these principles is not optional.
+
+### 1. Speed and Performance
+- **1.5 Second Action Timeout**: Actions must be immediate. This forces the use of efficient and reliable selectors.
+- **15 Second Test Timeout**: A test must complete within 15 seconds or it is considered a failure. This prevents hangs and surfaces performance regressions.
+- **Parallel Execution**: Tests run with 4 workers in parallel. This demands absolute test isolation.
+
+### 2. Absolute Test Isolation
+- **Self-Contained Tests**: Every test must set up its own state and clean up after itself. No test shall depend on the state left by another.
+- **Browser Context Reuse**: Tests must function correctly when sharing a browser context. Never assume a clean slate.
+- **Statelessness**: The application's real-time features are robust. Tests **must** rely on these features, not on hacks like `page.reload()`.
+
+### 3. Deterministic Execution: One Test, One Path
+- A test must follow a single, predictable execution path.
+- **Conditional logic (`if/else`, `try/catch` for control flow) is strictly forbidden.** A test that needs to check for multiple possible outcomes is a confused test and must be refactored.
+- **Ambiguous selectors (e.g., using `|` in a regex) are prohibited.** Assert one specific, expected state.
+
+## The Golden Rule: No Flaky Tests
+
+Flakiness is the primary enemy of a useful test suite. Our architecture and principles are designed to eliminate it.
+
+- **`waitForTimeout()` is strictly forbidden.** There are no exceptions. Using it will fail code review.
+- **Use Web-First Assertions**: Rely on Playwright's built-in waiting mechanisms. `expect(locator).toBeVisible()` waits automatically.
+- **Build Robust Helpers**: For complex asynchronous operations (e.g., waiting for balance calculations), create dedicated, polling-based helper methods within the Page Object. These methods should repeatedly check the DOM for a specific state until it is met or a timeout is exceeded.
+
+**Example: A Robust Waiting Helper**
+```typescript
+// In your Page Object
+async waitForSettledUpMessage(timeout: number = 5000): Promise<void> {
+  // Use expect().toPass() to poll for a condition
+  await expect(async () => {
+    const count = await this.page.getByText('All settled up!').count();
+    if (count === 0) {
+      throw new Error('No "All settled up!" text found yet');
+    }
+  }).toPass({ timeout });
+}
+```
+
+## Page Object Model (POM): The Source of Truth
+
+All UI interactions **must** be abstracted through Page Objects. Direct use of `page.locator()` or `page.getByRole()` within a test file is a violation of this pattern.
+
+### Key Responsibilities of a Page Object:
+1.  **Selector Encapsulation**: Centralize all element selectors.
+2.  **Action Abstraction**: Provide clear, semantic methods for user actions (e.g., `createGroup()`, `addExpense()`).
+3.  **State Verification**: Include methods that assert the page is in a correct state.
+4.  **Framework-Specific Handling**: Encapsulate workarounds for framework behavior (e.g., `fillPreactInput()` for Preact signals).
+
+### The Base Page: Standardize Common Actions
+To ensure consistency, a `BasePage` should provide standardized methods for common interactions.
+
+**Example: Standardized Button Click**
+```typescript
+// In BasePage
+async clickButton(button: Locator, options: { buttonName: string }): Promise<void> {
+  await expect(button).toBeVisible();
+  // Provide detailed error messages if a button is disabled
+  await expect(button).toBeEnabled({
+    timeout: 1000,
+    message: `Button '${options.buttonName}' was not enabled.`
+  });
+  await button.click();
+}
+```
+
+## Multi-User Testing: Serialization is Mandatory
+
+Testing real-time collaboration is complex. To eliminate race conditions and ensure deterministic outcomes, all multi-user tests **must serialize operations**.
+
+**The Correct Pattern:**
+1.  **User A** performs an action (e.g., creates a group, adds an expense).
+2.  **Wait and Verify**: The test waits for the application's real-time updates to propagate.
+3.  **Synchronize ALL Users**: The test verifies that **every user's page** correctly and completely reflects the new state *before* proceeding.
+4.  **User B** performs the next action.
+5.  Repeat.
+
+**Do NOT perform actions with multiple users in parallel.** This creates a non-deterministic test that is impossible to debug.
+
+**Example: Multi-User Synchronization**
+```typescript
+// In the test file
+const allPages = [
+  { page: alicePage, groupDetailPage: aliceGroupDetailPage, userName: 'Alice' },
+  { page: bobPage, groupDetailPage: bobGroupDetailPage, userName: 'Bob' }
+];
+
+// User Alice creates an expense...
+await aliceGroupDetailPage.addExpense(...);
+
+// The test MUST now wait and verify the result for ALL users
+await aliceGroupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
+
+// ONLY NOW can Bob safely perform the next action
+await bobGroupDetailPage.recordSettlement(...);
+```
+
+## Real-Time Updates vs. `page.reload()`
+
+The application has robust real-time data synchronization. Tests **must rely on this functionality**.
+
+- **`page.reload()` is prohibited for state synchronization.** Using it masks bugs in the application's real-time layer.
+- A test should only use `page.reload()` when it is *specifically testing the behavior of a browser refresh* (e.g., auth persistence).
+
+
+## Test Architecture
+
+The tests are split into 3 group; normal flow (happy path), error testing, and edge cases).
+
 When debugging test failures, first ALWAYS look in `e2e-tests/playwright-report` for the failure report, console logs, screenshots etc.
+
+### Fixtures Hierarchy
+
+```typescript
+base-test.ts                    // Base Playwright test with console error reporting
+  ↓
+authenticated-test.ts           // Provides authenticated page with user
+  ↓
+authenticated-page-test.ts      // Adds page objects to authenticated test
+  ↓
+multi-user-test.ts             // Extends for multi-user scenarios
+```
+
+### Key Fixtures
+
+#### `authenticatedPageTest`
+The most commonly used fixture that provides:
+- Pre-authenticated browser session
+- All page objects initialized
+- Automatic user pool management
+- Clean state for each test
+
+```typescript
+authenticatedPageTest('should perform authenticated action', async ({ 
+  authenticatedPage,    // { page: Page, user: User }
+  dashboardPage,        // DashboardPage instance
+  groupDetailPage,      // GroupDetailPage instance
+  createGroupModalPage  // CreateGroupModalPage instance
+}) => {
+  const { page, user } = authenticatedPage;
+  
+  // Verify starting state
+  await expect(page).toHaveURL(/\/dashboard/);
+  
+  // Perform test actions...
+});
+```
+
+#### `multiUserTest`
+For tests requiring multiple authenticated users:
+
+```typescript
+multiUserTest('multi-user interaction', async ({ 
+  authenticatedPage,  // First user
+  secondUser         // Second user with page and page objects
+}) => {
+  const { page: alicePage, user: alice } = authenticatedPage;
+  const { page: bobPage, user: bob } = secondUser;
+  
+  // Test multi-user scenarios...
+});
+```
+
+## Writing and Debugging Tests
+
+### Test Structure
+Follow the existing structure for clarity and consistency. A test should clearly define its purpose, set up its required state, perform a single logical action, and assert the outcome.
+
+### Debugging
+1.  **Start with the Playwright HTML Report**: Always check `e2e-tests/playwright-report/` first. It contains traces, console logs, network requests, and screenshots.
+2.  **Use the `run-until-fail.sh` script** to reliably reproduce flaky test failures.
+3.  **Leverage Enhanced Error Messages**: The `synchronizeMultiUserState` and `clickButton` helpers are designed to provide detailed context when they fail. Read the error messages carefully.
+
+## Build Scripts
+
+```bash
+# Run all E2E tests
+npm run test:integration
+
+# Run specific test suites
+npm run test:e2e:normal-flow    # Happy path tests
+npm run test:e2e:error-testing  # Error handling tests  
+npm run test:e2e:edge-cases     # Edge cases and monitoring
+
+# Build TypeScript (type checking)
+npm run build
+
+# Install Playwright browsers
+npm run install-browsers
+```
+
+## Test Organization
+
+```
+src/tests/
+├── normal-flow/        # Happy path user journeys
+├── error-testing/      # Error handling and validation
+└── edge-cases/         # Performance, accessibility, security
+```
+
+## Configuration
+
+### Critical: Fast Timeouts & Parallel Execution
+
+- **Action Timeout**: **1.5 seconds** - Forces fast, reliable selectors
+- **Global Timeout**: **15 seconds** - Entire test must complete quickly
+- **Parallel Execution**: Tests run with **4 workers in parallel**
+- **Test Isolation Required**: Every test MUST work when run in any order with any other tests
+- **Browser Reuse**: Tests share browser contexts - NEVER assume clean state
+
+**Why Short Timeouts?**
+- Forces proper element selectors (no flaky waits)
+- Catches performance issues early
+- Ensures tests fail fast rather than hanging
+- Total test suite runs in under 2 minutes
+
+### Other Settings
+- **Browser**: Chromium only (for consistency)
+- **Retries**: 2 retries on CI, none locally
+- **Reports**: HTML reports in `playwright-report/`
+
+## Best Practices
+
+### ✅ Encouraged Practices
+
+- **Use Fixtures**: Always use fixtures for authentication, page objects, and managing test state.
+- **Verify State**: Explicitly verify page state (e.g., URL, visibility of elements) before and after every action.
+- **Semantic Selectors**: Prefer user-facing selectors like `getByRole`, `getByLabel`, `getByText`.
+- **Use `fillPreactInput()`**: Always use the custom `fillPreactInput()` method for form fields to ensure Preact's signal-based state updates correctly.
+- **Atomic & Idempotent Tests**: Each test should be self-contained, create its own data, and clean up after itself to ensure it can run independently and in parallel.
+- **Descriptive Naming**: Write clear, descriptive test names that explain what the test does.
+- **Logical Grouping**: Group related tests using `describe` blocks.
+- **Single, Deterministic Path**: A test should have one clear purpose and a single execution path.
+
+### ❌ Prohibited Practices
+
+- **Ignoring Console Errors**: Console errors MUST fail every test, except for tests specifically designed to assert those errors.
+- **Code Duplication**:
+    - **Redundant Setup**: Abstract common setup or user "journeys" into shared fixtures or page object methods.
+    - **Redundant Behavior**: Avoid re-testing the same feature repeatedly. Focus on distinct scenarios.
+- **State Dependency & Ambiguity**:
+    - **Test Inter-dependence**: Tests MUST set up their own state completely and MUST NOT rely on the state left by another test.
+    - **Conditional Logic**: A test must be deterministic. The following are strictly forbidden as they indicate a test is confused about the application's state:
+        - `if/else` blocks.
+        - `try/catch` blocks to try one action and then another.
+        - Regex patterns with `|` (OR) to match multiple possible outcomes.
+- **Skipped or Commented-Out Tests**: `test.skip()` or commented-out tests are NOT ALLOWED. All checked-in tests must run.
+- **Future-Facing Tests**: Tests for features that do not yet exist in the application are NOT ALLOWED.
+- **Manual State Management**: Do not manually authenticate or create page objects inside tests; use the provided fixtures.
+- **Long Timeouts**: Tests must fail quickly. The application is fast, so long timeouts are unnecessary and mask performance issues.
+- **Hard-coded Waits**: Do not use `await this.page.waitForTimeout()`. Use web-first assertions and explicit `waitFor` conditions instead.
+- **Bespoke selectors**: All code to select on-screen elements should be abstracted away behind a page object model.
+
 
 ### Fixtures Hierarchy
 
