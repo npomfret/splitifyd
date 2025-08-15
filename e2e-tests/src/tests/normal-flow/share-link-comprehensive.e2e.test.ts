@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { setupMCPDebugOnFailure, EMULATOR_URL } from "../../helpers";
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
 import { multiUserTest } from '../../fixtures';
 import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
 import { MultiUserWorkflow } from '../../workflows';
 import { GroupWorkflow } from '../../workflows';
+import { AuthenticationWorkflow } from '../../workflows';
 import { GroupDetailPage } from '../../pages';
 import { generateShortId } from '../../utils/test-helpers';
 
+setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Comprehensive Share Link Testing', () => {
@@ -89,6 +91,59 @@ test.describe('Comprehensive Share Link Testing', () => {
       expect(result.success).toBe(false);
       expect(result.needsLogin).toBe(true);
       expect(result.reason).toContain('log in');
+    });
+
+    test('should allow unregistered user to register and join group via share link', async ({ browser }) => {
+      // Create two browser contexts to simulate different users
+      const context1 = await browser.newContext();
+      const context2 = await browser.newContext();
+      const page1 = await context1.newPage();
+      const page2 = await context2.newPage();
+      
+      try {
+        // Create and authenticate first user
+        const authWorkflow1 = new AuthenticationWorkflow(page1);
+        const user1 = await authWorkflow1.createAndLoginTestUser();
+        
+        // Create group with authenticated user
+        const uniqueId = generateShortId();
+        const groupWorkflow = new GroupWorkflow(page1);
+        await groupWorkflow.createGroup(`Registration Required Test ${uniqueId}`, 'Testing registration requirement');
+        
+        const multiUserWorkflow = new MultiUserWorkflow(null);
+        const shareLink = await multiUserWorkflow.getShareLink(page1);
+        
+        // Navigate to share link while not logged in - should redirect to login
+        await page2.goto(shareLink);
+        await page2.waitForLoadState('domcontentloaded');
+        
+        // Should be on login page - click "Sign up" to go to registration
+        await page2.getByRole('link', { name: /sign up|create account|register/i }).click();
+        await page2.waitForURL(/\/register/);
+        
+        // Create and register new user
+        const authWorkflow2 = new AuthenticationWorkflow(page2);
+        const user2 = await authWorkflow2.createAndLoginTestUser();
+        
+        // Navigate back to share link to complete the join process
+        await page2.goto(shareLink);
+        await page2.waitForLoadState('domcontentloaded');
+        
+        // Should successfully join the group
+        await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+        
+        // Verify both users are now in the group
+        const groupDetailPage2 = new GroupDetailPage(page2);
+        await groupDetailPage2.waitForMemberCount(2);
+        
+        // Check that both original user and new registered user are visible
+        await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
+        
+      } finally {
+        await context1.close();
+        await context2.close();
+      }
     });
 
     multiUserTest.skip('should allow user to join group after logging in from share link', async ({ 
