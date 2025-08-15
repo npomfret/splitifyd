@@ -258,7 +258,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     for (const testCase of testCases) {
       // Clear field before each test
-      await amountField.clear();
+      await groupDetailPage.fillPreactInput(amountField, '');
       // Assert field is clear before testing each value
       const clearedValue = await amountField.inputValue();
       expect(clearedValue).toBe('');

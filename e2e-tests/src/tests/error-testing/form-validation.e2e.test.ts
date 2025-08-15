@@ -17,8 +17,8 @@ pageTest.describe('Form Validation E2E', () => {
       // Clear any pre-filled data
       const emailInput = loginPage.getEmailInput();
       const passwordInput = loginPage.getPasswordInput();
-      await emailInput.clear();
-      await passwordInput.clear();
+      await loginPage.fillPreactInput(emailInput, '');
+      await loginPage.fillPreactInput(passwordInput, '');
       
       // Enter invalid email
       await loginPage.fillPreactInput(emailInput, 'notanemail');
@@ -37,31 +37,41 @@ pageTest.describe('Form Validation E2E', () => {
     pageTest('should require both email and password', async ({ loginPageNavigated }) => {
       const { loginPage } = loginPageNavigated;
       
-      // Clear any pre-filled data
+      // Get form elements
       const emailInput = loginPage.getEmailInput();
       const passwordInput = loginPage.getPasswordInput();
-      await emailInput.clear();
-      await passwordInput.clear();
-      
-      // Fill only email
-      await loginPage.fillPreactInput(emailInput, generateTestEmail());
-      
-      // Submit button should be disabled without password
       const submitButton = loginPage.getSubmitButton();
+      
+      // Start fresh - clear any pre-filled data (including browser autofill)
+      await loginPage.fillPreactInput(emailInput, '');
+      await expect(emailInput).toHaveValue('');
+
+      await loginPage.fillPreactInput(passwordInput, '');
+      await expect(passwordInput).toHaveValue('');
+      
+      // Now verify button is disabled with empty form
       await expect(submitButton).toBeDisabled();
       
-      // Clear and try with only password
-      await emailInput.clear();
-      await passwordInput.clear();
-      await loginPage.fillPreactInput(passwordInput, 'Password123');
-      
-      // Submit button should be disabled without email
-      await expect(submitButton).toBeDisabled();
-      
-      // Fill both fields
+      // Test 1: Fill only email - button should stay disabled
       await loginPage.fillPreactInput(emailInput, generateTestEmail());
+      await passwordInput.focus(); // Move focus to password field to trigger email validation
       
-      // Submit button should now be enabled
+      // Button should be disabled (password is empty)
+      await expect(submitButton).toBeDisabled();
+      
+      // Test 2: Clear email, fill only password - button should stay disabled
+      await loginPage.fillPreactInput(emailInput, '');
+      await loginPage.fillPreactInput(passwordInput, 'Password123');
+      await emailInput.focus(); // Move focus back to email field to trigger password validation
+      
+      // Button should be disabled (email is empty)
+      await expect(submitButton).toBeDisabled();
+      
+      // Test 3: Fill both fields - button should be enabled
+      await loginPage.fillPreactInput(emailInput, generateTestEmail());
+      await submitButton.focus(); // Move focus to submit button to trigger all validations
+      
+      // Now button should be enabled
       await expect(submitButton).toBeEnabled();
       
       // Console errors are automatically captured by 

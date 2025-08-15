@@ -15,8 +15,8 @@ pageTest.describe('Form Behavior Edge Cases', () => {
     const emailInput = loginPage.getEmailInput();
     const passwordInput = loginPage.getPasswordInput();
     
-    await emailInput.clear();
-    await passwordInput.clear();
+    await loginPage.fillPreactInput(emailInput, '');
+    await loginPage.fillPreactInput(passwordInput, '');
     
     // Now fill form with our test data
     await loginPage.fillPreactInput(emailInput, 'test@example.com');

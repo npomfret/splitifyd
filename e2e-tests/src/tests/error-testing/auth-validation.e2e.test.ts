@@ -11,8 +11,8 @@ pageTest.describe('Auth Validation E2E', () => {
     // Clear any pre-filled data using page object methods
     const emailInput = loginPage.getEmailInput();
     const passwordInput = loginPage.getPasswordInput();
-    await emailInput.clear();
-    await passwordInput.clear();
+    await loginPage.fillPreactInput(emailInput, '');
+    await loginPage.fillPreactInput(passwordInput, '');
     
     // The Sign In button should be disabled when form is empty
     const submitButton = loginPage.getSubmitButton();
