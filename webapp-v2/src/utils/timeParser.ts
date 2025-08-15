@@ -89,17 +89,13 @@ export function formatTime12(time: ParsedTime): string {
 
 export function generateTimeSuggestions(): string[] {
   const suggestions: string[] = [];
-  const hours = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
   
-  for (const hour of hours) {
-    const time = { hours: hour, minutes: 0 };
-    const formatted12 = formatTime12(time);
-    suggestions.push(formatted12);
-    
-    if (hour >= 7 && hour <= 21) {
-      const halfTime = { hours: hour, minutes: 30 };
-      suggestions.push(formatTime12(halfTime));
-    }
+  // Generate suggestions for all hours from 12 AM to 11 PM
+  for (let hour = 0; hour < 24; hour++) {
+    // Add on-the-hour time
+    suggestions.push(formatTime12({ hours: hour, minutes: 0 }));
+    // Add half-hour time
+    suggestions.push(formatTime12({ hours: hour, minutes: 30 }));
   }
   
   return suggestions;
@@ -107,15 +103,84 @@ export function generateTimeSuggestions(): string[] {
 
 export function filterTimeSuggestions(input: string, allSuggestions: string[]): string[] {
   if (!input) {
-    return allSuggestions.slice(0, 8);
+    // Show common times when no input
+    return [
+      '9:00 AM', '12:00 PM', '1:00 PM', '6:00 PM', 
+      '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM'
+    ];
   }
   
-  const searchTerm = input.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleaned = input.trim().toLowerCase();
   
-  return allSuggestions.filter(suggestion => {
+  // Special handling for single digit inputs (e.g., "3")
+  const singleDigitMatch = cleaned.match(/^(\d)$/);
+  if (singleDigitMatch) {
+    const digit = singleDigitMatch[1];
+    // Return exact hour matches for both AM and PM
+    const exactMatches: string[] = [];
+    
+    // Add AM times
+    const amHour = parseInt(digit);
+    if (amHour >= 1 && amHour <= 12) {
+      exactMatches.push(`${digit}:00 AM`);
+      exactMatches.push(`${digit}:30 AM`);
+    }
+    
+    // Add PM times
+    if (amHour >= 1 && amHour <= 12) {
+      exactMatches.push(`${digit}:00 PM`);
+      exactMatches.push(`${digit}:30 PM`);
+    }
+    
+    return exactMatches.slice(0, 8);
+  }
+  
+  // Special handling for two digit hour inputs (e.g., "10", "11")
+  const twoDigitMatch = cleaned.match(/^(\d{1,2})$/);
+  if (twoDigitMatch) {
+    const hour = parseInt(twoDigitMatch[1]);
+    const exactMatches: string[] = [];
+    
+    if (hour === 0) {
+      // Midnight
+      exactMatches.push('12:00 AM', '12:30 AM');
+    } else if (hour <= 12) {
+      // Could be AM or PM
+      const displayHour = hour === 0 ? 12 : hour;
+      exactMatches.push(`${displayHour}:00 AM`);
+      exactMatches.push(`${displayHour}:30 AM`);
+      if (hour !== 12) {
+        exactMatches.push(`${displayHour}:00 PM`);
+        exactMatches.push(`${displayHour}:30 PM`);
+      } else {
+        // Noon
+        exactMatches.push('12:00 PM');
+        exactMatches.push('12:30 PM');
+      }
+    } else if (hour <= 23) {
+      // 24-hour format input, convert to 12-hour
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      exactMatches.push(`${displayHour}:00 PM`);
+      exactMatches.push(`${displayHour}:30 PM`);
+    }
+    
+    return exactMatches.slice(0, 8);
+  }
+  
+  // For other inputs, filter normally but prioritize starts-with matches
+  const searchTerm = cleaned.replace(/[^a-z0-9]/g, '');
+  
+  const startsWithMatches = allSuggestions.filter(suggestion => {
     const cleanSuggestion = suggestion.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return cleanSuggestion.includes(searchTerm);
-  }).slice(0, 8);
+    return cleanSuggestion.startsWith(searchTerm);
+  });
+  
+  const containsMatches = allSuggestions.filter(suggestion => {
+    const cleanSuggestion = suggestion.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return !cleanSuggestion.startsWith(searchTerm) && cleanSuggestion.includes(searchTerm);
+  });
+  
+  return [...startsWithMatches, ...containsMatches].slice(0, 8);
 }
 
 export function validateAndNormalizeTime(input: string): string | null {

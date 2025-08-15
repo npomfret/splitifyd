@@ -4,6 +4,7 @@ import { ExpenseCategory } from '@shared/shared-types';
 import { CurrencyService } from '../../app/services/currencyService';
 import { formatCurrency } from '../../utils/currency';
 import { getToday, getYesterday, getThisMorning, getLastNight } from '../../utils/dateUtils';
+import { ClockIcon } from '@heroicons/react/24/outline';
 
 interface ExpenseBasicFieldsProps {
   description: string;
@@ -156,6 +157,7 @@ export function ExpenseBasicFields({
                   const today = getToday();
                   const dateStr = today.toISOString().split('T')[0];
                   updateField('date', dateStr);
+                  // Keep default noon time, no need to update
                 }}
                 className="text-xs"
               >
@@ -169,6 +171,7 @@ export function ExpenseBasicFields({
                   const yesterday = getYesterday();
                   const dateStr = yesterday.toISOString().split('T')[0];
                   updateField('date', dateStr);
+                  // Keep default noon time, no need to update
                 }}
                 className="text-xs"
               >
@@ -184,6 +187,7 @@ export function ExpenseBasicFields({
                   const timeStr = '09:00';
                   updateField('date', dateStr);
                   updateField('time', timeStr);
+                  // Time is not noon, field will auto-show
                 }}
                 className="text-xs"
               >
@@ -199,6 +203,7 @@ export function ExpenseBasicFields({
                   const timeStr = '20:00';
                   updateField('date', dateStr);
                   updateField('time', timeStr);
+                  // Time is not noon, field will auto-show
                 }}
                 className="text-xs"
               >
@@ -207,15 +212,41 @@ export function ExpenseBasicFields({
             </div>
           </div>
 
-          {/* Time */}
+          {/* Time - Conditionally shown */}
           <div>
-            <TimeInput
-              value={time}
-              onChange={(newTime) => updateField('time', newTime)}
-              label="Time"
-              error={validationErrors.time}
-              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
-            />
+            {/* Show time field if time is not noon (12:00) */}
+            {time !== '12:00' ? (
+              <TimeInput
+                value={time}
+                onChange={(newTime) => updateField('time', newTime)}
+                label="Time"
+                error={validationErrors.time}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              />
+            ) : (
+              /* Show clock icon button when time field is hidden */
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Time
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Set a non-noon time to trigger field visibility
+                    // Use current time as a sensible default
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    updateField('time', `${hours}:${minutes}`);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:bg-gray-700 dark:text-white"
+                  title="Add specific time"
+                >
+                  <ClockIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Add time (defaults to noon)</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </Stack>
