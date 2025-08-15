@@ -11,6 +11,7 @@ test.describe('Basic Expense Operations E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
     const groupInfo = { user };
+    const memberCount = 1;
 
     // Create expense using page object
     await groupDetailPage.addExpense({
@@ -19,7 +20,7 @@ test.describe('Basic Expense Operations E2E', () => {
       currency: 'USD',
       paidBy: groupInfo.user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify expense appears in list
     await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).toBeVisible();

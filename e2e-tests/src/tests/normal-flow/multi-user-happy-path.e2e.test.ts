@@ -39,10 +39,11 @@ test.describe('Multi-User Collaboration E2E', () => {
 
   test('should allow multiple users to add expenses to same group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page, user } = authenticatedPage;
+    const memberCount = 2;
     const groupWorkflow = new GroupWorkflow(page);
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
     const user1 = user;
-    
+
     // Get share link
     await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
@@ -72,7 +73,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       currency: 'USD',
       paidBy: user1.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for User 1's expense to be fully processed and synced
     await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -89,7 +90,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       currency: 'USD',
       paidBy: user2.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for User 2's expense to be fully processed and synced
     await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -112,6 +113,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('single user can create group and add multiple expenses', async ({ authenticatedPage, groupDetailPage }) => {
+    const memberCount = 1;
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('Solo'), 'Testing multiple expenses');
@@ -130,7 +132,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         currency: 'USD',
         paidBy: user.displayName,
         splitType: 'equal'
-      });
+      }, memberCount);
       
       // Wait for each expense to be processed
       await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -143,6 +145,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   });
 
   test('balances update correctly with multiple users and expenses', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+    const memberCount = 2;
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('Balance'), 'Testing balance calculations');
@@ -175,7 +178,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       currency: 'USD',
       paidBy: user1.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for expense to be fully processed
     await groupDetailPage.waitForBalancesToLoad(groupId);

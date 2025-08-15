@@ -14,6 +14,7 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
   }) => {
     const { page: user1Page } = authenticatedPage;
     const { page: user2Page, groupDetailPage: groupDetailPage2 } = secondUser;
+    const memberCount = 2;
 
     // Create a group and get both users in it
     await expect(user1Page).toHaveURL(/\/dashboard/);
@@ -29,24 +30,23 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     await expect(user2Page).toHaveURL(new RegExp(`/groups/${groupId}`));
     
     // Both users add an expense to create initial state
-    const addExpenseButton1 = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton1.click();
-    await user1Page.waitForURL(/\/add-expense/);
+    // Use the proper expense creation method which handles member loading
+    await groupDetailPage.addExpense({
+      description: 'User 1 Expense',
+      amount: 100,
+      paidBy: authenticatedPage.user.displayName,
+      currency: 'USD',
+      splitType: 'equal'
+    }, memberCount);
     
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'User 1 Expense');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
-    await groupDetailPage.getSaveExpenseButton().click();
-    await user1Page.waitForURL(new RegExp(`/groups/${groupId}`));
-    
-    // User 2 adds expense
-    const addExpenseButton2 = groupDetailPage2.getAddExpenseButton();
-    await addExpenseButton2.click();
-    await user2Page.waitForURL(/\/add-expense/);
-    
-    await groupDetailPage2.fillPreactInput(groupDetailPage2.getExpenseDescriptionField(), 'User 2 Expense');
-    await groupDetailPage2.fillPreactInput(groupDetailPage2.getExpenseAmountField(), '50');
-    await groupDetailPage2.getSaveExpenseButton().click();
-    await user2Page.waitForURL(new RegExp(`/groups/${groupId}`));
+    // User 2 adds expense using proper method
+    await groupDetailPage2.addExpense({
+      description: 'User 2 Expense',
+      amount: 50,
+      paidBy: secondUser.user.displayName,
+      currency: 'USD',
+      splitType: 'equal'
+    }, memberCount);
     
     // Now both users try to add another expense simultaneously
     // This should trigger optimistic locking conflicts
@@ -103,8 +103,8 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     
     // Wait for navigation/error handling to complete
     await Promise.all([
-      user1Page.waitForLoadState('networkidle'),
-      user2Page.waitForLoadState('networkidle')
+      user1Page.waitForLoadState('domcontentloaded'),
+      user2Page.waitForLoadState('domcontentloaded')
     ]);
     
     // Check where each user ended up

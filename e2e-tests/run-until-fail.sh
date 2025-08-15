@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_FILE="src/tests/normal-flow/three-user-settlement.e2e.test.ts"
+TEST_FILE="src/tests/normal-flow/advanced-splitting-happy-path.e2e.test.ts"
 RUN_COUNT=0
 START_TIME=$(date +%s)
 

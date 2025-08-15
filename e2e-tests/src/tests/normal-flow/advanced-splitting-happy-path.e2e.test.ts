@@ -10,15 +10,13 @@ test.describe('Advanced Splitting Options', () => {
 
   test('should create expenses with all split types in comprehensive user journey', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
     
-    // Create a single group for the entire user journey
-    await groupWorkflow.createGroup('Advanced Splitting Test Group');
+    // Create a single group for the entire user journey using helper method
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Advanced Splitting Test Group');
+    const expectedMemberCount = 1;
 
     // === EQUAL SPLIT EXPENSE ===
-    await groupDetailPage.clickAddExpenseButton();
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    await groupDetailPage.navigateToAddExpenseForm(expectedMemberCount);
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Pizza for everyone');
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '60');
@@ -34,9 +32,7 @@ test.describe('Advanced Splitting Options', () => {
 
     
     // === EXACT AMOUNTS SPLIT EXPENSE ===
-    await groupDetailPage.clickAddExpenseButton();
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    await groupDetailPage.prepareForNextExpense(expectedMemberCount);
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Shared groceries with exact amounts');
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '75');
@@ -56,9 +52,7 @@ test.describe('Advanced Splitting Options', () => {
 
     
     // === PERCENTAGE SPLIT EXPENSE ===
-    await groupDetailPage.clickAddExpenseButton();
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    await groupDetailPage.prepareForNextExpense(expectedMemberCount);
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Consulting project split by percentage');
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '1000');

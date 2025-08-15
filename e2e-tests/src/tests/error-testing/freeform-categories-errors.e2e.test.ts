@@ -3,7 +3,6 @@ import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
-import { GroupWorkflow } from '../../workflows';
 
 setupMCPDebugOnFailure();
 
@@ -16,12 +15,13 @@ test.describe('Freeform Categories Error Testing', () => {
     // @skip-error-checking - May have API validation issues with special characters
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues with special characters' });
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('SpecialCat'), 'Testing special characters');
     
-    // Start adding expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.click();
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('SpecialCat'), 'Testing special characters');
+    const memberCount = 1;
+
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -55,12 +55,13 @@ test.describe('Freeform Categories Error Testing', () => {
     // @skip-error-checking - May have API validation issues during editing
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditCat'), 'Testing category editing');
     
-    // Create expense with predefined category first
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.click();
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditCat'), 'Testing category editing');
+    const memberCount = 1;
+
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Business lunch');
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '55.00');
@@ -115,12 +116,13 @@ test.describe('Freeform Categories Error Testing', () => {
     // @skip-error-checking - This test expects validation errors
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'This test expects validation errors' });
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EmptyCat'), 'Testing empty category validation');
     
-    // Start adding expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.click();
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EmptyCat'), 'Testing empty category validation');
+    const memberCount = 1;
+
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -137,7 +139,7 @@ test.describe('Freeform Categories Error Testing', () => {
     await saveButton.click();
     
     // Should stay on the same page (not navigate away)
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // There should be an error message or the form should be invalid

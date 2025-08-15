@@ -9,14 +9,13 @@ setupMCPDebugOnFailure();
 authenticatedTest.describe('Negative Value Validation', () => {
   authenticatedTest('should prevent negative expense amounts in UI', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
     
-    // Create a test group
-    await groupWorkflow.createGroup(generateTestGroupName('NegativeValidation'), 'Testing negative value validation');
+    // Create group and prepare for expenses using helper method
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('NegativeValidation'), 'Testing negative value validation');
+    const memberCount = 1;
 
-    // Navigate to add expense
-    await groupDetailPage.clickAddExpenseButton();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     // Try to enter negative amount
     const amountField = groupDetailPage.getAmountInput();
@@ -60,14 +59,13 @@ authenticatedTest.describe('Negative Value Validation', () => {
 
   authenticatedTest('should prevent zero expense amounts in UI', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
     
-    // Create a test group
-    await groupWorkflow.createGroup(generateTestGroupName('ZeroValidation'), 'Testing zero value validation');
+    // Create group and prepare for expenses using helper method
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('ZeroValidation'), 'Testing zero value validation');
+    const memberCount = 1;
 
-    // Navigate to add expense
-    await groupDetailPage.clickAddExpenseButton();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     // Try to enter zero amount
     const amountField = groupDetailPage.getAmountInput();
@@ -96,7 +94,8 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const { page, user: user1 } = authenticatedPage;
     const { page: page2} = secondUser;
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('SettleNegative'), 'Testing negative settlements');
 
@@ -114,7 +113,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify expense was created
     await expect(page.getByText('Test expense for settlement')).toBeVisible();

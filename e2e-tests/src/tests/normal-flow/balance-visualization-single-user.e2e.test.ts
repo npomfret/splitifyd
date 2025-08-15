@@ -36,6 +36,7 @@ test.describe('Single User Balance Visualization', () => {
   test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
+    const memberCount = 1;
 
     // Create test group using dashboard page object with unique ID
     const uniqueId = generateShortId();
@@ -49,7 +50,7 @@ test.describe('Single User Balance Visualization', () => {
       currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     await groupDetailPage.addExpense({
       description: 'Groceries',
@@ -57,7 +58,7 @@ test.describe('Single User Balance Visualization', () => {
       currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify Balances section shows settled up for single-user groups
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -88,7 +89,8 @@ test.describe('Single User Balance Visualization', () => {
   test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 1;
+
     // Create test group with unique ID
     const uniqueId = generateShortId();
     const groupName = `Currency Display Test ${uniqueId}`;
@@ -101,7 +103,7 @@ test.describe('Single User Balance Visualization', () => {
       currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Check for currency formatting in expense section
     await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();

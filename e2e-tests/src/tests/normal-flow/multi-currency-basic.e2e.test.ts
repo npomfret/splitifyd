@@ -11,7 +11,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     groupDetailPage,
   }) => {
     const { page, user } = authenticatedPage;
-    
+    const memberCount = 1;
+
     // Verify starting state
     await expect(page).toHaveURL(/\/dashboard/);
     
@@ -27,7 +28,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify back on group page with USD expense
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -40,7 +41,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'EUR',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify both expenses with separate currencies
     await expect(page.getByText('$25.00')).toBeVisible();
@@ -58,7 +59,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     groupDetailPage,
   }) => {
     const { page, user } = authenticatedPage;
-    
+    const memberCount = 1;
+
     // Verify starting state
     await expect(page).toHaveURL(/\/dashboard/);
     
@@ -74,7 +76,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'EUR', 
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify expense was created with EUR
     await expect(page.getByText('€5.50')).toBeVisible();
@@ -86,7 +88,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'EUR', // Should be remembered by the system
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify second expense also used EUR
     await expect(page.getByText('€3.25')).toBeVisible();
@@ -97,7 +99,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     groupDetailPage,
   }) => {
     const { page, user } = authenticatedPage;
-    
+    const memberCount = 1;
+
     // Verify starting state
     await expect(page).toHaveURL(/\/dashboard/);
     
@@ -113,7 +116,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Create EUR expense
     await groupDetailPage.addExpense({
@@ -122,7 +125,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'EUR',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify both expenses were created with proper currency display
     await expect(page.getByText('$20.00')).toBeVisible(); // USD expense
@@ -147,7 +150,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     groupDetailPage,
   }) => {
     const { page, user } = authenticatedPage;
-    
+    const memberCount = 1;
+
     // Verify starting on dashboard
     await expect(page).toHaveURL(/\/dashboard/);
     
@@ -163,7 +167,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'USD',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     await groupDetailPage.addExpense({
       description: 'EUR Test',
@@ -171,7 +175,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'EUR',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     await groupDetailPage.addExpense({
       description: 'GBP Test',
@@ -179,7 +183,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       currency: 'GBP',
       paidBy: user.displayName,
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Navigate back to dashboard
     await page.goto('/dashboard');
@@ -215,7 +219,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     groupDetailPage,
   }) => {
     const { page, user } = authenticatedPage;
-    
+    const memberCount = 1;
+
     // Verify starting state
     await expect(page).toHaveURL(/\/dashboard/);
     
@@ -239,7 +244,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         currency: currency,
         paidBy: user.displayName,
         splitType: 'equal'
-      });
+      }, memberCount);
       
       // Verify currency symbol appears correctly in expense list
       const expectedDisplay = `${expectedSymbol}${amount.toFixed(2)}`;

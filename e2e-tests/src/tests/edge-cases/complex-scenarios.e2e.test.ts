@@ -21,7 +21,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
     // Create group with Alice
     const groupName = 'Vacation Trip 2024';
     const groupDescription = 'Summer vacation expenses';
-    await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
+    const groupId = await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
+    const memberCount = 2;
 
     // Get share link from Alice's page
     await alicePage.getByRole('button', { name: /share/i }).click();
@@ -49,7 +50,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       paidBy: alice.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Bob adds restaurant expense ($120)
     const bobGroupDetailPage = new GroupDetailPage(bobPage);
@@ -59,7 +60,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       paidBy: bob.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Refresh Alice's page to ensure latest data
     await alicePage.reload();

@@ -17,7 +17,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Setup 2-person group with unique ID
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
-    console.log('Group ID:', groupId);
+    const memberCount = 2;
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -39,7 +39,6 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     } catch (error) {
       console.log('Synchronization failed - pausing for inspection');
-      console.log('Group ID:', groupId);
       console.log('User1:', user1.displayName, 'URL:', page.url());
       console.log('User2:', user2.displayName, 'URL:', page2.url());
       
@@ -58,7 +57,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for first expense to be synced via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
@@ -74,7 +73,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user2.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for second expense to be processed
     await groupDetailPage2.waitForBalanceUpdate();
@@ -98,7 +97,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     const uniqueId = generateShortId();
     await groupWorkflow.createGroup(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
@@ -127,7 +127,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for expense to be processed via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
@@ -148,9 +148,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
+    const groupId =await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -177,7 +178,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for first expense to be synced via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
@@ -193,7 +194,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user2.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for second expense to be processed
     await groupDetailPage2.waitForBalanceUpdate();
@@ -214,9 +215,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
+    const groupId = await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -246,7 +248,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -262,7 +264,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user2.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for balance calculations to be updated via real-time updates
     await groupDetailPage2.waitForBalanceUpdate();
@@ -282,9 +284,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = new GroupDetailPage(page2);
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
+    const groupId = await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -311,7 +314,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -332,7 +335,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     // Create group and verify
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
@@ -366,7 +370,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Verify expense appears for User 1
     await groupDetailPage.verifyExpenseVisible('Test Expense for Settlement');
@@ -417,7 +421,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const { page: page2, user: user2 } = secondUser;
     const groupDetailPage2 = secondUser.groupDetailPage;
     const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 2;
+
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
@@ -446,7 +451,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    });
+    }, memberCount);
     
     // Wait for expense to be processed via real-time updates
     await groupDetailPage.waitForBalanceUpdate();

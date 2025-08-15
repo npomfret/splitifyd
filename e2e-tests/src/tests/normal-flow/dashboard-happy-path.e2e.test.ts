@@ -122,7 +122,7 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
     await page.goto(groupUrl, { waitUntil: 'domcontentloaded' });
     
     // Wait for navigation to complete and verify we're on login page
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Should be on login page, not showing any user data
     const currentUrl = page.url();

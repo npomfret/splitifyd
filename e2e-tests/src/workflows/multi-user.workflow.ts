@@ -105,14 +105,14 @@ export class MultiUserWorkflow {
       await loginPage.login(user.email, password);
       
       // After login, wait for redirect to complete
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Check where we ended up
       const currentUrl = page.url();
       if (!currentUrl.includes('/join')) {
         // We weren't redirected to join page, navigate back to share link
         await page.goto(shareUrl);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
     

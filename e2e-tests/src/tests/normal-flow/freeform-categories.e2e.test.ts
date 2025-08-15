@@ -3,7 +3,6 @@ import { setupMCPDebugOnFailure } from "../../helpers";
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { waitForURLWithContext, groupDetailUrlPattern } from '../../helpers/wait-helpers';
-import { GroupWorkflow } from '../../workflows';
 
 setupMCPDebugOnFailure();
 
@@ -14,15 +13,14 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
+    const memberCount = 1;
+
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
     
-    // Start adding expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic expense details
@@ -61,15 +59,14 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCat'), 'Testing custom category input');
+    const memberCount = 1;
+
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('CustomCat'), 'Testing custom category input');
     
-    // Start adding expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill basic expense details
@@ -102,12 +99,13 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('FilterCat'), 'Testing category filtering');
+    const memberCount = 1;
+
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('FilterCat'), 'Testing category filtering');
     
-    // Start adding expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.click();
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -145,12 +143,14 @@ test.describe('Freeform Categories E2E', () => {
     groupDetailPage 
   }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
+    const memberCount = 1;
+
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(
+        generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
     
-    // Start adding expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.click();
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     

@@ -98,14 +98,13 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
   authenticatedPageTest.describe('Expense Form Validation', () => {
     authenticatedPageTest('Expense form required fields and negative values', async ({ authenticatedPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupWorkflow = new GroupWorkflow(page);
       
-      // Create a test group
-      await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
-      
-      // Navigate to add expense
-      await groupDetailPage.clickAddExpenseButton();
-      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+      // Use helper method to create group and prepare for expenses
+      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('Validation'), 'Testing form validation');
+      const memberCount = 1;
+
+      // Navigate to expense form with proper waiting
+      await groupDetailPage.navigateToAddExpenseForm(memberCount);
       
       // Test 1: Empty form - submit disabled
       const submitButton = groupDetailPage.getSaveExpenseButton();
@@ -145,12 +144,13 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
 
     authenticatedPageTest('Exact split validation', async ({ authenticatedPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupWorkflow = new GroupWorkflow(page);
       
-      const groupId = await groupWorkflow.createGroup(generateTestGroupName('ExactSplit'), 'Testing exact split validation');
-      
-      await page.getByRole('button', { name: /add expense/i }).click();
-      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+      // Use helper method to create group and prepare for expenses
+      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('ExactSplit'), 'Testing exact split validation');
+      const memberCount = 1;
+
+      // Navigate to expense form with proper waiting
+      await groupDetailPage.navigateToAddExpenseForm(memberCount);
       
       // Fill basic expense details
       await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Split Test Expense');
@@ -166,12 +166,13 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
 
     authenticatedPageTest('Percentage split validation', async ({ authenticatedPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
-      const groupWorkflow = new GroupWorkflow(page);
       
-      const groupId = await groupWorkflow.createGroup(generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
-      
-      await page.getByRole('button', { name: /add expense/i }).click();
-      await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+      // Use helper method to create group and prepare for expenses
+      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
+      const memberCount = 1;
+
+      // Navigate to expense form with proper waiting
+      await groupDetailPage.navigateToAddExpenseForm(memberCount);
       
       // Fill basic expense details
       await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Percentage Test Expense');

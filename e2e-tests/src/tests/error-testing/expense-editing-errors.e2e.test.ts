@@ -17,16 +17,13 @@ test.describe('Expense Editing Error Testing', () => {
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
     
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditAmount'), 'Testing expense amount editing');
+    const memberCount = 1;
+
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditAmount'), 'Testing expense amount editing');
     
-    // Create initial expense (following successful pattern from add-expense-happy-path)
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
-    
-    // Wait for add expense page to load
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     // Fill expense form
@@ -88,15 +85,13 @@ test.describe('Expense Editing Error Testing', () => {
     testInfo.annotations.push({ type: "skip-error-checking", description: "May have API validation issues during editing" });
     
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName("EditAmountDown"), "Testing expense amount decrease");
+    const expectedMemberCount = 1;
+
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName("EditAmountDown"), "Testing expense amount decrease");
     
-    // Create initial expense with higher amount
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
-    
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(expectedMemberCount);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), "High Amount Expense");
@@ -143,15 +138,13 @@ test.describe('Expense Editing Error Testing', () => {
     testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
     
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditDesc'), 'Testing expense description editing');
+    const expectedMemberCount = 1;
     
-    // Create initial expense
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
+    // Use helper method to create group and prepare for expenses
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditDesc'), 'Testing expense description editing');
     
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(expectedMemberCount);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Original Description');

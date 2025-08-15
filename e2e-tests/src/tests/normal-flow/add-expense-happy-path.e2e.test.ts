@@ -10,28 +10,13 @@ setupMCPDebugOnFailure();
 test.describe('Add Expense E2E', () => {
   test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Expense'), 'Testing expense creation');
+    const memberCount = 1;
+
+    // Use the comprehensive helper method for group creation and preparation
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('Expense'), 'Testing expense creation');
     
-    // Wait for page to be fully loaded after group creation
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Wait for group data to be loaded
-    await groupDetailPage.waitForBalancesToLoad(groupId);
-    
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    
-    await expect(addExpenseButton).toBeVisible();
-    await addExpenseButton.click();
-    
-    // Wait for navigation to add expense page
-    await page.waitForURL(`**/groups/${groupId}/add-expense`);
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Verify members have loaded in the expense form
-    await groupDetailPage.waitForMembersInExpenseForm();
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    // Navigate to expense form with all necessary waits
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     const amountField = groupDetailPage.getExpenseAmountField();
@@ -83,7 +68,7 @@ test.describe('Add Expense E2E', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Verify members have loaded in the expense form
-    await groupDetailPage.waitForMembersInExpenseForm();
+    await groupDetailPage.waitForMembersInExpenseForm(1);
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();
@@ -128,7 +113,7 @@ test.describe('Add Expense E2E', () => {
     
     // Verify members have loaded in the expense form
     // This also clicks Select all if needed
-    await groupDetailPage.waitForMembersInExpenseForm();
+    await groupDetailPage.waitForMembersInExpenseForm(1);
     
     // Fill in the expense details
     await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Movie Tickets');
@@ -167,7 +152,7 @@ test.describe('Add Expense E2E', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Verify members have loaded in the expense form
-    await groupDetailPage.waitForMembersInExpenseForm();
+    await groupDetailPage.waitForMembersInExpenseForm(1);
     
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
     await expect(descriptionField).toBeVisible();

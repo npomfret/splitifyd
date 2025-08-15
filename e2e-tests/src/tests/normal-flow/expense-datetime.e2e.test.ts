@@ -11,18 +11,16 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     groupDetailPage
   }) => {
     const { page, user } = authenticatedPage;
-    const groupWorkflow = new GroupWorkflow(page);
-    
+    const memberCount = 1;
+
     // Verify starting state
     await expect(page).toHaveURL(/\/dashboard/);
     
-    // Create a test group
-    const groupId = await groupWorkflow.createGroupAndNavigate('DateTime Test Group', 'Testing date and time inputs');
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    // Create group and prepare for expenses using helper method
+    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('DateTime Test Group', 'Testing date and time inputs');
     
-    // Navigate to add expense
-    await groupDetailPage.clickButton(groupDetailPage.getAddExpenseButton(), { buttonName: 'Add Expense' });
-    await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to expense form with proper waiting
+    await groupDetailPage.navigateToAddExpenseForm(memberCount);
     
     // === DATE CONVENIENCE BUTTONS TESTS ===
     const dateInput = groupDetailPage.getDateInput();

@@ -1,6 +1,7 @@
-import {expect, Locator} from '@playwright/test';
+import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {ARIA_ROLES, BUTTON_TEXTS, FORM_LABELS, HEADINGS, MESSAGES} from '../constants/selectors';
+import {GroupWorkflow} from '../workflows';
 
 interface ExpenseData {
   description: string;
@@ -12,6 +13,10 @@ interface ExpenseData {
 }
 
 export class GroupDetailPage extends BasePage {
+  constructor(page: Page) {
+    super(page);
+  }
+
   // Element accessors for group information
   getGroupTitle() {
     return this.page.getByRole('heading').first();
@@ -373,7 +378,7 @@ export class GroupDetailPage extends BasePage {
 
   // Split type accessors
   getSplitSection() {
-    return this.page.locator('text=Split between').locator('..');
+    return this.page.getByText('Split between').locator('..');
   }
 
   getEqualRadio() {
@@ -484,7 +489,7 @@ export class GroupDetailPage extends BasePage {
    * Waits for the group to have the expected number of members.
    * Relies on real-time updates to show the correct member count.
    */
-  async waitForMemberCount(expectedCount: number, timeout = 10000): Promise<void> {
+  async waitForMemberCount(expectedCount: number, timeout = 2000): Promise<void> {
     // Assert we're on a group page before waiting for member count
     const currentUrl = this.page.url();
     if (!currentUrl.includes('/groups/') && !currentUrl.includes('/group/')) {
@@ -513,7 +518,7 @@ export class GroupDetailPage extends BasePage {
       console.log(`Expected member text '${expectedText}' not found, checking for members section updates`);
       
       // Wait for real-time updates to sync
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('domcontentloaded');
       
       // Final attempt with the expected text
       await expect(this.page.getByText(expectedText))
@@ -600,7 +605,7 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForLoadState('domcontentloaded');
   }
 
-  async addExpense(expense: ExpenseData): Promise<void> {
+  async addExpense(expense: ExpenseData, expectedMemberCount: number): Promise<void> {
     // Click Add Expense button with proper checks
     const addExpenseButton = this.getAddExpenseButton();
     await this.clickButton(addExpenseButton, { buttonName: 'Add Expense' });
@@ -620,7 +625,7 @@ export class GroupDetailPage extends BasePage {
     
     // CRITICAL: Wait for members to load in the form
     // This is the root cause of intermittent failures - members data doesn't load
-    await this.waitForMembersInExpenseForm();
+    await this.waitForMembersInExpenseForm(expectedMemberCount);
     
     // Fill expense form
     await this.fillPreactInput(descriptionField, expense.description);
@@ -683,29 +688,49 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Wait for members to load in the expense form
-   * This prevents the intermittent issue where members don't appear
+   * Wait for ALL members to load in the expense form
+   * This prevents the intermittent issue where members don't appear and ensures ALL group members are represented
    */
-  async waitForMembersInExpenseForm(timeout = 5000): Promise<void> {
-    // Wait for at least one member to appear in the "Who paid?" section
+  async waitForMembersInExpenseForm(expectedMemberCount: number, timeout = 5000): Promise<void> {
+    // If no expected count provided, get it from the current group page or stored value
+    if (expectedMemberCount === undefined) {
+      expectedMemberCount = (this as any)._expectedMemberCount || 1;
+      
+      // Try to get member count from the group page we came from
+      // Look for member count text like "2 members" 
+      const memberCountText = await this.page.locator('text=/\\d+ members?/i').first().textContent().catch(() => null);
+      if (memberCountText) {
+        const match = memberCountText.match(/(\\d+)/);
+        if (match) {
+          expectedMemberCount = Math.max(expectedMemberCount, parseInt(match[1]));
+        }
+      }
+    }
+
+    // Wait for ALL members to appear in the "Who paid?" section
     await expect(async () => {
       const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
-      if (payerRadios === 0) {
-        throw new Error('No members loaded in "Who paid?" section - waiting for members data');
+      if (payerRadios < expectedMemberCount) {
+        throw new Error(`Only ${payerRadios} members loaded in "Who paid?" section, expected ${expectedMemberCount} - waiting for all members data`);
       }
     }).toPass({ 
       timeout,
       intervals: [100, 250, 500, 1000]
     });
     
-    // Also wait for participants checkboxes to be available
+    // Wait for ALL members to appear in "Split between" section
     await expect(async () => {
-      // Check for checkboxes or the Select all button
+      // Check for checkboxes (one per member) or the Select all button
       const checkboxes = await this.page.locator('input[type="checkbox"]').count();
       const selectAllButton = await this.page.getByRole('button', { name: 'Select all' }).count();
       
       if (checkboxes === 0 && selectAllButton === 0) {
         throw new Error('No members loaded in "Split between" section - waiting for members data');
+      }
+      
+      // If we have checkboxes, verify we have one for each member
+      if (checkboxes > 0 && checkboxes < expectedMemberCount) {
+        throw new Error(`Only ${checkboxes} members loaded in "Split between" section, expected ${expectedMemberCount} - waiting for all members data`);
       }
     }).toPass({ 
       timeout,
@@ -735,8 +760,49 @@ export class GroupDetailPage extends BasePage {
       }
     }).toPass({ timeout });
   }
-
-    /**
+  
+  /**
+   * Validates that all expected members are present in both "Who paid?" and "Split between" sections
+   * of the expense form. This method provides detailed verification and helpful error messages.
+   */
+  async validateAllMembersInExpenseForm(expectedMemberCount: number): Promise<{ isValid: boolean; errors: string[] }> {
+    const errors: string[] = [];
+    
+    // Check "Who paid?" section
+    const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
+    if (payerRadios < expectedMemberCount) {
+      errors.push(`"Who paid?" section: Found ${payerRadios} members, expected ${expectedMemberCount}`);
+    }
+    
+    // Check "Split between" section
+    const checkboxes = await this.page.locator('input[type="checkbox"]').count();
+    if (checkboxes > 0 && checkboxes < expectedMemberCount) {
+      errors.push(`"Split between" section: Found ${checkboxes} members, expected ${expectedMemberCount}`);
+    }
+    
+    // Get member names from "Who paid?" section for debugging
+    const payerLabels = await this.page.locator('label').filter({
+      has: this.page.locator('input[type="radio"][name="paidBy"]')
+    }).allTextContents();
+    
+    // Get member names from "Split between" section for debugging  
+    const splitLabels = await this.page.locator('label').filter({
+      has: this.page.locator('input[type="checkbox"]')
+    }).allTextContents();
+    
+    if (errors.length > 0) {
+      console.log('Member validation failed:');
+      console.log(`Expected ${expectedMemberCount} members in both sections`);
+      console.log(`"Who paid?" members (${payerRadios}):`, payerLabels.slice(0, 3)); // Show first 3
+      console.log(`"Split between" members (${checkboxes}):`, splitLabels.slice(0, 3)); // Show first 3
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+  /**
      * Helper method to wait for payee dropdown to update after payer selection
    */
   private async waitForPayeeDropdownUpdate(payeeSelect: Locator, payerName: string, timeout = 250): Promise<void> {
@@ -903,7 +969,7 @@ export class GroupDetailPage extends BasePage {
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {
-    await this.addExpense(expense);
+    await this.addExpense(expense, expectedMemberCount);
     await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
@@ -1003,7 +1069,7 @@ export class GroupDetailPage extends BasePage {
     await expect(modal).not.toBeVisible({ timeout: 5000 });
     
     // Wait for settlement processing to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     
     // Wait for settlement to be processed
     await this.page.waitForLoadState('domcontentloaded');
@@ -1415,6 +1481,63 @@ export class GroupDetailPage extends BasePage {
    */
   async verifyCurrencyAmountVisible(amount: string): Promise<void> {
     await expect(this.getCurrencyAmountText(amount)).toBeVisible();
+  }
+
+  // ========================================================================
+  // COMPREHENSIVE EXPENSE WORKFLOW HELPERS
+  // ========================================================================
+  
+  /**
+   * Ensures group page is fully loaded before proceeding with expense operations.
+   * This should be called after creating a group or navigating to a group page.
+   */
+  async ensureGroupPageReady(groupId: string): Promise<void> {
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.waitForMemberCount(1); // Wait for at least the creator to show
+    await this.waitForBalancesToLoad(groupId);
+  }
+
+  /**
+   * Navigates to the add expense form and ensures it's fully loaded with member data.
+   * This is the comprehensive method that all expense tests should use.
+   */
+  async navigateToAddExpenseForm(expectedMemberCount: number): Promise<void> {
+    await this.clickAddExpenseButton();
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    await this.page.waitForLoadState('domcontentloaded');
+    await expect(this.getExpenseDescriptionField()).toBeVisible();
+    
+    // Wait for all form sections to be visible
+    await this.waitForExpenseFormSections();
+    
+    // Wait for ALL members to load in the expense form
+    await this.waitForMembersInExpenseForm(expectedMemberCount);
+  }
+
+  /**
+   * Complete workflow: Create group and prepare for expense operations.
+   * Use this in tests that create a new group and need to add expenses.
+   */
+  async createGroupAndPrepareForExpenses(groupName: string, description?: string, expectedMemberCount: number = 1): Promise<string> {
+    const groupWorkflow = new GroupWorkflow(this.page);
+    const groupId = await groupWorkflow.createGroup(groupName, description);
+    await this.ensureGroupPageReady(groupId);
+    // Store expected member count for later use in expense forms
+    (this as any)._expectedMemberCount = expectedMemberCount;
+    return groupId;
+  }
+
+  /**
+   * Complete workflow: Navigate to expense form after group operations.
+   * Use this in tests that need to add subsequent expenses after the first one.
+   */
+  async prepareForNextExpense(expectedMemberCount: number): Promise<void> {
+    // Ensure we're back on the group page
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    await this.page.waitForLoadState('domcontentloaded');
+    
+    // Navigate to add expense form with full loading
+    await this.navigateToAddExpenseForm(expectedMemberCount);
   }
 
 }
