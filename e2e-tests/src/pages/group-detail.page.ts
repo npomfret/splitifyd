@@ -247,7 +247,8 @@ export class GroupDetailPage extends BasePage {
     const searchInput = this.page.locator('[role="listbox"] input[type="text"]');
     if (await searchInput.isVisible()) {
       await this.fillPreactInput(searchInput, currencyCode);
-      await this.page.waitForTimeout(200); // Brief wait for search results
+      // Wait for search results to appear
+      await this.page.waitForSelector('[role="listbox"] button[role="option"]', { timeout: 2000 })
     }
     
     // Click on the currency option - look for button with role="option" containing the currency code
@@ -476,7 +477,8 @@ export class GroupDetailPage extends BasePage {
     if (await balancesHeading.isVisible()) {
       // Click to expand if collapsed
       await balancesHeading.click();
-      await this.page.waitForTimeout(300); // Small wait for animation
+      // Wait for expansion animation to complete
+      await this.page.waitForLoadState('domcontentloaded')
     }
     
     // Now the text should be visible
@@ -529,9 +531,8 @@ export class GroupDetailPage extends BasePage {
       // This provides a fallback for real-time update timing issues
       console.log(`Expected member text '${expectedText}' not found, checking for members section updates`);
       
-      // Wait a bit more for real-time updates and try again
-      await this.page.waitForTimeout(2000);
-      await this.page.waitForLoadState('domcontentloaded');
+      // Wait for real-time updates to sync
+      await this.page.waitForLoadState('networkidle');
       
       // Final attempt with the expected text
       await expect(this.page.getByText(expectedText))
@@ -1020,8 +1021,8 @@ export class GroupDetailPage extends BasePage {
     // Wait for modal to close with increased timeout for settlement processing
     await expect(modal).not.toBeVisible({ timeout: 5000 });
     
-    // Add a small delay to ensure the settlement is fully processed
-    await this.page.waitForTimeout(500);
+    // Wait for settlement processing to complete
+    await this.page.waitForLoadState('networkidle');
     
     // Wait for settlement to be processed
     await this.page.waitForLoadState('domcontentloaded');

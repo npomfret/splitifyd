@@ -104,16 +104,15 @@ export class MultiUserWorkflow {
       const password = 'TestPassword123!'; // Standard test password
       await loginPage.login(user.email, password);
       
-      // After login, we should be redirected somewhere
-      await page.waitForTimeout(2000); // Give time for redirect
+      // After login, wait for redirect to complete
+      await page.waitForLoadState('networkidle');
       
       // Check where we ended up
       const currentUrl = page.url();
       if (!currentUrl.includes('/join')) {
         // We weren't redirected to join page, navigate back to share link
         await page.goto(shareUrl);
-        await page.waitForLoadState('domcontentloaded');
-        await page.waitForTimeout(1000); // Small wait for page to settle
+        await page.waitForLoadState('networkidle');
       }
     }
     

@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 export class DashboardPage extends BasePage {
   // Selectors
@@ -97,10 +98,27 @@ export class DashboardPage extends BasePage {
       // Spinner never appeared or disappeared quickly - expected behavior
     }
     
-    // Brief stabilization delay to ensure content has rendered
-    await this.page.waitForTimeout(200);
+    // Wait for DOM to be fully loaded instead of arbitrary timeout
+    await this.page.waitForLoadState('domcontentloaded');
     
     // Dashboard is now ready - we don't check for specific content since users may have existing groups
+  }
+
+  async signOut() {
+    // Ensure we're logged in first
+    await this.waitForUserMenu();
+    
+    // Click user menu button to open dropdown
+    const userMenuButton = this.getUserMenuButton();
+    await this.clickButton(userMenuButton, { buttonName: 'User Menu' });
+    
+    // Wait for dropdown to appear and click sign out
+    const signOutButton = this.getSignOutButton();
+    await expect(signOutButton).toBeVisible();
+    await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
+    
+    // Wait for redirect to login page after sign out
+    await this.page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
   }
 
 }

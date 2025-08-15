@@ -123,10 +123,10 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/register/);
       
       // All fields should still be visible
-      await expect(page.getByText('Full Name *')).toBeVisible();
-      await expect(page.getByText('Email address *')).toBeVisible();
-      await expect(page.getByText('Password *', { exact: true })).toBeVisible();
-      await expect(page.getByText('Confirm Password *')).toBeVisible();
+      await expect(registerPage.getFullNameLabel()).toBeVisible();
+      await expect(registerPage.getEmailLabel()).toBeVisible();
+      await expect(registerPage.getPasswordLabel()).toBeVisible();
+      await expect(registerPage.getConfirmPasswordLabel()).toBeVisible();
       
       // No console errors
       // Console errors are automatically captured by 

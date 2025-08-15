@@ -43,8 +43,8 @@ export class JoinGroupPage extends BasePage {
       // Check if we see "Checking authentication..." text (indicates checking auth state)
       const checkingAuth = await this.page.getByText('Checking authentication...').isVisible({ timeout: 500 }).catch(() => false);
       if (checkingAuth) {
-        // Wait a bit for the redirect to happen
-        await this.page.waitForTimeout(200);
+        // Wait for auth check to complete
+        await this.page.waitForLoadState('networkidle');
         // Check if we've been redirected to login
         const currentUrl = this.page.url();
         if (currentUrl.includes('/login')) {
@@ -151,10 +151,11 @@ export class JoinGroupPage extends BasePage {
         lastError = error as Error;
         
         if (attempt < maxRetries) {
-          // Wait before retry
-          await this.page.waitForTimeout(1000 * attempt);
+          // Wait progressively longer between retries
+          await this.page.waitForLoadState('networkidle');
           
           // Refresh page state
+          await this.page.reload();
           await this.page.waitForLoadState('domcontentloaded');
         }
       }
@@ -177,8 +178,8 @@ export class JoinGroupPage extends BasePage {
   }> {
     await this.navigateToShareLink(shareLink);
     
-    // Wait a moment for any redirects to happen
-    await this.page.waitForTimeout(300);
+    // Wait for any redirects to complete
+    await this.page.waitForLoadState('networkidle');
     
     // Check if we've been redirected to login page
     const currentUrl = this.page.url();
