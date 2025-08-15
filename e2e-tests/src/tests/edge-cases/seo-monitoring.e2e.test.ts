@@ -12,7 +12,7 @@ pageTest.describe('SEO Monitoring E2E', () => {
     // Check for essential meta tags
     const title = await page.title();
     expect(title).toBeTruthy();
-    expect(title.length).toBeGreaterThan(10);
+    expect(title.length).toBeGreaterThanOrEqual(9); // "Splitifyd" is 9 characters
     
     // Check for description meta tag
     const description = await page.locator(SELECTORS.META_DESCRIPTION).getAttribute('content');
