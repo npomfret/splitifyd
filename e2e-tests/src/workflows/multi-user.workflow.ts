@@ -84,19 +84,37 @@ export class MultiUserWorkflow {
     const isLoggedIn = await joinGroupPage.isUserLoggedIn();
     
     if (!isLoggedIn) {
-      // Login first
-      const loginPage = new LoginPage(page);
-      await loginPage.navigate();
+      // Store the original share link URL
+      const shareUrl = page.url();
       
+      // Check if we have a login button on the join page
+      const loginButton = joinGroupPage.getLoginButton();
+      if (await loginButton.isVisible()) {
+        // Click the login button on the join page
+        await loginButton.click();
+        await page.waitForLoadState('domcontentloaded');
+      } else {
+        // Navigate to login page directly
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
+      }
+      
+      // Perform login
+      const loginPage = new LoginPage(page);
       const password = 'TestPassword123!'; // Standard test password
       await loginPage.login(user.email, password);
       
-      // Wait for login to complete
-      const dashboardPage = new DashboardPage(page);
-      await dashboardPage.waitForDashboard();
+      // After login, we should be redirected somewhere
+      await page.waitForTimeout(2000); // Give time for redirect
       
-      // Navigate back to share link
-      await joinGroupPage.navigateToShareLink(shareLink);
+      // Check where we ended up
+      const currentUrl = page.url();
+      if (!currentUrl.includes('/join')) {
+        // We weren't redirected to join page, navigate back to share link
+        await page.goto(shareUrl);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(1000); // Small wait for page to settle
+      }
     }
     
     // Now attempt to join
