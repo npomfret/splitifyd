@@ -1,6 +1,7 @@
 import { multiUserTest, expect } from '../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import { JoinGroupPage } from '../../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -23,8 +24,9 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     
     // Get share link and have user 2 join
     const shareLink = await groupDetailPage.getShareLink();
-    await user2Page.goto(shareLink);
-    await user2Page.getByRole('button', { name: 'Join Group' }).click();
+    const joinGroupPage = new JoinGroupPage(user2Page);
+    await joinGroupPage.navigateToShareLink(shareLink);
+    await joinGroupPage.joinGroup();
     await expect(user2Page).toHaveURL(new RegExp(`/groups/${groupId}`));
     
     // Both users add an expense to create initial state

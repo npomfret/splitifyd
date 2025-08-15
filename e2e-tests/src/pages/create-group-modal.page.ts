@@ -33,23 +33,18 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async submitForm() {
-    // Get the submit button and wait for it to be enabled
+    // Get the submit button
     const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
     
-    // Wait for the button to become enabled
-    await expect(submitButton).toBeEnabled({ timeout: TIMEOUTS.QUICK });
-    
-    // Check button is enabled before clicking (provides better error messages)
-    await this.expectButtonEnabled(submitButton, 'Create Group');
-    await submitButton.click();
+    // Use standardized button click with proper error handling
+    await this.clickButton(submitButton, { buttonName: 'Create Group' });
   }
   
   async cancel() {
     // Modal MUST have a cancel/close button - this is basic UX
     // Use a regex that matches either "Cancel" or "Close"
     const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: /(Cancel|Close)/i });
-    await expect(cancelButton).toBeEnabled();
-    await cancelButton.click();
+    await this.clickButton(cancelButton, { buttonName: 'Cancel' });
   }
   
   async createGroup(name: string, description?: string) {

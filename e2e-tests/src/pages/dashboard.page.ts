@@ -76,8 +76,7 @@ export class DashboardPage extends BasePage {
       .getByRole('button')
       .filter({ hasText: /Create.*Group/i })
       .first();
-    await expect(createButton).toBeEnabled();
-    await createButton.click();
+    await this.clickButton(createButton, { buttonName: 'Create Group' });
   }
 
   async waitForDashboard() {

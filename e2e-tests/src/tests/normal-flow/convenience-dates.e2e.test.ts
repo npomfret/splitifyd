@@ -22,16 +22,16 @@ authenticatedPageTest.describe('Convenience Date Selection', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: 'Add Expense' }).click();
+    await groupDetailPage.clickButton(groupDetailPage.getAddExpenseButton(), { buttonName: 'Add Expense' });
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Click Today button
-    await page.getByRole('button', { name: 'Today' }).click();
+    await groupDetailPage.clickTodayButton();
     
     // Verify date input has today's date
     const today = new Date();
     const expectedDate = today.toISOString().split('T')[0];
-    const dateInput = page.locator('input[type="date"]');
+    const dateInput = groupDetailPage.getDateInput();
     await expect(dateInput).toHaveValue(expectedDate);
   });
 
@@ -51,17 +51,17 @@ authenticatedPageTest.describe('Convenience Date Selection', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: 'Add Expense' }).click();
+    await groupDetailPage.clickButton(groupDetailPage.getAddExpenseButton(), { buttonName: 'Add Expense' });
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Click Yesterday button
-    await page.getByRole('button', { name: 'Yesterday' }).click();
+    await groupDetailPage.clickYesterdayButton();
     
     // Verify date input has yesterday's date
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const expectedDate = yesterday.toISOString().split('T')[0];
-    const dateInput = page.locator('input[type="date"]');
+    const dateInput = groupDetailPage.getDateInput();
     await expect(dateInput).toHaveValue(expectedDate);
   });
 
@@ -81,16 +81,16 @@ authenticatedPageTest.describe('Convenience Date Selection', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: 'Add Expense' }).click();
+    await groupDetailPage.clickButton(groupDetailPage.getAddExpenseButton(), { buttonName: 'Add Expense' });
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Click This Morning button
-    await page.getByRole('button', { name: 'This Morning' }).click();
+    await groupDetailPage.clickThisMorningButton();
     
     // Verify date input has today's date
     const today = new Date();
     const expectedDate = today.toISOString().split('T')[0];
-    const dateInput = page.locator('input[type="date"]');
+    const dateInput = groupDetailPage.getDateInput();
     await expect(dateInput).toHaveValue(expectedDate);
     
     // Time input verification is skipped since it's a custom component with complex behavior
@@ -113,17 +113,17 @@ authenticatedPageTest.describe('Convenience Date Selection', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: 'Add Expense' }).click();
+    await groupDetailPage.clickButton(groupDetailPage.getAddExpenseButton(), { buttonName: 'Add Expense' });
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Click Last Night button
-    await page.getByRole('button', { name: 'Last Night' }).click();
+    await groupDetailPage.clickLastNightButton();
     
     // Verify date input has yesterday's date
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const expectedDate = yesterday.toISOString().split('T')[0];
-    const dateInput = page.locator('input[type="date"]');
+    const dateInput = groupDetailPage.getDateInput();
     await expect(dateInput).toHaveValue(expectedDate);
     
     // Time input verification is skipped since it's a custom component with complex behavior
@@ -146,8 +146,11 @@ authenticatedPageTest.describe('Convenience Date Selection', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Navigate to add expense
-    await page.getByRole('button', { name: 'Add Expense' }).click();
+    await groupDetailPage.clickButton(groupDetailPage.getAddExpenseButton(), { buttonName: 'Add Expense' });
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    
+    // Wait for form sections to be loaded using page object method
+    await groupDetailPage.waitForExpenseFormSections();
     
     // Fill in expense details using page object methods
     const descriptionField = groupDetailPage.getExpenseDescriptionField();
@@ -157,16 +160,30 @@ authenticatedPageTest.describe('Convenience Date Selection', () => {
     await groupDetailPage.fillPreactInput(amountField, '25.50');
     
     // Click Yesterday button for date
-    await page.getByRole('button', { name: 'Yesterday' }).click();
+    await groupDetailPage.clickYesterdayButton();
+    
+    // Select the payer (required for form to be valid)
+    await groupDetailPage.selectPayer(user.displayName);
+    
+    // Select participants for the split (required for form to be valid)
+    await groupDetailPage.clickSelectAllButton();
+    
+    // Validate form before submitting
+    const validation = await groupDetailPage.validateExpenseFormReady();
+    if (!validation.isValid) {
+      throw new Error(
+        `Form validation failed before submit:\n` +
+        validation.errors.map(e => `  - ${e}`).join('\n')
+      );
+    }
     
     // Submit the expense
-    await page.getByRole('button', { name: 'Save Expense' }).click();
+    await groupDetailPage.clickButton(groupDetailPage.getSaveExpenseButton(), { buttonName: 'Save Expense' });
     
     // Verify we're back on the group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Verify the expense appears in the list
-    await expect(page.getByText('Lunch with convenience date')).toBeVisible();
-    await expect(page.getByText('$25.50')).toBeVisible();
+    await groupDetailPage.verifyExpenseInList('Lunch with convenience date', '$25.50');
   });
 });

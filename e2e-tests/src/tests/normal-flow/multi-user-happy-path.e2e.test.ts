@@ -15,7 +15,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupWorkflow.createGroup(generateTestGroupName('Shared'), 'Testing group sharing');
 
     await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     
     await expect(groupDetailPage.getShareModal()).toBeVisible();
     
@@ -45,7 +45,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     const user1 = user;
     
     // Get share link
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
@@ -151,7 +151,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     const user1 = groupInfo.user;
     
     // Get share link
-    await groupDetailPage.getShareButton().click();
+    await groupDetailPage.clickShareButton();
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     

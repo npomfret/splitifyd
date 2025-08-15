@@ -17,7 +17,7 @@ test.describe('Advanced Splitting Options', () => {
     await groupWorkflow.createGroup('Advanced Splitting Test Group');
 
     // === EQUAL SPLIT EXPENSE ===
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -35,7 +35,7 @@ test.describe('Advanced Splitting Options', () => {
 
     
     // === EXACT AMOUNTS SPLIT EXPENSE ===
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -57,7 +57,7 @@ test.describe('Advanced Splitting Options', () => {
 
     
     // === PERCENTAGE SPLIT EXPENSE ===
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
@@ -79,7 +79,7 @@ test.describe('Advanced Splitting Options', () => {
     
     // === SPLIT TYPE CHANGES TEST ===
     // Test that split type UI updates work correctly during form interaction
-    await groupDetailPage.getAddExpenseButton().click();
+    await groupDetailPage.clickAddExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
     
