@@ -104,7 +104,7 @@ test.describe('Freeform Categories Error Testing', () => {
     await waitForURLWithContext(page, expenseDetailUrlPattern());
     
     // Verify we're on the expense detail page with the updated category
-    await expect(page.getByText('Business lunch')).toBeVisible();
+    await expect(page.getByText('Business lunch', { exact: true })).toBeVisible();
     await expect(page.getByText(customCategory)).toBeVisible();
   });
 
