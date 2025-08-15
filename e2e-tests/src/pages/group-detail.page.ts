@@ -21,10 +21,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('heading', { name });
   }
 
-  getGroupTextByName(name: string) {
-    return this.page.getByText(name);
-  }
-
   getGroupDescription() {
     return this.page.getByText(/test|description/i).first();
   }
@@ -199,7 +195,9 @@ export class GroupDetailPage extends BasePage {
   }
 
   getShareLinkInput() {
-    return this.getShareModal().getByRole('textbox');
+    // Use input selector instead of role=textbox since the input is read-only
+    // and may not be recognized as a textbox role
+    return this.getShareModal().locator('input[type="text"]');
   }
 
   // User-related accessors
@@ -217,20 +215,6 @@ export class GroupDetailPage extends BasePage {
   async hasSettledUpMessage(): Promise<boolean> {
     const count = await this.page.getByText('All settled up!').count();
     return count > 0;
-  }
-
-  /**
-   * Checks if debt message exists in the DOM (regardless of visibility)
-   * Use this when the balance section might be collapsed on mobile
-   */
-  async hasDebtMessage(debtorName: string, creditorName: string): Promise<boolean> {
-    // Check for arrow notation (new UI)
-    const arrowCount = await this.page.getByText(`${debtorName} → ${creditorName}`).count();
-    if (arrowCount > 0) return true;
-    
-    // Fallback to "owes" notation (legacy)
-    const owesCount = await this.page.getByText(`${debtorName} owes ${creditorName}`).count();
-    return owesCount > 0;
   }
 
   /**
@@ -513,88 +497,8 @@ export class GroupDetailPage extends BasePage {
       }).toPass({ timeout: 2000 });
     }
   }
-
-  /**
-   * Select a payer by their display name
-   */
-  async selectPayer(displayName: string): Promise<void> {
-    // Find the payer option in the "Who paid?" section
-    const payerSection = this.page.locator('text="Who paid?"').locator('..');
-    
-    // Validate the payer section exists
-    await expect(payerSection).toBeVisible({ 
-      timeout: 3000 
-    }).catch(() => {
-      throw new Error('Who paid? section is not visible on the expense form');
-    });
-    
-    // Try to find the payer option (could be a label with radio or a button)
-    const payerOption = payerSection.locator(`label:has-text("${displayName}"), button:has-text("${displayName}")`).first();
-    
-    // Check if the payer option exists
-    const optionCount = await payerOption.count();
-    if (optionCount === 0) {
-      // List available options for better debugging
-      const availableOptions = await payerSection.locator('label, button').allTextContents();
-      throw new Error(`Cannot find payer "${displayName}" in Who paid? section. Available options: ${availableOptions.join(', ')}`);
-    }
-    
-    await payerOption.click();
-    
-    // Verify the selection was made by checking for a selected state indicator
-    // This could be a checked radio, selected class, or aria-selected attribute
-    const radioButton = payerOption.locator('input[type="radio"]');
-    if (await radioButton.count() > 0) {
-      await expect(radioButton).toBeChecked();
-    }
-  }
-
-  /**
-   * Select all participants for the expense split
-   */
-  async selectAllParticipants(): Promise<void> {
-    // Find the split section
-    const splitSection = this.page.locator('text="Split between"').locator('..');
-    
-    // Validate the split section exists
-    await expect(splitSection).toBeVisible({ 
-      timeout: 3000 
-    }).catch(() => {
-      throw new Error('Split between section is not visible on the expense form');
-    });
-    
-    // Look for Select all button
-    const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
-    
-    // Check if the button exists and is visible
-    const buttonVisible = await selectAllButton.isVisible();
-    if (!buttonVisible) {
-      // Check if participants are already selected by default
-      const selectedParticipants = splitSection.locator('label, button').filter({ hasText: /u\s*[a-z0-9]/i });
-      const participantCount = await selectedParticipants.count();
-      
-      if (participantCount === 0) {
-        throw new Error('No participants found in Split between section and no Select all button available');
-      }
-      // If participants are already visible, we're good
-      return;
-    }
-    
-    // Button is visible, click it
-    await expect(selectAllButton).toBeEnabled().catch(() => {
-      throw new Error('Select all button is visible but not enabled');
-    });
-    await selectAllButton.click();
-    
-    // Verify participants are now selected by checking they are visible
-    const selectedParticipants = splitSection.locator('label, button').filter({ hasText: /u\s*[a-z0-9]/i });
-    await expect(selectedParticipants.first()).toBeVisible({ timeout: 2000 }).catch(() => {
-      throw new Error('After clicking Select all, no participants appear to be selected');
-    });
-  }
-
-  /**
-   * Helper method to wait for payee dropdown to update after payer selection
+    /**
+     * Helper method to wait for payee dropdown to update after payer selection
    */
   private async waitForPayeeDropdownUpdate(payeeSelect: Locator, payerName: string, timeout = 250): Promise<void> {
     await expect(async () => {
@@ -1025,17 +929,8 @@ export class GroupDetailPage extends BasePage {
     // Wait for deletion to complete
     await this.page.waitForLoadState('domcontentloaded');
   }
-
-  /**
-   * Gets the join group button on share link page
-   * This is the most frequently violated selector
-   */
-  getJoinGroupButtonOnSharePage() {
-    return this.page.getByRole('button', { name: /join group/i });
-  }
-
-  /**
-   * Reliably gets the share link from the group page with retry logic.
+    /**
+     * Reliably gets the share link from the group page with retry logic.
    * Handles modal timing and extraction issues.
    * Optimized for fast timeouts (1 second action timeout).
    */
@@ -1062,9 +957,15 @@ export class GroupDetailPage extends BasePage {
         await shareButton.click();
 
         // Get share link from dialog with progressive timeout
-        const timeout = 500 + (attempts * 200); // Start at 500ms, increase per attempt
+        const timeout = 2000 + (attempts * 500); // Start at 2000ms, increase per attempt
         const dialog = this.page.getByRole('dialog');
         await dialog.waitFor({ state: 'visible', timeout });
+        
+        // Wait for loading spinner to disappear (if present)
+        const loadingSpinner = dialog.locator('.animate-spin');
+        if (await loadingSpinner.count() > 0) {
+          await expect(loadingSpinner).not.toBeVisible({ timeout });
+        }
         
         const shareLinkInput = this.getShareLinkInput();
         await shareLinkInput.waitFor({ state: 'visible', timeout });
@@ -1179,18 +1080,8 @@ export class GroupDetailPage extends BasePage {
   getMainSection() {
     return this.page.getByRole('main');
   }
-
-  /**
-   * Get balances section with specific filter
-   */
-  getBalancesSectionByFilter() {
-    return this.page.locator("section, div").filter({ 
-      has: this.page.getByRole("heading", { name: "Balances" }) 
-    });
-  }
-
-  /**
-   * Get the amount input field (for expense or settlement forms)
+    /**
+     * Get the amount input field (for expense or settlement forms)
    */
   getAmountInput() {
     return this.page.getByPlaceholder('0.00');
@@ -1243,32 +1134,6 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Get the share modal dialog
-   */
-  getShareModalDialog() {
-    return this.page.getByRole('dialog', { name: /share group/i });
-  }
-
-  /**
-   * Get the share link textbox within the share modal
-   */
-  getShareLinkTextbox() {
-    const shareModal = this.getShareModalDialog();
-    return shareModal.getByRole('textbox');
-  }
-
-  /**
-   * Check if there are NO debt messages (for settled up verification)
-   */
-  async hasNoDebtMessages(): Promise<boolean> {
-    // Check for absence of arrow notation
-    const arrowCount = await this.page.getByText(/→/).count();
-    // Check for absence of "owes" text
-    const owesCount = await this.page.getByText(/owes/i).count();
-    return arrowCount === 0 && owesCount === 0;
-  }
-
-  /**
    * Calculate exact debt amount for equal split
    * @param totalAmount - Total expense amount
    * @param numberOfPeople - Number of people splitting
@@ -1305,27 +1170,6 @@ export class GroupDetailPage extends BasePage {
    */
   getInputWithMinValue(minValue: string) {
     return this.page.locator(`input[type="number"][step="0.01"][min="${minValue}"]`);
-  }
-
-  /**
-   * Get form element
-   */
-  getForm() {
-    return this.page.locator('form');
-  }
-
-  /**
-   * Get the join group heading on the join group page
-   */
-  getJoinGroupHeading() {
-    return this.page.getByRole('heading', { name: /join group/i });
-  }
-
-  /**
-   * Get the join group button on the join group page
-   */
-  getJoinGroupButton() {
-    return this.page.getByRole('button', { name: /join group/i });
   }
 
   /**
