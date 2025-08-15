@@ -283,14 +283,14 @@ export function CurrencyAmountInput({
           <input
             ref={inputRef}
             id={inputId}
-            type="number"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
             value={amount}
             onChange={handleAmountChange}
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder={placeholder}
-            step="0.01"
-            min="0.01"
             required={required}
             className={`
               flex-1 px-3 py-2

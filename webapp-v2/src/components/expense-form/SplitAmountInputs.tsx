@@ -65,16 +65,15 @@ export function SplitAmountInputs({
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">$</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
                   value={split?.amount || 0}
                   onInput={(e) => {
                     const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                     updateSplitAmount(participantId, value);
                   }}
                   className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
-                  step="0.01"
-                  min="0.01"
-                  inputMode="decimal"
                 />
               </div>
             </div>
@@ -119,17 +118,15 @@ export function SplitAmountInputs({
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
                   value={split?.percentage || 0}
                   onInput={(e) => {
                     const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                     updateSplitPercentage(participantId, value);
                   }}
                   className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  inputMode="decimal"
                 />
                 <span className="text-gray-500">%</span>
                 <span className="text-xs text-gray-500 w-16 text-right">
