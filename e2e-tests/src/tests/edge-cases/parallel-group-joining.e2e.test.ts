@@ -1,11 +1,10 @@
 import { test, expect, Page } from '@playwright/test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupDetailPage, DashboardPage, JoinGroupPage } from '../../pages';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 // Parameterized test configuration

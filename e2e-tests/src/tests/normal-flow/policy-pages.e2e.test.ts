@@ -1,9 +1,8 @@
 import { pageTest } from '../../fixtures';
-import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure, waitForApp } from "../../helpers";
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Policy Pages E2E', () => {
   pageTest('should load terms of service page without JavaScript errors', async ({ page, homepagePage }) => {

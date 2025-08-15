@@ -1,13 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { setupMCPDebugOnFailure, EMULATOR_URL } from "../../helpers";
 import { multiUserTest } from '../../fixtures';
 import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
 import { MultiUserWorkflow } from '../../workflows';
 import { GroupWorkflow } from '../../workflows';
 import { GroupDetailPage } from '../../pages';
 import { generateShortId } from '../../utils/test-helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Comprehensive Share Link Testing', () => {

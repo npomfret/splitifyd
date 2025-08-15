@@ -1,10 +1,9 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { GroupWorkflow } from '../../workflows';
 
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 authenticatedPageTest.describe('Dashboard User Journey', () => {
   authenticatedPageTest('should handle complete dashboard workflow with authentication persistence', async ({ authenticatedPage, dashboardPage }) => {

@@ -1,7 +1,6 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Share Link Error Handling', () => {

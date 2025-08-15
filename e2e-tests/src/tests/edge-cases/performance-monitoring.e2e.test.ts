@@ -1,11 +1,10 @@
 import { pageTest, expect } from '../../fixtures';
-import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { waitForApp, setupMCPDebugOnFailure } from '../../helpers';
 import { SELECTORS } from '../../constants/selectors';
 import { TIMEOUTS } from '../../config/timeouts';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 // TODO: CANDIDATE FOR CI PERFORMANCE BUDGET
 // The load time test just measures timing without interaction.
@@ -67,6 +66,6 @@ pageTest.describe('Performance Monitoring E2E', () => {
     await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 });

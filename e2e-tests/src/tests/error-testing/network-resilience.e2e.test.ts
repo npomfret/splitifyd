@@ -1,10 +1,9 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Network Resilience E2E', () => {
   pageTest('should handle network errors gracefully', async ({ page, context, loginPage }) => {

@@ -1,10 +1,9 @@
 import { authenticatedPageTest as authenticatedTest, expect } from '../../fixtures/authenticated-page-test';
 import { multiUserTest } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 authenticatedTest.describe('Negative Value Validation', () => {
@@ -259,7 +258,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     for (const testCase of testCases) {
       // Clear field before each test
-      await amountField.clear();
+      await groupDetailPage.fillPreactInput(amountField, '');
       // Assert field is clear before testing each value
       const clearedValue = await amountField.inputValue();
       expect(clearedValue).toBe('');

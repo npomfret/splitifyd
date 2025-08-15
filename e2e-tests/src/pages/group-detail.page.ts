@@ -450,14 +450,9 @@ export class GroupDetailPage extends BasePage {
    * Use this when the balance section might be collapsed on mobile
    */
   async hasSettledUpMessage(): Promise<boolean> {
-    // Look for "All settled up!" specifically within the Balances section to avoid duplicates
-    const balancesSection = this.page.locator('section, div').filter({ has: this.page.getByRole('heading', { name: 'Balances' }) });
-    const count = await balancesSection.getByText('All settled up!').count();
-    if (count === 0) {
-      // Fallback: check if it exists anywhere near the Balances heading
-      const altCount = await this.page.getByText('All settled up!').first().count();
-      return altCount > 0;
-    }
+    // Simply check if "All settled up!" exists on the page
+    // The text is clearly visible in the Balances section
+    const count = await this.page.getByText('All settled up!').count();
     return count > 0;
   }
 

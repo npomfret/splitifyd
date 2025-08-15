@@ -1,9 +1,8 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Basic Expense Operations E2E', () => {

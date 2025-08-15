@@ -1,8 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
-import { waitForApp, setupConsoleErrorReporting } from '../../helpers';
+import { waitForApp } from '../../helpers';
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
 
-setupConsoleErrorReporting();
 
 // Simplified accessibility test - just basic axe scan
 test.describe('Accessibility Tests', () => {

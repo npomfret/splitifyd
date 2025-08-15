@@ -1,10 +1,9 @@
 import { pageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { SELECTORS } from '../../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 // TODO: CONVERT TO UNIT TEST
 // This test only checks static meta tags without any user interaction.

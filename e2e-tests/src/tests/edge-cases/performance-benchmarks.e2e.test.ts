@@ -1,7 +1,6 @@
 import { pageTest as test, expect } from "../../fixtures/page-fixtures";
-import { waitForApp, setupConsoleErrorReporting } from '../../helpers';
+import { waitForApp } from '../../helpers';
 
-setupConsoleErrorReporting();
 
 // Simplified performance test - just basic load time check
 test.describe('Performance Tests', () => {

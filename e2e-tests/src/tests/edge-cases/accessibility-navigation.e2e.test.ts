@@ -1,10 +1,9 @@
 import { pageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { SELECTORS } from '../../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 // TODO: PARTIAL CANDIDATE FOR UNIT TEST
 // The "should have proper ARIA labels" test just checks element attributes
@@ -37,7 +36,7 @@ pageTest.describe('Form Accessibility', () => {
     // Just verify no errors occurred during keyboard navigation
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 
   pageTest('should have proper ARIA labels', async ({ loginPageNavigated }) => {
@@ -81,6 +80,6 @@ pageTest.describe('Form Accessibility', () => {
     }
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 });

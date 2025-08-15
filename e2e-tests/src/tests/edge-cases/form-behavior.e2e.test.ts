@@ -1,9 +1,8 @@
 import { pageTest, expect } from '../../fixtures';
-import { waitForApp, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { waitForApp, setupMCPDebugOnFailure } from '../../helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Form Behavior Edge Cases', () => {
   pageTest('should clear form on page refresh', async ({ loginPageNavigated }) => {
@@ -16,8 +15,8 @@ pageTest.describe('Form Behavior Edge Cases', () => {
     const emailInput = loginPage.getEmailInput();
     const passwordInput = loginPage.getPasswordInput();
     
-    await emailInput.clear();
-    await passwordInput.clear();
+    await loginPage.fillPreactInput(emailInput, '');
+    await loginPage.fillPreactInput(passwordInput, '');
     
     // Now fill form with our test data
     await loginPage.fillPreactInput(emailInput, 'test@example.com');
@@ -40,7 +39,7 @@ pageTest.describe('Form Behavior Edge Cases', () => {
     expect(newPasswordValue).not.toBe('Password123');
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 
   pageTest('should trim whitespace from inputs', async ({ registerPageNavigated }) => {
@@ -60,6 +59,6 @@ pageTest.describe('Form Behavior Edge Cases', () => {
     // Just verify we can type with spaces without errors
     
     // No console errors
-    // Console errors are automatically captured by setupConsoleErrorReporting
+    // Console errors are automatically captured by 
   });
 });

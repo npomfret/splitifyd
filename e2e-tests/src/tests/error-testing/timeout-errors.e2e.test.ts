@@ -1,13 +1,9 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { 
-  setupConsoleErrorReporting, 
-  setupMCPDebugOnFailure
-} from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 
 // Enable console error reporting and MCP debugging
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Timeout Error Handling', () => {

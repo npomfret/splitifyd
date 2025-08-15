@@ -20,11 +20,11 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
     pageTest('Login form validation', async ({ loginPageNavigated }) => {
       const { page, loginPage } = loginPageNavigated;
       
-      // Clear any pre-filled data
+      // Clear any pre-filled data using Preact-compatible method
       const emailInput = loginPage.getEmailInput();
       const passwordInput = loginPage.getPasswordInput();
-      await emailInput.clear();
-      await passwordInput.clear();
+      await loginPage.fillPreactInput(emailInput, '');
+      await loginPage.fillPreactInput(passwordInput, '');
       
       // Test 1: Empty form - submit disabled
       const submitButton = loginPage.getSubmitButton();
@@ -38,13 +38,13 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/login/);
       
       // Test 3: Only email filled - submit disabled
-      await emailInput.clear();
-      await passwordInput.clear();
+      await loginPage.fillPreactInput(emailInput, '');
+      await loginPage.fillPreactInput(passwordInput, '');
       await loginPage.fillPreactInput(emailInput, generateTestEmail());
       await expect(submitButton).toBeDisabled();
       
       // Test 4: Only password filled - submit disabled  
-      await emailInput.clear();
+      await loginPage.fillPreactInput(emailInput, '');
       await loginPage.fillPreactInput(passwordInput, 'Password123');
       await expect(submitButton).toBeDisabled();
       

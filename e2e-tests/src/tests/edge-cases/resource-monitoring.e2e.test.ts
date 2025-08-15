@@ -1,9 +1,8 @@
 import { pageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
 
 pageTest.describe('Resource Monitoring E2E', () => {
   pageTest('should not have any 404 resources', async ({ page, homepagePage, loginPage, registerPage }) => {

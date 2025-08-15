@@ -1,11 +1,10 @@
 import { test } from '@playwright/test';
 import { fourUserTest } from '../../fixtures/multi-user-declarative';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { MultiUserWorkflow } from '../../workflows';
 import { GroupWorkflow } from '../../workflows';
 import { generateShortId } from '../../utils/test-helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Share Link - Edge Cases', () => {

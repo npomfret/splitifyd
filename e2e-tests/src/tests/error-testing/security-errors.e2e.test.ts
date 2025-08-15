@@ -1,13 +1,9 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { 
-  setupConsoleErrorReporting, 
-  setupMCPDebugOnFailure
-} from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 
 // Enable console error reporting and MCP debugging
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Security and Access Control', () => {

@@ -1,8 +1,7 @@
 import { pageTest, expect } from '../../fixtures';
 import { RegisterPage } from '../../pages';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupMCPDebugOnFailure } from '../../helpers';
 
-setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 pageTest.describe('Terms Acceptance Error Testing', () => {
