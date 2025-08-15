@@ -24,19 +24,10 @@ test.describe('Duplicate User Registration E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
     // Log out to attempt second registration
-    // Wait for user menu button to be visible
-    const userMenuButton = page.getByRole('button', { name: displayName });
-    await expect(userMenuButton.first()).toBeVisible();
-    
-    await userMenuButton.first().click();
-    // Wait for dropdown menu to appear
-    await expect(page.getByText('Sign out')).toBeVisible();
-    
-    // Click sign out in the dropdown
-    await page.getByText('Sign out').click();
-    
-    // Wait for logout to complete and redirect to login page
-    await page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+    // Use the new DashboardPage signOut method
+    const { DashboardPage } = await import('../../pages');
+    const dashboardPage = new DashboardPage(page);
+    await dashboardPage.signOut();
     
     // Navigate to register page
     await registerPage.navigate();

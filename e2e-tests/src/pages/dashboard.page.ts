@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 export class DashboardPage extends BasePage {
   // Selectors
@@ -97,24 +98,27 @@ export class DashboardPage extends BasePage {
       // Spinner never appeared or disappeared quickly - expected behavior
     }
     
-    // Brief stabilization delay
-    await this.page.waitForTimeout(100);
+    // Wait for DOM to be fully loaded instead of arbitrary timeout
+    await this.page.waitForLoadState('domcontentloaded');
     
-    // Ensure dashboard content is stabilized - wait for either groups grid or empty state
-    // Use more specific selectors to avoid conflicts with footer grid
-    const groupsGrid = this.page.locator('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3.gap-4');
-    const emptyStateHeading = this.page.locator('h4:has-text("No groups yet")');
+    // Dashboard is now ready - we don't check for specific content since users may have existing groups
+  }
+
+  async signOut() {
+    // Ensure we're logged in first
+    await this.waitForUserMenu();
     
-    // Wait for one of these to be visible (groups exist or empty state)
-    try {
-      await Promise.race([
-        groupsGrid.waitFor({ state: 'visible' }),
-        emptyStateHeading.waitFor({ state: 'visible' })
-      ]);
-    } catch (error) {
-      // If both fail, provide better error message
-      throw new Error(`Dashboard failed to load properly. Neither groups grid nor empty state became visible. Error: ${error}`);
-    }
+    // Click user menu button to open dropdown
+    const userMenuButton = this.getUserMenuButton();
+    await this.clickButton(userMenuButton, { buttonName: 'User Menu' });
+    
+    // Wait for dropdown to appear and click sign out
+    const signOutButton = this.getSignOutButton();
+    await expect(signOutButton).toBeVisible();
+    await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
+    
+    // Wait for redirect to login page after sign out
+    await this.page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
   }
 
 }

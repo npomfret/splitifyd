@@ -5,7 +5,7 @@ import { setupMCPDebugOnFailure } from '../../helpers';
 setupMCPDebugOnFailure();
 
 test.describe('API Error Handling', () => {
-  test('handles malformed API responses', async ({ authenticatedPage, context }) => {
+  test('handles malformed API responses', async ({ authenticatedPage, dashboardPage, context }) => {
     const { page } = authenticatedPage;
     // NOTE: This test intentionally triggers JSON parse errors
     test.info().annotations.push({ 
@@ -28,7 +28,7 @@ test.describe('API Error Handling', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // App should still be functional despite malformed response
-    const createButton = page.getByRole('button', { name: 'Create Group' });
+    const createButton = dashboardPage.getCreateGroupButton();
     await expect(createButton).toBeVisible();
     await expect(createButton).toBeEnabled();
     

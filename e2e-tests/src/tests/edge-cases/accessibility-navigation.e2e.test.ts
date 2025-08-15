@@ -5,6 +5,13 @@ import { SELECTORS } from '../../constants/selectors';
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
 
+// TODO: PARTIAL CANDIDATE FOR UNIT TEST
+// The "should have proper ARIA labels" test just checks element attributes
+// and could be a unit test. The keyboard navigation test is valid E2E.
+//
+// To convert: The ARIA labels test should be a unit test in webapp-v2
+// that renders form components and checks for proper accessibility attributes.
+// Keep the keyboard navigation test as E2E since it tests actual interaction.
 pageTest.describe('Form Accessibility', () => {
   pageTest('should navigate login form with keyboard', async ({ loginPageNavigated }) => {
     const { page } = loginPageNavigated;
@@ -47,6 +54,30 @@ pageTest.describe('Form Accessibility', () => {
     // Verify inputs exist
     await expect(emailInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
+    
+    // ACTUALLY CHECK ARIA LABELS (fixing misleading test name)
+    // Check that inputs have either aria-label or are associated with labels
+    const emailAriaLabel = await emailInput.getAttribute('aria-label');
+    const emailLabelledBy = await emailInput.getAttribute('aria-labelledby');
+    const emailId = await emailInput.getAttribute('id');
+    
+    // Email input should have accessibility labeling
+    if (!emailAriaLabel && !emailLabelledBy) {
+      // Check if there's a label element pointing to this input
+      const emailLabel = page.locator(`label[for="${emailId}"]`);
+      await expect(emailLabel).toBeVisible();
+    }
+    
+    const passwordAriaLabel = await passwordInput.getAttribute('aria-label');
+    const passwordLabelledBy = await passwordInput.getAttribute('aria-labelledby');
+    const passwordId = await passwordInput.getAttribute('id');
+    
+    // Password input should have accessibility labeling
+    if (!passwordAriaLabel && !passwordLabelledBy) {
+      // Check if there's a label element pointing to this input
+      const passwordLabel = page.locator(`label[for="${passwordId}"]`);
+      await expect(passwordLabel).toBeVisible();
+    }
     
     // No console errors
     // Console errors are automatically captured by 

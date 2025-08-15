@@ -145,8 +145,8 @@ test.describe('Comprehensive Share Link Testing', () => {
       // Simulate network interruption by going offline briefly
       await page2.context().setOffline(true);
       
-      // Wait a bit
-      await page2.waitForTimeout(1000);
+      // Wait for any pending operations to complete
+      await page2.waitForLoadState('networkidle');
       
       // Go back online
       await page2.context().setOffline(false);

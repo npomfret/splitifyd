@@ -247,7 +247,8 @@ export class GroupDetailPage extends BasePage {
     const searchInput = this.page.locator('[role="listbox"] input[type="text"]');
     if (await searchInput.isVisible()) {
       await this.fillPreactInput(searchInput, currencyCode);
-      await this.page.waitForTimeout(200); // Brief wait for search results
+      // Wait for search results to appear
+      await this.page.waitForSelector('[role="listbox"] button[role="option"]', { timeout: 2000 })
     }
     
     // Click on the currency option - look for button with role="option" containing the currency code
@@ -408,11 +409,13 @@ export class GroupDetailPage extends BasePage {
   }
 
   getExactAmountInput() {
-    return this.page.locator('input[type="number"][step="0.01"]').first();
+    // Match text inputs with class w-24 for exact amounts (appears in split section)
+    return this.page.locator('input.w-24[type="text"]').first();
   }
 
   getPercentageInput() {
-    return this.page.locator('input[type="number"][max="100"]').first();
+    // Match text inputs with class w-20 for percentages (appears in split section)
+    return this.page.locator('input.w-20[type="text"]').first();
   }
 
   // Share functionality accessors
@@ -509,9 +512,8 @@ export class GroupDetailPage extends BasePage {
       // This provides a fallback for real-time update timing issues
       console.log(`Expected member text '${expectedText}' not found, checking for members section updates`);
       
-      // Wait a bit more for real-time updates and try again
-      await this.page.waitForTimeout(2000);
-      await this.page.waitForLoadState('domcontentloaded');
+      // Wait for real-time updates to sync
+      await this.page.waitForLoadState('networkidle');
       
       // Final attempt with the expected text
       await expect(this.page.getByText(expectedText))
@@ -943,7 +945,8 @@ export class GroupDetailPage extends BasePage {
     // Fill form with display name-based selection
     const payerSelect = modal.getByRole('combobox', { name: /who paid/i });
     const payeeSelect = modal.getByRole('combobox', { name: /who received the payment/i });
-    const amountInput = modal.getByRole('spinbutton', { name: /amount/i });
+    // Amount input is now a text input with inputMode="decimal" instead of type="number"
+    const amountInput = modal.locator('input[inputMode="decimal"]').first();
     const noteInput = modal.getByRole('textbox', { name: /note/i });
     
     // Wait for payer dropdown to be populated with user data
@@ -999,8 +1002,8 @@ export class GroupDetailPage extends BasePage {
     // Wait for modal to close with increased timeout for settlement processing
     await expect(modal).not.toBeVisible({ timeout: 5000 });
     
-    // Add a small delay to ensure the settlement is fully processed
-    await this.page.waitForTimeout(500);
+    // Wait for settlement processing to complete
+    await this.page.waitForLoadState('networkidle');
     
     // Wait for settlement to be processed
     await this.page.waitForLoadState('domcontentloaded');
@@ -1031,7 +1034,8 @@ export class GroupDetailPage extends BasePage {
   }
 
   getSettlementAmountInput() {
-    return this.page.getByRole('spinbutton', { name: FORM_LABELS.AMOUNT });
+    // Amount input is now a text input with inputMode="decimal" instead of type="number"
+    return this.page.getByRole(ARIA_ROLES.DIALOG).locator('input[inputMode="decimal"]').first();
   }
 
   getPayerSelect() {

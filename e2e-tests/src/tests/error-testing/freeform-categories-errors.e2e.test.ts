@@ -137,7 +137,7 @@ test.describe('Freeform Categories Error Testing', () => {
     await saveButton.click();
     
     // Should stay on the same page (not navigate away)
-    await page.waitForTimeout(1000); // Brief wait to see if navigation occurs
+    await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // There should be an error message or the form should be invalid

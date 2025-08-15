@@ -75,9 +75,12 @@ export abstract class BasePage {
         await this.waitForFocus(input);
         await this.page.waitForLoadState('domcontentloaded');
         
-        // Check if this is a number input - use fill() for number inputs to handle decimals correctly
+        // Check if this is a number input or has decimal inputMode
         const inputType = await input.getAttribute('type');
-        if (inputType === 'number') {
+        const inputMode = await input.getAttribute('inputMode');
+        
+        // Use fill() for number inputs or decimal inputs to handle decimals correctly
+        if (inputType === 'number' || inputMode === 'decimal') {
           await input.fill(value);
         } else {
           await input.pressSequentially(value);
@@ -93,10 +96,26 @@ export abstract class BasePage {
           return; // Success!
         }
         
+        // For number/decimal inputs, check if values are numerically equal (handles decimal normalization)
+        // This is kept for backward compatibility with any remaining number inputs
+        if (inputType === 'number' || inputMode === 'decimal') {
+          const expectedNum = parseFloat(value);
+          const actualNum = parseFloat(actualValue);
+          if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
+            // Values are numerically equal (e.g., "45.50" and "45.5")
+            // With text inputs, this should no longer happen, but keep for safety
+            await this.page.waitForLoadState('domcontentloaded');
+            return; // Success - number normalization is expected!
+          }
+        }
+        
         // Log and retry if not final attempt
         if (attempt < maxRetries) {
           const fieldId = await this.getFieldIdentifier(input);
-          console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
+          // Only warn if it's not expected number normalization
+          if (inputType !== 'number' || parseFloat(value) !== parseFloat(actualValue)) {
+            console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
+          }
           // Use DOM state waiting instead of arbitrary timeout
           await this.page.waitForLoadState('domcontentloaded');
         }

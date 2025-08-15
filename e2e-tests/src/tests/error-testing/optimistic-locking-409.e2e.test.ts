@@ -101,9 +101,11 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     // Wait for both to complete (success or failure)
     const results = await savePromises;
     
-    // Wait a bit for navigation/error handling
-    await user1Page.waitForTimeout(2000);
-    await user2Page.waitForTimeout(2000);
+    // Wait for navigation/error handling to complete
+    await Promise.all([
+      user1Page.waitForLoadState('networkidle'),
+      user2Page.waitForLoadState('networkidle')
+    ]);
     
     // Check where each user ended up
     const user1Url = user1Page.url();
