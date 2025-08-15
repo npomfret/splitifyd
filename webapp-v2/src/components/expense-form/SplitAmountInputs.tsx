@@ -68,7 +68,7 @@ export function SplitAmountInputs({
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*\.?[0-9]*"
-                  value={split?.amount || 0}
+                  value={split?.amount || ''}
                   onInput={(e) => {
                     const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                     updateSplitAmount(participantId, value);
@@ -121,7 +121,7 @@ export function SplitAmountInputs({
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*\.?[0-9]*"
-                  value={split?.percentage || 0}
+                  value={split?.percentage || ''}
                   onInput={(e) => {
                     const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                     updateSplitPercentage(participantId, value);
