@@ -26,7 +26,7 @@ multiUserTest.describe('Removed User Access', () => {
     await expect(user1Page).toHaveURL(new RegExp(`/groups/${groupId}`));
     
     // Get the share link
-    const shareLink = await groupDetailPage.getShareLinkReliably();
+    const shareLink = await groupDetailPage.getShareLink();
 
     // Step 2: User 2 joins the group and navigates to it
     await user2Page.goto(shareLink);

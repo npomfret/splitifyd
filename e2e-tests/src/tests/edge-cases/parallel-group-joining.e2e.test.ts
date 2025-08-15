@@ -262,7 +262,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       const groupId = await groupWorkflow.createGroup(groupName, 'Testing race conditions');
       
       // Get share link
-      const shareLink = await creatorGroupDetailPage.getShareLinkReliably();
+      const shareLink = await creatorGroupDetailPage.getShareLink();
       
       // All other users attempt to join simultaneously with minimal delay
       const joinPromises = users.slice(1).map(async (user, index) => {

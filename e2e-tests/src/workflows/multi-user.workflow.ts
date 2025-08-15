@@ -21,7 +21,7 @@ export class MultiUserWorkflow {
    */
   async getShareLink(page: Page): Promise<string> {
     const groupDetailPage = new GroupDetailPage(page);
-    return await groupDetailPage.getShareLinkReliably();
+    return await groupDetailPage.getShareLink();
   }
 
   /**

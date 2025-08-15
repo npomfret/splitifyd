@@ -22,7 +22,7 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     await expect(user1Page).toHaveURL(new RegExp(`/groups/${groupId}`));
     
     // Get share link and have user 2 join
-    const shareLink = await groupDetailPage.getShareLinkReliably();
+    const shareLink = await groupDetailPage.getShareLink();
     await user2Page.goto(shareLink);
     await user2Page.getByRole('button', { name: 'Join Group' }).click();
     await expect(user2Page).toHaveURL(new RegExp(`/groups/${groupId}`));
