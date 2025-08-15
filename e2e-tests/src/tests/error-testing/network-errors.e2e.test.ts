@@ -70,7 +70,7 @@ test.describe('Error Handling', () => {
     await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
     
     // Try to submit empty form
-    const submitButton = page.locator(SELECTORS.FORM).getByRole('button', { name: 'Create Group' });
+    const submitButton = createGroupModalPage.getCreateGroupFormButton();
     await expect(submitButton).toBeVisible();
     
     // Submit button should be disabled for empty form
@@ -131,7 +131,7 @@ test.describe('Error Handling', () => {
     }
   });
 
-  test('handles malformed API responses', async ({ authenticatedPage, primaryUser }) => {
+  test('handles malformed API responses', async ({ authenticatedPage, dashboardPage, primaryUser }) => {
     const { page } = authenticatedPage;
     const { context } = primaryUser;
     // NOTE: This test intentionally triggers JSON parse errors
@@ -155,7 +155,7 @@ test.describe('Error Handling', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // App should still be functional despite malformed response
-    const createButton = page.getByRole('button', { name: 'Create Group' });
+    const createButton = dashboardPage.getCreateGroupButton();
     await expect(createButton).toBeVisible();
     await expect(createButton).toBeEnabled();
     
