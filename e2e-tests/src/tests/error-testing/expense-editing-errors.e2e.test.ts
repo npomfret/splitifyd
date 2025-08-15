@@ -72,10 +72,10 @@ test.describe('Expense Editing Error Testing', () => {
     // Wait for navigation to expense detail page (following working pattern)
     await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // Verify the change was applied
-    await expect(page.getByText('Amount Edit Test')).toBeVisible();
-    // Use more specific selector to avoid strict mode violation
-    await expect(page.getByRole('heading', { name: '$75.50' })).toBeVisible();
+    // Verify the change was applied - use exact match to avoid strict mode violation
+    await expect(page.getByText('Amount Edit Test', { exact: true })).toBeVisible();
+    // Check that the amount heading contains the new value
+    await expect(page.getByRole('heading', { name: /Amount Edit Test.*\$75\.50/ })).toBeVisible();
   });
 
 
@@ -110,7 +110,7 @@ test.describe('Expense Editing Error Testing', () => {
     const expenseElement = groupDetailPage.getExpenseByDescription("High Amount Expense");
     await expect(expenseElement).toBeVisible();
     await expenseElement.click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     
     const editButton = page.getByRole("button", { name: /edit/i });
     await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
@@ -129,9 +129,9 @@ test.describe('Expense Editing Error Testing', () => {
     
     await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // Verify amount was decreased - use specific selector
-    await expect(page.getByText("High Amount Expense")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "$25.75" })).toBeVisible();
+    // Verify amount was decreased - use exact match to avoid strict mode violation
+    await expect(page.getByText("High Amount Expense", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /High Amount Expense.*\$25\.75/ })).toBeVisible();
   });
 
   test('should edit expense description successfully', async ({ 
@@ -188,8 +188,8 @@ test.describe('Expense Editing Error Testing', () => {
     
     await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    // Verify description was updated
-    await expect(page.getByText('Updated Description Text')).toBeVisible();
-    await expect(page.getByRole('heading', { name: '$42.99' })).toBeVisible();
+    // Verify description was updated - use exact match to avoid strict mode violation
+    await expect(page.getByText('Updated Description Text', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Updated Description Text.*\$42\.99/ })).toBeVisible();
   });
 });

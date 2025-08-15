@@ -15,7 +15,6 @@ interface ExpenseBasicFieldsProps {
   category: string;
   validationErrors: any;
   updateField: (field: string, value: any) => void;
-  handleAmountChange: (e: Event) => void;
   getRecentAmounts: () => number[];
   PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[];
 }
@@ -29,7 +28,6 @@ export function ExpenseBasicFields({
   category,
   validationErrors,
   updateField,
-  handleAmountChange,
   getRecentAmounts,
   PREDEFINED_EXPENSE_CATEGORIES
 }: ExpenseBasicFieldsProps) {
@@ -225,10 +223,7 @@ export function ExpenseBasicFields({
               />
             ) : (
               /* Show clock icon button when time field is hidden */
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Time
-                </label>
+              <div className="flex items-center h-[68px]">
                 <button
                   type="button"
                   onClick={() => {
@@ -239,11 +234,11 @@ export function ExpenseBasicFields({
                     const minutes = now.getMinutes().toString().padStart(2, '0');
                     updateField('time', `${hours}:${minutes}`);
                   }}
-                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors dark:bg-gray-700 dark:text-white"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   title="Add specific time"
+                  aria-label="Add specific time"
                 >
-                  <ClockIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Add time (defaults to noon)</span>
+                  <ClockIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
                 </button>
               </div>
             )}

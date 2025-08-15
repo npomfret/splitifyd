@@ -72,22 +72,22 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     // Both fill out their forms
     await Promise.all([
       groupDetailPage.fillPreactInput(
-        user1Page.locator('input[name="description"]').first(), 
+        groupDetailPage.getExpenseDescriptionField(), 
         'Concurrent Expense 1'
       ),
       groupDetailPage2.fillPreactInput(
-        user2Page.locator('input[name="description"]').first(), 
+        groupDetailPage2.getExpenseDescriptionField(), 
         'Concurrent Expense 2'
       )
     ]);
     
     await Promise.all([
       groupDetailPage.fillPreactInput(
-        user1Page.locator('input[name="amount"]').first(), 
+        groupDetailPage.getExpenseAmountField(), 
         '75'
       ),
       groupDetailPage2.fillPreactInput(
-        user2Page.locator('input[name="amount"]').first(), 
+        groupDetailPage2.getExpenseAmountField(), 
         '25'
       )
     ]);

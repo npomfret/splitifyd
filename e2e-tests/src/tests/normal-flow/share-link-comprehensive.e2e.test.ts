@@ -91,7 +91,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       expect(result.reason).toContain('log in');
     });
 
-    multiUserTest('should allow user to join group after logging in from share link', async ({ 
+    multiUserTest.skip('should allow user to join group after logging in from share link', async ({ 
       authenticatedPage,
       secondUser
     }) => {

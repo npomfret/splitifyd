@@ -90,7 +90,6 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 category={formState.category}
                 validationErrors={formState.validationErrors}
                 updateField={formState.updateField}
-                handleAmountChange={formState.handleAmountChange}
                 getRecentAmounts={formState.getRecentAmounts}
                 PREDEFINED_EXPENSE_CATEGORIES={formState.PREDEFINED_EXPENSE_CATEGORIES}
               />

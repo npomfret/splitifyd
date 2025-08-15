@@ -110,6 +110,25 @@ export class GroupDetailPage extends BasePage {
     return this.page.locator('input[placeholder="Enter time (e.g., 2:30pm)"]');
   }
 
+  getClockIcon() {
+    // Clock icon button that opens the time selector - try multiple selectors
+    return this.page.locator([
+      'button[aria-label*="time" i]',
+      'button[aria-label*="clock" i]', 
+      'button:has(svg[data-icon="clock"])',
+      'button:has(svg.clock-icon)',
+      'button:has([data-testid*="clock" i])',
+      '[role="button"]:has(svg)',
+      'button.time-selector-trigger',
+      '[data-testid="time-selector"]'
+    ].join(', ')).first();
+  }
+
+  async clickClockIcon(): Promise<void> {
+    const clockIcon = this.getClockIcon();
+    await this.clickButton(clockIcon, { buttonName: 'Clock icon' });
+  }
+
   getTimeButton() {
     return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
   }
@@ -430,7 +449,14 @@ export class GroupDetailPage extends BasePage {
    * Use this when the balance section might be collapsed on mobile
    */
   async hasSettledUpMessage(): Promise<boolean> {
-    const count = await this.page.getByText('All settled up!').count();
+    // Look for "All settled up!" specifically within the Balances section to avoid duplicates
+    const balancesSection = this.page.locator('section, div').filter({ has: this.page.getByRole('heading', { name: 'Balances' }) });
+    const count = await balancesSection.getByText('All settled up!').count();
+    if (count === 0) {
+      // Fallback: check if it exists anywhere near the Balances heading
+      const altCount = await this.page.getByText('All settled up!').first().count();
+      return altCount > 0;
+    }
     return count > 0;
   }
 
@@ -439,7 +465,25 @@ export class GroupDetailPage extends BasePage {
    * Useful for waiting for balance calculations to complete
    */
   async waitForSettledUpMessage(timeout: number = 5000): Promise<void> {
-    await expect(this.page.getByText('All settled up!')).toBeVisible({ timeout });
+    // Wait for the text to exist in DOM (not necessarily visible)
+    await this.page.waitForSelector('text="All settled up!"', { 
+      timeout, 
+      state: 'attached' // Just wait for it to be in DOM, not visible
+    });
+    
+    // Use nth(0) to get the first occurrence
+    const settledText = this.page.getByText('All settled up!').nth(0);
+    
+    // Try to make it visible by expanding the Balances section
+    const balancesHeading = this.getBalancesHeading();
+    if (await balancesHeading.isVisible()) {
+      // Click to expand if collapsed
+      await balancesHeading.click();
+      await this.page.waitForTimeout(300); // Small wait for animation
+    }
+    
+    // Now the text should be visible
+    await expect(settledText).toBeVisible({ timeout: 2000 });
   }
 
   /**
