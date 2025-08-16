@@ -95,4 +95,33 @@ export class LoginPage extends BasePage {
   getPasswordLabel() {
     return this.page.getByText('Password *');
   }
+
+  // Security testing methods
+  getLoginForm() {
+    return this.page.locator('[data-testid="login-form"]');
+  }
+
+  getDashboardElement() {
+    return this.page.locator('[data-testid="dashboard"]');
+  }
+
+  getEmailInputTestId() {
+    return this.page.locator('[data-testid="email-input"]');
+  }
+
+  getPasswordInputTestId() {
+    return this.page.locator('[data-testid="password-input"]');
+  }
+
+  getLoginSubmitTestId() {
+    return this.page.locator('[data-testid="login-submit"]');
+  }
+
+  getErrorMessage() {
+    return this.page.locator('[data-testid="error-message"]');
+  }
+
+  getForgotPasswordLink() {
+    return this.page.locator('[data-testid="forgot-password"], text=Forgot password, text=Reset password');
+  }
 }

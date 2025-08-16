@@ -33,7 +33,7 @@ test.describe('Group Details E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/);
     
     // Navigate back to group to continue verification
-    await page.goto(`/groups/${groupId}`);
+    await groupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
     await expect(page).toHaveURL(`/groups/${groupId}`);
     
     // Verify share button is available (more reliable than settings)

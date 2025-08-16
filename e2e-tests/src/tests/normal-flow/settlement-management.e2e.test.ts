@@ -56,8 +56,13 @@ test.describe('Settlement Management', () => {
     // Should be disabled due to same person validation
     await expect(submitButton).toBeDisabled();
     
-    // Close modal
-    await page.keyboard.press('Escape');
+    // Close modal by clicking close button or outside
+    const closeButton = page.getByRole('button', { name: /close|×/i }).first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      await page.click('body', { position: { x: 10, y: 10 } });
+    }
     await expect(modal).not.toBeVisible();
   });
 });

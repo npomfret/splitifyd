@@ -68,7 +68,6 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       await Promise.all(joinPromises);
       
       // Verify all users see complete member list
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Allow sync
       
       for (const page of pages) {
         const groupDetailPage = new GroupDetailPage(page);
@@ -120,7 +119,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       
       await creatorPage.goto('/dashboard');
       const groupWorkflow = new GroupWorkflow(creatorPage);
-      await groupWorkflow.createGroupAndNavigate(
+      const groupId = await groupWorkflow.createGroupAndNavigate(
         generateTestGroupName('RaceCondition'), 
         'Testing race conditions'
       );
@@ -129,7 +128,6 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       
       // Join with random delays to create race conditions
       const joinPromises = pages.slice(1).map(async (page, i) => {
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
         
         try {
           await page.goto(shareLink);
@@ -148,8 +146,8 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       // At least some joins should succeed
       expect(successCount).toBeGreaterThan(0);
       
-      // Creator page should still work
-      await creatorPage.reload();
+      // Creator page should still work after race conditions
+      await creatorGroupDetailPage.waitForBalancesToLoad(groupId);
       await expect(creatorGroupDetailPage.getGroupTitle()).toBeVisible();
       
       console.log(`✅ System stable: ${successCount}/${totalUsers - 1} joins succeeded`);

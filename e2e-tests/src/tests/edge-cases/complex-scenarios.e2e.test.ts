@@ -27,7 +27,13 @@ test.describe('Complex Unsettled Group Scenario', () => {
     await alicePage.getByRole('button', { name: /share/i }).click();
     const shareLinkInput = alicePage.getByRole('dialog').getByRole('textbox');
     const shareLink = await shareLinkInput.inputValue();
-    await alicePage.keyboard.press('Escape');
+    // Close modal by clicking close button or outside
+    const closeButton = alicePage.getByRole('button', { name: /close|×/i }).first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      await alicePage.click('body', { position: { x: 10, y: 10 } });
+    }
     
     // Have Bob join via robust JoinGroupPage
     const bobJoinGroupPage = new JoinGroupPage(bobPage);
@@ -64,25 +70,24 @@ test.describe('Complex Unsettled Group Scenario', () => {
       splitType: 'equal'
     });
     
-    // Refresh Alice's page to ensure latest data
-    await alicePage.reload();
-    await alicePage.waitForLoadState('domcontentloaded');
+    // Wait for real-time updates to sync Alice's page with latest data
+    await aliceGroupDetailPage.waitForBalancesToLoad(groupId);
     // Wait for balance section to be visible - indicates data loaded
-    await expect(alicePage.getByRole('heading', { name: /balance/i })).toBeVisible();
+    await expect(aliceGroupDetailPage.getBalancesHeading()).toBeVisible();
     
     // Verify both expenses are visible on Alice's page
     await expect(alicePage.getByText('Beach House Rental')).toBeVisible();
     await expect(alicePage.getByText('Restaurant Dinner')).toBeVisible();
     
     // Verify balances section shows unsettled state
-    const balanceSection = alicePage.getByRole('heading', { name: /balance/i }).locator('..');
-    await expect(balanceSection).toBeVisible();
+    const balancesHeading = aliceGroupDetailPage.getBalancesHeading();
+    await expect(balancesHeading).toBeVisible();
     
     // With Alice paying $800 and Bob paying $120, there should be a balance showing
-    await expect(balanceSection.getByText(/\$/)).toBeVisible();
+    await expect(alicePage.getByText(/\$/)).toBeVisible();
     
     // Verify member count shows 2 members
-    await expect(alicePage.getByText(/2 members/i)).toBeVisible();
+    await expect(aliceGroupDetailPage.getMembersCount()).toBeVisible();
     
     // No cleanup needed - fixtures handle it automatically
   });

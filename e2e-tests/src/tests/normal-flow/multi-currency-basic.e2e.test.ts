@@ -33,7 +33,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     
     // Verify back on group page with USD expense
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    await expect(page.getByText('$25.00')).toBeVisible();
+    await expect(groupDetailPage.getCurrencyAmount('25.00')).toBeVisible();
     
     // Create EUR expense
     const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -46,7 +46,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     });
     
     // Verify both expenses with separate currencies
-    await expect(page.getByText('$25.00')).toBeVisible();
+    await expect(groupDetailPage.getCurrencyAmount('25.00')).toBeVisible();
     await expect(page.getByText('€30.00')).toBeVisible();
     
     // Verify balances show correct currency symbols
@@ -195,10 +195,10 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     });
     
     // Navigate back to dashboard
-    await page.goto('/dashboard');
+    await dashboardPage.navigate();
     
     // Verify the group card displays properly
-    const groupCard = page.locator('[data-testid="group-card"]').first();
+    const groupCard = dashboardPage.getGroupCard();
     await expect(groupCard).toBeVisible();
     
     // For a single-user group, it should show "Settled up"

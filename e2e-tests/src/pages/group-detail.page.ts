@@ -332,7 +332,14 @@ export class GroupDetailPage extends BasePage {
       const showHistoryButton = page.getByRole('button', { name: 'Show History' });
       await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
       await expect(page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
-      await page.keyboard.press('Escape');
+      // Close modal by clicking close button or clicking outside
+      const closeButton = page.getByRole('button', { name: /close|×/i }).first();
+      if (await closeButton.isVisible()) {
+        await closeButton.click();
+      } else {
+        // Click outside modal to close
+        await page.click('body', { position: { x: 10, y: 10 } });
+      }
     }
   }
 
@@ -585,8 +592,14 @@ export class GroupDetailPage extends BasePage {
       throw new Error(`Invalid share link received: ${shareLink}`);
     }
 
-    // Close modal
-    await this.page.keyboard.press('Escape');
+    // Close modal by clicking close button or clicking outside
+    const closeButton = this.page.getByRole('button', { name: /close|×/i }).first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      // Click outside modal to close
+      await this.page.click('body', { position: { x: 10, y: 10 } });
+    }
 
     return shareLink;
   }
@@ -665,10 +678,30 @@ export class GroupDetailPage extends BasePage {
   }
 
   /**
-   * Close modal or dialog with Escape key
+   * Close modal or dialog
    */
-  async closeModalWithEscape(): Promise<void> {
-    await this.page.keyboard.press('Escape');
+  async closeModal(): Promise<void> {
+    const closeButton = this.page.getByRole('button', { name: /close|×/i }).first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      // Click outside modal to close
+      await this.page.click('body', { position: { x: 10, y: 10 } });
+    }
+  }
+
+  /**
+   * Get edit button for expenses
+   */
+  getEditButton() {
+    return this.page.getByRole('button', { name: /edit/i });
+  }
+
+  /**
+   * Get amount input field
+   */
+  getAmountField() {
+    return this.page.locator('[data-testid="expense-amount"], input[type="number"]').first();
   }
 
   /**

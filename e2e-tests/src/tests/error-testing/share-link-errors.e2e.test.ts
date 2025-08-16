@@ -1,11 +1,13 @@
 import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
+import { JoinGroupPage } from '../../pages';
 
 setupMCPDebugOnFailure();
 
 test.describe('Share Link Error Handling', () => {
   test('should handle invalid share links', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
+    const joinGroupPage = new JoinGroupPage(page);
     
     const invalidShareLink = `${page.url().split('/dashboard')[0]}/join?linkId=invalid-group-id`;
     
@@ -13,7 +15,7 @@ test.describe('Share Link Error Handling', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // The app now shows an error message for invalid links instead of 404
-    await expect(page.getByText('Unable to Join Group')).toBeVisible();
+    await expect(joinGroupPage.getErrorMessage()).toBeVisible();
     
     // Should show an error message
     await expect(page.getByText(/Invalid share link|Group not found|expired/i)).toBeVisible();

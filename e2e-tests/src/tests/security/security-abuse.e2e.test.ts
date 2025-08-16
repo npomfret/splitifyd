@@ -591,7 +591,14 @@ test.describe('Security Abuse Prevention Tests', () => {
         
         for (const query of complexQueries) {
           await searchField.fill(query);
-          await page.press('[data-testid="search-input"]', 'Enter');
+          // Submit search using button instead of keyboard
+          const searchButton = page.getByRole('button', { name: /search/i });
+          if (await searchButton.isVisible()) {
+            await searchButton.click();
+          } else {
+            // If no search button, submit the form containing the search input
+            await searchField.press('Enter');
+          }
           await page.waitForLoadState('domcontentloaded');
           
           // Should handle complex queries gracefully
@@ -603,7 +610,14 @@ test.describe('Security Abuse Prevention Tests', () => {
           
           // Clear search for next test
           await searchField.fill('');
-          await page.press('[data-testid="search-input"]', 'Enter');
+          // Submit search using button instead of keyboard
+          const searchButton = page.getByRole('button', { name: /search/i });
+          if (await searchButton.isVisible()) {
+            await searchButton.click();
+          } else {
+            // If no search button, submit the form containing the search input
+            await searchField.press('Enter');
+          }
         }
       }
     });
