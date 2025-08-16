@@ -58,8 +58,7 @@ export class GroupDetailPage extends BasePage {
   }
 
   async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
-    const addButton = this.getAddExpenseButton();
-    await this.clickButton(addButton, { buttonName: 'Add Expense' });
+    await this.clickButton(this.getAddExpenseButton(), { buttonName: 'Add Expense' });
     
     // Wait for navigation to expense form
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
