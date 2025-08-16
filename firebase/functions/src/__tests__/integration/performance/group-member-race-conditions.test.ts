@@ -8,14 +8,18 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { UserBuilder, GroupBuilder } from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Group Member Race Conditions', () => {
   let driver: ApiDriver;
   let users: User[] = [];
 
-  jest.setTimeout(15000); // Longer timeout for race condition tests
+  jest.setTimeout(10000); // Tests take ~8.6s
 
   beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
     driver = new ApiDriver();
     users = await Promise.all([
       driver.createUser(new UserBuilder().build()),
@@ -23,6 +27,11 @@ describe('Group Member Race Conditions', () => {
       driver.createUser(new UserBuilder().build()),
       driver.createUser(new UserBuilder().build()),
     ]);
+  });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
   });
 
   describe('Expenses persist when users join group', () => {

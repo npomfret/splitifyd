@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { userService } from '../services/userService';
@@ -7,6 +8,7 @@ import { validateGroupId } from './validation';
 import { logger } from '../logger';
 import { User, GroupMembersResponse, FirestoreCollections } from '../shared/shared-types';
 import { Group } from '../shared/shared-types';
+import { calculateGroupBalances } from '../services/balanceCalculator';
 
 /**
  * Transform a Firestore document to a Group
@@ -155,9 +157,47 @@ export const leaveGroup = async (
       throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
     }
     
+    // Prevent creator from leaving
+    if (group.createdBy === userId) {
+      throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
+    }
+    
     // Can't leave if you're the only member
     if (group.memberIds.length === 1) {
       throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
+    }
+    
+    // Check if user has outstanding balance
+    try {
+      const groupBalance = await calculateGroupBalances(groupId);
+      const balancesByCurrency = groupBalance.balancesByCurrency;
+      
+      // Find user's balance across all currencies
+      for (const currency in balancesByCurrency) {
+        const currencyBalances = balancesByCurrency[currency];
+        const userBalance = currencyBalances[userId];
+        
+        if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
+          throw Errors.INVALID_INPUT({ message: 'Cannot leave group with outstanding balance' });
+        }
+      }
+    } catch (balanceError: unknown) {
+      // If it's our custom error about outstanding balance, re-throw it
+      // Check both the error message and the details message for ApiError
+      const errorMessage = balanceError instanceof Error ? balanceError.message : String(balanceError);
+      const apiErrorDetails = (balanceError as any)?.details?.message || '';
+      
+      if (errorMessage.includes('Cannot leave group with outstanding balance') || 
+          apiErrorDetails.includes('Cannot leave group with outstanding balance')) {
+        throw balanceError;
+      }
+      
+      // Log other errors but allow leaving if balance calculation fails
+      logger.warn('Failed to calculate balances when leaving group', { 
+        error: balanceError instanceof Error ? balanceError : new Error(String(balanceError)),
+        groupId,
+        userId 
+      });
     }
     
     // Remove user from members list
@@ -166,7 +206,7 @@ export const leaveGroup = async (
     // Update group
     await docRef.update({
       'data.memberIds': updatedMembers,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp()
     });
     
     logger.info('User left group', { userId, groupId });
@@ -225,9 +265,42 @@ export const removeGroupMember = async (
       throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
     }
     
-    // Can't remove yourself as creator
-    if (memberId === userId) {
-      throw Errors.INVALID_INPUT({ message: 'Cannot remove yourself as the group creator' });
+    // Can't remove the creator
+    if (memberId === group.createdBy) {
+      throw Errors.INVALID_INPUT({ message: 'Group creator cannot be removed' });
+    }
+    
+    // Check if member has outstanding balance
+    try {
+      const groupBalance = await calculateGroupBalances(groupId);
+      const balancesByCurrency = groupBalance.balancesByCurrency;
+      
+      // Find member's balance across all currencies
+      for (const currency in balancesByCurrency) {
+        const currencyBalances = balancesByCurrency[currency];
+        const memberBalance = currencyBalances[memberId];
+        
+        if (memberBalance && Math.abs(memberBalance.netBalance) > 0.01) {
+          throw Errors.INVALID_INPUT({ message: 'Cannot remove member with outstanding balance' });
+        }
+      }
+    } catch (balanceError: unknown) {
+      // If it's our custom error about outstanding balance, re-throw it
+      // Check both the error message and the details message for ApiError
+      const errorMessage = balanceError instanceof Error ? balanceError.message : String(balanceError);
+      const apiErrorDetails = (balanceError as any)?.details?.message || '';
+      
+      if (errorMessage.includes('Cannot remove member with outstanding balance') || 
+          apiErrorDetails.includes('Cannot remove member with outstanding balance')) {
+        throw balanceError;
+      }
+      
+      // Log other errors but allow removal if balance calculation fails
+      logger.warn('Failed to calculate balances when removing member', { 
+        error: balanceError instanceof Error ? balanceError : new Error(String(balanceError)),
+        groupId,
+        memberId 
+      });
     }
     
     // Remove member from group
@@ -236,14 +309,14 @@ export const removeGroupMember = async (
     // Update group
     await docRef.update({
       'data.memberIds': updatedMembers,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp()
     });
     
     logger.info('Member removed from group', { userId, groupId, memberId });
     
     res.json({
       success: true,
-      message: 'Member successfully removed from the group'
+      message: 'Member removed successfully'
     });
   } catch (error) {
     logger.error('Error in removeGroupMember', { 

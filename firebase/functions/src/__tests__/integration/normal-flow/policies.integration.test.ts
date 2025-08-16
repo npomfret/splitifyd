@@ -1,22 +1,12 @@
-import * as admin from 'firebase-admin';
+import { admin, getTestConfig } from '../../support/firebase-test-setup';
 import { FirestoreCollections, PolicyIds } from '../../../shared/shared-types';
 import * as crypto from 'crypto';
 
-// Set up environment for tests
-process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8180';
-process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
-
-const API_BASE_URL = 'http://127.0.0.1:5001/splitifyd/us-central1/api';
+const config = getTestConfig();
+const API_BASE_URL = config.baseUrl;
 
 describe('Policies API Integration Tests', () => {
   beforeAll(async () => {
-    // Initialize admin SDK for test setup
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        projectId: 'splitifyd'
-      });
-    }
-
     // Seed test data
     const firestore = admin.firestore();
     const now = new Date().toISOString();

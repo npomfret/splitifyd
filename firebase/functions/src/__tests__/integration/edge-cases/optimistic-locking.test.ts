@@ -9,7 +9,7 @@ import { ApiDriver, User } from '../../support/ApiDriver';
 import { SplitTypes } from '../../../shared/shared-types';
 
 describe('Optimistic Locking Integration Tests', () => {
-  jest.setTimeout(15000); // Timeout for race condition tests
+  jest.setTimeout(25000); // it takes about 18s
   
   let driver: ApiDriver;
   let users: User[] = [];

@@ -5,20 +5,29 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
 import { UserBuilder } from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Performance - Concurrent User Operations', () => {
     let driver: ApiDriver;
     let mainUser: User;
     let workers: PerformanceTestWorkers;
 
-    jest.setTimeout(60000);
+    jest.setTimeout(10000); // Tests take ~1.6s
 
     beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
         mainUser = await driver.createUser(new UserBuilder().build());
     });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
+  });
 
     const testCases = [
         { users: 3, expensesPerUser: 1, timeoutMs: 5000, description: 'small load' },

@@ -5,6 +5,7 @@
 import {v4 as uuidv4} from 'uuid';
 import {ApiDriver, User} from '../../support/ApiDriver';
 import {ExpenseBuilder, UserBuilder} from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 import type {Group} from "../../../shared/shared-types";
 
 describe('Error Handling and Recovery Testing', () => {
@@ -15,6 +16,9 @@ describe('Error Handling and Recovery Testing', () => {
     jest.setTimeout(10000); // Timeout for error handling tests
 
     beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
         driver = new ApiDriver();
 
         // Create main test user
@@ -23,6 +27,11 @@ describe('Error Handling and Recovery Testing', () => {
         // Create a test group
         testGroup = await driver.createGroupWithMembers('Error Handling Test Group', [mainUser], mainUser.token);
     });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
+  });
 
     describe('4.1 Service Outage Scenarios', () => {
         describe('External Service Failures', () => {

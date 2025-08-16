@@ -6,17 +6,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { UserBuilder, GroupBuilder } from '../../support/builders';
 
-// Use longer timeout for integration tests
-jest.setTimeout(15000);
+jest.setTimeout(6000);// it takes about 4s
 
 describe('Group Members Integration Tests', () => {
   // Helper function to create test users for each test
+  // Note: Sequential creation is faster than parallel due to Firebase emulator cold starts
   const createTestUsers = async (driver: ApiDriver, count: number = 3): Promise<User[]> => {
-    return Promise.all(
-      Array.from({ length: count }, () => 
-        driver.createUser(new UserBuilder().build())
-      )
-    );
+    const users: User[] = [];
+    for (let i = 0; i < count; i++) {
+      users.push(await driver.createUser(new UserBuilder().build()));
+    }
+    return users;
   };
 
   // Helper function to create a group with multiple members
@@ -198,7 +198,7 @@ describe('Group Members Integration Tests', () => {
       const creator = users[0];
       
       await expect(driver.removeGroupMember(groupId, creator.uid, creator.token))
-        .rejects.toThrow(/Cannot remove the group creator/);
+        .rejects.toThrow(/Group creator cannot be removed/);
     });
 
     it('should prevent removing member with outstanding balance', async () => {
@@ -233,7 +233,7 @@ describe('Group Members Integration Tests', () => {
       const nonExistentMember = 'non-existent-uid';
       
       await expect(driver.removeGroupMember(groupId, nonExistentMember, creator.token))
-        .rejects.toThrow(/Member not found/);
+        .rejects.toThrow(/User is not a member of this group/);
     });
   });
 

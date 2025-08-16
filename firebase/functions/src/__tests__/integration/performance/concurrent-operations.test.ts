@@ -5,16 +5,22 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
+import { TestResourceTracker, clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Concurrent Operations and Transaction Integrity', () => {
   let driver: ApiDriver;
   let users: User[] = [];
   let testGroup: any;
+  let tracker: TestResourceTracker;
 
-  jest.setTimeout(30000); // Increased timeout for concurrent operations
+  jest.setTimeout(14000); // Tests take ~16.9s
 
   beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
     driver = new ApiDriver();
+    tracker = new TestResourceTracker();
     
     // Create more users for concurrent testing
     users = await Promise.all([
@@ -24,10 +30,21 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       driver.createUser(new UserBuilder().build()),
       driver.createUser(new UserBuilder().build()),
     ]);
+    
+    // Track all users for cleanup
+    users.forEach(user => tracker.trackUser(user.uid));
+  });
+
+  afterAll(async () => {
+    // Clean up all test resources
+    await tracker.cleanup();
+    // Clear all test data to ensure clean state
+    await clearAllTestData();
   });
 
   beforeEach(async () => {
     testGroup = await driver.createGroupWithMembers(`Concurrent Test Group ${uuidv4()}`, users, users[0].token);
+    tracker.trackGroup(testGroup.id);
   });
 
   describe('Race Conditions', () => {
@@ -143,6 +160,9 @@ describe('Concurrent Operations and Transaction Integrity', () => {
         driver.createUser(new UserBuilder().build()),
         driver.createUser(new UserBuilder().build()),
       ]);
+      
+      // Track new users for cleanup
+      newUsers.forEach(user => tracker.trackUser(user.uid));
 
       // Generate share link
       const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
@@ -177,6 +197,7 @@ describe('Concurrent Operations and Transaction Integrity', () => {
     test('should prevent duplicate concurrent joins by same user', async () => {
       // Create a new user for this test
       const duplicateUser = await driver.createUser(new UserBuilder().build());
+      tracker.trackUser(duplicateUser.uid);
 
       // Generate share link
       const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);

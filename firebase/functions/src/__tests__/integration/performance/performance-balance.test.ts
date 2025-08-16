@@ -4,15 +4,24 @@
 
 import { ApiDriver } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Performance - Balance Consistency Under Load', () => {
     let driver: ApiDriver;
 
-    jest.setTimeout(60000);
+    jest.setTimeout(10000); // Tests take ~1.4s
 
     beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
         driver = new ApiDriver();
     });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
+  });
 
     const testCases = [
         { expensesPerUserPair: 5, description: 'small dataset' },

@@ -6,6 +6,7 @@ import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { UserBuilder, ExpenseBuilder, SettlementBuilder } from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Negative Value Validation', () => {
   let driver: ApiDriver;
@@ -15,11 +16,19 @@ describe('Negative Value Validation', () => {
   jest.setTimeout(10000);
 
   beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
     driver = new ApiDriver();
     users = await Promise.all([
       driver.createUser(new UserBuilder().build()),
       driver.createUser(new UserBuilder().build())
     ]);
+  });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
   });
 
   beforeEach(async () => {

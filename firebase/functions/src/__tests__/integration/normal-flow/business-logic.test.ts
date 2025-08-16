@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder, GroupBuilder } from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Business Logic Edge Cases', () => {
   let driver: ApiDriver;
@@ -14,12 +15,20 @@ describe('Business Logic Edge Cases', () => {
   jest.setTimeout(10000);
 
   beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
     driver = new ApiDriver();
     users = await Promise.all([
       driver.createUser(new UserBuilder().build()),
       driver.createUser(new UserBuilder().build()),
       driver.createUser(new UserBuilder().build()),
     ]);
+  });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
   });
 
   beforeEach(async () => {

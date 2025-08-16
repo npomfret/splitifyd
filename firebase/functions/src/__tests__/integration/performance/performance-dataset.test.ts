@@ -5,20 +5,29 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { PerformanceTestWorkers } from './PerformanceTestWorkers';
 import { UserBuilder } from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Performance - Large Dataset Handling', () => {
     let driver: ApiDriver;
     let mainUser: User;
     let workers: PerformanceTestWorkers;
 
-    jest.setTimeout(90000);
+    jest.setTimeout(10000); // Tests take ~1.3s
 
     beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
         mainUser = await driver.createUser(new UserBuilder().build());
     });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
+  });
 
     const testCases = [
         { totalExpenses: 10, batchSize: 5, description: 'small dataset', timeout: 30000 },

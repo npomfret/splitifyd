@@ -5,9 +5,7 @@
 // Test to verify that settlements generate realtime update notifications
 // This test documents a bug where the frontend doesn't refresh settlements
 
-import { admin } from '../../../firebase';
-
-const db = admin.firestore();
+import { admin, db } from '../../support/firebase-test-setup';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
   let groupId: string;

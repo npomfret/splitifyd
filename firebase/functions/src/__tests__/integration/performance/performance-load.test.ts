@@ -5,6 +5,7 @@
 import {ApiDriver, User} from '../../support/ApiDriver';
 import {PerformanceTestWorkers} from './PerformanceTestWorkers';
 import {ExpenseBuilder, UserBuilder} from '../../support/builders';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 import type {Group} from "../../../shared/shared-types";
 
 describe('Performance and Load Testing', () => {
@@ -12,14 +13,22 @@ describe('Performance and Load Testing', () => {
     let mainUser: User;
     let workers: PerformanceTestWorkers;
 
-    jest.setTimeout(60000);
+    jest.setTimeout(13000); // Tests take ~46.3s
 
     beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
         mainUser = await driver.createUser(new UserBuilder().build());
         await driver.createGroupWithMembers('Performance Test Group', [mainUser], mainUser.token);
     });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
+  });
 
     describe('Concurrent User Operations', () => {
         const testCases = [
@@ -195,6 +204,9 @@ describe('Performance and Load Testing', () => {
         let benchmarkExpenses: any[] = [];
 
         beforeAll(async () => {
+    // Clear any existing test data first
+    await clearAllTestData();
+    
             benchmarkGroup = await driver.createGroupWithMembers('Benchmark Group', [mainUser], mainUser.token);
             
             for (let i = 0; i < 20; i++) {

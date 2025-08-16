@@ -1,5 +1,5 @@
-import * as admin from 'firebase-admin';
 import { describe, it, expect, beforeAll } from '@jest/globals';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 import { Timestamp } from 'firebase-admin/firestore';
 import { 
   parseISOToTimestamp, 
@@ -10,18 +10,17 @@ import {
   getEndOfDay
 } from '../../../utils/dateHelpers';
 
-// Set up environment for tests
-process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8180';
-process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
-
 describe('Firebase Date Handling Integration Tests', () => {
   beforeAll(async () => {
-    // Initialize admin SDK for test setup
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        projectId: 'splitifyd'
-      });
-    }
+    // Clear any existing test data first
+    await clearAllTestData();
+    
+    // Admin is already initialized in firebase-test-setup
+  });
+
+  afterAll(async () => {
+    // Clean up all test data
+    await clearAllTestData();
   });
 
   describe('Date Utility Functions', () => {
@@ -53,7 +52,7 @@ describe('Firebase Date Handling Integration Tests', () => {
       const oldDate = new Date();
       oldDate.setFullYear(oldDate.getFullYear() - 11);
       const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 1);
+      futureDate.setDate(futureDate.getDate() + 2); // More than 24 hours in the future
       
       expect(isDateInValidRange(validDate)).toBe(true);
       expect(isDateInValidRange(oldDate)).toBe(false);
