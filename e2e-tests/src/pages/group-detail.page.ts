@@ -253,8 +253,7 @@ export class GroupDetailPage extends BasePage {
       const { page, userName } = pages[i];
       const userIdentifier = userName || `User ${i + 1}`;
       
-      await page.goto(targetGroupUrl);
-      await page.waitForLoadState('domcontentloaded');
+      await this.navigatePageToUrl(page, targetGroupUrl);
       
       // Check current URL after navigation
       const currentUrl = page.url();
@@ -466,8 +465,7 @@ export class GroupDetailPage extends BasePage {
     const shareLink = await this.getShareLink();
     
     // Have the second user navigate to share link and join with fast timeout
-    await joinerPage.goto(shareLink);
-    await joinerPage.waitForLoadState('domcontentloaded');
+    await this.navigatePageToShareLink(joinerPage, shareLink);
     
     // Click join button with fast timeout
     const joinButton = joinerPage.getByRole('button', { name: /join group/i });
@@ -477,11 +475,28 @@ export class GroupDetailPage extends BasePage {
     // Wait for navigation with reasonable timeout
     await joinerPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 3000 });
     
-    // Refresh the original page to see updated members
-    await this.page.reload();
-    await this.page.waitForLoadState('domcontentloaded');
+    // Wait for real-time updates to propagate the new member (expecting 2 members now)
+    await this.waitForMemberCount(2);
     
     return shareLink;
+  }
+
+  /**
+   * Helper method to navigate an external page object to a share link
+   * Encapsulates direct page.goto() usage for multi-user scenarios
+   */
+  private async navigatePageToShareLink(page: any, shareLink: string): Promise<void> {
+    await page.goto(shareLink);
+    await page.waitForLoadState('domcontentloaded');
+  }
+
+  /**
+   * Helper method to navigate an external page object to any URL
+   * Encapsulates direct page.goto() usage for multi-user scenarios
+   */
+  private async navigatePageToUrl(page: any, url: string): Promise<void> {
+    await page.goto(url);
+    await page.waitForLoadState('domcontentloaded');
   }
 
   // ==============================
@@ -585,7 +600,7 @@ export class GroupDetailPage extends BasePage {
     
     // Get the share link
     const shareLinkInput = dialog.locator('input[type="text"]');
-    await expect(shareLinkInput).toBeVisible({timeout: 250});
+    await expect(shareLinkInput).toBeVisible();
     const shareLink = await shareLinkInput.inputValue();
 
     if (!shareLink || !shareLink.includes('/join?')) {

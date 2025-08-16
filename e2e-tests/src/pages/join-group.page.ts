@@ -202,9 +202,8 @@ export class JoinGroupPage extends BasePage {
           // Wait progressively longer between retries
           await this.page.waitForLoadState('domcontentloaded');
           
-          // Refresh page state
-          await this.page.reload();
-          await this.page.waitForLoadState('domcontentloaded');
+          // Wait for state synchronization instead of reload
+          await this.waitForNetworkIdle();
         }
       }
     }

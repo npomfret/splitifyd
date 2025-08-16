@@ -40,7 +40,7 @@ test.describe('Timeout Error Handling', () => {
     await Promise.race([submitPromise, buttonReenabledPromise]);
 
     // Verify the expected state: form submission should fail and modal should remain open
-    const isSubmitButtonEnabled = await page.locator(SELECTORS.SUBMIT_BUTTON).isEnabled();
+    const isSubmitButtonEnabled = await createGroupModalPage.getSubmitButton().isEnabled();
     expect(isSubmitButtonEnabled).toBe(true); // Button should be re-enabled after timeout
 
     // Modal should still be open
