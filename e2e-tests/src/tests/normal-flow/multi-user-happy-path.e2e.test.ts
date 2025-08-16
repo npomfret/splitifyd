@@ -13,16 +13,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupWorkflow = new GroupWorkflow(page);
     await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Shared'), 'Testing group sharing');
 
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    
-    await expect(groupDetailPage.getShareModal()).toBeVisible();
-    
-    await expect(groupDetailPage.getShareLinkInput()).toBeVisible();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    expect(shareLink).toMatch(/\/join(\?|\/)/);
-    
-    await page.keyboard.press('Escape');
+    const shareLink = await groupDetailPage.getShareLink();
+    expect(shareLink).toMatch(/\/join(\?|\/)/);  // Verify format
     
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
@@ -52,28 +44,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       throw new Error(`Expected to be on group page after creation, but got: ${page.url()}. Original error: ${(error as Error).message}`);
     }
     
-    try {
-      await expect(groupDetailPage.getShareButton()).toBeVisible();
-    } catch (error) {
-      throw new Error('Share button should be visible on group page - check if user is authenticated and has group access');
-    }
-    
-    await groupDetailPage.clickShareButton();
-    
-    try {
-      await expect(groupDetailPage.getShareModal()).toBeVisible();
-    } catch (error) {
-      throw new Error('Share modal should open after clicking share button - check modal implementation');
-    }
-    
-    try {
-      await expect(groupDetailPage.getShareLinkInput()).toBeVisible();
-    } catch (error) {
-      throw new Error('Share link input should be visible in modal - check input selector and modal content');
-    }
-    
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    // Get share link (includes all validation)
+    const shareLink = await groupDetailPage.getShareLink();
     
     // Second user joins
     const page2 = secondUser.page;
@@ -197,28 +169,8 @@ test.describe('Multi-User Collaboration E2E', () => {
       throw new Error(`Expected to be on group page after creation, but got: ${page.url()}. Original error: ${(error as Error).message}`);
     }
     
-    try {
-      await expect(groupDetailPage.getShareButton()).toBeVisible();
-    } catch (error) {
-      throw new Error('Share button should be visible on group page - check if user is authenticated and has group access');
-    }
-    
-    await groupDetailPage.clickShareButton();
-    
-    try {
-      await expect(groupDetailPage.getShareModal()).toBeVisible();
-    } catch (error) {
-      throw new Error('Share modal should open after clicking share button - check modal implementation');
-    }
-    
-    try {
-      await expect(groupDetailPage.getShareLinkInput()).toBeVisible();
-    } catch (error) {
-      throw new Error('Share link input should be visible in modal - check input selector and modal content');
-    }
-    
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await page.keyboard.press('Escape');
+    // Get share link (includes all validation)
+    const shareLink = await groupDetailPage.getShareLink();
     
     // Second user joins
     const page2 = secondUser.page;

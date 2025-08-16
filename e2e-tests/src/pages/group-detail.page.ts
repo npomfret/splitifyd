@@ -3,7 +3,6 @@ import {BasePage} from './base.page';
 import {ExpenseFormPage} from './expense-form.page';
 import {SettlementFormPage} from './settlement-form.page';
 import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
-import {GroupWorkflow} from '../workflows';
 
 interface ExpenseData {
   description: string;
@@ -249,24 +248,7 @@ export class GroupDetailPage extends BasePage {
   getShareButton() {
     return this.page.getByRole('button', { name: /share/i });
   }
-
-  async clickShareButton(): Promise<void> {
-    const shareButton = this.getShareButton();
-    await this.clickButton(shareButton, { buttonName: 'Share' });
-  }
-
-  getShareModal() {
-    // Use generic dialog selector since the modal might not have the expected name
-    return this.page.getByRole('dialog');
-  }
-
-  getShareLinkInput() {
-    // Use input selector instead of role=textbox since the input is read-only
-    // and may not be recognized as a textbox role
-    return this.getShareModal().locator('input[type="text"]');
-  }
-
-  // User-related accessors
+    // User-related accessors
   getUserName(displayName: string) {
     return this.page.getByText(displayName).first();
   }
@@ -753,16 +735,16 @@ export class GroupDetailPage extends BasePage {
     }
     
     // Get the share link
-    const shareLinkInput = this.getShareLinkInput();
+    const shareLinkInput = dialog.locator('input[type="text"]');
     await expect(shareLinkInput).toBeVisible();
     const shareLink = await shareLinkInput.inputValue();
-    
-    // Close modal
-    await this.page.keyboard.press('Escape');
-    
+
     if (!shareLink || !shareLink.includes('/join?')) {
       throw new Error(`Invalid share link received: ${shareLink}`);
     }
+
+    // Close modal
+    await this.page.keyboard.press('Escape');
 
     return shareLink;
   }

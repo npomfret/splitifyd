@@ -44,6 +44,7 @@ test.describe('Freeform Categories E2E', () => {
     const saveButton = expenseFormPage.getSaveExpenseButton();
     await expect(saveButton).toBeEnabled({ timeout: 3000 });
     await saveButton.click();
+
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created

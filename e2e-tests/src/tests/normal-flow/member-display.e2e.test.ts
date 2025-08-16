@@ -94,23 +94,14 @@ test.describe('Member Management E2E', () => {
     const groupName = 'Share Test Group';
     await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for sharing');
     
-    // Share button should be visible
+    // Share button should be visible and functional
     const shareButton = groupDetailPage.getShareButton();
     await expect(shareButton).toBeVisible();
     
-    // Click share to open modal
-    await shareButton.click();
-    
-    // Share modal should open with link
-    const shareModal = groupDetailPage.getShareModal();
-    await expect(shareModal).toBeVisible();
-    
-    // Should show share link
-    const shareLink = groupDetailPage.getShareLinkInput();
-    await expect(shareLink).toBeVisible();
+    // Get share link (opens modal, waits for link, closes modal)
+    const linkValue = await groupDetailPage.getShareLink();
     
     // Link should contain the join URL with linkId parameter
-    const linkValue = await shareLink.inputValue();
     expect(linkValue).toMatch(/\/join\?linkId=/);
   });
 
