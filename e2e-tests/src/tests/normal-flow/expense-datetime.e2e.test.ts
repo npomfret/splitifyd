@@ -137,7 +137,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await groupDetailPage.clickSelectAllButton();
     
     // Submit the expense
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     
     // Verify we're back on the group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -154,7 +154,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await expenseFormPage2.fillAmount('15.00');
     
     // Submit without changing time
-    await expenseFormPage2.saveExpense();
+    await expenseFormPage2.clickSaveExpenseButton();
     
     // Should navigate back to group
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

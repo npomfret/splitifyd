@@ -25,7 +25,7 @@ test.describe('Advanced Splitting Options', () => {
     await expect(groupDetailPage.getSplitSection()).toBeVisible();
     await expect(groupDetailPage.getEqualRadio()).toBeChecked();
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Pizza for everyone')).toBeVisible();
     await expect(groupDetailPage.getExpenseAmount('$60.00')).toBeVisible();
@@ -46,7 +46,7 @@ test.describe('Advanced Splitting Options', () => {
     await expect(groupDetailPage.getExactAmountInput()).toBeVisible();
     await groupDetailPage.fillPreactInput(groupDetailPage.getExactAmountInput(), '75');
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Shared groceries with exact amounts')).toBeVisible();
 
@@ -66,7 +66,7 @@ test.describe('Advanced Splitting Options', () => {
     // In single user scenario, should default to 100%
     await expect(groupDetailPage.getPercentageInput()).toHaveValue('100');
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Consulting project split by percentage')).toBeVisible();
     
@@ -96,7 +96,7 @@ test.describe('Advanced Splitting Options', () => {
     await expect(groupDetailPage.getEqualRadio()).toBeChecked();
     
     // Submit final expense to complete the user journey
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     await expect(groupDetailPage.getExpenseByDescription('Testing split type changes')).toBeVisible();
   });

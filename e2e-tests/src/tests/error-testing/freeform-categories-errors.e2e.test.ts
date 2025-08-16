@@ -37,7 +37,7 @@ test.describe('Freeform Categories Error Testing', () => {
     expect(categoryValue).toBe(specialCategory);
     
     // Submit expense
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created with special character category
@@ -65,7 +65,7 @@ test.describe('Freeform Categories Error Testing', () => {
     await expenseFormPage.fillAmount('55.00');
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern());
     
     // Verify expense was created
@@ -131,7 +131,7 @@ test.describe('Freeform Categories Error Testing', () => {
     await groupDetailPage.fillPreactInput(categoryInput, '');
     
     // Try to submit
-    const saveButton = expenseFormPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveButtonForValidation();
     await saveButton.click();
     
     // Should stay on the same page (not navigate away)

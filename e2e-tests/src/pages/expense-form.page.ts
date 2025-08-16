@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './base.page';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {
@@ -93,7 +93,7 @@ export class ExpenseFormPage extends BasePage {
     return this.page.getByPlaceholder('What was this expense for?');
   }
 
-  getSaveExpenseButton(): Locator {
+  private getSaveExpenseButton(): Locator {
     return this.page.getByRole('button', { name: /save expense/i });
   }
 
@@ -127,9 +127,33 @@ export class ExpenseFormPage extends BasePage {
     await this.getExactAmountsText().click();
   }
 
-  async saveExpense(): Promise<void> {
+   /**
+   * Clicks the save expense button and waits for any spinner to disappear.
+   * This properly handles the async save operation.
+   */
+  async clickSaveExpenseButton(): Promise<void> {
     const saveButton = this.getSaveExpenseButton();
+    
+    // Wait for button to be enabled
+    await expect(saveButton).toBeEnabled({ timeout: 500 });
+    
+    // Click the button
     await this.clickButton(saveButton, { buttonName: 'Save Expense' });
+    
+    // Wait for spinner to disappear if present
+    const spinner = this.page.locator('.animate-spin, [role="status"]');
+    if (await spinner.count() > 0) {
+      await expect(spinner).not.toBeVisible({ timeout: 3000 });// give it some time to save
+    }
+  }
+
+  /**
+   * Gets a locator for the save expense button for validation testing.
+   * Use this only when you need to assert button state (disabled/enabled).
+   * For clicking the button, use clickSaveExpenseButton() instead.
+   */
+  getSaveButtonForValidation(): Locator {
+    return this.getSaveExpenseButton();
   }
 
   /**
@@ -213,7 +237,7 @@ export class ExpenseFormPage extends BasePage {
     // Note: percentage split would need additional implementation
     
     // Save the expense
-    await this.saveExpense();
+    await this.clickSaveExpenseButton();
     
     // Wait for navigation back to group page
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);

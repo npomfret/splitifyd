@@ -188,7 +188,7 @@ pageTest.describe('Form Validation E2E', () => {
       const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Submit button should be disabled when required fields are empty
-      const submitButton = expenseFormPage.getSaveExpenseButton();
+      const submitButton = expenseFormPage.getSaveButtonForValidation();
       await expect(submitButton).toBeDisabled();
       
       // Form should remain on expense page

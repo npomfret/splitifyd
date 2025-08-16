@@ -32,7 +32,7 @@ test.describe('Expense Editing Error Testing', () => {
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
     // Save expense
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created
@@ -98,7 +98,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseFormPage.selectAllParticipants();
     await groupDetailPage.selectCategoryFromSuggestions("Food & Dining");
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Edit to decrease amount
@@ -151,7 +151,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseFormPage.selectAllParticipants();
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created

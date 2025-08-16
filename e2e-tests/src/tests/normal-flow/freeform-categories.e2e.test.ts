@@ -40,10 +40,8 @@ test.describe('Freeform Categories E2E', () => {
     const categoryValue = await categoryInput.inputValue();
     expect(categoryValue).toBe('food');
     
-    // Wait for button to be enabled and submit expense
-    const saveButton = expenseFormPage.getSaveExpenseButton();
-    await expect(saveButton).toBeEnabled({ timeout: 3000 });
-    await saveButton.click();
+    // Submit expense (handles button enable check and spinner wait)
+    await expenseFormPage.clickSaveExpenseButton();
 
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
@@ -79,10 +77,8 @@ test.describe('Freeform Categories E2E', () => {
     const categoryValue = await categoryInput.inputValue();
     expect(categoryValue).toBe(customCategory);
     
-    // Wait for button to be enabled and submit expense
-    const saveButton = expenseFormPage2.getSaveExpenseButton();
-    await expect(saveButton).toBeEnabled();
-    await saveButton.click();
+    // Submit expense (handles button enable check and spinner wait)
+    await expenseFormPage2.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created with custom category
