@@ -57,9 +57,7 @@ pageTest.describe('Performance Monitoring E2E', () => {
     await expect(submitButton).toBeEnabled();
     
     // Test navigation links still work
-    const registerLink = page.getByRole('link', { name: /sign up|create account/i });
-    await expect(registerLink).toBeVisible();
-    await registerLink.click();
+    await loginPage.clickSignUp();
     
     // Should navigate to register page even with slow network
     await expect(page).toHaveURL(/\/register/);
