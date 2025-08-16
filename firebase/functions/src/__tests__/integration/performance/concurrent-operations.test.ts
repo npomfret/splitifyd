@@ -154,8 +154,6 @@ describe('Concurrent Operations and Transaction Integrity', () => {
         driver.createUser(new UserBuilder().build()),
       ]);
       
-      // Track new users for cleanup
-      newUsers.forEach(user => tracker.trackUser(user.uid));
 
       // Generate share link
       const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);
@@ -190,7 +188,6 @@ describe('Concurrent Operations and Transaction Integrity', () => {
     test('should prevent duplicate concurrent joins by same user', async () => {
       // Create a new user for this test
       const duplicateUser = await driver.createUser(new UserBuilder().build());
-      tracker.trackUser(duplicateUser.uid);
 
       // Generate share link
       const shareResponse = await driver.generateShareLink(testGroup.id, users[0].token);

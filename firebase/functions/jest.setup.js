@@ -3,9 +3,9 @@ const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK for tests
 if (!admin.apps.length) {
-  // Set emulator ports
-  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
-  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+  // Set emulator ports (matching firebase.json config)
+  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:6004';
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:6002';
   
   admin.initializeApp({
     projectId: 'test-project',

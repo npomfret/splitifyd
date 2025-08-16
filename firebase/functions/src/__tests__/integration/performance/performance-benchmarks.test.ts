@@ -6,7 +6,7 @@ import {ApiDriver, User} from '../../support/ApiDriver';
 import {PerformanceTestWorkers} from './PerformanceTestWorkers';
 import {ExpenseBuilder, UserBuilder} from '../../support/builders';
 import type {Group} from "../../../shared/shared-types";
-import {TestResourceTracker, clearAllTestData} from '../../support/cleanupHelpers';
+import {clearAllTestData} from '../../support/cleanupHelpers';
 
 describe('Performance - Response Time Benchmarks', () => {
     let driver: ApiDriver;
@@ -23,13 +23,10 @@ describe('Performance - Response Time Benchmarks', () => {
         
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
-        tracker = new TestResourceTracker();
 
         mainUser = await driver.createUser(new UserBuilder().build());
-        tracker.trackUser(mainUser.uid);
 
         benchmarkGroup = await driver.createGroupWithMembers('Benchmark Group', [mainUser], mainUser.token);
-        tracker.trackGroup(benchmarkGroup.id);
         
         for (let i = 0; i < 20; i++) {
             const expense = await driver.createExpense(new ExpenseBuilder()
@@ -42,14 +39,11 @@ describe('Performance - Response Time Benchmarks', () => {
                 .withSplits([{ userId: mainUser.uid, amount: 100 }])
                 .build(), mainUser.token);
             benchmarkExpenses.push(expense);
-            tracker.trackExpense(expense.id);
         }
     });
 
     afterAll(async () => {
         // Clean up all test resources
-        await tracker.cleanup();
-        // Optional: Clear all test data to ensure clean state
         await clearAllTestData();
     });
 
