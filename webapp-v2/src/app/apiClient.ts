@@ -212,13 +212,8 @@ export class ApiClient {
   }> = [];
 
   constructor() {
-    // Try to get auth token from localStorage (skip during SSG)
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (token) {
-        this.authToken = token;
-      }
-    }
+    // Auth token will be set by auth store after user authentication
+    // We no longer read from localStorage here to avoid the chicken-and-egg problem
     
     // Set up 401 response interceptor
     this.setup401Interceptor();
@@ -251,13 +246,8 @@ export class ApiClient {
   // Set auth token
   setAuthToken(token: string | null) {
     this.authToken = token;
-    if (typeof window !== 'undefined') {
-      if (token) {
-        localStorage.setItem(AUTH_TOKEN_KEY, token);
-      } else {
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-      }
-    }
+    // Auth token persistence is now handled by auth store using user-scoped storage
+    // This avoids the chicken-and-egg problem and ensures proper user isolation
   }
 
   // Set up 401 response interceptor

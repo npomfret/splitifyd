@@ -5,6 +5,7 @@ import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { groupsStore } from './groups-store';
 import { logWarning } from '../../utils/browser-logger';
 import { getUTCDateTime, isDateInFuture } from '../../utils/dateUtils';
+import type { UserScopedStorage } from '../../utils/userScopedStorage';
 
 export interface ExpenseFormStore {
   // Form fields
@@ -41,6 +42,10 @@ export interface ExpenseFormStore {
   saveDraft(groupId: string): void;
   loadDraft(groupId: string): boolean;
   clearDraft(groupId: string): void;
+  
+  // Storage management
+  setStorage(storage: UserScopedStorage): void;
+  clearStorage(): void;
 }
 
 // Type for form data fields
@@ -86,55 +91,117 @@ const validationErrorsSignal = signal<Record<string, string>>({});
 // Categories are now imported from shared types
 
 
-// Recent categories management
-const RECENT_CATEGORIES_KEY = 'recent-expense-categories';
-const MAX_RECENT_CATEGORIES = 3;
+// Storage management for user-scoped data
+class ExpenseStorageManager {
+  private storage: UserScopedStorage | null = null;
+  private static readonly RECENT_CATEGORIES_KEY = 'recent-expense-categories';
+  private static readonly RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
+  private static readonly MAX_RECENT_CATEGORIES = 3;
+  private static readonly MAX_RECENT_AMOUNTS = 5;
 
-function getRecentCategories(): string[] {
-  try {
-    const recent = localStorage.getItem(RECENT_CATEGORIES_KEY);
-    return recent ? JSON.parse(recent) : [];
-  } catch {
-    return [];
+  setStorage(storage: UserScopedStorage): void {
+    this.storage = storage;
+  }
+
+  clearStorage(): void {
+    this.storage = null;
+  }
+
+  getRecentCategories(): string[] {
+    if (!this.storage) return [];
+    
+    try {
+      const recent = this.storage.getItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY);
+      return recent ? JSON.parse(recent) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  addRecentCategory(category: string): void {
+    if (!this.storage) return;
+    
+    try {
+      const recent = this.getRecentCategories();
+      const filtered = recent.filter(cat => cat !== category);
+      const updated = [category, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_CATEGORIES);
+      this.storage.setItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  getRecentAmounts(): number[] {
+    if (!this.storage) return [];
+    
+    try {
+      const recent = this.storage.getItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY);
+      return recent ? JSON.parse(recent) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  addRecentAmount(amount: number): void {
+    if (!this.storage) return;
+    
+    try {
+      const recent = this.getRecentAmounts();
+      const filtered = recent.filter(amt => amt !== amount);
+      const updated = [amount, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_AMOUNTS);
+      this.storage.setItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  saveDraft(groupId: string, draftData: any): void {
+    if (!this.storage) return;
+    
+    try {
+      const draftKey = `expense-draft-${groupId}`;
+      this.storage.setItem(draftKey, JSON.stringify(draftData));
+    } catch (error) {
+      logWarning('Failed to save expense draft to user-scoped storage', { error });
+    }
+  }
+
+  loadDraft(groupId: string): any | null {
+    if (!this.storage) return null;
+    
+    try {
+      const draftKey = `expense-draft-${groupId}`;
+      const draftJson = this.storage.getItem(draftKey);
+      return draftJson ? JSON.parse(draftJson) : null;
+    } catch (error) {
+      logWarning('Failed to load expense draft from user-scoped storage', { error });
+      return null;
+    }
+  }
+
+  clearDraft(groupId: string): void {
+    if (!this.storage) return;
+    
+    try {
+      const draftKey = `expense-draft-${groupId}`;
+      this.storage.removeItem(draftKey);
+    } catch (error) {
+      logWarning('Failed to clear expense draft from user-scoped storage', { error });
+    }
   }
 }
 
-function addRecentCategory(category: string): void {
-  try {
-    const recent = getRecentCategories();
-    const filtered = recent.filter(cat => cat !== category);
-    const updated = [category, ...filtered].slice(0, MAX_RECENT_CATEGORIES);
-    localStorage.setItem(RECENT_CATEGORIES_KEY, JSON.stringify(updated));
-  } catch {
-    // Ignore localStorage errors
-  }
+// Create singleton storage manager
+const storageManager = new ExpenseStorageManager();
+
+// Export functions for backward compatibility
+export function getRecentCategories(): string[] {
+  return storageManager.getRecentCategories();
 }
 
-// Recent amounts management
-const RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
-const MAX_RECENT_AMOUNTS = 5;
-
-function getRecentAmounts(): number[] {
-  try {
-    const recent = localStorage.getItem(RECENT_AMOUNTS_KEY);
-    return recent ? JSON.parse(recent) : [];
-  } catch {
-    return [];
-  }
+export function getRecentAmounts(): number[] {
+  return storageManager.getRecentAmounts();
 }
-
-function addRecentAmount(amount: number): void {
-  try {
-    const recent = getRecentAmounts();
-    const filtered = recent.filter(amt => amt !== amount);
-    const updated = [amount, ...filtered].slice(0, MAX_RECENT_AMOUNTS);
-    localStorage.setItem(RECENT_AMOUNTS_KEY, JSON.stringify(updated));
-  } catch {
-    // Ignore localStorage errors
-  }
-}
-
-export { getRecentCategories, getRecentAmounts };
 
 class ExpenseFormStoreImpl implements ExpenseFormStore {
   // State getters
@@ -552,8 +619,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const expense = await apiClient.createExpense(request);
       
       // Track recent category and amount
-      addRecentCategory(categorySignal.value);
-      addRecentAmount(numericAmount);
+      storageManager.addRecentCategory(categorySignal.value);
+      storageManager.addRecentAmount(numericAmount);
       
       // Refresh group data to show the new expense immediately
       try {
@@ -608,8 +675,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
       
       // Track recent category and amount
-      addRecentCategory(categorySignal.value);
-      addRecentAmount(numericAmount);
+      storageManager.addRecentCategory(categorySignal.value);
+      storageManager.addRecentAmount(numericAmount);
       
       // Refresh group data to show the updated expense immediately
       try {
@@ -669,40 +736,39 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     );
   }
 
+  setStorage(storage: UserScopedStorage): void {
+    storageManager.setStorage(storage);
+  }
+
+  clearStorage(): void {
+    storageManager.clearStorage();
+  }
+
   saveDraft(groupId: string): void {
-    try {
-      const draftKey = `expense-draft-${groupId}`;
-      const draftData = {
-        description: descriptionSignal.value,
-        amount: amountSignal.value,
-        currency: currencySignal.value,
-        date: dateSignal.value,
-        time: timeSignal.value,
-        paidBy: paidBySignal.value,
-        category: categorySignal.value,
-        splitType: splitTypeSignal.value,
-        participants: participantsSignal.value,
-        splits: splitsSignal.value,
-        timestamp: Date.now()
-      };
-      
-      localStorage.setItem(draftKey, JSON.stringify(draftData));
-    } catch (error) {
-      // Silently ignore localStorage errors (privacy mode, storage full, etc.)
-      logWarning('Failed to save expense draft to localStorage', { error });
-    }
+    const draftData = {
+      description: descriptionSignal.value,
+      amount: amountSignal.value,
+      currency: currencySignal.value,
+      date: dateSignal.value,
+      time: timeSignal.value,
+      paidBy: paidBySignal.value,
+      category: categorySignal.value,
+      splitType: splitTypeSignal.value,
+      participants: participantsSignal.value,
+      splits: splitsSignal.value,
+      timestamp: Date.now()
+    };
+    
+    storageManager.saveDraft(groupId, draftData);
   }
 
   loadDraft(groupId: string): boolean {
     try {
-      const draftKey = `expense-draft-${groupId}`;
-      const draftJson = localStorage.getItem(draftKey);
+      const draftData = storageManager.loadDraft(groupId);
       
-      if (!draftJson) {
+      if (!draftData) {
         return false;
       }
-      
-      const draftData = JSON.parse(draftJson);
       
       // Check if draft is not too old (24 hours)
       const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -725,18 +791,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
       
       return true;
     } catch (error) {
-      logWarning('Failed to load expense draft from localStorage', { error });
+      logWarning('Failed to load expense draft from user-scoped storage', { error });
       return false;
     }
   }
 
   clearDraft(groupId: string): void {
-    try {
-      const draftKey = `expense-draft-${groupId}`;
-      localStorage.removeItem(draftKey);
-    } catch (error) {
-      logWarning('Failed to clear expense draft from localStorage', { error });
-    }
+    storageManager.clearDraft(groupId);
   }
 
   private getErrorMessage(error: unknown): string {

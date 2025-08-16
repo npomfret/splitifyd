@@ -9,6 +9,9 @@ import { AuthErrors } from '@shared/shared-types';
 import { groupsStore } from './groups-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { themeStore } from './theme-store';
+import { createUserScopedStorage } from '../../utils/userScopedStorage';
+import { CurrencyService } from '../services/currencyService';
+import { expenseFormStore } from './expense-form-store';
 
 // Signals for auth state
 const userSignal = signal<User | null>(null);
@@ -32,6 +35,9 @@ class AuthStoreImpl implements AuthStore {
   // Token refresh management
   private refreshPromise: Promise<string> | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
+
+  // User-scoped storage for preferences and auth data
+  private userStorage = createUserScopedStorage(() => userSignal.value?.uid || null);
 
   private constructor() {
     // Private constructor - use static create() method instead
@@ -62,6 +68,11 @@ class AuthStoreImpl implements AuthStore {
             apiClient.setAuthToken(idToken);
             localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
             
+            
+            // Set up user-scoped storage for other services
+            CurrencyService.getInstance().setStorage(this.userStorage);
+            expenseFormStore.setStorage(this.userStorage);
+            
             // Schedule token refresh
             this.scheduleNextRefresh(idToken);
           } catch (error) {
@@ -76,6 +87,10 @@ class AuthStoreImpl implements AuthStore {
           groupsStore.reset();
           enhancedGroupDetailStore.reset();
           themeStore.reset();
+          
+          // Clear storage for other services
+          CurrencyService.getInstance().clearStorage();
+          expenseFormStore.clearStorage();
           
           // Clean up token refresh
           this.cleanup();
@@ -140,6 +155,9 @@ class AuthStoreImpl implements AuthStore {
     errorSignal.value = null;
 
     try {
+      // Clear user-scoped storage before signing out
+      this.userStorage.clear();
+
       await firebaseService.signOut();
       apiClient.setAuthToken(null);
       localStorage.removeItem(USER_ID_KEY);
@@ -174,6 +192,14 @@ class AuthStoreImpl implements AuthStore {
 
   clearError(): void {
     errorSignal.value = null;
+  }
+
+
+  /**
+   * Get user storage instance for use by other stores
+   */
+  getUserStorage() {
+    return this.userStorage;
   }
 
   async refreshAuthToken(): Promise<string> {

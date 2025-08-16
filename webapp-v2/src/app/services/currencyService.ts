@@ -1,14 +1,17 @@
 import {
     isValidCurrency,
 } from '../../utils/currency';
+import type { UserScopedStorage } from '../../utils/userScopedStorage';
 
 export class CurrencyService {
     private static instance: CurrencyService;
     private recentCurrencies: Set<string> = new Set();
     private readonly MAX_RECENT_CURRENCIES = 5;
+    private storage: UserScopedStorage | null = null;
 
     private constructor() {
-        this.loadRecentCurrencies();
+        // Storage will be set later by setStorage method
+        // This avoids the chicken-and-egg problem with auth initialization
     }
 
     static getInstance(): CurrencyService {
@@ -18,12 +21,37 @@ export class CurrencyService {
         return CurrencyService.instance;
     }
 
+    /**
+     * Set the user-scoped storage instance and load recent currencies
+     * Called by auth store after user authentication
+     */
+    setStorage(storage: UserScopedStorage): void {
+        this.storage = storage;
+        this.loadRecentCurrencies();
+    }
+
+    /**
+     * Clear storage reference and recent currencies
+     * Called on logout to ensure clean state
+     */
+    clearStorage(): void {
+        this.storage = null;
+        this.recentCurrencies.clear();
+    }
+
     private loadRecentCurrencies(): void {
-        const stored = localStorage.getItem('recentCurrencies');
+        if (!this.storage) {
+            // No storage available yet - wait for setStorage to be called
+            return;
+        }
+
+        const stored = this.storage.getItem('recentCurrencies');
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
+                    // Clear existing currencies before loading
+                    this.recentCurrencies.clear();
                     parsed.slice(0, this.MAX_RECENT_CURRENCIES).forEach(code => {
                         if (isValidCurrency(code)) {
                             this.recentCurrencies.add(code);
@@ -37,8 +65,13 @@ export class CurrencyService {
     }
 
     private saveRecentCurrencies(): void {
+        if (!this.storage) {
+            // No storage available - likely user not authenticated
+            return;
+        }
+
         const recent = Array.from(this.recentCurrencies);
-        localStorage.setItem('recentCurrencies', JSON.stringify(recent));
+        this.storage.setItem('recentCurrencies', JSON.stringify(recent));
     }
 
     addToRecentCurrencies(currencyCode: string): void {
