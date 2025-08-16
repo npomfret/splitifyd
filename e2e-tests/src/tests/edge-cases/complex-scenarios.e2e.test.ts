@@ -50,7 +50,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       paidBy: alice.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Bob adds restaurant expense ($120)
     const bobGroupDetailPage = new GroupDetailPage(bobPage);
@@ -60,7 +60,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
       paidBy: bob.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Refresh Alice's page to ensure latest data
     await alicePage.reload();

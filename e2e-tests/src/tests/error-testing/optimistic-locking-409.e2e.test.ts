@@ -37,7 +37,7 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
       paidBy: authenticatedPage.user.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // User 2 adds expense using proper method
     await groupDetailPage2.addExpense({
@@ -46,7 +46,7 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
       paidBy: secondUser.user.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Now both users try to add another expense simultaneously
     // This should trigger optimistic locking conflicts

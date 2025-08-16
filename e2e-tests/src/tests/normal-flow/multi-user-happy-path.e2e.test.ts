@@ -107,7 +107,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       currency: 'USD',
       paidBy: user1.displayName,
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for User 1's expense to be fully processed and synced
     await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -124,7 +124,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       currency: 'USD',
       paidBy: user2.displayName,
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for User 2's expense to be fully processed and synced
     await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -166,7 +166,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         currency: 'USD',
         paidBy: user.displayName,
         splitType: 'equal'
-      }, memberCount);
+      });
       
       // Wait for each expense to be processed
       await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -246,7 +246,7 @@ test.describe('Multi-User Collaboration E2E', () => {
       currency: 'USD',
       paidBy: user1.displayName,
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for expense to be fully processed
     await groupDetailPage.waitForBalancesToLoad(groupId);

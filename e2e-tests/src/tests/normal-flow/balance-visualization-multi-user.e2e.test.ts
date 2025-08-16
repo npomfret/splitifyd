@@ -54,7 +54,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for first expense to be synced via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
@@ -70,7 +70,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user2.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for second expense to be processed
     await groupDetailPage2.waitForBalanceUpdate();
@@ -124,7 +124,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for expense to be processed via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
@@ -175,7 +175,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for first expense to be synced via real-time updates
     await groupDetailPage.waitForBalanceUpdate();
@@ -191,7 +191,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user2.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for second expense to be processed
     await groupDetailPage2.waitForBalanceUpdate();
@@ -245,7 +245,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -261,7 +261,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user2.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for balance calculations to be updated via real-time updates
     await groupDetailPage2.waitForBalanceUpdate();
@@ -311,7 +311,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
     
@@ -367,7 +367,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Verify expense appears for User 1
     await groupDetailPage.verifyExpenseVisible('Test Expense for Settlement');
@@ -448,7 +448,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Wait for expense to be processed via real-time updates
     await groupDetailPage.waitForBalanceUpdate();

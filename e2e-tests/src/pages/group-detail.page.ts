@@ -77,20 +77,9 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByText(/paid by|Paid:/i);
   }
 
-
-  // Expense form section headings
-  getExpenseDetailsHeading() {
-    return this.page.getByRole('heading', { name: 'Expense Details' });
-  }
-
-  getWhoPaidHeading() {
-    return this.page.getByRole('heading', { name: /Who paid/ });
-  }
-
   getSplitBetweenHeading() {
     return this.page.getByRole('heading', { name: /Split between/ });
   }
-
 
   // Convenience date buttons
   getTodayButton() {
@@ -113,10 +102,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.locator('input[type="date"]');
   }
 
-  getTimeInput() {
-    return this.page.locator('input[placeholder="Enter time (e.g., 2:30pm)"]');
-  }
-
   getClockIcon() {
     // Clock icon button that opens the time selector - try multiple selectors
     return this.page.locator([
@@ -134,24 +119,6 @@ export class GroupDetailPage extends BasePage {
   async clickClockIcon(): Promise<void> {
     const clockIcon = this.getClockIcon();
     await this.clickButton(clockIcon, { buttonName: 'Clock icon' });
-  }
-
-  getTimeButton() {
-    return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
-  }
-
-  async clickTimeButton(): Promise<void> {
-    const timeButton = this.getTimeButton();
-    await this.clickButton(timeButton, { buttonName: 'Time selector' });
-  }
-
-  getTimeSelectionButton(time: string) {
-    return this.page.getByRole('button', { name: time });
-  }
-
-  async clickTimeSelectionButton(time: string): Promise<void> {
-    const button = this.getTimeSelectionButton(time);
-    await this.clickButton(button, { buttonName: `Time: ${time}` });
   }
 
   async clickTodayButton() {
@@ -257,12 +224,6 @@ export class GroupDetailPage extends BasePage {
     await this.clickButton(currencyOption, { buttonName: `Currency: ${currencyCode}` });
   }
 
-  async clickSaveExpenseButton(): Promise<void> {
-    const saveButton = this.page.getByRole('button', { name: /save expense/i });
-    await this.clickButton(saveButton, { buttonName: 'Save Expense' });
-  }
-
-  
   /**
    * Override the base expectSubmitButtonEnabled to provide expense-specific behavior
    * @returns Promise that resolves if button is enabled, throws error if disabled
@@ -594,7 +555,7 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForLoadState('domcontentloaded');
   }
 
-  async addExpense(expense: ExpenseData, expectedMemberCount: number): Promise<void> {
+  async addExpense(expense: ExpenseData): Promise<void> {
     // Click Add Expense button with proper checks
     const addExpenseButton = this.getAddExpenseButton();
     await this.clickButton(addExpenseButton, { buttonName: 'Add Expense' });
@@ -698,48 +659,7 @@ export class GroupDetailPage extends BasePage {
       }
     }).toPass({ timeout });
   }
-  
-  /**
-   * Validates that all expected members are present in both "Who paid?" and "Split between" sections
-   * of the expense form. This method provides detailed verification and helpful error messages.
-   */
-  async validateAllMembersInExpenseForm(expectedMemberCount: number): Promise<{ isValid: boolean; errors: string[] }> {
-    const errors: string[] = [];
-    
-    // Check "Who paid?" section
-    const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
-    if (payerRadios < expectedMemberCount) {
-      errors.push(`"Who paid?" section: Found ${payerRadios} members, expected ${expectedMemberCount}`);
-    }
-    
-    // Check "Split between" section
-    const checkboxes = await this.page.locator('input[type="checkbox"]').count();
-    if (checkboxes > 0 && checkboxes < expectedMemberCount) {
-      errors.push(`"Split between" section: Found ${checkboxes} members, expected ${expectedMemberCount}`);
-    }
-    
-    // Get member names from "Who paid?" section for debugging
-    const payerLabels = await this.page.locator('label').filter({
-      has: this.page.locator('input[type="radio"][name="paidBy"]')
-    }).allTextContents();
-    
-    // Get member names from "Split between" section for debugging  
-    const splitLabels = await this.page.locator('label').filter({
-      has: this.page.locator('input[type="checkbox"]')
-    }).allTextContents();
-    
-    if (errors.length > 0) {
-      console.log('Member validation failed:');
-      console.log(`Expected ${expectedMemberCount} members in both sections`);
-      console.log(`"Who paid?" members (${payerRadios}):`, payerLabels.slice(0, 3)); // Show first 3
-      console.log(`"Split between" members (${checkboxes}):`, splitLabels.slice(0, 3)); // Show first 3
-    }
-    
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
+
   /**
      * Helper method to wait for payee dropdown to update after payer selection
    */
@@ -907,7 +827,7 @@ export class GroupDetailPage extends BasePage {
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {
-    await this.addExpense(expense, expectedMemberCount);
+    await this.addExpense(expense);
     await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
@@ -1413,45 +1333,20 @@ export class GroupDetailPage extends BasePage {
    * Ensures group page is fully loaded before proceeding with expense operations.
    * This should be called after creating a group or navigating to a group page.
    */
-  async ensureGroupPageReady(groupId: string): Promise<void> {
+  async ensureNewGroupPageReadyWithOneMember(groupId: string): Promise<void> {
     await this.page.waitForLoadState('domcontentloaded');
     await this.waitForMemberCount(1); // Wait for at least the creator to show
     await this.waitForBalancesToLoad(groupId);
   }
 
   /**
-   * Navigates to the add expense form and ensures it's fully loaded with member data.
-   * This is the comprehensive method that all expense tests should use.
-   * @deprecated Use clickAddExpenseButton(expectedMemberCount) instead - it returns ExpenseFormPage
-   */
-  async navigateToAddExpenseForm(expectedMemberCount: number): Promise<ExpenseFormPage> {
-    return await this.clickAddExpenseButton(expectedMemberCount);
-  }
-
-  /**
    * Complete workflow: Create group and prepare for expense operations.
    * Use this in tests that create a new group and need to add expenses.
    */
-  async createGroupAndPrepareForExpenses(groupName: string, description?: string, expectedMemberCount: number = 1): Promise<string> {
+  async createGroupAndPrepareForExpenses(groupName: string, description?: string): Promise<string> {
     const groupWorkflow = new GroupWorkflow(this.page);
     const groupId = await groupWorkflow.createGroup(groupName, description);
-    await this.ensureGroupPageReady(groupId);
-    // Store expected member count for later use in expense forms
-    (this as any)._expectedMemberCount = expectedMemberCount;
+    await this.ensureNewGroupPageReadyWithOneMember(groupId);
     return groupId;
   }
-
-  /**
-   * Complete workflow: Navigate to expense form after group operations.
-   * Use this in tests that need to add subsequent expenses after the first one.
-   */
-  async prepareForNextExpense(expectedMemberCount: number): Promise<ExpenseFormPage> {
-    // Ensure we're back on the group page
-    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    await this.page.waitForLoadState('domcontentloaded');
-    
-    // Navigate to add expense form with full loading and return the form page
-    return await this.clickAddExpenseButton(expectedMemberCount);
-  }
-
 }

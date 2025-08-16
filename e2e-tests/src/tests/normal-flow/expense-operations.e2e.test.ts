@@ -20,7 +20,7 @@ test.describe('Basic Expense Operations E2E', () => {
       currency: 'USD',
       paidBy: groupInfo.user.displayName,
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Verify expense appears in list
     await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).toBeVisible();

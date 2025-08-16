@@ -123,7 +123,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
       paidBy: user1.displayName,
       currency: 'USD',
       splitType: 'equal'
-    }, memberCount);
+    });
     
     // Verify expense was created
     await expect(page.getByText('Test expense for settlement')).toBeVisible();

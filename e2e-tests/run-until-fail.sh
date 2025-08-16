@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST_FILE="src/tests/normal-flow/share-link-comprehensive.e2e.test.ts:73:5"
+TEST_FILE="src/tests/normal-flow/expense-datetime.e2e.test.ts:8:3"
 TEST_FILTER=""
 
 RUN_COUNT=0
