@@ -20,9 +20,7 @@ test.describe('Error Handling', () => {
     // Already authenticated via fixture
     
     // Intercept API calls to simulate network failure
-    // Use more specific patterns and log to debug
     await context.route('**/api/groups', route => {
-      console.log('Intercepting API call to:', route.request().url());
       route.abort();
     });
     

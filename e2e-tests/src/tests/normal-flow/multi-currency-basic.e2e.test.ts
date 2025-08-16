@@ -192,17 +192,12 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     const groupCard = page.locator('[data-testid="group-card"]').first();
     await expect(groupCard).toBeVisible();
     
-    // Get the card content
-    const cardText = await groupCard.textContent();
-    console.log('Group card content:', cardText);
-    
     // For a single-user group, it should show "Settled up"
     // But the important thing is that the UI structure supports multi-currency
     
     // Check for balance badges (these would show multiple currencies if there were balances)
     const balanceBadges = groupCard.locator('[class*="rounded-full"]');
     const badgeCount = await balanceBadges.count();
-    console.log(`Found ${badgeCount} balance badge(s)`);
     
     // Verify the structure supports multiple currency display
     // Even though this single-user test shows "Settled up",
