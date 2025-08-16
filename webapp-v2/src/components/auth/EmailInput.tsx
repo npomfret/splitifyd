@@ -49,10 +49,11 @@ export function EmailInput({
 
   return (
     <div class="space-y-1">
-      <label class="block text-sm font-medium text-gray-700">
+      <label for="email-input" class="block text-sm font-medium text-gray-700">
         Email address {required && <span class="text-red-500">*</span>}
       </label>
       <input
+        id="email-input"
         type="email"
         value={value}
         onInput={handleInput}
@@ -62,6 +63,10 @@ export function EmailInput({
         autoFocus={autoFocus}
         disabled={disabled}
         autocomplete="email"
+        aria-label="Email address"
+        aria-required={required}
+        aria-invalid={hasError}
+        aria-describedby={hasError ? "email-error" : undefined}
         class={`
           block w-full px-3 py-2 border rounded-md shadow-sm 
           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -73,7 +78,7 @@ export function EmailInput({
         `}
       />
       {displayError && (
-        <p class="text-sm text-red-600">{displayError}</p>
+        <p id="email-error" class="text-sm text-red-600" role="alert">{displayError}</p>
       )}
     </div>
   );

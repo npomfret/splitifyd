@@ -91,11 +91,12 @@ export function PasswordInput({
 
   return (
     <div class="space-y-1">
-      <label class="block text-sm font-medium text-gray-700">
+      <label for="password-input" class="block text-sm font-medium text-gray-700">
         {label} {required && <span class="text-red-500">*</span>}
       </label>
       <div class="relative">
         <input
+          id="password-input"
           type={showPassword ? 'text' : 'password'}
           value={value}
           onInput={handleInput}
@@ -104,6 +105,10 @@ export function PasswordInput({
           required={required}
           disabled={disabled}
           autocomplete={autoComplete}
+          aria-label={label}
+          aria-required={required}
+          aria-invalid={hasError}
+          aria-describedby={hasError ? "password-error" : undefined}
           class={`
             block w-full px-3 py-2 pr-10 border rounded-md shadow-sm 
             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -118,6 +123,7 @@ export function PasswordInput({
           type="button"
           onClick={togglePasswordVisibility}
           disabled={disabled}
+          aria-label={showPassword ? "Hide password" : "Show password"}
           class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:opacity-50"
         >
           {showPassword ? (
@@ -157,7 +163,7 @@ export function PasswordInput({
       )}
       
       {displayError && (
-        <p class="text-sm text-red-600">{displayError}</p>
+        <p id="password-error" class="text-sm text-red-600" role="alert">{displayError}</p>
       )}
     </div>
   );
