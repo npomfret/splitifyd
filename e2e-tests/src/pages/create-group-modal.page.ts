@@ -68,7 +68,7 @@ export class CreateGroupModalPage extends BasePage {
   }
   
   async waitForModalToClose() {
-    await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden' });
+    await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden', timeout: 2000 });
   }
 
   // Element accessors

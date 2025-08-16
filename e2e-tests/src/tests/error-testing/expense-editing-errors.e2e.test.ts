@@ -23,16 +23,16 @@ test.describe('Expense Editing Error Testing', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditAmount'), 'Testing expense amount editing');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Fill expense form
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Amount Edit Test');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '50');
+    await expenseFormPage.fillDescription('Amount Edit Test');
+    await expenseFormPage.fillAmount('50');
+    await expenseFormPage.selectAllParticipants();
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
     // Save expense
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created
@@ -55,7 +55,7 @@ test.describe('Expense Editing Error Testing', () => {
     await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Edit the amount (following working pattern with proper timeout)
-    const amountField = groupDetailPage.getExpenseAmountField();
+    const amountField = page.locator('input[type="number"]').first();
     await expect(amountField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     // Change amount from $50.00 to $75.50
@@ -91,14 +91,14 @@ test.describe('Expense Editing Error Testing', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName("EditAmountDown"), "Testing expense amount decrease");
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(expectedMemberCount);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
     
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), "High Amount Expense");
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), "150");
+    await expenseFormPage.fillDescription("High Amount Expense");
+    await expenseFormPage.fillAmount("150");
+    await expenseFormPage.selectAllParticipants();
     await groupDetailPage.selectCategoryFromSuggestions("Food & Dining");
     
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Edit to decrease amount
@@ -114,7 +114,7 @@ test.describe('Expense Editing Error Testing', () => {
     await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Change amount from $150.00 to $25.75
-    const amountField = groupDetailPage.getExpenseAmountField();
+    const amountField = page.locator('input[type="number"]').first();
     await expect(amountField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     await groupDetailPage.fillPreactInput(amountField, "25.75");
     
@@ -144,14 +144,14 @@ test.describe('Expense Editing Error Testing', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditDesc'), 'Testing expense description editing');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(expectedMemberCount);
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
     
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Original Description');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '42.99');
+    await expenseFormPage.fillDescription('Original Description');
+    await expenseFormPage.fillAmount('42.99');
+    await expenseFormPage.selectAllParticipants();
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created
@@ -169,7 +169,7 @@ test.describe('Expense Editing Error Testing', () => {
     
     await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
-    const descriptionField = groupDetailPage.getExpenseDescriptionField();
+    const descriptionField = page.getByPlaceholder('What was this expense for?');
     await expect(descriptionField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     // Change description

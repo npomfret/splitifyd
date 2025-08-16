@@ -20,7 +20,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('DateTime Test Group', 'Testing date and time inputs');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // === DATE CONVENIENCE BUTTONS TESTS ===
     const dateInput = groupDetailPage.getDateInput();
@@ -107,14 +107,11 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await expect(page.getByRole('button', { name: 'at 2:45 PM' })).toBeVisible();
     
     // === SUBMIT EXPENSE WITH CUSTOM DATE/TIME ===
-    await groupDetailPage.waitForExpenseFormSections();
+    await expenseFormPage.waitForExpenseFormSections();
     
     // Fill in expense details
-    const descriptionField = groupDetailPage.getExpenseDescriptionField();
-    await groupDetailPage.fillPreactInput(descriptionField, 'Dinner with custom datetime');
-    
-    const amountField = groupDetailPage.getExpenseAmountField();
-    await groupDetailPage.fillPreactInput(amountField, '45.50');
+    await expenseFormPage.fillDescription('Dinner with custom datetime');
+    await expenseFormPage.fillAmount('45.50');
     
     // Set a specific date using Yesterday button
     await groupDetailPage.clickYesterdayButton();
@@ -143,7 +140,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     }
     
     // Submit the expense
-    await groupDetailPage.clickButton(groupDetailPage.getSaveExpenseButton(), { buttonName: 'Save Expense' });
+    await expenseFormPage.saveExpense();
     
     // Verify we're back on the group page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -152,15 +149,15 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await groupDetailPage.verifyExpenseInList('Dinner with custom datetime', '$45.50');
     
     // === SUBMIT EXPENSE WITH DEFAULT TIME ===
-    await groupDetailPage.clickAddExpenseButton();
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Create expense without changing time (keep default 12:00 PM)
-    await page.getByPlaceholder('What was this expense for?').fill('Lunch with default time');
-    await page.getByPlaceholder('0.00').fill('15.00');
+    await expenseFormPage2.fillDescription('Lunch with default time');
+    await expenseFormPage2.fillAmount('15.00');
     
     // Submit without changing time
-    await page.getByRole('button', { name: 'Save Expense' }).click();
+    await expenseFormPage2.saveExpense();
     
     // Should navigate back to group
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

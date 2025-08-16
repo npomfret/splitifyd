@@ -44,8 +44,33 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupId = await groupWorkflow.createGroup(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
     const user1 = user;
 
-    // Get share link
+    // Get share link - verify page state first with detailed error messages
+    try {
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+    } catch (error) {
+      throw new Error(`Expected to be on group page after creation, but got: ${page.url()}. Original error: ${(error as Error).message}`);
+    }
+    
+    try {
+      await expect(groupDetailPage.getShareButton()).toBeVisible();
+    } catch (error) {
+      throw new Error('Share button should be visible on group page - check if user is authenticated and has group access');
+    }
+    
     await groupDetailPage.clickShareButton();
+    
+    try {
+      await expect(groupDetailPage.getShareModal()).toBeVisible();
+    } catch (error) {
+      throw new Error('Share modal should open after clicking share button - check modal implementation');
+    }
+    
+    try {
+      await expect(groupDetailPage.getShareLinkInput()).toBeVisible();
+    } catch (error) {
+      throw new Error('Share link input should be visible in modal - check input selector and modal content');
+    }
+    
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
@@ -56,9 +81,18 @@ test.describe('Multi-User Collaboration E2E', () => {
     const joinGroupPage2 = new JoinGroupPage(page2);
     
     await page2.goto(shareLink);
-    await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
+    try {
+      await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
+    } catch (error) {
+      throw new Error(`Join page should load from share link: ${shareLink} - check if link is valid and emulator is running`);
+    }
+    
     await joinGroupPage2.getJoinGroupButton().click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    try {
+      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+    } catch (error) {
+      throw new Error(`Second user should navigate to group page after joining, but stayed on: ${page2.url()}`);
+    }
     
     // Wait for synchronization of users
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -152,8 +186,33 @@ test.describe('Multi-User Collaboration E2E', () => {
     const groupInfo = { user };
     const user1 = groupInfo.user;
     
-    // Get share link
+    // Get share link - verify page state first with detailed error messages
+    try {
+      await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+    } catch (error) {
+      throw new Error(`Expected to be on group page after creation, but got: ${page.url()}. Original error: ${(error as Error).message}`);
+    }
+    
+    try {
+      await expect(groupDetailPage.getShareButton()).toBeVisible();
+    } catch (error) {
+      throw new Error('Share button should be visible on group page - check if user is authenticated and has group access');
+    }
+    
     await groupDetailPage.clickShareButton();
+    
+    try {
+      await expect(groupDetailPage.getShareModal()).toBeVisible();
+    } catch (error) {
+      throw new Error('Share modal should open after clicking share button - check modal implementation');
+    }
+    
+    try {
+      await expect(groupDetailPage.getShareLinkInput()).toBeVisible();
+    } catch (error) {
+      throw new Error('Share link input should be visible in modal - check input selector and modal content');
+    }
+    
     const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
     await page.keyboard.press('Escape');
     
@@ -163,9 +222,18 @@ test.describe('Multi-User Collaboration E2E', () => {
     const user2 = secondUser.user;
     const joinGroupPage2 = new JoinGroupPage(page2);
     await page2.goto(shareLink);
-    await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
+    try {
+      await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
+    } catch (error) {
+      throw new Error(`Join page should load from share link: ${shareLink} - check if link is valid and emulator is running`);
+    }
+    
     await joinGroupPage2.getJoinGroupButton().click();
-    await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    try {
+      await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+    } catch (error) {
+      throw new Error(`Second user should navigate to group page after joining, but stayed on: ${page2.url()}`);
+    }
     
     // WAIT for user synchronization before adding expense
     await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);

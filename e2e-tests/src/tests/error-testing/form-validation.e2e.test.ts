@@ -186,10 +186,10 @@ pageTest.describe('Form Validation E2E', () => {
       const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Expense Validation Group', 'Testing expense form validation');
 
       // Navigate to expense form with proper waiting
-      await groupDetailPage.navigateToAddExpenseForm(memberCount);
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Submit button should be disabled when required fields are empty
-      const submitButton = page.getByRole('button', { name: /save expense/i });
+      const submitButton = expenseFormPage.getSaveExpenseButton();
       await expect(submitButton).toBeDisabled();
       
       // Form should remain on expense page
@@ -197,8 +197,8 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
       
       // Fill required fields
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Test expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25');
+      await expenseFormPage.fillDescription('Test expense');
+      await expenseFormPage.fillAmount('25');
       
       // Should now enable submission
       await expect(submitButton).toBeEnabled();
@@ -218,11 +218,11 @@ pageTest.describe('Form Validation E2E', () => {
       const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Split Validation Group', 'Testing split validation');
 
       // Navigate to expense form with proper waiting
-      await groupDetailPage.navigateToAddExpenseForm(memberCount);
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Fill basic expense details
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Split Test Expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
+      await expenseFormPage.fillDescription('Split Test Expense');
+      await expenseFormPage.fillAmount('100');
       
       // Select exact split type
       await page.getByText('Exact amounts').click();
@@ -247,11 +247,11 @@ pageTest.describe('Form Validation E2E', () => {
       const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Percentage Validation Group', 'Testing percentage validation');
 
       // Navigate to expense form with proper waiting
-      await groupDetailPage.navigateToAddExpenseForm(memberCount);
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Fill basic expense details
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Percentage Test Expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '100');
+      await expenseFormPage.fillDescription('Percentage Test Expense');
+      await expenseFormPage.fillAmount('100');
       
       // Select percentage split type
       await page.getByText('Percentage', { exact: true }).click();

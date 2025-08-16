@@ -271,6 +271,11 @@ export abstract class BasePage {
     await this.waitForNetworkIdle();
   }
 
+  async navigateToRoot(): Promise<void> {
+    await this.page.goto(EMULATOR_URL);
+    await this.page.waitForLoadState('domcontentloaded');
+  }
+
   async navigateToLogin(): Promise<void> {
     await this.page.goto(`${EMULATOR_URL}/login`);
     await this.waitForNetworkIdle();
@@ -284,6 +289,11 @@ export abstract class BasePage {
   async navigateToPricing(): Promise<void> {
     await this.page.goto(`${EMULATOR_URL}/pricing`);
     await this.waitForNetworkIdle();
+  }
+
+  async navigateToDashboard(): Promise<void> {
+    await this.page.goto(`${EMULATOR_URL}/dashboard`);
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async navigateToShareLink(shareLink: string): Promise<void> {

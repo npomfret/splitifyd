@@ -123,9 +123,9 @@ export class UserPool {
     });
 
     try {
-      // Navigate to register page with full URL
-      await tempPage.goto(`${EMULATOR_URL}/register`);
-      await tempPage.waitForLoadState('domcontentloaded');
+      // Use RegisterPage to properly navigate and fill form
+      const registerPage = new RegisterPage(tempPage);
+      await registerPage.navigateToRegister();
       
       // Check for errors before waiting for form
       if (consoleErrors.length > 0 || pageErrors.length > 0) {
@@ -135,9 +135,6 @@ export class UserPool {
       
       // Wait for form to be visible
       await tempPage.waitForSelector('input[placeholder="Enter your full name"]');
-      
-      // Use RegisterPage to properly fill form with Preact input handling
-      const registerPage = new RegisterPage(tempPage);
       
       // Fill registration form using fillPreactInput to handle form defaults
       await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', displayName);
