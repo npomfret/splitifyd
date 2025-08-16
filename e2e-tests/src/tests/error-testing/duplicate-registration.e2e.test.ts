@@ -57,8 +57,15 @@ test.describe('Duplicate User Registration E2E', () => {
     await termsCheckbox.check();
     await cookieCheckbox.check();
     
-    // Click register button
-    await submitButton.click();
+    // Click register button and wait for the expected error response
+    await Promise.all([
+      page.waitForResponse(
+        response => 
+          response.url().includes('/api/register') && response.status() >= 400,
+        { timeout: TIMEOUT_CONTEXTS.API_RESPONSE }
+      ),
+      submitButton.click()
+    ]);
     
     // Should NOT redirect - should stay on registration page
     await expect(page).toHaveURL(/\/register/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
@@ -129,8 +136,15 @@ test.describe('Duplicate User Registration E2E', () => {
     await termsCheckbox.check();
     await cookieCheckbox.check();
     
-    // Submit
-    await submitButton.click();
+    // Submit and wait for the expected error response
+    await Promise.all([
+      page.waitForResponse(
+        response => 
+          response.url().includes('/api/register') && response.status() >= 400,
+        { timeout: TIMEOUT_CONTEXTS.API_RESPONSE }
+      ),
+      submitButton.click()
+    ]);
     
     // Form fields should still contain the values
     await expect(nameInput).toHaveValue(displayName);
@@ -188,7 +202,16 @@ test.describe('Duplicate User Registration E2E', () => {
     const cookieCheckbox = registerPage.getCookieCheckbox();
     await termsCheckbox.check();
     await cookieCheckbox.check();
-    await submitButton.click();
+
+    // Submit and wait for the expected error response
+    await Promise.all([
+      page.waitForResponse(
+        response => 
+          response.url().includes('/api/register') && response.status() >= 400,
+        { timeout: TIMEOUT_CONTEXTS.API_RESPONSE }
+      ),
+      submitButton.click()
+    ]);
     
     // Should see error
     const errorElement = registerPage.getEmailError();

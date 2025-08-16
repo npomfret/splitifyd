@@ -83,8 +83,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
     const balancesHeading = aliceGroupDetailPage.getBalancesHeading();
     await expect(balancesHeading).toBeVisible();
     
-    // With Alice paying $800 and Bob paying $120, there should be a balance showing
-    await expect(alicePage.getByText(/\$/)).toBeVisible();
+    // With Alice paying $800 and Bob paying $120, Bob owes Alice $340.00
+    await expect(aliceGroupDetailPage.getBalancesSection().getByText('$340.00')).toBeVisible();
     
     // Verify member count shows 2 members
     await expect(aliceGroupDetailPage.getMembersCount()).toBeVisible();

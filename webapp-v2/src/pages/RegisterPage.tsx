@@ -29,16 +29,16 @@ export function RegisterPage() {
     }
     localErrorSignal.value = null;
     
-    // Load form defaults from config
+    // Load form defaults from config, but only if the fields are empty
     firebaseConfigManager.getConfig().then(config => {
       if (config.formDefaults) {
-        if (config.formDefaults.displayName) {
+        if (!nameSignal.value && config.formDefaults.displayName) {
           nameSignal.value = config.formDefaults.displayName;
         }
-        if (config.formDefaults.email) {
+        if (!emailSignal.value && config.formDefaults.email) {
           emailSignal.value = config.formDefaults.email;
         }
-        if (config.formDefaults.password) {
+        if (!passwordSignal.value && config.formDefaults.password) {
           passwordSignal.value = config.formDefaults.password;
           confirmPasswordSignal.value = config.formDefaults.password;
         }
