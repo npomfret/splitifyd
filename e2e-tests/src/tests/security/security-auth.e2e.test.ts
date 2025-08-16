@@ -3,6 +3,7 @@ import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import type { Request } from '@playwright/test';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -416,7 +417,7 @@ test.describe('Security Authentication and Session Tests', () => {
       }
       
       // Check that forms include proper headers
-      page.on('request', request => {
+      page.on('request', (request: Request) => {
         if (request.method() === 'POST') {
           const headers = request.headers();
           

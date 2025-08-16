@@ -21,8 +21,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@shared/*": ["../firebase/functions/src/shared/*"],
-      "@test-builders": ["../firebase/functions/__tests__/support/builders"],
-      "@test-support/ApiDriver": ["../firebase/functions/__tests__/support/ApiDriver.ts"]
+      "@test-builders": ["../firebase/functions/src/__tests__/support/builders"],
+      "@test-support/ApiDriver": ["../firebase/functions/src/__tests__/support/ApiDriver.ts"]
     }
   },
   "include": ["src"],

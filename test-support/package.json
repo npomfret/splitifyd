@@ -6,7 +6,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "build": "npx tsc --noEmit --skipLibCheck",
+    "build": "npx tsc --noEmit",
     "test:unit": "npm run build && echo 'There are no unit tests in test-support'",
     "test:integration": "npm run build && echo 'There are no integration tests in test-support'"
   },

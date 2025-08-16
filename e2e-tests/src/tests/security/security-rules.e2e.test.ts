@@ -2,6 +2,8 @@ import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import type { Response } from '@playwright/test';
+import '../../utils/custom-matchers';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -359,7 +361,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Monitor function calls
       const functionCalls: string[] = [];
       
-      page.on('response', response => {
+      page.on('response', (response: Response) => {
         const url = response.url();
         if (url.includes('cloudfunctions.net') || url.includes('functions')) {
           functionCalls.push(`${response.status()}: ${url}`);
@@ -394,7 +396,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Monitor function responses for validation errors
       const functionResponses: Array<{status: number, url: string}> = [];
       
-      page.on('response', response => {
+      page.on('response', (response: Response) => {
         const url = response.url();
         if (url.includes('cloudfunctions.net') || url.includes('functions')) {
           functionResponses.push({

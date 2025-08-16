@@ -9,6 +9,7 @@ describe('ExpenseFormActions', () => {
     isEditMode: false,
     saving: false,
     participantsCount: 2,
+    hasRequiredFields: true,
     onCancel: mockOnCancel
   };
 
@@ -81,6 +82,16 @@ describe('ExpenseFormActions', () => {
       render(<ExpenseFormActions {...defaultProps} saving={true} participantsCount={0} />);
 
       const submitButton = screen.getByRole('button', { name: 'Saving...' });
+      expect(submitButton).toBeDisabled();
+    });
+
+    it('disables submit button when required fields are missing', () => {
+      render(<ExpenseFormActions {...defaultProps} hasRequiredFields={false} />);
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+
+      expect(cancelButton).not.toBeDisabled();
       expect(submitButton).toBeDisabled();
     });
   });

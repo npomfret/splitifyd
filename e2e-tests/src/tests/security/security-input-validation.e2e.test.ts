@@ -541,7 +541,7 @@ test.describe('Security Input Validation Tests', () => {
       `;
       
       // Try to inject via innerHTML (should be blocked by CSP)
-      const injectionResult = await page.evaluate((script) => {
+      const injectionResult = await page.evaluate((script: string) => {
         try {
           const div = document.createElement('div');
           div.innerHTML = script;
@@ -564,7 +564,7 @@ test.describe('Security Input Validation Tests', () => {
           
           // Check that no alert appeared
           const alerts = await page.evaluate(() => {
-            return window.__alertCount || 0;
+            return (window as any).__alertCount || 0;
           });
           expect(alerts).toBe(0);
         }

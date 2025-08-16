@@ -6,7 +6,6 @@
   },
   "include": [
     "src",
-    "__tests__",
     "scripts"
   ],
   "exclude": [

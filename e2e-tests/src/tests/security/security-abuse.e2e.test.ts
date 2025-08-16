@@ -3,6 +3,7 @@ import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import type { Response } from '@playwright/test';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -20,7 +21,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Track API responses for rate limiting indicators
       const apiResponses: Array<{status: number, url: string, timestamp: number}> = [];
       
-      page.on('response', response => {
+      page.on('response', (response: Response) => {
         const url = response.url();
         if (url.includes('/api/') || 
             url.includes('cloudfunctions.net') || 
@@ -297,7 +298,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       const nestedData = createNestedObject(1000); // Very deep nesting
       
       // Try to inject nested data via form manipulation
-      const injectionResult = await page.evaluate((data) => {
+      const injectionResult = await page.evaluate((data: any) => {
         try {
           const form = document.querySelector('[data-testid="expense-form"]') as HTMLFormElement;
           if (form) {

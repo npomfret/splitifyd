@@ -14,6 +14,7 @@ export interface AuthenticatedPageFixtures {
   authenticatedPage: {
     page: any;
     user: BaseUser;
+    dashboardPage: DashboardPage;
   };
   loginPage: LoginPage;
   registerPage: RegisterPage;
@@ -28,7 +29,8 @@ export const authenticatedPageTest = multiUserTest.extend<AuthenticatedPageFixtu
   authenticatedPage: async ({ primaryUser }, use) => {
     await use({
       page: primaryUser.page,
-      user: primaryUser.user
+      user: primaryUser.user,
+      dashboardPage: primaryUser.pages.dashboard
     });
   },
   loginPage: async ({ primaryUser }, use) => {

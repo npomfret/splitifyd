@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
-import type {User} from '../__tests__/support/ApiDriver';
-import {ApiDriver} from '../__tests__/support/ApiDriver';
-import {ExpenseBuilder} from '../__tests__/support/builders';
+import type {User} from '../src/__tests__/support/ApiDriver';
+import {ApiDriver} from '../src/__tests__/support/ApiDriver';
+import {ExpenseBuilder} from '../src/__tests__/support/builders';
 import {logger} from '../src/logger';
 import type {Group} from '../src/shared/shared-types';
 

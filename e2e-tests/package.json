@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npx tsc --noEmit --skipLibCheck",
+    "build": "npx tsc --noEmit",
     "test:unit": "npm run build && jest",
     "_test:e2e": "npm run build && PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium",
     "test:e2e:normal-flow": "PLAYWRIGHT_HTML_REPORT=playwright-report/normal npm run _test:e2e -- --reporter=html src/tests/normal-flow",
