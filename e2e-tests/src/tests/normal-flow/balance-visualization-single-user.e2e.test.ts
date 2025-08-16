@@ -44,7 +44,8 @@ test.describe('Single User Balance Visualization', () => {
     await groupWorkflow.createGroupAndNavigate(groupName, 'Testing single user balance');
     
     // Add expenses
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'Dinner',
       amount: 120,
       currency: 'USD',
@@ -52,7 +53,8 @@ test.describe('Single User Balance Visualization', () => {
       splitType: 'equal'
     });
     
-    await groupDetailPage.addExpense({
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'Groceries',
       amount: 80,
       currency: 'USD',
@@ -97,7 +99,8 @@ test.describe('Single User Balance Visualization', () => {
     await groupWorkflow.createGroupAndNavigate(groupName, 'Testing currency display');
     
     // Add expense
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'International expense',
       amount: 250,
       currency: 'USD',

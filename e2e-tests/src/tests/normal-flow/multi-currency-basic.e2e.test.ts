@@ -22,7 +22,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Create USD expense using page object methods
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'Lunch',
       amount: 25.00,
       currency: 'USD',
@@ -35,7 +36,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     await expect(page.getByText('$25.00')).toBeVisible();
     
     // Create EUR expense
-    await groupDetailPage.addExpense({
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'Dinner',
       amount: 30.00,
       currency: 'EUR',
@@ -70,7 +72,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Create first expense with EUR
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'Coffee',
       amount: 5.50,
       currency: 'EUR', 
@@ -82,7 +85,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     await expect(page.getByText('€5.50')).toBeVisible();
     
     // Create second expense - should default to EUR (remembered from first)
-    await groupDetailPage.addExpense({
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'Snack',
       amount: 3.25,
       currency: 'EUR', // Should be remembered by the system
@@ -110,7 +114,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Create USD expense
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'Taxi',
       amount: 20.00,
       currency: 'USD',
@@ -119,7 +124,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     });
     
     // Create EUR expense
-    await groupDetailPage.addExpense({
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'Museum',
       amount: 15.00,
       currency: 'EUR',
@@ -161,7 +167,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
     
     // Add expenses in different currencies
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'USD Test',
       amount: 50.00,
       currency: 'USD',
@@ -169,7 +176,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       splitType: 'equal'
     });
     
-    await groupDetailPage.addExpense({
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'EUR Test',
       amount: 40.00,
       currency: 'EUR',
@@ -177,7 +185,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
       splitType: 'equal'
     });
     
-    await groupDetailPage.addExpense({
+    const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage3.submitExpense({
       description: 'GBP Test',
       amount: 30.00,
       currency: 'GBP',
@@ -233,7 +242,8 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     
     for (const { currency, amount, expectedSymbol } of testCases) {
       // Create expense with specific currency
-      await groupDetailPage.addExpense({
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+      await expenseFormPage.submitExpense({
         description: `Test ${currency}`,
         amount: amount,
         currency: currency,

@@ -48,7 +48,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     }
     
     // SEQUENTIAL EXPENSES: User1 adds expense first
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'User1 Equal Payment',
       amount: 100,
       paidBy: user1.displayName,
@@ -64,7 +65,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await groupDetailPage2.verifyExpenseVisible('User1 Equal Payment');
 
     // User2 adds expense AFTER User1's is synchronized
-    await groupDetailPage2.addExpense({
+    const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'User2 Equal Payment', 
       amount: 100,
       paidBy: user2.displayName,
@@ -118,7 +120,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Only User1 pays $200 → User2 MUST owe User1 $100
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'One Person Pays',
       amount: 200,
       paidBy: user1.displayName,
@@ -169,7 +172,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // User1 pays $300 first
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Large User1 Payment',
       amount: 300,
       paidBy: user1.displayName,
@@ -185,7 +189,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await groupDetailPage2.verifyExpenseVisible('Large User1 Payment');
 
     // User2 adds expense AFTER User1's is synchronized
-    await groupDetailPage2.addExpense({
+    const expenseFormPage2b = await groupDetailPage2.clickAddExpenseButton(memberCount);
+    await expenseFormPage2b.submitExpense({
       description: 'Small User2 Payment',
       amount: 100,
       paidBy: user2.displayName,
@@ -239,7 +244,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
     
     // State 2: User1 pays $100 → User2 MUST owe $50
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Create Debt',
       amount: 100,
       paidBy: user1.displayName,
@@ -255,7 +261,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$50.00' })).toBeVisible();
     
     // State 3: User2 pays $100 → MUST be settled up
-    await groupDetailPage2.addExpense({
+    const expenseFormPage2c = await groupDetailPage2.clickAddExpenseButton(memberCount);
+    await expenseFormPage2c.submitExpense({
       description: 'Balance Debt',
       amount: 100,
       paidBy: user2.displayName,
@@ -305,7 +312,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // User1 pays $123.45 → User2 owes exactly $61.73
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Currency Test',
       amount: 123.45,
       paidBy: user1.displayName,
@@ -361,7 +369,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
     
     // Create expense directly
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Test Expense for Settlement',
       amount: 200,
       paidBy: user1.displayName,
@@ -386,7 +395,9 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
     // Record partial settlement of $60
-    await groupDetailPage.recordSettlementByUser({
+    const { SettlementFormPage } = await import('../../pages');
+    const settlementFormPage = new SettlementFormPage(page);
+    await settlementFormPage.submitSettlement({
       payerName: user2.displayName,
       payeeName: user1.displayName,
       amount: '60',
@@ -441,7 +452,9 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // Create known debt: User1 pays $150 → User2 owes $75
-    await groupDetailPage.addExpense({
+    const memberCount = 2;
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'One Person Pays',
       amount: 150,
       paidBy: user1.displayName,
@@ -464,7 +477,9 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$75.00' })).toBeVisible();
     
     // User2 pays User1 the exact debt amount ($75) → MUST be settled up
-    await groupDetailPage.recordSettlementByUser({
+    const { SettlementFormPage } = await import('../../pages');
+    const settlementFormPage = new SettlementFormPage(page);
+    await settlementFormPage.submitSettlement({
       payerName: user2.displayName,
       payeeName: user1.displayName,
       amount: expectedDebtAmount,

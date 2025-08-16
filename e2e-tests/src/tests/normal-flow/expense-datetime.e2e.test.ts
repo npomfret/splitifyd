@@ -124,20 +124,17 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await timeInput.fill('7:30pm');
     await page.getByRole('heading', { name: 'Expense Details' }).click(); // Blur to commit
     
-    // Select the payer
-    await groupDetailPage.selectPayer(user.displayName);
+    // Select the payer - find the payer radio button by display name
+    const payerLabel = page.locator('label').filter({
+      has: page.locator('input[type="radio"][name="paidBy"]')
+    }).filter({
+      hasText: user.displayName
+    }).first();
+    await expect(payerLabel).toBeVisible();
+    await payerLabel.click();
     
     // Select participants for the split
     await groupDetailPage.clickSelectAllButton();
-    
-    // Validate form before submitting
-    const validation = await groupDetailPage.validateExpenseFormReady();
-    if (!validation.isValid) {
-      throw new Error(
-        `Form validation failed before submit:\n` +
-        validation.errors.map(e => `  - ${e}`).join('\n')
-      );
-    }
     
     // Submit the expense
     await expenseFormPage.saveExpense();

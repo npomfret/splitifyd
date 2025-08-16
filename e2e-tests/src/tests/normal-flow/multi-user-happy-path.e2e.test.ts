@@ -102,7 +102,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // SEQUENTIAL EXPENSE ADDITION: User 1 adds expense first
-    await groupDetailPage.addExpense({
+    const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage1.submitExpense({
       description: 'User 1 Lunch',
       amount: 25,
       currency: 'USD',
@@ -119,7 +120,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     await expect(groupDetailPage2.getExpenseByDescription('User 1 Lunch')).toBeVisible();
     
     // SEQUENTIAL EXPENSE ADDITION: User 2 adds expense ONLY AFTER User 1's expense is synchronized
-    await groupDetailPage2.addExpense({
+    const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
+    await expenseFormPage2.submitExpense({
       description: 'User 2 Dinner',
       amount: 40,
       currency: 'USD',
@@ -161,7 +163,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     ];
     
     for (const expense of expenses) {
-      await groupDetailPage.addExpense({
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+      await expenseFormPage.submitExpense({
         description: expense.description,
         amount: expense.amount,
         currency: 'USD',
@@ -241,7 +244,8 @@ test.describe('Multi-User Collaboration E2E', () => {
     await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
     
     // User 1 pays for shared expense AFTER synchronization
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Shared Meal',
       amount: 100,
       currency: 'USD',

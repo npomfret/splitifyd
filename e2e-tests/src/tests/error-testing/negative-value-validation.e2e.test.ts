@@ -114,10 +114,11 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     // Wait to see both members
     await page.waitForLoadState('domcontentloaded');
-    await groupDetailPage.waitForMemberCount(2);
+    await groupDetailPage.waitForMemberCount(memberCount);
     
     // Create an expense first
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Test expense for settlement',
       amount: 100,
       paidBy: user1.displayName,
@@ -129,14 +130,15 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expect(page.getByText('Test expense for settlement')).toBeVisible();
     
     // Open settlement form
-    const settleButton = groupDetailPage.getSettleUpButtonDirect();
-    await settleButton.click();
+    const { SettlementFormPage } = await import('../../pages');
+    const settlementFormPage = new SettlementFormPage(page);
     
-    const modal = groupDetailPage.getSettlementDialog();
+    await settlementFormPage.openSettlementForm();
+    const modal = settlementFormPage.getModal();
     await expect(modal).toBeVisible();
     
     // Try to enter negative amount
-    const amountInput = groupDetailPage.getSettlementAmountSpinbutton();
+    const amountInput = settlementFormPage.getAmountInput();
     // Assert field is clear before testing
     const initialValue = await amountInput.inputValue();
     expect(initialValue).toBe('');
@@ -148,18 +150,18 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Verify submit button is disabled with negative value
-    const submitButton = modal.getByRole('button', { name: /record payment/i });
+    const submitButton = settlementFormPage.getRecordPaymentButton();
     await expect(submitButton).toBeDisabled();
     
     // Modal should still be open (form can't be submitted)
     await expect(modal).toBeVisible();
     
     // Enter valid amount
-    await groupDetailPage.fillPreactInput(amountInput, '50');
+    await settlementFormPage.fillPreactInput(amountInput, '50');
     
     // Select payer and payee
-    const payerSelect = groupDetailPage.getPayerSelect();
-    const payeeSelect = groupDetailPage.getPayeeSelect();
+    const payerSelect = settlementFormPage.getPayerSelect();
+    const payeeSelect = settlementFormPage.getPayeeSelect();
     
     await payerSelect.selectOption({ index: 2 }); // user2
     await payeeSelect.selectOption({ index: 1 }); // user1

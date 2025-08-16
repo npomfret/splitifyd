@@ -21,25 +21,26 @@ test.describe('Settlement Management', () => {
     await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
     // Open settlement form
-    const settleButton = groupDetailPage.getSettleUpButton();
-    await settleButton.click();
+    const { SettlementFormPage } = await import('../../pages');
+    const settlementFormPage = new SettlementFormPage(page);
     
-    const modal = groupDetailPage.getSettlementModal();
+    await settlementFormPage.openSettlementForm();
+    const modal = settlementFormPage.getModal();
     await expect(modal).toBeVisible();
     
     // Test negative amount
-    const amountInput = groupDetailPage.getSettlementAmountInput();
-    await groupDetailPage.fillPreactInput(amountInput, '-10');
+    const amountInput = settlementFormPage.getAmountInput();
+    await settlementFormPage.fillPreactInput(amountInput, '-10');
     
     // Try to submit - should be disabled due to validation
-    const submitButton = modal.getByRole('button', { name: /record payment/i });
+    const submitButton = settlementFormPage.getRecordPaymentButton();
     await expect(submitButton).toBeDisabled();
     
     // Fix amount
-    await groupDetailPage.fillPreactInput(amountInput, '10');
+    await settlementFormPage.fillPreactInput(amountInput, '10');
     
     // Test same payer and payee by directly setting form state
-    const payerSelect = groupDetailPage.getPayerSelect();
+    const payerSelect = settlementFormPage.getPayerSelect();
 
     // Get the first user value from payer select
     await payerSelect.selectOption({ index: 1 });

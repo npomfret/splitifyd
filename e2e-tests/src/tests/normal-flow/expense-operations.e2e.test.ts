@@ -14,7 +14,8 @@ test.describe('Basic Expense Operations E2E', () => {
     const memberCount = 1;
 
     // Create expense using page object
-    await groupDetailPage.addExpense({
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await expenseFormPage.submitExpense({
       description: 'Test Expense Lifecycle',
       amount: 50,
       currency: 'USD',

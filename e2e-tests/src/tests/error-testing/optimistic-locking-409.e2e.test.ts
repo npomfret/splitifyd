@@ -31,7 +31,8 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     
     // Both users add an expense to create initial state
     // Use the proper expense creation method which handles member loading
-    await groupDetailPage.addExpense({
+    const initialExpenseForm1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    await initialExpenseForm1.submitExpense({
       description: 'User 1 Expense',
       amount: 100,
       paidBy: authenticatedPage.user.displayName,
@@ -40,7 +41,8 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     });
     
     // User 2 adds expense using proper method
-    await groupDetailPage2.addExpense({
+    const initialExpenseForm2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
+    await initialExpenseForm2.submitExpense({
       description: 'User 2 Expense',
       amount: 50,
       paidBy: secondUser.user.displayName,

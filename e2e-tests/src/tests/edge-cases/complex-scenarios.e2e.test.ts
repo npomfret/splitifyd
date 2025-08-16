@@ -43,7 +43,9 @@ test.describe('Complex Unsettled Group Scenario', () => {
     
     // Alice adds beach house expense ($800)
     const aliceGroupDetailPage = new GroupDetailPage(alicePage);
-    await aliceGroupDetailPage.addExpense({
+    const memberCount = 2; // Alice and Bob
+    const aliceExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(memberCount);
+    await aliceExpenseFormPage.submitExpense({
       description: 'Beach House Rental',
       amount: 800.00,
       paidBy: alice.displayName,
@@ -53,7 +55,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
     
     // Bob adds restaurant expense ($120)
     const bobGroupDetailPage = new GroupDetailPage(bobPage);
-    await bobGroupDetailPage.addExpense({
+    const bobExpenseFormPage = await bobGroupDetailPage.clickAddExpenseButton(memberCount);
+    await bobExpenseFormPage.submitExpense({
       description: 'Restaurant Dinner',
       amount: 120.00,
       paidBy: bob.displayName,

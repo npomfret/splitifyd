@@ -1,6 +1,16 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
 
+// Match the ExpenseData interface from GroupDetailPage
+interface ExpenseData {
+  description: string;
+  amount: number;
+  currency: string; // Required: must be explicitly provided
+  paidBy: string;
+  splitType: 'equal' | 'exact' | 'percentage';
+  participants?: string[]; // Optional: if not provided, selects all members
+}
+
 export class ExpenseFormPage extends BasePage {
   readonly url = '/groups/[id]/add-expense';
 
@@ -120,6 +130,57 @@ export class ExpenseFormPage extends BasePage {
   async saveExpense(): Promise<void> {
     const saveButton = this.getSaveExpenseButton();
     await this.clickButton(saveButton, { buttonName: 'Save Expense' });
+  }
+
+  /**
+   * Submit a complete expense with all required fields.
+   * This method handles the full expense creation flow.
+   */
+  async submitExpense(expense: ExpenseData): Promise<void> {
+    // Fill expense description
+    await this.fillDescription(expense.description);
+    
+    // Fill amount
+    await this.fillAmount(expense.amount.toString());
+    
+    // Handle currency selection (if not USD)
+    if (expense.currency && expense.currency !== 'USD') {
+      const currencySelector = this.page.getByRole('combobox').filter({ hasText: 'USD' }).first();
+      await currencySelector.selectOption(expense.currency);
+    }
+    
+    // Select who paid - find the payer radio button by display name
+    const payerLabel = this.page.locator('label').filter({
+      has: this.page.locator('input[type="radio"][name="paidBy"]')
+    }).filter({
+      hasText: expense.paidBy
+    }).first();
+    
+    await expect(payerLabel).toBeVisible();
+    await payerLabel.click();
+    
+    // Handle split type
+    if (expense.splitType === 'equal') {
+      // For equal split, click "Select all" to ensure all members are selected
+      await this.selectAllParticipants();
+    } else if (expense.splitType === 'exact') {
+      // Switch to exact amounts
+      await this.switchToExactAmounts();
+      // Additional logic for exact amounts would go here if needed
+    }
+    // Note: percentage split would need additional implementation
+    
+    // Save the expense
+    await this.saveExpense();
+    
+    // Wait for navigation back to group page
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+    
+    // Verify expense was created by checking it appears in the list
+    await expect(this.page.getByText(expense.description)).toBeVisible();
+    
+    // Wait for page to stabilize after expense creation
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
 }

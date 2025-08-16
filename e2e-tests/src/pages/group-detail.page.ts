@@ -1,7 +1,7 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {ExpenseFormPage} from './expense-form.page';
-import {ARIA_ROLES, BUTTON_TEXTS, FORM_LABELS, HEADINGS, MESSAGES} from '../constants/selectors';
+import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {GroupWorkflow} from '../workflows';
 
 interface ExpenseData {
@@ -142,21 +142,7 @@ export class GroupDetailPage extends BasePage {
     await this.clickButton(selectAllButton, { buttonName: 'Select all' });
   }
 
-  getPayerRadioLabel(displayName: string) {
-    return this.page.locator('label').filter({
-      has: this.page.locator('input[type="radio"][name="paidBy"]')
-    }).filter({
-      hasText: displayName
-    }).first();
-  }
-
-  async selectPayer(displayName: string) {
-    const payerLabel = this.getPayerRadioLabel(displayName);
-    await expect(payerLabel).toBeVisible();
-    await payerLabel.click();
-  }
-
-  async verifyExpenseInList(description: string, amount?: string) {
+    async verifyExpenseInList(description: string, amount?: string) {
     await expect(this.getExpenseByDescription(description)).toBeVisible();
     if (amount) {
       await expect(this.page.getByText(amount)).toBeVisible();
@@ -194,36 +180,6 @@ export class GroupDetailPage extends BasePage {
     await this.fillPreactInput(categoryInput, text);
   }
 
-  // Currency selector accessors and methods
-  getCurrencySelector() {
-    // Currency selector is now a button with aria-label="Select currency"
-    // It's part of the CurrencyAmountInput component
-    return this.page.locator('button[aria-label="Select currency"]').first();
-  }
-
-  async selectCurrency(currencyCode: string) {
-    const currencySelector = this.getCurrencySelector();
-    await expect(currencySelector).toBeVisible();
-    
-    // Click to open the dropdown
-    await this.clickButton(currencySelector, { buttonName: 'Currency Selector' });
-    
-    // Wait for the listbox to appear
-    await this.page.waitForSelector('[role="listbox"]', { timeout: 2000 });
-    
-    // Search for the currency if there's a search input visible
-    const searchInput = this.page.locator('[role="listbox"] input[type="text"]');
-    if (await searchInput.isVisible()) {
-      await this.fillPreactInput(searchInput, currencyCode);
-      // Wait for search results to appear
-      await this.page.waitForSelector('[role="listbox"] button[role="option"]', { timeout: 2000 })
-    }
-    
-    // Click on the currency option - look for button with role="option" containing the currency code
-    const currencyOption = this.page.locator('[role="listbox"] button[role="option"]').filter({ hasText: currencyCode }).first();
-    await this.clickButton(currencyOption, { buttonName: `Currency: ${currencyCode}` });
-  }
-
   /**
    * Override the base expectSubmitButtonEnabled to provide expense-specific behavior
    * @returns Promise that resolves if button is enabled, throws error if disabled
@@ -233,101 +189,6 @@ export class GroupDetailPage extends BasePage {
     await this.expectButtonEnabled(button, 'Save Expense');
   }
 
-  /**
-   * Validates that the expense form is ready for submission
-   * Provides detailed error messages about what's missing
-   */
-  async validateExpenseFormReady(): Promise<{ isValid: boolean; errors: string[] }> {
-    const errors: string[] = [];
-    
-    // Check if description is filled
-    const descriptionField = this.page.getByPlaceholder('What was this expense for?');
-    const descriptionValue = await descriptionField.inputValue();
-    if (!descriptionValue || descriptionValue.trim() === '') {
-      errors.push('Description field is empty');
-    }
-    
-    // Check if amount is filled
-    const amountField = this.page.getByPlaceholder('0.00');
-    const amountValue = await amountField.inputValue();
-    if (!amountValue || amountValue === '0' || amountValue === '0.00') {
-      errors.push('Amount field is empty or zero');
-    }
-    
-    // Check if a payer is selected (radio button checked)
-    const payerRadios = this.page.locator('input[type="radio"][name="paidBy"]');
-    const payerCount = await payerRadios.count();
-    if (payerCount === 0) {
-      errors.push('No payers available in "Who paid?" section');
-    } else {
-      const checkedPayer = await payerRadios.filter({ hasNot: this.page.locator('[checked=""]') }).count();
-      const anyChecked = await this.page.locator('input[type="radio"][name="paidBy"]:checked').count();
-      if (anyChecked === 0) {
-        errors.push('No payer selected in "Who paid?" section');
-      }
-    }
-    
-    // Check if participants are selected for the split
-    const participantCheckboxes = this.page.locator('input[type="checkbox"][name="participant"]');
-    const participantCount = await participantCheckboxes.count();
-    
-    if (participantCount === 0) {
-      // Look for any indication of participants section
-      const splitSection = await this.page.getByRole('heading', { name: /Split between/i }).isVisible();
-      if (splitSection) {
-        // Check for selected participant indicators (could be checkboxes or other UI elements)
-        const selectedIndicators = await this.page.locator('.selected-participant, [aria-checked="true"]').count();
-        // Check if either "Select all" or "Select none" buttons exist
-        const selectAllButton = await this.page.getByRole('button', { name: 'Select all' }).count();
-        const selectNoneButton = await this.page.getByRole('button', { name: 'Select none' }).count();
-        const hasSelectionControls = selectAllButton > 0 || selectNoneButton > 0;
-        
-        if (!hasSelectionControls) {
-          errors.push('Split between section exists but no participant selection controls found');
-        } else {
-          // Try to find how many are selected by looking for visual indicators
-          const memberElements = await this.page.locator('label').filter({
-            has: this.page.locator('input[type="checkbox"]')
-          }).count();
-          
-          if (memberElements === 0) {
-            errors.push('No participants available for selection in "Split between" section');
-          } else {
-            // Check if any checkboxes are checked
-            const checkedBoxes = await this.page.locator('input[type="checkbox"]:checked').count();
-            if (checkedBoxes === 0) {
-              errors.push('No participants selected in "Split between" section - click "Select all" or select individual members');
-            }
-          }
-        }
-      } else {
-        errors.push('Split between section not found or not visible');
-      }
-    } else {
-      const checkedCount = await participantCheckboxes.filter({ has: this.page.locator(':checked') }).count();
-      if (checkedCount === 0) {
-        errors.push(`No participants selected for expense split (0 of ${participantCount} members selected)`);
-      }
-    }
-    
-    // Check if submit button is enabled
-    const submitButton = this.page.getByRole('button', { name: /save expense/i });
-    const isDisabled = await submitButton.isDisabled();
-    if (isDisabled) {
-      const buttonTitle = await submitButton.getAttribute('title');
-      if (buttonTitle) {
-        errors.push(`Submit button is disabled (hint: ${buttonTitle})`);
-      } else {
-        errors.push('Submit button is disabled');
-      }
-    }
-    
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-  
 
   // Split type accessors
   getSplitSection() {
@@ -555,136 +416,6 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForLoadState('domcontentloaded');
   }
 
-  async addExpense(expense: ExpenseData): Promise<void> {
-    // Click Add Expense button with proper checks
-    const addExpenseButton = this.getAddExpenseButton();
-    await this.clickButton(addExpenseButton, { buttonName: 'Add Expense' });
-    
-    // Wait for navigation to add expense page
-    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-    
-    // Wait for form to be fully loaded
-    await this.page.waitForLoadState('domcontentloaded');
-    const descriptionField = this.page.getByPlaceholder('What was this expense for?');
-    await expect(descriptionField).toBeVisible();
-    
-    // Wait for all form sections to be loaded
-    await expect(this.page.getByRole('heading', { name: 'Expense Details' })).toBeVisible();
-    await expect(this.page.getByRole('heading', { name: /Who paid/ })).toBeVisible();
-    await expect(this.page.getByRole('heading', { name: /Split between/ })).toBeVisible();
-    
-    // CRITICAL: Wait for members to load in the form
-    // This is handled by the ExpenseFormPage.waitForFormReady() method now
-    
-    // Fill expense form
-    await this.fillPreactInput(descriptionField, expense.description);
-    
-    const amountField = this.page.getByPlaceholder('0.00');
-    await this.fillPreactInput(amountField, expense.amount.toString());
-    
-    // Handle currency selection
-    if (expense.currency && expense.currency !== 'USD') {
-      await this.selectCurrency(expense.currency);
-    }
-    // If currency is USD or not specified, the form defaults to USD
-    
-    // Handle paidBy field - select who paid for the expense
-    // The "Who paid?" section uses radio buttons inside label elements
-    // Structure: <label><input type="radio" name="paidBy"/><Avatar/><span>{displayName}</span></label>
-    
-    // Find the payer label by looking for the display name text
-    const payerLabel = this.page.locator('label').filter({
-      has: this.page.locator('input[type="radio"][name="paidBy"]')
-    }).filter({
-      hasText: expense.paidBy
-    }).first();
-    
-    await expect(payerLabel).toBeVisible();
-    // Note: This is a label containing a radio button, not a button
-    await payerLabel.click();
-    
-    // CRITICAL: Select participants (who is involved in the split)
-    // By default in the UI, all members are selected, but in tests we need to ensure this
-    // Always click "Select all" to ensure deterministic state
-    const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
-    await this.clickButton(selectAllButton, { buttonName: 'Select all' });
-    
-    // Validate form is ready before attempting to submit
-    const validation = await this.validateExpenseFormReady();
-    if (!validation.isValid) {
-      // Take a screenshot to show the current form state
-      await this.page.screenshot({ path: 'expense-form-validation-error.png', fullPage: true });
-      
-      throw new Error(
-        `Cannot submit expense form - validation failed:\n` +
-        validation.errors.map(e => `  - ${e}`).join('\n') +
-        `\n\nForm state screenshot saved to expense-form-validation-error.png`
-      );
-    }
-    
-    // Submit form with proper checks
-    const submitButton = this.page.getByRole('button', { name: /save expense/i });
-    await this.clickButton(submitButton, { buttonName: 'Save Expense' });
-    
-    // Wait for navigation back to group page
-    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
-    
-    // Verify expense was created by checking it appears in the list
-    await expect(this.page.getByText(expense.description)).toBeVisible();
-    
-    // Wait for balance calculation to complete
-    await this.page.waitForLoadState('domcontentloaded');
-  }
-
-
-  /**
-   * Helper method to wait for dropdown options to be populated with user data
-   */
-  private async waitForDropdownOptions(selectElement: Locator, minOptions = 2, timeout = 250): Promise<void> {
-    await expect(async () => {
-      const options = await selectElement.locator('option').all();
-      const validOptions = [];
-      
-      for (const option of options) {
-        const value = await option.getAttribute('value');
-        const text = await option.textContent();
-        // Skip empty or placeholder options
-        if (value && value !== '' && text && text.trim() !== 'Select...' && text.trim() !== '') {
-          validOptions.push(option);
-        }
-      }
-      
-      if (validOptions.length < minOptions) {
-        throw new Error(`Expected at least ${minOptions} valid options, but found ${validOptions.length}`);
-      }
-    }).toPass({ timeout });
-  }
-
-  /**
-     * Helper method to wait for payee dropdown to update after payer selection
-   */
-  private async waitForPayeeDropdownUpdate(payeeSelect: Locator, payerName: string, timeout = 250): Promise<void> {
-    await expect(async () => {
-      const options = await payeeSelect.locator('option').all();
-      let hasValidPayeeOptions = false;
-      
-      for (const option of options) {
-        const value = await option.getAttribute('value');
-        const text = await option.textContent();
-        // Check if we have valid options that are not the payer and not placeholder
-        if (value && value !== '' && text && text.trim() !== 'Select...' && 
-            text.trim() !== '' && !text.includes(payerName)) {
-          hasValidPayeeOptions = true;
-          break;
-        }
-      }
-      
-      if (!hasValidPayeeOptions) {
-        throw new Error(`Payee dropdown has not updated with valid options after selecting payer: ${payerName}`);
-      }
-    }).toPass({ timeout });
-  }
-
   /**
    * Synchronize group state across multiple users by refreshing pages and waiting for updates.
    * This replaces manual reload() calls scattered throughout multi-user tests.
@@ -821,18 +552,26 @@ export class GroupDetailPage extends BasePage {
   /**
    * Create expense and synchronize across multiple users
    */
+  /**
+   * Create expense and synchronize across multiple users using proper page object composition
+   */
   async addExpenseAndSync(
     expense: ExpenseData, 
     pages: Array<{ page: any; groupDetailPage: any; userName?: string }>,
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {
-    await this.addExpense(expense);
+    // Use proper page object composition
+    const expenseFormPage = await this.clickAddExpenseButton(expectedMemberCount);
+    await expenseFormPage.submitExpense(expense);
     await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
   /**
    * Record settlement and synchronize across multiple users
+   */
+  /**
+   * Record settlement and synchronize across multiple users using proper page object composition
    */
   async recordSettlementAndSync(
     settlementOptions: {
@@ -845,93 +584,13 @@ export class GroupDetailPage extends BasePage {
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {
-    await this.recordSettlementByUser(settlementOptions);
+    // Use proper page object composition
+    const { SettlementFormPage } = await import('./settlement-form.page');
+    const settlementFormPage = new SettlementFormPage(this.page);
+    await settlementFormPage.submitSettlement(settlementOptions);
     await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
-  /**
-   * Record settlement by user display name - more reliable than index-based selection
-   */
-  async recordSettlementByUser(options: {
-    payerName: string;  // Display name of who paid
-    payeeName: string;  // Display name of who received payment
-    amount: string;
-    note: string;
-  }): Promise<void> {
-    // Click settle up button
-    const settleButton = this.page.getByRole('button', { name: /settle up/i });
-    await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
-    
-    // Wait for modal
-    const modal = this.page.getByRole('dialog');
-    await expect(modal).toBeVisible();
-    
-    // Fill form with display name-based selection
-    const payerSelect = modal.getByRole('combobox', { name: /who paid/i });
-    const payeeSelect = modal.getByRole('combobox', { name: /who received the payment/i });
-    // Amount input is now a text input with inputMode="decimal" instead of type="number"
-    const amountInput = modal.locator('input[inputMode="decimal"]').first();
-    const noteInput = modal.getByRole('textbox', { name: /note/i });
-    
-    // Wait for payer dropdown to be populated with user data
-    await this.waitForDropdownOptions(payerSelect);
-    
-    // Select by display name text - more reliable than value since we don't have real Firebase UIDs
-    // Find options that contain the display names
-    const payerOptions = await payerSelect.locator('option').all();
-    let payerValue = '';
-    for (const option of payerOptions) {
-      const text = await option.textContent();
-      const value = await option.getAttribute('value');
-      if (text && text.includes(options.payerName)) {
-        payerValue = value || '';
-        break;
-      }
-    }
-    
-    if (!payerValue) {
-      throw new Error(`Could not find payer in dropdown. Looking for: ${options.payerName}`);
-    }
-    
-    await payerSelect.selectOption(payerValue);
-    
-    // Wait for payee dropdown to update dynamically after payer selection
-    await this.waitForPayeeDropdownUpdate(payeeSelect, options.payerName);
-    
-    const payeeOptions = await payeeSelect.locator('option').all();
-    let payeeValue = '';
-    for (const option of payeeOptions) {
-      const text = await option.textContent();
-      const value = await option.getAttribute('value');
-      if (text && text.includes(options.payeeName)) {
-        payeeValue = value || '';
-        break;
-      }
-    }
-    
-    if (!payeeValue) {
-      throw new Error(`Could not find payee in dropdown. Looking for: ${options.payeeName}`);
-    }
-    
-    await payeeSelect.selectOption(payeeValue);
-    await this.fillPreactInput(amountInput, options.amount);
-    await this.fillPreactInput(noteInput, options.note);
-    
-    // Submit
-    const submitButton = modal.getByRole('button', { name: /record payment/i });
-    await expect(submitButton).toBeEnabled();
-    // Check button is enabled before clicking (provides better error messages)
-    await this.clickButton(submitButton, { buttonName: 'Record Payment' });
-    
-    // Wait for modal to close with increased timeout for settlement processing
-    await expect(modal).not.toBeVisible({ timeout: 5000 });
-    
-    // Wait for settlement processing to complete
-    await this.page.waitForLoadState('domcontentloaded');
-    
-    // Wait for settlement to be processed
-    await this.page.waitForLoadState('domcontentloaded');
-  }
 
   /**
    * New getter methods using centralized constants
@@ -942,32 +601,8 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.EXPENSES });
   }
 
-  // Buttons
-  getSettleUpButton() {
-    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SETTLE_UP });
-  }
-
   getShowHistoryButton() {
     return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SHOW_HISTORY });
-  }
-
-
-  // Modal and form elements
-  getSettlementModal() {
-    return this.page.getByRole(ARIA_ROLES.DIALOG);
-  }
-
-  getSettlementAmountInput() {
-    // Amount input is now a text input with inputMode="decimal" instead of type="number"
-    return this.page.getByRole(ARIA_ROLES.DIALOG).locator('input[inputMode="decimal"]').first();
-  }
-
-  getPayerSelect() {
-    return this.page.getByRole(ARIA_ROLES.COMBOBOX, { name: FORM_LABELS.WHO_PAID });
-  }
-
-  getPayeeSelect() {
-    return this.page.getByRole(ARIA_ROLES.COMBOBOX, { name: FORM_LABELS.WHO_RECEIVED_PAYMENT });
   }
 
   getNoExpensesText() {
@@ -1231,28 +866,6 @@ export class GroupDetailPage extends BasePage {
     const debtPerPerson = totalAmount / numberOfPeople;
     return debtPerPerson.toFixed(2);
   }
-
-  /**
-   * Get the settle up button (already exists but adding for clarity)
-   */
-  getSettleUpButtonDirect() {
-    return this.page.getByRole('button', { name: /settle up/i });
-  }
-
-  /**
-   * Get the settlement dialog/modal
-   */
-  getSettlementDialog() {
-    return this.page.getByRole('dialog');
-  }
-
-  /**
-   * Get the settlement amount input (spinbutton)
-   */
-  getSettlementAmountSpinbutton() {
-    return this.page.getByRole('spinbutton', { name: /amount/i });
-  }
-
 
   /**
    * Close modal or dialog with Escape key
