@@ -23,15 +23,15 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // === DATE CONVENIENCE BUTTONS TESTS ===
-    const dateInput = groupDetailPage.getDateInput();
+    const dateInput = expenseFormPage.getDateInput();
     
     // Test Today button
-    await groupDetailPage.clickTodayButton();
+    await expenseFormPage.clickTodayButton();
     const todayInputValue = await dateInput.inputValue();
     expect(todayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     
     // Test Yesterday button
-    await groupDetailPage.clickYesterdayButton();
+    await expenseFormPage.clickYesterdayButton();
     const yesterdayInputValue = await dateInput.inputValue();
     expect(yesterdayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     // Verify yesterday is actually one day before today
@@ -41,7 +41,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     expect(dayDifference).toBe(1);
     
     // Test This Morning button (sets today's date + morning time)
-    await groupDetailPage.clickThisMorningButton();
+    await expenseFormPage.clickThisMorningButton();
     // Verify the date input has a valid date (should be today's date)
     // We'll capture the actual value rather than calculating our own to avoid timezone issues
     const thisMorningInputValue = await dateInput.inputValue();
@@ -51,7 +51,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     const todayDateFromApp = thisMorningInputValue;
     
     // Test Last Night button (sets yesterday's date + evening time)
-    await groupDetailPage.clickLastNightButton();
+    await expenseFormPage.clickLastNightButton();
     const lastNightInputValue = await dateInput.inputValue();
     expect(lastNightInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     // Verify Last Night date is a valid date (should be yesterday, but timezone edge cases may vary)
@@ -72,11 +72,11 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     
     if (timeButtonCount === 0) {
       // Time is not visible, try clicking clock icon
-      const clockIcon = groupDetailPage.getClockIcon();
+      const clockIcon = expenseFormPage.getClockIcon();
       const clockIconCount = await clockIcon.count();
       
       if (clockIconCount > 0) {
-        await groupDetailPage.clickClockIcon();
+        await expenseFormPage.clickClockIcon();
       }
       // Re-get the time button after clicking clock icon
       timeButton = page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
@@ -114,7 +114,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await expenseFormPage.fillAmount('45.50');
     
     // Set a specific date using Yesterday button
-    await groupDetailPage.clickYesterdayButton();
+    await expenseFormPage.clickYesterdayButton();
     // Verify a valid date was set (may differ from our earlier calculation due to timing)
     const yesterdayForExpenseValue = await dateInput.inputValue();
     expect(yesterdayForExpenseValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -134,7 +134,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await payerLabel.click();
     
     // Select participants for the split
-    await groupDetailPage.clickSelectAllButton();
+    await expenseFormPage.clickSelectAllButton();
     
     // Submit the expense
     await expenseFormPage.clickSaveExpenseButton();

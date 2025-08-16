@@ -29,10 +29,10 @@ test.describe('Freeform Categories Error Testing', () => {
     
     // Test category with special characters (avoiding security filters)
     const specialCategory = 'Café & Restaurant - Fine Dining';
-    await groupDetailPage.typeCategoryText(specialCategory);
+    await expenseFormPage.typeCategoryText(specialCategory);
     
     // Verify special category was entered
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage.getCategoryInput();
     const categoryValue = await categoryInput.inputValue();
     expect(categoryValue).toBe(specialCategory);
     
@@ -63,7 +63,7 @@ test.describe('Freeform Categories Error Testing', () => {
     
     await expenseFormPage.fillDescription('Business lunch');
     await expenseFormPage.fillAmount('55.00');
-    await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
+    await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
     
     await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern());
@@ -88,7 +88,7 @@ test.describe('Freeform Categories Error Testing', () => {
     
     // Now we should be on the edit expense page
     // Change the category to a custom one
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage.getCategoryInput();
     await expect(categoryInput).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     const customCategory = 'Corporate Client Meeting';
@@ -127,7 +127,7 @@ test.describe('Freeform Categories Error Testing', () => {
     await expenseFormPage.fillAmount('10.00');
     
     // Clear category field (it might have a default)
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage.getCategoryInput();
     await groupDetailPage.fillPreactInput(categoryInput, '');
     
     // Try to submit

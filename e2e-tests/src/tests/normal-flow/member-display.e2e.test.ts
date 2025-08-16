@@ -44,23 +44,22 @@ test.describe('Member Management E2E', () => {
     await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for split options');
     
     // Navigate to add expense
-    const addExpenseButton = page.getByRole(ARIA_ROLES.BUTTON, { name: /add expense/i });
-    await addExpenseButton.click();
-    
-    // Wait for expense form
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
+
+      // Wait for expense form
     await expect(page.getByPlaceholder(PLACEHOLDERS.EXPENSE_DESCRIPTION)).toBeVisible();
     
     // Member should be visible in split section
-    const splitHeading = groupDetailPage.getSplitBetweenHeading();
+    const splitHeading = expenseFormPage.getSplitBetweenHeading();
     await expect(splitHeading).toBeVisible();
     
     // The current user should be included and checked by default (payer is auto-selected)
-    const userCheckbox = groupDetailPage.getSplitOptionsFirstCheckbox();
+    const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
     await expect(userCheckbox).toBeVisible();
     await expect(userCheckbox).toBeChecked();
     
     // User name should be visible in split section
-    const isUserInSplit = await groupDetailPage.isUserInSplitOptions(user.displayName);
+    const isUserInSplit = await expenseFormPage.isUserInSplitOptions(user.displayName);
     expect(isUserInSplit).toBe(true);
   });
 

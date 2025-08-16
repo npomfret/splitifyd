@@ -26,7 +26,7 @@ test.describe('Freeform Categories E2E', () => {
     await expenseFormPage.fillAmount('45.99');
     
     // Test predefined category selection
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage.getCategoryInput();
     await expect(categoryInput).toBeVisible();
     await categoryInput.focus();
     
@@ -34,7 +34,7 @@ test.describe('Freeform Categories E2E', () => {
     await page.waitForSelector('[role="listbox"]', { timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     // Select "Food & Dining" from suggestions
-    await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
+    await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
     
     // Verify category was selected
     const categoryValue = await categoryInput.inputValue();
@@ -70,10 +70,10 @@ test.describe('Freeform Categories E2E', () => {
     
     // Test custom category input
     const customCategory = 'Corporate Team Building';
-    await groupDetailPage.typeCategoryText(customCategory);
+    await expenseFormPage2.typeCategoryText(customCategory);
     
     // Verify custom category was entered
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage2.getCategoryInput();
     const categoryValue = await categoryInput.inputValue();
     expect(categoryValue).toBe(customCategory);
     
@@ -101,17 +101,17 @@ test.describe('Freeform Categories E2E', () => {
     const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Test filtering by typing
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage3.getCategoryInput();
     await categoryInput.focus();
     
     // Wait for suggestions to appear
     await page.waitForSelector('[role="listbox"]', { timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     // Type "tra" to filter for "Transportation"
-    await groupDetailPage.fillPreactInput(categoryInput, 'tra');
+    await expenseFormPage3.fillPreactInput(categoryInput, 'tra');
     
     // Check that Transportation suggestion is visible
-    const transportSuggestion = groupDetailPage.getCategorySuggestion('Transportation');
+    const transportSuggestion = expenseFormPage3.getCategorySuggestion('Transportation');
     await expect(transportSuggestion).toBeVisible();
     
     // Check that other suggestions might be filtered out
@@ -143,7 +143,7 @@ test.describe('Freeform Categories E2E', () => {
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Test keyboard navigation
-    const categoryInput = groupDetailPage.getCategoryInput();
+    const categoryInput = expenseFormPage.getCategoryInput();
     await categoryInput.focus();
     
     // Wait for suggestions to appear

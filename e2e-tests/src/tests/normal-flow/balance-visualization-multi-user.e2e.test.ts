@@ -310,7 +310,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Verify debt with calculated amount: $123.45 / 2 = $61.73
     const balancesSection = groupDetailPage.getBalancesSection();
     await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
-    const expectedDebt = groupDetailPage.calculateEqualSplitDebt(123.45, 2);
+    const expectedDebt = expenseFormPage.calculateEqualSplitDebt(123.45, 2);
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: `$${expectedDebt}` })).toBeVisible();
     
     // Verify the original expense amount is visible

@@ -29,7 +29,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseFormPage.fillDescription('Amount Edit Test');
     await expenseFormPage.fillAmount('50');
     await expenseFormPage.selectAllParticipants();
-    await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
+    await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
     
     // Save expense
     await expenseFormPage.clickSaveExpenseButton();
@@ -96,7 +96,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseFormPage.fillDescription("High Amount Expense");
     await expenseFormPage.fillAmount("150");
     await expenseFormPage.selectAllParticipants();
-    await groupDetailPage.selectCategoryFromSuggestions("Food & Dining");
+    await expenseFormPage.selectCategoryFromSuggestions("Food & Dining");
     
     await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
@@ -149,7 +149,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseFormPage.fillDescription('Original Description');
     await expenseFormPage.fillAmount('42.99');
     await expenseFormPage.selectAllParticipants();
-    await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
+    await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
     
     await expenseFormPage.clickSaveExpenseButton();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });

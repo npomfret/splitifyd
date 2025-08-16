@@ -18,17 +18,17 @@ test.describe('Add Expense E2E', () => {
     // Navigate to expense form with all necessary waits
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
-    const categorySelect = groupDetailPage.getCategorySelect();
+    const categorySelect = expenseFormPage.getCategorySelect();
     
     await expenseFormPage.fillDescription('Test Dinner');
     await expenseFormPage.fillAmount('50');
     
     await expect(categorySelect).toBeVisible();
-    await groupDetailPage.typeCategoryText('dinner');
+    await expenseFormPage.typeCategoryText('dinner');
     
     // The save button should be visible
     // Check if button is enabled and get validation errors if not
-    await groupDetailPage.expectSubmitButtonEnabled();
+    await expenseFormPage.expectSubmitButtonEnabled();
     
     // Submit the expense
     await expenseFormPage.clickSaveExpenseButton();
@@ -55,12 +55,12 @@ test.describe('Add Expense E2E', () => {
     
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
-    const categorySelect = groupDetailPage.getCategorySelect();
+    const categorySelect = expenseFormPage.getCategorySelect();
     await expect(categorySelect).toBeVisible();
     
     const initialCategory = await categorySelect.inputValue();
     
-    await groupDetailPage.typeCategoryText('Bills & Utilities');
+    await expenseFormPage.typeCategoryText('Bills & Utilities');
     
     const newCategory = await categorySelect.inputValue();
     expect(newCategory).not.toBe(initialCategory);
@@ -110,7 +110,7 @@ test.describe('Add Expense E2E', () => {
     const amountText = groupDetailPage.getExpenseAmount('$25.00');
     await expect(amountText).toBeVisible();
     
-    await expect(groupDetailPage.getExpensePaidByText()).toBeVisible();
+    await expect(expenseFormPage.getExpensePaidByText()).toBeVisible();
   });
 
   test('should allow custom category input', async ({ authenticatedPage, groupDetailPage }) => {
@@ -127,7 +127,7 @@ test.describe('Add Expense E2E', () => {
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
     // Test custom category input
-    await groupDetailPage.typeCategoryText('Custom Office Supplies');
+    await expenseFormPage.typeCategoryText('Custom Office Supplies');
     
     await expenseFormPage.fillDescription('Custom category expense');
     await expenseFormPage.fillAmount('16');

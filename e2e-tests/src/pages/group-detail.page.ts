@@ -76,174 +76,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByText(/no expenses yet/i);
   }
 
-  getExpenseByDescription(description: string) {
-    // Use more specific selector to avoid strict mode violations
-    // Look for the description in expense list context, not headings
-    return this.page.getByText(description).first();
-  }
-
-  getExpenseAmount(amount: string) {
-    return this.page.getByText(amount);
-  }
-  
-  getExpensePaidByText() {
-    return this.page.getByText(/paid by|Paid:/i);
-  }
-
-  getSplitBetweenHeading() {
-    return this.page.getByRole('heading', { name: /Split between/ });
-  }
-
-  // Convenience date buttons
-  getTodayButton() {
-    return this.page.getByRole('button', { name: 'Today' });
-  }
-
-  getYesterdayButton() {
-    return this.page.getByRole('button', { name: 'Yesterday' });
-  }
-
-  getThisMorningButton() {
-    return this.page.getByRole('button', { name: 'This Morning' });
-  }
-
-  getLastNightButton() {
-    return this.page.getByRole('button', { name: 'Last Night' });
-  }
-
-  getDateInput() {
-    return this.page.locator('input[type="date"]');
-  }
-
-  getClockIcon() {
-    // Clock icon button that opens the time selector - try multiple selectors
-    return this.page.locator([
-      'button[aria-label*="time" i]',
-      'button[aria-label*="clock" i]', 
-      'button:has(svg[data-icon="clock"])',
-      'button:has(svg.clock-icon)',
-      'button:has([data-testid*="clock" i])',
-      '[role="button"]:has(svg)',
-      'button.time-selector-trigger',
-      '[data-testid="time-selector"]'
-    ].join(', ')).first();
-  }
-
-  async clickClockIcon(): Promise<void> {
-    const clockIcon = this.getClockIcon();
-    await this.clickButton(clockIcon, { buttonName: 'Clock icon' });
-  }
-
-  async clickTodayButton() {
-    await this.clickButton(this.getTodayButton(), { buttonName: 'Today' });
-  }
-
-  async clickYesterdayButton() {
-    await this.clickButton(this.getYesterdayButton(), { buttonName: 'Yesterday' });
-  }
-
-  async clickThisMorningButton() {
-    await this.clickButton(this.getThisMorningButton(), { buttonName: 'This Morning' });
-  }
-
-  async clickLastNightButton() {
-    await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
-  }
-
-  async clickSelectAllButton() {
-    const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
-    await this.clickButton(selectAllButton, { buttonName: 'Select all' });
-  }
-
-  async verifyExpenseInList(description: string, amount?: string) {
-    await expect(this.getExpenseByDescription(description)).toBeVisible();
-    if (amount) {
-      await expect(this.page.getByText(amount)).toBeVisible();
-    }
-  }
-
-  getCategorySelect() {
-    // Category input is an actual input element with aria-haspopup
-    // (not the currency selector which is a div with role=combobox)
-    return this.page.locator('input[aria-haspopup="listbox"]').first();
-  }
-
-  getCategoryInput() {
-    // Category input is an actual input element with aria-haspopup
-    // (not the currency selector which is a div with role=combobox)
-    return this.page.locator('input[aria-haspopup="listbox"]').first();
-  }
-
-  getCategorySuggestion(text: string) {
-    return this.page.getByRole('option', { name: new RegExp(text, 'i') });
-  }
-
-  async selectCategoryFromSuggestions(categoryText: string) {
-    const categoryInput = this.getCategoryInput();
-    await categoryInput.focus();
-    await this.page.waitForSelector('[role="listbox"]');
-    const suggestion = this.getCategorySuggestion(categoryText);
-    // Note: Not a button, but a dropdown option
-    await suggestion.click();
-  }
-
-  async typeCategoryText(text: string) {
-    const categoryInput = this.getCategoryInput();
-    await this.fillPreactInput(categoryInput, text);
-  }
-
-  /**
-   * Override the base expectSubmitButtonEnabled to provide expense-specific behavior
-   * @returns Promise that resolves if button is enabled, throws error if disabled
-   */
-  async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
-    const button = submitButton || this.page.getByRole('button', { name: /save expense/i });
-    await this.expectButtonEnabled(button, 'Save Expense');
-  }
-
-  // Split type accessors
-  getSplitSection() {
-    return this.page.getByText('Split between').locator('..');
-  }
-
-  getEqualRadio() {
-    return this.page.getByRole('radio', { name: 'Equal' });
-  }
-
-  getExactAmountsRadio() {
-    return this.page.getByRole('radio', { name: 'Exact amounts' });
-  }
-
-  getPercentageRadio() {
-    return this.page.getByRole('radio', { name: 'Percentage' });
-  }
-
-  getPercentageText() {
-    return this.page.getByText('Percentage', { exact: true });
-  }
-
-  getEqualText() {
-    return this.page.getByText('Equal');
-  }
-
-  getExactAmountsInstructions() {
-    return this.page.getByText('Enter exact amounts for each person:');
-  }
-
-  getPercentageInstructions() {
-    return this.page.getByText('Enter percentage for each person:');
-  }
-
-  getExactAmountInput() {
-    // Match text inputs with class w-24 for exact amounts (appears in split section)
-    return this.page.locator('input.w-24[type="text"]').first();
-  }
-
-  getPercentageInput() {
-    // Match text inputs with class w-20 for percentages (appears in split section)
-    return this.page.locator('input.w-20[type="text"]').first();
-  }
-
   // Share functionality accessors
   getShareButton() {
     return this.page.getByRole('button', { name: /share/i });
@@ -650,13 +482,6 @@ export class GroupDetailPage extends BasePage {
   // ADDITIONAL METHODS TO FIX SELECTOR VIOLATIONS
   // ==============================
 
-  /**
-   * Gets the "Split between" text element
-   * Used in advanced-splitting tests
-   */
-  getSplitBetweenText() {
-    return this.page.getByText('Split between');
-  }
 
   /**
    * Gets the balances section using the complex locator
@@ -698,6 +523,24 @@ export class GroupDetailPage extends BasePage {
     await expense.click();
     await this.page.waitForLoadState('domcontentloaded');
   }
+
+    getExpenseByDescription(description: string) {
+        // Use more specific selector to avoid strict mode violations
+        // Look for the description in expense list context, not headings
+        return this.page.getByText(description).first();
+    }
+
+    // todo
+    getExpenseAmount(amount: string) {
+        return this.page.getByText(amount);
+    }
+
+    async verifyExpenseInList(description: string, amount?: string) {
+        await expect(this.getExpenseByDescription(description)).toBeVisible();
+        if (amount) {
+            await expect(this.page.getByText(amount)).toBeVisible();
+        }
+    }
 
   /**
    * Deletes an expense with confirmation
@@ -816,46 +659,10 @@ export class GroupDetailPage extends BasePage {
 
 
   /**
-   * Get the split options card (contains checkboxes for split selection)
-   */
-  getSplitOptionsCard() {
-    const splitHeading = this.getSplitBetweenHeading();
-    // Navigate up to the containing card
-    return splitHeading.locator('..').locator('..');
-  }
-
-  /**
-   * Get the first checkbox in split options
-   */
-  getSplitOptionsFirstCheckbox() {
-    const splitCard = this.getSplitOptionsCard();
-    return splitCard.locator('input[type="checkbox"]').first();
-  }
-
-  /**
-   * Check if a user name is visible in split options
-   */
-  async isUserInSplitOptions(userName: string): Promise<boolean> {
-    const splitCard = this.getSplitOptionsCard();
-    return await splitCard.getByText(userName).isVisible();
-  }
-
-  /**
    * Get member count text element (e.g., "1 member" or "3 members")
    */
   getMemberCountElement() {
     return this.page.getByText(/\d+ member/i);
-  }
-
-  /**
-   * Calculate exact debt amount for equal split
-   * @param totalAmount - Total expense amount
-   * @param numberOfPeople - Number of people splitting
-   * @returns The amount each person owes, rounded to 2 decimal places
-   */
-  calculateEqualSplitDebt(totalAmount: number, numberOfPeople: number): string {
-    const debtPerPerson = totalAmount / numberOfPeople;
-    return debtPerPerson.toFixed(2);
   }
 
   /**

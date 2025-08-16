@@ -22,8 +22,8 @@ test.describe('Advanced Splitting Options', () => {
     await expenseFormPage.fillAmount('60');
     
     // Equal split is default - verify it's selected
-    await expect(groupDetailPage.getSplitSection()).toBeVisible();
-    await expect(groupDetailPage.getEqualRadio()).toBeChecked();
+    await expect(expenseFormPage.getSplitSection()).toBeVisible();
+    await expect(expenseFormPage.getEqualRadio()).toBeChecked();
     
     await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -38,13 +38,13 @@ test.describe('Advanced Splitting Options', () => {
     await expenseFormPage.fillAmount('75');
     
     // Change split type to exact amounts
-    await expect(groupDetailPage.getSplitBetweenText()).toBeVisible();
+    await expect(expenseFormPage.getSplitBetweenText()).toBeVisible();
     await expenseFormPage.switchToExactAmounts();
-    await expect(groupDetailPage.getExactAmountsRadio()).toBeChecked();
-    await expect(groupDetailPage.getExactAmountsInstructions()).toBeVisible();
+    await expect(expenseFormPage.getExactAmountsRadio()).toBeChecked();
+    await expect(expenseFormPage.getExactAmountsInstructions()).toBeVisible();
     
-    await expect(groupDetailPage.getExactAmountInput()).toBeVisible();
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExactAmountInput(), '75');
+    await expect(expenseFormPage.getExactAmountInput()).toBeVisible();
+    await groupDetailPage.fillPreactInput(expenseFormPage.getExactAmountInput(), '75');
     
     await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -58,13 +58,13 @@ test.describe('Advanced Splitting Options', () => {
     await expenseFormPage.fillAmount('1000');
     
     // Change split type to percentage
-    await expect(groupDetailPage.getSplitBetweenText()).toBeVisible();
-    await groupDetailPage.getPercentageText().click();
-    await expect(groupDetailPage.getPercentageRadio()).toBeChecked();
-    await expect(groupDetailPage.getPercentageInstructions()).toBeVisible();
+    await expect(expenseFormPage.getSplitBetweenText()).toBeVisible();
+    await expenseFormPage.getPercentageText().click();
+    await expect(expenseFormPage.getPercentageRadio()).toBeChecked();
+    await expect(expenseFormPage.getPercentageInstructions()).toBeVisible();
     
     // In single user scenario, should default to 100%
-    await expect(groupDetailPage.getPercentageInput()).toHaveValue('100');
+    await expect(expenseFormPage.getPercentageInput()).toHaveValue('100');
     
     await expenseFormPage.clickSaveExpenseButton();
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
@@ -78,22 +78,22 @@ test.describe('Advanced Splitting Options', () => {
     await expenseFormPage.fillDescription('Testing split type changes');
     await expenseFormPage.fillAmount('150');
     
-    await expect(groupDetailPage.getSplitBetweenText()).toBeVisible();
+    await expect(expenseFormPage.getSplitBetweenText()).toBeVisible();
     
     // Start with equal split (default)
-    await expect(groupDetailPage.getEqualRadio()).toBeChecked();
+    await expect(expenseFormPage.getEqualRadio()).toBeChecked();
     
     // Test transitions: Equal -> Exact -> Percentage -> Equal
     await expenseFormPage.switchToExactAmounts();
-    await expect(groupDetailPage.getExactAmountsRadio()).toBeChecked();
-    await expect(groupDetailPage.getExactAmountsInstructions()).toBeVisible();
+    await expect(expenseFormPage.getExactAmountsRadio()).toBeChecked();
+    await expect(expenseFormPage.getExactAmountsInstructions()).toBeVisible();
     
-    await groupDetailPage.getPercentageText().click();
-    await expect(groupDetailPage.getPercentageRadio()).toBeChecked();
-    await expect(groupDetailPage.getPercentageInstructions()).toBeVisible();
+    await expenseFormPage.getPercentageText().click();
+    await expect(expenseFormPage.getPercentageRadio()).toBeChecked();
+    await expect(expenseFormPage.getPercentageInstructions()).toBeVisible();
     
-    await groupDetailPage.getEqualText().click();
-    await expect(groupDetailPage.getEqualRadio()).toBeChecked();
+    await expenseFormPage.getEqualText().click();
+    await expect(expenseFormPage.getEqualRadio()).toBeChecked();
     
     // Submit final expense to complete the user journey
     await expenseFormPage.clickSaveExpenseButton();
