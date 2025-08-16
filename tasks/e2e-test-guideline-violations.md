@@ -1,10 +1,12 @@
 # E2E Test Guideline Violations Report
 
+**Last Updated:** 2025-08-16
+
 This report details all the violations of the E2E testing guidelines found in the `e2e-tests/` directory.
 
-## 1. Prohibited use of `page.waitForTimeout()`
+## 1. Prohibited use of `page.waitForTimeout()` or `setTimeout`
 
-The `e2e-testing.md` guide strictly forbids the use of `page.waitForTimeout()`. This is to prevent flaky tests and encourage the use of web-first assertions and explicit waits.
+The `e2e-testing.md` guide strictly forbids the use of `page.waitForTimeout()` or other fixed waits. This is to prevent flaky tests and encourage the use of web-first assertions and explicit waits.
 
 **Violations found in:**
 
@@ -20,102 +22,98 @@ The `e2e-testing.md` guide strictly forbids skipping tests. All checked-in tests
 **Violations found in:**
 
 -   `e2e-tests/src/tests/edge-cases/share-link-network-resilience.e2e.test.ts`:
-    -   `multiUserTest.skip('should recover from network interruptions during join', ...)`
+    -   `multiUserTest.skip(...)`
 -   `e2e-tests/src/tests/normal-flow/share-link-comprehensive.e2e.test.ts`:
-    -   `test.skip('should allow unregistered user to register and join group via share link', ...)`
-    -   `multiUserTest.skip('should allow user to join group after logging in from share link', ...)`
+    -   `test.skip(...)`
+    -   `multiUserTest.skip(...)`
 
-## 3. Use of Bespoke Selectors
+## 3. Use of Bespoke Selectors in Tests
 
 The `e2e-testing.md` guide requires all UI interactions to be abstracted through Page Objects. Direct use of `page.locator()` or `page.getByRole()` with generic selectors within a test file is a violation of this pattern.
 
-**Violations found in:**
+**Note:** This issue is widespread across almost all test files. The list below is not exhaustive but provides representative examples from files not previously listed.
 
--   `e2e-tests/src/tests/edge-cases/accessibility-navigation.e2e.test.ts`:
-    -   `page.locator(SELECTORS.FORM)`
-    -   `page.locator("label[for=\"${emailId}\"]")`
-    -   `page.locator("label[for=\"${passwordId}\"]")`
--   `e2e-tests/src/tests/edge-cases/complex-scenarios.e2e.test.ts`:
-    -   `alicePage.getByRole('button', { name: /share/i })
-    -   `alicePage.getByRole('dialog').getByRole('textbox')`
-    -   `alicePage.getByRole('heading', { name: /balance/i })
-    -   `alicePage.getByText(/2 members/i)`
--   `e2e-tests/src/tests/error-testing/form-validation-comprehensive.e2e.test.ts`:
-    -   `page.getByText('Exact amounts')`
-    -   `page.locator('input[type="number"][step]').filter({ hasText: '' })`
-    -   `page.getByText('Percentage', { exact: true })`
--   `e2e-tests/src/tests/error-testing/negative-value-validation.e2e.test.ts`:
-    -   `page.getByText('Test expense for settlement')`
-    -   `page.getByText('$50.00')`
--   `e2e-tests/src/tests/normal-flow/advanced-splitting-happy-path.e2e.test.ts`:
-    -   `groupDetailPage.getPercentageText().click()`
-    -   `groupDetailPage.getEqualText().click()`
--   `e2e-tests/src/tests/normal-flow/auth-navigation.e2e.test.ts`:
-    -   `page.getByAltText('Splitifyd')`
--   `e2e-tests/src/tests/normal-flow/expense-datetime.e2e.test.ts`:
-    -   `page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i })
-    -   `page.getByPlaceholder('Enter time (e.g., 2:30pm)')`
-    -   `page.getByRole('button', { name: '3:00 AM' })`
-    -   `page.getByRole('button', { name: '3:00 PM' })
-    -   `page.getByRole('heading', { name: 'Expense Details' })`
--   `e2e-tests/src/tests/normal-flow/member-display.e2e.test.ts`:
-    -   `page.getByRole(ARIA_ROLES.BUTTON, { name: /add expense/i })
-    -   `page.getByText(/admin/i).first()`
--   `e2e-tests/src/tests/normal-flow/multi-user-happy-path.e2e.test.ts`:
-    -   `page.getByText("${user2.displayName} → ${user1.displayName}")`
--   `e2e-tests/src/tests/normal-flow/navigation-comprehensive.e2e.test.ts`:
-    -   `page.getByRole('heading', { name: 'Effortless Bill Splitting, Simplified & Smart.' })
-    -   `page.getByRole('link', { name: 'Pricing' })`
-    -   `page.getByRole('link', { name: 'Login' })`
-    -   `page.getByRole('link', { name: 'Sign Up', exact: true })`
--   `e2e-tests/src/tests/normal-flow/policy-pages.e2e.test.ts`:
-    -   `page.getByRole('heading', { level: 1 }).filter({ hasText: /Terms of Service|Terms and Conditions/ }).first().waitFor()`
--   `e2e-tests/src/tests/normal-flow/three-user-settlement.e2e.test.ts`:
-    -   `page.keyboard.press('Escape')`
--   `e2e-tests/src/tests/security/security-abuse.e2e.test.ts`:
-    -   `page.locator('[data-testid="error-message"]')`
--   `e2e-tests/src/tests/security/security-auth.e2e.test.ts`:
-    -   `page.locator('[data-testid="login-form"]')`
--   `e2e-tests/src/tests/security/security-authorization.e2e.test.ts`:
-    -   `page2.locator('h1')`
--   `e2e-tests/src/tests/security/security-input-validation.e2e.test.ts`:
-    -   `page.locator('[data-testid="error-message"], [data-testid="description-error"]')`
--   `e2e-tests/src/tests/security/security-rules.e2e.test.ts`:
-    -   `page2.locator("text=${groupName}")`
--   `e2e-tests/src/tests/security/security-user-isolation.e2e.test.ts`:
-    -   `page.getByRole('button', { name: user.displayName })
+**New Violations Found In:**
+
+-   `e2e-tests/src/tests/error-testing/duplicate-registration.e2e.test.ts`:
+    -   `page.locator(SELECTORS.ERROR_MESSAGE)`
+    -   `page.getByRole('button', { name: displayName })`
+-   `e2e-tests/src/tests/error-testing/expense-editing-errors.e2e.test.ts`:
+    -   `page.getByRole('button', { name: /edit/i })`
+    -   `page.locator('input[type="number"]').first()`
+-   `e2e-tests/src/tests/normal-flow/multi-currency-basic.e2e.test.ts`:
+    -   `page.getByText('$25.00')`
+    -   `page.locator('[data-testid="group-card"]').first()`
+-   `e2e-tests/src/tests/error-testing/share-link-errors.e2e.test.ts`:
+    -   `page.getByText('Unable to Join Group')`
 
 ## 4. Prohibited use of `page.reload()`
 
 The `e2e-testing.md` guide prohibits the use of `page.reload()` for state synchronization.
 
+**Existing Violations:**
+
+-   `e2e-tests/src/tests/edge-cases/complex-scenarios.e2e.test.ts`
+-   `e2e-tests/src/tests/edge-cases/form-behavior.e2e.test.ts`
+-   `e2e-tests/src/tests/edge-cases/removed-user-access.spec.ts`
+-   `e2e-tests/src/tests/security/security-auth.e2e.test.ts`
+
+**New Violations Found:**
+
+-   `e2e-tests/src/pages/group-detail.page.ts`
+-   `e2e-tests/src/pages/join-group.page.ts`
+-   `e2e-tests/src/tests/edge-cases/parallel-group-joining.e2e.test.ts`
+-   `e2e-tests/src/tests/normal-flow/dashboard-happy-path.e2e.test.ts`
+-   `e2e-tests/src/tests/security/security-authorization.e2e.test.ts`
+
+## 5. Prohibited use of `force: true`
+
+The `e2e-testing.md` guide prohibits using `force: true` as it can hide underlying issues where an element is not properly intractable.
+
 **Violations found in:**
 
--   `e2e-tests/src/tests/edge-cases/complex-scenarios.e2e.test.ts`:
-    -   `await alicePage.reload();`
--   `e2e-tests/src/tests/edge-cases/form-behavior.e2e.test.ts`:
-    -   `await page.reload();`
--   `e2e-tests/src/tests/edge-cases/removed-user-access.spec.ts`:
-    -   `await user1Page.reload();`
--   `e2e-tests/src/tests/security/security-auth.e2e.test.ts`:
-    -   `await page.reload();`
+-   `e2e-tests/src/tests/error-testing/negative-value-validation.e2e.test.ts`:
+    -   `await saveButton.click({ force: true });`
 
-## 5. Redundant Tests
+## 6. Prohibited use of `page.keyboard.press()`
 
-Some tests are redundant and could be merged to improve maintainability and reduce execution time.
+Using `page.keyboard.press()` is an anti-pattern. Form submissions should use button locators, and keyboard navigation should be modeled via tabbing through located elements.
+
+**Violations found in:**
+
+-   `e2e-tests/src/pages/group-detail.page.ts`: `press('Escape')`
+-   `e2e-tests/src/tests/edge-cases/accessibility-navigation.e2e.test.ts`: `press('Tab')`, `press('Enter')`
+-   `e2e-tests/src/tests/edge-cases/complex-scenarios.e2e.test.ts`: `press('Escape')`
+-   `e2e-tests/src/tests/error-testing/form-validation.e2e.test.ts`: `press('Tab')`
+-   `e2e-tests/src/tests/error-testing/network-errors.e2e.test.ts`: `press('Escape')`
+-   `e2e-tests/src/tests/normal-flow/settlement-management.e2e.test.ts`: `press('Escape')`
+
+## 7. Direct `page.goto()` Calls in Tests
+
+The `e2e-testing.md` guide requires navigation to be handled by Page Objects to encapsulate URLs and navigation logic. Direct calls to `page.goto()` within test files are a violation of this pattern.
+
+**Violations found in:**
+
+-   `e2e-tests/src/tests/edge-cases/complex-scenarios.e2e.test.ts`
+-   `e2e-tests/src/tests/edge-cases/parallel-group-joining.e2e.test.ts`
+-   `e2e-tests/src/tests/error-testing/share-link-error-scenarios.e2e.test.ts`
+-   `e2e-tests/src/tests/normal-flow/dashboard-happy-path.e2e.test.ts`
+-   `e2e-tests/src/tests/normal-flow/group-display.e2e.test.ts`
+-   `e2e-tests/src/tests/normal-flow/member-display.e2e.test.ts`
+-   `e2e-tests/src/tests/normal-flow/policy-pages.e2e.test.ts`
+-   `e2e-tests/src/tests/normal-flow/terms-acceptance.e2e.test.ts`
+-   `e2e-tests/src/tests/security/security-abuse.e2e.test.ts`
+-   `e2e-tests/src/tests/security/security-auth.e2e.test.ts`
+-   `e2e-tests/src/tests/security/security-authorization.e2e.test.ts`
+-   `e2e-tests/src/tests/security/security-input-validation.e2e.test.ts`
+-   `e2e-tests/src/tests/security/security-user-isolation.e2e.test.ts`
+
+## 8. Redundant Tests
+
+Some tests are redundant and could be merged to improve maintainability and reduce execution time. This requires manual review.
 
 **Examples:**
 
--   The tests in `e2e-tests/src/tests/error-testing/form-validation.e2e.test.ts` and `e2e-tests/src/tests/error-testing/form-validation-comprehensive.e2e.test.ts` are very similar and could be merged.
--   The tests in `e2e-tests/src/tests/error-testing/negative-value-validation.e2e.test.ts` are partially covered in `e2e-tests/src/tests/error-testing/form-validation-comprehensive.e2e.test.ts`.
--   The tests in `e2e-tests/src/tests/error-testing/server-errors.e2e.test.ts` and `e2e-tests/src/tests/error-testing/network-errors.e2e.test.ts` are very similar and could be merged.
-
-## 6. TODO Comments
-
-Some tests have TODO comments indicating they should be converted to unit tests. This should be addressed to improve the efficiency of the test suite.
-
-**Examples:**
-
--   `e2e-tests/src/tests/edge-cases/accessibility-navigation.e2e.test.ts`
--   `e2e-tests/src/tests/edge-cases/performance-monitoring.e2e.test.ts`
--   `e2e-tests/src/tests/edge-cases/seo-monitoring.e2e.test.ts`
+-   The tests in `e2e-tests/src/tests/error-testing/form-validation.e2e.test.ts` and `form-validation-comprehensive.e2e.test.ts` could likely be merged.
+-   The tests in `e2e-tests/src/tests/error-testing/negative-value-validation.e2e.test.ts` are partially covered in `form-validation-comprehensive.e2e.test.ts`.
+-   The tests in `e2e-tests/src/tests/error-testing/server-errors.e2e.test.ts` and `network-errors.e2e.test.ts` are very similar and could be merged.
