@@ -45,7 +45,7 @@ export class ExpenseFormPage extends BasePage {
    * Wait for ALL members to load in the expense form
    * This prevents the intermittent issue where members don't appear and ensures ALL group members are represented
    */
-  async waitForMembersInExpenseForm(expectedMemberCount: number, timeout = 5000): Promise<void> {
+  private async waitForMembersInExpenseForm(expectedMemberCount: number, timeout = 5000): Promise<void> {
     // Wait for ALL members to appear in the "Who paid?" section
     await expect(async () => {
       const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
@@ -54,7 +54,7 @@ export class ExpenseFormPage extends BasePage {
       }
     }).toPass({ 
       timeout,
-      intervals: [100, 250, 500, 1000]
+      intervals: [100, 250, 500, 2000]
     });
     
     // Wait for ALL members to appear in "Split between" section
@@ -72,7 +72,7 @@ export class ExpenseFormPage extends BasePage {
       }
     }).toPass({ 
       timeout,
-      intervals: [100, 250, 500, 1000]
+      intervals: [100, 250, 500, 2000]
     });
   }
 
