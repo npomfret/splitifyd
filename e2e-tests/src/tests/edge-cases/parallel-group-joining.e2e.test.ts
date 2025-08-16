@@ -107,7 +107,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
             
             if (!joinResult.success) {
-              throw new Error(`${user.displayName} failed to join: ${joinResult.reason}`);
+              throw new Error(`${user.displayName} failed to join: ${JSON.stringify(joinResult)}`);
             }
             
             console.log(`User ${user.displayName} join completed`);

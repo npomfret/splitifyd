@@ -44,7 +44,7 @@ export class MultiUserWorkflow {
 
       // Handle different failure scenarios
       if (result.needsLogin) {
-        throw new Error(`User needs to log in first. Use joinGroupViaShareLinkWithLogin() instead.`);
+        throw new Error(`Join group failed ${JSON.stringify(result)}`);
       }
 
       if (result.alreadyMember) {
@@ -54,7 +54,7 @@ export class MultiUserWorkflow {
       }
 
       if (result.error) {
-        throw new Error(`Failed to join group: ${result.reason}`);
+        throw new Error(`User ${user?.displayName || 'unknown'} (${user?.email || 'unknown'}) failed to join group: ${result.reason}`);
       }
 
       throw new Error(`Unexpected join result: ${result.reason}`);

@@ -22,7 +22,6 @@ test.describe('Complex Unsettled Group Scenario', () => {
     const groupName = 'Vacation Trip 2024';
     const groupDescription = 'Summer vacation expenses';
     const groupId = await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
-    const memberCount = 2;
 
     // Get share link from Alice's page
     await alicePage.getByRole('button', { name: /share/i }).click();
@@ -35,7 +34,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
     const bobJoinResult = await bobJoinGroupPage.attemptJoinWithStateDetection(shareLink);
     
     if (!bobJoinResult.success) {
-      throw new Error(`Bob failed to join group: ${bobJoinResult.reason}`);
+      throw new Error(`Bob failed to join group: ${JSON.stringify(bobJoinResult)}`);
     }
     
     // Verify Bob is now on the group page

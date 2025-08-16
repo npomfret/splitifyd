@@ -56,7 +56,7 @@ test.describe('Three User Settlement Management', () => {
     const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
     
     if (!joinResult2.success) {
-      throw new Error(`Second user failed to join group: ${joinResult2.reason}`);
+      throw new Error(`Second user failed to join group: ${JSON.stringify(joinResult2)}`);
     }
     
     // Verify second user can actually access the group page
@@ -77,7 +77,7 @@ test.describe('Three User Settlement Management', () => {
     const joinResult3 = await joinGroupPage3.attemptJoinWithStateDetection(shareLink);
     
     if (!joinResult3.success) {
-      throw new Error(`Third user failed to join group: ${joinResult3.reason}`);
+      throw new Error(`Third user failed to join group: ${JSON.stringify(joinResult3)}`);
     }
     
     // Verify third user can actually access the group page

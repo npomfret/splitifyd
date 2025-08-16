@@ -26,13 +26,14 @@ test.describe('Multi-User Collaboration E2E', () => {
     
     const page2 = secondUser.page;
     const groupDetailPage2 = secondUser.groupDetailPage;
+    const user2 = secondUser.user;
 
     // Use robust JoinGroupPage for reliable share link joining
     const joinGroupPage = new JoinGroupPage(page2);
-    const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
+    const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
     
     if (!joinResult.success) {
-      throw new Error(`Failed to join group: ${joinResult.reason}`);
+      throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${JSON.stringify(joinResult)}`);
     }
     
   });

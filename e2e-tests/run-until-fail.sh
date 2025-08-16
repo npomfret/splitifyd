@@ -1,11 +1,13 @@
 #!/bin/bash
 
-TEST_FILE="src/tests/normal-flow/expense-datetime.e2e.test.ts:8:3"
+TEST_FILE="src/tests/normal-flow/balance-visualization-single-user.e2e.test.ts:89:3"
 TEST_FILTER=""
+
+# Make max runs configurable, default to 25
+MAX_SUCCESSES=${1:-25}
 
 RUN_COUNT=0
 SUCCESS_COUNT=0
-MAX_SUCCESSES=10
 START_TIME=$(date +%s)
 
 # Determine if we should run headed or headless
@@ -29,6 +31,7 @@ echo "📍 Working directory: $(pwd)"
 echo "📊 Results will be stored in: playwright-report/ad-hoc/"
 echo "📸 Screenshots on failure: playwright-report/ad-hoc/data/"
 echo "🔢 Will stop after: $MAX_SUCCESSES successful runs OR first failure"
+echo "⚙️  Configuration: MAX_SUCCESSES=$MAX_SUCCESSES (pass a number as first argument to override)"
 echo "⏰ Started at: $(date)"
 echo ""
 

@@ -216,13 +216,17 @@ export class JoinGroupPage extends BasePage {
   /**
    * Comprehensive join flow that handles all authentication states.
    * Returns information about the join result.
+   * @param shareLink - The share link to join
+   * @param userInfo - Optional user info for debugging (e.g., {displayName: 'User Name', email: 'user@example.com'})
    */
-  async attemptJoinWithStateDetection(shareLink: string): Promise<{
+  async attemptJoinWithStateDetection(shareLink: string, userInfo?: { displayName?: string; email?: string }): Promise<{
     success: boolean;
     reason: string;
     needsLogin: boolean;
     alreadyMember: boolean;
     error: boolean;
+    currentUrl?: string;
+    userInfo?: { displayName?: string; email?: string };
   }> {
     await this.navigateToShareLink(shareLink);
     
@@ -245,78 +249,101 @@ export class JoinGroupPage extends BasePage {
     if (currentUrl.includes('/login')) {
       return {
         success: false,
-        reason: 'User needs to log in first',
+        reason: `User needs to log in first (at ${currentUrl})`,
         needsLogin: true,
         alreadyMember: false,
-        error: false
+        error: false,
+        currentUrl,
+        userInfo
       };
     }
 
     // Check various states
-    const needsLogin = !(await this.isUserLoggedIn());
     const alreadyMember = await this.isUserAlreadyMember();
     const error = await this.isErrorPage();
     const joinPageVisible = await this.isJoinPageVisible();
-
+    
+    // IMPORTANT: If the join page is visible, the user MUST be logged in
+    // The join page with button only appears for authenticated users
+    // We check this BEFORE isUserLoggedIn() to avoid false negatives
+    
     if (error) {
       return {
         success: false,
-        reason: 'Invalid share link or group not found',
+        reason: `Invalid share link or group not found (at ${currentUrl})`,
         needsLogin: false,
         alreadyMember: false,
-        error: true
-      };
-    }
-
-    if (needsLogin) {
-      return {
-        success: false,
-        reason: 'User needs to log in first',
-        needsLogin: true,
-        alreadyMember: false,
-        error: false
+        error: true,
+        currentUrl,
+        userInfo
       };
     }
 
     if (alreadyMember) {
       return {
         success: false,
-        reason: 'User is already a member of this group',
+        reason: `User is already a member of this group (at ${currentUrl})`,
         needsLogin: false,
         alreadyMember: true,
-        error: false
+        error: false,
+        currentUrl,
+        userInfo
       };
     }
 
-    if (!joinPageVisible) {
+    // If join page is visible, user is definitely logged in - proceed to join
+    if (joinPageVisible) {
+      // Try to join the group
+      try {
+        await this.joinGroup({ skipRedirectWait: false });
+        return {
+          success: true,
+          reason: 'Successfully joined group',
+          needsLogin: false,
+          alreadyMember: false,
+          error: false,
+          currentUrl,
+          userInfo
+        };
+      } catch (error) {
+        return {
+          success: false,
+          reason: `Failed to join group: ${error} (at ${currentUrl})`,
+          needsLogin: false,
+          alreadyMember: false,
+          error: true,
+          currentUrl,
+          userInfo
+        };
+      }
+    }
+    
+    // Only check login status if join page is NOT visible
+    // This prevents false negatives when the user is actually logged in
+    const needsLogin = !(await this.isUserLoggedIn());
+    
+    if (needsLogin) {
       return {
         success: false,
-        reason: 'Join group page not visible',
-        needsLogin: false,
+        reason: `User needs to log in first (at ${currentUrl})`,
+        needsLogin: true,
         alreadyMember: false,
-        error: true
+        error: false,
+        currentUrl,
+        userInfo
       };
     }
 
-    // Attempt to join
-    try {
-      await this.joinGroup();
-      return {
-        success: true,
-        reason: 'Successfully joined group',
-        needsLogin: false,
-        alreadyMember: false,
-        error: false
-      };
-    } catch (error) {
-      return {
-        success: false,
-        reason: `Failed to join: ${(error as Error).message}`,
-        needsLogin: false,
-        alreadyMember: false,
-        error: true
-      };
-    }
+    // If we get here, something unexpected happened
+    return {
+      success: false,
+      reason: `Join group page not visible (at ${currentUrl})`,
+      needsLogin: false,
+      alreadyMember: false,
+      error: true,
+      currentUrl,
+      userInfo
+    };
   }
 
   async takeDebugScreenshot(name: string = 'join-group-debug'): Promise<void> {
