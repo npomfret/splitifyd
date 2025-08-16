@@ -1,9 +1,8 @@
-import { authenticatedPageTest as authenticatedTest, expect } from '../../fixtures/authenticated-page-test';
-import { multiUserTest } from '../../fixtures';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import {SettlementFormPage} from "../../pages";
+import {authenticatedPageTest as authenticatedTest, expect} from '../../fixtures/authenticated-page-test';
+import {multiUserTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -12,7 +11,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const { page } = authenticatedPage;
     
     // Create group and prepare for expenses using helper method
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('NegativeValidation'), 'Testing negative value validation');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('NegativeValidation'), 'Testing negative value validation');
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
@@ -71,7 +70,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const { page } = authenticatedPage;
     
     // Create group and prepare for expenses using helper method
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('ZeroValidation'), 'Testing zero value validation');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('ZeroValidation'), 'Testing zero value validation');
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
@@ -108,7 +107,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const memberCount = 2;
 
     // Create group and add second user
-    await groupWorkflow.createGroup(generateTestGroupName('SettleNegative'), 'Testing negative settlements');
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('SettleNegative'), 'Testing negative settlements');
 
     // Share and join
     await groupDetailPage.shareGroupAndWaitForJoin(page2);
@@ -183,7 +182,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create group and add second user
-    await groupWorkflow.createGroup(generateTestGroupName('NegativeSplit'), 'Testing negative split amounts');
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('NegativeSplit'), 'Testing negative split amounts');
 
     // Share and join
     await groupDetailPage.shareGroupAndWaitForJoin(page2);
@@ -242,7 +241,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const groupWorkflow = new GroupWorkflow(page);
     
     // Create a test group
-    await groupWorkflow.createGroup(generateTestGroupName('HTML5Validation'), 'Testing HTML5 validation');
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('HTML5Validation'), 'Testing HTML5 validation');
 
     // Navigate to add expense
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);

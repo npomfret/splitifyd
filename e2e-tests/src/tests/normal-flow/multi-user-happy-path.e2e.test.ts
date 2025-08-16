@@ -1,9 +1,9 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
-import { JoinGroupPage } from '../../pages';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
+import {JoinGroupPage} from '../../pages';
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -11,7 +11,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('should handle group sharing via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Shared'), 'Testing group sharing');
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Shared'), 'Testing group sharing');
 
     await expect(groupDetailPage.getShareButton()).toBeVisible();
     await groupDetailPage.clickShareButton();
@@ -42,7 +42,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     const { page, user } = authenticatedPage;
     const memberCount = 2;
     const groupWorkflow = new GroupWorkflow(page);
-    const groupId = await groupWorkflow.createGroup(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
     const user1 = user;
 
     // Get share link - verify page state first with detailed error messages
@@ -144,7 +144,7 @@ test.describe('Multi-User Collaboration E2E', () => {
   test('should show group creator as admin', async ({ authenticatedPage, groupDetailPage }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    await groupWorkflow.createGroup(generateTestGroupName('Admin'), 'Testing admin badge');
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Admin'), 'Testing admin badge');
     
     await expect(groupDetailPage.getAdminBadge()).toBeVisible();
   });
@@ -153,7 +153,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     const memberCount = 1;
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const groupId = await groupWorkflow.createGroup(generateTestGroupName('Solo'), 'Testing multiple expenses');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Solo'), 'Testing multiple expenses');
     
     // Add multiple expenses
     const expenses = [
@@ -186,7 +186,7 @@ test.describe('Multi-User Collaboration E2E', () => {
     const memberCount = 2;
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const groupId = await groupWorkflow.createGroup(generateTestGroupName('Balance'), 'Testing balance calculations');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Balance'), 'Testing balance calculations');
     const groupInfo = { user };
     const user1 = groupInfo.user;
     

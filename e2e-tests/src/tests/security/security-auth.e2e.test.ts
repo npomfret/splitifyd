@@ -1,9 +1,9 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { pageTest } from '../../fixtures';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import type { Request } from '@playwright/test';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {pageTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import type {Request} from '@playwright/test';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -149,7 +149,7 @@ test.describe('Security Authentication and Session Tests', () => {
       // Create a group with User 1
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('ConcurrentTest');
-      await groupWorkflow.createGroup(groupName, 'Testing concurrent session security');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing concurrent session security');
       
       // User 1 should see their group
       await page1.goto('/dashboard');

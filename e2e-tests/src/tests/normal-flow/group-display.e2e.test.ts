@@ -1,7 +1,7 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -10,7 +10,7 @@ test.describe('Group Details E2E', () => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
     const groupName = generateTestGroupName('Details');
-    const groupId = await groupWorkflow.createGroup(groupName, 'Test group for details page');
+    const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for details page');
 
     // Verify group information displays correctly
     // The group title is a specific heading with the group name, not the first heading

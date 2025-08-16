@@ -1,8 +1,8 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import type { Response } from '@playwright/test';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import type {Response} from '@playwright/test';
 import '../../utils/custom-matchers';
 
 // Enable console error reporting and MCP debugging
@@ -17,7 +17,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // User 1 creates a private group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('FirestoreAccess');
-      await groupWorkflow.createGroup(groupName, 'Testing Firestore access rules');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing Firestore access rules');
       
       // Extract group ID from URL
       const groupUrl = page1.url();
@@ -59,7 +59,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create group and expense with User 1
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('ExpenseFirestore');
-      await groupWorkflow.createGroup(groupName, 'Testing expense Firestore rules');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing expense Firestore rules');
       
       // Add an expense
       await page1.click('[data-testid="add-expense-button"]');
@@ -105,7 +105,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create a shared group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('WritePermissions');
-      await groupWorkflow.createGroup(groupName, 'Testing write permissions');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing write permissions');
       
       // Get share link
       await page1.click('[data-testid="share-group-button"]');
@@ -167,7 +167,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // User 1 creates a group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('RealtimeTest');
-      await groupWorkflow.createGroup(groupName, 'Testing real-time security');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time security');
       
       // Monitor WebSocket connections for unauthorized listeners
       const wsConnections: string[] = [];
@@ -213,7 +213,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create shared group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('AuthorizedRealtime');
-      await groupWorkflow.createGroup(groupName, 'Testing authorized real-time updates');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing authorized real-time updates');
       
       // User 2 joins the group
       await page1.click('[data-testid="share-group-button"]');
@@ -253,7 +253,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create group and expense with receipt
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('StorageTest');
-      await groupWorkflow.createGroup(groupName, 'Testing storage security');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing storage security');
       
       // Add expense with receipt (if file upload is supported)
       await page1.click('[data-testid="add-expense-button"]');
@@ -301,7 +301,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create shared group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('AuthorizedStorage');
-      await groupWorkflow.createGroup(groupName, 'Testing authorized storage access');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing authorized storage access');
       
       // User 2 joins the group
       await page1.click('[data-testid="share-group-button"]');
@@ -356,7 +356,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create a group to get a valid context
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('FunctionAuth');
-      await groupWorkflow.createGroup(groupName, 'Testing function authentication');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing function authentication');
       
       // Monitor function calls
       const functionCalls: string[] = [];
@@ -391,7 +391,7 @@ test.describe('Firebase Security Rules Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('FunctionValidation');
-      await groupWorkflow.createGroup(groupName, 'Testing function parameter validation');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing function parameter validation');
       
       // Monitor function responses for validation errors
       const functionResponses: Array<{status: number, url: string}> = [];

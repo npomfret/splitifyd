@@ -1,8 +1,8 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { pageTest } from '../../fixtures';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {pageTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -15,7 +15,7 @@ test.describe('Security Input Validation Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('XSSExpense');
-      await groupWorkflow.createGroup(groupName, 'Testing XSS in expense descriptions');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing XSS in expense descriptions');
       
       const xssPayloads = [
         '<script>alert("xss1")</script>',
@@ -203,7 +203,7 @@ test.describe('Security Input Validation Tests', () => {
       // Create group with multiple expenses for search testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('SQLTest');
-      await groupWorkflow.createGroup(groupName, 'Testing SQL injection prevention');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing SQL injection prevention');
       
       // Add several expenses
       const expenses = [
@@ -334,7 +334,7 @@ test.describe('Security Input Validation Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('CommandInjection');
-      await groupWorkflow.createGroup(groupName, 'Testing command injection prevention');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing command injection prevention');
       
       // Test command injection in file upload
       await page.click('[data-testid="add-expense-button"]');
@@ -419,7 +419,7 @@ test.describe('Security Input Validation Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('NumericValidation');
-      await groupWorkflow.createGroup(groupName, 'Testing numeric validation');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing numeric validation');
       
       const invalidAmounts = [
         'abc',           // Non-numeric
@@ -466,7 +466,7 @@ test.describe('Security Input Validation Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('DateValidation');
-      await groupWorkflow.createGroup(groupName, 'Testing date validation');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing date validation');
       
       const invalidDates = [
         '2023-13-01',    // Invalid month

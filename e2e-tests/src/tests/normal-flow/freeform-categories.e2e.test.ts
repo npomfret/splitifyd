@@ -1,8 +1,8 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import { waitForURLWithContext, groupDetailUrlPattern } from '../../helpers/wait-helpers';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {GroupWorkflow, setupMCPDebugOnFailure} from "../../helpers";
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import {groupDetailUrlPattern, waitForURLWithContext} from '../../helpers/wait-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -16,7 +16,7 @@ test.describe('Freeform Categories E2E', () => {
     const memberCount = 1;
 
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
     
     // Navigate to expense form with proper waiting
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -60,7 +60,7 @@ test.describe('Freeform Categories E2E', () => {
     const memberCount = 1;
 
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('CustomCat'), 'Testing custom category input');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('CustomCat'), 'Testing custom category input');
     
     // Navigate to expense form with proper waiting
     const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -98,7 +98,7 @@ test.describe('Freeform Categories E2E', () => {
     const memberCount = 1;
 
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('FilterCat'), 'Testing category filtering');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('FilterCat'), 'Testing category filtering');
     
     // Navigate to expense form with proper waiting
     const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -140,11 +140,10 @@ test.describe('Freeform Categories E2E', () => {
     const memberCount = 1;
 
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(
-        generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
     
     // Navigate to expense form with proper waiting
-    const expenseFormPage4 = await groupDetailPage.clickAddExpenseButton(memberCount);
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Test keyboard navigation
     const categoryInput = groupDetailPage.getCategoryInput();

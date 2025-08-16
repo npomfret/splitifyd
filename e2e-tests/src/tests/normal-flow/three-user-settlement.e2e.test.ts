@@ -1,8 +1,8 @@
-import { threeUserTest as test, expect } from '../../fixtures/three-user-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
-import { JoinGroupPage } from '../../pages';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {expect, threeUserTest as test} from '../../fixtures/three-user-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
+import {JoinGroupPage} from '../../pages';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -43,7 +43,7 @@ test.describe('Three User Settlement Management', () => {
     
     
     // 1. Create a group with 3 users
-    const groupId = await groupWorkflow.createGroup(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
 
     // Get share link and have users join SEQUENTIALLY (not concurrently)
     await groupDetailPage.clickShareButton();

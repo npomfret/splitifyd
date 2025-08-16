@@ -1,10 +1,9 @@
-import { pageTest, expect } from '../../fixtures';
-import { authenticatedPageTest } from '../../fixtures';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
-import { GroupDetailPage } from '../../pages';
-import { GroupWorkflow } from '../../workflows';
+import {authenticatedPageTest, expect, pageTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {generateTestEmail, generateTestGroupName, generateTestUserName} from '../../utils/test-helpers';
+import {GroupDetailPage} from '../../pages';
+import {GroupWorkflow} from '../../workflows';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -183,7 +182,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/dashboard/);
       
       // Use helper method to create group and prepare for expenses
-      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Expense Validation Group', 'Testing expense form validation');
+      const groupId = await GroupWorkflow.createGroup(page, 'Expense Validation Group', 'Testing expense form validation');
 
       // Navigate to expense form with proper waiting
       const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -215,7 +214,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/dashboard/);
       
       // Use helper method to create group and prepare for expenses
-      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Split Validation Group', 'Testing split validation');
+      const groupId = await GroupWorkflow.createGroup(page, 'Split Validation Group', 'Testing split validation');
 
       // Navigate to expense form with proper waiting
       const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -244,7 +243,7 @@ pageTest.describe('Form Validation E2E', () => {
       await expect(page).toHaveURL(/\/dashboard/);
       
       // Use helper method to create group and prepare for expenses
-      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Percentage Validation Group', 'Testing percentage validation');
+      const groupId = await GroupWorkflow.createGroup(page, 'Percentage Validation Group', 'Testing percentage validation');
 
       // Navigate to expense form with proper waiting
       const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);

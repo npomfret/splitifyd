@@ -1,7 +1,7 @@
-import { pageTest, authenticatedPageTest, expect } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { generateTestEmail, generateTestUserName, generateTestGroupName } from '../../utils/test-helpers';
-import { GroupWorkflow } from '../../workflows';
+import {authenticatedPageTest, expect, pageTest} from '../../fixtures';
+import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../helpers';
+import {generateTestEmail, generateTestGroupName, generateTestUserName} from '../../utils/test-helpers';
+import {GroupWorkflow} from '../../workflows';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -100,7 +100,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       const { page } = authenticatedPage;
       
       // Use helper method to create group and prepare for expenses
-      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('Validation'), 'Testing form validation');
+      const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('Validation'), 'Testing form validation');
       const memberCount = 1;
 
       // Navigate to expense form with proper waiting
@@ -146,7 +146,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       const { page } = authenticatedPage;
       
       // Use helper method to create group and prepare for expenses
-      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('ExactSplit'), 'Testing exact split validation');
+      const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('ExactSplit'), 'Testing exact split validation');
       const memberCount = 1;
 
       // Navigate to expense form with proper waiting
@@ -173,7 +173,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       const { page } = authenticatedPage;
       
       // Use helper method to create group and prepare for expenses
-      const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
+      const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
       const memberCount = 1;
 
       // Navigate to expense form with proper waiting

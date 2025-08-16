@@ -1,9 +1,9 @@
-import { test, expect, Page } from '@playwright/test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupDetailPage, DashboardPage, JoinGroupPage } from '../../pages';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import { getUserPool } from '../../fixtures/user-pool.fixture';
+import {expect, Page, test} from '@playwright/test';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {DashboardPage, GroupDetailPage, JoinGroupPage} from '../../pages';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import {getUserPool} from '../../fixtures/user-pool.fixture';
 
 setupMCPDebugOnFailure();
 
@@ -64,7 +64,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         
         const groupWorkflow = new GroupWorkflow(creatorPage);
         const groupName = generateTestGroupName(`Parallel${totalUsers}Users`);
-        const groupId = await groupWorkflow.createGroup(groupName, `Testing ${totalUsers}-user parallel join`);
+        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, `Testing ${totalUsers}-user parallel join`);
         
         // Get share link
         const shareButton = creatorGroupDetailPage.getShareButton();
@@ -267,7 +267,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
       
       const groupWorkflow = new GroupWorkflow(creatorPage);
       const groupName = generateTestGroupName('RaceCondition');
-      const groupId = await groupWorkflow.createGroup(groupName, 'Testing race conditions');
+      const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing race conditions');
       
       // Get share link
       const shareLink = await creatorGroupDetailPage.getShareLink();

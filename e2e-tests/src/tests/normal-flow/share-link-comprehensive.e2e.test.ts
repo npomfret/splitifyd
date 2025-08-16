@@ -1,12 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
-import { multiUserTest } from '../../fixtures';
-import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
-import { MultiUserWorkflow } from '../../workflows';
-import { GroupWorkflow } from '../../workflows';
-import { AuthenticationWorkflow } from '../../workflows';
-import { GroupDetailPage } from '../../pages';
-import { generateShortId } from '../../utils/test-helpers';
+import {expect, test} from '@playwright/test';
+import {EMULATOR_URL, setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../helpers';
+import {multiUserTest} from '../../fixtures';
+import {singleMixedAuthTest} from '../../fixtures/mixed-auth-test';
+import {AuthenticationWorkflow, GroupWorkflow, MultiUserWorkflow} from '../../workflows';
+import {GroupDetailPage} from '../../pages';
+import {generateShortId} from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -26,7 +24,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       // Create group with user1
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
-      await groupWorkflow.createGroup(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
+      await groupWorkflow.createGroupAndNavigate(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
 
       // Get share link from user1's page
       const multiUserWorkflow = new MultiUserWorkflow(null); // Not using browser here
@@ -56,7 +54,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       // Create group and add user2
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
-      await groupWorkflow.createGroup(`Already Member Test ${uniqueId}`, 'Testing already member scenario');
+      await groupWorkflow.createGroupAndNavigate(`Already Member Test ${uniqueId}`, 'Testing already member scenario');
 
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -91,7 +89,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       // Create group with authenticated user
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
-      const groupId = await groupWorkflow.createGroup(`Login Required Test ${uniqueId}`, 'Testing login requirement');
+      const groupId = await groupWorkflow.createGroupAndNavigate(`Login Required Test ${uniqueId}`, 'Testing login requirement');
       
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -121,7 +119,7 @@ test.describe('Comprehensive Share Link Testing', () => {
         // Create group with authenticated user
         const uniqueId = generateShortId();
         const groupWorkflow = new GroupWorkflow(page1);
-        await groupWorkflow.createGroup(`Registration Required Test ${uniqueId}`, 'Testing registration requirement');
+        await groupWorkflow.createGroupAndNavigate(`Registration Required Test ${uniqueId}`, 'Testing registration requirement');
         
         const multiUserWorkflow = new MultiUserWorkflow(null);
         const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -156,7 +154,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(page1);
-      await groupWorkflow.createGroup(`Login Then Join Test ${uniqueId}`, 'Testing login then join flow');
+      await groupWorkflow.createGroupAndNavigate(`Login Then Join Test ${uniqueId}`, 'Testing login then join flow');
       
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(page1);

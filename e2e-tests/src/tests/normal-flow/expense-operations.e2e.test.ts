@@ -1,7 +1,7 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -9,7 +9,7 @@ test.describe('Basic Expense Operations E2E', () => {
   test('should create, view, and delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
     const { page, user } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
-    const groupId = await groupWorkflow.createGroup(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
+    const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Operations'), 'Testing complete expense lifecycle');
     const groupInfo = { user };
     const memberCount = 1;
 

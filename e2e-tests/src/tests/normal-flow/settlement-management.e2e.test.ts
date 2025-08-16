@@ -1,8 +1,7 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import { SettlementFormPage } from '../../pages';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -16,7 +15,7 @@ test.describe('Settlement Management', () => {
     const memberCount= 2;
     
     // Create group and add second user
-    await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
+    await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Validation'), 'Testing form validation');
 
     // Share and join
     const page2 = secondUser.page;

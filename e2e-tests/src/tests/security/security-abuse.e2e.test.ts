@@ -1,9 +1,9 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { pageTest } from '../../fixtures';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import type { Response } from '@playwright/test';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {pageTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import type {Response} from '@playwright/test';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -16,7 +16,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create a group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('RateLimit');
-      await groupWorkflow.createGroup(groupName, 'Testing rate limiting');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing rate limiting');
       
       // Track API responses for rate limiting indicators
       const apiResponses: Array<{status: number, url: string, timestamp: number}> = [];
@@ -153,7 +153,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('FileUpload');
-      await groupWorkflow.createGroup(groupName, 'Testing file upload limits');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing file upload limits');
       
       const fileUploadResults: Array<{success: boolean, error?: string}> = [];
       
@@ -231,7 +231,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('MemoryTest');
-      await groupWorkflow.createGroup(groupName, 'Testing memory exhaustion protection');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing memory exhaustion protection');
       
       // Test extremely large descriptions
       const largeSizes = [
@@ -284,7 +284,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('RecursionTest');
-      await groupWorkflow.createGroup(groupName, 'Testing recursion protection');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing recursion protection');
       
       // Test deeply nested data structures in form submissions
       const createNestedObject = (depth: number): any => {
@@ -348,7 +348,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create shared group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('ConcurrentTest');
-      await groupWorkflow.createGroup(groupName, 'Testing concurrent operations');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing concurrent operations');
       
       // User 2 joins the group
       await page1.click('[data-testid="share-group-button"]');
@@ -436,7 +436,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('MemberLimit');
-      await groupWorkflow.createGroup(groupName, 'Testing member limits');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member limits');
       
       // Generate share link
       await page.click('[data-testid="share-group-button"]');
@@ -482,7 +482,7 @@ test.describe('Security Abuse Prevention Tests', () => {
       // Create group for testing
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('StorageLimit');
-      await groupWorkflow.createGroup(groupName, 'Testing storage limits');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing storage limits');
       
       await page.click('[data-testid="add-expense-button"]');
       

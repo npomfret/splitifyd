@@ -1,10 +1,9 @@
-import { test, expect } from '@playwright/test';
-import { fourUserTest } from '../../fixtures/multi-user-declarative';
-import { multiUserTest } from '../../fixtures';
-import { setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
-import { MultiUserWorkflow } from '../../workflows';
-import { GroupWorkflow } from '../../workflows';
-import { generateShortId } from '../../utils/test-helpers';
+import {expect, test} from '@playwright/test';
+import {fourUserTest} from '../../fixtures/multi-user-declarative';
+import {multiUserTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
+import {generateShortId} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -20,7 +19,7 @@ test.describe('Share Link - Edge Cases', () => {
       // Create group
       const uniqueId = generateShortId();
       const groupWorkflow = new GroupWorkflow(creatorPage);
-      await groupWorkflow.createGroup(`Rapid Join Test ${uniqueId}`, 'Testing rapid multiple joins');
+      await groupWorkflow.createGroupAndNavigate(`Rapid Join Test ${uniqueId}`, 'Testing rapid multiple joins');
 
       const multiUserWorkflow = new MultiUserWorkflow(null);
       const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
@@ -50,7 +49,7 @@ test.describe('Share Link - Edge Cases', () => {
       // Create groups sequentially to avoid modal conflicts
       for (let i = 0; i < 3; i++) {
         const uniqueId = generateShortId();
-        await groupWorkflow.createGroup(`Sequential Test ${i} ${uniqueId}`, `Testing operations ${i}`);
+        await groupWorkflow.createGroupAndNavigate(`Sequential Test ${i} ${uniqueId}`, `Testing operations ${i}`);
         const shareLink = await multiUserWorkflow.getShareLink(page);
         shareLinks.push(shareLink);
         

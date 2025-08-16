@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { DashboardPage, CreateGroupModalPage } from '../pages';
+import {DashboardPage, CreateGroupModalPage, GroupDetailPage} from '../pages';
 import { AuthenticationWorkflow } from './authentication.workflow';
 import type {User as BaseUser} from "@shared/shared-types";
 import { generateTestGroupName } from '../utils/test-helpers';
@@ -15,19 +15,14 @@ export interface TestGroup {
  * Encapsulates group-related multi-step processes.
  */
 export class GroupWorkflow {
-  constructor(private page: Page) {}
-    /**
-     * Creates a group for an already authenticated user.
-   * Use this when you need to create multiple groups for the same user.
-   */
-  async createGroup(
-    groupName: string = generateTestGroupName(),
-    groupDescription?: string
-  ): Promise<string> {
-    return this.createGroupAndNavigate(groupName, groupDescription);
-  }
+    constructor(private page: Page) {
+    }
 
-  /**
+    static async createGroup(page: Page, groupName: string, description?: string): Promise<string> {
+        return new GroupWorkflow(page).createGroupAndNavigate(groupName, description);
+    }
+
+   /**
    * Creates a group and navigates to it, returning the group ID.
    * This encapsulates the multi-step workflow of group creation.
    */
@@ -60,11 +55,16 @@ export class GroupWorkflow {
 
     // Extract and return group ID
     const groupId = dashboard.getUrlParam('groupId')!;
-    
+
     // Verify we're on the correct group page by checking URL contains the pattern
     await expect(this.page).toHaveURL(new RegExp(`/groups/${groupId}$`));
 
     await expect(this.page.getByText(name)).toBeVisible();
+
+    await this.page.waitForLoadState('domcontentloaded');
+
+    const groupDetailPage = new GroupDetailPage(this.page);
+    await groupDetailPage.ensureNewGroupPageReadyWithOneMember(groupId);
 
     return groupId;
   }

@@ -1,6 +1,6 @@
-import { authenticatedPageTest, expect } from '../../fixtures';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
+import {authenticatedPageTest, expect} from '../../fixtures';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
 
 setupMCPDebugOnFailure();
 
@@ -17,7 +17,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     await expect(page).toHaveURL(/\/dashboard/);
     
     // Create group and prepare for expenses using helper method
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('DateTime Test Group', 'Testing date and time inputs');
+    const groupId = await GroupWorkflow.createGroup(page, 'DateTime Test Group', 'Testing date and time inputs');
     
     // Navigate to expense form with proper waiting
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);

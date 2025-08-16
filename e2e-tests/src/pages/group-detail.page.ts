@@ -156,13 +156,12 @@ export class GroupDetailPage extends BasePage {
     await this.clickButton(selectAllButton, { buttonName: 'Select all' });
   }
 
-    async verifyExpenseInList(description: string, amount?: string) {
+  async verifyExpenseInList(description: string, amount?: string) {
     await expect(this.getExpenseByDescription(description)).toBeVisible();
     if (amount) {
       await expect(this.page.getByText(amount)).toBeVisible();
     }
   }
-
 
   getCategorySelect() {
     // Category input is an actual input element with aria-haspopup
@@ -203,7 +202,6 @@ export class GroupDetailPage extends BasePage {
     await this.expectButtonEnabled(button, 'Save Expense');
   }
 
-
   // Split type accessors
   getSplitSection() {
     return this.page.getByText('Split between').locator('..');
@@ -220,7 +218,6 @@ export class GroupDetailPage extends BasePage {
   getPercentageRadio() {
     return this.page.getByRole('radio', { name: 'Percentage' });
   }
-
 
   getPercentageText() {
     return this.page.getByText('Percentage', { exact: true });
@@ -962,16 +959,5 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForLoadState('domcontentloaded');
     await this.waitForMemberCount(1); // Wait for at least the creator to show
     await this.waitForBalancesToLoad(groupId);
-  }
-
-  /**
-   * Complete workflow: Create group and prepare for expense operations.
-   * Use this in tests that create a new group and need to add expenses.
-   */
-  async createGroupAndPrepareForExpenses(groupName: string, description?: string): Promise<string> {
-    const groupWorkflow = new GroupWorkflow(this.page);
-    const groupId = await groupWorkflow.createGroup(groupName, description);
-    await this.ensureNewGroupPageReadyWithOneMember(groupId);
-    return groupId;
   }
 }

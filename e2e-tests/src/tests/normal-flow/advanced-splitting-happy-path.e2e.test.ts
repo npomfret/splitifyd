@@ -1,6 +1,6 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -12,7 +12,7 @@ test.describe('Advanced Splitting Options', () => {
     const { page } = authenticatedPage;
     
     // Create a single group for the entire user journey using helper method
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses('Advanced Splitting Test Group');
+    const groupId = await GroupWorkflow.createGroup(page, 'Advanced Splitting Test Group', undefined);
     const expectedMemberCount = 1;
 
     // === EQUAL SPLIT EXPENSE ===

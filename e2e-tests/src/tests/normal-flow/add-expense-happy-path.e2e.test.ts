@@ -1,9 +1,9 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import { waitForURLWithContext, groupDetailUrlPattern } from '../../helpers/wait-helpers';
-import { GroupWorkflow } from '../../workflows';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import {groupDetailUrlPattern, waitForURLWithContext} from '../../helpers/wait-helpers';
+import {GroupWorkflow} from '../../workflows';
 
 setupMCPDebugOnFailure();
 
@@ -13,7 +13,7 @@ test.describe('Add Expense E2E', () => {
     const memberCount = 1;
 
     // Use the comprehensive helper method for group creation and preparation
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('Expense'), 'Testing expense creation');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('Expense'), 'Testing expense creation');
     
     // Navigate to expense form with all necessary waits
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);

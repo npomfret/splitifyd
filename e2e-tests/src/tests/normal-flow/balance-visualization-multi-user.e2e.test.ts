@@ -1,8 +1,8 @@
-import { multiUserTest, expect } from '../../fixtures';
-import { setupMCPDebugOnFailure } from "../../helpers";
-import { GroupWorkflow } from '../../workflows';
-import { generateShortId } from "../../utils/test-helpers.ts";
-import { GroupDetailPage, JoinGroupPage, SettlementFormPage } from '../../pages';
+import {expect, multiUserTest} from '../../fixtures';
+import {setupMCPDebugOnFailure} from "../../helpers";
+import {GroupWorkflow} from '../../workflows';
+import {generateShortId} from "../../utils/test-helpers.ts";
+import {GroupDetailPage, JoinGroupPage} from '../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -15,7 +15,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     
     // Setup 2-person group with unique ID
     const uniqueId = generateShortId();
-    const groupId = await groupWorkflow.createGroup(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
+    const groupId = await groupWorkflow.createGroupAndNavigate(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
     const memberCount = 2;
 
     // Get share link directly
@@ -98,7 +98,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const memberCount = 2;
 
     const uniqueId = generateShortId();
-    await groupWorkflow.createGroup(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
+    await groupWorkflow.createGroupAndNavigate(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -150,7 +150,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const memberCount = 2;
 
     const uniqueId = generateShortId();
-    const groupId =await groupWorkflow.createGroup(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
+    const groupId =await groupWorkflow.createGroupAndNavigate(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -219,7 +219,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const memberCount = 2;
 
     const uniqueId = generateShortId();
-    const groupId = await groupWorkflow.createGroup(`State Transition Test ${uniqueId}`, 'Testing state transitions');
+    const groupId = await groupWorkflow.createGroupAndNavigate(`State Transition Test ${uniqueId}`, 'Testing state transitions');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -290,7 +290,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const memberCount = 2;
 
     const uniqueId = generateShortId();
-    const groupId = await groupWorkflow.createGroup(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
+    const groupId = await groupWorkflow.createGroupAndNavigate(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();
@@ -343,7 +343,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
     // Create group and verify
     const uniqueId = generateShortId();
-    const groupId = await groupWorkflow.createGroup(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
+    const groupId = await groupWorkflow.createGroupAndNavigate(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
     await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
     // Get share link directly
@@ -429,7 +429,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const groupWorkflow = new GroupWorkflow(page);
 
     const uniqueId = generateShortId();
-    const groupId = await groupWorkflow.createGroup(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
+    const groupId = await groupWorkflow.createGroupAndNavigate(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
     // Get share link directly
     await expect(groupDetailPage.getShareButton()).toBeVisible();

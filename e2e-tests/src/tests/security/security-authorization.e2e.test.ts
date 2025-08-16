@@ -1,7 +1,7 @@
-import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {expect, multiUserTest as test} from '../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateTestGroupName} from '../../utils/test-helpers';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -15,7 +15,7 @@ test.describe('Security Authorization Tests', () => {
       // User 1 creates a private group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('Private');
-      await groupWorkflow.createGroup(groupName, 'Private group - no unauthorized access');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Private group - no unauthorized access');
       
       const groupUrl = page1.url();
       const groupId = groupUrl.split('/groups/')[1];
@@ -58,7 +58,7 @@ test.describe('Security Authorization Tests', () => {
       // User 1 creates a group and expense
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('ExpenseAccess');
-      await groupWorkflow.createGroup(groupName, 'Testing expense access control');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing expense access control');
       
       // Add an expense
       await page1.click('[data-testid="add-expense-button"]');
@@ -93,7 +93,7 @@ test.describe('Security Authorization Tests', () => {
       // User 1 creates a group (becomes admin)
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('AdminTest');
-      await groupWorkflow.createGroup(groupName, 'Testing admin privileges');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing admin privileges');
       
       // Get share link for User 2 to join
       await page1.click('[data-testid="share-group-button"]');
@@ -145,7 +145,7 @@ test.describe('Security Authorization Tests', () => {
       // Create shared group
       const groupWorkflow = new GroupWorkflow(page1);
       const groupName = generateTestGroupName('ExpenseEdit');
-      await groupWorkflow.createGroup(groupName, 'Testing expense edit permissions');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing expense edit permissions');
       
       // Get share link for User 2
       await page1.click('[data-testid="share-group-button"]');
@@ -240,7 +240,7 @@ test.describe('Security Authorization Tests', () => {
       
       // Create a group with User 1
       const groupWorkflow = new GroupWorkflow(page1);
-      await groupWorkflow.createGroup(generateTestGroupName('SessionTest'), 'Session isolation test');
+      await groupWorkflow.createGroupAndNavigate(generateTestGroupName('SessionTest'), 'Session isolation test');
       
       // User 1 should see the new group
       await page1.goto('/dashboard');
@@ -263,7 +263,7 @@ test.describe('Security Authorization Tests', () => {
       // Create a group first
       const groupWorkflow = new GroupWorkflow(page);
       const groupName = generateTestGroupName('XSSTest');
-      await groupWorkflow.createGroup(groupName, 'Testing XSS prevention');
+      await groupWorkflow.createGroupAndNavigate(groupName, 'Testing XSS prevention');
       
       // Attempt XSS injection in expense description
       const xssPayloads = [
@@ -344,7 +344,7 @@ test.describe('Security Authorization Tests', () => {
       
       // Create a group first
       const groupWorkflow = new GroupWorkflow(page);
-      await groupWorkflow.createGroup(generateTestGroupName('AmountTest'), 'Testing amount validation');
+      await groupWorkflow.createGroupAndNavigate(generateTestGroupName('AmountTest'), 'Testing amount validation');
       
       const invalidAmounts = [
         '-100',        // Negative
@@ -377,7 +377,7 @@ test.describe('Security Authorization Tests', () => {
       
       // Create a group
       const groupWorkflow = new GroupWorkflow(page);
-      await groupWorkflow.createGroup(generateTestGroupName('RateTest'), 'Testing rate limiting');
+      await groupWorkflow.createGroupAndNavigate(generateTestGroupName('RateTest'), 'Testing rate limiting');
       
       // Rapidly create multiple expenses
       const promises: Promise<void>[] = [];
@@ -410,7 +410,7 @@ test.describe('Security Authorization Tests', () => {
       
       // Create a group
       const groupWorkflow = new GroupWorkflow(page);
-      await groupWorkflow.createGroup(generateTestGroupName('ExcessTest'), 'Testing excessive data prevention');
+      await groupWorkflow.createGroupAndNavigate(generateTestGroupName('ExcessTest'), 'Testing excessive data prevention');
       
       // Try to create an expense with extremely long description
       const veryLongDescription = 'A'.repeat(10000); // 10KB description

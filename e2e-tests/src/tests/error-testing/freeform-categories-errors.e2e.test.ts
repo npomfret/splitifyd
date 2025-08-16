@@ -1,8 +1,8 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {GroupWorkflow, setupMCPDebugOnFailure} from '../../helpers';
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import {editExpenseUrlPattern, expenseDetailUrlPattern, groupDetailUrlPattern, waitForURLWithContext} from '../../helpers/wait-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -17,7 +17,7 @@ test.describe('Freeform Categories Error Testing', () => {
     const { page } = authenticatedPage;
     
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('SpecialCat'), 'Testing special characters');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('SpecialCat'), 'Testing special characters');
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
@@ -55,7 +55,7 @@ test.describe('Freeform Categories Error Testing', () => {
     const { page } = authenticatedPage;
     
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditCat'), 'Testing category editing');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditCat'), 'Testing category editing');
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
@@ -116,7 +116,7 @@ test.describe('Freeform Categories Error Testing', () => {
     const { page } = authenticatedPage;
     
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EmptyCat'), 'Testing empty category validation');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EmptyCat'), 'Testing empty category validation');
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting

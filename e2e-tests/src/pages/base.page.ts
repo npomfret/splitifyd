@@ -238,7 +238,7 @@ export abstract class BasePage {
   /**
    * Expects the page to match a URL pattern
    */
-  async expectUrl(pattern: RegExp): Promise<void> {
+  async expectUrl(pattern: string | RegExp): Promise<void> {
     await expect(this.page).toHaveURL(pattern);
   }
   

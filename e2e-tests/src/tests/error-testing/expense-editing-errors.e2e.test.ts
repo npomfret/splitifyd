@@ -1,9 +1,9 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { generateTestGroupName } from '../../utils/test-helpers';
-import { waitForURLWithContext, groupDetailUrlPattern, editExpenseUrlPattern, expenseDetailUrlPattern } from '../../helpers/wait-helpers';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { GroupWorkflow } from '../../workflows';
+import {authenticatedPageTest as test, expect} from '../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {generateTestGroupName} from '../../utils/test-helpers';
+import {editExpenseUrlPattern, expenseDetailUrlPattern, groupDetailUrlPattern, waitForURLWithContext} from '../../helpers/wait-helpers';
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {GroupWorkflow} from '../../workflows';
 
 setupMCPDebugOnFailure();
 
@@ -20,7 +20,7 @@ test.describe('Expense Editing Error Testing', () => {
     const memberCount = 1;
 
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditAmount'), 'Testing expense amount editing');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmount'), 'Testing expense amount editing');
     
     // Navigate to expense form with proper waiting
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -88,7 +88,7 @@ test.describe('Expense Editing Error Testing', () => {
     const expectedMemberCount = 1;
 
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName("EditAmountDown"), "Testing expense amount decrease");
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName("EditAmountDown"), "Testing expense amount decrease");
     
     // Navigate to expense form with proper waiting
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
@@ -141,7 +141,7 @@ test.describe('Expense Editing Error Testing', () => {
     const expectedMemberCount = 1;
     
     // Use helper method to create group and prepare for expenses
-    const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('EditDesc'), 'Testing expense description editing');
+    const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditDesc'), 'Testing expense description editing');
     
     // Navigate to expense form with proper waiting
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);

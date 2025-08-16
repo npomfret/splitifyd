@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { multiUserTest } from '../../fixtures';
-import { setupMCPDebugOnFailure, EMULATOR_URL } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { generateShortId } from '../../utils/test-helpers';
+import {expect, test} from '@playwright/test';
+import {multiUserTest} from '../../fixtures';
+import {EMULATOR_URL, setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {generateShortId} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -27,7 +27,7 @@ test.describe('User Storage Isolation', () => {
     const uniqueId2 = generateShortId();
     
     // User 1 creates a group and uses EUR currency
-    await groupWorkflow1.createGroup(`User1 Group ${uniqueId1}`, 'Testing currency isolation');
+    await groupWorkflow1.createGroupAndNavigate(`User1 Group ${uniqueId1}`, 'Testing currency isolation');
     
     // Navigate to add expense page for user 1
     await page1.click('[data-testid="add-expense-button"]');
@@ -50,7 +50,7 @@ test.describe('User Storage Isolation', () => {
     await page1.waitForLoadState('domcontentloaded');
     
     // User 2 creates a group and should not see User 1's currency preferences
-    await groupWorkflow2.createGroup(`User2 Group ${uniqueId2}`, 'Testing currency isolation for user 2');
+    await groupWorkflow2.createGroupAndNavigate(`User2 Group ${uniqueId2}`, 'Testing currency isolation for user 2');
     
     // Navigate to add expense page for user 2
     await page2.click('[data-testid="add-expense-button"]');
@@ -156,7 +156,7 @@ test.describe('User Storage Isolation', () => {
     const groupWorkflow = new GroupWorkflow(page);
     const uniqueId = generateShortId();
     
-    await groupWorkflow.createGroup(`Logout Test ${uniqueId}`, 'Testing storage cleanup on logout');
+    await groupWorkflow.createGroupAndNavigate(`Logout Test ${uniqueId}`, 'Testing storage cleanup on logout');
     
     // Add some user-scoped data by going to add expense
     await page.click('[data-testid="add-expense-button"]');

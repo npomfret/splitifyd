@@ -1,8 +1,7 @@
-import { multiUserTest } from '../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { MultiUserWorkflow } from '../../workflows';
-import { GroupWorkflow } from '../../workflows';
-import { generateShortId } from '../../utils/test-helpers';
+import {multiUserTest} from '../../fixtures';
+import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
+import {generateShortId} from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -22,7 +21,7 @@ multiUserTest.describe('Share Link - Network Resilience', () => {
     // Create group
     const uniqueId = generateShortId();
     const groupWorkflow = new GroupWorkflow(creatorPage);
-    await groupWorkflow.createGroup(`Network Recovery Test ${uniqueId}`, 'Testing network recovery');
+    await groupWorkflow.createGroupAndNavigate(`Network Recovery Test ${uniqueId}`, 'Testing network recovery');
 
     const multiUserWorkflow = new MultiUserWorkflow(null);
     const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
