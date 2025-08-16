@@ -41,12 +41,12 @@ pageTest.describe('Policy Pages E2E', () => {
     await page.getByRole('heading', { level: 1 }).filter({ hasText: /Terms of Service|Terms and Conditions/ }).first().waitFor();
     
     // Navigate to privacy
-    await page.goto('/privacy');
+    await homepagePage.navigateToStaticPath('/privacy');
     await waitForApp(page);
     await page.getByRole('heading', { level: 1 }).filter({ hasText: /Privacy Policy|Privacy/ }).first().waitFor();
     
     // Navigate to cookies
-    await page.goto('/cookies');
+    await homepagePage.navigateToStaticPath('/cookies');
     await waitForApp(page);
     await page.getByRole('heading', { level: 1 }).filter({ hasText: /Cookie Policy|Cookie/ }).first().waitFor();
   });

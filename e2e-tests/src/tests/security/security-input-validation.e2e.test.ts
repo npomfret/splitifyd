@@ -244,7 +244,14 @@ test.describe('Security Input Validation Tests', () => {
       if (await searchField.isVisible()) {
         for (const payload of sqlPayloads) {
           await searchField.fill(payload);
-          await page.press('[data-testid="expense-search"]', 'Enter');
+          // Submit search using button instead of keyboard  
+          const searchButton = page.getByRole('button', { name: /search/i });
+          if (await searchButton.isVisible()) {
+            await searchButton.click();
+          } else {
+            // If no search button, submit the form containing the search input
+            await page.locator('[data-testid="expense-search"]').press('Enter');
+          }
           await page.waitForLoadState('domcontentloaded');
           
           // Should either show no results or validation error, not crash
@@ -256,7 +263,14 @@ test.describe('Security Input Validation Tests', () => {
           
           // Clear search
           await searchField.fill('');
-          await page.press('[data-testid="expense-search"]', 'Enter');
+          // Submit search using button instead of keyboard  
+          const searchButton = page.getByRole('button', { name: /search/i });
+          if (await searchButton.isVisible()) {
+            await searchButton.click();
+          } else {
+            // If no search button, submit the form containing the search input
+            await page.locator('[data-testid="expense-search"]').press('Enter');
+          }
         }
       }
       

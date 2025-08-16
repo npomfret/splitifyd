@@ -30,7 +30,12 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
   const validationErrors = useComputed(() => expenseFormStore.validationErrors);
   const isFormValid = useComputed(() => expenseFormStore.isFormValid);
   const hasRequiredFields = useComputed(() => expenseFormStore.hasRequiredFields);
-  
+
+  // Data readiness signal - only true when loading is false AND we have members
+  const isDataReady = useComputed(() => {
+    // Data is ready only when loading is false AND we have members.
+    return !loading.value && members.value.length > 0;
+  });  
   // Form field values
   const description = useComputed(() => expenseFormStore.description);
   const amount = useComputed(() => expenseFormStore.amount);
@@ -247,7 +252,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
     validationErrors: validationErrors.value,
     isFormValid: isFormValid.value,
     hasRequiredFields: hasRequiredFields.value,
-    
+    isDataReady: isDataReady.value,    
     // Form values
     description: description.value,
     amount: amount.value,

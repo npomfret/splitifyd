@@ -63,8 +63,8 @@ test.describe('Duplicate User Registration E2E', () => {
     // Should NOT redirect - should stay on registration page
     await expect(page).toHaveURL(/\/register/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     
-    // Check for error message on screen using the RegisterPage's error selector
-    const errorElement = page.locator(SELECTORS.ERROR_MESSAGE);
+    // Check for error message on screen using the RegisterPage's error method
+    const errorElement = registerPage.getEmailError();
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     const errorText = await errorElement.textContent();
@@ -140,7 +140,7 @@ test.describe('Duplicate User Registration E2E', () => {
     expect(passwordValue.length).toBeGreaterThanOrEqual(0); // Allow it to be cleared or retained
     
     // Error should be visible
-    const errorElement = page.locator(SELECTORS.ERROR_MESSAGE);
+    const errorElement = registerPage.getEmailError();
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
   });
 
@@ -191,7 +191,7 @@ test.describe('Duplicate User Registration E2E', () => {
     await submitButton.click();
     
     // Should see error
-    const errorElement = page.locator(SELECTORS.ERROR_MESSAGE);
+    const errorElement = registerPage.getEmailError();
     await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     
     // Now change email and try again using page object

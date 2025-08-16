@@ -46,7 +46,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   });
   
   // Show loading while initializing
-  if (!formState.isInitialized || formState.loading) {
+  if (!formState.isDataReady) {
     return (
       <BaseLayout title="Loading... - Splitifyd">
         <LoadingState fullPage message="Loading expense form..." />

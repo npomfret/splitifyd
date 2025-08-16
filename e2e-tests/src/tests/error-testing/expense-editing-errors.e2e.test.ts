@@ -47,7 +47,7 @@ test.describe('Expense Editing Error Testing', () => {
     await page.waitForLoadState('domcontentloaded');
     
     // Look for edit button (following working pattern with proper timeout)
-    const editButton = page.getByRole('button', { name: /edit/i });
+    const editButton = groupDetailPage.getEditButton();
     await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await editButton.click();
     
@@ -55,7 +55,7 @@ test.describe('Expense Editing Error Testing', () => {
     await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Edit the amount (following working pattern with proper timeout)
-    const amountField = page.locator('input[type="number"]').first();
+    const amountField = groupDetailPage.getAmountField();
     await expect(amountField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     
     // Change amount from $50.00 to $75.50

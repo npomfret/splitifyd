@@ -27,7 +27,13 @@ test.describe('Complex Unsettled Group Scenario', () => {
     await alicePage.getByRole('button', { name: /share/i }).click();
     const shareLinkInput = alicePage.getByRole('dialog').getByRole('textbox');
     const shareLink = await shareLinkInput.inputValue();
-    await alicePage.keyboard.press('Escape');
+    // Close modal by clicking close button or outside
+    const closeButton = alicePage.getByRole('button', { name: /close|×/i }).first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      await alicePage.click('body', { position: { x: 10, y: 10 } });
+    }
     
     // Have Bob join via robust JoinGroupPage
     const bobJoinGroupPage = new JoinGroupPage(bobPage);

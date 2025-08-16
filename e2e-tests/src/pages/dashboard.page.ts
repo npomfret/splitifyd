@@ -153,4 +153,8 @@ export class DashboardPage extends BasePage {
   getLogoutConfirmTestId() {
     return this.page.locator('[data-testid="logout-confirm"], text=Logout, text=Sign out');
   }
+
+  getGroupCard() {
+    return this.page.locator('[data-testid="group-card"]').first();
+  }
 }

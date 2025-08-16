@@ -391,10 +391,10 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     
     // Verify settlement appears in history for both users
     await groupDetailPage.openHistoryAndVerifySettlement(/Partial payment of \$60/);
-    await groupDetailPage.closeModalWithEscape();
+    await groupDetailPage.closeModal();
     
     await groupDetailPage2.openHistoryAndVerifySettlement(/Partial payment of \$60/);
-    await groupDetailPage2.closeModalWithEscape();
+    await groupDetailPage2.closeModal();
     
     // Assert final balance ($100 - $60 = $40 remaining)
     // Verify updated debt relationship and amount after partial settlement
@@ -472,13 +472,13 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await showHistoryButton.click();
     
     await groupDetailPage.verifySettlementInHistoryVisible('Full settlement payment');
-    await groupDetailPage.closeModalWithEscape();
+    await groupDetailPage.closeModal();
     
     // Also verify user2 can see the settlement via real-time updates
     const showHistoryButton2 = groupDetailPage2.getShowHistoryButton();
     await showHistoryButton2.click();
     await groupDetailPage2.verifySettlementInHistoryVisible('Full settlement payment');
-    await groupDetailPage2.closeModalWithEscape();
+    await groupDetailPage2.closeModal();
     
     // Test user1's browser
     await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
