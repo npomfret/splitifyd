@@ -36,6 +36,11 @@ function LazyRoute({ component: Component, ...props }: any) {
 function ProtectedRoute({ component: Component, ...props }: any) {
   const authStore = useAuth();
   
+  // Handle SSG case where useAuth returns null
+  if (!authStore) {
+    return <LoadingState fullPage message="Loading..." />;
+  }
+  
   // Wait for auth initialization
   if (!authStore.initialized) {
     return <LoadingState fullPage message="Loading..." />;

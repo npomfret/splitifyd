@@ -188,11 +188,11 @@ pageTest.describe('Form Validation E2E', () => {
       // Navigate to expense form with proper waiting
       await groupDetailPage.navigateToAddExpenseForm(memberCount);
       
-      // Try to submit empty form
+      // Submit button should be disabled when required fields are empty
       const submitButton = page.getByRole('button', { name: /save expense/i });
-      await submitButton.click();
+      await expect(submitButton).toBeDisabled();
       
-      // Should remain on form page (validation prevents submission)
+      // Form should remain on expense page
       await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
       await expect(page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
       
@@ -200,7 +200,8 @@ pageTest.describe('Form Validation E2E', () => {
       await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Test expense');
       await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25');
       
-      // Should now allow submission
+      // Should now enable submission
+      await expect(submitButton).toBeEnabled();
       await submitButton.click();
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     });

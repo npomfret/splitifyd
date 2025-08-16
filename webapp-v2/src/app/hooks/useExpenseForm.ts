@@ -26,6 +26,8 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
   const saving = useComputed(() => expenseFormStore.saving);
   const formError = useComputed(() => expenseFormStore.error);
   const validationErrors = useComputed(() => expenseFormStore.validationErrors);
+  const isFormValid = useComputed(() => expenseFormStore.isFormValid);
+  const hasRequiredFields = useComputed(() => expenseFormStore.hasRequiredFields);
   
   // Form field values
   const description = useComputed(() => expenseFormStore.description);
@@ -202,6 +204,8 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
     saving: saving.value,
     formError: formError.value,
     validationErrors: validationErrors.value,
+    isFormValid: isFormValid.value,
+    hasRequiredFields: hasRequiredFields.value,
     
     // Form values
     description: description.value,

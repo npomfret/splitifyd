@@ -153,14 +153,31 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
   get error() { return errorSignal.value; }
   get validationErrors() { return validationErrorsSignal.value; }
   
-  // Computed property to check if form is valid
-  get isFormValid(): boolean {
-    // Check all required fields
+  // Computed property to check if required fields are filled (for button enabling)
+  get hasRequiredFields(): boolean {
+    // Check basic required fields are filled (not empty)
     if (!descriptionSignal.value?.trim()) return false;
-    if (!amountSignal.value || parseFloat(amountSignal.value.toString()) <= 0) return false;
+    if (!amountSignal.value) return false; // Just check if filled, not if valid
     if (!dateSignal.value) return false;
     if (!paidBySignal.value) return false;
     if (participantsSignal.value.length === 0) return false;
+    
+    // For exact and percentage splits, also check if splits are properly configured
+    if (splitTypeSignal.value === SplitTypes.EXACT || splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+      const splitsError = this.validateField('splits');
+      if (splitsError) return false;
+    }
+    
+    return true;
+  }
+
+  // Computed property to check if form is valid
+  get isFormValid(): boolean {
+    // First check if required fields are filled
+    if (!this.hasRequiredFields) return false;
+    
+    // Then check if values are valid
+    if (parseFloat(amountSignal.value.toString()) <= 0) return false;
     
     // Validate each field
     const descError = this.validateField('description');
