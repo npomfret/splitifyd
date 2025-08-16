@@ -2,8 +2,7 @@ import { multiUserTest, expect } from '../../fixtures';
 import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
 import { generateShortId } from "../../utils/test-helpers.ts";
-import { GroupDetailPage } from '../../pages';
-import { JoinGroupPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage, SettlementFormPage } from '../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -395,14 +394,13 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$100.00' })).toBeVisible();
     
     // Record partial settlement of $60
-    const { SettlementFormPage } = await import('../../pages');
-    const settlementFormPage = new SettlementFormPage(page);
+    const settlementFormPage = await groupDetailPage.clickSettleUpButton(memberCount);
     await settlementFormPage.submitSettlement({
       payerName: user2.displayName,
       payeeName: user1.displayName,
       amount: '60',
-      note: 'Partial payment of $60'
-    });
+      note: 'Partial payment of $60',
+    }, memberCount);
     
     // Wait for settlement to propagate via real-time updates
     await page.waitForLoadState('domcontentloaded');
@@ -477,14 +475,13 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: '$75.00' })).toBeVisible();
     
     // User2 pays User1 the exact debt amount ($75) → MUST be settled up
-    const { SettlementFormPage } = await import('../../pages');
-    const settlementFormPage = new SettlementFormPage(page);
+    const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
     await settlementFormPage.submitSettlement({
       payerName: user2.displayName,
       payeeName: user1.displayName,
       amount: expectedDebtAmount,
-      note: 'Full settlement payment'
-    });
+      note: 'Full settlement payment',
+    }, memberCount);
     
     // Wait for settlement to propagate via real-time updates
     await page.waitForLoadState('domcontentloaded');

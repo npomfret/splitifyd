@@ -18,10 +18,6 @@ export class SettlementFormPage extends BasePage {
     return this.page.getByRole('dialog');
   }
 
-  getSettleUpButton(): Locator {
-    return this.page.getByRole('button', { name: /settle up/i });
-  }
-
   getPayerSelect(): Locator {
     return this.getModal().getByRole('combobox', { name: /who paid/i });
   }
@@ -44,26 +40,31 @@ export class SettlementFormPage extends BasePage {
   }
 
   // Helper methods
-  async waitForDropdownOptions(dropdown: Locator): Promise<void> {
+  async waitForDropdownOptions(dropdown: Locator, expectedCount?: number): Promise<void> {
     await expect(async () => {
-      const options = await dropdown.locator('option').count();
-      if (options <= 1) { // Only has placeholder
-        throw new Error('Dropdown not populated yet');
-      }
-    }).toPass({ timeout: 3000 });
-  }
-
-  async waitForPayeeDropdownUpdate(payeeSelect: Locator, excludedName: string): Promise<void> {
-    await expect(async () => {
-      const options = await payeeSelect.locator('option').all();
+      const options = await dropdown.locator('option').all();
+      const optionTexts: string[] = [];
+      
       for (const option of options) {
         const text = await option.textContent();
-        if (text && text.includes(excludedName)) {
-          throw new Error('Payee dropdown still includes payer name');
-        }
+        if (text) optionTexts.push(text);
       }
-    }).toPass({ timeout: 2000 });
+      
+      // Filter out placeholder options
+      const realOptions = optionTexts.filter(text => 
+        !text.toLowerCase().includes('select') && text.trim().length > 0
+      );
+      
+      if (realOptions.length === 0) {
+        throw new Error(`Dropdown not populated yet. Only found: [${optionTexts.join(', ')}]`);
+      }
+      
+      if (expectedCount && realOptions.length !== expectedCount) {
+        throw new Error(`Dropdown has ${realOptions.length} members but expected ${expectedCount}. Found: [${realOptions.join(', ')}]`);
+      }
+    }).toPass({ timeout: 5000 });
   }
+
 
   async findOptionByDisplayName(select: Locator, displayName: string): Promise<string> {
     const options = await select.locator('option').all();
@@ -78,33 +79,67 @@ export class SettlementFormPage extends BasePage {
   }
 
   /**
-   * Open the settlement form modal
+   * Wait for the settlement form to be fully ready with all members loaded
    */
-  async openSettlementForm(): Promise<void> {
-    const settleButton = this.getSettleUpButton();
-    await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
-    
-    // Wait for modal to appear
+  async waitForFormReady(expectedMemberCount: number): Promise<void> {
+    // Wait for modal to be visible
     await expect(this.getModal()).toBeVisible();
+    
+    // Wait for both dropdowns to have the expected number of members
+    const payerSelect = this.getPayerSelect();
+    const payeeSelect = this.getPayeeSelect();
+    
+    // Payer dropdown should have all group members
+    await this.waitForDropdownOptions(payerSelect, expectedMemberCount);
+    
+    // Payee dropdown may have all members initially, or may have one less if a payer is pre-selected
+    // Check that it has at least expectedMemberCount - 1 members
+    await expect(async () => {
+      const options = await payeeSelect.locator('option').all();
+      const optionTexts: string[] = [];
+      
+      for (const option of options) {
+        const text = await option.textContent();
+        if (text) optionTexts.push(text);
+      }
+      
+      // Filter out placeholder options
+      const realOptions = optionTexts.filter(text => 
+        !text.toLowerCase().includes('select') && text.trim().length > 0
+      );
+      
+      if (realOptions.length === 0) {
+        throw new Error(`Payee dropdown not populated yet. Only found: [${optionTexts.join(', ')}]`);
+      }
+      
+      // Payee dropdown should have at least expectedMemberCount - 1 (when payer is filtered out)
+      // or expectedMemberCount (when no payer selected yet)
+      if (realOptions.length < expectedMemberCount - 1) {
+        throw new Error(`Payee dropdown has ${realOptions.length} members but expected at least ${expectedMemberCount - 1}. Found: [${realOptions.join(', ')}]`);
+      }
+    }).toPass({ timeout: 5000 });
+    
+    // Verify the form buttons are ready
+    const recordButton = this.getRecordPaymentButton();
+    await expect(recordButton).toBeVisible();
   }
 
   /**
    * Submit a settlement with all required fields
+   * Note: The form should already be open and ready (use openSettlementForm() and waitForFormReady() first)
    */
-  async submitSettlement(settlement: SettlementData): Promise<void> {
-    // Open the form if not already open
+  async submitSettlement(settlement: SettlementData, expectedMemberCount: number): Promise<void> {
+    // Verify the form is open
     const modal = this.getModal();
-    if (!(await modal.isVisible())) {
-      await this.openSettlementForm();
-    }
+    await expect(modal).toBeVisible({ timeout: 1000 });
 
+    // Verify payer dropdown has all members
     const payerSelect = this.getPayerSelect();
     const payeeSelect = this.getPayeeSelect();
+    await this.waitForDropdownOptions(payerSelect, expectedMemberCount);
+
     const amountInput = this.getAmountInput();
     const noteInput = this.getNoteInput();
-
-    // Wait for payer dropdown to be populated
-    await this.waitForDropdownOptions(payerSelect);
 
     // Select payer by display name
     const payerValue = await this.findOptionByDisplayName(payerSelect, settlement.payerName);
@@ -113,8 +148,36 @@ export class SettlementFormPage extends BasePage {
     }
     await payerSelect.selectOption(payerValue);
 
-    // Wait for payee dropdown to update dynamically after payer selection
-    await this.waitForPayeeDropdownUpdate(payeeSelect, settlement.payerName);
+    // Wait for payee dropdown to be updated after payer selection
+    // Note: The UI filters out the selected payer from the payee dropdown
+    await expect(async () => {
+      const payeeOptions = await payeeSelect.locator('option').all();
+      const payeeTexts: string[] = [];
+      for (const option of payeeOptions) {
+        const text = await option.textContent();
+        if (text) payeeTexts.push(text);
+      }
+      
+      // Filter out placeholder options
+      const realOptions = payeeTexts.filter(text => 
+        !text.toLowerCase().includes('select') && text.trim().length > 0
+      );
+      
+      // After payer selection, payee dropdown should have expectedMemberCount - 1 members
+      if (realOptions.length !== expectedMemberCount - 1) {
+        throw new Error(`After payer selection, payee dropdown has ${realOptions.length} members but expected ${expectedMemberCount - 1}. Found: [${realOptions.join(', ')}]. Payer selected: "${settlement.payerName}"`);
+      }
+      
+      // Check if payee we're looking for is in the dropdown
+      const hasTargetPayee = payeeTexts.some(text => text.includes(settlement.payeeName));
+      
+      if (!hasTargetPayee) {
+        throw new Error(`Payee "${settlement.payeeName}" not found in dropdown. Available options: [${payeeTexts.join(', ')}]. Payer selected: "${settlement.payerName}"`);
+      }
+    }).toPass({ 
+      timeout: 10000,
+      intervals: [100, 200, 500, 1000]  // Try more frequently at first
+    });
 
     // Select payee by display name
     const payeeValue = await this.findOptionByDisplayName(payeeSelect, settlement.payeeName);

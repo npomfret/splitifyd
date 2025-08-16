@@ -3,6 +3,7 @@ import { multiUserTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import {SettlementFormPage} from "../../pages";
 
 setupMCPDebugOnFailure();
 
@@ -130,10 +131,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expect(page.getByText('Test expense for settlement')).toBeVisible();
     
     // Open settlement form
-    const { SettlementFormPage } = await import('../../pages');
-    const settlementFormPage = new SettlementFormPage(page);
-    
-    await settlementFormPage.openSettlementForm();
+    const settlementFormPage = await groupDetailPage.clickSettleUpButton(memberCount);
     const modal = settlementFormPage.getModal();
     await expect(modal).toBeVisible();
     

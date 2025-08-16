@@ -2,6 +2,7 @@ import { multiUserTest as test, expect } from '../../fixtures/multi-user-test';
 import { setupMCPDebugOnFailure } from "../../helpers";
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import { SettlementFormPage } from '../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -12,6 +13,7 @@ test.describe('Settlement Management', () => {
   test('should validate settlement form', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
     const { page } = authenticatedPage;
     const groupWorkflow = new GroupWorkflow(page);
+    const memberCount= 2;
     
     // Create group and add second user
     await groupWorkflow.createGroup(generateTestGroupName('Validation'), 'Testing form validation');
@@ -21,10 +23,7 @@ test.describe('Settlement Management', () => {
     await groupDetailPage.shareGroupAndWaitForJoin(page2);
     
     // Open settlement form
-    const { SettlementFormPage } = await import('../../pages');
-    const settlementFormPage = new SettlementFormPage(page);
-    
-    await settlementFormPage.openSettlementForm();
+    const settlementFormPage = await groupDetailPage.clickSettleUpButton(memberCount);
     const modal = settlementFormPage.getModal();
     await expect(modal).toBeVisible();
     

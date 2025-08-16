@@ -1,6 +1,7 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {ExpenseFormPage} from './expense-form.page';
+import {SettlementFormPage} from './settlement-form.page';
 import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {GroupWorkflow} from '../workflows';
 
@@ -42,6 +43,19 @@ export class GroupDetailPage extends BasePage {
   // Element accessors for expenses
   getAddExpenseButton() {
     return this.page.getByRole('button', { name: /add expense/i });
+  }
+
+  async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
+      const settleButton = this.getSettleUpButton();
+      await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
+      const settlementFormPage = new SettlementFormPage(this.page);
+      await expect(settlementFormPage.getModal()).toBeVisible();
+      await settlementFormPage.waitForFormReady(expectedMemberCount);
+      return settlementFormPage;
+  }
+
+   getSettleUpButton(): Locator {
+        return this.page.getByRole('button', { name: /settle up/i });
   }
 
   async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
@@ -584,10 +598,8 @@ export class GroupDetailPage extends BasePage {
     expectedMemberCount: number,
     groupId: string
   ): Promise<void> {
-    // Use proper page object composition
-    const { SettlementFormPage } = await import('./settlement-form.page');
-    const settlementFormPage = new SettlementFormPage(this.page);
-    await settlementFormPage.submitSettlement(settlementOptions);
+    const settlementFormPage = await this.clickSettleUpButton(expectedMemberCount);
+    await settlementFormPage.submitSettlement(settlementOptions, expectedMemberCount);
     await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
   }
 
