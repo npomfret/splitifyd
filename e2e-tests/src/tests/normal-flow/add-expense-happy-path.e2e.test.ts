@@ -18,22 +18,20 @@ test.describe('Add Expense E2E', () => {
     // Navigate to expense form with all necessary waits
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
-    const categorySelect = groupDetailPage.getCategorySelect();
+    const categorySelect = expenseFormPage.getCategorySelect();
     
     await expenseFormPage.fillDescription('Test Dinner');
     await expenseFormPage.fillAmount('50');
     
     await expect(categorySelect).toBeVisible();
-    await groupDetailPage.typeCategoryText('dinner');
+    await expenseFormPage.typeCategoryText('dinner');
     
-    const submitButton = expenseFormPage.getSaveExpenseButton();
-    
-    await expect(submitButton).toBeVisible();
-    
+    // The save button should be visible
     // Check if button is enabled and get validation errors if not
-    await groupDetailPage.expectSubmitButtonEnabled();
+    await expenseFormPage.expectSubmitButtonEnabled();
     
-    await submitButton.click();
+    // Submit the expense
+    await expenseFormPage.clickSaveExpenseButton();
     
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await page.waitForLoadState('domcontentloaded');
@@ -57,12 +55,12 @@ test.describe('Add Expense E2E', () => {
     
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
-    const categorySelect = groupDetailPage.getCategorySelect();
+    const categorySelect = expenseFormPage.getCategorySelect();
     await expect(categorySelect).toBeVisible();
     
     const initialCategory = await categorySelect.inputValue();
     
-    await groupDetailPage.typeCategoryText('Bills & Utilities');
+    await expenseFormPage.typeCategoryText('Bills & Utilities');
     
     const newCategory = await categorySelect.inputValue();
     expect(newCategory).not.toBe(initialCategory);
@@ -70,7 +68,7 @@ test.describe('Add Expense E2E', () => {
     await expenseFormPage.fillDescription('Dinner with category');
     await expenseFormPage.fillAmount('45');
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await page.waitForLoadState('domcontentloaded');
     
     await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
@@ -102,9 +100,8 @@ test.describe('Add Expense E2E', () => {
     await expenseFormPage.fillDescription('Movie Tickets');
     await expenseFormPage.fillAmount('25');
     
-    // Now the save button should be enabled
-    await expect(expenseFormPage.getSaveExpenseButton()).toBeEnabled();
-    await expenseFormPage.saveExpense();
+    // Now save the expense (button enable check and spinner wait handled internally)
+    await expenseFormPage.clickSaveExpenseButton();
     
     await page.waitForLoadState('domcontentloaded');
     
@@ -113,7 +110,7 @@ test.describe('Add Expense E2E', () => {
     const amountText = groupDetailPage.getExpenseAmount('$25.00');
     await expect(amountText).toBeVisible();
     
-    await expect(groupDetailPage.getExpensePaidByText()).toBeVisible();
+    await expect(expenseFormPage.getExpensePaidByText()).toBeVisible();
   });
 
   test('should allow custom category input', async ({ authenticatedPage, groupDetailPage }) => {
@@ -130,12 +127,12 @@ test.describe('Add Expense E2E', () => {
     const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
     // Test custom category input
-    await groupDetailPage.typeCategoryText('Custom Office Supplies');
+    await expenseFormPage.typeCategoryText('Custom Office Supplies');
     
     await expenseFormPage.fillDescription('Custom category expense');
     await expenseFormPage.fillAmount('16');
     
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await page.waitForLoadState('domcontentloaded');

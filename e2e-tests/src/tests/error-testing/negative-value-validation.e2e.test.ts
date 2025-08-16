@@ -37,7 +37,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await amountField.fill('-100');
     
     // Button should be enabled (required fields are filled) but form submission should be prevented by HTML5 validation
-    const saveButton = expenseFormPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveButtonForValidation();
     await expect(saveButton).toBeEnabled();
     
     // Try to submit - HTML5 validation should prevent it
@@ -58,7 +58,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expenseFormPage.selectAllParticipants();
     
     // Submit should work now
-    await expenseFormPage.saveExpense();
+    await expenseFormPage.clickSaveExpenseButton();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     // Verify expense was created
@@ -89,7 +89,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expenseFormPage.selectAllParticipants();
     
     // Button should be disabled due to zero amount validation
-    const saveButton = expenseFormPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveButtonForValidation();
     await expect(saveButton).toBeDisabled();
     
     // Form should remain on add expense page
@@ -221,7 +221,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Try to submit with negative split - button should be disabled due to validation
-    const saveButton = expenseFormPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveButtonForValidation();
     await expect(saveButton).toBeDisabled();
     
     // Should still be on add expense page

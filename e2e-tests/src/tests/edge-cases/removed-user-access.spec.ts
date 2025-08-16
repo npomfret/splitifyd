@@ -50,9 +50,8 @@ multiUserTest.describe('Multi-User Group Access', () => {
     await expenseFormPage.fillAmount('25.50');
     await expenseFormPage.selectAllParticipants();
     
-    const submitButton = expenseFormPage.getSaveExpenseButton();
-    await expect(submitButton).toBeVisible();
-    await submitButton.click();
+    // Submit the expense (handles button visibility, enable check and spinner wait)
+    await expenseFormPage.clickSaveExpenseButton();
     
     // Verify expense was created and we're back on group page
     await expect(user2Page).toHaveURL(`/groups/${groupId}`);

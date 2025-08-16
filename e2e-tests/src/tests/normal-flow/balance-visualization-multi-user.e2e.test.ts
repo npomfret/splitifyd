@@ -18,11 +18,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const groupId = await groupWorkflow.createGroupAndNavigate(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
     const memberCount = 2;
 
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // Verify User2 is authenticated before attempting to join  
     await expect(page2).toHaveURL(/\/dashboard/);
@@ -100,11 +97,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const uniqueId = generateShortId();
     await groupWorkflow.createGroupAndNavigate(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
@@ -152,11 +146,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const uniqueId = generateShortId();
     const groupId =await groupWorkflow.createGroupAndNavigate(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
 
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
@@ -221,11 +212,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroupAndNavigate(`State Transition Test ${uniqueId}`, 'Testing state transitions');
 
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
@@ -292,11 +280,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroupAndNavigate(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
 
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);
@@ -325,7 +310,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     // Verify debt with calculated amount: $123.45 / 2 = $61.73
     const balancesSection = groupDetailPage.getBalancesSection();
     await expect(balancesSection.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible();
-    const expectedDebt = groupDetailPage.calculateEqualSplitDebt(123.45, 2);
+    const expectedDebt = expenseFormPage.calculateEqualSplitDebt(123.45, 2);
     await expect(balancesSection.locator('.text-red-600').filter({ hasText: `$${expectedDebt}` })).toBeVisible();
     
     // Verify the original expense amount is visible
@@ -346,11 +331,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const groupId = await groupWorkflow.createGroupAndNavigate(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
     await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
     
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // User 2 joins
     const joinGroupPage = new JoinGroupPage(page2);
@@ -431,11 +413,8 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
     const uniqueId = generateShortId();
     const groupId = await groupWorkflow.createGroupAndNavigate(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
 
-    // Get share link directly
-    await expect(groupDetailPage.getShareButton()).toBeVisible();
-    await groupDetailPage.clickShareButton();
-    const shareLink = await groupDetailPage.getShareLinkInput().inputValue();
-    await groupDetailPage.closeModalWithEscape();
+    // Get share link
+    const shareLink = await groupDetailPage.getShareLink();
     
     // User2 joins
     const joinGroupPage2 = new JoinGroupPage(page2);

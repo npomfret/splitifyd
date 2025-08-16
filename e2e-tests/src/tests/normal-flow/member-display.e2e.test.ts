@@ -44,23 +44,22 @@ test.describe('Member Management E2E', () => {
     await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for split options');
     
     // Navigate to add expense
-    const addExpenseButton = page.getByRole(ARIA_ROLES.BUTTON, { name: /add expense/i });
-    await addExpenseButton.click();
-    
-    // Wait for expense form
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
+
+      // Wait for expense form
     await expect(page.getByPlaceholder(PLACEHOLDERS.EXPENSE_DESCRIPTION)).toBeVisible();
     
     // Member should be visible in split section
-    const splitHeading = groupDetailPage.getSplitBetweenHeading();
+    const splitHeading = expenseFormPage.getSplitBetweenHeading();
     await expect(splitHeading).toBeVisible();
     
     // The current user should be included and checked by default (payer is auto-selected)
-    const userCheckbox = groupDetailPage.getSplitOptionsFirstCheckbox();
+    const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
     await expect(userCheckbox).toBeVisible();
     await expect(userCheckbox).toBeChecked();
     
     // User name should be visible in split section
-    const isUserInSplit = await groupDetailPage.isUserInSplitOptions(user.displayName);
+    const isUserInSplit = await expenseFormPage.isUserInSplitOptions(user.displayName);
     expect(isUserInSplit).toBe(true);
   });
 
@@ -94,23 +93,14 @@ test.describe('Member Management E2E', () => {
     const groupName = 'Share Test Group';
     await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for sharing');
     
-    // Share button should be visible
+    // Share button should be visible and functional
     const shareButton = groupDetailPage.getShareButton();
     await expect(shareButton).toBeVisible();
     
-    // Click share to open modal
-    await shareButton.click();
-    
-    // Share modal should open with link
-    const shareModal = groupDetailPage.getShareModal();
-    await expect(shareModal).toBeVisible();
-    
-    // Should show share link
-    const shareLink = groupDetailPage.getShareLinkInput();
-    await expect(shareLink).toBeVisible();
+    // Get share link (opens modal, waits for link, closes modal)
+    const linkValue = await groupDetailPage.getShareLink();
     
     // Link should contain the join URL with linkId parameter
-    const linkValue = await shareLink.inputValue();
     expect(linkValue).toMatch(/\/join\?linkId=/);
   });
 

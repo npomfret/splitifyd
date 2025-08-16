@@ -1,7 +1,7 @@
-import { multiUserTest, expect } from '../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from '../../helpers';
-import { GroupWorkflow } from '../../workflows';
-import { JoinGroupPage } from '../../pages';
+import {expect, multiUserTest} from '../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from '../../helpers';
+import {GroupWorkflow} from '../../workflows';
+import {JoinGroupPage} from '../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -78,8 +78,8 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     
     // Submit both forms at the same time
     const savePromises = Promise.allSettled([
-      expenseFormPage1.saveExpense(),
-      expenseFormPage2.saveExpense()
+      await expenseFormPage1.clickSaveExpenseButton(),
+      await expenseFormPage2.clickSaveExpenseButton()
     ]);
     
     // Wait for both to complete (success or failure)
