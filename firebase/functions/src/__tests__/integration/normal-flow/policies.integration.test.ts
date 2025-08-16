@@ -1,8 +1,10 @@
-import { admin, getTestConfig } from '../../support/firebase-test-setup';
+import * as admin from 'firebase-admin';
 import { FirestoreCollections, PolicyIds } from '../../../shared/shared-types';
 import * as crypto from 'crypto';
+import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
 
-const config = getTestConfig();
+const projectRoot = findProjectRoot(__dirname);
+const config = getFirebaseEmulatorConfig(projectRoot);
 const API_BASE_URL = config.baseUrl;
 
 describe('Policies API Integration Tests', () => {

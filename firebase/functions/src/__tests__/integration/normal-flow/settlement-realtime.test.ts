@@ -5,9 +5,15 @@
 // Test to verify that settlements generate realtime update notifications
 // This test documents a bug where the frontend doesn't refresh settlements
 
-import { admin, db } from '../../support/firebase-test-setup';
+import * as admin from 'firebase-admin';
+import { clearAllTestData } from '../../support/cleanupHelpers';
+
+const db = admin.firestore();
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
+  beforeAll(async () => {
+    await clearAllTestData();
+  });
   let groupId: string;
   let userId1: string;
   let userId2: string;
@@ -38,6 +44,10 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
       snapshot.docs.forEach(doc => batch.delete(doc.ref));
       await batch.commit();
     }
+  });
+
+  afterAll(async () => {
+    await clearAllTestData();
   });
 
   it('should generate expense-change notification when settlement is created directly in Firestore', async () => {

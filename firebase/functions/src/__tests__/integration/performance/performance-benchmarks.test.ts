@@ -14,7 +14,6 @@ describe('Performance - Response Time Benchmarks', () => {
     let workers: PerformanceTestWorkers;
     let benchmarkGroup: Group;
     let benchmarkExpenses: any[] = [];
-    let tracker: TestResourceTracker;
 
     jest.setTimeout(12000);// it takes about 6s
 
@@ -123,7 +122,6 @@ describe('Performance - Response Time Benchmarks', () => {
 
     it('should not leak memory during repeated operations', async () => {
         const memoryGroup = await driver.createGroupWithMembers('Memory Test Group', [mainUser], mainUser.token);
-        tracker.trackGroup(memoryGroup.id);
         
         await workers.performRepeatedOperations({
             group: memoryGroup,

@@ -5,13 +5,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { TestResourceTracker, clearAllTestData } from '../../support/cleanupHelpers';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Concurrent Operations and Transaction Integrity', () => {
   let driver: ApiDriver;
   let users: User[] = [];
   let testGroup: any;
-  let tracker: TestResourceTracker;
 
   jest.setTimeout(14000); // Tests take ~16.9s
 
@@ -20,7 +19,6 @@ describe('Concurrent Operations and Transaction Integrity', () => {
     await clearAllTestData();
     
     driver = new ApiDriver();
-    tracker = new TestResourceTracker();
     
     // Create more users for concurrent testing
     users = await Promise.all([
@@ -31,20 +29,15 @@ describe('Concurrent Operations and Transaction Integrity', () => {
       driver.createUser(new UserBuilder().build()),
     ]);
     
-    // Track all users for cleanup
-    users.forEach(user => tracker.trackUser(user.uid));
   });
 
   afterAll(async () => {
     // Clean up all test resources
-    await tracker.cleanup();
-    // Clear all test data to ensure clean state
     await clearAllTestData();
   });
 
   beforeEach(async () => {
     testGroup = await driver.createGroupWithMembers(`Concurrent Test Group ${uuidv4()}`, users, users[0].token);
-    tracker.trackGroup(testGroup.id);
   });
 
   describe('Race Conditions', () => {

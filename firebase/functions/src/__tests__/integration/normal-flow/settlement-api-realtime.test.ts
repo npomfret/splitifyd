@@ -5,11 +5,17 @@
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
-import { db } from '../../support/firebase-test-setup';
+import * as admin from 'firebase-admin';
+import { clearAllTestData } from '../../support/cleanupHelpers';
+
+const db = admin.firestore();
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder, UserBuilder } from '../../support/builders';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
+  beforeAll(async () => {
+    await clearAllTestData();
+  });
   let driver: ApiDriver;
   let user1: User;
   let user2: User;
@@ -45,6 +51,10 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
       snapshot.docs.forEach(doc => batch.delete(doc.ref));
       await batch.commit();
     }
+  });
+
+  afterAll(async () => {
+    await clearAllTestData();
   });
 
   it('should generate expense-change notification when settlement is created via API', async () => {
