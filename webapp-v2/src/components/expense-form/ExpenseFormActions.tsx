@@ -4,6 +4,7 @@ interface ExpenseFormActionsProps {
   isEditMode: boolean;
   saving: boolean;
   participantsCount: number;
+  hasRequiredFields: boolean;
   onCancel: () => void;
 }
 
@@ -11,6 +12,7 @@ export function ExpenseFormActions({
   isEditMode, 
   saving, 
   participantsCount, 
+  hasRequiredFields,
   onCancel 
 }: ExpenseFormActionsProps) {
   return (
@@ -25,7 +27,7 @@ export function ExpenseFormActions({
       <Button
         type="submit"
         variant="primary"
-        disabled={saving || participantsCount === 0}
+        disabled={saving || participantsCount === 0 || !hasRequiredFields}
       >
         {saving 
           ? (isEditMode ? 'Updating...' : 'Saving...') 

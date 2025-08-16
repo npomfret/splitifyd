@@ -57,7 +57,16 @@ export class JoinGroupPage extends BasePage {
         }
       }
       
-      // Critical check: Look for login/register UI elements (most reliable indicator)
+      // FIRST: Special case for join group page - if we can see join elements, user is authenticated
+      const joinButtonVisible = await this.getJoinGroupButton().isVisible({ timeout: 1000 }).catch(() => false);
+      const joinGroupHeadingVisible = await this.getJoinGroupHeading().isVisible({ timeout: 1000 }).catch(() => false);
+      const groupInviteMessage = await this.page.getByText(/you've been invited|invited to join/i).isVisible({ timeout: 1000 }).catch(() => false);
+      
+      if (joinButtonVisible || joinGroupHeadingVisible || groupInviteMessage) {
+        return true;
+      }
+      
+      // Then check: Look for login/register UI elements (reliable indicator for other pages)
       const loginVisible = await this.getLoginButton().isVisible({ timeout: 1000 }).catch(() => false);
       const registerVisible = await this.getRegisterButton().isVisible({ timeout: 1000 }).catch(() => false);
       
@@ -118,6 +127,17 @@ export class JoinGroupPage extends BasePage {
   async navigateToShareLink(shareLink: string): Promise<void> {
     await this.page.goto(shareLink);
     await this.page.waitForLoadState('domcontentloaded');
+    
+    // Wait for either login redirect or join page elements to appear
+    try {
+      await Promise.race([
+        this.page.waitForURL(/\/login/, { timeout: 2000 }),
+        this.getJoinGroupHeading().waitFor({ state: 'visible', timeout: 2000 }),
+        this.getJoinGroupButton().waitFor({ state: 'visible', timeout: 2000 })
+      ]);
+    } catch {
+      // If none of the expected elements appear, continue anyway
+    }
   }
 
   /**

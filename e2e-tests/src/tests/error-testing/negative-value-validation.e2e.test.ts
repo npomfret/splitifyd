@@ -29,12 +29,21 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const minValue = await amountField.getAttribute('min');
     expect(minValue).toBe('0.01');
     
+    // Fill description to enable form validation
+    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Test expense');
+    
     // Try to submit form with negative value
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-100');
-    await groupDetailPage.getSaveExpenseButton().click();
     
-    // Form should not submit - we should still be on the add expense page
+    // Button should be enabled (required fields are filled) but form submission should be prevented by HTML5 validation
+    const saveButton = groupDetailPage.getSaveExpenseButton();
+    await expect(saveButton).toBeEnabled();
+    
+    // Try to submit - HTML5 validation should prevent it
+    await saveButton.click({ force: true }); // Use force to bypass Playwright's built-in validation
+    
+    // Form should not submit - we should still be on the add expense page due to HTML5 validation
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Browser should show validation message
@@ -79,13 +88,14 @@ authenticatedTest.describe('Negative Value Validation', () => {
     // Select all participants
     await groupDetailPage.getSelectAllButton().click();
     
-    // Try to submit
-    await groupDetailPage.getSaveExpenseButton().click();
+    // Button should be disabled due to zero amount validation
+    const saveButton = groupDetailPage.getSaveExpenseButton();
+    await expect(saveButton).toBeDisabled();
     
-    // Form should not submit due to min validation
+    // Form should remain on add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
-    // Verify validation prevents submission
+    // Verify HTML5 validation would also catch this
     const isInvalid = await amountField.evaluate((el: HTMLInputElement) => !el.checkValidity());
     expect(isInvalid).toBe(true);
   });
@@ -194,7 +204,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupDetailPage.getSelectAllButton().click();
     
     // Select exact amounts split type
-    await page.getByText('Exact amounts').click();
+    await groupDetailPage.getExactAmountsText().click();
     
     // Try to enter negative split amount
     const splitInputs = groupDetailPage.getInputWithMinValue('0.01');
@@ -212,11 +222,11 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const minValue = await firstSplitInput.getAttribute('min');
     expect(minValue).toBe('0.01');
     
-    // Try to submit with negative split - HTML5 validation should prevent it
+    // Try to submit with negative split - button should be disabled due to validation
     const saveButton = groupDetailPage.getSaveExpenseButton();
-    await saveButton.click();
+    await expect(saveButton).toBeDisabled();
     
-    // Should still be on add expense page due to validation
+    // Should still be on add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
     // Browser should show validation message

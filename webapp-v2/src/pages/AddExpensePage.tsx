@@ -155,6 +155,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 isEditMode={isEditMode || isCopyMode}
                 saving={formState.saving}
                 participantsCount={formState.participants.length}
+                hasRequiredFields={formState.hasRequiredFields}
                 onCancel={formState.handleCancel}
               />
             </Stack>

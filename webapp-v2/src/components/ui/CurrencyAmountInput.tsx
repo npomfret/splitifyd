@@ -47,6 +47,18 @@ export function CurrencyAmountInput({
   const selectedCurrency = useMemo(() => getCurrency(currency), [currency]);
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
   
+  // Calculate min and step values based on currency decimal digits
+  const { minValue, stepValue } = useMemo(() => {
+    const decimalDigits = selectedCurrency?.decimal_digits ?? 2; // Default to 2 if unknown
+    const step = Math.pow(10, -decimalDigits); // 0.01 for 2 digits, 1 for 0 digits, 0.001 for 3 digits
+    const min = step; // Use the step as minimum (1 for JPY, 0.01 for USD, 0.001 for KWD)
+    
+    return {
+      minValue: min.toString(),
+      stepValue: step.toString()
+    };
+  }, [selectedCurrency]);
+  
   // Load currencies when dropdown opens
   useEffect(() => {
     if (isOpen && currencies.length === 0 && !isLoadingCurrencies) {
@@ -283,9 +295,10 @@ export function CurrencyAmountInput({
           <input
             ref={inputRef}
             id={inputId}
-            type="text"
-            inputMode="decimal"
-            pattern="[0-9]*\.?[0-9]*"
+            type="number"
+            inputMode="decimal" 
+            min={minValue}
+            step={stepValue}
             value={amount}
             onChange={handleAmountChange}
             onKeyDown={handleKeyDown}
