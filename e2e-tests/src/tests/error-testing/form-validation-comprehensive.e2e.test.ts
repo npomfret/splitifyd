@@ -123,7 +123,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       
       // Try to submit with negative value
       await submitButton.click();
-      
+
       // Form should not submit - still on add expense page
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
       
@@ -165,8 +165,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       await firstSplitInput.fill('60'); // Make total = 160 instead of 100
       
       // Submit should be disabled when exact amounts don't add up correctly
-      const submitButton = expenseFormPage.getSaveButtonForValidation();
-      await expect(submitButton).toBeDisabled();
+      await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
     });
 
     authenticatedPageTest('Percentage split validation', async ({ authenticatedPage, groupDetailPage }) => {
@@ -188,8 +187,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       
       // For a single member, percentage split should be valid by default (100%)
       // Submit should remain enabled since all required fields are filled and percentages are valid
-      const submitButton = expenseFormPage.getSaveButtonForValidation();
-      await expect(submitButton).toBeEnabled();
+      await expect(expenseFormPage.getSaveButtonForValidation()).toBeEnabled();
     });
   });
 

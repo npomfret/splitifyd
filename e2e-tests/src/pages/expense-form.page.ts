@@ -143,11 +143,11 @@ export class ExpenseFormPage extends BasePage {
     // Click the button
     await this.clickButton(saveButton, { buttonName: 'Save Expense' });
     
-    // Wait for spinner to disappear if present
-    const spinner = this.page.locator('.animate-spin, [role="status"]');
-    if (await spinner.count() > 0) {
-      await expect(spinner).not.toBeVisible({ timeout: 5000 });// give it some time to save
-    }
+    // First wait for saving state to begin - button text changes to "Saving..."
+    await expect(this.page.getByRole('button', { name: 'Saving...' })).toBeVisible({ timeout: 250 });
+
+    // Then wait for saving state to complete - button text changes back to "Save Expense" 
+    await expect(this.page.getByRole('button', { name: 'Saving...' })).not.toBeVisible({ timeout: 3000 });
   }
 
   /**

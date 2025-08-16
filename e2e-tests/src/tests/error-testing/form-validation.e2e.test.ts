@@ -188,8 +188,7 @@ pageTest.describe('Form Validation E2E', () => {
       const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Submit button should be disabled when required fields are empty
-      const submitButton = expenseFormPage.getSaveButtonForValidation();
-      await expect(submitButton).toBeDisabled();
+      await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
       
       // Form should remain on expense page
       await expect(page.getByPlaceholder('What was this expense for?')).toBeVisible();
@@ -200,8 +199,8 @@ pageTest.describe('Form Validation E2E', () => {
       await expenseFormPage.fillAmount('25');
       
       // Should now enable submission
-      await expect(submitButton).toBeEnabled();
-      await submitButton.click();
+      await expect(expenseFormPage.getSaveButtonForValidation()).toBeEnabled();
+      await expenseFormPage.clickSaveExpenseButton()
       await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     });
 

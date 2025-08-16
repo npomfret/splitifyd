@@ -89,8 +89,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await expenseFormPage.selectAllParticipants();
     
     // Button should be disabled due to zero amount validation
-    const saveButton = expenseFormPage.getSaveButtonForValidation();
-    await expect(saveButton).toBeDisabled();
+    await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
     
     // Form should remain on add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
@@ -221,8 +220,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Try to submit with negative split - button should be disabled due to validation
-    const saveButton = expenseFormPage.getSaveButtonForValidation();
-    await expect(saveButton).toBeDisabled();
+    await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
     
     // Should still be on add expense page
     await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
