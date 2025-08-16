@@ -20,10 +20,12 @@ interface AddExpensePageProps {
 }
 
 export default function AddExpensePage({ groupId }: AddExpensePageProps) {
-  // Parse URL parameters for edit mode
+  // Parse URL parameters for edit mode and copy mode
   const urlParams = new URLSearchParams(window.location.search);
   const expenseId = urlParams.get('id');
   const isEditMode = urlParams.get('edit') === 'true' && !!expenseId;
+  const isCopyMode = urlParams.get('copy') === 'true';
+  const sourceExpenseId = urlParams.get('sourceId');
   
   // Authentication check
   useAuthRequired();
@@ -38,7 +40,9 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
   const formState = useExpenseForm({ 
     groupId, 
     expenseId, 
-    isEditMode 
+    isEditMode,
+    isCopyMode,
+    sourceExpenseId 
   });
   
   // Show loading while initializing
@@ -56,15 +60,20 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     return null;
   }
   
+  // Determine page title and description based on mode
+  const pageTitle = isCopyMode ? 'Copy Expense' : (isEditMode ? 'Edit Expense' : 'Add Expense');
+  const pageDescription = isCopyMode ? 'Copy expense' : (isEditMode ? 'Edit expense' : 'Add a new expense');
+
   return (
     <BaseLayout
-      title={`${isEditMode ? 'Edit Expense' : 'Add Expense'} - ${formState.group.name} - Splitifyd`}
-      description={`${isEditMode ? 'Edit expense' : 'Add a new expense'} in ${formState.group.name}`}
+      title={`${pageTitle} - ${formState.group.name} - Splitifyd`}
+      description={`${pageDescription} in ${formState.group.name}`}
       headerVariant="dashboard"
     >
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <ExpenseFormHeader 
           isEditMode={isEditMode}
+          isCopyMode={isCopyMode}
           groupName={formState.group.name}
           onCancel={formState.handleCancel}
         />
@@ -143,7 +152,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
               
               {/* Form actions */}
               <ExpenseFormActions
-                isEditMode={isEditMode}
+                isEditMode={isEditMode || isCopyMode}
                 saving={formState.saving}
                 participantsCount={formState.participants.length}
                 onCancel={formState.handleCancel}

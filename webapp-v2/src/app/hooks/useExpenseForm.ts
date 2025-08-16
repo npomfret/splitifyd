@@ -13,9 +13,11 @@ interface UseExpenseFormOptions {
   groupId: string;
   expenseId?: string | null;
   isEditMode: boolean;
+  isCopyMode?: boolean;
+  sourceExpenseId?: string | null;
 }
 
-export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFormOptions) {
+export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseExpenseFormOptions) {
   const isInitialized = useSignal(false);
   const authStore = useAuth();
   
@@ -96,6 +98,45 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
             route(`/groups/${groupId}`);
             return;
           }
+        } else if (isCopyMode && sourceExpenseId) {
+          // Copy mode: fetch source expense and populate form (except date)
+          try {
+            const sourceExpense = await apiClient.request<ExpenseData>('/expenses', {
+              method: 'GET',
+              query: { id: sourceExpenseId }
+            });
+            
+            if (sourceExpense) {
+              // Copy all fields except date/time (keep current defaults)
+              expenseFormStore.updateField('description', sourceExpense.description);
+              expenseFormStore.updateField('amount', sourceExpense.amount);
+              expenseFormStore.updateField('currency', sourceExpense.currency);
+              // Date and time remain at current defaults
+              expenseFormStore.updateField('paidBy', sourceExpense.paidBy);
+              expenseFormStore.updateField('category', sourceExpense.category);
+              expenseFormStore.updateField('splitType', sourceExpense.splitType);
+              
+              // Set participants from expense splits
+              const participantIds = sourceExpense.splits.map(split => split.userId);
+              expenseFormStore.setParticipants(participantIds);
+              
+              // Set splits based on split type
+              sourceExpense.splits.forEach(split => {
+                if (sourceExpense.splitType === 'exact') {
+                  expenseFormStore.updateSplitAmount(split.userId, split.amount);
+                } else if (sourceExpense.splitType === 'percentage') {
+                  const percentage = (split.amount / sourceExpense.amount) * 100;
+                  expenseFormStore.updateSplitPercentage(split.userId, percentage);
+                }
+              });
+            } else {
+              throw new Error('Source expense not found');
+            }
+          } catch (error) {
+            logError('Failed to load expense for copying', error);
+            route(`/groups/${groupId}`);
+            return;
+          }
         } else {
           // Create mode: Set default payer
           const currentUser = enhancedGroupDetailStore.members.find(m => m.uid === authStore?.user?.uid);
@@ -116,11 +157,11 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
     return () => {
       expenseFormStore.reset();
     };
-  }, [groupId, isEditMode, expenseId]);
+  }, [groupId, isEditMode, expenseId, isCopyMode, sourceExpenseId]);
   
-  // Auto-save functionality for new expenses
+  // Auto-save functionality for new expenses (not for copy mode to avoid overwriting drafts)
   useEffect(() => {
-    if (!isEditMode && isInitialized.value) {
+    if (!isEditMode && !isCopyMode && isInitialized.value) {
       const timer = setTimeout(() => {
         if (description.value || amount.value) {
           expenseFormStore.saveDraft(groupId);
@@ -130,7 +171,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
       return () => clearTimeout(timer);
     }
   }, [description.value, amount.value, date.value, time.value, paidBy.value, category.value, 
-      splitType.value, participants.value, splits.value, isEditMode, isInitialized.value]);
+      splitType.value, participants.value, splits.value, isEditMode, isCopyMode, isInitialized.value]);
   
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -144,7 +185,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode }: UseExpenseFor
         route(`/groups/${groupId}/expenses/${expenseId}`);
       } else {
         await expenseFormStore.saveExpense(groupId);
-        // Navigate back to group detail after creating new expense
+        // Navigate back to group detail after creating new expense (including copy mode)
         route(`/groups/${groupId}`);
       }
     } catch (error) {

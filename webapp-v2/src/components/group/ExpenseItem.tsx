@@ -10,9 +10,10 @@ interface ExpenseItemProps {
   expense: ExpenseData;
   members: User[];
   onClick?: (expense: ExpenseData) => void;
+  onCopy?: (expense: ExpenseData) => void;
 }
 
-export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
+export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemProps) {
   const paidByUser = members.find(m => m.uid === expense.paidBy);
   const isDeleted = expense[DELETED_AT_FIELD] !== null && expense[DELETED_AT_FIELD] !== undefined;
   const deletedByUser = expense.deletedBy ? members.find(m => m.uid === expense.deletedBy) : null;
@@ -28,9 +29,14 @@ export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
     [expense.amount, expense.currency]
   );
   
+  const handleCopyClick = (e: Event) => {
+    e.stopPropagation(); // Prevent expense detail navigation
+    onCopy?.(expense);
+  };
+
   return (
     <div 
-      className={`border-b last:border-0 pb-3 last:pb-0 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded relative ${
+      className={`border-b last:border-0 pb-3 last:pb-0 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded relative group ${
         isDeleted ? 'opacity-60 bg-gray-50' : ''
       }`}
       style={{
@@ -76,19 +82,35 @@ export function ExpenseItem({ expense, members, onClick }: ExpenseItemProps) {
           </div>
         </div>
         
-        <div className="text-right ml-4">
-          <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>
-            {formattedAmount}
-          </p>
-          <p className="text-xs text-gray-500">{expense.category}</p>
+        <div className="text-right ml-4 flex items-start gap-2">
+          <div>
+            <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>
+              {formattedAmount}
+            </p>
+            <p className="text-xs text-gray-500">{expense.category}</p>
+            
+            {/* Theme color indicator dot */}
+            {!isDeleted && paidByTheme && (
+              <div 
+                className="w-2 h-2 rounded-full mt-1 ml-auto"
+                style={{ backgroundColor: themeColor }}
+                title={`${paidByUser?.displayName || 'Unknown'} (${paidByTheme.name})`}
+              />
+            )}
+          </div>
           
-          {/* Theme color indicator dot */}
-          {!isDeleted && paidByTheme && (
-            <div 
-              className="w-2 h-2 rounded-full mt-1 ml-auto"
-              style={{ backgroundColor: themeColor }}
-              title={`${paidByUser?.displayName || 'Unknown'} (${paidByTheme.name})`}
-            />
+          {/* Copy button - only show if not deleted and onCopy is provided */}
+          {!isDeleted && onCopy && (
+            <button
+              onClick={handleCopyClick}
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800"
+              title="Copy expense"
+              aria-label="Copy expense"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
           )}
         </div>
       </div>

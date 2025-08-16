@@ -86,6 +86,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
   const handleEdit = () => {
     route(`/groups/${groupId}/add-expense?id=${expenseId}&edit=true`);
   };
+
+  const handleCopy = () => {
+    route(`/groups/${groupId}/add-expense?copy=true&sourceId=${expenseId}`);
+  };
   
   const handleBack = () => {
     route(`/groups/${groupId}`);
@@ -258,6 +262,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onShare={handleShare}
+                  onCopy={handleCopy}
                 />
               </div>
             </Stack>

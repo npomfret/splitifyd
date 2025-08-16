@@ -142,6 +142,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     route(`/groups/${groupId}/expenses/${expense.id}`);
   };
 
+  const handleExpenseCopy = (expense: any) => {
+    route(`/groups/${groupId}/add-expense?copy=true&sourceId=${expense.id}`);
+  };
+
   const handleAddExpense = () => {
     route(`/groups/${groupId}/add-expense`);
   };
@@ -206,6 +210,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
               loading={enhancedGroupDetailStore.loadingExpenses}
               onLoadMore={() => enhancedGroupDetailStore.loadMoreExpenses()}
               onExpenseClick={handleExpenseClick}
+              onExpenseCopy={handleExpenseCopy}
               isGroupOwner={isGroupOwner.value ?? false}
               showDeletedExpenses={showDeletedExpenses.value}
               onShowDeletedChange={(show) => {

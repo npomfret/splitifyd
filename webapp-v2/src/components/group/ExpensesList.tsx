@@ -11,6 +11,7 @@ interface ExpensesListProps {
   loading: boolean;
   onLoadMore: () => void;
   onExpenseClick?: (expense: ExpenseData) => void;
+  onExpenseCopy?: (expense: ExpenseData) => void;
   isGroupOwner?: boolean;
   showDeletedExpenses?: boolean;
   onShowDeletedChange?: (show: boolean) => void;
@@ -23,6 +24,7 @@ export function ExpensesList({
   loading, 
   onLoadMore, 
   onExpenseClick,
+  onExpenseCopy,
   isGroupOwner = false,
   showDeletedExpenses = false,
   onShowDeletedChange
@@ -53,6 +55,7 @@ export function ExpensesList({
               expense={expense}
               members={members}
               onClick={onExpenseClick}
+              onCopy={onExpenseCopy}
             />
           ))}
           

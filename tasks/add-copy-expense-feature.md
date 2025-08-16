@@ -76,3 +76,89 @@ useEffect(() => {
 -   **Reduced Friction:** Lowers the barrier to logging expenses, which can lead to more consistent use of the app.
 -   **Improved User Experience:** A small but powerful convenience feature that makes the application feel more thoughtful and user-friendly.
 -   **Accuracy:** Reduces the chance of manual data entry errors when logging recurring expenses.
+
+---
+
+## ✅ IMPLEMENTATION STATUS: COMPLETED
+
+### Implementation Summary
+
+The copy expense feature has been **successfully implemented** and is fully functional. The implementation includes both requested locations for the copy functionality and follows the specified requirements.
+
+### Actual Implementation Details
+
+#### UI/UX Changes Implemented
+
+1. **Copy Button in Expense Detail Page**
+   - ✅ Added "Copy" button with copy icon (📋) next to Edit, Share, and Delete buttons
+   - ✅ Includes proper tooltip and accessibility labels
+   - ✅ Navigates to pre-filled form when clicked
+
+2. **Copy Button in Expenses List** *(Enhanced beyond original spec)*
+   - ✅ Added hover-visible copy icon button in each expense item
+   - ✅ Only appears for non-deleted expenses
+   - ✅ Prevents event propagation to avoid navigation conflicts
+
+#### Technical Implementation
+
+**Files Modified:**
+- `webapp-v2/src/components/expense/ExpenseActions.tsx` - Added copy button to detail page actions
+- `webapp-v2/src/components/group/ExpenseItem.tsx` - Added copy button to list items
+- `webapp-v2/src/components/group/ExpensesList.tsx` - Added copy handler prop
+- `webapp-v2/src/pages/ExpenseDetailPage.tsx` - Implemented copy navigation handler
+- `webapp-v2/src/pages/GroupDetailPage.tsx` - Added copy handler for expenses list
+- `webapp-v2/src/app/hooks/useExpenseForm.ts` - Enhanced to support copy mode
+- `webapp-v2/src/pages/AddExpensePage.tsx` - Updated to handle copy mode
+- `webapp-v2/src/components/expense-form/ExpenseFormHeader.tsx` - Added "Copy Expense" title
+
+**Routing Implementation:**
+```tsx
+// Actual implementation uses URL parameters instead of state for better reliability
+const handleCopy = () => {
+  route(`/groups/${groupId}/add-expense?copy=true&sourceId=${expenseId}`);
+};
+```
+
+#### Features Implemented
+
+1. **✅ Pre-populated Fields (as specified):**
+   - **Description:** Copied exactly
+   - **Amount:** Copied exactly  
+   - **Currency:** Copied exactly
+   - **Category:** Copied exactly
+   - **Payer:** Same user who paid for the original expense
+   - **Participants & Split:** Same participants and split configuration preserved
+
+2. **✅ Reset Field (as specified):**
+   - **Date & Time:** Reset to current date and time (not copied from source)
+
+3. **✅ Enhanced User Experience:**
+   - URL-based copy mode supports browser refresh
+   - "Copy Expense" page title and header
+   - Proper form validation and error handling
+   - Consistent with existing design patterns
+
+#### Key Technical Decisions
+
+- **URL Parameters vs State:** Used URL parameters (`?copy=true&sourceId={id}`) instead of navigation state for better reliability and browser refresh support
+- **Two Copy Locations:** Implemented copy functionality in both expense detail view and expenses list for maximum convenience
+- **Type Safety:** Leveraged existing TypeScript interfaces and validation systems
+- **Accessibility:** Added proper ARIA labels and tooltips for screen readers
+
+#### Testing & Validation
+
+- ✅ Build validation passed for both webapp and Firebase functions
+- ✅ TypeScript compilation successful
+- ✅ Development server starts without errors
+- ✅ Copy functionality preserves all specified fields correctly
+- ✅ Date/time properly resets to current values
+- ✅ Navigation and form state management working as expected
+
+### Next Steps
+
+The feature is **production-ready** and can be deployed immediately. No additional development work is required.
+
+**Potential Future Enhancements:**
+- Add visual feedback/toast notification when copy is triggered
+- Consider adding keyboard shortcuts for power users
+- Add analytics tracking for copy feature usage
