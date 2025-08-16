@@ -21,13 +21,11 @@ test.describe('Freeform Categories Error Testing', () => {
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Fill basic expense details
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Special characters test');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '33.33');
+    await expenseFormPage.fillDescription('Special characters test');
+    await expenseFormPage.fillAmount('33.33');
     
     // Test category with special characters (avoiding security filters)
     const specialCategory = 'Café & Restaurant - Fine Dining';
@@ -39,7 +37,7 @@ test.describe('Freeform Categories Error Testing', () => {
     expect(categoryValue).toBe(specialCategory);
     
     // Submit expense
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created with special character category
@@ -61,13 +59,13 @@ test.describe('Freeform Categories Error Testing', () => {
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Business lunch');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '55.00');
+    await expenseFormPage.fillDescription('Business lunch');
+    await expenseFormPage.fillAmount('55.00');
     await groupDetailPage.selectCategoryFromSuggestions('Food & Dining');
     
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await waitForURLWithContext(page, groupDetailUrlPattern());
     
     // Verify expense was created
@@ -122,20 +120,18 @@ test.describe('Freeform Categories Error Testing', () => {
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Fill basic expense details but leave category empty
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Test empty category');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '10.00');
+    await expenseFormPage.fillDescription('Test empty category');
+    await expenseFormPage.fillAmount('10.00');
     
     // Clear category field (it might have a default)
     const categoryInput = groupDetailPage.getCategoryInput();
     await groupDetailPage.fillPreactInput(categoryInput, '');
     
     // Try to submit
-    const saveButton = groupDetailPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveExpenseButton();
     await saveButton.click();
     
     // Should stay on the same page (not navigate away)

@@ -104,19 +104,19 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       const memberCount = 1;
 
       // Navigate to expense form with proper waiting
-      await groupDetailPage.navigateToAddExpenseForm(memberCount);
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Test 1: Empty form - submit disabled
-      const submitButton = groupDetailPage.getSaveExpenseButton();
+      const submitButton = expenseFormPage.getSaveExpenseButton();
       await expect(submitButton).toBeDisabled();
       
       // Test 2: Negative amount validation
-      const amountField = groupDetailPage.getAmountInput();
+      const amountField = expenseFormPage.getAmountInput();
       const minValue = await amountField.getAttribute('min');
       expect(minValue).toBe('0.01');
       
       // Fill description to enable the button (required field)
-      await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Test description');
+      await expenseFormPage.fillDescription('Test description');
       
       // Try to enter negative amount
       await amountField.fill('-50');
@@ -132,14 +132,11 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       expect(validationMessage).toBeTruthy();
       
       // Test 3: Valid positive amount enables submission
-      await groupDetailPage.fillPreactInput(amountField, '50');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Valid expense');
+      await expenseFormPage.fillAmount('50');
+      await expenseFormPage.fillDescription('Valid expense');
       
       // Select participants if needed
-      const selectAllButton = page.getByRole('button', { name: 'Select all' });
-      if (await selectAllButton.isVisible()) {
-        await selectAllButton.click();
-      }
+      await expenseFormPage.selectAllParticipants();
       
       // Should now be able to submit
       await expect(submitButton).toBeEnabled();
@@ -153,11 +150,11 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       const memberCount = 1;
 
       // Navigate to expense form with proper waiting
-      await groupDetailPage.navigateToAddExpenseForm(memberCount);
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Fill basic expense details
-      await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Split Test Expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getAmountInput(), '100');
+      await expenseFormPage.fillDescription('Split Test Expense');
+      await expenseFormPage.fillAmount('100');
       
       // Switch to exact amounts
       await page.getByText('Exact amounts').click();
@@ -168,7 +165,7 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       await firstSplitInput.fill('60'); // Make total = 160 instead of 100
       
       // Submit should be disabled when exact amounts don't add up correctly
-      const submitButton = groupDetailPage.getSaveExpenseButton();
+      const submitButton = expenseFormPage.getSaveExpenseButton();
       await expect(submitButton).toBeDisabled();
     });
 
@@ -180,18 +177,18 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
       const memberCount = 1;
 
       // Navigate to expense form with proper waiting
-      await groupDetailPage.navigateToAddExpenseForm(memberCount);
+      const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
       
       // Fill basic expense details
-      await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Percentage Test Expense');
-      await groupDetailPage.fillPreactInput(groupDetailPage.getAmountInput(), '200');
+      await expenseFormPage.fillDescription('Percentage Test Expense');
+      await expenseFormPage.fillAmount('200');
       
       // Switch to percentage
       await page.getByText('Percentage', { exact: true }).click();
       
       // For a single member, percentage split should be valid by default (100%)
       // Submit should remain enabled since all required fields are filled and percentages are valid
-      const submitButton = groupDetailPage.getSaveExpenseButton();
+      const submitButton = expenseFormPage.getSaveExpenseButton();
       await expect(submitButton).toBeEnabled();
     });
   });

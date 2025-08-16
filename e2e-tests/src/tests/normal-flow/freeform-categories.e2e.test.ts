@@ -19,13 +19,11 @@ test.describe('Freeform Categories E2E', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Fill basic expense details
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Grocery shopping');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '45.99');
+    await expenseFormPage.fillDescription('Grocery shopping');
+    await expenseFormPage.fillAmount('45.99');
     
     // Test predefined category selection
     const categoryInput = groupDetailPage.getCategoryInput();
@@ -43,7 +41,7 @@ test.describe('Freeform Categories E2E', () => {
     expect(categoryValue).toBe('food');
     
     // Wait for button to be enabled and submit expense
-    const saveButton = groupDetailPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveExpenseButton();
     await expect(saveButton).toBeEnabled({ timeout: 3000 });
     await saveButton.click();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
@@ -65,13 +63,11 @@ test.describe('Freeform Categories E2E', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('CustomCat'), 'Testing custom category input');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Fill basic expense details
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Team building activity');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '120');
+    await expenseFormPage2.fillDescription('Team building activity');
+    await expenseFormPage2.fillAmount('120');
     
     // Test custom category input
     const customCategory = 'Corporate Team Building';
@@ -83,7 +79,7 @@ test.describe('Freeform Categories E2E', () => {
     expect(categoryValue).toBe(customCategory);
     
     // Wait for button to be enabled and submit expense
-    const saveButton = groupDetailPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage2.getSaveExpenseButton();
     await expect(saveButton).toBeEnabled();
     await saveButton.click();
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
@@ -105,9 +101,7 @@ test.describe('Freeform Categories E2E', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('FilterCat'), 'Testing category filtering');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Test filtering by typing
     const categoryInput = groupDetailPage.getCategoryInput();
@@ -150,9 +144,7 @@ test.describe('Freeform Categories E2E', () => {
         generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
     
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
-    
-    await expect(groupDetailPage.getExpenseDescriptionField()).toBeVisible();
+    const expenseFormPage4 = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Test keyboard navigation
     const categoryInput = groupDetailPage.getCategoryInput();

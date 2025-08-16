@@ -57,45 +57,27 @@ multiUserTest.describe('Optimistic Locking Behavior', () => {
     console.log('This should trigger 409 Conflict errors from optimistic locking');
     console.log('');
     
-    // Both users click add expense at nearly the same time
-    await Promise.all([
-      user1Page.getByRole('button', { name: /add expense/i }).click(),
-      user2Page.getByRole('button', { name: /add expense/i }).click()
-    ]);
-    
-    // Wait for both to navigate to add-expense page
-    await Promise.all([
-      user1Page.waitForURL(/\/add-expense/),
-      user2Page.waitForURL(/\/add-expense/)
+    // Both users navigate to add expense form at nearly the same time
+    const [expenseFormPage1, expenseFormPage2] = await Promise.all([
+      groupDetailPage.clickAddExpenseButton(memberCount),
+      groupDetailPage2.clickAddExpenseButton(memberCount)
     ]);
     
     // Both fill out their forms
     await Promise.all([
-      groupDetailPage.fillPreactInput(
-        groupDetailPage.getExpenseDescriptionField(), 
-        'Concurrent Expense 1'
-      ),
-      groupDetailPage2.fillPreactInput(
-        groupDetailPage2.getExpenseDescriptionField(), 
-        'Concurrent Expense 2'
-      )
+      expenseFormPage1.fillDescription('Concurrent Expense 1'),
+      expenseFormPage2.fillDescription('Concurrent Expense 2')
     ]);
     
     await Promise.all([
-      groupDetailPage.fillPreactInput(
-        groupDetailPage.getExpenseAmountField(), 
-        '75'
-      ),
-      groupDetailPage2.fillPreactInput(
-        groupDetailPage2.getExpenseAmountField(), 
-        '25'
-      )
+      expenseFormPage1.fillAmount('75'),
+      expenseFormPage2.fillAmount('25')
     ]);
     
     // Submit both forms at the same time
     const savePromises = Promise.allSettled([
-      user1Page.getByRole('button', { name: /save expense/i }).click(),
-      user2Page.getByRole('button', { name: /save expense/i }).click()
+      expenseFormPage1.saveExpense(),
+      expenseFormPage2.saveExpense()
     ]);
     
     // Wait for both to complete (success or failure)

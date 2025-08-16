@@ -1,5 +1,6 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
+import {ExpenseFormPage} from './expense-form.page';
 import {ARIA_ROLES, BUTTON_TEXTS, FORM_LABELS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {GroupWorkflow} from '../workflows';
 
@@ -43,9 +44,19 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('button', { name: /add expense/i });
   }
 
-  async clickAddExpenseButton(): Promise<void> {
+  async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
     const addButton = this.getAddExpenseButton();
     await this.clickButton(addButton, { buttonName: 'Add Expense' });
+    
+    // Wait for navigation to expense form
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    await this.page.waitForLoadState('domcontentloaded');
+    
+    // Create and validate the expense form page
+    const expenseFormPage = new ExpenseFormPage(this.page);
+    await expenseFormPage.waitForFormReady(expectedMemberCount);
+    
+    return expenseFormPage;
   }
 
   getNoExpensesMessage() {
@@ -66,10 +77,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByText(/paid by|Paid:/i);
   }
 
-  // Element accessors for expense form
-  getExpenseDescriptionField() {
-    return this.page.getByPlaceholder('What was this expense for?');
-  }
 
   // Expense form section headings
   getExpenseDetailsHeading() {
@@ -84,11 +91,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('heading', { name: /Split between/ });
   }
 
-  async waitForExpenseFormSections() {
-    await expect(this.getExpenseDetailsHeading()).toBeVisible();
-    await expect(this.getWhoPaidHeading()).toBeVisible();
-    await expect(this.getSplitBetweenHeading()).toBeVisible();
-  }
 
   // Convenience date buttons
   getTodayButton() {
@@ -168,12 +170,9 @@ export class GroupDetailPage extends BasePage {
     await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
   }
 
-  getSelectAllButton() {
-    return this.page.getByRole('button', { name: 'Select all' });
-  }
-
   async clickSelectAllButton() {
-    await this.clickButton(this.getSelectAllButton(), { buttonName: 'Select all' });
+    const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
+    await this.clickButton(selectAllButton, { buttonName: 'Select all' });
   }
 
   getPayerRadioLabel(displayName: string) {
@@ -197,9 +196,6 @@ export class GroupDetailPage extends BasePage {
     }
   }
 
-  getExpenseAmountField() {
-    return this.page.getByPlaceholder('0.00');
-  }
 
   getCategorySelect() {
     // Category input is an actual input element with aria-haspopup
@@ -261,12 +257,8 @@ export class GroupDetailPage extends BasePage {
     await this.clickButton(currencyOption, { buttonName: `Currency: ${currencyCode}` });
   }
 
-  getSaveExpenseButton() {
-    return this.page.getByRole('button', { name: /save expense/i });
-  }
-
   async clickSaveExpenseButton(): Promise<void> {
-    const saveButton = this.getSaveExpenseButton();
+    const saveButton = this.page.getByRole('button', { name: /save expense/i });
     await this.clickButton(saveButton, { buttonName: 'Save Expense' });
   }
 
@@ -276,7 +268,7 @@ export class GroupDetailPage extends BasePage {
    * @returns Promise that resolves if button is enabled, throws error if disabled
    */
   async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
-    const button = submitButton || this.getSaveExpenseButton();
+    const button = submitButton || this.page.getByRole('button', { name: /save expense/i });
     await this.expectButtonEnabled(button, 'Save Expense');
   }
 
@@ -288,14 +280,14 @@ export class GroupDetailPage extends BasePage {
     const errors: string[] = [];
     
     // Check if description is filled
-    const descriptionField = this.getExpenseDescriptionField();
+    const descriptionField = this.page.getByPlaceholder('What was this expense for?');
     const descriptionValue = await descriptionField.inputValue();
     if (!descriptionValue || descriptionValue.trim() === '') {
       errors.push('Description field is empty');
     }
     
     // Check if amount is filled
-    const amountField = this.getExpenseAmountField();
+    const amountField = this.page.getByPlaceholder('0.00');
     const amountValue = await amountField.inputValue();
     if (!amountValue || amountValue === '0' || amountValue === '0.00') {
       errors.push('Amount field is empty or zero');
@@ -358,7 +350,7 @@ export class GroupDetailPage extends BasePage {
     }
     
     // Check if submit button is enabled
-    const submitButton = this.getSaveExpenseButton();
+    const submitButton = this.page.getByRole('button', { name: /save expense/i });
     const isDisabled = await submitButton.isDisabled();
     if (isDisabled) {
       const buttonTitle = await submitButton.getAttribute('title');
@@ -393,9 +385,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('radio', { name: 'Percentage' });
   }
 
-  getExactAmountsText() {
-    return this.page.getByText('Exact amounts');
-  }
 
   getPercentageText() {
     return this.page.getByText('Percentage', { exact: true });
@@ -615,7 +604,7 @@ export class GroupDetailPage extends BasePage {
     
     // Wait for form to be fully loaded
     await this.page.waitForLoadState('domcontentloaded');
-    const descriptionField = this.getExpenseDescriptionField();
+    const descriptionField = this.page.getByPlaceholder('What was this expense for?');
     await expect(descriptionField).toBeVisible();
     
     // Wait for all form sections to be loaded
@@ -624,13 +613,12 @@ export class GroupDetailPage extends BasePage {
     await expect(this.page.getByRole('heading', { name: /Split between/ })).toBeVisible();
     
     // CRITICAL: Wait for members to load in the form
-    // This is the root cause of intermittent failures - members data doesn't load
-    await this.waitForMembersInExpenseForm(expectedMemberCount);
+    // This is handled by the ExpenseFormPage.waitForFormReady() method now
     
     // Fill expense form
     await this.fillPreactInput(descriptionField, expense.description);
     
-    const amountField = this.getExpenseAmountField();
+    const amountField = this.page.getByPlaceholder('0.00');
     await this.fillPreactInput(amountField, expense.amount.toString());
     
     // Handle currency selection
@@ -674,7 +662,7 @@ export class GroupDetailPage extends BasePage {
     }
     
     // Submit form with proper checks
-    const submitButton = this.getSaveExpenseButton();
+    const submitButton = this.page.getByRole('button', { name: /save expense/i });
     await this.clickButton(submitButton, { buttonName: 'Save Expense' });
     
     // Wait for navigation back to group page
@@ -687,56 +675,6 @@ export class GroupDetailPage extends BasePage {
     await this.page.waitForLoadState('domcontentloaded');
   }
 
-  /**
-   * Wait for ALL members to load in the expense form
-   * This prevents the intermittent issue where members don't appear and ensures ALL group members are represented
-   */
-  async waitForMembersInExpenseForm(expectedMemberCount: number, timeout = 5000): Promise<void> {
-    // If no expected count provided, get it from the current group page or stored value
-    if (expectedMemberCount === undefined) {
-      expectedMemberCount = (this as any)._expectedMemberCount || 1;
-      
-      // Try to get member count from the group page we came from
-      // Look for member count text like "2 members" 
-      const memberCountText = await this.page.locator('text=/\\d+ members?/i').first().textContent().catch(() => null);
-      if (memberCountText) {
-        const match = memberCountText.match(/(\\d+)/);
-        if (match) {
-          expectedMemberCount = Math.max(expectedMemberCount, parseInt(match[1]));
-        }
-      }
-    }
-
-    // Wait for ALL members to appear in the "Who paid?" section
-    await expect(async () => {
-      const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
-      if (payerRadios < expectedMemberCount) {
-        throw new Error(`Only ${payerRadios} members loaded in "Who paid?" section, expected ${expectedMemberCount} - waiting for all members data`);
-      }
-    }).toPass({ 
-      timeout,
-      intervals: [100, 250, 500, 1000]
-    });
-    
-    // Wait for ALL members to appear in "Split between" section
-    await expect(async () => {
-      // Check for checkboxes (one per member) or the Select all button
-      const checkboxes = await this.page.locator('input[type="checkbox"]').count();
-      const selectAllButton = await this.page.getByRole('button', { name: 'Select all' }).count();
-      
-      if (checkboxes === 0 && selectAllButton === 0) {
-        throw new Error('No members loaded in "Split between" section - waiting for members data');
-      }
-      
-      // If we have checkboxes, verify we have one for each member
-      if (checkboxes > 0 && checkboxes < expectedMemberCount) {
-        throw new Error(`Only ${checkboxes} members loaded in "Split between" section, expected ${expectedMemberCount} - waiting for all members data`);
-      }
-    }).toPass({ 
-      timeout,
-      intervals: [100, 250, 500, 1000]
-    });
-  }
 
   /**
    * Helper method to wait for dropdown options to be populated with user data
@@ -1329,16 +1267,6 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get the amount input field (for expense or settlement forms)
    */
-  getAmountInput() {
-    return this.page.getByPlaceholder('0.00');
-  }
-
-  /**
-   * Get the expense description input field
-   */
-  getDescriptionInput() {
-    return this.page.getByPlaceholder('What was this expense for?');
-  }
 
 
   /**
@@ -1405,12 +1333,6 @@ export class GroupDetailPage extends BasePage {
     return this.page.getByRole('spinbutton', { name: /amount/i });
   }
 
-  /**
-   * Get a specific input by its minimum value attribute
-   */
-  getInputWithMinValue(minValue: string) {
-    return this.page.locator(`input[type="number"][step="0.01"][min="${minValue}"]`);
-  }
 
   /**
    * Close modal or dialog with Escape key
@@ -1500,18 +1422,10 @@ export class GroupDetailPage extends BasePage {
   /**
    * Navigates to the add expense form and ensures it's fully loaded with member data.
    * This is the comprehensive method that all expense tests should use.
+   * @deprecated Use clickAddExpenseButton(expectedMemberCount) instead - it returns ExpenseFormPage
    */
-  async navigateToAddExpenseForm(expectedMemberCount: number): Promise<void> {
-    await this.clickAddExpenseButton();
-    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-    await this.page.waitForLoadState('domcontentloaded');
-    await expect(this.getExpenseDescriptionField()).toBeVisible();
-    
-    // Wait for all form sections to be visible
-    await this.waitForExpenseFormSections();
-    
-    // Wait for ALL members to load in the expense form
-    await this.waitForMembersInExpenseForm(expectedMemberCount);
+  async navigateToAddExpenseForm(expectedMemberCount: number): Promise<ExpenseFormPage> {
+    return await this.clickAddExpenseButton(expectedMemberCount);
   }
 
   /**
@@ -1531,13 +1445,13 @@ export class GroupDetailPage extends BasePage {
    * Complete workflow: Navigate to expense form after group operations.
    * Use this in tests that need to add subsequent expenses after the first one.
    */
-  async prepareForNextExpense(expectedMemberCount: number): Promise<void> {
+  async prepareForNextExpense(expectedMemberCount: number): Promise<ExpenseFormPage> {
     // Ensure we're back on the group page
     await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     await this.page.waitForLoadState('domcontentloaded');
     
-    // Navigate to add expense form with full loading
-    await this.navigateToAddExpenseForm(expectedMemberCount);
+    // Navigate to add expense form with full loading and return the form page
+    return await this.clickAddExpenseButton(expectedMemberCount);
   }
 
 }

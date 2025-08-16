@@ -15,10 +15,10 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Try to enter negative amount
-    const amountField = groupDetailPage.getAmountInput();
+    const amountField = expenseFormPage.getAmountInput();
     // Assert field is clear before testing
     const initialValue = await amountField.inputValue();
     expect(initialValue).toBe('');
@@ -30,14 +30,14 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Fill description to enable form validation
-    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Test expense');
+    await expenseFormPage.fillDescription('Test expense');
     
     // Try to submit form with negative value
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('-100');
     
     // Button should be enabled (required fields are filled) but form submission should be prevented by HTML5 validation
-    const saveButton = groupDetailPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveExpenseButton();
     await expect(saveButton).toBeEnabled();
     
     // Try to submit - HTML5 validation should prevent it
@@ -51,14 +51,14 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(validationMessage).toBeTruthy();
     
     // Now enter a valid positive amount
-    await groupDetailPage.fillPreactInput(amountField, '50');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Valid expense');
+    await expenseFormPage.fillAmount('50');
+    await expenseFormPage.fillDescription('Valid expense');
     
     // Select all participants
-    await groupDetailPage.getSelectAllButton().click();
+    await expenseFormPage.selectAllParticipants();
     
     // Submit should work now
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
     
     // Verify expense was created
@@ -74,22 +74,22 @@ authenticatedTest.describe('Negative Value Validation', () => {
     const memberCount = 1;
 
     // Navigate to expense form with proper waiting
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
     // Try to enter zero amount
-    const amountField = groupDetailPage.getAmountInput();
+    const amountField = expenseFormPage.getAmountInput();
     // Assert field is clear before testing
     const initialValue = await amountField.inputValue();
     expect(initialValue).toBe('');
     // Use direct fill for invalid value - UI should validate but not format/clear
     await amountField.fill('0');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Zero expense');
+    await expenseFormPage.fillDescription('Zero expense');
     
     // Select all participants
-    await groupDetailPage.getSelectAllButton().click();
+    await expenseFormPage.selectAllParticipants();
     
     // Button should be disabled due to zero amount validation
-    const saveButton = groupDetailPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveExpenseButton();
     await expect(saveButton).toBeDisabled();
     
     // Form should remain on add expense page
@@ -192,22 +192,21 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await page.waitForLoadState('domcontentloaded');
     await groupDetailPage.waitForMemberCount(2);
     
-    // Navigate to add expense
-    await groupDetailPage.clickAddExpenseButton();
-    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    // Navigate to add expense form with proper validation
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
     
     // Fill expense details
-    await groupDetailPage.fillPreactInput(groupDetailPage.getAmountInput(), '100');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getDescriptionInput(), 'Split test expense');
+    await expenseFormPage.fillAmount('100');
+    await expenseFormPage.fillDescription('Split test expense');
     
     // Select all participants first
-    await groupDetailPage.getSelectAllButton().click();
+    await expenseFormPage.selectAllParticipants();
     
     // Select exact amounts split type
-    await groupDetailPage.getExactAmountsText().click();
+    await expenseFormPage.switchToExactAmounts();
     
     // Try to enter negative split amount
-    const splitInputs = groupDetailPage.getInputWithMinValue('0.01');
+    const splitInputs = expenseFormPage.getInputWithMinValue('0.01');
     const firstSplitInput = splitInputs.first();
     // When switching to "Exact amounts" mode, the app pre-populates each person's share
     // by dividing the total amount equally among selected participants (e.g., $100 / 4 = $25 each)
@@ -223,7 +222,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     expect(minValue).toBe('0.01');
     
     // Try to submit with negative split - button should be disabled due to validation
-    const saveButton = groupDetailPage.getSaveExpenseButton();
+    const saveButton = expenseFormPage.getSaveExpenseButton();
     await expect(saveButton).toBeDisabled();
     
     // Should still be on add expense page
@@ -246,10 +245,10 @@ authenticatedTest.describe('Negative Value Validation', () => {
     await groupWorkflow.createGroup(generateTestGroupName('HTML5Validation'), 'Testing HTML5 validation');
 
     // Navigate to add expense
-    await groupDetailPage.clickAddExpenseButton();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
-    const amountField = groupDetailPage.getAmountInput();
+    const amountField = expenseFormPage.getAmountInput();
     
     // Assert field is initially clear
     const initialValue = await amountField.inputValue();
@@ -267,7 +266,7 @@ authenticatedTest.describe('Negative Value Validation', () => {
     
     for (const testCase of testCases) {
       // Clear field before each test
-      await groupDetailPage.fillPreactInput(amountField, '');
+      await expenseFormPage.fillAmount('');
       // Assert field is clear before testing each value
       const clearedValue = await amountField.inputValue();
       expect(clearedValue).toBe('');

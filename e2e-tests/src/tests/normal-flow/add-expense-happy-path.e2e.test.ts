@@ -16,22 +16,17 @@ test.describe('Add Expense E2E', () => {
     const groupId = await groupDetailPage.createGroupAndPrepareForExpenses(generateTestGroupName('Expense'), 'Testing expense creation');
     
     // Navigate to expense form with all necessary waits
-    await groupDetailPage.navigateToAddExpenseForm(memberCount);
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
     
-    const descriptionField = groupDetailPage.getExpenseDescriptionField();
-    const amountField = groupDetailPage.getExpenseAmountField();
     const categorySelect = groupDetailPage.getCategorySelect();
     
-    await expect(descriptionField).toBeVisible();
-    await groupDetailPage.fillPreactInput(descriptionField, 'Test Dinner');
-    
-    await expect(amountField).toBeVisible();
-    await groupDetailPage.fillPreactInput(amountField, '50');
+    await expenseFormPage.fillDescription('Test Dinner');
+    await expenseFormPage.fillAmount('50');
     
     await expect(categorySelect).toBeVisible();
     await groupDetailPage.typeCategoryText('dinner');
     
-    const submitButton = groupDetailPage.getSaveExpenseButton();
+    const submitButton = expenseFormPage.getSaveExpenseButton();
     
     await expect(submitButton).toBeVisible();
     
@@ -60,18 +55,7 @@ test.describe('Add Expense E2E', () => {
     // Wait for group data to be loaded
     await groupDetailPage.waitForBalancesToLoad(groupId);
     
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.first().click();
-    
-    // Wait for navigation to add expense page
-    await page.waitForURL(`**/groups/${groupId}/add-expense`);
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Verify members have loaded in the expense form
-    await groupDetailPage.waitForMembersInExpenseForm(1);
-    
-    const descriptionField = groupDetailPage.getExpenseDescriptionField();
-    await expect(descriptionField).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
     const categorySelect = groupDetailPage.getCategorySelect();
     await expect(categorySelect).toBeVisible();
@@ -83,10 +67,10 @@ test.describe('Add Expense E2E', () => {
     const newCategory = await categorySelect.inputValue();
     expect(newCategory).not.toBe(initialCategory);
     
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Dinner with category');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '45');
+    await expenseFormPage.fillDescription('Dinner with category');
+    await expenseFormPage.fillAmount('45');
     
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     await page.waitForLoadState('domcontentloaded');
     
     await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
@@ -105,23 +89,22 @@ test.describe('Add Expense E2E', () => {
     await groupDetailPage.waitForBalancesToLoad(groupId);
     
     // Click add expense button
-    await groupDetailPage.clickAddExpenseButton();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
     // Wait for navigation to add expense page
     await page.waitForURL(`**/groups/${groupId}/add-expense`);
     await page.waitForLoadState('domcontentloaded');
     
-    // Verify members have loaded in the expense form
-    // This also clicks Select all if needed
-    await groupDetailPage.waitForMembersInExpenseForm(1);
+    // Select all participants for the expense
+    await expenseFormPage.selectAllParticipants();
     
     // Fill in the expense details
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Movie Tickets');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '25');
+    await expenseFormPage.fillDescription('Movie Tickets');
+    await expenseFormPage.fillAmount('25');
     
     // Now the save button should be enabled
-    await expect(groupDetailPage.getSaveExpenseButton()).toBeEnabled();
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expect(expenseFormPage.getSaveExpenseButton()).toBeEnabled();
+    await expenseFormPage.saveExpense();
     
     await page.waitForLoadState('domcontentloaded');
     
@@ -144,26 +127,15 @@ test.describe('Add Expense E2E', () => {
     // Wait for group data to be loaded
     await groupDetailPage.waitForBalancesToLoad(groupId);
     
-    const addExpenseButton = groupDetailPage.getAddExpenseButton();
-    await addExpenseButton.first().click();
-    
-    // Wait for navigation to add expense page
-    await page.waitForURL(`**/groups/${groupId}/add-expense`);
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Verify members have loaded in the expense form
-    await groupDetailPage.waitForMembersInExpenseForm(1);
-    
-    const descriptionField = groupDetailPage.getExpenseDescriptionField();
-    await expect(descriptionField).toBeVisible();
+    const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
     
     // Test custom category input
     await groupDetailPage.typeCategoryText('Custom Office Supplies');
     
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseDescriptionField(), 'Custom category expense');
-    await groupDetailPage.fillPreactInput(groupDetailPage.getExpenseAmountField(), '16');
+    await expenseFormPage.fillDescription('Custom category expense');
+    await expenseFormPage.fillAmount('16');
     
-    await groupDetailPage.getSaveExpenseButton().click();
+    await expenseFormPage.saveExpense();
     
     await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await page.waitForLoadState('domcontentloaded');

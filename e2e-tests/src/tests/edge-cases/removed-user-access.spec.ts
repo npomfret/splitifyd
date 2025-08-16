@@ -42,17 +42,15 @@ multiUserTest.describe('Multi-User Group Access', () => {
     await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
     await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
 
-    // User 2 adds an expense using existing page object methods
-    await groupDetailPage2.clickAddExpenseButton();
+    // User 2 adds an expense using new ExpenseFormPage pattern
+    const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
     await user2Page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
     
-    const descriptionField = groupDetailPage2.getExpenseDescriptionField();
-    const amountField = groupDetailPage2.getExpenseAmountField();
+    await expenseFormPage.fillDescription('Shared Expense');
+    await expenseFormPage.fillAmount('25.50');
+    await expenseFormPage.selectAllParticipants();
     
-    await groupDetailPage2.fillPreactInput(descriptionField, 'Shared Expense');
-    await groupDetailPage2.fillPreactInput(amountField, '25.50');
-    
-    const submitButton = groupDetailPage2.getSaveExpenseButton();
+    const submitButton = expenseFormPage.getSaveExpenseButton();
     await expect(submitButton).toBeVisible();
     await submitButton.click();
     

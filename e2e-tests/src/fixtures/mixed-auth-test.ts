@@ -1,6 +1,7 @@
 import { test as base, Page, BrowserContext } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
+import { EMULATOR_URL } from '../helpers';
 import { 
   LoginPage, 
   RegisterPage, 
@@ -75,7 +76,7 @@ async function createUnauthenticatedUser(browser: any): Promise<UnauthenticatedU
   const page = await context.newPage();
   
   // Navigate to the app's homepage first to have a proper domain for storage access
-  await page.goto('http://localhost:6005/');
+  await page.goto(EMULATOR_URL);
   await page.waitForLoadState('domcontentloaded');
   
   // Clear all possible authentication storage from the app domain

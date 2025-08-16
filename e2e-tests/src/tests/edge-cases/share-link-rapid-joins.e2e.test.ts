@@ -55,8 +55,7 @@ test.describe('Share Link - Edge Cases', () => {
         shareLinks.push(shareLink);
         
         // Navigate back to dashboard for next iteration
-        await page.goto(`${EMULATOR_URL}/dashboard`);
-        await page.waitForLoadState('domcontentloaded');
+        await groupDetailPage.navigateToDashboard();
       }
       
       // All share links should be valid and unique

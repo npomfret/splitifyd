@@ -82,8 +82,7 @@ test.describe('Comprehensive Share Link Testing', () => {
       expect(page2.url()).toBe('about:blank'); // Unauthenticated user on clean slate
       
       // Verify unauthenticated user cannot access protected pages
-      await page2.goto('http://localhost:6005/dashboard');
-      await page2.waitForLoadState('domcontentloaded');
+      await joinGroupPage.navigateToDashboard();
       
       // Should be redirected to login or show login UI
       const isLoggedIn = await joinGroupPage.isUserLoggedIn();
