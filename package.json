@@ -24,7 +24,8 @@
     "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
     "report": "repo-statter . -o reports",
     "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
-    "postinstall": "cd e2e-tests && npx playwright install chromium"
+    "postinstall": "cd e2e-tests && npx playwright install chromium",
+    "format": "prettier --write \"*.{json,md,js}\" \".prettierrc\" && npm run format -w firebase && npm run format -w webapp-v2 && npm run format -w e2e-tests && npm run format -w test-support"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -34,6 +35,7 @@
     "firebase-tools": "^14.11.0",
     "jest": "^30.0.4",
     "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   }

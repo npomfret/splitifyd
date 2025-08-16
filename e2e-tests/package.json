@@ -14,7 +14,8 @@
     "test:integration": "npm run test:e2e:normal-flow && npm run test:e2e:error-testing && npm run test:e2e:edge-cases",
     "test:all": "npm run test:integration && npm run test:e2e:security",
     "screenshots:walkthrough": "npm run build && npx playwright test --project=chromium src/tests/screenshots/simple-walkthrough.test.ts",
-    "install-browsers": "playwright install --with-deps"
+    "install-browsers": "playwright install --with-deps",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\" \"*.{json,js}\""
   },
   "dependencies": {
     "@splitifyd/test-support": "*"

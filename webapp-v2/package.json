@@ -13,7 +13,8 @@
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:unit": "vitest run --exclude 'src/__tests__/integration/**'",
-    "test:integration": "vitest run src/__tests__/integration/"
+    "test:integration": "vitest run src/__tests__/integration/",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" \"scripts/**/*.{js,json}\" \"*.{html,json,js}\""
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

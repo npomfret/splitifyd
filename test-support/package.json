@@ -8,7 +8,8 @@
   "scripts": {
     "build": "npx tsc --noEmit",
     "test:unit": "npm run build && echo 'There are no unit tests in test-support'",
-    "test:integration": "npm run build && echo 'There are no integration tests in test-support'"
+    "test:integration": "npm run build && echo 'There are no integration tests in test-support'",
+    "format": "prettier --write \"**/*.{ts,js,json}\""
   },
   "devDependencies": {
     "@types/node": "^24.0.14",

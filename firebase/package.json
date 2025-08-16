@@ -16,7 +16,8 @@
     "logs": "firebase functions:log",
     "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public",
     "kill-emulators": "tsx scripts/kill-emulators.ts",
-    "switch-instance": "tsx scripts/switch-instance.ts"
+    "switch-instance": "tsx scripts/switch-instance.ts",
+    "format": "prettier --write \"scripts/**/*.{ts,js,json}\" \"*.json\" && cd functions && npm run format"
   },
   "author": "",
   "license": "MIT",
