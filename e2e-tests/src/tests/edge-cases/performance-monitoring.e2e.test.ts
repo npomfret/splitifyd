@@ -6,21 +6,8 @@ import { TIMEOUTS } from '../../config/timeouts';
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
 
-// TODO: CANDIDATE FOR CI PERFORMANCE BUDGET
-// The load time test just measures timing without interaction.
-// Should be a performance budget check in CI, not an E2E test.
+// NOTE: Simple load time testing moved to CI performance budgets
 pageTest.describe('Performance Monitoring E2E', () => {
-  pageTest('should load pages within acceptable time', async ({ homepagePage }) => {
-    const startTime = Date.now();
-    
-    await homepagePage.navigate();
-    
-    const loadTime = Date.now() - startTime;
-    
-    // Page should load within 5 seconds (generous for CI)
-    expect(loadTime).toBeLessThan(5000);
-  });
-
   pageTest('should maintain full functionality with slow network', async ({ page, context, loginPage }) => {
     
     // Simulate slow 3G

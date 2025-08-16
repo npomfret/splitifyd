@@ -65,6 +65,7 @@ test.describe('Member Management E2E', () => {
 
   test('should show creator as admin', async ({ authenticatedPage, dashboardPage }) => {
     const { page } = authenticatedPage;
+    const groupDetailPage = new GroupDetailPage(page);
     const groupWorkflow = new GroupWorkflow(page);
     
     // Navigate to dashboard
@@ -77,7 +78,7 @@ test.describe('Member Management E2E', () => {
     
     // Creator should have admin badge - we expect a specific UI element
     // The UI must show "admin" text for the group creator
-    await expect(page.getByText(/admin/i).first()).toBeVisible();
+    await expect(groupDetailPage.getAdminBadge()).toBeVisible();
   });
 
   test('should show share functionality', async ({ authenticatedPage, dashboardPage }) => {

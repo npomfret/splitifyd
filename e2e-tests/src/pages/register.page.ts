@@ -140,4 +140,49 @@ export class RegisterPage extends BasePage {
   async checkCookieCheckbox() {
     await this.getCookieCheckbox().check();
   }
+
+  // Security testing methods
+  getRegisterForm() {
+    return this.page.locator('[data-testid="register-form"]');
+  }
+
+  getEmailInputTestId() {
+    return this.page.locator('[data-testid="email-input"]');
+  }
+
+  getPasswordInputTestId() {
+    return this.page.locator('[data-testid="password-input"]');
+  }
+
+  getConfirmPasswordInputTestId() {
+    return this.page.locator('[data-testid="confirm-password-input"]');
+  }
+
+  getDisplayNameInputTestId() {
+    return this.page.locator('[data-testid="display-name-input"]');
+  }
+
+  getRegisterSubmitTestId() {
+    return this.page.locator('[data-testid="register-submit"]');
+  }
+
+  getPasswordError() {
+    return this.page.locator('[data-testid="password-error"], [data-testid="error-message"]');
+  }
+
+  getEmailError() {
+    return this.page.locator('[data-testid="email-error"], [data-testid="error-message"]');
+  }
+
+  getResetForm() {
+    return this.page.locator('[data-testid="reset-form"], [data-testid="forgot-password-form"]');
+  }
+
+  getResetSubmitTestId() {
+    return this.page.locator('[data-testid="reset-submit"]');
+  }
+
+  getSuccessMessage() {
+    return this.page.locator('[data-testid="success-message"], text=sent, text=email');
+  }
 }

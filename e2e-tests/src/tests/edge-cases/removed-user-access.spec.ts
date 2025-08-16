@@ -57,8 +57,8 @@ multiUserTest.describe('Multi-User Group Access', () => {
     await expect(user2Page).toHaveURL(`/groups/${groupId}`);
     await expect(groupDetailPage2.getTextElement('Shared Expense').first()).toBeVisible();
     
-    // Verify user 1 can also see the expense (after refresh)
-    await user1Page.reload();
+    // Verify user 1 can also see the expense (wait for real-time sync)
+    await groupDetailPage.waitForBalancesToLoad(groupId);
     await expect(groupDetailPage.getTextElement('Shared Expense').first()).toBeVisible();
   });
 });

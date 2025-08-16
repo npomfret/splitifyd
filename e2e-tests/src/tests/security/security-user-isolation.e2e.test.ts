@@ -39,7 +39,7 @@ test.describe('User Storage Isolation', () => {
       // Try to select EUR if available to create recent currency data
       try {
         await currencySelect1.selectOption('EUR');
-        await page1.waitForTimeout(500);
+        await expect(currencySelect1).toHaveValue('EUR');
       } catch (error) {
         console.log('EUR currency not available, using default');
       }

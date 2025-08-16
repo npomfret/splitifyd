@@ -121,4 +121,36 @@ export class DashboardPage extends BasePage {
     await this.page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
   }
 
+  // Security testing methods
+  getDashboardTestId() {
+    return this.page.locator('[data-testid="dashboard"]');
+  }
+
+  getCreateGroupButtonTestId() {
+    return this.page.locator('[data-testid="create-group-button"]');
+  }
+
+  getGroupNameInputTestId() {
+    return this.page.locator('[data-testid="group-name-input"]');
+  }
+
+  getGroupDescriptionInputTestId() {
+    return this.page.locator('[data-testid="group-description-input"]');
+  }
+
+  getCreateGroupFormTestId() {
+    return this.page.locator('[data-testid="create-group-form"], form');
+  }
+
+  getCreateGroupSubmitTestId() {
+    return this.page.locator('[data-testid="create-group-submit"]');
+  }
+
+  getLogoutButtonTestId() {
+    return this.page.locator('[data-testid="logout-button"], [data-testid="user-menu"]');
+  }
+
+  getLogoutConfirmTestId() {
+    return this.page.locator('[data-testid="logout-confirm"], text=Logout, text=Sign out');
+  }
 }
