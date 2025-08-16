@@ -10,7 +10,9 @@
     "test:e2e:normal-flow": "PLAYWRIGHT_HTML_REPORT=playwright-report/normal npm run _test:e2e -- --reporter=html src/tests/normal-flow",
     "test:e2e:error-testing": "PLAYWRIGHT_HTML_REPORT=playwright-report/errors npm run _test:e2e -- --reporter=html src/tests/error-testing",
     "test:e2e:edge-cases": "PLAYWRIGHT_HTML_REPORT=playwright-report/edge npm run _test:e2e -- --reporter=html src/tests/edge-cases",
+    "test:e2e:security": "PLAYWRIGHT_HTML_REPORT=playwright-report/security npm run _test:e2e -- --reporter=html src/tests/security",
     "test:integration": "npm run test:e2e:normal-flow && npm run test:e2e:error-testing && npm run test:e2e:edge-cases",
+    "test:all": "npm run test:integration && npm run test:e2e:security",
     "screenshots:walkthrough": "npm run build && npx playwright test --project=chromium src/tests/screenshots/simple-walkthrough.test.ts",
     "install-browsers": "playwright install --with-deps"
   },
