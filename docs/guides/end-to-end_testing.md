@@ -11,7 +11,7 @@ In general, the end-to-end test suite is quite slow.  During development, ONLY r
 ### Fast & Parallel Execution
 - **1 second action timeout** - No flaky selectors or slow operations allowed
 - **10 second test timeout** - Tests must complete quickly or fail
-- **4 parallel workers** - Tests run simultaneously and must not interfere
+- **parallel workers** - Tests run simultaneously and must not interfere
 - **Browser reuse between tests** - Never assume clean browser state
 
 ### Test Isolation
@@ -26,6 +26,7 @@ In general, the end-to-end test suite is quite slow.  During development, ONLY r
 - **Page objects are provided by fixtures** - Access page objects through fixture parameters
 
 ### State Verification
+- **Verify state** - everywhere! fail as early as possible with clear error messages 
 - **Always assert navigation state** - Verify URLs and page content before performing actions
 - **Fail fast on unexpected state** - Tests should immediately fail if preconditions aren't met
 - **Use explicit waits** - Wait for specific conditions rather than arbitrary timeouts
