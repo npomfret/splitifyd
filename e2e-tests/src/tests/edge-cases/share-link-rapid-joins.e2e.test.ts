@@ -39,7 +39,7 @@ test.describe('Share Link - Edge Cases', () => {
   });
 
   test.describe('Multiple Share Link Operations', () => {
-    multiUserTest('should handle multiple share link operations', async ({ authenticatedPage }) => {
+    multiUserTest('should handle multiple share link operations', async ({ authenticatedPage, groupDetailPage }) => {
       const { page } = authenticatedPage;
       // User is already authenticated via fixture
       const groupWorkflow = new GroupWorkflow(page);
