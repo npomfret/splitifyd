@@ -23,6 +23,9 @@ export class ExpenseFormPage extends BasePage {
    * This is called automatically by clickAddExpenseButton() so forms are always ready.
    */
   async waitForFormReady(expectedMemberCount: number): Promise<void> {
+    // sanity check the url
+    await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+
     // Wait for basic form structure
     await expect(this.getExpenseDescriptionField()).toBeVisible();
     await this.waitForExpenseFormSections();
