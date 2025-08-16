@@ -264,9 +264,9 @@ test.describe('Security Input Validation Tests', () => {
           // Clear search
           await searchField.fill('');
           // Submit search using button instead of keyboard  
-          const searchButton = page.getByRole('button', { name: /search/i });
-          if (await searchButton.isVisible()) {
-            await searchButton.click();
+          const clearSearchButton = page.getByRole('button', { name: /search/i });
+          if (await clearSearchButton.isVisible()) {
+            await clearSearchButton.click();
           } else {
             // If no search button, submit the form containing the search input
             await page.locator('[data-testid="expense-search"]').press('Enter');

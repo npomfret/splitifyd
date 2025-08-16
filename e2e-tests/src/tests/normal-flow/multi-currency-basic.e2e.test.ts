@@ -195,10 +195,10 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     });
     
     // Navigate back to dashboard
-    await dashboardPage.navigate();
+    await page.goto('/dashboard');
     
     // Verify the group card displays properly
-    const groupCard = dashboardPage.getGroupCard();
+    const groupCard = page.locator('[data-testid="group-card"]').first();
     await expect(groupCard).toBeVisible();
     
     // For a single-user group, it should show "Settled up"

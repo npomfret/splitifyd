@@ -7,7 +7,10 @@ export function ErrorMessage({ error, className = '' }: ErrorMessageProps) {
   if (!error) return null;
 
   return (
-    <div class={`text-red-600 text-sm bg-red-50 border border-red-200 rounded-md p-3 ${className}`}>
+    <div 
+      class={`text-red-600 text-sm bg-red-50 border border-red-200 rounded-md p-3 ${className}`}
+      data-testid="error-message"
+    >
       <div class="flex">
         <div class="flex-shrink-0">
           <svg class="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">

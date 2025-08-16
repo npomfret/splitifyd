@@ -585,7 +585,7 @@ export class GroupDetailPage extends BasePage {
     
     // Get the share link
     const shareLinkInput = dialog.locator('input[type="text"]');
-    await expect(shareLinkInput).toBeVisible();
+    await expect(shareLinkInput).toBeVisible({timeout: 250});
     const shareLink = await shareLinkInput.inputValue();
 
     if (!shareLink || !shareLink.includes('/join?')) {

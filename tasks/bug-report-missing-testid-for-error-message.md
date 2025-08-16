@@ -1,7 +1,7 @@
 # Bug Report: E2E Test Failure Due to Missing `data-testid` on Error Message
 
 **Date**: 2025-08-16
-**Status**: Open
+**Status**: ✅ RESOLVED
 **Priority**: High
 **Component**: E2E Tests, Webapp Components
 
@@ -99,3 +99,18 @@ export function ErrorMessage({ error, className = '' }: ErrorMessageProps) {
 ```
 
 Adding `data-testid="error-message"` will allow the existing test locator to find the element, resolving the test failure and making the error component more robust for future testing.
+
+## 5. Resolution
+
+**Date**: 2025-01-16
+**Fixed by**: Claude Code Assistant
+
+### Implementation
+Added `data-testid="error-message"` attribute to the main `div` element in `/Users/nickpomfret/projects/splitifyd-1/webapp-v2/src/components/auth/ErrorMessage.tsx` at line 12.
+
+### Verification
+- ✅ **E2E Test Results**: All 3 tests in `duplicate-registration.e2e.test.ts` now pass
+- ✅ **Syntax Compliance**: Confirmed proper Preact syntax usage
+- ✅ **No Side Effects**: Change only adds test identifier, no functional impact
+
+The bug has been successfully resolved and the E2E test suite is now stable.

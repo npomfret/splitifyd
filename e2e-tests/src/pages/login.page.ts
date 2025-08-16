@@ -120,8 +120,4 @@ export class LoginPage extends BasePage {
   getErrorMessage() {
     return this.page.locator('[data-testid="error-message"]');
   }
-
-  getForgotPasswordLink() {
-    return this.page.locator('[data-testid="forgot-password"], text=Forgot password, text=Reset password');
-  }
 }

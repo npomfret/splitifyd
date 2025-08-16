@@ -34,7 +34,8 @@ export class CreateGroupModalPage extends BasePage {
   
   async submitForm() {
     // Get the submit button
-    const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
+    const submitButton = this.page.locator(SELECTORS.FORM)
+        .getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
     
     // Use standardized button click with proper error handling
     await this.clickButton(submitButton, { buttonName: 'Create Group' });
