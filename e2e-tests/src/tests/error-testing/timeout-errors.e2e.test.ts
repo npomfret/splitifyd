@@ -46,12 +46,7 @@ test.describe('Timeout Error Handling', () => {
     // Modal should still be open
     await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
     
-    // Cancel the test to avoid waiting 10 seconds
-    const closeButton = page.getByRole('button', { name: /close|×|cancel/i }).first();
-    if (await closeButton.isVisible()) {
-      await closeButton.click();
-    } else {
-      await page.click('body', { position: { x: 10, y: 10 } });
-    }
+    // Just close to modal to avoid waiting 10 seconds
+    await page.keyboard.press('Escape');
   });
 });
