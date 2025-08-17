@@ -1,6 +1,5 @@
 import { useEffect } from 'preact/hooks';
 import { LoadingSpinner } from '../ui';
-import type { SettlementListItem } from '../../../../firebase/functions/src/shared/shared-types';
 import { useAuthRequired } from '../../app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '../../app/stores/group-detail-store-enhanced';
 

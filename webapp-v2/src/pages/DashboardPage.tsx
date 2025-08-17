@@ -9,7 +9,6 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 import { ShareGroupModal } from '../components/group/ShareGroupModal';
-import { LoadingSpinner } from '../components/ui';
 
 export function DashboardPage() {
     const authStore = useAuthRequired();

@@ -1,4 +1,4 @@
-import { Page, expect, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 

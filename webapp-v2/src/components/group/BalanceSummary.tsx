@@ -1,7 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { Card } from '../ui/Card';
 import { SidebarCard } from '@/components/ui';
-import { Stack } from '../ui/Stack';
 import { formatCurrency } from '@/utils/currency';
 import type { GroupBalances, User, SimplifiedDebt } from '@shared/shared-types.ts';
 

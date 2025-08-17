@@ -4,7 +4,6 @@ import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages/join-group.page';
 import { RegisterPage } from '../../pages/register.page';
 import { DashboardPage } from '../../pages/dashboard.page';
-import { ExpenseFormPage } from '../../pages/expense-form.page';
 
 // Enable debugging helpers
 setupConsoleErrorReporting();
