@@ -1,7 +1,7 @@
 import { signal } from '@preact/signals';
-import type { Group, CreateGroupRequest, ListGroupsResponse } from '../../../../firebase/functions/src/shared/shared-types';
+import type { Group, CreateGroupRequest, ListGroupsResponse } from '@shared/shared-types.ts';
 import { apiClient, ApiError } from '../apiClient';
-import { logWarning } from '../../utils/browser-logger';
+import { logWarning } from '@/utils/browser-logger.ts';
 
 export interface GroupsStore {
     groups: Group[];

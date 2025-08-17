@@ -8,7 +8,7 @@ import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
-import { ShareGroupModal } from '../components/group/ShareGroupModal';
+import { ShareGroupModal } from '@/components/group';
 
 export function DashboardPage() {
     const authStore = useAuthRequired();

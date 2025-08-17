@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { apiClient } from '../../app/apiClient';
+import { apiClient } from '@/app/apiClient.ts';
 import { Input, Button, Form } from '../ui';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
-import type { Group } from '../../../../firebase/functions/src/shared/shared-types';
+import { ConfirmDialog } from '@/components/ui';
+import type { Group } from '@shared/shared-types.ts';
 
 interface EditGroupModalProps {
     isOpen: boolean;

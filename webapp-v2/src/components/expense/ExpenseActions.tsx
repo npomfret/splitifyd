@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { Button, ConfirmDialog, Alert } from '../ui';
-import type { ExpenseData } from '../../../../firebase/functions/src/shared/shared-types';
-import { logError } from '../../utils/browser-logger';
+import type { ExpenseData } from '@shared/shared-types.ts';
+import { logError } from '@/utils/browser-logger.ts';
 
 interface ExpenseActionsProps {
     expense: ExpenseData;

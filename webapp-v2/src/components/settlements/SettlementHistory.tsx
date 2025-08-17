@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { LoadingSpinner } from '../ui';
-import { useAuthRequired } from '../../app/hooks/useAuthRequired';
-import { enhancedGroupDetailStore } from '../../app/stores/group-detail-store-enhanced';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 
 interface SettlementHistoryProps {
     groupId: string;

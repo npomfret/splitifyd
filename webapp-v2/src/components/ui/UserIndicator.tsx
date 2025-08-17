@@ -1,4 +1,4 @@
-import { themeStore } from '../../app/stores/theme-store';
+import { themeStore } from '@/app/stores/theme-store.ts';
 import type { User, UserThemeColor } from '@shared/shared-types';
 
 interface UserIndicatorProps {

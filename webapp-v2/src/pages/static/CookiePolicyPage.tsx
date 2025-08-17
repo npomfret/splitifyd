@@ -1,5 +1,5 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
-import { usePolicy } from '../../hooks/usePolicy';
+import { usePolicy } from '@/hooks/usePolicy.ts';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 
 export function CookiePolicyPage() {

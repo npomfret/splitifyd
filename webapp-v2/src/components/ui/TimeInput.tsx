@@ -1,6 +1,6 @@
 import { useSignal } from '@preact/signals';
 import { useRef, useEffect } from 'preact/hooks';
-import { parseTimeString, formatTime24, formatTime12, generateTimeSuggestions, filterTimeSuggestions, convertTo12HourDisplay } from '../../utils/timeParser';
+import { parseTimeString, formatTime24, formatTime12, generateTimeSuggestions, filterTimeSuggestions, convertTo12HourDisplay } from '@/utils/timeParser.ts';
 
 interface TimeInputProps {
     value: string; // "14:30" format (24-hour)
