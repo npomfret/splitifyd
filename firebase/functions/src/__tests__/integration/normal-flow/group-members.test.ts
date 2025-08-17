@@ -5,19 +5,24 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { UserBuilder, GroupBuilder } from '../../support/builders';
+import {beforeAll} from "@jest/globals";
 
 jest.setTimeout(6000); // it takes about 4s
 
 describe('Group Members Integration Tests', () => {
-    // Helper function to create test users for each test
-    // Note: Sequential creation is faster than parallel due to Firebase emulator cold starts
-    const createTestUsers = async (driver: ApiDriver, count: number = 3): Promise<User[]> => {
+    const driver = new ApiDriver();
+    let testUsers: User[] = [];// a pool of users
+
+    const _testUsers = (count: number) => testUsers.slice(0, count);
+
+    beforeAll(async () => {
         const users: User[] = [];
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < 5; i++) {
             users.push(await driver.createUser(new UserBuilder().build()));
         }
-        return users;
-    };
+
+        testUsers = users;
+    });
 
     // Helper function to create a group with multiple members
     const createGroupWithMembers = async (driver: ApiDriver, users: User[]): Promise<string> => {
@@ -38,8 +43,7 @@ describe('Group Members Integration Tests', () => {
 
     describe('getGroupMembers', () => {
         it('should return all group members', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
 
             const response = await driver.getGroupMembers(groupId, users[0].token);
@@ -52,8 +56,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should return members sorted alphabetically', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
 
             const response = await driver.getGroupMembers(groupId, users[0].token);
@@ -64,16 +67,14 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should throw error if user is not authenticated', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 1);
+            const users = _testUsers(1);
             const groupId = await createGroupWithMembers(driver, users);
 
             await expect(driver.getGroupMembers(groupId, 'invalid-token')).rejects.toThrow();
         });
 
         it('should throw FORBIDDEN if user is not a member', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 1);
+            const users = _testUsers(1);
             const groupId = await createGroupWithMembers(driver, users);
             const nonMember = await driver.createUser(new UserBuilder().build());
 
@@ -83,8 +84,7 @@ describe('Group Members Integration Tests', () => {
 
     describe('leaveGroup', () => {
         it('should allow a member to leave the group', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
             const memberToLeave = users[1]; // Not the creator
 
@@ -102,16 +102,14 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should prevent the creator from leaving', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 2);
+            const users = _testUsers(2);
             const groupId = await createGroupWithMembers(driver, users);
 
             await expect(driver.leaveGroup(groupId, users[0].token)).rejects.toThrow(/Group creator cannot leave/);
         });
 
         it('should prevent leaving with outstanding balance', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 2);
+            const users = _testUsers(2);
             const groupId = await createGroupWithMembers(driver, users);
             const memberWithDebt = users[1];
 
@@ -135,8 +133,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should update timestamps when leaving', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 2);
+            const users = _testUsers(2);
             const groupId = await createGroupWithMembers(driver, users);
             const memberToLeave = users[1];
 
@@ -153,8 +150,7 @@ describe('Group Members Integration Tests', () => {
 
     describe('removeGroupMember', () => {
         it('should allow creator to remove a member', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
             const creator = users[0];
             const memberToRemove = users[1];
@@ -173,8 +169,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should prevent non-creator from removing members', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
             const nonCreator = users[1];
             const memberToRemove = users[2];
@@ -183,8 +178,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should prevent removing the creator', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 2);
+            const users = _testUsers(2);
             const groupId = await createGroupWithMembers(driver, users);
             const creator = users[0];
 
@@ -192,8 +186,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should prevent removing member with outstanding balance', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 2);
+            const users = _testUsers(2);
             const groupId = await createGroupWithMembers(driver, users);
             const creator = users[0];
             const memberWithDebt = users[1];
@@ -218,8 +211,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should handle removing non-existent member', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 1);
+            const users = _testUsers(1);
             const groupId = await createGroupWithMembers(driver, users);
             const creator = users[0];
             const nonExistentMember = 'non-existent-uid';
@@ -230,8 +222,7 @@ describe('Group Members Integration Tests', () => {
 
     describe('Complex scenarios', () => {
         it('should handle multiple members leaving sequentially', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
             const member1 = users[1];
             const member2 = users[2];
@@ -249,8 +240,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should prevent access after leaving group', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 2);
+            const users = _testUsers(2);
             const groupId = await createGroupWithMembers(driver, users);
             const memberToLeave = users[1];
 
@@ -262,8 +252,7 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should handle mixed leave and remove operations', async () => {
-            const driver = new ApiDriver();
-            const users = await createTestUsers(driver, 3);
+            const users = _testUsers(3);
             const groupId = await createGroupWithMembers(driver, users);
             const creator = users[0];
             const member1 = users[1];

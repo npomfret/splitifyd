@@ -1,5 +1,5 @@
-import type { ExpenseData, Group, User as BaseUser } from '../../shared/shared-types';
-import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
+import type {ExpenseData, Group, User as BaseUser} from '../../shared/shared-types';
+import {getFirebaseEmulatorConfig, findProjectRoot} from '@splitifyd/test-support';
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -71,7 +71,7 @@ export class ApiDriver {
         // Use Firebase Auth REST API to sign in
         const signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 email: userInfo.email,
                 password: userInfo.password,
@@ -220,23 +220,23 @@ export class ApiDriver {
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<BalanceResponse>, options?: PollOptions): Promise<BalanceResponse> {
-        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
+        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<any> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
     }
 
     async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<any>, options?: PollOptions): Promise<any> {
-        return this.pollUntil(() => this.getGroup(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
+        return this.pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async generateShareLink(groupId: string, token: string): Promise<{ shareablePath: string; linkId: string }> {
-        return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
+        return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
     }
 
     async joinGroupViaShareLink(linkId: string, token: string): Promise<any> {
-        return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
+        return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
     }
 
     async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
@@ -251,16 +251,12 @@ export class ApiDriver {
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         if (otherMembers.length > 0) {
-            const shareResponse = await this.apiRequest('/groups/share', 'POST', { groupId: group.id }, creatorToken);
-            const { linkId } = shareResponse;
+            const shareResponse = await this.apiRequest('/groups/share', 'POST', {groupId: group.id}, creatorToken);
+            const {linkId} = shareResponse;
 
             // Step 3: Have other members join using the share link
             for (const member of otherMembers) {
-                try {
-                    await this.apiRequest('/groups/join', 'POST', { linkId }, member.token);
-                } catch (joinError) {
-                    console.warn(`Failed to add member ${member.email} to group ${name}:`, joinError);
-                }
+                await this.apiRequest('/groups/join', 'POST', {linkId}, member.token);
             }
         }
 
@@ -321,7 +317,7 @@ export class ApiDriver {
     }
 
     private async pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {
-        const { timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry } = options;
+        const {timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry} = options;
 
         const startTime = Date.now();
         let lastError: Error | null = null;
@@ -354,7 +350,7 @@ export class ApiDriver {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
+                ...(token && {Authorization: `Bearer ${token}`}),
             },
         };
 
