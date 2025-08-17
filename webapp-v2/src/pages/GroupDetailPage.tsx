@@ -177,7 +177,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 }
                 mainContent={
                     <Stack spacing="lg">
-                        <GroupHeader group={group.value!} />
+                        <GroupHeader group={group.value!} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
 
                         {/* Mobile-only quick actions */}
                         <div className="lg:hidden">
