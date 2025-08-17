@@ -2,7 +2,7 @@
 
 ## Latest Progress Update (2025-08-17)
 
-### Today's Accomplishments
+### Session 1 Accomplishments
 
 Successfully implemented significant portions of **Phase 1** and **Phase 2.1** of the streaming implementation plan:
 
@@ -31,13 +31,40 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
 - Returns lastChangeTimestamp, changeCount, serverTime, hasRecentChanges
 - Maintains backward compatibility with includeMetadata flag
 
+### Session 2 Accomplishments
+
+#### Phase 1.5: Integration Tests for Change Detection ✅ COMPLETED
+1. **Unit Tests** (firebase/functions/src/__tests__/unit/change-detection-utils.test.ts)
+   - Complete test coverage for ChangeDebouncer class
+   - Tests for priority calculation across groups, expenses, settlements
+   - Tests for changed field detection and notification logic
+   - Tests for change document creation
+
+2. **Integration Tests** (firebase/functions/src/__tests__/integration/normal-flow/change-detection.test.ts)
+   - Comprehensive tests for group change tracking
+   - Tests for expense and settlement change detection
+   - Debouncing verification tests
+   - Cross-entity change tracking tests
+   - Priority calculation validation
+
+3. **Test Helpers** (firebase/functions/src/__tests__/support/changeCollectionHelpers.ts)
+   - Polling utilities for async change detection
+   - Query helpers for change collections
+   - Cleanup utilities for test data
+
+#### Critical Fix: Firebase Trigger Compatibility
+- **Issue Discovered**: Firebase v2 triggers don't fire in emulator environment
+- **Solution Implemented**: Migrated all triggers to v1 format (firebase/functions/src/triggers/change-tracker-v1.ts)
+- **Result**: All change detection triggers now work correctly in development
+- **Note**: Emulator restart required after pulling changes
+
 ### TypeScript Compilation
 - Fixed all TypeScript errors in the codebase
 - Project now builds successfully without errors
 - Proper typing for browser APIs and Firestore operations
+- Fixed expense update API validation issues
 
 ### Next Steps
-- Phase 1.5: Write integration tests for change detection
 - Phase 2.2: Implement smart groups-store with auto-refresh  
 - Phase 2.3: Add Zod schemas for new API responses
 - Phase 2.4-2.5: Integration tests for REST and store
@@ -46,13 +73,20 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
 
 ## Implementation Status (As of 2025-08-17)
 
-### Phase 1: Core Infrastructure & Change Detection - **Completed**
+### Phase 1: Core Infrastructure & Change Detection - **✅ COMPLETED**
 
 -   **Firestore Security Rules:** ✅ Implemented (simplified for emulator use).
--   **Change Detection Triggers:** ✅ Enhanced implementation with debouncing and priority calculation (firebase/functions/src/triggers/change-tracker.ts).
+-   **Change Detection Triggers:** ✅ Migrated to v1 format for emulator compatibility (firebase/functions/src/triggers/change-tracker-v1.ts).
 -   **Connection State Management (`ConnectionManager`):** ✅ Fully implemented with TypeScript types, exponential backoff, and network quality monitoring (webapp-v2/src/utils/connection-manager.ts).
 -   **Automatic Cleanup:** ✅ Updated to run every 5 minutes with metrics logging (firebase/functions/src/scheduled/cleanup.ts).
--   **Unit Tests:** ✅ Complete test coverage for ConnectionManager (webapp-v2/src/utils/__tests__/connection-manager.test.ts).
+-   **Unit Tests:** ✅ Complete test coverage for ConnectionManager and change detection utilities.
+
+### Phase 1.5: Testing & Validation - **✅ COMPLETED**
+
+-   **Unit Tests:** ✅ Full coverage for change detection utilities (firebase/functions/src/__tests__/unit/change-detection-utils.test.ts).
+-   **Integration Tests:** ✅ Comprehensive tests for all change tracking flows (firebase/functions/src/__tests__/integration/normal-flow/change-detection.test.ts).
+-   **Test Helpers:** ✅ Polling and query utilities for async testing (firebase/functions/src/__tests__/support/changeCollectionHelpers.ts).
+-   **Trigger Compatibility:** ✅ Fixed v2 trigger issues by migrating to v1 format.
 
 ### Phase 2: Smart REST with Auto-Refresh - **In Progress**
 
