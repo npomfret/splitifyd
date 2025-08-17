@@ -5,10 +5,9 @@ import type { Group } from '@shared/shared-types.ts';
 
 interface GroupHeaderProps {
     group: Group;
-    onSettingsClick?: () => void;
 }
 
-export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
+export function GroupHeader({ group }: GroupHeaderProps) {
     return (
         <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
@@ -16,11 +15,6 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
                     <h1 className="text-2xl font-bold mb-2">{group.name}</h1>
                     {group.description && <p className="text-gray-600">{group.description}</p>}
                 </div>
-                {onSettingsClick && (
-                    <Button variant="secondary" size="sm" onClick={onSettingsClick}>
-                        Settings
-                    </Button>
-                )}
             </div>
 
             <div className="flex gap-6 text-sm text-gray-600">

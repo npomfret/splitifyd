@@ -1,5 +1,5 @@
 export { GroupHeader } from './GroupHeader';
-export { QuickActions } from './QuickActions';
+export { GroupActions } from './GroupActions';
 export { MembersList } from './MembersList';
 export { BalanceSummary } from './BalanceSummary';
 export { ExpensesList } from './ExpensesList';

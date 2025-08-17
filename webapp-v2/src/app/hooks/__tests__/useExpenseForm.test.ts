@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/preact';
 import { vi } from 'vitest';
 import { useExpenseForm } from '../useExpenseForm';
+import { expenseFormStore } from '../../stores/expense-form-store'; // Add this import
+import { route } from 'preact-router'; // Add this import
 
 // Mock dependencies
 vi.mock('../../../utils/browser-logger', () => ({
@@ -48,7 +50,7 @@ vi.mock('../../stores/expense-form-store', () => ({
         setValidationErrors: vi.fn(),
         updateSplitAmount: vi.fn(),
         updateSplitPercentage: vi.fn(),
-        handleParticipantToggle: vi.fn(),
+        toggleParticipant: vi.fn(),
         handleSelectAll: vi.fn(),
         handleSelectNone: vi.fn(),
     },
@@ -164,7 +166,7 @@ describe('useExpenseForm', () => {
 
     describe('Form Interactions', () => {
         it('calls store methods when form functions are invoked', () => {
-            const { expenseFormStore } = require('../../stores/expense-form-store');
+
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -175,7 +177,7 @@ describe('useExpenseForm', () => {
         });
 
         it('calls split amount update method', () => {
-            const { expenseFormStore } = require('../../stores/expense-form-store');
+
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -186,7 +188,7 @@ describe('useExpenseForm', () => {
         });
 
         it('calls split percentage update method', () => {
-            const { expenseFormStore } = require('../../stores/expense-form-store');
+
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -197,14 +199,14 @@ describe('useExpenseForm', () => {
         });
 
         it('calls participant toggle method', () => {
-            const { expenseFormStore } = require('../../stores/expense-form-store');
+
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
                 result.current.handleParticipantToggle('user1');
             });
 
-            expect(expenseFormStore.handleParticipantToggle).toHaveBeenCalledWith('user1');
+            expect(expenseFormStore.toggleParticipant).toHaveBeenCalledWith('user1');
         });
     });
 
@@ -219,7 +221,7 @@ describe('useExpenseForm', () => {
 
     describe('Navigation', () => {
         it('redirects to dashboard when no groupId provided', () => {
-            const { route } = require('preact-router');
+            
 
             renderHook(() =>
                 useExpenseForm({

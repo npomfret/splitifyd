@@ -51,9 +51,20 @@ The main action buttons on the group detail page ("Add Expense", "Share Group", 
 - **Component to Modify:** The changes will likely be concentrated in the `GroupDetailPage.tsx` component and the component that renders the members list.
 - **Button Component:** If a generic `Button` component is used, it may need to be updated to easily accept an `icon` prop.
 
-## Benefits
+---
 
-- **Improved UX:** The "Invite Others" shortcut provides a more intuitive path for a common action.
-- **Visual Consistency:** A unified button style makes the UI look more polished and professional.
-- **Better Scannability:** Icons allow users to identify actions more quickly without reading the text.
-- **Clearer Language:** "Invite Others" is more direct and understandable than "Share Group".
+## Progress
+
+### Completed:
+- Created a new `GroupActions` component (`webapp-v2/src/components/group/GroupActions.tsx`) to centralize group-related action buttons.
+- Refactored `GroupDetailPage.tsx` to utilize the new `GroupActions` component, integrating the "Settings" button functionality into it.
+- Removed the direct rendering of the "Settings" button from `GroupHeader.tsx`.
+- Deleted the deprecated `QuickActions.tsx` component.
+- Updated the `webapp-v2/src/components/group/index.ts` barrel file to export `GroupActions` and remove `QuickActions`.
+- Addressed and resolved several pre-existing test failures in `webapp-v2` to ensure a stable test environment.
+
+### Pending:
+- Implement the "Invite Others" shortcut in the Members Section.
+- Rename "Share Group" to "Invite Others" on the main action button.
+- Apply consistent styling to all primary action buttons.
+- Add appropriate icons to all primary action buttons.
