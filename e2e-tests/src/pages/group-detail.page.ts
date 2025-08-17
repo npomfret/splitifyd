@@ -88,7 +88,7 @@ export class GroupDetailPage extends BasePage {
 
     // Share functionality accessors
     getShareButton() {
-        return this.page.getByRole('button', { name: /share/i });
+        return this.page.getByRole('button', { name: /invite others/i }).first();
     }
     
     getShareDialog() {
@@ -682,7 +682,7 @@ export class GroupDetailPage extends BasePage {
      * Gets the settings button (only visible for group owner)
      */
     getSettingsButton() {
-        return this.page.getByRole('button', { name: 'Settings' });
+        return this.page.getByRole('button', { name: /group settings/i }).first();
     }
 
     /**
@@ -690,7 +690,7 @@ export class GroupDetailPage extends BasePage {
      */
     async openEditGroupModal() {
         const settingsButton = this.getSettingsButton();
-        await this.clickButton(settingsButton, { buttonName: 'Settings' });
+        await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
 
         // Wait for modal to appear
         await expect(this.page.getByRole('dialog')).toBeVisible();
