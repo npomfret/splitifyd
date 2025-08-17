@@ -21,16 +21,35 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Waits for the expense form to be fully ready with all members loaded.
      * This is called automatically by clickAddExpenseButton() so forms are always ready.
+     * Note: Loading spinner check is handled in clickAddExpenseButton() before this method is called.
      */
     async waitForFormReady(expectedMemberCount: number): Promise<void> {
         // sanity check the url
         await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
 
-        // Wait for basic form structure
-        await expect(this.getExpenseDescriptionField()).toBeVisible();
+        // Step 1: Wait for basic page layout elements to be visible
+        // Check for the expense form header
+        const headerTitle = this.page.getByRole('heading', { 
+            name: /Add Expense|Edit Expense|Copy Expense/i 
+        });
+        await expect(headerTitle).toBeVisible({ timeout: 3000 });
+        
+        // Check for Cancel button in header (confirms header is fully rendered)
+        // Use .first() since there might be multiple Cancel buttons (header and form)
+        const cancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
+        await expect(cancelButton).toBeVisible();
+
+        // Step 2: Wait for main form container to be present
+        const formElement = this.page.locator('form');
+        await expect(formElement).toBeVisible();
+
+        // Step 3: Wait for form section headings to be visible
         await this.waitForExpenseFormSections();
 
-        // Wait for ALL members to load in form sections
+        // Step 4: Wait for specific form inputs to be ready
+        await expect(this.getExpenseDescriptionField()).toBeVisible();
+
+        // Step 5: Wait for ALL members to load in form sections
         await this.waitForMembersInExpenseForm(expectedMemberCount);
     }
 

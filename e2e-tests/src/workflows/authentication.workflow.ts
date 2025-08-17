@@ -13,33 +13,6 @@ export class AuthenticationWorkflow {
     constructor(private page: Page) {}
 
     /**
-     * Creates a new test user and logs them in.
-     * This replaces the createAndLoginTestUser helper function.
-     */
-    async createAndLoginTestUser(): Promise<BaseUser> {
-        // Generate test user data with short unique ID
-        const uniqueId = generateShortId();
-        const displayName = generateTestUserName();
-        const email = generateTestEmail('user');
-        const password = 'TestPassword123!';
-
-        // Use RegisterPage for registration
-        const registerPage = new RegisterPage(this.page);
-        await registerPage.navigate();
-        await registerPage.register(displayName, email, password);
-
-        // Wait for successful registration and redirect to dashboard
-        const dashboardPage = new DashboardPage(this.page);
-        await dashboardPage.waitForDashboard();
-
-        return {
-            uid: uniqueId,
-            email,
-            displayName,
-        };
-    }
-
-    /**
      * Logs in an existing test user (for use with user pool)
      * Expects to start from a clean state - will fail fast if not
      */
