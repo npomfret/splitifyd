@@ -22,7 +22,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await groupWorkflow.createGroupAndNavigate(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
 
             // Get share link from user1's page
-            const multiUserWorkflow = new MultiUserWorkflow(null); // Not using browser here
+            const multiUserWorkflow = new MultiUserWorkflow(); // Not using browser here
             const shareLink = await multiUserWorkflow.getShareLink(page1);
             expect(shareLink).toContain('/join?linkId=');
 
@@ -47,7 +47,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             const groupWorkflow = new GroupWorkflow(page1);
             await groupWorkflow.createGroupAndNavigate(`Already Member Test ${uniqueId}`, 'Testing already member scenario');
 
-            const multiUserWorkflow = new MultiUserWorkflow(null);
+            const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
 
             // User2 joins first time
@@ -79,7 +79,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             const groupWorkflow = new GroupWorkflow(page1);
             const groupId = await groupWorkflow.createGroupAndNavigate(`Login Required Test ${uniqueId}`, 'Testing login requirement');
 
-            const multiUserWorkflow = new MultiUserWorkflow(null);
+            const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
 
             // Navigate to share link with unauthenticated user

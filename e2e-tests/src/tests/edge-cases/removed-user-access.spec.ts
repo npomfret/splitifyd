@@ -23,7 +23,7 @@ multiUserTest.describe('Multi-User Group Access', () => {
         await expect(user1Page).toHaveURL(`/groups/${groupId}`);
 
         // User 2 joins via share link using proper workflow
-        const multiUserWorkflow = new MultiUserWorkflow(null);
+        const multiUserWorkflow = new MultiUserWorkflow();
         const shareLink = await multiUserWorkflow.getShareLink(user1Page);
         await multiUserWorkflow.joinGroupViaShareLink(user2Page, shareLink, user2);
 

@@ -19,7 +19,7 @@ test.describe('Share Link - Edge Cases', () => {
             const groupWorkflow = new GroupWorkflow(creatorPage);
             await groupWorkflow.createGroupAndNavigate(`Rapid Join Test ${uniqueId}`, 'Testing rapid multiple joins');
 
-            const multiUserWorkflow = new MultiUserWorkflow(null);
+            const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
 
             // Have the other 3 users join rapidly
@@ -38,7 +38,7 @@ test.describe('Share Link - Edge Cases', () => {
             const { page } = authenticatedPage;
             // User is already authenticated via fixture
             const groupWorkflow = new GroupWorkflow(page);
-            const multiUserWorkflow = new MultiUserWorkflow(null);
+            const multiUserWorkflow = new MultiUserWorkflow();
 
             const shareLinks: string[] = [];
 
