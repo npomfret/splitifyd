@@ -1,5 +1,5 @@
-import { isValidCurrency } from '../../utils/currency';
-import type { UserScopedStorage } from '../../utils/userScopedStorage';
+import { isValidCurrency } from '@/utils/currency';
+import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
 export class CurrencyService {
     private static instance: CurrencyService;

@@ -1,5 +1,5 @@
-import { getInitials, getAvatarSize, getContrastColor, type AvatarProps } from '../../utils/avatar';
-import { themeStore } from '../../app/stores/theme-store';
+import { getInitials, getAvatarSize, getContrastColor, type AvatarProps } from '@/utils/avatar.ts';
+import { themeStore } from '@/app/stores/theme-store.ts';
 import type { UserThemeColor } from '@shared/shared-types';
 
 interface EnhancedAvatarProps extends AvatarProps {

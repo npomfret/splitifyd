@@ -1,10 +1,9 @@
-import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
+import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { JoinGroupPage } from '../../pages/join-group.page';
-import { RegisterPage } from '../../pages/register.page';
-import { DashboardPage } from '../../pages/dashboard.page';
-import { ExpenseFormPage } from '../../pages/expense-form.page';
+import { JoinGroupPage } from '../../pages';
+import { RegisterPage } from '../../pages';
+import { DashboardPage } from '../../pages';
 
 // Enable debugging helpers
 setupConsoleErrorReporting();

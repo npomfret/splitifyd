@@ -4,12 +4,12 @@ import { useSignal, useComputed } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { LoadingSpinner, Card, Button, Avatar } from '../components/ui';
-import { Stack } from '../components/ui/Stack';
+import { LoadingSpinner, Card, Button, Avatar } from '@/components/ui';
+import { Stack } from '@/components/ui';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
-import { formatCurrency } from '../utils/currency/currencyFormatter';
+import { formatCurrency } from '@/utils/currency';
 import type { ExpenseData } from '@shared/shared-types';
 import { logError } from '../utils/browser-logger';
 

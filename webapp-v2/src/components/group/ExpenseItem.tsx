@@ -1,10 +1,10 @@
 import { useMemo } from 'preact/hooks';
-import { formatDistanceToNow, formatExpenseDateTime } from '../../utils/dateUtils';
-import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
-import { DELETED_AT_FIELD } from '../../../../firebase/functions/src/shared/shared-types';
-import { formatCurrency } from '../../utils/currency';
+import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
+import type { ExpenseData, User } from '@shared/shared-types.ts';
+import { DELETED_AT_FIELD } from '@shared/shared-types.ts';
+import { formatCurrency } from '@/utils/currency';
 import { Avatar } from '../ui/Avatar';
-import { themeStore } from '../../app/stores/theme-store';
+import { themeStore } from '@/app/stores/theme-store.ts';
 
 interface ExpenseItemProps {
     expense: ExpenseData;

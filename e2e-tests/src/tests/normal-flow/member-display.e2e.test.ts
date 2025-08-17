@@ -1,7 +1,7 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { ARIA_ROLES, PLACEHOLDERS } from '../../constants/selectors';
+import { PLACEHOLDERS } from '../../constants/selectors';
 import { GroupDetailPage } from '../../pages';
 import { GroupWorkflow } from '../../workflows';
 

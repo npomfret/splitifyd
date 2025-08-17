@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
-import { Button } from '../ui';
 import { logError } from '@/utils/browser-logger.ts';
 
 interface ShareGroupModalProps {

@@ -1,12 +1,12 @@
 import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { Button, Form, CurrencyAmountInput } from '../ui';
-import { CurrencyService } from '../../app/services/currencyService';
-import type { CreateSettlementRequest, User, SimplifiedDebt } from '../../../../firebase/functions/src/shared/shared-types';
-import { apiClient } from '../../app/apiClient';
-import { enhancedGroupDetailStore } from '../../app/stores/group-detail-store-enhanced';
-import { useAuthRequired } from '../../app/hooks/useAuthRequired';
-import { getUTCMidnight, isDateInFuture } from '../../utils/dateUtils';
+import { CurrencyService } from '@/app/services/currencyService.ts';
+import type { CreateSettlementRequest, User, SimplifiedDebt } from '@shared/shared-types.ts';
+import { apiClient } from '@/app/apiClient.ts';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 
 const payerIdSignal = signal('');
 const payeeIdSignal = signal('');

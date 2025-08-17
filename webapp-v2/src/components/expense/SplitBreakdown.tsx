@@ -1,7 +1,7 @@
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
-import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
-import { SplitTypes } from '../../../../firebase/functions/src/shared/shared-types';
+import type { ExpenseData, User } from '@shared/shared-types.ts';
+import { SplitTypes } from '@shared/shared-types.ts';
 
 interface SplitBreakdownProps {
     expense: ExpenseData;
