@@ -260,6 +260,14 @@ export interface CreateGroupRequest {
     members?: User[];
 }
 
+// Metadata for real-time change tracking
+export interface ChangeMetadata {
+    lastChangeTimestamp: number;
+    changeCount: number;
+    serverTime: number;
+    hasRecentChanges: boolean;
+}
+
 // List groups response
 export interface ListGroupsResponse {
     groups: Group[];
@@ -270,6 +278,7 @@ export interface ListGroupsResponse {
         limit: number;
         order: string;
     };
+    metadata?: ChangeMetadata;
 }
 
 // Group members response
