@@ -6,11 +6,12 @@ const db = admin.firestore();
 
 /**
  * Clean up old change documents to prevent storage bloat
- * Runs daily at 2 AM UTC
+ * Runs every 5 minutes to keep change collections small
+ * Only keeps changes from the last 5 minutes for real-time notifications
  */
 export const cleanupChanges = onSchedule(
     {
-        schedule: 'every day 02:00',
+        schedule: 'every 5 minutes',
         timeZone: 'UTC',
         region: 'us-central1',
         memory: '256MiB',
@@ -18,7 +19,7 @@ export const cleanupChanges = onSchedule(
     },
     async () => {
         const cutoffDate = new Date();
-        cutoffDate.setHours(cutoffDate.getHours() - 24); // Keep last 24 hours of changes
+        cutoffDate.setMinutes(cutoffDate.getMinutes() - 5); // Keep only last 5 minutes of changes
 
         const collections = ['group-changes', 'expense-changes', 'balance-changes'];
 
@@ -50,9 +51,37 @@ export const cleanupChanges = onSchedule(
                 await batch.commit();
 
                 logger.info(`Cleaned up ${deleteCount} documents from ${collectionName}`);
+                
+                // Log metrics for monitoring
+                await logCleanupMetrics({
+                    collection: collectionName,
+                    deletedCount: deleteCount,
+                    timestamp: new Date().toISOString()
+                });
             } catch (error) {
                 logger.errorWithContext(`Failed to cleanup ${collectionName}`, error as Error);
             }
         }
     },
 );
+
+/**
+ * Log cleanup metrics for monitoring and analysis
+ */
+async function logCleanupMetrics(metrics: {
+    collection: string;
+    deletedCount: number;
+    timestamp: string;
+}): Promise<void> {
+    try {
+        // Store metrics for monitoring (could be sent to external service)
+        await db.collection('system-metrics').add({
+            type: 'cleanup',
+            ...metrics,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (error) {
+        // Don't fail cleanup if metrics logging fails
+        logger.warn('Failed to log cleanup metrics', { error: error as Error, metrics });
+    }
+}

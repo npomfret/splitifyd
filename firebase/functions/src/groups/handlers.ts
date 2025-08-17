@@ -346,6 +346,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const limit = Math.min(parseInt(req.query.limit as string) || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
     const cursor = req.query.cursor as string;
     const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
+    const includeMetadata = req.query.includeMetadata === 'true';
 
     // Build base query - groups where user is a member
     const baseQuery = getGroupsCollection().where('data.memberIds', 'array-contains', userId).select('data', 'createdAt', 'updatedAt', 'userId');
@@ -353,8 +354,26 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     // Build paginated query
     const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
 
-    // Execute query
-    const snapshot = await paginatedQuery.get();
+    // Execute parallel queries for performance
+    const queries: Promise<any>[] = [paginatedQuery.get()];
+    
+    // Include metadata query if requested
+    if (includeMetadata) {
+        // Get recent changes (last 60 seconds)
+        const changesQuery = admin
+            .firestore()
+            .collection('group-changes')
+            .where('timestamp', '>', new Date(Date.now() - 60000))
+            .where('metadata.affectedUsers', 'array-contains', userId)
+            .orderBy('timestamp', 'desc')
+            .limit(10)
+            .get();
+        queries.push(changesQuery);
+    }
+
+    const results = await Promise.all(queries);
+    const snapshot = results[0] as admin.firestore.QuerySnapshot;
+    const changesSnapshot = includeMetadata ? results[1] as admin.firestore.QuerySnapshot : null;
     const documents = snapshot.docs;
 
     // Determine if there are more results
@@ -363,7 +382,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
 
     // Transform documents to groups
     const groups: Group[] = await Promise.all(
-        returnedDocs.map(async (doc) => {
+        returnedDocs.map(async (doc: admin.firestore.QueryDocumentSnapshot) => {
             const group = transformGroupDocument(doc);
 
             // Calculate balance for each group on-demand
@@ -429,7 +448,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
         });
     }
 
-    const response = {
+    const response: any = {
         groups,
         count: groups.length,
         hasMore,
@@ -439,6 +458,17 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
             order,
         },
     };
+
+    // Add metadata if requested
+    if (includeMetadata && changesSnapshot) {
+        const lastChange = changesSnapshot.docs[0];
+        response.metadata = {
+            lastChangeTimestamp: lastChange?.data().timestamp?.toMillis() || 0,
+            changeCount: changesSnapshot.size,
+            serverTime: Date.now(),
+            hasRecentChanges: changesSnapshot.size > 0
+        };
+    }
 
     res.json(response);
 };

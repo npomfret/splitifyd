@@ -556,10 +556,24 @@ export class ApiClient {
         });
     }
 
-    async getGroups(): Promise<ListGroupsResponse> {
+    async getGroups(options?: { 
+        includeMetadata?: boolean;
+        page?: number;
+        limit?: number;
+        order?: 'asc' | 'desc';
+        cursor?: string;
+    }): Promise<ListGroupsResponse> {
+        const query: Record<string, string> = {};
+        if (options?.includeMetadata) query.includeMetadata = 'true';
+        if (options?.page) query.page = options.page.toString();
+        if (options?.limit) query.limit = options.limit.toString();
+        if (options?.order) query.order = options.order;
+        if (options?.cursor) query.cursor = options.cursor;
+        
         return this.request({
             endpoint: '/groups',
             method: 'GET',
+            query: Object.keys(query).length > 0 ? query : undefined,
         });
     }
 

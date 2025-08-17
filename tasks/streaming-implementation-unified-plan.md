@@ -1,24 +1,69 @@
-# Unified Streaming Implementation Plan
+# Notification-Driven REST Implementation Plan
+
+## Latest Progress Update (2025-08-17)
+
+### Today's Accomplishments
+
+Successfully implemented significant portions of **Phase 1** and **Phase 2.1** of the streaming implementation plan:
+
+#### Phase 1: Core Infrastructure ✅ COMPLETED
+1. **ConnectionManager** (webapp-v2/src/utils/connection-manager.ts)
+   - Full TypeScript implementation with proper browser API types
+   - Network quality monitoring using NetworkInformation API
+   - Exponential backoff reconnection logic
+   - Singleton pattern with Preact signals integration
+   - Complete unit test coverage
+
+2. **Enhanced Change Detection** (firebase/functions/src/triggers/change-tracker.ts)
+   - Implemented debouncing with 500ms for groups, 200ms for expenses/settlements
+   - Priority calculation based on field criticality
+   - Changed field detection for optimized updates
+   - Metadata enrichment for affected users
+
+3. **Cleanup Schedule** (firebase/functions/src/scheduled/cleanup.ts)
+   - Updated from daily to every 5 minutes
+   - Added metrics logging for monitoring
+   - Batch processing to avoid timeouts
+
+#### Phase 2.1: Enhanced REST Endpoints ✅ COMPLETED  
+- Modified listGroups endpoint to include change metadata
+- Parallel query execution for performance
+- Returns lastChangeTimestamp, changeCount, serverTime, hasRecentChanges
+- Maintains backward compatibility with includeMetadata flag
+
+### TypeScript Compilation
+- Fixed all TypeScript errors in the codebase
+- Project now builds successfully without errors
+- Proper typing for browser APIs and Firestore operations
+
+### Next Steps
+- Phase 1.5: Write integration tests for change detection
+- Phase 2.2: Implement smart groups-store with auto-refresh  
+- Phase 2.3: Add Zod schemas for new API responses
+- Phase 2.4-2.5: Integration tests for REST and store
+
+---
 
 ## Implementation Status (As of 2025-08-17)
 
-A review of the codebase was conducted to assess the progress of this implementation plan. The following is a summary of the findings:
+### Phase 1: Core Infrastructure & Change Detection - **Completed**
 
-### Phase 1: Core Infrastructure & Change Detection - **Partially Completed**
+-   **Firestore Security Rules:** ✅ Implemented (simplified for emulator use).
+-   **Change Detection Triggers:** ✅ Enhanced implementation with debouncing and priority calculation (firebase/functions/src/triggers/change-tracker.ts).
+-   **Connection State Management (`ConnectionManager`):** ✅ Fully implemented with TypeScript types, exponential backoff, and network quality monitoring (webapp-v2/src/utils/connection-manager.ts).
+-   **Automatic Cleanup:** ✅ Updated to run every 5 minutes with metrics logging (firebase/functions/src/scheduled/cleanup.ts).
+-   **Unit Tests:** ✅ Complete test coverage for ConnectionManager (webapp-v2/src/utils/__tests__/connection-manager.test.ts).
 
--   **Firestore Security Rules:** ✅ Implemented (but simplified for emulator use).
--   **Change Detection Triggers:** ✅ Implemented (`trackGroupChanges`, `trackExpenseChanges`, `trackSettlementChanges`), but the implementation differs from the plan (no debouncing or priority calculation).
--   **Connection State Management (`ConnectionManager`):** ❌ Not implemented.
--   **Automatic Cleanup:** ✅ Implemented (runs on a daily schedule instead of every 5 minutes).
+### Phase 2: Smart REST with Auto-Refresh - **In Progress**
 
-### Phase 2: Smart REST with Auto-Refresh - **Not Started**
-
--   **Enhanced REST Endpoints:** ❌ The `/groups` endpoint does not include the `metadata` field for change tracking.
--   **Smart Client Store (`groups-store.ts`):** ❌ The store has no real-time or auto-refresh capabilities.
+-   **Enhanced REST Endpoints:** ✅ The `/groups` endpoint now includes metadata field for change tracking with parallel query execution (firebase/functions/src/groups/handlers.ts:349-471).
+-   **Smart Client Store (`groups-store.ts`):** ⏳ Not yet implemented - planned for next phase.
+-   **Zod Schemas:** ⏳ Pending - need to add schemas for new API responses.
+-   **Integration Tests:** ⏳ Pending - need tests for enhanced endpoints.
 
 ### Phase 3: Progressive Streaming Migration - **Not Started**
 
--   **Group Detail Streaming (`group-detail-store.ts`):** ❌ The store does not exist.
+-   **Group Detail Streaming (`group-detail-store.ts`):** ❌ The store does not exist yet.
 
 ### Phase 4: Optimization & Production Polish - **Not Started**
 
@@ -27,24 +72,24 @@ A review of the codebase was conducted to assess the progress of this implementa
 
 ## Executive Summary
 
-This document consolidates the best aspects of both streaming implementation approaches into a comprehensive plan for migrating Splitifyd to real-time capabilities. The plan combines the **Notification-Driven REST** architecture with gradual migration to full streaming where beneficial, providing both immediate value and long-term scalability.
+This document outlines a pragmatic approach for adding real-time capabilities to Splitifyd using **Notification-Driven REST** architecture. Instead of complex full streaming, we use lightweight change notifications to trigger REST API refreshes, providing a real-time feel with minimal complexity and cost.
 
 ## Architecture Overview
 
-### Hybrid Approach: Notification-Driven REST with Progressive Enhancement
+### Simple Approach: Notification-Driven REST
 
-1. **Phase 1**: Lightweight change detection via Firestore listeners (notifications only)
-2. **Phase 2**: REST APIs with smart pagination and auto-refresh on changes
-3. **Phase 3**: Progressive migration to full streaming for high-frequency data
-4. **Phase 4**: Optimization and production polish
+1. **Phase 1**: Lightweight change detection via Firestore triggers (notifications only)
+2. **Phase 2**: Smart REST refresh triggered by notifications
+3. **Phase 3**: Optimization and production polish
 
 ### Key Benefits
 
-- ✅ Real-time updates with traditional UX patterns
-- ✅ Minimal Firestore costs initially (~100 reads/hour)
-- ✅ Progressive enhancement path to full streaming
-- ✅ Simple rollback strategy at each phase
+- ✅ Real-time feel with traditional REST patterns
+- ✅ Minimal Firestore costs (~10-100 reads/hour for notifications)
+- ✅ Simple architecture - no complex streaming state
+- ✅ Easy to debug and maintain
 - ✅ Preserves user context during updates
+- ✅ REST fallback is just... REST
 
 ## Current Architecture Analysis
 
@@ -273,17 +318,18 @@ export const cleanupChanges = functions.pubsub.schedule('every 5 minutes').onRun
 
 ---
 
-### Phase 2: Smart REST with Auto-Refresh (Week 1-2)
+### Phase 2: Smart REST with Notification-Triggered Refresh (Week 2)
 
 #### Objectives
 
-- Implement paginated REST endpoints with metadata
-- Add smart client-side refresh logic
+- Listen for lightweight change notifications
+- Refresh data via REST when changes detected
 - Preserve user context during updates
+- Implement optimistic updates for user's own changes
 
 #### Technical Implementation
 
-##### 2.1 Enhanced REST Endpoints
+##### 2.1 Enhanced REST Endpoints ✅ COMPLETED
 
 ```typescript
 // firebase/functions/src/routes/groups.ts
@@ -338,11 +384,11 @@ router.get('/groups', async (req, res) => {
 });
 ```
 
-##### 2.2 Smart Client Store Implementation
+##### 2.2 Simplified Notification-Driven Store
 
 ```typescript
 // webapp-v2/src/app/stores/groups-store.ts
-import { signal, computed, batch } from '@preact/signals';
+import { signal, batch } from '@preact/signals';
 import { onSnapshot, query, where, collection, orderBy, limit } from 'firebase/firestore';
 
 class GroupsStore {
@@ -351,33 +397,26 @@ class GroupsStore {
     loading = signal(false);
     error = signal<Error | null>(null);
 
-    // Pagination
-    currentPage = signal(1);
-    pageSize = signal(20);
-    totalPages = signal(0);
-
-    // Real-time state
+    // Notification state
     private changeListener: (() => void) | null = null;
     private refreshTimeout: NodeJS.Timeout | null = null;
     private lastRefresh = 0;
     private lastChangeTimestamp = 0;
 
-    // User context preservation
-    private userContext = new Map<string, any>();
+    // Optimistic updates
     private optimisticUpdates = new Map<string, Partial<Group>>();
 
     // Connection management
     private connectionManager = ConnectionManager.getInstance();
 
-    // Notification-driven refresh
+    // Listen for change notifications only (no data)
     subscribeToChanges(userId: string) {
-        // Only listen for change notifications, not data
         const changesQuery = query(
             collection(db, 'group-changes'),
-            where('timestamp', '>', Date.now() - 300000),
+            where('timestamp', '>', Date.now() - 60000), // Last minute
             where('affectedUsers', 'array-contains', userId),
             orderBy('timestamp', 'desc'),
-            limit(1),
+            limit(1)
         );
 
         this.changeListener = onSnapshot(
@@ -386,192 +425,84 @@ class GroupsStore {
             (snapshot) => {
                 if (!snapshot.empty && !snapshot.metadata.fromCache) {
                     const change = snapshot.docs[0].data();
-
-                    // Smart refresh decision
+                    
+                    // Simple refresh decision
                     if (this.shouldRefresh(change, userId)) {
-                        this.scheduleRefresh(change);
+                        this.scheduleRefresh(change.priority);
                     }
                 }
             },
             (error) => {
-                console.warn('Streaming degraded to polling mode:', error);
-                this.fallbackToPolling();
-            },
+                console.warn('Notifications unavailable, using polling:', error);
+                this.startPolling();
+            }
         );
     }
 
     private shouldRefresh(change: any, userId: string): boolean {
-        // Skip if change is too old
-        if (change.timestamp < this.lastChangeTimestamp) {
+        // Skip old changes
+        if (change.timestamp <= this.lastChangeTimestamp) {
             return false;
         }
-
-        // Skip non-critical fields for current user's changes
-        if (change.userId === userId) {
-            const nonCriticalFields = ['lastViewed', 'analytics', 'metadata'];
-            if (change.fields?.every((f) => nonCriticalFields.includes(f))) {
-                return false;
-            }
+        
+        // Skip user's own low-priority changes
+        if (change.userId === userId && change.priority === 'low') {
+            return false;
         }
-
-        // Refresh based on priority
-        switch (change.metadata?.priority) {
-            case 'high':
-                return true;
-            case 'medium':
-                return change.userId !== userId; // Only for other users' changes
-            case 'low':
-                return false;
-            default:
-                return true;
-        }
+        
+        this.lastChangeTimestamp = change.timestamp;
+        return true;
     }
 
-    private scheduleRefresh(change: any) {
+    private scheduleRefresh(priority: string) {
         // Rate limiting
         const now = Date.now();
-        const minRefreshInterval = this.connectionManager.connectionQuality.value === 'poor' ? 5000 : 2000;
-
-        if (now - this.lastRefresh < minRefreshInterval) {
+        const minInterval = 2000; // 2 seconds minimum between refreshes
+        
+        if (now - this.lastRefresh < minInterval) {
             return;
         }
 
-        // Cancel pending refresh
+        // Clear pending refresh
         if (this.refreshTimeout) {
             clearTimeout(this.refreshTimeout);
         }
 
-        // Schedule new refresh with smart debouncing
-        const delay = change.metadata?.priority === 'high' ? 100 : 500;
-
+        // Schedule refresh with priority-based delay
+        const delay = priority === 'high' ? 100 : 500;
+        
         this.refreshTimeout = setTimeout(() => {
-            this.refreshWithContext();
+            this.refreshData();
             this.lastRefresh = Date.now();
-            this.lastChangeTimestamp = change.timestamp;
         }, delay);
     }
 
-    private async refreshWithContext() {
-        // Save user context
-        this.saveUserContext();
-
+    private async refreshData() {
         try {
-            // Show subtle loading indicator
-            this.loading.value = true;
-
             const response = await apiClient.getGroups({
-                page: this.currentPage.value,
-                limit: this.pageSize.value,
-                includeMetadata: true,
+                includeMetadata: true
             });
 
             batch(() => {
-                // Check for conflicts
-                const conflicts = this.detectConflicts(response.groups);
-                if (conflicts.length > 0) {
-                    this.handleConflicts(conflicts);
-                }
-
                 // Merge with optimistic updates
                 this.groups.value = this.mergeWithOptimisticUpdates(response.groups);
-
-                // Update pagination
-                this.totalPages.value = response.pagination.totalPages;
-
-                // Restore context
-                this.restoreUserContext();
-
-                // Show update notification if visible changes
-                if (this.hasVisibleChanges(response.groups)) {
-                    this.showSubtleNotification('Content updated');
-                }
             });
         } catch (error) {
-            // Silent degradation for background refresh
-            console.debug('Background refresh failed, will retry:', error);
-
-            // Retry with exponential backoff
-            this.connectionManager.reconnectWithBackoff(() => this.refreshWithContext());
-        } finally {
-            this.loading.value = false;
-        }
-    }
-
-    private saveUserContext() {
-        this.userContext.set('scrollPosition', window.scrollY);
-        this.userContext.set('selectedItems', this.getSelectedItems());
-        this.userContext.set('expandedItems', this.getExpandedItems());
-        this.userContext.set('formData', this.captureFormData());
-        this.userContext.set('focusedElement', document.activeElement?.id);
-    }
-
-    private restoreUserContext() {
-        // Restore scroll position smoothly
-        const scrollPos = this.userContext.get('scrollPosition');
-        if (scrollPos) {
-            requestAnimationFrame(() => {
-                window.scrollTo({ top: scrollPos, behavior: 'instant' });
-            });
-        }
-
-        // Restore selections
-        this.setSelectedItems(this.userContext.get('selectedItems') || []);
-        this.setExpandedItems(this.userContext.get('expandedItems') || []);
-
-        // Restore form data
-        this.restoreFormData(this.userContext.get('formData'));
-
-        // Restore focus
-        const focusId = this.userContext.get('focusedElement');
-        if (focusId) {
-            document.getElementById(focusId)?.focus();
+            console.debug('Background refresh failed:', error);
+            // Silent failure for background refreshes
         }
     }
 
     private mergeWithOptimisticUpdates(serverData: Group[]): Group[] {
-        return serverData.map((item) => {
+        return serverData.map(item => {
             const optimistic = this.optimisticUpdates.get(item.id);
-            if (optimistic) {
-                // Check if server has newer version
-                if (item._version > optimistic._version) {
-                    // Server wins, clear optimistic update
-                    this.optimisticUpdates.delete(item.id);
-                    return item;
-                }
-                // Keep optimistic update
+            if (optimistic && optimistic._timestamp > item._timestamp) {
+                // Keep optimistic update if newer
                 return { ...item, ...optimistic };
             }
+            // Clear old optimistic update
+            this.optimisticUpdates.delete(item.id);
             return item;
-        });
-    }
-
-    private detectConflicts(serverData: Group[]): ConflictInfo[] {
-        const conflicts: ConflictInfo[] = [];
-
-        serverData.forEach((serverItem) => {
-            const optimistic = this.optimisticUpdates.get(serverItem.id);
-            if (optimistic && serverItem._version > optimistic._version) {
-                conflicts.push({
-                    id: serverItem.id,
-                    localData: optimistic,
-                    serverData: serverItem,
-                    conflictedFields: this.getConflictedFields(optimistic, serverItem),
-                });
-            }
-        });
-
-        return conflicts;
-    }
-
-    private handleConflicts(conflicts: ConflictInfo[]) {
-        // Auto-resolve non-critical conflicts
-        conflicts.forEach((conflict) => {
-            if (this.canAutoResolve(conflict)) {
-                this.autoResolveConflict(conflict);
-            } else {
-                // Show conflict resolution UI
-                this.showConflictDialog(conflict);
-            }
         });
     }
 
@@ -580,629 +511,261 @@ class GroupsStore {
         // Apply optimistic update immediately
         const optimisticUpdate = {
             ...updates,
-            _version: Date.now(),
-            _optimistic: true,
+            _timestamp: Date.now()
         };
 
         this.optimisticUpdates.set(id, optimisticUpdate);
-
+        
         // Update UI immediately
-        this.groups.value = this.groups.value.map((g) => (g.id === id ? { ...g, ...optimisticUpdate } : g));
+        this.groups.value = this.groups.value.map(g => 
+            g.id === id ? { ...g, ...optimisticUpdate } : g
+        );
 
         try {
             // Send to server
             const result = await apiClient.updateGroup(id, updates);
-
+            
             // Clear optimistic update on success
             this.optimisticUpdates.delete(id);
-
+            
             // Update with server response
-            this.groups.value = this.groups.value.map((g) => (g.id === id ? result : g));
+            this.groups.value = this.groups.value.map(g => 
+                g.id === id ? result : g
+            );
         } catch (error) {
             // Revert optimistic update on failure
             this.optimisticUpdates.delete(id);
-            this.groups.value = this.groups.value.map((g) => (g.id === id ? this.findOriginalGroup(id) : g));
-
+            await this.refreshData();
             throw error;
         }
     }
 
-    // Fallback mechanisms
-    private fallbackToPolling() {
-        // Use polling when streaming fails
+    // Simple polling fallback
+    private startPolling() {
         const pollInterval = setInterval(async () => {
             if (this.connectionManager.isOnline.value) {
-                await this.refreshWithContext();
+                await this.refreshData();
             }
-        }, 30000); // 30 second polling
+        }, 30000); // 30 seconds
 
-        // Store interval for cleanup
         this.pollingInterval = pollInterval;
     }
 
     dispose() {
-        if (this.changeListener) {
-            this.changeListener();
-        }
-        if (this.refreshTimeout) {
-            clearTimeout(this.refreshTimeout);
-        }
-        if (this.pollingInterval) {
-            clearInterval(this.pollingInterval);
-        }
+        this.changeListener?.();
+        clearTimeout(this.refreshTimeout);
+        clearInterval(this.pollingInterval);
     }
 }
 ```
 
 #### Success Criteria
 
-- REST endpoints return data with metadata
+- REST endpoints return data with metadata ✅
 - Auto-refresh triggers within 500ms of changes
-- User context preserved during refreshes
 - Optimistic updates work correctly
-- Conflict resolution handles edge cases
+- Simple polling fallback works
 
 #### Testing Requirements
 
 - Integration tests for REST endpoints
-- User context preservation tests
 - Optimistic update and rollback tests
-- Conflict resolution scenario tests
+- Notification listener tests
+- Polling fallback tests
 
 ---
 
-### Phase 3: Progressive Streaming Migration (Week 2-3)
+### Phase 3: Optimization & Production Polish (Week 3)
 
 #### Objectives
 
-- Migrate high-frequency data to full streaming
-- Implement hybrid approach (streaming + REST)
-- Add collaborative features
+- Optimize notification performance
+- Add monitoring and metrics
+- Polish user experience
+- Implement error recovery
 
 #### Technical Implementation
 
-##### 3.1 Group Detail Streaming
+##### 3.1 Notification Optimization
 
 ```typescript
-// webapp-v2/src/app/stores/group-detail-store.ts
-class GroupDetailStore {
-    // Hybrid approach: stream metadata, fetch data via REST
-
-    private groupListener: (() => void) | null = null;
-    private expensesListener: (() => void) | null = null;
-    private balanceListener: (() => void) | null = null;
-
-    async loadGroup(groupId: string) {
-        // Initial load via REST
-        const group = await apiClient.getGroup(groupId);
-        this.group.value = group;
-
-        // Then subscribe to changes
-        this.subscribeToGroup(groupId);
-        this.subscribeToExpenses(groupId);
-        this.subscribeToBalances(groupId);
-    }
-
-    private subscribeToGroup(groupId: string) {
-        // Full streaming for group metadata (small payload)
-        const groupDoc = doc(db, 'groups', groupId);
-
-        this.groupListener = onSnapshot(
-            groupDoc,
+// webapp-v2/src/utils/notification-manager.ts
+export class NotificationManager {
+    private listeners = new Map<string, () => void>();
+    private retryCount = new Map<string, number>();
+    
+    subscribeToNotifications(collection: string, userId: string, callback: () => void) {
+        // Minimal query - just timestamps, no data
+        const query = query(
+            collection(db, collection),
+            where('affectedUsers', 'array-contains', userId),
+            where('timestamp', '>', Date.now() - 60000),
+            orderBy('timestamp', 'desc'),
+            limit(1)
+        );
+        
+        const unsubscribe = onSnapshot(
+            query,
             { includeMetadataChanges: false },
             (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.data();
-
-                    // Smart update - only update changed fields
-                    batch(() => {
-                        Object.keys(data).forEach((key) => {
-                            if (this.group.value[key] !== data[key]) {
-                                this.group.value = {
-                                    ...this.group.value,
-                                    [key]: data[key],
-                                };
-                            }
-                        });
-                    });
+                if (!snapshot.empty && !snapshot.metadata.fromCache) {
+                    callback();
                 }
             },
             (error) => {
-                console.error('Group streaming error:', error);
-                this.fallbackToREST(groupId);
-            },
-        );
-    }
-
-    private subscribeToExpenses(groupId: string) {
-        // Notification-driven for expenses (large payload)
-        const changesQuery = query(collection(db, 'expense-changes'), where('groupId', '==', groupId), where('timestamp', '>', Date.now() - 60000), orderBy('timestamp', 'desc'), limit(1));
-
-        this.expensesListener = onSnapshot(changesQuery, (snapshot) => {
-            if (!snapshot.empty && !snapshot.metadata.fromCache) {
-                // Refresh current page of expenses
-                this.refreshExpenses();
+                this.handleError(collection, error);
             }
-        });
+        );
+        
+        this.listeners.set(collection, unsubscribe);
     }
-
-    private subscribeToBalances(groupId: string) {
-        // Full streaming for balances (critical, small payload)
-        const balancesQuery = query(collection(db, 'group-balances'), where('groupId', '==', groupId));
-
-        this.balanceListener = onSnapshot(balancesQuery, { includeMetadataChanges: false }, (snapshot) => {
-            const balances = {};
-            snapshot.forEach((doc) => {
-                balances[doc.id] = doc.data();
-            });
-
-            // Update balances with animation
-            this.updateBalancesWithAnimation(balances);
-        });
-    }
-
-    private async refreshExpenses() {
-        // Smart refresh with diff detection
-        const oldExpenses = this.expenses.value;
-        const newExpenses = await apiClient.getExpenses({
-            groupId: this.groupId,
-            page: this.currentPage.value,
-            limit: this.pageSize.value,
-        });
-
-        // Detect changes and animate
-        const changes = this.detectExpenseChanges(oldExpenses, newExpenses);
-
-        if (changes.added.length > 0 || changes.modified.length > 0) {
-            this.animateExpenseChanges(changes);
+    
+    private handleError(collection: string, error: any) {
+        const retries = this.retryCount.get(collection) || 0;
+        
+        if (retries < 3) {
+            // Exponential backoff retry
+            setTimeout(() => {
+                this.retryCount.set(collection, retries + 1);
+                // Resubscribe logic here
+            }, Math.pow(2, retries) * 1000);
+        } else {
+            // Fall back to polling
+            console.warn(`Notifications failed for ${collection}, using polling`);
         }
-
-        this.expenses.value = newExpenses;
-    }
-
-    dispose() {
-        [this.groupListener, this.expensesListener, this.balanceListener].forEach((listener) => listener?.());
     }
 }
 ```
 
-##### 3.2 Client-Side Balance Calculation
+##### 3.2 Simple Monitoring
 
 ```typescript
-// webapp-v2/src/utils/balance-calculator.ts
-export class BalanceCalculator {
-    private static readonly CLIENT_CALC_THRESHOLD = 100; // Max expenses for client-side
-
-    static async calculateBalances(groupId: string, expenses: Expense[]): Promise<BalanceResult> {
-        // Check if we should calculate client-side
-        if (expenses.length <= this.CLIENT_CALC_THRESHOLD) {
-            return this.calculateClientSide(expenses);
-        }
-
-        // Otherwise use server calculation
-        return apiClient.calculateBalances(groupId);
+// webapp-v2/src/utils/metrics.ts
+export class MetricsCollector {
+    private metrics = {
+        notificationCount: 0,
+        restRefreshCount: 0,
+        pollingFallbackCount: 0,
+        averageRefreshLatency: 0,
+        firestoreReadsPerHour: 0
+    };
+    
+    trackNotification() {
+        this.metrics.notificationCount++;
     }
-
-    private static calculateClientSide(expenses: Expense[]): BalanceResult {
-        const balances = new Map<string, number>();
-        const owes = new Map<string, Map<string, number>>();
-
-        // Calculate net balances
-        expenses.forEach((expense) => {
-            const { paidBy, splits, amount } = expense;
-
-            // Add payment
-            balances.set(paidBy, (balances.get(paidBy) || 0) + amount);
-
-            // Subtract splits
-            Object.entries(splits).forEach(([userId, splitAmount]) => {
-                balances.set(userId, (balances.get(userId) || 0) - splitAmount);
-
-                // Track who owes whom
-                if (userId !== paidBy) {
-                    if (!owes.has(userId)) {
-                        owes.set(userId, new Map());
-                    }
-                    const userOwes = owes.get(userId)!;
-                    userOwes.set(paidBy, (userOwes.get(paidBy) || 0) + splitAmount);
-                }
-            });
-        });
-
-        // Optimize settlements
-        const settlements = this.optimizeSettlements(balances, owes);
-
+    
+    trackRestRefresh(latency: number) {
+        this.metrics.restRefreshCount++;
+        // Update rolling average
+        this.metrics.averageRefreshLatency = 
+            (this.metrics.averageRefreshLatency * (this.metrics.restRefreshCount - 1) + latency) 
+            / this.metrics.restRefreshCount;
+    }
+    
+    trackPollingFallback() {
+        this.metrics.pollingFallbackCount++;
+    }
+    
+    getMetrics() {
         return {
-            balances: Object.fromEntries(balances),
-            settlements,
-            calculated: 'client',
-            timestamp: Date.now(),
+            ...this.metrics,
+            estimatedCostPerHour: this.calculateCost()
         };
     }
-
-    private static optimizeSettlements(balances: Map<string, number>, owes: Map<string, Map<string, number>>): Settlement[] {
-        // Implementation of debt simplification algorithm
-        const settlements: Settlement[] = [];
-        const netBalances = new Map(balances);
-
-        // Sort users by balance
-        const creditors = Array.from(netBalances.entries())
-            .filter(([_, balance]) => balance > 0.01)
-            .sort((a, b) => b[1] - a[1]);
-
-        const debtors = Array.from(netBalances.entries())
-            .filter(([_, balance]) => balance < -0.01)
-            .sort((a, b) => a[1] - b[1]);
-
-        // Match creditors with debtors
-        let creditorIndex = 0;
-        let debtorIndex = 0;
-
-        while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
-            const [creditorId, creditAmount] = creditors[creditorIndex];
-            const [debtorId, debtAmount] = debtors[debtorIndex];
-
-            const settlementAmount = Math.min(creditAmount, Math.abs(debtAmount));
-
-            settlements.push({
-                from: debtorId,
-                to: creditorId,
-                amount: Number(settlementAmount.toFixed(2)),
-            });
-
-            creditors[creditorIndex][1] -= settlementAmount;
-            debtors[debtorIndex][1] += settlementAmount;
-
-            if (creditors[creditorIndex][1] < 0.01) creditorIndex++;
-            if (Math.abs(debtors[debtorIndex][1]) < 0.01) debtorIndex++;
-        }
-
-        return settlements;
+    
+    private calculateCost() {
+        // Rough estimate: 1 notification read = $0.00001
+        const notificationReads = this.metrics.notificationCount;
+        const restReads = this.metrics.restRefreshCount * 20; // Assume 20 docs per refresh
+        return (notificationReads + restReads) * 0.00001;
     }
 }
 ```
 
-#### Success Criteria
-
-- Group details update in real-time
-- Balance calculations accurate within 0.01
-- Smooth animations for updates
-- Hybrid approach works seamlessly
-- Performance maintained with large datasets
-
-#### Testing Requirements
-
-- Real-time collaboration tests
-- Balance calculation accuracy tests
-- Performance tests with varying data sizes
-- Animation and UX tests
-
----
-
-### Phase 4: Optimization & Production Polish (Week 4)
-
-#### Objectives
-
-- Optimize performance and reduce costs
-- Enhance error handling and resilience
-- Add monitoring and analytics
-- Polish user experience
-
-#### Technical Implementation
-
-##### 4.1 Performance Optimization
-
-```typescript
-// webapp-v2/src/utils/performance-optimizer.ts
-export class PerformanceOptimizer {
-    private updateQueue: Update[] = [];
-    private batchTimeout: NodeJS.Timeout | null = null;
-    private renderFrame: number | null = null;
-
-    // Batch rapid updates
-    queueUpdate(update: Update) {
-        this.updateQueue.push(update);
-
-        if (!this.batchTimeout) {
-            this.batchTimeout = setTimeout(() => {
-                this.processBatch();
-            }, 16); // One frame at 60fps
-        }
-    }
-
-    private processBatch() {
-        if (this.renderFrame) {
-            cancelAnimationFrame(this.renderFrame);
-        }
-
-        // Process updates in next animation frame
-        this.renderFrame = requestAnimationFrame(() => {
-            const updates = this.updateQueue.splice(0);
-
-            // Group updates by type
-            const grouped = this.groupUpdates(updates);
-
-            // Apply updates efficiently
-            batch(() => {
-                grouped.forEach((group) => {
-                    this.applyUpdateGroup(group);
-                });
-            });
-
-            this.batchTimeout = null;
-            this.renderFrame = null;
-        });
-    }
-
-    // Selective field updates
-    static createSelectiveListener(fields: string[]) {
-        return (snapshot: DocumentSnapshot) => {
-            const data = snapshot.data();
-            const updates: Partial<any> = {};
-            let hasChanges = false;
-
-            fields.forEach((field) => {
-                if (data?.[field] !== undefined) {
-                    updates[field] = data[field];
-                    hasChanges = true;
-                }
-            });
-
-            return hasChanges ? updates : null;
-        };
-    }
-
-    // Memory leak prevention
-    static createManagedListener(query: Query, callback: (snapshot: QuerySnapshot) => void): ManagedListener {
-        let unsubscribe: (() => void) | null = null;
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        const subscribe = () => {
-            unsubscribe = onSnapshot(
-                query,
-                { includeMetadataChanges: false },
-                (snapshot) => {
-                    retryCount = 0; // Reset on success
-                    callback(snapshot);
-                },
-                (error) => {
-                    console.error('Listener error:', error);
-
-                    if (retryCount < maxRetries) {
-                        retryCount++;
-                        setTimeout(subscribe, 1000 * Math.pow(2, retryCount));
-                    }
-                },
-            );
-        };
-
-        subscribe();
-
-        return {
-            unsubscribe: () => {
-                if (unsubscribe) {
-                    unsubscribe();
-                }
-            },
-            resubscribe: subscribe,
-        };
-    }
-}
-```
-
-##### 4.2 Advanced Error Handling
+##### 3.3 Error Recovery
 
 ```typescript
 // webapp-v2/src/utils/error-handler.ts
-export class StreamingErrorHandler {
-    private circuitBreaker = new Map<string, CircuitBreakerState>();
-    private readonly errorThreshold = 5;
-    private readonly resetTimeout = 60000; // 1 minute
-
-    handleError(error: FirestoreError, context: ErrorContext) {
-        // Track errors per feature
-        const breaker = this.getCircuitBreaker(context.feature);
-
-        switch (error.code) {
-            case 'permission-denied':
-                this.handlePermissionError(context);
-                break;
-
-            case 'unavailable':
-                this.handleUnavailableError(context, breaker);
-                break;
-
-            case 'resource-exhausted':
-                this.handleRateLimitError(context, breaker);
-                break;
-
-            case 'deadline-exceeded':
-                this.handleTimeoutError(context, breaker);
-                break;
-
-            default:
-                this.handleGenericError(error, context, breaker);
+export class NotificationErrorHandler {
+    private pollingFallback: NodeJS.Timer | null = null;
+    
+    handleNotificationError(error: any) {
+        console.warn('Notification listener failed:', error);
+        
+        // Fall back to simple polling
+        if (!this.pollingFallback) {
+            this.startPolling();
         }
     }
-
-    private handlePermissionError(context: ErrorContext) {
-        // Silently fallback to REST
-        console.debug(`Permission denied for ${context.feature}, using REST fallback`);
-        context.fallbackToREST();
-
-        // Notify user if critical feature
-        if (context.isCritical) {
-            this.notifyUser('Some features may be limited. Please refresh if issues persist.');
+    
+    handleRestError(error: any) {
+        // REST errors are handled normally
+        if (error.status === 401) {
+            // Re-authenticate
+            window.location.href = '/login';
+        } else if (error.status >= 500) {
+            // Server error - retry with backoff
+            setTimeout(() => this.retry(), 2000);
         }
     }
-
-    private handleUnavailableError(context: ErrorContext, breaker: CircuitBreakerState) {
-        breaker.failures++;
-
-        if (breaker.failures >= this.errorThreshold) {
-            // Open circuit breaker
-            breaker.state = 'open';
-            breaker.nextRetry = Date.now() + this.resetTimeout;
-
-            // Switch to offline mode
-            context.setOfflineMode(true);
-            this.notifyUser('Working offline. Changes will sync when connection restored.');
-        } else {
-            // Retry with backoff
-            const delay = Math.min(1000 * Math.pow(2, breaker.failures), 30000);
-            setTimeout(() => context.retry(), delay);
-        }
+    
+    private startPolling() {
+        // Simple 30-second polling as fallback
+        this.pollingFallback = setInterval(() => {
+            if (navigator.onLine) {
+                // Trigger REST refresh
+                store.refreshData();
+            }
+        }, 30000);
     }
-
-    private handleRateLimitError(context: ErrorContext, breaker: CircuitBreakerState) {
-        // Increase debounce time
-        context.increaseDebounceTime(breaker.failures * 1000);
-
-        // Notify user after multiple failures
-        if (breaker.failures > 3) {
-            this.notifyUser('High activity detected. Updates may be delayed.');
+    
+    dispose() {
+        if (this.pollingFallback) {
+            clearInterval(this.pollingFallback);
         }
-    }
-
-    private getCircuitBreaker(feature: string): CircuitBreakerState {
-        if (!this.circuitBreaker.has(feature)) {
-            this.circuitBreaker.set(feature, {
-                state: 'closed',
-                failures: 0,
-                nextRetry: 0,
-            });
-        }
-        return this.circuitBreaker.get(feature)!;
-    }
-
-    private notifyUser(message: string) {
-        // Show non-intrusive notification
-        showToast({
-            message,
-            type: 'info',
-            duration: 5000,
-            position: 'bottom-right',
-        });
     }
 }
 ```
 
-##### 4.3 Monitoring & Analytics
-
-```typescript
-// firebase/functions/src/monitoring/streaming-metrics.ts
-export const collectStreamingMetrics = functions.pubsub.schedule('every 1 hour').onRun(async () => {
-    const metrics = await gatherMetrics();
-
-    // Performance metrics
-    const performance = {
-        avgRefreshRate: metrics.refreshes / metrics.activeUsers,
-        avgLatency: metrics.totalLatency / metrics.refreshes,
-        p95Latency: calculatePercentile(metrics.latencies, 95),
-        errorRate: metrics.errors / metrics.totalRequests,
-    };
-
-    // Cost metrics
-    const costs = {
-        firestoreReads: metrics.firestoreReads,
-        estimatedCost: calculateFirestoreCost(metrics),
-        savingsVsFullStreaming: calculateSavings(metrics),
-    };
-
-    // Alert on anomalies
-    if (performance.avgRefreshRate > 60) {
-        await sendAlert('High refresh rate detected', performance);
-    }
-
-    if (costs.firestoreReads > 100000) {
-        await sendAlert('High Firestore usage', costs);
-    }
-
-    // Log to monitoring dashboard
-    await logToMonitoring({
-        timestamp: Date.now(),
-        performance,
-        costs,
-        usage: metrics,
-    });
-
-    // Store for historical analysis
-    await admin
-        .firestore()
-        .collection('streaming-metrics')
-        .add({
-            ...performance,
-            ...costs,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        });
-});
-```
-
-##### 4.4 User Experience Enhancements
+##### 3.4 User Experience
 
 ```typescript
 // webapp-v2/src/components/ui/RealTimeIndicator.tsx
 export function RealTimeIndicator() {
-  const connectionManager = ConnectionManager.getInstance();
-  const isOnline = connectionManager.isOnline;
-  const quality = connectionManager.connectionQuality;
-
-  return (
-    <div className="real-time-indicator">
-      {isOnline.value ? (
-        <div className={`status-dot ${quality.value}`} title="Real-time updates active">
-          <span className="pulse-animation" />
+    const connectionManager = ConnectionManager.getInstance();
+    const isOnline = connectionManager.isOnline;
+    
+    return (
+        <div className="real-time-indicator">
+            {isOnline.value ? (
+                <div className="status-dot online" title="Connected">
+                    <span className="pulse" />
+                </div>
+            ) : (
+                <div className="status-dot offline" title="Offline">
+                    <OfflineIcon />
+                </div>
+            )}
         </div>
-      ) : (
-        <div className="status-dot offline" title="Working offline">
-          <OfflineIcon />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// webapp-v2/src/components/ui/UpdateAnimation.tsx
-export function UpdateAnimation({ children, hasUpdate }) {
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    if (hasUpdate) {
-      setIsAnimating(true);
-      const timeout = setTimeout(() => setIsAnimating(false), 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [hasUpdate]);
-
-  return (
-    <div className={`update-container ${isAnimating ? 'updating' : ''}`}>
-      {children}
-      {isAnimating && (
-        <div className="update-overlay">
-          <div className="update-shimmer" />
-        </div>
-      )}
-    </div>
-  );
+    );
 }
 ```
 
 #### Success Criteria
 
-- Performance metrics within targets
-- Error recovery works seamlessly
-- Monitoring provides actionable insights
-- User experience smooth and responsive
-- Production-ready stability
+- Notifications trigger REST refreshes within 500ms
+- Polling fallback activates when notifications fail
+- Simple metrics show cost and performance
+- Connection indicator shows online/offline status
+- No memory leaks from listeners
 
 #### Testing Requirements
 
-- Load testing with concurrent users
-- Stress testing with high update frequency
-- Error injection and recovery tests
-- Performance benchmarking
-- User acceptance testing
+- Test notification listeners with mock data
+- Test polling fallback activation
+- Test optimistic updates and rollback
+- Test connection state changes
+- Test metric collection accuracy
 
 ---
 
@@ -1210,147 +773,121 @@ export function UpdateAnimation({ children, hasUpdate }) {
 
 ### Security
 
-- All streaming access controlled by Firestore rules
-- No client-side data that shouldn't be accessible
-- Rate limiting prevents abuse
-- Encrypted connections for all real-time data
+- Notification access controlled by Firestore rules
+- No sensitive data in notification documents
+- REST API handles all actual data transfer
+- Standard authentication for all endpoints
 
 ### Cost Management
 
-- Target: <100 Firestore reads/hour for notifications
-- Progressive enhancement reduces initial costs
-- Monitoring alerts for cost anomalies
-- Ability to throttle or disable features
+- Target: <100 Firestore reads/hour (notifications only)
+- REST API costs remain unchanged
+- Simple monitoring to track usage
+- Easy to disable notifications if needed
 
 ### Browser Compatibility
 
-- Progressive enhancement for older browsers
-- Fallback to REST for unsupported features
-- Polyfills for missing APIs
-- Graceful degradation strategy
+- Notifications optional - REST works everywhere
+- Polling fallback for older browsers
+- No complex browser APIs required
+- Works with existing REST infrastructure
 
 ### Performance Targets
 
-- Initial load: <2 seconds
-- Update latency: <500ms
-- Memory usage: <50MB increase
-- CPU usage: <5% idle
+- Initial load: Same as current (REST)
+- Update latency: <1 second after changes
+- Minimal memory overhead (< 5MB)
+- Negligible CPU usage
 
 ## Success Metrics
 
 ### Key Performance Indicators
 
-- **User Engagement**: 30% increase in session duration
-- **Collaboration**: 50% increase in concurrent editing
-- **Performance**: 40% reduction in perceived latency
-- **Cost**: 80% reduction vs full streaming
-- **Reliability**: 99.9% uptime with fallbacks
+- **User Experience**: Near real-time updates (< 1 second)
+- **Cost Efficiency**: < $10/month for notifications (10K users)
+- **Reliability**: Automatic fallback to polling
+- **Simplicity**: < 500 lines of new code
+- **Compatibility**: Works on all browsers
 
-### Monitoring Dashboard
+### Simple Monitoring
 
-- Real-time metrics visualization
-- Cost tracking and projections
-- Error rate monitoring
-- User behavior analytics
-- Performance trends
+- Notification count per hour
+- REST refresh frequency
+- Polling fallback activation rate
+- Average update latency
+- Estimated monthly cost
 
 ## Risk Mitigation
 
 ### Identified Risks
 
-1. **Firestore cost overrun**: Mitigated by notification-only approach
-2. **Browser compatibility**: Progressive enhancement strategy
-3. **Network reliability**: Comprehensive fallback mechanisms
-4. **User confusion**: Gradual rollout with clear indicators
+1. **Notification failures**: Automatic polling fallback
+2. **Cost increase**: Monitoring with alerts at thresholds
+3. **Browser issues**: REST continues to work normally
+4. **User confusion**: Subtle updates, no UI disruption
 
 ### Rollback Strategy
 
-Each phase independently reversible:
+Simple and safe:
 
-- **Phase 1**: Disable listeners, no data loss
-- **Phase 2**: Revert to original REST implementation
-- **Phase 3**: Disable streaming, keep REST updates
-- **Phase 4**: Remove optimizations if issues arise
+- **Disable notifications**: Just turn off listeners
+- **Keep REST**: Everything continues working
+- **No data migration**: No data stored in notifications
+- **Feature flag**: Single toggle to enable/disable
 
 ### Feature Flags
 
 ```typescript
 const FEATURE_FLAGS = {
-    streaming: {
-        enabled: process.env.ENABLE_STREAMING === 'true',
-        groups: true,
-        expenses: true,
-        balances: true,
-        progressiveRollout: 0.1, // 10% of users
+    notifications: {
+        enabled: process.env.ENABLE_NOTIFICATIONS === 'true',
+        pollingFallback: true,
+        pollingInterval: 30000
     },
-    optimizations: {
-        batching: true,
-        selectiveUpdates: true,
-        clientCalculation: true,
-    },
-    fallbacks: {
-        restOnError: true,
-        pollingInterval: 30000,
-        offlineMode: true,
-    },
+    optimisticUpdates: {
+        enabled: true
+    }
 };
 ```
 
 ## Implementation Timeline
 
-### Week 1: Foundation
+### Phase 1: Foundation (✅ COMPLETED)
+- Connection management
+- Change detection with debouncing
+- Cleanup schedule
+- Unit tests
 
-- Day 1-2: Security rules and change detection
-- Day 3-4: Connection management
-- Day 5: Testing and documentation
+### Phase 2: Notification + REST (Week 1)
+- Day 1-2: Notification listeners
+- Day 3: REST refresh logic
+- Day 4: Optimistic updates
+- Day 5: Testing
 
-### Week 2: REST Enhancement
-
-- Day 1-2: Enhanced REST endpoints
-- Day 3-4: Smart client stores
-- Day 5: Integration testing
-
-### Week 3: Progressive Streaming
-
-- Day 1-2: Group detail streaming
-- Day 3-4: Balance calculations
-- Day 5: Collaborative features
-
-### Week 4: Polish & Deploy
-
-- Day 1-2: Performance optimization
-- Day 3: Error handling and monitoring
-- Day 4: User experience enhancements
-- Day 5: Production deployment
-
-### Week 5: Monitoring & Iteration
-
-- Monitor metrics
-- Gather user feedback
-- Iterate on issues
-- Plan next enhancements
+### Phase 3: Polish (Week 2)
+- Day 1: Error handling and fallbacks
+- Day 2: Simple monitoring
+- Day 3: UI indicators
+- Day 4-5: Production testing and deployment
 
 ## Future Enhancements
 
-After successful implementation:
+After successful implementation, consider:
 
-- **Presence System**: Show who's viewing/editing
-- **Typing Indicators**: Real-time activity feedback
-- **Push Notifications**: Browser and mobile alerts
-- **Conflict Resolution UI**: Advanced merge tools
-- **Offline-First**: Complete offline functionality
-- **WebRTC Integration**: P2P for local networks
-- **Activity Feed**: Real-time group activity stream
-- **Collaborative Budgeting**: Real-time budget tracking
+- **Push Notifications**: Browser notifications for important changes
+- **Activity Feed**: Recent changes summary
+- **Smarter Refresh**: Only refresh changed components
+- **Offline Queue**: Queue changes when offline
+- **Batch Operations**: Group multiple changes
 
 ## Conclusion
 
-This unified plan combines the best of both approaches:
+This simplified notification-driven REST approach provides:
 
-- **Immediate Value**: Notification-driven REST provides quick wins
-- **Progressive Enhancement**: Gradual migration to full streaming
-- **Risk Mitigation**: Multiple fallback strategies
-- **Cost Optimization**: Minimal Firestore usage initially
-- **Future-Proof**: Clear path to advanced features
+- **Real-time feel**: Updates appear within seconds
+- **Low complexity**: Builds on existing REST infrastructure  
+- **Minimal cost**: Only pay for lightweight notifications
+- **High reliability**: REST fallback always available
+- **Easy maintenance**: Simple, understandable architecture
 
-The implementation is designed to be iterative, measurable, and reversible at each stage, ensuring minimal risk while maximizing value delivery to users.
+By avoiding complex streaming, we get 90% of the benefits with 10% of the complexity. The system remains debuggable, testable, and predictable while providing users with a responsive, real-time experience.
