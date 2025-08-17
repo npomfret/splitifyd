@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { GroupDetailPage, DashboardPage, JoinGroupPage, LoginPage } from '../pages';
+import { GroupDetailPage, JoinGroupPage, LoginPage } from '../pages';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import type { User as BaseUser } from '@shared/shared-types';
 

@@ -1,6 +1,5 @@
 import { pageTest, expect } from '../../fixtures';
 import { waitForApp, setupMCPDebugOnFailure } from '../../helpers';
-import { SELECTORS } from '../../constants/selectors';
 import { TIMEOUTS } from '../../config/timeouts';
 
 // Enable MCP debugging for failed tests

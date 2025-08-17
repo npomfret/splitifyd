@@ -1,8 +1,8 @@
 import { signal, batch } from '@preact/signals';
-import type { Group, CreateGroupRequest } from '../../../../firebase/functions/src/shared/shared-types';
+import type { Group, CreateGroupRequest } from '@shared/shared-types.ts';
 import { apiClient, ApiError } from '../apiClient';
-import { logWarning } from '../../utils/browser-logger';
-import { ChangeDetector } from '../../utils/change-detector';
+import { logWarning } from '@/utils/browser-logger.ts';
+import { ChangeDetector } from '@/utils/change-detector.ts';
 
 export interface EnhancedGroupsStore {
     groups: Group[];

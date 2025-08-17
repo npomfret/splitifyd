@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { EMULATOR_URL, setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { multiUserTest } from '../../fixtures';
 import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
-import { AuthenticationWorkflow, GroupWorkflow, MultiUserWorkflow } from '../../workflows';
+import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
 import { GroupDetailPage } from '../../pages';
 import { generateShortId } from '../../utils/test-helpers';
 
