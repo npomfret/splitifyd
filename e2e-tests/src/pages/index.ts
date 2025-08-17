@@ -5,6 +5,7 @@ export { DashboardPage } from './dashboard.page';
 export { CreateGroupModalPage } from './create-group-modal.page';
 export { GroupDetailPage } from './group-detail.page';
 export { ExpenseFormPage } from './expense-form.page';
+export { ExpenseDetailPage } from './expense-detail.page';
 export { SettlementFormPage } from './settlement-form.page';
 export { HomepagePage } from './homepage.page';
 export { JoinGroupPage } from './join-group.page';

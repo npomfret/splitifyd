@@ -1,7 +1,7 @@
 import { test as base, Page, BrowserContext } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
-import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage } from '../pages';
+import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
 import type { User as BaseUser } from '@shared/shared-types';
 
 export interface PageObjects {
@@ -11,6 +11,7 @@ export interface PageObjects {
     pricing: PricingPage;
     dashboard: DashboardPage;
     groupDetail: GroupDetailPage;
+    expenseDetail: ExpenseDetailPage;
     createGroupModal: CreateGroupModalPage;
 }
 
@@ -36,6 +37,7 @@ function createPageObjects(page: Page): PageObjects {
         pricing: new PricingPage(page),
         dashboard: new DashboardPage(page),
         groupDetail: new GroupDetailPage(page),
+        expenseDetail: new ExpenseDetailPage(page),
         createGroupModal: new CreateGroupModalPage(page),
     };
 }

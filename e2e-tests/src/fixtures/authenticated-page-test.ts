@@ -1,5 +1,5 @@
 import { multiUserTest } from './multi-user-declarative';
-import type { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage } from '../pages';
+import type { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
 import type { User as BaseUser } from '@shared/shared-types';
 
 export interface AuthenticatedPageFixtures {
@@ -14,6 +14,7 @@ export interface AuthenticatedPageFixtures {
     pricingPage: PricingPage;
     dashboardPage: DashboardPage;
     groupDetailPage: GroupDetailPage;
+    expenseDetailPage: ExpenseDetailPage;
     createGroupModalPage: CreateGroupModalPage;
 }
 
@@ -42,6 +43,9 @@ export const authenticatedPageTest = multiUserTest.extend<AuthenticatedPageFixtu
     },
     groupDetailPage: async ({ primaryUser }, use) => {
         await use(primaryUser.pages.groupDetail);
+    },
+    expenseDetailPage: async ({ primaryUser }, use) => {
+        await use(primaryUser.pages.expenseDetail);
     },
     createGroupModalPage: async ({ primaryUser }, use) => {
         await use(primaryUser.pages.createGroupModal);
