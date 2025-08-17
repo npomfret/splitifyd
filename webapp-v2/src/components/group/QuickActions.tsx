@@ -1,5 +1,5 @@
 import { Button } from '../ui/Button';
-import { SidebarCard } from '../ui/SidebarCard';
+import { SidebarCard } from '@/components/ui';
 
 interface QuickActionsProps {
     onAddExpense?: () => void;

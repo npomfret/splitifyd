@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
-import { GroupCard } from '../../../components/dashboard/GroupCard';
+import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import type { Group, User } from '@shared/shared-types';
 
 // Helper to create test groups

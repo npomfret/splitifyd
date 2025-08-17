@@ -1,4 +1,4 @@
-import { useConfig } from '../../hooks/useConfig';
+import { useConfig } from '@/hooks/useConfig.ts';
 
 export function WarningBanner() {
     const config = useConfig();

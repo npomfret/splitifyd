@@ -1,8 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { DashboardPage, CreateGroupModalPage, GroupDetailPage } from '../pages';
-import { AuthenticationWorkflow } from './authentication.workflow';
 import type { User as BaseUser } from '@shared/shared-types';
-import { generateTestGroupName } from '../utils/test-helpers';
 
 export interface TestGroup {
     name: string;

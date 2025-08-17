@@ -1,6 +1,5 @@
-import { pageTest, expect } from '../../fixtures';
+import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
-import { SELECTORS } from '../../constants/selectors';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();

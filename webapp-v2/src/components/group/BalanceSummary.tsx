@@ -1,9 +1,9 @@
 import { useMemo } from 'preact/hooks';
 import { Card } from '../ui/Card';
-import { SidebarCard } from '../ui/SidebarCard';
+import { SidebarCard } from '@/components/ui';
 import { Stack } from '../ui/Stack';
-import { formatCurrency } from '../../utils/currency';
-import type { GroupBalances, User, SimplifiedDebt } from '../../../../firebase/functions/src/shared/shared-types';
+import { formatCurrency } from '@/utils/currency';
+import type { GroupBalances, User, SimplifiedDebt } from '@shared/shared-types.ts';
 
 interface BalanceSummaryProps {
     balances: GroupBalances | null;
