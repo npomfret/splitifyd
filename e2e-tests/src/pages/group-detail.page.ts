@@ -64,6 +64,16 @@ export class GroupDetailPage extends BasePage {
         await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
         await this.page.waitForLoadState('domcontentloaded');
 
+        // Wait for any loading spinner to disappear before proceeding
+        // This ensures the expense form is fully loaded
+        const loadingSpinner = this.page.locator('.animate-spin');
+        const loadingText = this.page.getByText('Loading expense form...');
+        
+        if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
+            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
+            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
+        }
+
         // Create and validate the expense form page
         const expenseFormPage = new ExpenseFormPage(this.page);
         await expenseFormPage.waitForFormReady(expectedMemberCount);
