@@ -152,7 +152,7 @@ test.describe('Expense Editing Error Testing', () => {
     await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
     
     await expenseFormPage.clickSaveExpenseButton();
-    await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await waitForURLWithContext(page, groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     // Verify expense was created
     await expect(groupDetailPage.getExpenseByDescription('Original Description')).toBeVisible();
@@ -160,14 +160,14 @@ test.describe('Expense Editing Error Testing', () => {
     // Edit the description - rest of the test continues from here...
     const expenseElement = groupDetailPage.getExpenseByDescription('Original Description');
     await expenseElement.click();
-    
     await page.waitForLoadState('domcontentloaded');
     
     const editButton = page.getByRole('button', { name: /edit/i });
     await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     await editButton.click();
-    
-    await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+    await page.waitForLoadState('domcontentloaded');
+
+    await waitForURLWithContext(page, editExpenseUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
     
     const descriptionField = page.getByPlaceholder('What was this expense for?');
     await expect(descriptionField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
