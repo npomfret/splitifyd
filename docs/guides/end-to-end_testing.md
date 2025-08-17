@@ -51,6 +51,8 @@ In general, the end-to-end test suite is quite slow. During development, ONLY ru
 
 Our E2E tests are the ultimate guarantee of quality. They must be fast, reliable, and deterministic. Adherence to these principles is not optional.
 
+However, they are slow: Do not use them when a simple unit test would be better and faster.  They are for _coarse grained_ testing.
+
 ### 1. Speed and Performance
 
 - **1.5 Second Action Timeout**: Actions must be immediate. This forces the use of efficient and reliable selectors.
