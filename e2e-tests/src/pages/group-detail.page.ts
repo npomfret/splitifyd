@@ -90,11 +90,11 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: /share/i });
     }
     
-    getShareDialog() {
+    private getShareDialog() {
         return this.page.getByRole('dialog');
     }
     
-    getShareLinkInput() {
+    private getShareLinkInput() {
         return this.getShareDialog().locator('input[type="text"]');
     }
     
@@ -474,14 +474,18 @@ export class GroupDetailPage extends BasePage {
      * @returns The share link URL
      */
     async shareGroupAndWaitForJoin(joinerPage: any): Promise<string> {
+        // Import JoinGroupPage for proper page object pattern
+        const { JoinGroupPage } = await import('./join-group.page');
+        
         // Get the share link from the modal
         const shareLink = await this.getShareLink();
 
         // Have the second user navigate to share link and join with fast timeout
         await this.navigatePageToShareLink(joinerPage, shareLink);
 
-        // Click join button with fast timeout
-        const joinButton = joinerPage.getByRole('button', { name: /join group/i });
+        // Use JoinGroupPage methods instead of direct getByRole
+        const joinGroupPage = new JoinGroupPage(joinerPage);
+        const joinButton = joinGroupPage.getJoinGroupButton();
         await joinButton.waitFor({ state: 'visible', timeout: 1000 });
         await this.clickButton(joinButton, { buttonName: 'Join Group' });
 

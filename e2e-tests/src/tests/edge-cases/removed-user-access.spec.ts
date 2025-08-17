@@ -25,7 +25,14 @@ multiUserTest.describe('Multi-User Group Access', () => {
         // User 2 joins via share link using proper workflow
         const multiUserWorkflow = new MultiUserWorkflow();
         const shareLink = await multiUserWorkflow.getShareLink(user1Page);
-        await multiUserWorkflow.joinGroupViaShareLink(user2Page, shareLink, user2);
+        
+        // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
+        const { JoinGroupPage } = await import('../../pages');
+        const joinGroupPage = new JoinGroupPage(user2Page);
+        const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
+        if (!joinResult.success) {
+            throw new Error(`Failed to join group: ${joinResult.reason}`);
+        }
 
         // Verify user 2 is in the group
         await expect(user2Page).toHaveURL(`/groups/${groupId}`);

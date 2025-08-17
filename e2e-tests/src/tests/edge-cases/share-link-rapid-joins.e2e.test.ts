@@ -23,7 +23,17 @@ test.describe('Share Link - Edge Cases', () => {
             const shareLink = await multiUserWorkflow.getShareLink(creatorPage);
 
             // Have the other 3 users join rapidly
-            const joinPromises = users.slice(1).map((userFixture) => multiUserWorkflow.joinGroupViaShareLink(userFixture.page, shareLink, userFixture.user));
+            const { JoinGroupPage } = await import('../../pages');
+            const joinPromises = users.slice(1).map(async (userFixture) => {
+                const joinGroupPage = new JoinGroupPage(userFixture.page);
+                const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink, { 
+                    displayName: userFixture.user.displayName, 
+                    email: userFixture.user.email 
+                });
+                if (!joinResult.success) {
+                    throw new Error(`Failed to join group: ${joinResult.reason}`);
+                }
+            });
 
             // Wait for all joins to complete
             await Promise.all(joinPromises);

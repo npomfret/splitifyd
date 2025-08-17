@@ -3,7 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { multiUserTest } from '../../fixtures';
 import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
-import { GroupDetailPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
 import { generateShortId } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
@@ -27,7 +27,14 @@ test.describe('Comprehensive Share Link Testing', () => {
             expect(shareLink).toContain('/join?linkId=');
 
             // User2 (already logged in) joins via share link
-            await multiUserWorkflow.joinGroupViaShareLink(page2, shareLink, user2);
+            const joinGroupPage2 = new JoinGroupPage(page2);
+            const joinResult = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
+                displayName: user2.displayName, 
+                email: user2.email 
+            });
+            if (!joinResult.success) {
+                throw new Error(`Failed to join group: ${joinResult.reason}`);
+            }
 
             // Verify user2 is now in the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -51,7 +58,14 @@ test.describe('Comprehensive Share Link Testing', () => {
             const shareLink = await multiUserWorkflow.getShareLink(page1);
 
             // User2 joins first time
-            await multiUserWorkflow.joinGroupViaShareLink(page2, shareLink, user2);
+            const joinGroupPage2 = new JoinGroupPage(page2);
+            const joinResult = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
+                displayName: user2.displayName, 
+                email: user2.email 
+            });
+            if (!joinResult.success) {
+                throw new Error(`Failed to join group: ${joinResult.reason}`);
+            }
 
             // User2 tries to join again - should show already member message
             await multiUserWorkflow.testShareLinkAlreadyMember(page2, shareLink);

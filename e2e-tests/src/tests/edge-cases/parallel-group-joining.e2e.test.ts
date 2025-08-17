@@ -51,12 +51,15 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             // Other users join in parallel
             const joinPromises = pages.slice(1).map(async (page, i) => {
                 const joinGroupPage = new JoinGroupPage(page);
-                await page.goto(shareLink);
+                
+                // Navigate to share link using page object method
+                await joinGroupPage.navigateToShareLink(shareLink);
 
-                // Just click join button - that's all that's needed
-                const joinButton = joinGroupPage.getJoinGroupButton();
-                await joinButton.click();
-                await page.waitForURL(new RegExp(`/groups/${groupId}`), { timeout: 10000 });
+                // Use the joinGroup method with proper error handling
+                await joinGroupPage.joinGroup({
+                    expectedRedirectPattern: new RegExp(`/groups/${groupId}`),
+                    maxRetries: 1  // Reduce retries for parallel joins
+                });
 
                 return users[i + 1].displayName;
             });
@@ -122,10 +125,15 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             const joinPromises = pages.slice(1).map(async (page, i) => {
                 try {
                     const joinGroupPage = new JoinGroupPage(page);
-                    await page.goto(shareLink);
-                    const joinButton = joinGroupPage.getJoinGroupButton();
-                    await joinButton.click();
-                    await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+                    
+                    // Navigate to share link using page object method
+                    await joinGroupPage.navigateToShareLink(shareLink);
+                    
+                    // Use the joinGroup method with proper error handling
+                    await joinGroupPage.joinGroup({
+                        expectedRedirectPattern: /\/groups\/[a-zA-Z0-9]+$/,
+                        maxRetries: 1  // Reduce retries for race condition testing
+                    });
                     return true;
                 } catch {
                     return false;

@@ -20,50 +20,6 @@ export class MultiUserWorkflow {
         return await groupDetailPage.getShareLink();
     }
 
-    /**
-     * Joins a group via share link with comprehensive error handling.
-     * Handles different authentication states automatically.
-     */
-    async joinGroupViaShareLink(page: Page, shareLink: string, user?: BaseUser): Promise<void> {
-        const joinGroupPage = new JoinGroupPage(page);
-
-        try {
-            // Attempt join with state detection
-            const result = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
-
-            if (result.success) {
-                // Wait for group page to load completely
-                await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
-                await page.waitForLoadState('domcontentloaded');
-                return;
-            }
-
-            // Handle different failure scenarios
-            if (result.needsLogin) {
-                throw new Error(`Join group failed ${JSON.stringify(result)}`);
-            }
-
-            if (result.alreadyMember) {
-                // User is already a member - this might be expected in some tests
-                console.warn(`User ${user?.displayName || 'unknown'} is already a member of the group`);
-                return;
-            }
-
-            if (result.error) {
-                throw new Error(`User ${user?.displayName || 'unknown'} (${user?.email || 'unknown'}) failed to join group: ${result.reason}`);
-            }
-
-            throw new Error(`Unexpected join result: ${result.reason}`);
-        } catch (error) {
-            // Take debug screenshot
-            await joinGroupPage.takeDebugScreenshot(`failed-join-${user?.displayName || 'user'}`);
-
-            // Get detailed page state for debugging
-            const pageState = await joinGroupPage.getPageState();
-
-            throw new Error(`Failed to join group via share link: ${error}. Page state: ${JSON.stringify(pageState, null, 2)}`);
-        }
-    }
 
     /**
      * Tests share link with user who is already a member.
