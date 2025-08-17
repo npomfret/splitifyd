@@ -180,19 +180,6 @@ export function filterTimeSuggestions(input: string, allSuggestions: string[]): 
     return [...startsWithMatches, ...containsMatches].slice(0, 8);
 }
 
-export function validateAndNormalizeTime(input: string): string | null {
-    if (!input || !input.trim()) {
-        return null;
-    }
-
-    const parsed = parseTimeString(input);
-    if (!parsed) {
-        return null;
-    }
-
-    return formatTime24(parsed);
-}
-
 export function convertTo12HourDisplay(time24: string): string {
     if (!time24 || !time24.includes(':')) {
         return '';
