@@ -11,57 +11,49 @@ test.describe('Comprehensive Navigation E2E', () => {
         await homepagePage.navigate();
 
         // Verify homepage loads with key elements
-        await expect(
-            page.getByRole('heading', {
-                name: 'Effortless Bill Splitting, Simplified & Smart.',
-            }),
-        ).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Pricing' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Sign Up', exact: true })).toBeVisible();
+        await expect(homepagePage.getMainHeading()).toBeVisible();
+        await expect(homepagePage.getPricingLink()).toBeVisible();
+        await expect(homepagePage.getLoginLink()).toBeVisible();
+        await expect(homepagePage.getSignUpLink()).toBeVisible();
 
         // Navigate to Pricing
-        await page.getByRole('link', { name: 'Pricing' }).click();
+        await homepagePage.getPricingLink().click();
         await expect(page).toHaveURL(/\/pricing/);
-        await expect(page.getByRole('heading', { name: 'Pricing' })).toBeVisible();
+        await expect(pricingPage.getHeading('Pricing')).toBeVisible();
 
         // Navigate to Login from header
-        await page.getByRole('link', { name: 'Login' }).click();
+        await homepagePage.getLoginLink().click();
         await expect(page).toHaveURL(/\/login/);
-        await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
+        await expect(loginPage.getHeading('Sign In')).toBeVisible();
 
         // Navigate back to home via logo
-        await page.getByAltText('Splitifyd').click();
-        await expect(
-            page.getByRole('heading', {
-                name: 'Effortless Bill Splitting, Simplified & Smart.',
-            }),
-        ).toBeVisible();
+        await homepagePage.getLogo().click();
+        await expect(homepagePage.getMainHeading()).toBeVisible();
 
         // Navigate to Register
-        await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
+        await homepagePage.getSignUpLink().click();
         await expect(page).toHaveURL(/\/register/);
-        await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
+        await expect(registerPage.getHeading('Create Account')).toBeVisible();
 
         // Test logo navigation from pricing page
         await pricingPage.navigate();
-        const logoLink = page.getByRole('link', { name: /splitifyd|home/i }).first();
+        const logoLink = homepagePage.getLogoLink();
         await logoLink.click();
         await expect(page).toHaveURL(EMULATOR_URL);
     });
 
-    test('should navigate to static pages from footer', async ({ page, loginPage }) => {
+    test('should navigate to static pages from footer', async ({ page, loginPage, homepagePage }) => {
         await loginPage.navigate();
 
         // Navigate to Terms
-        await page.getByRole('link', { name: 'Terms' }).click();
+        await homepagePage.getTermsLink().click();
         await expect(page).toHaveURL(/\/terms/);
 
         // Navigate back to login
         await loginPage.navigate();
 
         // Navigate to Privacy
-        await page.getByRole('link', { name: 'Privacy' }).click();
+        await homepagePage.getPrivacyLink().click();
         await expect(page).toHaveURL(/\/privacy/);
     });
 
@@ -69,13 +61,13 @@ test.describe('Comprehensive Navigation E2E', () => {
         await homepagePage.navigate();
 
         // Check footer exists and has required links
-        const footer = page.locator(SELECTORS.FOOTER);
+        const footer = homepagePage.getFooter();
         await expect(footer).toBeVisible();
 
-        const termsLink = footer.getByRole('link', { name: 'Terms' });
+        const termsLink = homepagePage.getTermsLink();
         await expect(termsLink).toBeVisible();
 
-        const privacyLink = footer.getByRole('link', { name: 'Privacy' });
+        const privacyLink = homepagePage.getPrivacyLink();
         await expect(privacyLink).toBeVisible();
     });
 });

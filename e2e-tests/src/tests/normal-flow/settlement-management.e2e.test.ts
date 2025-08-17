@@ -57,12 +57,7 @@ test.describe('Settlement Management', () => {
         await expect(submitButton).toBeDisabled();
 
         // Close modal by clicking close button or outside
-        const closeButton = page.getByRole('button', { name: /close|×/i }).first();
-        if (await closeButton.isVisible()) {
-            await closeButton.click();
-        } else {
-            await page.click('body', { position: { x: 10, y: 10 } });
-        }
+        await groupDetailPage.closeModal();
         await expect(modal).not.toBeVisible();
     });
 });

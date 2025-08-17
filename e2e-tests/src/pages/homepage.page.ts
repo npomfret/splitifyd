@@ -7,25 +7,50 @@ export class HomepagePage extends BasePage {
     }
 
     // Header elements
-    async getStartedButton() {
+    getStartedButton() {
         return this.page.getByRole('button', { name: /get started|start/i });
     }
 
-    async pricingLink() {
-        return this.page.getByRole('link', { name: /pricing/i });
+    getPricingLink() {
+        return this.page.getByRole('link', { name: 'Pricing' });
     }
 
-    async signInLink() {
-        return this.page.getByRole('link', { name: /sign in|login/i });
+    getLoginLink() {
+        return this.page.getByRole('link', { name: 'Login' });
     }
 
-    async signUpLink() {
-        return this.page.getByRole('link', { name: /sign up|register/i });
+    getSignUpLink() {
+        return this.page.getByRole('link', { name: 'Sign Up', exact: true });
     }
 
     // Content sections
-    async mainHeading() {
-        return this.page.getByRole('heading', { level: 1 });
+    getMainHeading() {
+        return this.page.getByRole('heading', {
+            name: 'Effortless Bill Splitting, Simplified & Smart.'
+        });
+    }
+    
+    // Footer links
+    getTermsLink() {
+        return this.page.getByRole('link', { name: 'Terms' });
+    }
+    
+    getPrivacyLink() {
+        return this.page.getByRole('link', { name: 'Privacy' });
+    }
+    
+    // Logo
+    getLogo() {
+        return this.page.getByAltText('Splitifyd');
+    }
+    
+    getLogoLink() {
+        return this.page.getByRole('link', { name: /splitifyd|home/i }).first();
+    }
+    
+    // Footer element
+    getFooter() {
+        return this.page.locator('footer');
     }
 
     // Additional element accessors for test refactoring

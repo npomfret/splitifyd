@@ -11,8 +11,8 @@ pageTest.describe('Policy Pages E2E', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Verify the page loaded with terms content
-        await page
-            .getByRole('heading', { level: 1 })
+        await homepagePage
+            .getHeadingByLevel(1)
             .filter({ hasText: /Terms of Service|Terms and Conditions/ })
             .first()
             .waitFor();
@@ -24,8 +24,8 @@ pageTest.describe('Policy Pages E2E', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Verify the page loaded with privacy content
-        await page
-            .getByRole('heading', { level: 1 })
+        await homepagePage
+            .getHeadingByLevel(1)
             .filter({ hasText: /Privacy Policy|Privacy/ })
             .first()
             .waitFor();
@@ -37,8 +37,8 @@ pageTest.describe('Policy Pages E2E', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Verify the page loaded with cookie content
-        await page
-            .getByRole('heading', { level: 1 })
+        await homepagePage
+            .getHeadingByLevel(1)
             .filter({ hasText: /Cookie Policy|Cookie/ })
             .first()
             .waitFor();
@@ -53,8 +53,8 @@ pageTest.describe('Policy Pages E2E', () => {
             // Start with terms page
             await homepagePage.navigateToStaticPath('/terms');
             await waitForApp(page);
-            await page
-                .getByRole('heading', { level: 1 })
+            await homepagePage
+                .getHeadingByLevel(1)
                 .filter({ hasText: /Terms of Service|Terms and Conditions/ })
                 .first()
                 .waitFor();
@@ -62,8 +62,8 @@ pageTest.describe('Policy Pages E2E', () => {
             // Navigate to privacy
             await homepagePage.navigateToStaticPath('/privacy');
             await waitForApp(page);
-            await page
-                .getByRole('heading', { level: 1 })
+            await homepagePage
+                .getHeadingByLevel(1)
                 .filter({ hasText: /Privacy Policy|Privacy/ })
                 .first()
                 .waitFor();
@@ -71,8 +71,8 @@ pageTest.describe('Policy Pages E2E', () => {
             // Navigate to cookies
             await homepagePage.navigateToStaticPath('/cookies');
             await waitForApp(page);
-            await page
-                .getByRole('heading', { level: 1 })
+            await homepagePage
+                .getHeadingByLevel(1)
                 .filter({ hasText: /Cookie Policy|Cookie/ })
                 .first()
                 .waitFor();
@@ -84,8 +84,8 @@ pageTest.describe('Policy Pages E2E', () => {
         await waitForApp(page);
 
         // Ensure policy content appears and no loading spinners remain visible
-        await page
-            .getByRole('heading', { level: 1 })
+        await homepagePage
+            .getHeadingByLevel(1)
             .filter({ hasText: /Terms of Service|Terms and Conditions/ })
             .first()
             .waitFor();

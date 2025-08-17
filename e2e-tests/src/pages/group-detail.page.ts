@@ -89,6 +89,19 @@ export class GroupDetailPage extends BasePage {
     getShareButton() {
         return this.page.getByRole('button', { name: /share/i });
     }
+    
+    getShareDialog() {
+        return this.page.getByRole('dialog');
+    }
+    
+    getShareLinkInput() {
+        return this.getShareDialog().locator('input[type="text"]');
+    }
+    
+    getCloseButton() {
+        return this.page.getByRole('button', { name: /close|×/i }).first();
+    }
+    
     // User-related accessors
     getUserName(displayName: string) {
         return this.page.getByText(displayName).first();
@@ -591,7 +604,7 @@ export class GroupDetailPage extends BasePage {
         await shareButton.click();
 
         // Wait for modal to appear
-        const dialog = this.page.getByRole('dialog');
+        const dialog = this.getShareDialog();
         await expect(dialog).toBeVisible();
 
         // Wait for loading spinner to disappear if present
@@ -601,7 +614,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         // Get the share link
-        const shareLinkInput = dialog.locator('input[type="text"]');
+        const shareLinkInput = this.getShareLinkInput();
         await expect(shareLinkInput).toBeVisible({ timeout: 5000 });
         const shareLink = await shareLinkInput.inputValue();
 
@@ -610,7 +623,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         // Close modal by clicking close button or clicking outside
-        const closeButton = this.page.getByRole('button', { name: /close|×/i }).first();
+        const closeButton = this.getCloseButton();
         if (await closeButton.isVisible()) {
             await closeButton.click();
         } else {
@@ -696,7 +709,7 @@ export class GroupDetailPage extends BasePage {
      * Close modal or dialog
      */
     async closeModal(): Promise<void> {
-        const closeButton = this.page.getByRole('button', { name: /close|×/i }).first();
+        const closeButton = this.getCloseButton();
         if (await closeButton.isVisible()) {
             await closeButton.click();
         } else {

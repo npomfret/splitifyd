@@ -1,6 +1,7 @@
 import { pageTest, expect } from '../../fixtures';
 import { waitForApp, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUTS } from '../../config/timeouts';
+import { RegisterPage } from '../../pages/register.page';
 
 // Enable MCP debugging for failed tests
 setupMCPDebugOnFailure();
@@ -17,7 +18,7 @@ pageTest.describe('Performance Monitoring E2E', () => {
 
         // Page should still be functional on slow network
         await waitForApp(page);
-        await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
+        await expect(loginPage.getHeading('Sign In')).toBeVisible();
 
         // COMPREHENSIVE FUNCTIONALITY TEST (fixing misleading test name)
         // Test all form interactions, not just one input
@@ -46,7 +47,8 @@ pageTest.describe('Performance Monitoring E2E', () => {
 
         // Should navigate to register page even with slow network
         await expect(page).toHaveURL(/\/register/);
-        await expect(page.getByRole('heading', { name: 'Create Account' })).toBeVisible();
+        const registerPage = new RegisterPage(page);
+        await expect(registerPage.getHeading('Create Account')).toBeVisible();
 
         // No console errors
         // Console errors are automatically captured by
