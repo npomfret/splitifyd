@@ -1,5 +1,30 @@
 ## Testing
 
+We have just 2 types of test:
+
+- unit tests - these do not need the emulator to be running
+- integration tests - these DO need the emulator to be running
+
+## Tech choices 
+
+We use Jest as a test runner and Playwright for in-browser testing.
+
+## Example run commands
+
+Each build file _should_ follow the same patther with its run targets. 
+
+```
+npm run test:unit
+npm run test:integration # runs only the integration tests (the emulator is not needed) 
+npm run test # runs all tests (the emulator is not needed) 
+```
+
+To run just one test:
+
+```shell
+npx jest src/__tests__/integration/normal-flow/group-members.test.ts --verbose --json --outputFile test-report.json 
+```
+
 ## Guidelines for Writing Tests
 
 - Test complexity must be lower than the code they exercise
@@ -97,18 +122,3 @@ const result = await pollUntil(
 expect(result.value).toBe(expectedValue);
 ```
 
-## Examples run commands
-
-These npm targets work at the root and within every sub-package.  They delegate to child packages.
-
-```
-npm run test:unit # runs only the unit tests (the emulator is not needed)
-npm run test:integration # runs only the integration tests (the emulator is not needed) 
-npm run test # runs all tests (the emulator is not needed) 
-```
-
-To run just one test:
-
-```shell
-npx jest src/__tests__/integration/normal-flow/group-members.test.ts --verbose --json --outputFile test-report.json 
-```
