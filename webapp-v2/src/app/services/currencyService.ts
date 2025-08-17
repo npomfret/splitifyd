@@ -1,6 +1,4 @@
-import {
-    isValidCurrency,
-} from '../../utils/currency';
+import { isValidCurrency } from '../../utils/currency';
 import type { UserScopedStorage } from '../../utils/userScopedStorage';
 
 export class CurrencyService {
@@ -52,7 +50,7 @@ export class CurrencyService {
                 if (Array.isArray(parsed)) {
                     // Clear existing currencies before loading
                     this.recentCurrencies.clear();
-                    parsed.slice(0, this.MAX_RECENT_CURRENCIES).forEach(code => {
+                    parsed.slice(0, this.MAX_RECENT_CURRENCIES).forEach((code) => {
                         if (isValidCurrency(code)) {
                             this.recentCurrencies.add(code);
                         }
@@ -97,4 +95,3 @@ export class CurrencyService {
         return Array.from(this.recentCurrencies).reverse();
     }
 }
-

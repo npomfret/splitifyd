@@ -3,121 +3,121 @@ import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
 export class LoginPage extends BasePage {
-  // Selectors
-  readonly url = '/login';
-  readonly signInButton = 'Sign In';
-  readonly signUpLink = 'Sign up';
-  readonly forgotPasswordLink = 'Forgot your password?';
+    // Selectors
+    readonly url = '/login';
+    readonly signInButton = 'Sign In';
+    readonly signUpLink = 'Sign up';
+    readonly forgotPasswordLink = 'Forgot your password?';
 
-  async navigate() {
-    await this.navigateToLogin();
-    
-    // Fail fast if we're not on the login page
-    // This ensures tests start from a known state
-    try {
-      await this.expectUrl(/\/login/);
-    } catch (error) {
-      throw new Error('Expected to navigate to login page but was redirected. Test requires clean authentication state.');
+    async navigate() {
+        await this.navigateToLogin();
+
+        // Fail fast if we're not on the login page
+        // This ensures tests start from a known state
+        try {
+            await this.expectUrl(/\/login/);
+        } catch (error) {
+            throw new Error('Expected to navigate to login page but was redirected. Test requires clean authentication state.');
+        }
     }
-  }
-  
-  async fillLoginForm(email: string, password: string, rememberMe = false) {
-    await this.fillPreactInput(SELECTORS.EMAIL_INPUT, email);
-    await this.fillPreactInput(SELECTORS.PASSWORD_INPUT, password);
-    if (rememberMe) {
-      await this.page.locator(SELECTORS.CHECKBOX).check();
+
+    async fillLoginForm(email: string, password: string, rememberMe = false) {
+        await this.fillPreactInput(SELECTORS.EMAIL_INPUT, email);
+        await this.fillPreactInput(SELECTORS.PASSWORD_INPUT, password);
+        if (rememberMe) {
+            await this.page.locator(SELECTORS.CHECKBOX).check();
+        }
     }
-  }
-  
-  async submitForm() {
-    // Use standardized button click with proper error handling
-    const submitButton = this.getSubmitButton();
-    await this.clickButton(submitButton, { buttonName: this.signInButton });
-  }
-  
-  async login(email: string, password: string, rememberMe = false) {
-    await this.fillLoginForm(email, password, rememberMe);
-    await this.submitForm();
-    
-    // Simple approach: just wait for the form submission to complete
-    // The AuthenticationWorkflow will handle waiting for dashboard
-    await this.waitForNetworkIdle();
-  }
 
-  async clickSignUp() {
-    const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink }).first();
-    // Note: Links aren't buttons, but we can still ensure they're enabled
-    await expect(link).toBeEnabled();
-    await link.click();
-  }
-  
-  async clickForgotPassword() {
-    const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
-    // Note: Links aren't buttons, but we can still ensure they're enabled
-    await expect(link).toBeEnabled();
-    await link.click();
-  }
+    async submitForm() {
+        // Use standardized button click with proper error handling
+        const submitButton = this.getSubmitButton();
+        await this.clickButton(submitButton, { buttonName: this.signInButton });
+    }
 
-  // Element accessors for direct interaction in tests
-  getEmailInput() {
-    return this.page.locator(SELECTORS.EMAIL_INPUT);
-  }
+    async login(email: string, password: string, rememberMe = false) {
+        await this.fillLoginForm(email, password, rememberMe);
+        await this.submitForm();
 
-  getPasswordInput() {
-    return this.page.locator(SELECTORS.PASSWORD_INPUT);
-  }
+        // Simple approach: just wait for the form submission to complete
+        // The AuthenticationWorkflow will handle waiting for dashboard
+        await this.waitForNetworkIdle();
+    }
 
-  getRememberMeCheckbox() {
-    return this.page.locator(SELECTORS.CHECKBOX);
-  }
+    async clickSignUp() {
+        const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink }).first();
+        // Note: Links aren't buttons, but we can still ensure they're enabled
+        await expect(link).toBeEnabled();
+        await link.click();
+    }
 
-  getSubmitButton() {
-    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signInButton });
-  }
+    async clickForgotPassword() {
+        const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
+        // Note: Links aren't buttons, but we can still ensure they're enabled
+        await expect(link).toBeEnabled();
+        await link.click();
+    }
 
-  getSignUpLink() {
-    return this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink });
-  }
+    // Element accessors for direct interaction in tests
+    getEmailInput() {
+        return this.page.locator(SELECTORS.EMAIL_INPUT);
+    }
 
-  getForgotPasswordLink() {
-    return this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
-  }
+    getPasswordInput() {
+        return this.page.locator(SELECTORS.PASSWORD_INPUT);
+    }
 
-  // Form element labels and headings
-  getSignInHeading() {
-    return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.SIGN_IN });
-  }
+    getRememberMeCheckbox() {
+        return this.page.locator(SELECTORS.CHECKBOX);
+    }
 
-  getEmailLabel() {
-    return this.page.getByText('Email address *');
-  }
+    getSubmitButton() {
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signInButton });
+    }
 
-  getPasswordLabel() {
-    return this.page.getByText('Password *');
-  }
+    getSignUpLink() {
+        return this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink });
+    }
 
-  // Security testing methods
-  getLoginForm() {
-    return this.page.locator('[data-testid="login-form"]');
-  }
+    getForgotPasswordLink() {
+        return this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
+    }
 
-  getDashboardElement() {
-    return this.page.locator('[data-testid="dashboard"]');
-  }
+    // Form element labels and headings
+    getSignInHeading() {
+        return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.SIGN_IN });
+    }
 
-  getEmailInputTestId() {
-    return this.page.locator('[data-testid="email-input"]');
-  }
+    getEmailLabel() {
+        return this.page.getByText('Email address *');
+    }
 
-  getPasswordInputTestId() {
-    return this.page.locator('[data-testid="password-input"]');
-  }
+    getPasswordLabel() {
+        return this.page.getByText('Password *');
+    }
 
-  getLoginSubmitTestId() {
-    return this.page.locator('[data-testid="login-submit"]');
-  }
+    // Security testing methods
+    getLoginForm() {
+        return this.page.locator('[data-testid="login-form"]');
+    }
 
-  getErrorMessage() {
-    return this.page.locator('[data-testid="error-message"]');
-  }
+    getDashboardElement() {
+        return this.page.locator('[data-testid="dashboard"]');
+    }
+
+    getEmailInputTestId() {
+        return this.page.locator('[data-testid="email-input"]');
+    }
+
+    getPasswordInputTestId() {
+        return this.page.locator('[data-testid="password-input"]');
+    }
+
+    getLoginSubmitTestId() {
+        return this.page.locator('[data-testid="login-submit"]');
+    }
+
+    getErrorMessage() {
+        return this.page.locator('[data-testid="error-message"]');
+    }
 }

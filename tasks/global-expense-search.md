@@ -7,6 +7,7 @@ Implement a global search tool that allows users to search for any expense acros
 ## Search Fields
 
 The search should cover the following fields:
+
 - Expense description
 - Expense amount
 - Expense category

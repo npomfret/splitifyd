@@ -1,67 +1,68 @@
 {
-  "name": "functions",
-  "version": "1.0.0",
-  "description": "Cloud Functions for Firebase",
-  "scripts": {
-    "build": "npm run build:check && tsc && node scripts/inject-build-info.js",
-    "build:check": "tsc --project tsconfig.build.json --noEmit",
-    "build:prod": "tsc && node scripts/inject-build-info.js",
-    "watch": "tsc --watch",
-    "clean": "rm -rf lib coverage",
-    "test": "npm run build && npm run test:unit && npm run test:integration",
-    "test:unit": "npm run build && jest src/__tests__/unit/",
-    "test:integration": "npm run build && jest src/__tests__/integration/",
-    "validate-cors": "node scripts/validate-cors.js",
-    "seed:policies": "tsx src/scripts/seed-policies.ts",
-    "format": "prettier --write \"src/**/*.{ts,js,json}\" \"scripts/**/*.{js,json}\""
-  },
-  "engines": {
-    "node": "22"
-  },
-  "main": "lib/index.js",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.0",
-    "express": "^5.1.0",
-    "firebase-admin": "^13.4.0",
-    "firebase-functions": "^6.4.0",
-    "joi": "^17.13.3",
-    "xss": "^1.0.15",
-    "zod": "^4.0.5"
-  },
-  "devDependencies": {
-    "@splitifyd/test-support": "*",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.0.14",
-    "@types/supertest": "^6.0.3",
-    "@types/uuid": "^10.0.0",
-    "depcheck": "^1.4.7",
-    "supertest": "^7.1.3",
-    "tsx": "^4.7.0",
-    "typescript": "^5.8.3",
-    "uuid": "^11.1.0"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.d.ts"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.test.ts",
-      "src/**/*.test.ts"
-    ],
-    "transform": {
-      "^.+\\.ts$": [
-        "ts-jest",
-        {
-          "tsconfig": "tsconfig.test.json"
+    "name": "functions",
+    "version": "1.0.0",
+    "description": "Cloud Functions for Firebase",
+    "scripts": {
+        "build": "npm run build:check && tsc && node scripts/inject-build-info.js",
+        "build:check": "tsc --project tsconfig.build.json --noEmit",
+        "build:prod": "tsc && node scripts/inject-build-info.js",
+        "watch": "tsc --watch",
+        "clean": "rm -rf lib coverage",
+        "test": "npm run build && npm run test:unit && npm run test:integration",
+        "test:unit": "npm run build && jest src/__tests__/unit/",
+        "test:integration": "npm run build && jest src/__tests__/integration/",
+        "validate-cors": "node scripts/validate-cors.js",
+        "seed:policies": "tsx src/scripts/seed-policies.ts"
+    },
+    "engines": {
+        "node": "22"
+    },
+    "main": "lib/index.js",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.0",
+        "express": "^5.1.0",
+        "firebase-admin": "^13.4.0",
+        "firebase-functions": "^6.4.0",
+        "joi": "^17.13.3",
+        "xss": "^1.0.15",
+        "zod": "^4.0.5"
+    },
+    "devDependencies": {
+        "@splitifyd/test-support": "*",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.3",
+        "@types/node": "^24.0.14",
+        "@types/supertest": "^6.0.3",
+        "@types/uuid": "^10.0.0",
+        "depcheck": "^1.4.7",
+        "supertest": "^7.1.3",
+        "tsx": "^4.7.0",
+        "typescript": "^5.8.3",
+        "uuid": "^11.1.0"
+    },
+    "jest": {
+        "preset": "ts-jest",
+        "testEnvironment": "node",
+        "setupFilesAfterEnv": [
+            "<rootDir>/jest.setup.js"
+        ],
+        "collectCoverageFrom": [
+            "src/**/*.ts",
+            "!src/**/*.d.ts"
+        ],
+        "testMatch": [
+            "**/__tests__/**/*.test.ts",
+            "src/**/*.test.ts"
+        ],
+        "transform": {
+            "^.+\\.ts$": [
+                "ts-jest",
+                {
+                    "tsconfig": "tsconfig.test.json"
+                }
+            ]
         }
-      ]
-    }
-  },
-  "private": true
+    },
+    "private": true
 }

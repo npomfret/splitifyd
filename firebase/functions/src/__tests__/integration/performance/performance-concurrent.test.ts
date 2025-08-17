@@ -15,19 +15,19 @@ describe('Performance - Concurrent User Operations', () => {
     jest.setTimeout(10000); // Tests take ~1.6s
 
     beforeAll(async () => {
-    // Clear any existing test data first
-    await clearAllTestData();
-    
+        // Clear any existing test data first
+        await clearAllTestData();
+
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
         mainUser = await driver.createUser(new UserBuilder().build());
     });
 
-  afterAll(async () => {
-    // Clean up all test data
-    await clearAllTestData();
-  });
+    afterAll(async () => {
+        // Clean up all test data
+        await clearAllTestData();
+    });
 
     const testCases = [
         { users: 3, expensesPerUser: 1, timeoutMs: 5000, description: 'small load' },
@@ -49,14 +49,14 @@ describe('Performance - Concurrent User Operations', () => {
                 users: testUsers,
                 group: concurrentGroup,
                 expensesPerUser,
-                timeoutMs
+                timeoutMs,
             });
 
             const expectedTotal = users * expensesPerUser;
             expect(result.succeeded).toBe(expectedTotal);
             expect(result.failed).toBe(0);
             expect(result.totalTime).toBeLessThan(timeoutMs);
-            
+
             const groupExpenses = await driver.getGroupExpenses(concurrentGroup.id, mainUser.token);
             expect(groupExpenses.expenses.length).toBeGreaterThanOrEqual(Math.min(expectedTotal, 100));
         });

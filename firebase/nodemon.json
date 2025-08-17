@@ -1,9 +1,6 @@
 {
-  "watch": ["functions/lib"],
-  "ignore": [
-    "functions/node_modules",
-    "*.log"
-  ],
-  "ext": "js",
-  "exec": "echo 'Functions reloaded'"
+    "watch": ["functions/lib"],
+    "ignore": ["functions/node_modules", "*.log"],
+    "ext": "js",
+    "exec": "echo 'Functions reloaded'"
 }

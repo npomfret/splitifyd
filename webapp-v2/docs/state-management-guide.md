@@ -5,6 +5,7 @@ This guide defines the patterns and conventions for managing state in the webapp
 ## Overview
 
 The application uses **Preact Signals** (`@preact/signals`) as its core reactivity and state management system. This provides:
+
 - Fine-grained reactivity without unnecessary re-renders
 - Automatic dependency tracking
 - Synchronous updates
@@ -19,15 +20,15 @@ Global state is organized into feature-based "stores" that encapsulate related s
 ```typescript
 // Example Store Structure
 interface SomeStore {
-  // State properties (read-only)
-  data: SomeData[];
-  loading: boolean;
-  error: string | null;
-  
-  // Actions
-  fetchData(): Promise<void>;
-  updateData(item: SomeData): Promise<void>;
-  clearError(): void;
+    // State properties (read-only)
+    data: SomeData[];
+    loading: boolean;
+    error: string | null;
+
+    // Actions
+    fetchData(): Promise<void>;
+    updateData(item: SomeData): Promise<void>;
+    clearError(): void;
 }
 ```
 
@@ -42,9 +43,15 @@ const loadingSignal = signal<boolean>(false);
 const errorSignal = signal<string | null>(null);
 
 class SomeStoreImpl implements SomeStore {
-  get data() { return dataSignal.value; }
-  get loading() { return loadingSignal.value; }
-  get error() { return errorSignal.value; }
+    get data() {
+        return dataSignal.value;
+    }
+    get loading() {
+        return loadingSignal.value;
+    }
+    get error() {
+        return errorSignal.value;
+    }
 }
 ```
 
@@ -55,7 +62,7 @@ Stores are exported as singleton instances:
 ```typescript
 // Store implementation
 class GroupsStoreImpl implements GroupsStore {
-  // implementation...
+    // implementation...
 }
 
 // Export singleton instance
@@ -67,6 +74,7 @@ export const groupsStore = new GroupsStoreImpl();
 ### Reading Store State
 
 **Pattern 1: Direct Store Access (Simple Cases)**
+
 ```typescript
 // For simple, direct access in components
 import { groupsStore } from '../stores/groups-store';
@@ -77,20 +85,21 @@ function MyComponent() {
 ```
 
 **Pattern 2: useComputed for Derived State (Recommended)**
+
 ```typescript
 // For derived state or when combining multiple signals
 import { useComputed } from '@preact/signals';
 import { groupsStore } from '../stores/groups-store';
 
 function MyComponent() {
-  const activeGroups = useComputed(() => 
+  const activeGroups = useComputed(() =>
     groupsStore.groups.filter(g => g.active)
   );
-  
-  const hasError = useComputed(() => 
+
+  const hasError = useComputed(() =>
     groupsStore.error !== null
   );
-  
+
   return <div>{activeGroups.value.length} active groups</div>;
 }
 ```
@@ -105,10 +114,10 @@ import { useSignal } from '@preact/signals';
 function MyComponent() {
   const isOpen = useSignal(false);
   const searchTerm = useSignal('');
-  
+
   return (
     <div>
-      <input 
+      <input
         value={searchTerm.value}
         onInput={(e) => searchTerm.value = e.currentTarget.value}
       />
@@ -139,17 +148,17 @@ function MyForm() {
     email: '',
     amount: 0
   });
-  
+
   const updateField = (field: keyof FormData, value: any) => {
     formData.value = {
       ...formData.value,
       [field]: value
     };
   };
-  
+
   return (
     <form>
-      <input 
+      <input
         value={formData.value.name}
         onInput={(e) => updateField('name', e.currentTarget.value)}
       />
@@ -166,10 +175,10 @@ For simple forms with few fields, individual signals are acceptable:
 function SimpleForm() {
   const email = useSignal('');
   const password = useSignal('');
-  
+
   return (
     <form>
-      <input 
+      <input
         value={email.value}
         onInput={(e) => email.value = e.currentTarget.value}
       />
@@ -189,7 +198,7 @@ Choose one pattern and use it consistently throughout the application:
 
 // Option A: Direct store access for reading, actions for mutations
 const groups = groupsStore.groups; // Read directly
-await groupsStore.fetchGroups();   // Call actions
+await groupsStore.fetchGroups(); // Call actions
 
 // Option B: Always use useComputed for reading
 const groups = useComputed(() => groupsStore.groups);
@@ -204,20 +213,20 @@ Always handle errors at the store level and expose them as signals:
 
 ```typescript
 class StoreImpl {
-  async fetchData() {
-    loadingSignal.value = true;
-    errorSignal.value = null;
-    
-    try {
-      const data = await api.getData();
-      dataSignal.value = data;
-    } catch (error) {
-      errorSignal.value = this.getErrorMessage(error);
-      throw error; // Re-throw for component-level handling if needed
-    } finally {
-      loadingSignal.value = false;
+    async fetchData() {
+        loadingSignal.value = true;
+        errorSignal.value = null;
+
+        try {
+            const data = await api.getData();
+            dataSignal.value = data;
+        } catch (error) {
+            errorSignal.value = this.getErrorMessage(error);
+            throw error; // Re-throw for component-level handling if needed
+        } finally {
+            loadingSignal.value = false;
+        }
     }
-  }
 }
 ```
 
@@ -230,11 +239,11 @@ import { LoadingState } from '../components/ui';
 
 function MyComponent() {
   const loading = useComputed(() => groupsStore.loading);
-  
+
   if (loading.value) {
     return <LoadingState message="Loading groups..." />;
   }
-  
+
   return <div>Content</div>;
 }
 ```
@@ -248,16 +257,16 @@ import { ErrorState } from '../components/ui';
 
 function MyComponent() {
   const error = useComputed(() => groupsStore.error);
-  
+
   if (error.value) {
     return (
-      <ErrorState 
+      <ErrorState
         error={error.value}
         onRetry={() => groupsStore.fetchGroups()}
       />
     );
   }
-  
+
   return <div>Content</div>;
 }
 ```
@@ -310,7 +319,7 @@ beforeEach(() => {
 test('displays groups', async () => {
   // Mock the store state
   groupsStore.groups = mockGroups;
-  
+
   // Test component behavior
   const { getByText } = render(<GroupsList />);
   expect(getByText('3 groups')).toBeInTheDocument();

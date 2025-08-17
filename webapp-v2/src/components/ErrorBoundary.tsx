@@ -3,63 +3,56 @@ import { ErrorInfo } from 'preact/compat';
 import { ErrorState } from './ui';
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
+    hasError: boolean;
+    error?: Error;
+    errorInfo?: ErrorInfo;
 }
 
 interface ErrorBoundaryProps {
-  children: ComponentChildren;
-  fallback?: ComponentChildren;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+    children: ComponentChildren;
+    fallback?: ComponentChildren;
+    onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
+    constructor(props: ErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false };
+    }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    return {
-      hasError: true,
-      error
+    static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+        return {
+            hasError: true,
+            error,
+        };
+    }
+
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+        console.error('ErrorBoundary caught an error:', error, errorInfo);
+
+        this.setState({
+            error,
+            errorInfo,
+        });
+
+        if (this.props.onError) {
+            this.props.onError(error, errorInfo);
+        }
+    }
+
+    private handleRetry = () => {
+        this.setState({ hasError: false, error: undefined, errorInfo: undefined });
     };
-  }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
-    this.setState({
-      error,
-      errorInfo
-    });
+    render() {
+        if (this.state.hasError) {
+            if (this.props.fallback) {
+                return this.props.fallback;
+            }
 
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
+            return <ErrorState error={this.state.error || 'An unexpected error occurred'} title="Something went wrong" onRetry={this.handleRetry} fullPage />;
+        }
+
+        return this.props.children;
     }
-  }
-
-  private handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-  };
-
-  render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      return (
-        <ErrorState
-          error={this.state.error || 'An unexpected error occurred'}
-          title="Something went wrong"
-          onRetry={this.handleRetry}
-          fullPage
-        />
-      );
-    }
-
-    return this.props.children;
-  }
 }

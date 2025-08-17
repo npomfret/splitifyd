@@ -1,123 +1,112 @@
 import { test as base, Page, BrowserContext } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
-import { 
-  LoginPage, 
-  RegisterPage, 
-  HomepagePage, 
-  PricingPage,
-  DashboardPage,
-  GroupDetailPage,
-  CreateGroupModalPage
-} from '../pages';
-import type {User as BaseUser} from "@shared/shared-types";
+import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage } from '../pages';
+import type { User as BaseUser } from '@shared/shared-types';
 
 export interface PageObjects {
-  login: LoginPage;
-  register: RegisterPage;
-  homepage: HomepagePage;
-  pricing: PricingPage;
-  dashboard: DashboardPage;
-  groupDetail: GroupDetailPage;
-  createGroupModal: CreateGroupModalPage;
+    login: LoginPage;
+    register: RegisterPage;
+    homepage: HomepagePage;
+    pricing: PricingPage;
+    dashboard: DashboardPage;
+    groupDetail: GroupDetailPage;
+    createGroupModal: CreateGroupModalPage;
 }
 
 export interface UserFixture {
-  page: Page;
-  user: BaseUser;
-  context: BrowserContext;
-  pages: PageObjects;
+    page: Page;
+    user: BaseUser;
+    context: BrowserContext;
+    pages: PageObjects;
 }
 
 export interface MultiUserFixtures {
-  users: UserFixture[];
-  userCount: number;
-  primaryUser: UserFixture;
-  secondaryUsers: UserFixture[];
+    users: UserFixture[];
+    userCount: number;
+    primaryUser: UserFixture;
+    secondaryUsers: UserFixture[];
 }
 
 function createPageObjects(page: Page): PageObjects {
-  return {
-    login: new LoginPage(page),
-    register: new RegisterPage(page),
-    homepage: new HomepagePage(page),
-    pricing: new PricingPage(page),
-    dashboard: new DashboardPage(page),
-    groupDetail: new GroupDetailPage(page),
-    createGroupModal: new CreateGroupModalPage(page)
-  };
+    return {
+        login: new LoginPage(page),
+        register: new RegisterPage(page),
+        homepage: new HomepagePage(page),
+        pricing: new PricingPage(page),
+        dashboard: new DashboardPage(page),
+        groupDetail: new GroupDetailPage(page),
+        createGroupModal: new CreateGroupModalPage(page),
+    };
 }
 
-async function createUserFixture(
-  browser: any, 
-  existingPage?: Page, 
-  existingContext?: BrowserContext
-): Promise<UserFixture> {
-  // Use existing page/context if provided (for primary user), otherwise create new ones
-  const context = existingContext || await browser.newContext();
-  const page = existingPage || await context.newPage();
-  
-  const userPool = getUserPool();
-  const user = await userPool.claimUser(browser);  // Pass browser instead of page
-  
-  const authWorkflow = new AuthenticationWorkflow(page);
-  await authWorkflow.loginExistingUser(user);
-  
-  return {
-    page,
-    user,
-    context,
-    pages: createPageObjects(page)
-  };
+async function createUserFixture(browser: any, existingPage?: Page, existingContext?: BrowserContext): Promise<UserFixture> {
+    // Use existing page/context if provided (for primary user), otherwise create new ones
+    const context = existingContext || (await browser.newContext());
+    const page = existingPage || (await context.newPage());
+
+    const userPool = getUserPool();
+    const user = await userPool.claimUser(browser); // Pass browser instead of page
+
+    const authWorkflow = new AuthenticationWorkflow(page);
+    await authWorkflow.loginExistingUser(user);
+
+    return {
+        page,
+        user,
+        context,
+        pages: createPageObjects(page),
+    };
 }
 
 export const multiUserTest = base.extend<MultiUserFixtures>({
-  userCount: 1,
-  
-  users: async ({ browser, userCount, page, context }, use) => {
-    const users: UserFixture[] = [];
-    const userPool = getUserPool();
-    
-    try {
-      // Create and authenticate users sequentially to avoid race conditions
-      // Parallel authentication can cause login failures in the Firebase emulator
-      for (let i = 0; i < userCount; i++) {
-        let userFixture: UserFixture;
-        
-        if (i === 0) {
-          // First user: reuse default page/context
-          userFixture = await createUserFixture(browser, page, context);
-        } else {
-          // Additional users: create new contexts
-          userFixture = await createUserFixture(browser);
+    userCount: 1,
+
+    users: async ({ browser, userCount, page, context }, use) => {
+        const users: UserFixture[] = [];
+        const userPool = getUserPool();
+
+        try {
+            // Create and authenticate users sequentially to avoid race conditions
+            // Parallel authentication can cause login failures in the Firebase emulator
+            for (let i = 0; i < userCount; i++) {
+                let userFixture: UserFixture;
+
+                if (i === 0) {
+                    // First user: reuse default page/context
+                    userFixture = await createUserFixture(browser, page, context);
+                } else {
+                    // Additional users: create new contexts
+                    userFixture = await createUserFixture(browser);
+                }
+
+                users.push(userFixture);
+            }
+
+            await use(users);
+        } finally {
+            await Promise.all(
+                users.map(async ({ context, user }, index) => {
+                    userPool.releaseUser(user);
+                    // Don't close the default context (index 0), Playwright will handle it
+                    if (index > 0) {
+                        await context.close();
+                    }
+                }),
+            );
         }
-        
-        users.push(userFixture);
-      }
-      
-      await use(users);
-      
-    } finally {
-      await Promise.all(users.map(async ({ context, user }, index) => {
-        userPool.releaseUser(user);
-        // Don't close the default context (index 0), Playwright will handle it
-        if (index > 0) {
-          await context.close();
+    },
+
+    primaryUser: async ({ users }, use) => {
+        if (users.length === 0) {
+            throw new Error('No users available. Set userCount > 0');
         }
-      }));
-    }
-  },
-  
-  primaryUser: async ({ users }, use) => {
-    if (users.length === 0) {
-      throw new Error('No users available. Set userCount > 0');
-    }
-    await use(users[0]);
-  },
-  
-  secondaryUsers: async ({ users }, use) => {
-    await use(users.slice(1));
-  }
+        await use(users[0]);
+    },
+
+    secondaryUsers: async ({ users }, use) => {
+        await use(users.slice(1));
+    },
 });
 
 // Dynamic user count test - allows tests to specify user count at runtime

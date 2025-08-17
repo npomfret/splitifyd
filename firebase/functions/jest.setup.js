@@ -3,13 +3,13 @@ const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK for tests
 if (!admin.apps.length) {
-  // Set emulator ports (matching firebase.json config)
-  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:6004';
-  process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:6002';
-  
-  admin.initializeApp({
-    projectId: 'test-project',
-  });
+    // Set emulator ports (matching firebase.json config)
+    process.env.FIRESTORE_EMULATOR_HOST = 'localhost:6004';
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:6002';
+
+    admin.initializeApp({
+        projectId: 'test-project',
+    });
 }
 
 // Increase test timeout for integration tests
@@ -17,11 +17,11 @@ jest.setTimeout(30000);
 
 // Suppress console logs during tests unless explicitly debugging
 if (process.env.DEBUG_TESTS !== 'true') {
-  global.console = {
-    ...console,
-    log: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  };
+    global.console = {
+        ...console,
+        log: jest.fn(),
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+    };
 }

@@ -15,6 +15,7 @@ The Service is strictly for users aged 18 and above. By using the Service, you w
 While the Service is currently provided free of charge without advertising or active tracking, we reserve the absolute right to collect ANY AND ALL information in the future. Currently, we may collect minimal operational data. However, we explicitly reserve the right to collect, without further notice:
 
 ### Information We Automatically Collect:
+
 - Complete device information (device ID, operating system, hardware specifications, unique device identifiers, mobile network information)
 - All network activity (IP addresses, browser type, ISP, referring/exit pages, clickstream data)
 - Precise geolocation data (GPS, WiFi, cellular tower information)
@@ -29,6 +30,7 @@ While the Service is currently provided free of charge without advertising or ac
 - Photos, videos, and media files accessed through the Service
 
 ### Information You Provide:
+
 - All form inputs, whether submitted or abandoned
 - All content created, uploaded, or transmitted
 - Communications with us or other users
@@ -37,6 +39,7 @@ While the Service is currently provided free of charge without advertising or ac
 - Any other information you voluntarily provide
 
 ### Information from Third Parties:
+
 - Data from social media platforms
 - Information from our business partners
 - Data brokers and aggregators
@@ -88,6 +91,7 @@ Your data may be transferred to, stored, and processed in any country where we o
 ## 8. Security Disclaimer
 
 While we may implement security measures, we make NO guarantee of security. You acknowledge that:
+
 - Data transmission over the internet is inherently insecure
 - Breaches may occur despite any measures taken
 - We are NOT liable for any data breach, loss, or unauthorized access
@@ -98,6 +102,7 @@ While we may implement security measures, we make NO guarantee of security. You 
 ## 9. Your Rights (Limitations)
 
 You acknowledge and agree that:
+
 - You have NO right to access, correct, or delete your data unless required by law
 - Where law requires us to provide rights, we may charge fees and require extensive verification
 - We may deny any request at our discretion
@@ -118,6 +123,7 @@ We do not respond to "Do Not Track" signals. We track all users regardless of br
 ## 12. California/GDPR/Privacy Law Disclosures
 
 Where legally required, users may have certain rights. However:
+
 - We may claim exemptions to the maximum extent allowed
 - We are not a "business" or "controller" for purposes of limiting laws
 - You must prove residency and rights eligibility
@@ -127,6 +133,7 @@ Where legally required, users may have certain rights. However:
 ## 13. Automated Decision Making
 
 We use automated systems for all decisions about you, including:
+
 - Service access and features
 - Pricing and offers
 - Content display
@@ -141,6 +148,7 @@ By using the Service, you consent to receive marketing communications through an
 ## 15. Cookies and Tracking
 
 We use all available tracking technologies including:
+
 - Cookies (persistent and session)
 - Web beacons and pixel tags
 - Browser fingerprinting
@@ -160,6 +168,7 @@ We are not responsible for third-party privacy practices. Third parties may trac
 ## 17. Indemnification
 
 You indemnify and hold us harmless from any claims related to:
+
 - Our collection, use, or disclosure of your information
 - Your violation of any law or rights
 - Your use of the Service
@@ -168,6 +177,7 @@ You indemnify and hold us harmless from any claims related to:
 ## 18. No Warranty
 
 This Policy is provided "AS IS" without warranty. We make no guarantees about:
+
 - Accuracy of this Policy
 - Our compliance with this Policy
 - Legal sufficiency of this Policy
@@ -176,6 +186,7 @@ This Policy is provided "AS IS" without warranty. We make no guarantees about:
 ## 19. Limitation of Liability
 
 OUR TOTAL LIABILITY FOR ANY PRIVACY-RELATED CLAIM IS LIMITED TO £1. YOU WAIVE ALL RIGHTS TO DAMAGES INCLUDING:
+
 - Actual damages
 - Consequential damages
 - Punitive damages
@@ -186,6 +197,7 @@ OUR TOTAL LIABILITY FOR ANY PRIVACY-RELATED CLAIM IS LIMITED TO £1. YOU WAIVE A
 ## 20. Governing Law and Disputes
 
 This Policy is governed by the laws of England and Wales. Any disputes must be resolved through binding individual arbitration in London, England. You waive all rights to:
+
 - Jury trial
 - Class actions
 - Government agency complaints (where waivable)
@@ -204,23 +216,29 @@ Questions may be submitted through the Service but we guarantee no response. We 
 ## 23. Special Provisions
 
 ### Force Majeure
+
 We bear no liability for privacy issues arising from any cause beyond our control.
 
 ### Survival
+
 All limitations of liability, indemnifications, and waivers survive termination indefinitely.
 
 ### No Waiver
+
 Our failure to enforce any provision is not a waiver of that provision.
 
 ### Assignment
+
 We may assign this Policy and your information to any party. You may not assign your rights.
 
 ### Interpretation
+
 All ambiguities are interpreted in our favor. Headers are for convenience only.
 
 ## 24. FINAL ACKNOWLEDGMENT
 
 BY USING THE SERVICE, YOU ACKNOWLEDGE THAT:
+
 - YOU HAVE READ AND UNDERSTOOD THIS POLICY
 - YOU CONSENT TO ALL DATA PRACTICES DESCRIBED
 - YOU WAIVE ALL PRIVACY RIGHTS NOT MANDATED BY LAW

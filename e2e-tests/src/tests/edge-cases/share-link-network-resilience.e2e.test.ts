@@ -1,7 +1,7 @@
-import {multiUserTest} from '../../fixtures';
-import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../helpers';
-import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
-import {generateShortId} from '../../utils/test-helpers';
+import { multiUserTest } from '../../fixtures';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
+import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
+import { generateShortId } from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();

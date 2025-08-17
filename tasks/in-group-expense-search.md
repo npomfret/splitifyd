@@ -7,6 +7,7 @@ Implement a search tool within a group's context that allows users to search for
 ## Search Fields
 
 The search should cover the following fields:
+
 - Expense description
 - Expense amount
 - Expense category

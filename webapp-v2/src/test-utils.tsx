@@ -4,26 +4,21 @@ import type { ComponentChildren } from 'preact';
 
 // Mock auth store for tests
 const mockAuthStore = {
-  user: null,
-  loading: false,
-  error: null,
-  initialized: true,
-  login: () => Promise.resolve(),
-  register: () => Promise.resolve(),
-  logout: () => Promise.resolve(),
-  resetPassword: () => Promise.resolve(),
-  clearError: () => {},
-  refreshAuthToken: () => Promise.resolve('mock-token')
+    user: null,
+    loading: false,
+    error: null,
+    initialized: true,
+    login: () => Promise.resolve(),
+    register: () => Promise.resolve(),
+    logout: () => Promise.resolve(),
+    resetPassword: () => Promise.resolve(),
+    clearError: () => {},
+    refreshAuthToken: () => Promise.resolve('mock-token'),
 };
 
 // Custom render function that wraps components with providers
 function customRender(ui: ComponentChildren, options = {}) {
-  return originalRender(
-    <AuthContext.Provider value={mockAuthStore}>
-      {ui}
-    </AuthContext.Provider>,
-    options
-  );
+    return originalRender(<AuthContext.Provider value={mockAuthStore}>{ui}</AuthContext.Provider>, options);
 }
 
 // Re-export everything else from testing library

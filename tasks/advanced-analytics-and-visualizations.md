@@ -11,10 +11,10 @@ We will introduce two primary visualization concepts:
 1.  **The Financial Forest:** Each expense category is represented by a different species of tree. As a user spends in a category, the corresponding tree grows. This provides a quick, organic representation of where money is flowing. A user can see at a glance which "trees" in their financial forest are the largest.
 
 2.  **The Spending Galaxy:** This visualization represents the user's financial ecosystem as a solar system.
-    *   **The Sun:** Represents the user's total income or budget for the month.
-    *   **Planets:** Each expense category is a planet orbiting the sun. The size of the planet is proportional to the total spending in that category.
-    *   **Moons:** Individual transactions are moons orbiting their respective category-planet.
-    *   **Orbit:** The distance of a planet from the sun can represent the "essential" vs. "discretionary" nature of the spending.
+    - **The Sun:** Represents the user's total income or budget for the month.
+    - **Planets:** Each expense category is a planet orbiting the sun. The size of the planet is proportional to the total spending in that category.
+    - **Moons:** Individual transactions are moons orbiting their respective category-planet.
+    - **Orbit:** The distance of a planet from the sun can represent the "essential" vs. "discretionary" nature of the spending.
 
 ## Implementation
 
@@ -28,4 +28,4 @@ We will introduce two primary visualization concepts:
 - Users can switch between the "Financial Forest" and "Spending Galaxy" visualizations.
 - The visualizations are interactive, allowing users to hover over elements to see more details (e.g., hover over a tree to see the total amount spent in that category).
 - The data is accurate and updates in near real-time as new expenses are added.
-''
+  ''

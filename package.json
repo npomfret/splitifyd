@@ -1,42 +1,42 @@
 {
-  "name": "bill-splitter-monorepo",
-  "private": true,
-  "workspaces": [
-    "firebase/functions",
-    "webapp-v2",
-    "test-support",
-    "e2e-tests"
-  ],
-  "scripts": {
-    "clean": "npm run clean -ws --if-present",
-    "clean:logs": "rm -f firebase/*.log || true",
-    "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
-    "dev:prep": "npm run clean:logs && cd firebase && npm run clean && cd .. && npm run build",
-    "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
-    "build": "npm run build -ws --if-present",
-    "webapp-v2:build": "cd webapp-v2 && npm run build",
-    "build:all": "npm run build -w webapp-v2",
-    "watch": "npm run watch -ws --if-present",
-    "test": "npm test -ws --if-present",
-    "test:unit": "npm run test:unit -w webapp-v2 && npm run test:unit -w firebase/functions && npm run test:unit -w test-support && npm run test:unit -w e2e-tests",
-    "test:integration": "npm run test:integration -w webapp-v2 && npm run test:integration -w firebase/functions && npm run test:integration -w test-support && npm run test:integration -w e2e-tests",
-    "test:performance": "cd firebase/functions && npm run test:performance",
-    "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
-    "report": "repo-statter . -o reports",
-    "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
-    "postinstall": "cd e2e-tests && npx playwright install chromium",
-    "format": "prettier --write \"*.{json,md,js}\" \".prettierrc\" && npm run format -w firebase && npm run format -w webapp-v2 && npm run format -w e2e-tests && npm run format -w test-support"
-  },
-  "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.14",
-    "concurrently": "^9.2.0",
-    "esbuild": "^0.25.6",
-    "firebase-tools": "^14.11.0",
-    "jest": "^30.0.4",
-    "nodemon": "^3.1.10",
-    "prettier": "^3.6.2",
-    "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
-  }
+    "name": "bill-splitter-monorepo",
+    "private": true,
+    "workspaces": [
+        "firebase/functions",
+        "webapp-v2",
+        "test-support",
+        "e2e-tests"
+    ],
+    "scripts": {
+        "clean": "npm run clean -ws --if-present",
+        "clean:logs": "rm -f firebase/*.log || true",
+        "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
+        "dev:prep": "npm run clean:logs && cd firebase && npm run clean && cd .. && npm run build",
+        "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
+        "build": "npm run build -ws --if-present",
+        "webapp-v2:build": "cd webapp-v2 && npm run build",
+        "build:all": "npm run build -w webapp-v2",
+        "watch": "npm run watch -ws --if-present",
+        "test": "npm test -ws --if-present",
+        "test:unit": "npm run test:unit -w webapp-v2 && npm run test:unit -w firebase/functions && npm run test:unit -w test-support && npm run test:unit -w e2e-tests",
+        "test:integration": "npm run test:integration -w webapp-v2 && npm run test:integration -w firebase/functions && npm run test:integration -w test-support && npm run test:integration -w e2e-tests",
+        "test:performance": "cd firebase/functions && npm run test:performance",
+        "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
+        "report": "repo-statter . -o reports",
+        "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
+        "postinstall": "cd e2e-tests && npx playwright install chromium",
+        "format": "prettier --write ."
+    },
+    "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@types/node": "^24.0.14",
+        "concurrently": "^9.2.0",
+        "esbuild": "^0.25.6",
+        "firebase-tools": "^14.11.0",
+        "jest": "^30.0.4",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.6.2",
+        "ts-jest": "^29.4.0",
+        "typescript": "^5.8.3"
+    }
 }

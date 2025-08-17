@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 
-import {ApiDriver, User} from '../../support/ApiDriver';
-import {PerformanceTestWorkers} from './PerformanceTestWorkers';
-import {ExpenseBuilder, UserBuilder} from '../../support/builders';
-import type {Group} from "../../../shared/shared-types";
-import {clearAllTestData} from '../../support/cleanupHelpers';
+import { ApiDriver, User } from '../../support/ApiDriver';
+import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { ExpenseBuilder, UserBuilder } from '../../support/builders';
+import type { Group } from '../../../shared/shared-types';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Performance - Response Time Benchmarks', () => {
     let driver: ApiDriver;
@@ -15,29 +15,32 @@ describe('Performance - Response Time Benchmarks', () => {
     let benchmarkGroup: Group;
     let benchmarkExpenses: any[] = [];
 
-    jest.setTimeout(12000);// it takes about 6s
+    jest.setTimeout(12000); // it takes about 6s
 
     beforeAll(async () => {
         // Clear any existing test data first
         await clearAllTestData();
-        
+
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
         mainUser = await driver.createUser(new UserBuilder().build());
 
         benchmarkGroup = await driver.createGroupWithMembers('Benchmark Group', [mainUser], mainUser.token);
-        
+
         for (let i = 0; i < 20; i++) {
-            const expense = await driver.createExpense(new ExpenseBuilder()
-                .withGroupId(benchmarkGroup.id)
-                .withDescription(`Benchmark expense ${i}`)
-                .withAmount(100)
-                .withPaidBy(mainUser.uid)
-                .withSplitType('exact')
-                .withParticipants([mainUser.uid])
-                .withSplits([{ userId: mainUser.uid, amount: 100 }])
-                .build(), mainUser.token);
+            const expense = await driver.createExpense(
+                new ExpenseBuilder()
+                    .withGroupId(benchmarkGroup.id)
+                    .withDescription(`Benchmark expense ${i}`)
+                    .withAmount(100)
+                    .withPaidBy(mainUser.uid)
+                    .withSplitType('exact')
+                    .withParticipants([mainUser.uid])
+                    .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                    .build(),
+                mainUser.token,
+            );
             benchmarkExpenses.push(expense);
         }
     });
@@ -55,12 +58,12 @@ describe('Performance - Response Time Benchmarks', () => {
 
         const readOperations = [
             { name: 'Get group expenses', fn: () => driver.getGroupExpenses(benchmarkGroup.id, mainUser.token), target: 500 },
-            { 
-                name: 'Get balances', 
-                fn: () => driver.getGroupBalances(benchmarkGroup.id, mainUser.token), 
-                target: 500 
+            {
+                name: 'Get balances',
+                fn: () => driver.getGroupBalances(benchmarkGroup.id, mainUser.token),
+                target: 500,
             },
-            { name: 'Get expense', fn: () => driver.getExpense(benchmarkExpenses[0].id, mainUser.token), target: 300 }
+            { name: 'Get expense', fn: () => driver.getExpense(benchmarkExpenses[0].id, mainUser.token), target: 300 },
         ];
 
         for (const operation of readOperations) {
@@ -68,7 +71,7 @@ describe('Performance - Response Time Benchmarks', () => {
             await operation.fn();
             const endTime = Date.now();
             const responseTime = endTime - startTime;
-            
+
             console.log(`${operation.name}: ${responseTime}ms (target: <${operation.target}ms)`);
             expect(responseTime).toBeLessThan(operation.target);
         }
@@ -76,31 +79,40 @@ describe('Performance - Response Time Benchmarks', () => {
 
     it('should meet target response times for write operations', async () => {
         const writeOperations = [
-            { 
+            {
                 name: 'Create expense',
-                fn: () => driver.createExpense(new ExpenseBuilder()
-                    .withGroupId(benchmarkGroup.id)
-                    .withDescription('Write benchmark expense')
-                    .withAmount(100)
-                    .withPaidBy(mainUser.uid)
-                    .withSplitType('exact')
-                    .withParticipants([mainUser.uid])
-                    .withSplits([{ userId: mainUser.uid, amount: 100 }])
-                    .build(), mainUser.token),
-                target: 2000
+                fn: () =>
+                    driver.createExpense(
+                        new ExpenseBuilder()
+                            .withGroupId(benchmarkGroup.id)
+                            .withDescription('Write benchmark expense')
+                            .withAmount(100)
+                            .withPaidBy(mainUser.uid)
+                            .withSplitType('exact')
+                            .withParticipants([mainUser.uid])
+                            .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                            .build(),
+                        mainUser.token,
+                    ),
+                target: 2000,
             },
             {
                 name: 'Update expense',
-                fn: () => driver.updateExpense(benchmarkExpenses[0].id, {
-                    description: 'Updated benchmark expense'
-                }, mainUser.token),
-                target: 1500
+                fn: () =>
+                    driver.updateExpense(
+                        benchmarkExpenses[0].id,
+                        {
+                            description: 'Updated benchmark expense',
+                        },
+                        mainUser.token,
+                    ),
+                target: 1500,
             },
             {
                 name: 'Create group',
                 fn: () => driver.createGroupWithMembers('New benchmark group', [mainUser], mainUser.token),
-                target: 2000
-            }
+                target: 2000,
+            },
         ];
 
         for (const operation of writeOperations) {
@@ -108,7 +120,7 @@ describe('Performance - Response Time Benchmarks', () => {
             await operation.fn();
             const endTime = Date.now();
             const responseTime = endTime - startTime;
-            
+
             console.log(`${operation.name}: ${responseTime}ms (target: <${operation.target}ms)`);
             expect(responseTime).toBeLessThan(operation.target);
         }
@@ -116,13 +128,13 @@ describe('Performance - Response Time Benchmarks', () => {
 
     it('should not leak memory during repeated operations', async () => {
         const memoryGroup = await driver.createGroupWithMembers('Memory Test Group', [mainUser], mainUser.token);
-        
+
         await workers.performRepeatedOperations({
             group: memoryGroup,
             user: mainUser,
-            iterations: 50
+            iterations: 50,
         });
-        
+
         expect(true).toBe(true);
     }, 120000);
 });

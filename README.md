@@ -14,7 +14,6 @@ claude mcp add playwright npx @playwright/mcp@latest
 
 This enables Claude Code to automatically navigate pages, take screenshots, and check for console errors during development.
 
-
 ### Prerequisites
 
 **Claude Desktop Required**: MCP browser automation only works with Claude Desktop + Claude Code CLI, not the web version.
@@ -26,22 +25,24 @@ Open jdk: https://formulae.brew.sh/formula/openjdk
 1. **Install Claude Desktop** if you haven't already
 
 2. **Configure MCP in Claude Desktop**:
-   ```bash
-   # Edit your Claude Desktop config
-   open ~/Library/Application\ Support/Claude/claude_desktop_config.json
-   ```
 
-   Add this configuration:
-   ```json
-   {
-     "mcpServers": {
-       "playwright": {
-         "command": "npx",
-         "args": ["@playwright/mcp@latest"]
-       }
-     }
-   }
-   ```
+    ```bash
+    # Edit your Claude Desktop config
+    open ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    ```
+
+    Add this configuration:
+
+    ```json
+    {
+        "mcpServers": {
+            "playwright": {
+                "command": "npx",
+                "args": ["@playwright/mcp@latest"]
+            }
+        }
+    }
+    ```
 
 3. **Restart Claude Desktop** completely (quit and reopen)
 
@@ -50,12 +51,14 @@ Open jdk: https://formulae.brew.sh/formula/openjdk
 ### Testing the Webapp
 
 Once MCP is configured, Claude can automatically:
+
 - Navigate to webapp routes (served at Firebase emulator root)
 - Take screenshots at different viewport sizes
 - Check for console errors
 - Verify page elements and functionality
 
 Run the integrated development server first:
+
 ```bash
 npm run dev  # Starts Firebase emulator + webapp
 ```
@@ -63,6 +66,7 @@ npm run dev  # Starts Firebase emulator + webapp
 ## Getting started
 
 Create a firebase project and from it create `firbase/functions/.env` and add:
+
 ```
 PROJECT_ID=<your-project-id>
 CLIENT_API_KEY=

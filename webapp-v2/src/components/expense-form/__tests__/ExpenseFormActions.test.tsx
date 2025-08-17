@@ -3,181 +3,181 @@ import { vi } from 'vitest';
 import { ExpenseFormActions } from '../ExpenseFormActions';
 
 describe('ExpenseFormActions', () => {
-  const mockOnCancel = vi.fn();
+    const mockOnCancel = vi.fn();
 
-  const defaultProps = {
-    isEditMode: false,
-    saving: false,
-    participantsCount: 2,
-    hasRequiredFields: true,
-    onCancel: mockOnCancel
-  };
+    const defaultProps = {
+        isEditMode: false,
+        saving: false,
+        participantsCount: 2,
+        hasRequiredFields: true,
+        onCancel: mockOnCancel,
+    };
 
-  beforeEach(() => {
-    mockOnCancel.mockClear();
-  });
-
-  describe('Add Mode', () => {
-    it('displays correct button text in add mode', () => {
-      render(<ExpenseFormActions {...defaultProps} />);
-
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Save Expense' })).toBeInTheDocument();
+    beforeEach(() => {
+        mockOnCancel.mockClear();
     });
 
-    it('displays saving text in add mode when saving', () => {
-      render(<ExpenseFormActions {...defaultProps} saving={true} />);
+    describe('Add Mode', () => {
+        it('displays correct button text in add mode', () => {
+            render(<ExpenseFormActions {...defaultProps} />);
 
-      expect(screen.getByRole('button', { name: 'Saving...' })).toBeInTheDocument();
-    });
-  });
+            expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Save Expense' })).toBeInTheDocument();
+        });
 
-  describe('Edit Mode', () => {
-    it('displays correct button text in edit mode', () => {
-      render(<ExpenseFormActions {...defaultProps} isEditMode={true} />);
+        it('displays saving text in add mode when saving', () => {
+            render(<ExpenseFormActions {...defaultProps} saving={true} />);
 
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Update Expense' })).toBeInTheDocument();
-    });
-
-    it('displays updating text in edit mode when saving', () => {
-      render(<ExpenseFormActions {...defaultProps} isEditMode={true} saving={true} />);
-
-      expect(screen.getByRole('button', { name: 'Updating...' })).toBeInTheDocument();
-    });
-  });
-
-  describe('Button States', () => {
-    it('enables buttons when not saving and has participants', () => {
-      render(<ExpenseFormActions {...defaultProps} />);
-
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
-
-      expect(cancelButton).not.toBeDisabled();
-      expect(submitButton).not.toBeDisabled();
+            expect(screen.getByRole('button', { name: 'Saving...' })).toBeInTheDocument();
+        });
     });
 
-    it('disables buttons when saving', () => {
-      render(<ExpenseFormActions {...defaultProps} saving={true} />);
+    describe('Edit Mode', () => {
+        it('displays correct button text in edit mode', () => {
+            render(<ExpenseFormActions {...defaultProps} isEditMode={true} />);
 
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      const submitButton = screen.getByRole('button', { name: 'Saving...' });
+            expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Update Expense' })).toBeInTheDocument();
+        });
 
-      expect(cancelButton).toBeDisabled();
-      expect(submitButton).toBeDisabled();
+        it('displays updating text in edit mode when saving', () => {
+            render(<ExpenseFormActions {...defaultProps} isEditMode={true} saving={true} />);
+
+            expect(screen.getByRole('button', { name: 'Updating...' })).toBeInTheDocument();
+        });
     });
 
-    it('disables submit button when no participants', () => {
-      render(<ExpenseFormActions {...defaultProps} participantsCount={0} />);
+    describe('Button States', () => {
+        it('enables buttons when not saving and has participants', () => {
+            render(<ExpenseFormActions {...defaultProps} />);
 
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
 
-      expect(cancelButton).not.toBeDisabled();
-      expect(submitButton).toBeDisabled();
+            expect(cancelButton).not.toBeDisabled();
+            expect(submitButton).not.toBeDisabled();
+        });
+
+        it('disables buttons when saving', () => {
+            render(<ExpenseFormActions {...defaultProps} saving={true} />);
+
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            const submitButton = screen.getByRole('button', { name: 'Saving...' });
+
+            expect(cancelButton).toBeDisabled();
+            expect(submitButton).toBeDisabled();
+        });
+
+        it('disables submit button when no participants', () => {
+            render(<ExpenseFormActions {...defaultProps} participantsCount={0} />);
+
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+
+            expect(cancelButton).not.toBeDisabled();
+            expect(submitButton).toBeDisabled();
+        });
+
+        it('disables submit button when saving and no participants', () => {
+            render(<ExpenseFormActions {...defaultProps} saving={true} participantsCount={0} />);
+
+            const submitButton = screen.getByRole('button', { name: 'Saving...' });
+            expect(submitButton).toBeDisabled();
+        });
+
+        it('disables submit button when required fields are missing', () => {
+            render(<ExpenseFormActions {...defaultProps} hasRequiredFields={false} />);
+
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+
+            expect(cancelButton).not.toBeDisabled();
+            expect(submitButton).toBeDisabled();
+        });
     });
 
-    it('disables submit button when saving and no participants', () => {
-      render(<ExpenseFormActions {...defaultProps} saving={true} participantsCount={0} />);
+    describe('Event Handling', () => {
+        it('calls onCancel when cancel button is clicked', () => {
+            render(<ExpenseFormActions {...defaultProps} />);
 
-      const submitButton = screen.getByRole('button', { name: 'Saving...' });
-      expect(submitButton).toBeDisabled();
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            fireEvent.click(cancelButton);
+
+            expect(mockOnCancel).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not call onCancel when cancel button is disabled', () => {
+            render(<ExpenseFormActions {...defaultProps} saving={true} />);
+
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            fireEvent.click(cancelButton);
+
+            expect(mockOnCancel).not.toHaveBeenCalled();
+        });
     });
 
-    it('disables submit button when required fields are missing', () => {
-      render(<ExpenseFormActions {...defaultProps} hasRequiredFields={false} />);
+    describe('Button Attributes', () => {
+        it('has correct button types', () => {
+            render(<ExpenseFormActions {...defaultProps} />);
 
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+            const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
 
-      expect(cancelButton).not.toBeDisabled();
-      expect(submitButton).toBeDisabled();
-    });
-  });
+            // Cancel button should not have type submit (default is button)
+            expect(cancelButton).not.toHaveAttribute('type', 'submit');
 
-  describe('Event Handling', () => {
-    it('calls onCancel when cancel button is clicked', () => {
-      render(<ExpenseFormActions {...defaultProps} />);
+            // Submit button should have type submit
+            expect(submitButton).toHaveAttribute('type', 'submit');
+        });
 
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      fireEvent.click(cancelButton);
+        it('has correct button variants', () => {
+            render(<ExpenseFormActions {...defaultProps} />);
 
-      expect(mockOnCancel).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call onCancel when cancel button is disabled', () => {
-      render(<ExpenseFormActions {...defaultProps} saving={true} />);
-
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      fireEvent.click(cancelButton);
-
-      expect(mockOnCancel).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Button Attributes', () => {
-    it('has correct button types', () => {
-      render(<ExpenseFormActions {...defaultProps} />);
-
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
-
-      // Cancel button should not have type submit (default is button)
-      expect(cancelButton).not.toHaveAttribute('type', 'submit');
-      
-      // Submit button should have type submit
-      expect(submitButton).toHaveAttribute('type', 'submit');
+            // We can't easily test the variant prop directly, but we can verify the buttons render
+            expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Save Expense' })).toBeInTheDocument();
+        });
     });
 
-    it('has correct button variants', () => {
-      render(<ExpenseFormActions {...defaultProps} />);
+    describe('Layout and Styling', () => {
+        it('renders buttons in correct order', () => {
+            render(<ExpenseFormActions {...defaultProps} />);
 
-      // We can't easily test the variant prop directly, but we can verify the buttons render
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Save Expense' })).toBeInTheDocument();
-    });
-  });
+            const buttons = screen.getAllByRole('button');
+            expect(buttons).toHaveLength(2);
+            expect(buttons[0]).toHaveTextContent('Cancel');
+            expect(buttons[1]).toHaveTextContent('Save Expense');
+        });
 
-  describe('Layout and Styling', () => {
-    it('renders buttons in correct order', () => {
-      render(<ExpenseFormActions {...defaultProps} />);
+        it('applies correct container classes', () => {
+            const { container } = render(<ExpenseFormActions {...defaultProps} />);
 
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(2);
-      expect(buttons[0]).toHaveTextContent('Cancel');
-      expect(buttons[1]).toHaveTextContent('Save Expense');
-    });
-
-    it('applies correct container classes', () => {
-      const { container } = render(<ExpenseFormActions {...defaultProps} />);
-
-      const buttonContainer = container.firstChild;
-      expect(buttonContainer).toHaveClass('flex', 'flex-row', 'justify-end', 'space-x-2');
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles zero participants count', () => {
-      render(<ExpenseFormActions {...defaultProps} participantsCount={0} />);
-
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
-      expect(submitButton).toBeDisabled();
+            const buttonContainer = container.firstChild;
+            expect(buttonContainer).toHaveClass('flex', 'flex-row', 'justify-end', 'space-x-2');
+        });
     });
 
-    it('handles negative participants count', () => {
-      render(<ExpenseFormActions {...defaultProps} participantsCount={-1} />);
+    describe('Edge Cases', () => {
+        it('handles zero participants count', () => {
+            render(<ExpenseFormActions {...defaultProps} participantsCount={0} />);
 
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
-      // Component only disables for exactly 0, not negative values
-      expect(submitButton).not.toBeDisabled();
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+            expect(submitButton).toBeDisabled();
+        });
+
+        it('handles negative participants count', () => {
+            render(<ExpenseFormActions {...defaultProps} participantsCount={-1} />);
+
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+            // Component only disables for exactly 0, not negative values
+            expect(submitButton).not.toBeDisabled();
+        });
+
+        it('handles large participants count', () => {
+            render(<ExpenseFormActions {...defaultProps} participantsCount={100} />);
+
+            const submitButton = screen.getByRole('button', { name: 'Save Expense' });
+            expect(submitButton).not.toBeDisabled();
+        });
     });
-
-    it('handles large participants count', () => {
-      render(<ExpenseFormActions {...defaultProps} participantsCount={100} />);
-
-      const submitButton = screen.getByRole('button', { name: 'Save Expense' });
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
 });

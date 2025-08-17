@@ -21,21 +21,25 @@ The `/p` meta-prompt command automatically selects the best tools for your task:
 ## Available Tools
 
 **View all tools:**
+
 - `/mcp-list` - See MCP servers (fast operations)
 - `/agent-list` - See subagents (quality enforcement)
 
 **Direct usage (optional):**
+
 - MCP servers: `mcp__servername__method`
 - Subagents: "Use the [agent-name] agent"
 
 ## The `/p` Advantage
 
 Instead of:
+
 - Remembering dozens of tool names
 - Figuring out the right sequence
 - Missing optimal approaches
 
 Just use `/p` and get:
+
 - Intelligent tool selection
 - Proper sequencing
 - Best practices enforced
@@ -43,18 +47,21 @@ Just use `/p` and get:
 ## Examples of `/p` in Action
 
 **Feature Development:**
+
 ```
 /p add user authentication to the app
 → architect-advisor → MCP tools → quality agents → test-runner → auditor
 ```
 
 **Bug Fixing:**
+
 ```
 /p fix TypeError in user.service.ts line 45
 → architect-advisor → mcp__typescript-mcp__ → fix → test-runner → auditor
 ```
 
 **Analysis:**
+
 ```
 /p analyze bundle size and suggest optimizations
 → mcp__context-provider__ → mcp__typescript-mcp__ → analyst agent
@@ -72,6 +79,7 @@ Just use `/p` and get:
 **! IMPORTANT !**: read all the files in `docs/guides` immediately.
 
 # Tech Stack
+
 - Runtime: Node.js (latest)
 - Language: TypeScript (latest)
 - Framework: Firebase Functions
@@ -79,10 +87,10 @@ Just use `/p` and get:
 - It's a mono-repo - both the client (webapp-v2) and the server (firebase) are subprojects
 
 # Commands
+
 - Start local dev server (with auto-reload): `npm run dev`
 - Build: `npm run build`
 - Test: `npm test`
 - Super clean (removes all node_modules): `npm run super-clean`
 
 Note: never use the system browser, always use Chromium
-

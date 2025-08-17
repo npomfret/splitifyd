@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import {CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes} from '../../../../firebase/functions/src/shared/shared-types';
+import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '../../../../firebase/functions/src/shared/shared-types';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { groupsStore } from './groups-store';
@@ -8,74 +8,73 @@ import { getUTCDateTime, isDateInFuture } from '../../utils/dateUtils';
 import type { UserScopedStorage } from '../../utils/userScopedStorage';
 
 export interface ExpenseFormStore {
-  // Form fields
-  description: string;
-  amount: string | number;  // Allow string to preserve user input like "50.00"
-  currency: string;
-  date: string;
-  time: string;  // Time in HH:mm format (24-hour)
-  paidBy: string;
-  category: string;
-  splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-  participants: string[];
-  splits: ExpenseSplit[];
-  
-  // UI state
-  loading: boolean;
-  saving: boolean;
-  error: string | null;
-  validationErrors: Record<string, string>;
-  
-  // Actions
-  updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
-  setParticipants(participants: string[]): void;
-  toggleParticipant(userId: string): void;
-  calculateEqualSplits(): void;
-  updateSplitAmount(userId: string, amount: number): void;
-  updateSplitPercentage(userId: string, percentage: number): void;
-  validateForm(): boolean;
-  saveExpense(groupId: string): Promise<ExpenseData>;
-  updateExpense(groupId: string, expenseId: string): Promise<ExpenseData>;
-  clearError(): void;
-  reset(): void;
-  hasUnsavedChanges(): boolean;
-  saveDraft(groupId: string): void;
-  loadDraft(groupId: string): boolean;
-  clearDraft(groupId: string): void;
-  
-  // Storage management
-  setStorage(storage: UserScopedStorage): void;
-  clearStorage(): void;
+    // Form fields
+    description: string;
+    amount: string | number; // Allow string to preserve user input like "50.00"
+    currency: string;
+    date: string;
+    time: string; // Time in HH:mm format (24-hour)
+    paidBy: string;
+    category: string;
+    splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
+    participants: string[];
+    splits: ExpenseSplit[];
+
+    // UI state
+    loading: boolean;
+    saving: boolean;
+    error: string | null;
+    validationErrors: Record<string, string>;
+
+    // Actions
+    updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
+    setParticipants(participants: string[]): void;
+    toggleParticipant(userId: string): void;
+    calculateEqualSplits(): void;
+    updateSplitAmount(userId: string, amount: number): void;
+    updateSplitPercentage(userId: string, percentage: number): void;
+    validateForm(): boolean;
+    saveExpense(groupId: string): Promise<ExpenseData>;
+    updateExpense(groupId: string, expenseId: string): Promise<ExpenseData>;
+    clearError(): void;
+    reset(): void;
+    hasUnsavedChanges(): boolean;
+    saveDraft(groupId: string): void;
+    loadDraft(groupId: string): boolean;
+    clearDraft(groupId: string): void;
+
+    // Storage management
+    setStorage(storage: UserScopedStorage): void;
+    clearStorage(): void;
 }
 
 // Type for form data fields
 interface ExpenseFormData {
-  description: string;
-  amount: string | number;  // Allow string to preserve user input
-  currency: string;
-  date: string;
-  time: string;  // Time in HH:mm format (24-hour)
-  paidBy: string;
-  category: string;
-  splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
+    description: string;
+    amount: string | number; // Allow string to preserve user input
+    currency: string;
+    date: string;
+    time: string; // Time in HH:mm format (24-hour)
+    paidBy: string;
+    category: string;
+    splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }
 
 // Get today's date in YYYY-MM-DD format
 const getTodayDate = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
-
 
 // Signals for form state
 const descriptionSignal = signal<string>('');
-const amountSignal = signal<string | number>('');  // Store as string to preserve user input
-const currencySignal = signal<string>('USD');  // Default to USD since UI doesn't expose currency selection yet
+const amountSignal = signal<string | number>(''); // Store as string to preserve user input
+const currencySignal = signal<string>('USD'); // Default to USD since UI doesn't expose currency selection yet
 const dateSignal = signal<string>(getTodayDate());
-const timeSignal = signal<string>('12:00');  // Default to noon (12:00 PM)
+const timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
 const paidBySignal = signal<string>('');
 const categorySignal = signal<string>('food');
 const splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
@@ -90,105 +89,104 @@ const validationErrorsSignal = signal<Record<string, string>>({});
 
 // Categories are now imported from shared types
 
-
 // Storage management for user-scoped data
 class ExpenseStorageManager {
-  private storage: UserScopedStorage | null = null;
-  private static readonly RECENT_CATEGORIES_KEY = 'recent-expense-categories';
-  private static readonly RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
-  private static readonly MAX_RECENT_CATEGORIES = 3;
-  private static readonly MAX_RECENT_AMOUNTS = 5;
+    private storage: UserScopedStorage | null = null;
+    private static readonly RECENT_CATEGORIES_KEY = 'recent-expense-categories';
+    private static readonly RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
+    private static readonly MAX_RECENT_CATEGORIES = 3;
+    private static readonly MAX_RECENT_AMOUNTS = 5;
 
-  setStorage(storage: UserScopedStorage): void {
-    this.storage = storage;
-  }
-
-  clearStorage(): void {
-    this.storage = null;
-  }
-
-  getRecentCategories(): string[] {
-    if (!this.storage) return [];
-    
-    try {
-      const recent = this.storage.getItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY);
-      return recent ? JSON.parse(recent) : [];
-    } catch {
-      return [];
+    setStorage(storage: UserScopedStorage): void {
+        this.storage = storage;
     }
-  }
 
-  addRecentCategory(category: string): void {
-    if (!this.storage) return;
-    
-    try {
-      const recent = this.getRecentCategories();
-      const filtered = recent.filter(cat => cat !== category);
-      const updated = [category, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_CATEGORIES);
-      this.storage.setItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY, JSON.stringify(updated));
-    } catch {
-      // Ignore storage errors
+    clearStorage(): void {
+        this.storage = null;
     }
-  }
 
-  getRecentAmounts(): number[] {
-    if (!this.storage) return [];
-    
-    try {
-      const recent = this.storage.getItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY);
-      return recent ? JSON.parse(recent) : [];
-    } catch {
-      return [];
-    }
-  }
+    getRecentCategories(): string[] {
+        if (!this.storage) return [];
 
-  addRecentAmount(amount: number): void {
-    if (!this.storage) return;
-    
-    try {
-      const recent = this.getRecentAmounts();
-      const filtered = recent.filter(amt => amt !== amount);
-      const updated = [amount, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_AMOUNTS);
-      this.storage.setItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY, JSON.stringify(updated));
-    } catch {
-      // Ignore storage errors
+        try {
+            const recent = this.storage.getItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY);
+            return recent ? JSON.parse(recent) : [];
+        } catch {
+            return [];
+        }
     }
-  }
 
-  saveDraft(groupId: string, draftData: any): void {
-    if (!this.storage) return;
-    
-    try {
-      const draftKey = `expense-draft-${groupId}`;
-      this.storage.setItem(draftKey, JSON.stringify(draftData));
-    } catch (error) {
-      logWarning('Failed to save expense draft to user-scoped storage', { error });
-    }
-  }
+    addRecentCategory(category: string): void {
+        if (!this.storage) return;
 
-  loadDraft(groupId: string): any | null {
-    if (!this.storage) return null;
-    
-    try {
-      const draftKey = `expense-draft-${groupId}`;
-      const draftJson = this.storage.getItem(draftKey);
-      return draftJson ? JSON.parse(draftJson) : null;
-    } catch (error) {
-      logWarning('Failed to load expense draft from user-scoped storage', { error });
-      return null;
+        try {
+            const recent = this.getRecentCategories();
+            const filtered = recent.filter((cat) => cat !== category);
+            const updated = [category, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_CATEGORIES);
+            this.storage.setItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY, JSON.stringify(updated));
+        } catch {
+            // Ignore storage errors
+        }
     }
-  }
 
-  clearDraft(groupId: string): void {
-    if (!this.storage) return;
-    
-    try {
-      const draftKey = `expense-draft-${groupId}`;
-      this.storage.removeItem(draftKey);
-    } catch (error) {
-      logWarning('Failed to clear expense draft from user-scoped storage', { error });
+    getRecentAmounts(): number[] {
+        if (!this.storage) return [];
+
+        try {
+            const recent = this.storage.getItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY);
+            return recent ? JSON.parse(recent) : [];
+        } catch {
+            return [];
+        }
     }
-  }
+
+    addRecentAmount(amount: number): void {
+        if (!this.storage) return;
+
+        try {
+            const recent = this.getRecentAmounts();
+            const filtered = recent.filter((amt) => amt !== amount);
+            const updated = [amount, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_AMOUNTS);
+            this.storage.setItem(ExpenseStorageManager.RECENT_AMOUNTS_KEY, JSON.stringify(updated));
+        } catch {
+            // Ignore storage errors
+        }
+    }
+
+    saveDraft(groupId: string, draftData: any): void {
+        if (!this.storage) return;
+
+        try {
+            const draftKey = `expense-draft-${groupId}`;
+            this.storage.setItem(draftKey, JSON.stringify(draftData));
+        } catch (error) {
+            logWarning('Failed to save expense draft to user-scoped storage', { error });
+        }
+    }
+
+    loadDraft(groupId: string): any | null {
+        if (!this.storage) return null;
+
+        try {
+            const draftKey = `expense-draft-${groupId}`;
+            const draftJson = this.storage.getItem(draftKey);
+            return draftJson ? JSON.parse(draftJson) : null;
+        } catch (error) {
+            logWarning('Failed to load expense draft from user-scoped storage', { error });
+            return null;
+        }
+    }
+
+    clearDraft(groupId: string): void {
+        if (!this.storage) return;
+
+        try {
+            const draftKey = `expense-draft-${groupId}`;
+            this.storage.removeItem(draftKey);
+        } catch (error) {
+            logWarning('Failed to clear expense draft from user-scoped storage', { error });
+        }
+    }
 }
 
 // Create singleton storage manager
@@ -196,637 +194,658 @@ const storageManager = new ExpenseStorageManager();
 
 // Export functions for backward compatibility
 export function getRecentCategories(): string[] {
-  return storageManager.getRecentCategories();
+    return storageManager.getRecentCategories();
 }
 
 export function getRecentAmounts(): number[] {
-  return storageManager.getRecentAmounts();
+    return storageManager.getRecentAmounts();
 }
 
 class ExpenseFormStoreImpl implements ExpenseFormStore {
-  // State getters
-  get description() { return descriptionSignal.value; }
-  get amount() { return amountSignal.value; }
-  get currency() { return currencySignal.value; }
-  get date() { return dateSignal.value; }
-  get time() { return timeSignal.value; }
-  get paidBy() { return paidBySignal.value; }
-  get category() { return categorySignal.value; }
-  get splitType() { return splitTypeSignal.value; }
-  get participants() { return participantsSignal.value; }
-  get splits() { return splitsSignal.value; }
-  get loading() { return loadingSignal.value; }
-  get saving() { return savingSignal.value; }
-  get error() { return errorSignal.value; }
-  get validationErrors() { return validationErrorsSignal.value; }
-  
-  // Computed property to check if required fields are filled (for button enabling)
-  get hasRequiredFields(): boolean {
-    // Check basic required fields are filled (not empty)
-    if (!descriptionSignal.value?.trim()) return false;
-    if (!amountSignal.value) return false; // Just check if filled, not if valid
-    if (!dateSignal.value) return false;
-    if (!paidBySignal.value) return false;
-    if (participantsSignal.value.length === 0) return false;
-    
-    // For exact and percentage splits, also check if splits are properly configured
-    if (splitTypeSignal.value === SplitTypes.EXACT || splitTypeSignal.value === SplitTypes.PERCENTAGE) {
-      const splitsError = this.validateField('splits');
-      if (splitsError) return false;
+    // State getters
+    get description() {
+        return descriptionSignal.value;
     }
-    
-    return true;
-  }
+    get amount() {
+        return amountSignal.value;
+    }
+    get currency() {
+        return currencySignal.value;
+    }
+    get date() {
+        return dateSignal.value;
+    }
+    get time() {
+        return timeSignal.value;
+    }
+    get paidBy() {
+        return paidBySignal.value;
+    }
+    get category() {
+        return categorySignal.value;
+    }
+    get splitType() {
+        return splitTypeSignal.value;
+    }
+    get participants() {
+        return participantsSignal.value;
+    }
+    get splits() {
+        return splitsSignal.value;
+    }
+    get loading() {
+        return loadingSignal.value;
+    }
+    get saving() {
+        return savingSignal.value;
+    }
+    get error() {
+        return errorSignal.value;
+    }
+    get validationErrors() {
+        return validationErrorsSignal.value;
+    }
 
-  // Computed property to check if form is valid
-  get isFormValid(): boolean {
-    // First check if required fields are filled
-    if (!this.hasRequiredFields) return false;
-    
-    // Then check if values are valid
-    if (parseFloat(amountSignal.value.toString()) <= 0) return false;
-    
-    // Validate each field
-    const descError = this.validateField('description');
-    if (descError) return false;
-    
-    const amountError = this.validateField('amount');
-    if (amountError) return false;
-    
-    const dateError = this.validateField('date');
-    if (dateError) return false;
-    
-    const paidByError = this.validateField('paidBy');
-    if (paidByError) return false;
-    
-    const participantsError = this.validateField('participants');
-    if (participantsError) return false;
-    
-    const splitsError = this.validateField('splits');
-    if (splitsError) return false;
-    
-    // Check if there are any existing validation errors
-    return Object.keys(validationErrorsSignal.value).length === 0;
-  }
+    // Computed property to check if required fields are filled (for button enabling)
+    get hasRequiredFields(): boolean {
+        // Check basic required fields are filled (not empty)
+        if (!descriptionSignal.value?.trim()) return false;
+        if (!amountSignal.value) return false; // Just check if filled, not if valid
+        if (!dateSignal.value) return false;
+        if (!paidBySignal.value) return false;
+        if (participantsSignal.value.length === 0) return false;
 
-  updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void {
-    errorSignal.value = null;
-    
-    // Update the field value first
-    switch (field) {
-      case 'description':
-        descriptionSignal.value = value as string;
-        break;
-      case 'amount':
-        amountSignal.value = value as string | number;
-        // Convert to number for calculations
-        const numericAmount = typeof value === 'string' ? parseFloat(value) || 0 : value as number;
-        // Recalculate splits based on current type
-        if (splitTypeSignal.value === SplitTypes.EQUAL) {
-          this.calculateEqualSplits();
-        } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
-          // Recalculate amounts for percentage splits
-          const currentSplits = [...splitsSignal.value];
-          currentSplits.forEach(split => {
-            if (split.percentage !== undefined) {
-              split.amount = (numericAmount * split.percentage) / 100;
+        // For exact and percentage splits, also check if splits are properly configured
+        if (splitTypeSignal.value === SplitTypes.EXACT || splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+            const splitsError = this.validateField('splits');
+            if (splitsError) return false;
+        }
+
+        return true;
+    }
+
+    // Computed property to check if form is valid
+    get isFormValid(): boolean {
+        // First check if required fields are filled
+        if (!this.hasRequiredFields) return false;
+
+        // Then check if values are valid
+        if (parseFloat(amountSignal.value.toString()) <= 0) return false;
+
+        // Validate each field
+        const descError = this.validateField('description');
+        if (descError) return false;
+
+        const amountError = this.validateField('amount');
+        if (amountError) return false;
+
+        const dateError = this.validateField('date');
+        if (dateError) return false;
+
+        const paidByError = this.validateField('paidBy');
+        if (paidByError) return false;
+
+        const participantsError = this.validateField('participants');
+        if (participantsError) return false;
+
+        const splitsError = this.validateField('splits');
+        if (splitsError) return false;
+
+        // Check if there are any existing validation errors
+        return Object.keys(validationErrorsSignal.value).length === 0;
+    }
+
+    updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void {
+        errorSignal.value = null;
+
+        // Update the field value first
+        switch (field) {
+            case 'description':
+                descriptionSignal.value = value as string;
+                break;
+            case 'amount':
+                amountSignal.value = value as string | number;
+                // Convert to number for calculations
+                const numericAmount = typeof value === 'string' ? parseFloat(value) || 0 : (value as number);
+                // Recalculate splits based on current type
+                if (splitTypeSignal.value === SplitTypes.EQUAL) {
+                    this.calculateEqualSplits();
+                } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+                    // Recalculate amounts for percentage splits
+                    const currentSplits = [...splitsSignal.value];
+                    currentSplits.forEach((split) => {
+                        if (split.percentage !== undefined) {
+                            split.amount = (numericAmount * split.percentage) / 100;
+                        }
+                    });
+                    splitsSignal.value = currentSplits;
+                }
+                break;
+            case 'currency':
+                currencySignal.value = value as string;
+                break;
+            case 'date':
+                dateSignal.value = value as string;
+                break;
+            case 'time':
+                timeSignal.value = value as string;
+                break;
+            case 'paidBy':
+                paidBySignal.value = value as string;
+                // Auto-add payer to participants if not already included
+                if (!participantsSignal.value.includes(value as string)) {
+                    participantsSignal.value = [...participantsSignal.value, value as string];
+                }
+                break;
+            case 'category':
+                categorySignal.value = value as string;
+                break;
+            case 'splitType':
+                splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
+                this.handleSplitTypeChange(value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE);
+                break;
+        }
+
+        // Perform real-time validation for the field
+        const errors = { ...validationErrorsSignal.value };
+        const fieldError = this.validateField(field, value);
+
+        if (fieldError) {
+            errors[field] = fieldError;
+        } else {
+            delete errors[field];
+        }
+
+        if (field === 'amount' || field === 'splitType') {
+            const splitsError = this.validateField('splits');
+            if (splitsError) {
+                errors.splits = splitsError;
+            } else {
+                delete errors.splits;
             }
-          });
-          splitsSignal.value = currentSplits;
         }
-        break;
-      case 'currency':
-        currencySignal.value = value as string;
-        break;
-      case 'date':
-        dateSignal.value = value as string;
-        break;
-      case 'time':
-        timeSignal.value = value as string;
-        break;
-      case 'paidBy':
-        paidBySignal.value = value as string;
-        // Auto-add payer to participants if not already included
-        if (!participantsSignal.value.includes(value as string)) {
-          participantsSignal.value = [...participantsSignal.value, value as string];
+
+        validationErrorsSignal.value = errors;
+    }
+
+    setParticipants(participants: string[]): void {
+        participantsSignal.value = participants;
+        // Always include payer in participants
+        if (paidBySignal.value && !participants.includes(paidBySignal.value)) {
+            participantsSignal.value = [...participants, paidBySignal.value];
         }
-        break;
-      case 'category':
-        categorySignal.value = value as string;
-        break;
-      case 'splitType':
-        splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-        this.handleSplitTypeChange(value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE);
-        break;
-    }
-    
-    // Perform real-time validation for the field
-    const errors = { ...validationErrorsSignal.value };
-    const fieldError = this.validateField(field, value);
-    
-    if (fieldError) {
-      errors[field] = fieldError;
-    } else {
-      delete errors[field];
-    }
-    
-    if (field === 'amount' || field === 'splitType') {
-      const splitsError = this.validateField('splits');
-      if (splitsError) {
-        errors.splits = splitsError;
-      } else {
-        delete errors.splits;
-      }
-    }
-    
-    validationErrorsSignal.value = errors;
-  }
+        // Recalculate splits based on current type
+        this.handleSplitTypeChange(splitTypeSignal.value);
 
-  setParticipants(participants: string[]): void {
-    participantsSignal.value = participants;
-    // Always include payer in participants
-    if (paidBySignal.value && !participants.includes(paidBySignal.value)) {
-      participantsSignal.value = [...participants, paidBySignal.value];
+        // Validate participants
+        const errors = { ...validationErrorsSignal.value };
+        const participantsError = this.validateField('participants');
+        if (participantsError) {
+            errors.participants = participantsError;
+        } else {
+            delete errors.participants;
+        }
+        validationErrorsSignal.value = errors;
     }
-    // Recalculate splits based on current type
-    this.handleSplitTypeChange(splitTypeSignal.value);
-    
-    // Validate participants
-    const errors = { ...validationErrorsSignal.value };
-    const participantsError = this.validateField('participants');
-    if (participantsError) {
-      errors.participants = participantsError;
-    } else {
-      delete errors.participants;
-    }
-    validationErrorsSignal.value = errors;
-  }
 
-  toggleParticipant(userId: string): void {
-    const current = participantsSignal.value;
-    const isIncluded = current.includes(userId);
-    
-    // Don't allow removing the payer
-    if (userId === paidBySignal.value && isIncluded) {
-      return;
-    }
-    
-    if (isIncluded) {
-      participantsSignal.value = current.filter(id => id !== userId);
-    } else {
-      participantsSignal.value = [...current, userId];
-    }
-    
-    // Recalculate splits based on current type
-    this.handleSplitTypeChange(splitTypeSignal.value);
-  }
+    toggleParticipant(userId: string): void {
+        const current = participantsSignal.value;
+        const isIncluded = current.includes(userId);
 
-  calculateEqualSplits(): void {
-    const participants = participantsSignal.value;
-    const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-    
-    if (participants.length === 0 || amount <= 0) {
-      splitsSignal.value = [];
-      return;
-    }
-    
-    // Calculate equal split amount
-    const splitAmount = Math.floor((amount * 100) / participants.length) / 100;
-    const remainder = amount - (splitAmount * participants.length);
-    
-    // Create splits
-    const splits: ExpenseSplit[] = participants.map((userId, index) => ({
-      userId,
-      amount: index === 0 ? splitAmount + remainder : splitAmount
-    }));
-    
-    splitsSignal.value = splits;
-  }
+        // Don't allow removing the payer
+        if (userId === paidBySignal.value && isIncluded) {
+            return;
+        }
 
-  updateSplitAmount(userId: string, amount: number): void {
-    const currentSplits = [...splitsSignal.value];
-    const splitIndex = currentSplits.findIndex(s => s.userId === userId);
-    
-    if (splitIndex >= 0) {
-      currentSplits[splitIndex] = { ...currentSplits[splitIndex], amount };
-    } else {
-      currentSplits.push({ userId, amount });
-    }
-    
-    splitsSignal.value = currentSplits;
-    
-    // Validate splits
-    const errors = { ...validationErrorsSignal.value };
-    const splitsError = this.validateField('splits');
-    if (splitsError) {
-      errors.splits = splitsError;
-    } else {
-      delete errors.splits;
-    }
-    validationErrorsSignal.value = errors;
-  }
+        if (isIncluded) {
+            participantsSignal.value = current.filter((id) => id !== userId);
+        } else {
+            participantsSignal.value = [...current, userId];
+        }
 
-  updateSplitPercentage(userId: string, percentage: number): void {
-    const currentSplits = [...splitsSignal.value];
-    const splitIndex = currentSplits.findIndex(s => s.userId === userId);
-    
-    if (splitIndex >= 0) {
-      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-      currentSplits[splitIndex] = { 
-        ...currentSplits[splitIndex], 
-        percentage,
-        amount: (numericAmount * percentage) / 100
-      };
-    } else {
-      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-      currentSplits.push({ 
-        userId, 
-        percentage,
-        amount: (numericAmount * percentage) / 100
-      });
+        // Recalculate splits based on current type
+        this.handleSplitTypeChange(splitTypeSignal.value);
     }
-    
-    splitsSignal.value = currentSplits;
-    
-    // Validate splits
-    const errors = { ...validationErrorsSignal.value };
-    const splitsError = this.validateField('splits');
-    if (splitsError) {
-      errors.splits = splitsError;
-    } else {
-      delete errors.splits;
-    }
-    validationErrorsSignal.value = errors;
-  }
 
-  private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
-    const participants = participantsSignal.value;
-    const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-    
-    if (participants.length === 0 || amount <= 0) {
-      splitsSignal.value = [];
-      return;
-    }
-    
-    switch (newType) {
-      case SplitTypes.EQUAL:
-        this.calculateEqualSplits();
-        break;
-        
-      case SplitTypes.EXACT:
-        // Initialize with equal amounts as a starting point
-        const exactAmount = amount / participants.length;
-        splitsSignal.value = participants.map(userId => ({
-          userId,
-          amount: exactAmount
+    calculateEqualSplits(): void {
+        const participants = participantsSignal.value;
+        const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+
+        if (participants.length === 0 || amount <= 0) {
+            splitsSignal.value = [];
+            return;
+        }
+
+        // Calculate equal split amount
+        const splitAmount = Math.floor((amount * 100) / participants.length) / 100;
+        const remainder = amount - splitAmount * participants.length;
+
+        // Create splits
+        const splits: ExpenseSplit[] = participants.map((userId, index) => ({
+            userId,
+            amount: index === 0 ? splitAmount + remainder : splitAmount,
         }));
-        break;
-        
-      case SplitTypes.PERCENTAGE:
-        // Initialize with equal percentages
-        const equalPercentage = 100 / participants.length;
-        splitsSignal.value = participants.map(userId => ({
-          userId,
-          percentage: equalPercentage,
-          amount: (amount * equalPercentage) / 100
-        }));
-        break;
+
+        splitsSignal.value = splits;
     }
-  }
 
-  private validateField(field: string, value?: any): string | null {
-    switch (field) {
-      case 'description':
-        const desc = value ?? descriptionSignal.value;
-        if (!desc.trim()) {
-          return 'Description is required';
-        } else if (desc.length > 100) {
-          return 'Description must be less than 100 characters';
+    updateSplitAmount(userId: string, amount: number): void {
+        const currentSplits = [...splitsSignal.value];
+        const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
+
+        if (splitIndex >= 0) {
+            currentSplits[splitIndex] = { ...currentSplits[splitIndex], amount };
+        } else {
+            currentSplits.push({ userId, amount });
         }
-        break;
-      
-      case 'amount':
-        const amt = value ?? amountSignal.value;
-        const numericAmt = typeof amt === 'string' ? parseFloat(amt) || 0 : amt;
-        if (numericAmt <= 0) {
-          return 'Amount must be greater than 0';
-        } else if (numericAmt > 1000000) {
-          return 'Amount seems too large';
+
+        splitsSignal.value = currentSplits;
+
+        // Validate splits
+        const errors = { ...validationErrorsSignal.value };
+        const splitsError = this.validateField('splits');
+        if (splitsError) {
+            errors.splits = splitsError;
+        } else {
+            delete errors.splits;
         }
-        break;
-        
-      case 'currency':
-        const curr = value ?? currencySignal.value;
-        if (!curr || curr.trim() === '') {
-          return 'Currency is required';
-        }
-        if (curr.length !== 3) {
-          return 'Currency must be a 3-letter code (e.g., USD, EUR)';
-        }
-        break;
-        
-      case 'date':
-        const dt = value ?? dateSignal.value;
-        if (!dt) {
-          return 'Date is required';
-        }
-        // Check if date is in the future (compares local dates properly)
-        if (isDateInFuture(dt)) {
-          return 'Date cannot be in the future';
-        }
-        break;
-        
-      case 'paidBy':
-        const pb = value ?? paidBySignal.value;
-        if (!pb) {
-          return 'Please select who paid';
-        }
-        break;
-        
-      case 'participants':
-        const parts = value ?? participantsSignal.value;
-        if (parts.length === 0) {
-          return 'At least one participant is required';
-        }
-        break;
-        
-      case 'splits':
-        // Validate splits based on split type
-        if (splitTypeSignal.value === SplitTypes.EXACT) {
-          const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
-          const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-          if (Math.abs(totalSplit - numericAmount) > 0.01) {
-            return `Split amounts must equal the total expense amount`;
-          }
-        } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
-          const totalPercentage = splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
-          if (Math.abs(totalPercentage - 100) > 0.01) {
-            return 'Percentages must add up to 100%';
-          }
-        }
-        break;
+        validationErrorsSignal.value = errors;
     }
-    return null;
-  }
 
-  validateForm(): boolean {
-    const errors: Record<string, string> = {};
-    
-    // Validate all fields
-    const descError = this.validateField('description');
-    if (descError) errors.description = descError;
-    
-    const amountError = this.validateField('amount');
-    if (amountError) errors.amount = amountError;
-    
-    const currencyError = this.validateField('currency');
-    if (currencyError) errors.currency = currencyError;
-    
-    const dateError = this.validateField('date');
-    if (dateError) errors.date = dateError;
-    
-    const payerError = this.validateField('paidBy');
-    if (payerError) errors.paidBy = payerError;
-    
-    const participantsError = this.validateField('participants');
-    if (participantsError) errors.participants = participantsError;
-    
-    const splitsError = this.validateField('splits');
-    if (splitsError) errors.splits = splitsError;
-    
-    validationErrorsSignal.value = errors;
-    const isValid = Object.keys(errors).length === 0;
-    
-    // Log validation failures to console for test visibility
-    if (!isValid) {
-      console.warn('[ExpenseForm] Validation failed:', errors);
+    updateSplitPercentage(userId: string, percentage: number): void {
+        const currentSplits = [...splitsSignal.value];
+        const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
+
+        if (splitIndex >= 0) {
+            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            currentSplits[splitIndex] = {
+                ...currentSplits[splitIndex],
+                percentage,
+                amount: (numericAmount * percentage) / 100,
+            };
+        } else {
+            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            currentSplits.push({
+                userId,
+                percentage,
+                amount: (numericAmount * percentage) / 100,
+            });
+        }
+
+        splitsSignal.value = currentSplits;
+
+        // Validate splits
+        const errors = { ...validationErrorsSignal.value };
+        const splitsError = this.validateField('splits');
+        if (splitsError) {
+            errors.splits = splitsError;
+        } else {
+            delete errors.splits;
+        }
+        validationErrorsSignal.value = errors;
     }
-    
-    return isValid;
-  }
 
-  async saveExpense(groupId: string): Promise<ExpenseData> {
-    if (!this.validateForm()) {
-      const errors = validationErrorsSignal.value;
-      console.warn('[ExpenseForm] Cannot submit form due to validation errors:', errors);
-      throw new Error('Please fix validation errors');
+    private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
+        const participants = participantsSignal.value;
+        const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+
+        if (participants.length === 0 || amount <= 0) {
+            splitsSignal.value = [];
+            return;
+        }
+
+        switch (newType) {
+            case SplitTypes.EQUAL:
+                this.calculateEqualSplits();
+                break;
+
+            case SplitTypes.EXACT:
+                // Initialize with equal amounts as a starting point
+                const exactAmount = amount / participants.length;
+                splitsSignal.value = participants.map((userId) => ({
+                    userId,
+                    amount: exactAmount,
+                }));
+                break;
+
+            case SplitTypes.PERCENTAGE:
+                // Initialize with equal percentages
+                const equalPercentage = 100 / participants.length;
+                splitsSignal.value = participants.map((userId) => ({
+                    userId,
+                    percentage: equalPercentage,
+                    amount: (amount * equalPercentage) / 100,
+                }));
+                break;
+        }
     }
-    
-    savingSignal.value = true;
-    errorSignal.value = null;
-    
-    try {
-      // Convert date and time to UTC timestamp
-      const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
-      
-      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-      const request: CreateExpenseRequest = {
-        groupId,
-        description: descriptionSignal.value.trim(),
-        amount: numericAmount,
-        currency: currencySignal.value,
-        paidBy: paidBySignal.value,
-        category: categorySignal.value,
-        date: utcDateTime,
-        splitType: splitTypeSignal.value,
-        participants: participantsSignal.value,
-        splits: splitsSignal.value
-      };
-      
-      const expense = await apiClient.createExpense(request);
-      
-      // Track recent category and amount
-      storageManager.addRecentCategory(categorySignal.value);
-      storageManager.addRecentAmount(numericAmount);
-      
-      // Refresh group data to show the new expense immediately
-      try {
-        await Promise.all([
-          enhancedGroupDetailStore.refreshAll(),
-          groupsStore.refreshGroups()
-        ]);
-      } catch (refreshError) {
-        // Log refresh error but don't fail the expense creation
-        logWarning('Failed to refresh data after creating expense', { error: refreshError });
-      }
-      
-      // Clear draft and reset form after successful save
-      this.clearDraft(groupId);
-      this.reset();
-      
-      return expense;
-    } catch (error) {
-      errorSignal.value = this.getErrorMessage(error);
-      throw error;
-    } finally {
-      savingSignal.value = false;
+
+    private validateField(field: string, value?: any): string | null {
+        switch (field) {
+            case 'description':
+                const desc = value ?? descriptionSignal.value;
+                if (!desc.trim()) {
+                    return 'Description is required';
+                } else if (desc.length > 100) {
+                    return 'Description must be less than 100 characters';
+                }
+                break;
+
+            case 'amount':
+                const amt = value ?? amountSignal.value;
+                const numericAmt = typeof amt === 'string' ? parseFloat(amt) || 0 : amt;
+                if (numericAmt <= 0) {
+                    return 'Amount must be greater than 0';
+                } else if (numericAmt > 1000000) {
+                    return 'Amount seems too large';
+                }
+                break;
+
+            case 'currency':
+                const curr = value ?? currencySignal.value;
+                if (!curr || curr.trim() === '') {
+                    return 'Currency is required';
+                }
+                if (curr.length !== 3) {
+                    return 'Currency must be a 3-letter code (e.g., USD, EUR)';
+                }
+                break;
+
+            case 'date':
+                const dt = value ?? dateSignal.value;
+                if (!dt) {
+                    return 'Date is required';
+                }
+                // Check if date is in the future (compares local dates properly)
+                if (isDateInFuture(dt)) {
+                    return 'Date cannot be in the future';
+                }
+                break;
+
+            case 'paidBy':
+                const pb = value ?? paidBySignal.value;
+                if (!pb) {
+                    return 'Please select who paid';
+                }
+                break;
+
+            case 'participants':
+                const parts = value ?? participantsSignal.value;
+                if (parts.length === 0) {
+                    return 'At least one participant is required';
+                }
+                break;
+
+            case 'splits':
+                // Validate splits based on split type
+                if (splitTypeSignal.value === SplitTypes.EXACT) {
+                    const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
+                    const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+                    if (Math.abs(totalSplit - numericAmount) > 0.01) {
+                        return `Split amounts must equal the total expense amount`;
+                    }
+                } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+                    const totalPercentage = splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
+                    if (Math.abs(totalPercentage - 100) > 0.01) {
+                        return 'Percentages must add up to 100%';
+                    }
+                }
+                break;
+        }
+        return null;
     }
-  }
 
-  async updateExpense(groupId: string, expenseId: string): Promise<ExpenseData> {
-    if (!this.validateForm()) {
-      throw new Error('Please fix validation errors');
+    validateForm(): boolean {
+        const errors: Record<string, string> = {};
+
+        // Validate all fields
+        const descError = this.validateField('description');
+        if (descError) errors.description = descError;
+
+        const amountError = this.validateField('amount');
+        if (amountError) errors.amount = amountError;
+
+        const currencyError = this.validateField('currency');
+        if (currencyError) errors.currency = currencyError;
+
+        const dateError = this.validateField('date');
+        if (dateError) errors.date = dateError;
+
+        const payerError = this.validateField('paidBy');
+        if (payerError) errors.paidBy = payerError;
+
+        const participantsError = this.validateField('participants');
+        if (participantsError) errors.participants = participantsError;
+
+        const splitsError = this.validateField('splits');
+        if (splitsError) errors.splits = splitsError;
+
+        validationErrorsSignal.value = errors;
+        const isValid = Object.keys(errors).length === 0;
+
+        // Log validation failures to console for test visibility
+        if (!isValid) {
+            console.warn('[ExpenseForm] Validation failed:', errors);
+        }
+
+        return isValid;
     }
-    
-    savingSignal.value = true;
-    errorSignal.value = null;
-    
-    try {
-      // Convert date and time to UTC timestamp
-      const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
-      
-      // For updates, only include fields that can be changed
-      // Backend doesn't allow changing: groupId, paidBy
-      const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
-      const updateRequest = {
-        description: descriptionSignal.value.trim(),
-        amount: numericAmount,
-        currency: currencySignal.value,
-        category: categorySignal.value,
-        date: utcDateTime,
-        splitType: splitTypeSignal.value,
-        participants: participantsSignal.value,
-        splits: splitsSignal.value
-      };
-      
-      const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
-      
-      // Track recent category and amount
-      storageManager.addRecentCategory(categorySignal.value);
-      storageManager.addRecentAmount(numericAmount);
-      
-      // Refresh group data to show the updated expense immediately
-      try {
-        await Promise.all([
-          enhancedGroupDetailStore.refreshAll(),
-          groupsStore.refreshGroups()
-        ]);
-      } catch (refreshError) {
-        // Log refresh error but don't fail the expense update
-        logWarning('Failed to refresh data after updating expense', { error: refreshError });
-      }
-      
-      // Clear draft after successful update
-      this.clearDraft(groupId);
-      
-      return expense;
-    } catch (error) {
-      errorSignal.value = this.getErrorMessage(error);
-      throw error;
-    } finally {
-      savingSignal.value = false;
+
+    async saveExpense(groupId: string): Promise<ExpenseData> {
+        if (!this.validateForm()) {
+            const errors = validationErrorsSignal.value;
+            console.warn('[ExpenseForm] Cannot submit form due to validation errors:', errors);
+            throw new Error('Please fix validation errors');
+        }
+
+        savingSignal.value = true;
+        errorSignal.value = null;
+
+        try {
+            // Convert date and time to UTC timestamp
+            const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
+
+            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            const request: CreateExpenseRequest = {
+                groupId,
+                description: descriptionSignal.value.trim(),
+                amount: numericAmount,
+                currency: currencySignal.value,
+                paidBy: paidBySignal.value,
+                category: categorySignal.value,
+                date: utcDateTime,
+                splitType: splitTypeSignal.value,
+                participants: participantsSignal.value,
+                splits: splitsSignal.value,
+            };
+
+            const expense = await apiClient.createExpense(request);
+
+            // Track recent category and amount
+            storageManager.addRecentCategory(categorySignal.value);
+            storageManager.addRecentAmount(numericAmount);
+
+            // Refresh group data to show the new expense immediately
+            try {
+                await Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]);
+            } catch (refreshError) {
+                // Log refresh error but don't fail the expense creation
+                logWarning('Failed to refresh data after creating expense', { error: refreshError });
+            }
+
+            // Clear draft and reset form after successful save
+            this.clearDraft(groupId);
+            this.reset();
+
+            return expense;
+        } catch (error) {
+            errorSignal.value = this.getErrorMessage(error);
+            throw error;
+        } finally {
+            savingSignal.value = false;
+        }
     }
-  }
 
-  clearError(): void {
-    errorSignal.value = null;
-  }
+    async updateExpense(groupId: string, expenseId: string): Promise<ExpenseData> {
+        if (!this.validateForm()) {
+            throw new Error('Please fix validation errors');
+        }
 
-  reset(): void {
-    descriptionSignal.value = '';
-    amountSignal.value = '';  // Reset to empty string
-    currencySignal.value = 'USD';  // Default to USD
-    dateSignal.value = getTodayDate();
-    timeSignal.value = '12:00';  // Default to noon
-    paidBySignal.value = '';
-    categorySignal.value = 'food';
-    splitTypeSignal.value = SplitTypes.EQUAL;
-    participantsSignal.value = [];
-    splitsSignal.value = [];
-    errorSignal.value = null;
-    validationErrorsSignal.value = {};
-  }
+        savingSignal.value = true;
+        errorSignal.value = null;
 
-  hasUnsavedChanges(): boolean {
-    // Check if any field has been modified from initial state
-    const hasAmount = typeof amountSignal.value === 'string' ? amountSignal.value.trim() !== '' : amountSignal.value > 0;
-    return (
-      descriptionSignal.value.trim() !== '' ||
-      hasAmount ||
-      currencySignal.value !== 'USD' ||
-      dateSignal.value !== getTodayDate() ||
-      paidBySignal.value !== '' ||
-      categorySignal.value !== 'food' ||
-      splitTypeSignal.value !== SplitTypes.EQUAL ||
-      participantsSignal.value.length > 0 ||
-      splitsSignal.value.length > 0
-    );
-  }
+        try {
+            // Convert date and time to UTC timestamp
+            const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
 
-  setStorage(storage: UserScopedStorage): void {
-    storageManager.setStorage(storage);
-  }
+            // For updates, only include fields that can be changed
+            // Backend doesn't allow changing: groupId, paidBy
+            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            const updateRequest = {
+                description: descriptionSignal.value.trim(),
+                amount: numericAmount,
+                currency: currencySignal.value,
+                category: categorySignal.value,
+                date: utcDateTime,
+                splitType: splitTypeSignal.value,
+                participants: participantsSignal.value,
+                splits: splitsSignal.value,
+            };
 
-  clearStorage(): void {
-    storageManager.clearStorage();
-  }
+            const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
 
-  saveDraft(groupId: string): void {
-    const draftData = {
-      description: descriptionSignal.value,
-      amount: amountSignal.value,
-      currency: currencySignal.value,
-      date: dateSignal.value,
-      time: timeSignal.value,
-      paidBy: paidBySignal.value,
-      category: categorySignal.value,
-      splitType: splitTypeSignal.value,
-      participants: participantsSignal.value,
-      splits: splitsSignal.value,
-      timestamp: Date.now()
-    };
-    
-    storageManager.saveDraft(groupId, draftData);
-  }
+            // Track recent category and amount
+            storageManager.addRecentCategory(categorySignal.value);
+            storageManager.addRecentAmount(numericAmount);
 
-  loadDraft(groupId: string): boolean {
-    try {
-      const draftData = storageManager.loadDraft(groupId);
-      
-      if (!draftData) {
-        return false;
-      }
-      
-      // Check if draft is not too old (24 hours)
-      const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-      if (Date.now() - draftData.timestamp > maxAge) {
-        this.clearDraft(groupId);
-        return false;
-      }
-      
-      // Restore form data
-      descriptionSignal.value = draftData.description || '';
-      amountSignal.value = draftData.amount || 0;
-      currencySignal.value = draftData.currency || 'USD';  // Default to USD
-      dateSignal.value = draftData.date || getTodayDate();
-      timeSignal.value = draftData.time || '12:00';  // Default to noon
-      paidBySignal.value = draftData.paidBy || '';
-      categorySignal.value = draftData.category || 'food';
-      splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
-      participantsSignal.value = draftData.participants || [];
-      splitsSignal.value = draftData.splits || [];
-      
-      return true;
-    } catch (error) {
-      logWarning('Failed to load expense draft from user-scoped storage', { error });
-      return false;
+            // Refresh group data to show the updated expense immediately
+            try {
+                await Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]);
+            } catch (refreshError) {
+                // Log refresh error but don't fail the expense update
+                logWarning('Failed to refresh data after updating expense', { error: refreshError });
+            }
+
+            // Clear draft after successful update
+            this.clearDraft(groupId);
+
+            return expense;
+        } catch (error) {
+            errorSignal.value = this.getErrorMessage(error);
+            throw error;
+        } finally {
+            savingSignal.value = false;
+        }
     }
-  }
 
-  clearDraft(groupId: string): void {
-    storageManager.clearDraft(groupId);
-  }
-
-  private getErrorMessage(error: unknown): string {
-    if (error instanceof ApiError) {
-      return error.message;
-    } else if (error instanceof Error) {
-      return error.message;
+    clearError(): void {
+        errorSignal.value = null;
     }
-    return 'An unexpected error occurred';
-  }
+
+    reset(): void {
+        descriptionSignal.value = '';
+        amountSignal.value = ''; // Reset to empty string
+        currencySignal.value = 'USD'; // Default to USD
+        dateSignal.value = getTodayDate();
+        timeSignal.value = '12:00'; // Default to noon
+        paidBySignal.value = '';
+        categorySignal.value = 'food';
+        splitTypeSignal.value = SplitTypes.EQUAL;
+        participantsSignal.value = [];
+        splitsSignal.value = [];
+        errorSignal.value = null;
+        validationErrorsSignal.value = {};
+    }
+
+    hasUnsavedChanges(): boolean {
+        // Check if any field has been modified from initial state
+        const hasAmount = typeof amountSignal.value === 'string' ? amountSignal.value.trim() !== '' : amountSignal.value > 0;
+        return (
+            descriptionSignal.value.trim() !== '' ||
+            hasAmount ||
+            currencySignal.value !== 'USD' ||
+            dateSignal.value !== getTodayDate() ||
+            paidBySignal.value !== '' ||
+            categorySignal.value !== 'food' ||
+            splitTypeSignal.value !== SplitTypes.EQUAL ||
+            participantsSignal.value.length > 0 ||
+            splitsSignal.value.length > 0
+        );
+    }
+
+    setStorage(storage: UserScopedStorage): void {
+        storageManager.setStorage(storage);
+    }
+
+    clearStorage(): void {
+        storageManager.clearStorage();
+    }
+
+    saveDraft(groupId: string): void {
+        const draftData = {
+            description: descriptionSignal.value,
+            amount: amountSignal.value,
+            currency: currencySignal.value,
+            date: dateSignal.value,
+            time: timeSignal.value,
+            paidBy: paidBySignal.value,
+            category: categorySignal.value,
+            splitType: splitTypeSignal.value,
+            participants: participantsSignal.value,
+            splits: splitsSignal.value,
+            timestamp: Date.now(),
+        };
+
+        storageManager.saveDraft(groupId, draftData);
+    }
+
+    loadDraft(groupId: string): boolean {
+        try {
+            const draftData = storageManager.loadDraft(groupId);
+
+            if (!draftData) {
+                return false;
+            }
+
+            // Check if draft is not too old (24 hours)
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            if (Date.now() - draftData.timestamp > maxAge) {
+                this.clearDraft(groupId);
+                return false;
+            }
+
+            // Restore form data
+            descriptionSignal.value = draftData.description || '';
+            amountSignal.value = draftData.amount || 0;
+            currencySignal.value = draftData.currency || 'USD'; // Default to USD
+            dateSignal.value = draftData.date || getTodayDate();
+            timeSignal.value = draftData.time || '12:00'; // Default to noon
+            paidBySignal.value = draftData.paidBy || '';
+            categorySignal.value = draftData.category || 'food';
+            splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
+            participantsSignal.value = draftData.participants || [];
+            splitsSignal.value = draftData.splits || [];
+
+            return true;
+        } catch (error) {
+            logWarning('Failed to load expense draft from user-scoped storage', { error });
+            return false;
+        }
+    }
+
+    clearDraft(groupId: string): void {
+        storageManager.clearDraft(groupId);
+    }
+
+    private getErrorMessage(error: unknown): string {
+        if (error instanceof ApiError) {
+            return error.message;
+        } else if (error instanceof Error) {
+            return error.message;
+        }
+        return 'An unexpected error occurred';
+    }
 }
 
 // Export singleton instance
 export const expenseFormStore = new ExpenseFormStoreImpl();
-

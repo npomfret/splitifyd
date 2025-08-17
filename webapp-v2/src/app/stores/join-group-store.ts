@@ -17,102 +17,114 @@ const errorSignal = signal<string | null>(null);
 const linkIdSignal = signal<string | null>(null);
 
 class JoinGroupStore {
-  // State getters
-  get group() { return groupSignal.value; }
-  get loadingPreview() { return loadingPreviewSignal.value; }
-  get joining() { return joiningSignal.value; }
-  get joinSuccess() { return joinSuccessSignal.value; }
-  get error() { return errorSignal.value; }
-  get linkId() { return linkIdSignal.value; }
-
-  async loadGroupPreview(linkId: string) {
-    loadingPreviewSignal.value = true;
-    errorSignal.value = null;
-    linkIdSignal.value = linkId;
-    
-    try {
-      // Load preview data without joining the group
-      const preview = await apiClient.previewGroupByLink(linkId);
-      
-      // Transform preview data to Group interface
-      const group: Group = {
-        id: preview.groupId,
-        name: preview.groupName,
-        description: preview.groupDescription,
-        memberIds: [],  // Preview doesn't provide member IDs
-        createdBy: '',  // Will be populated from server
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        balance: {
-          balancesByCurrency: {}
-        },
-        lastActivity: 'Never',
-        lastActivityRaw: new Date().toISOString()
-      };
-      
-      groupSignal.value = group;
-      loadingPreviewSignal.value = false;
-      
-      // If user is already a member, redirect them to the group
-      if (preview.isAlreadyMember) {
-        joinSuccessSignal.value = true;
-      }
-    } catch (error: any) {
-      loadingPreviewSignal.value = false;
-      
-      if (error.code === 'INVALID_LINK') {
-        errorSignal.value = 'This invitation link is invalid or has expired';
-      } else if (error.code === 'GROUP_NOT_FOUND') {
-        errorSignal.value = 'This group no longer exists';
-      } else {
-        errorSignal.value = error.message || 'Failed to load group information';
-      }
+    // State getters
+    get group() {
+        return groupSignal.value;
     }
-  }
-
-  async joinGroup(linkId: string): Promise<Group | null> {
-    joiningSignal.value = true;
-    errorSignal.value = null;
-    
-    try {
-      const group = await apiClient.joinGroupByLink(linkId);
-      groupSignal.value = group;
-      joiningSignal.value = false;
-      joinSuccessSignal.value = true;
-      return group;
-    } catch (error: any) {
-      let errorMessage = 'Failed to join group';
-      
-      if (error.code === 'ALREADY_MEMBER') {
-        errorMessage = 'You are already a member of this group';
-      } else if (error.code === 'INVALID_LINK') {
-        errorMessage = 'This invitation link is invalid or has expired';
-      } else if (error.code === 'GROUP_NOT_FOUND') {
-        errorMessage = 'This group no longer exists';
-      } else if (error.code === 'CONCURRENT_UPDATE') {
-        errorMessage = 'The group was being updated by another user. Please try again.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      joiningSignal.value = false;
-      errorSignal.value = errorMessage;
-      return null;
+    get loadingPreview() {
+        return loadingPreviewSignal.value;
     }
-  }
+    get joining() {
+        return joiningSignal.value;
+    }
+    get joinSuccess() {
+        return joinSuccessSignal.value;
+    }
+    get error() {
+        return errorSignal.value;
+    }
+    get linkId() {
+        return linkIdSignal.value;
+    }
 
-  reset() {
-    groupSignal.value = null;
-    loadingPreviewSignal.value = false;
-    joiningSignal.value = false;
-    joinSuccessSignal.value = false;
-    errorSignal.value = null;
-    linkIdSignal.value = null;
-  }
+    async loadGroupPreview(linkId: string) {
+        loadingPreviewSignal.value = true;
+        errorSignal.value = null;
+        linkIdSignal.value = linkId;
 
-  clearError() {
-    errorSignal.value = null;
-  }
+        try {
+            // Load preview data without joining the group
+            const preview = await apiClient.previewGroupByLink(linkId);
+
+            // Transform preview data to Group interface
+            const group: Group = {
+                id: preview.groupId,
+                name: preview.groupName,
+                description: preview.groupDescription,
+                memberIds: [], // Preview doesn't provide member IDs
+                createdBy: '', // Will be populated from server
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                balance: {
+                    balancesByCurrency: {},
+                },
+                lastActivity: 'Never',
+                lastActivityRaw: new Date().toISOString(),
+            };
+
+            groupSignal.value = group;
+            loadingPreviewSignal.value = false;
+
+            // If user is already a member, redirect them to the group
+            if (preview.isAlreadyMember) {
+                joinSuccessSignal.value = true;
+            }
+        } catch (error: any) {
+            loadingPreviewSignal.value = false;
+
+            if (error.code === 'INVALID_LINK') {
+                errorSignal.value = 'This invitation link is invalid or has expired';
+            } else if (error.code === 'GROUP_NOT_FOUND') {
+                errorSignal.value = 'This group no longer exists';
+            } else {
+                errorSignal.value = error.message || 'Failed to load group information';
+            }
+        }
+    }
+
+    async joinGroup(linkId: string): Promise<Group | null> {
+        joiningSignal.value = true;
+        errorSignal.value = null;
+
+        try {
+            const group = await apiClient.joinGroupByLink(linkId);
+            groupSignal.value = group;
+            joiningSignal.value = false;
+            joinSuccessSignal.value = true;
+            return group;
+        } catch (error: any) {
+            let errorMessage = 'Failed to join group';
+
+            if (error.code === 'ALREADY_MEMBER') {
+                errorMessage = 'You are already a member of this group';
+            } else if (error.code === 'INVALID_LINK') {
+                errorMessage = 'This invitation link is invalid or has expired';
+            } else if (error.code === 'GROUP_NOT_FOUND') {
+                errorMessage = 'This group no longer exists';
+            } else if (error.code === 'CONCURRENT_UPDATE') {
+                errorMessage = 'The group was being updated by another user. Please try again.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            joiningSignal.value = false;
+            errorSignal.value = errorMessage;
+            return null;
+        }
+    }
+
+    reset() {
+        groupSignal.value = null;
+        loadingPreviewSignal.value = false;
+        joiningSignal.value = false;
+        joinSuccessSignal.value = false;
+        errorSignal.value = null;
+        linkIdSignal.value = null;
+    }
+
+    clearError() {
+        errorSignal.value = null;
+    }
 }
 
 // Export a singleton instance

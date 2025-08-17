@@ -4,157 +4,161 @@ import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selec
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 
 export class DashboardPage extends BasePage {
-  // Selectors
-  readonly url = '/dashboard';
-  readonly userNameText = '.text-sm.font-medium.text-gray-700';
+    // Selectors
+    readonly url = '/dashboard';
+    readonly userNameText = '.text-sm.font-medium.text-gray-700';
 
-  async navigate() {
-    await this.page.goto(this.url);
-    await this.waitForNetworkIdle();
-  }
-  
-  async isLoggedIn(): Promise<boolean> {
-    try {
-      // Check for "Your Groups" heading - always present when logged in
-      const groupsHeading = await this.getGroupsHeading().isVisible({ timeout: 2000 }).catch(() => false);
-      if (groupsHeading) return true;
-      
-      // Fallback: welcome message for users with no groups
-      const welcomeMessage = await this.getWelcomeMessage().isVisible({ timeout: 1000 }).catch(() => false);
-      return welcomeMessage;
-    } catch {
-      return false;
+    async navigate() {
+        await this.page.goto(this.url);
+        await this.waitForNetworkIdle();
     }
-  }
-  
-  async getUserDisplayName(): Promise<string> {
-    const nameElement = this.page.locator(this.userNameText).first();
-    const textContent = await nameElement.textContent();
-    return textContent ?? '';
-  }
 
-  // Element accessors
-  getWelcomeMessage() {
-    return this.page.getByText(MESSAGES.WELCOME_BACK);
-  }
+    async isLoggedIn(): Promise<boolean> {
+        try {
+            // Check for "Your Groups" heading - always present when logged in
+            const groupsHeading = await this.getGroupsHeading()
+                .isVisible({ timeout: 2000 })
+                .catch(() => false);
+            if (groupsHeading) return true;
 
-  getGroupsHeading() {
-    return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.YOUR_GROUPS });
-  }
-
-  getCreateGroupButton() {
-    return this.page.getByRole('button', { name: /Create.*Group/i }).first();
-  }
-
-  getUserMenuButton() {
-    // Use data-testid for stable selection
-    return this.page.locator('[data-testid="user-menu-button"]');
-  }
-
-  async waitForUserMenu(): Promise<void> {
-    // Wait for authentication state to be fully loaded first
-    await this.waitForNetworkIdle();
-    
-    // Ensure we're logged in by checking for either welcome message (new users) or groups heading
-    // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
-    await expect(this.getGroupsHeading()).toBeVisible();
-    
-    // Now wait for the user menu button to be available with fast timeout
-    await expect(this.getUserMenuButton()).toBeVisible();
-  }
-  getSignOutButton() {
-    // Use data-testid for stable selection
-    return this.page.locator('[data-testid="sign-out-button"]');
-  }
-
-  getSignInButton() {
-    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_IN });
-  }
-
-  async openCreateGroupModal() {
-    // Simply click the first visible create group button
-    const createButton = this.page
-      .getByRole('button')
-      .filter({ hasText: /Create.*Group/i })
-      .first();
-    await this.clickButton(createButton, { buttonName: 'Create Group' });
-  }
-
-  async waitForDashboard() {
-    // Wait for navigation to dashboard if not already there - handle both /dashboard and /dashboard/
-    await this.page.waitForURL(/\/dashboard\/?$/);
-    
-    // Wait for the dashboard to be fully loaded
-    await this.waitForNetworkIdle();
-    
-    // Wait for the main dashboard content to appear
-    await this.page.locator('h3:has-text("Your Groups")').waitFor();
-    
-    // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
-    const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
-    try {
-      await loadingSpinner.waitFor({ state: 'hidden', timeout: 1000 });
-    } catch {
-      // Spinner never appeared or disappeared quickly - expected behavior
+            // Fallback: welcome message for users with no groups
+            const welcomeMessage = await this.getWelcomeMessage()
+                .isVisible({ timeout: 1000 })
+                .catch(() => false);
+            return welcomeMessage;
+        } catch {
+            return false;
+        }
     }
-    
-    // Wait for DOM to be fully loaded instead of arbitrary timeout
-    await this.page.waitForLoadState('domcontentloaded');
-    
-    // Dashboard is now ready - we don't check for specific content since users may have existing groups
-  }
 
-  async signOut() {
-    // Ensure we're logged in first
-    await this.waitForUserMenu();
-    
-    // Click user menu button to open dropdown
-    const userMenuButton = this.getUserMenuButton();
-    await this.clickButton(userMenuButton, { buttonName: 'User Menu' });
-    
-    // Wait for dropdown to appear and click sign out
-    const signOutButton = this.getSignOutButton();
-    await expect(signOutButton).toBeVisible();
-    await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
-    
-    // Wait for redirect to login page after sign out
-    await this.page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
-  }
+    async getUserDisplayName(): Promise<string> {
+        const nameElement = this.page.locator(this.userNameText).first();
+        const textContent = await nameElement.textContent();
+        return textContent ?? '';
+    }
 
-  // Security testing methods
-  getDashboardTestId() {
-    return this.page.locator('[data-testid="dashboard"]');
-  }
+    // Element accessors
+    getWelcomeMessage() {
+        return this.page.getByText(MESSAGES.WELCOME_BACK);
+    }
 
-  getCreateGroupButtonTestId() {
-    return this.page.locator('[data-testid="create-group-button"]');
-  }
+    getGroupsHeading() {
+        return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.YOUR_GROUPS });
+    }
 
-  getGroupNameInputTestId() {
-    return this.page.locator('[data-testid="group-name-input"]');
-  }
+    getCreateGroupButton() {
+        return this.page.getByRole('button', { name: /Create.*Group/i }).first();
+    }
 
-  getGroupDescriptionInputTestId() {
-    return this.page.locator('[data-testid="group-description-input"]');
-  }
+    getUserMenuButton() {
+        // Use data-testid for stable selection
+        return this.page.locator('[data-testid="user-menu-button"]');
+    }
 
-  getCreateGroupFormTestId() {
-    return this.page.locator('[data-testid="create-group-form"], form');
-  }
+    async waitForUserMenu(): Promise<void> {
+        // Wait for authentication state to be fully loaded first
+        await this.waitForNetworkIdle();
 
-  getCreateGroupSubmitTestId() {
-    return this.page.locator('[data-testid="create-group-submit"]');
-  }
+        // Ensure we're logged in by checking for either welcome message (new users) or groups heading
+        // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
+        await expect(this.getGroupsHeading()).toBeVisible();
 
-  getLogoutButtonTestId() {
-    return this.page.locator('[data-testid="logout-button"], [data-testid="user-menu"]');
-  }
+        // Now wait for the user menu button to be available with fast timeout
+        await expect(this.getUserMenuButton()).toBeVisible();
+    }
+    getSignOutButton() {
+        // Use data-testid for stable selection
+        return this.page.locator('[data-testid="sign-out-button"]');
+    }
 
-  getLogoutConfirmTestId() {
-    return this.page.locator('[data-testid="logout-confirm"], text=Logout, text=Sign out');
-  }
+    getSignInButton() {
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_IN });
+    }
 
-  getGroupCard() {
-    return this.page.locator('[data-testid="group-card"]').first();
-  }
+    async openCreateGroupModal() {
+        // Simply click the first visible create group button
+        const createButton = this.page
+            .getByRole('button')
+            .filter({ hasText: /Create.*Group/i })
+            .first();
+        await this.clickButton(createButton, { buttonName: 'Create Group' });
+    }
+
+    async waitForDashboard() {
+        // Wait for navigation to dashboard if not already there - handle both /dashboard and /dashboard/
+        await this.page.waitForURL(/\/dashboard\/?$/);
+
+        // Wait for the dashboard to be fully loaded
+        await this.waitForNetworkIdle();
+
+        // Wait for the main dashboard content to appear
+        await this.page.locator('h3:has-text("Your Groups")').waitFor();
+
+        // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
+        const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
+        try {
+            await loadingSpinner.waitFor({ state: 'hidden', timeout: 1000 });
+        } catch {
+            // Spinner never appeared or disappeared quickly - expected behavior
+        }
+
+        // Wait for DOM to be fully loaded instead of arbitrary timeout
+        await this.page.waitForLoadState('domcontentloaded');
+
+        // Dashboard is now ready - we don't check for specific content since users may have existing groups
+    }
+
+    async signOut() {
+        // Ensure we're logged in first
+        await this.waitForUserMenu();
+
+        // Click user menu button to open dropdown
+        const userMenuButton = this.getUserMenuButton();
+        await this.clickButton(userMenuButton, { buttonName: 'User Menu' });
+
+        // Wait for dropdown to appear and click sign out
+        const signOutButton = this.getSignOutButton();
+        await expect(signOutButton).toBeVisible();
+        await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
+
+        // Wait for redirect to login page after sign out
+        await this.page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+    }
+
+    // Security testing methods
+    getDashboardTestId() {
+        return this.page.locator('[data-testid="dashboard"]');
+    }
+
+    getCreateGroupButtonTestId() {
+        return this.page.locator('[data-testid="create-group-button"]');
+    }
+
+    getGroupNameInputTestId() {
+        return this.page.locator('[data-testid="group-name-input"]');
+    }
+
+    getGroupDescriptionInputTestId() {
+        return this.page.locator('[data-testid="group-description-input"]');
+    }
+
+    getCreateGroupFormTestId() {
+        return this.page.locator('[data-testid="create-group-form"], form');
+    }
+
+    getCreateGroupSubmitTestId() {
+        return this.page.locator('[data-testid="create-group-submit"]');
+    }
+
+    getLogoutButtonTestId() {
+        return this.page.locator('[data-testid="logout-button"], [data-testid="user-menu"]');
+    }
+
+    getLogoutConfirmTestId() {
+        return this.page.locator('[data-testid="logout-confirm"], text=Logout, text=Sign out');
+    }
+
+    getGroupCard() {
+        return this.page.locator('[data-testid="group-card"]').first();
+    }
 }

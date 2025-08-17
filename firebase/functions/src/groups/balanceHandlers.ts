@@ -18,13 +18,13 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
     }
 
     const groupDoc = await admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId).get();
-    
+
     if (!groupDoc.exists) {
         throw new ApiError(404, 'NOT_FOUND', 'Group not found');
     }
-    
+
     const groupData = groupDoc.data()!;
-    
+
     // Handle group structure variations (old vs new format)
     let memberIds: string[];
     if (groupData.data?.memberIds) {
@@ -34,11 +34,11 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
     } else {
         throw new ApiError(400, 'INVALID_GROUP_STATE', 'Group has invalid member structure');
     }
-    
+
     if (!memberIds || memberIds.length === 0) {
         throw new ApiError(400, 'INVALID_GROUP_STATE', `Group ${groupId} has no members`);
     }
-    
+
     if (!memberIds.includes(userId)) {
         throw new ApiError(403, 'FORBIDDEN', 'User is not a member of this group');
     }
@@ -51,6 +51,6 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
         userBalances: balances.userBalances,
         simplifiedDebts: balances.simplifiedDebts,
         lastUpdated: timestampToISO(balances.lastUpdated),
-        balancesByCurrency: balances.balancesByCurrency || {}
+        balancesByCurrency: balances.balancesByCurrency || {},
     });
 }

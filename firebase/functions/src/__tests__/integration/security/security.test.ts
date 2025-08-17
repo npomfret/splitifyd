@@ -11,491 +11,411 @@ import { ExpenseBuilder, UserBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Comprehensive Security Test Suite', () => {
-  let driver: ApiDriver;
-  let users: User[] = [];
+    let driver: ApiDriver;
+    let users: User[] = [];
 
-  // Set a longer timeout for these integration tests
-  jest.setTimeout(10000);
+    // Set a longer timeout for these integration tests
+    jest.setTimeout(10000);
 
-  beforeAll(async () => {
-    // Clear any existing test data first
-    await clearAllTestData();
-    
-    driver = new ApiDriver();
-    users = await Promise.all([
-      driver.createUser(new UserBuilder().build()),
-      driver.createUser(new UserBuilder().build()),
-    ]);
-  });
+    beforeAll(async () => {
+        // Clear any existing test data first
+        await clearAllTestData();
 
-  afterAll(async () => {
-    // Clean up all test data
-    await clearAllTestData();
-  });
-
-  describe('Authentication Security', () => {
-    describe('Invalid Token Handling', () => {
-      test('should reject requests with no authentication token', async () => {
-        await expect(
-          driver.listGroups(null as any)
-        ).rejects.toThrow(/401|unauthorized|missing.*token/i);
-      });
-
-      test('should reject requests with malformed tokens', async () => {
-        const malformedTokens = [
-          'not-a-jwt-token',
-          'Bearer invalid',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid',
-          'header.payload.invalid-signature',
-          '',
-          '   ',
-        ];
-
-        for (const token of malformedTokens) {
-          await expect(
-            driver.listGroups(token)
-          ).rejects.toThrow(/401|unauthorized|invalid.*token/i);
-        }
-      });
-
-      test('should reject requests with expired tokens', async () => {
-        // Create a token that's clearly expired (from 2020)
-        const expiredToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
-        
-        await expect(
-          driver.listGroups(expiredToken)
-        ).rejects.toThrow(/401|unauthorized|expired|invalid/i);
-      });
-
-      test('should reject requests with tokens for different projects', async () => {
-        // Token for a different Firebase project
-        const wrongProjectToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
-        
-        await expect(
-          driver.listGroups(wrongProjectToken)
-        ).rejects.toThrow(/401|unauthorized|invalid|audience/i);
-      });
+        driver = new ApiDriver();
+        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 
-    describe('Token Injection Attacks', () => {
-      test('should reject SQL injection attempts in Authorization header', async () => {
-        const sqlInjectionTokens = [
-          "Bearer '; DROP TABLE users; --",
-          "Bearer ' OR '1'='1",
-          "Bearer admin'/*",
-          "Bearer 1' UNION SELECT * FROM secrets--",
-        ];
-
-        for (const token of sqlInjectionTokens) {
-          await expect(
-            driver.listGroups(token)
-          ).rejects.toThrow(/401|unauthorized|invalid/i);
-        }
-      });
-
-      test('should reject script injection attempts in Authorization header', async () => {
-        const scriptInjectionTokens = [
-          'Bearer <script>alert("xss")</script>',
-          'Bearer javascript:alert(1)',
-          'Bearer vbscript:msgbox(1)',
-          'Bearer data:text/html,<script>alert(1)</script>',
-        ];
-
-        for (const token of scriptInjectionTokens) {
-          await expect(
-            driver.listGroups(token)
-          ).rejects.toThrow(/401|unauthorized|invalid/i);
-        }
-      });
-    });
-  });
-
-  describe('Authorization Security', () => {
-    let testGroup: any;
-
-    beforeEach(async () => {
-      // Create a fresh test group for each authorization test
-      testGroup = await driver.createGroupWithMembers(`Auth Test Group ${uuidv4()}`, users, users[0].token);
+    afterAll(async () => {
+        // Clean up all test data
+        await clearAllTestData();
     });
 
-    describe('Cross-User Data Access', () => {
-      test('should prevent users from accessing other users groups', async () => {
-        // Create a group for user 1 only
-        const privateGroup = await driver.createGroupWithMembers(
-          `Private Group ${uuidv4()}`, 
-          [users[0]], 
-          users[0].token
-        );
+    describe('Authentication Security', () => {
+        describe('Invalid Token Handling', () => {
+            test('should reject requests with no authentication token', async () => {
+                await expect(driver.listGroups(null as any)).rejects.toThrow(/401|unauthorized|missing.*token/i);
+            });
 
-        // User 2 should not be able to access this group
-        // CURRENT BEHAVIOR: Returns 404 instead of 403 (security issue - should not reveal existence)
-        await expect(
-          driver.getGroup(privateGroup.id, users[1].token)
-        ).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
+            test('should reject requests with malformed tokens', async () => {
+                const malformedTokens = ['not-a-jwt-token', 'Bearer invalid', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid', 'header.payload.invalid-signature', '', '   '];
 
-        await expect(
-          driver.getGroupBalances(privateGroup.id, users[1].token)
-        ).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
-      });
+                for (const token of malformedTokens) {
+                    await expect(driver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid.*token/i);
+                }
+            });
 
-      test('should prevent users from accessing other users expenses', async () => {
-        // Create an expense in the shared test group
-        const expenseData = new ExpenseBuilder()
-          .withGroupId(testGroup.id)
-          .withPaidBy(users[0].uid)
-          .withParticipants([users[0].uid]) // Only user 0 is participant - this is what the test is about
-          .build();
-        const expense = await driver.createExpense(expenseData, users[0].token);
+            test('should reject requests with expired tokens', async () => {
+                // Create a token that's clearly expired (from 2020)
+                const expiredToken =
+                    'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
 
-        // SECURITY FIX: User 2 should NOT be able to access the expense since they're not a participant
-        // This should now return a 403 Forbidden error
-        await expect(
-          driver.getExpense(expense.id, users[1].token)
-        ).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized|not.*participant/i);
-      });
+                await expect(driver.listGroups(expiredToken)).rejects.toThrow(/401|unauthorized|expired|invalid/i);
+            });
 
-      test('should prevent users from modifying other users expenses', async () => {
-        // Create an expense paid by user 1
-        const expenseData = new ExpenseBuilder()
-          .withGroupId(testGroup.id)
-          .withPaidBy(users[0].uid)
-          .withParticipants(users.map(u => u.uid))
-          .build();
-        const expense = await driver.createExpense(expenseData, users[0].token);
+            test('should reject requests with tokens for different projects', async () => {
+                // Token for a different Firebase project
+                const wrongProjectToken =
+                    'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
 
-        // User 2 should not be able to modify user 1's expense
-        await expect(
-          driver.updateExpense(expense.id, { amount: 200 }, users[1].token)
-        ).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized/i);
-
-        await expect(
-          driver.deleteExpense(expense.id, users[1].token)
-        ).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized/i);
-      });
-    });
-
-    describe('Privilege Escalation Attempts', () => {
-      test('should allow any member to generate share links', async () => {
-        // Any group member should be able to generate share links
-        const shareLink = await driver.generateShareLink(testGroup.id, users[1].token);
-        expect(shareLink).toHaveProperty('linkId');
-        expect(shareLink).toHaveProperty('shareablePath');
-      });
-
-      test('should prevent non-members from generating share links', async () => {
-        // Create a user who is not a member of the group
-        const nonMemberUser = await driver.createUser({
-          email: `nonmember-${uuidv4()}@test.com`,
-          password: 'testPass123!',
-          displayName: 'Non Member User'
+                await expect(driver.listGroups(wrongProjectToken)).rejects.toThrow(/401|unauthorized|invalid|audience/i);
+            });
         });
 
-        // Non-member should not be able to generate share links
-        await expect(
-          driver.generateShareLink(testGroup.id, (nonMemberUser as any).token)
-        ).rejects.toThrow(/403|forbidden|member|not.*authorized/i);
-      });
+        describe('Token Injection Attacks', () => {
+            test('should reject SQL injection attempts in Authorization header', async () => {
+                const sqlInjectionTokens = ["Bearer '; DROP TABLE users; --", "Bearer ' OR '1'='1", "Bearer admin'/*", "Bearer 1' UNION SELECT * FROM secrets--"];
 
-      test('should prevent users from modifying group membership directly', async () => {
-        // Try to add unauthorized users to a group by updating the document
-        const unauthorizedUser = await driver.createUser({
-          email: `unauthorized-${uuidv4()}@test.com`,
-          password: 'Password123!',
-          displayName: 'Unauthorized User'
+                for (const token of sqlInjectionTokens) {
+                    await expect(driver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
+                }
+            });
+
+            test('should reject script injection attempts in Authorization header', async () => {
+                const scriptInjectionTokens = ['Bearer <script>alert("xss")</script>', 'Bearer javascript:alert(1)', 'Bearer vbscript:msgbox(1)', 'Bearer data:text/html,<script>alert(1)</script>'];
+
+                for (const token of scriptInjectionTokens) {
+                    await expect(driver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
+                }
+            });
+        });
+    });
+
+    describe('Authorization Security', () => {
+        let testGroup: any;
+
+        beforeEach(async () => {
+            // Create a fresh test group for each authorization test
+            testGroup = await driver.createGroupWithMembers(`Auth Test Group ${uuidv4()}`, users, users[0].token);
         });
 
-        const maliciousUpdate = {
-          data: {
-            memberIds: [
-              ...(testGroup.memberIds || []),
-              unauthorizedUser.uid
-            ]
-          }
-        };
+        describe('Cross-User Data Access', () => {
+            test('should prevent users from accessing other users groups', async () => {
+                // Create a group for user 1 only
+                const privateGroup = await driver.createGroupWithMembers(`Private Group ${uuidv4()}`, [users[0]], users[0].token);
 
-        // SECURITY FIX: API should now reject attempts to modify group membership directly
-        await expect(
-          driver.updateGroup(testGroup.id, maliciousUpdate, users[1].token)
-        ).rejects.toThrow(/400|403|forbidden|unauthorized|not.*allowed|validation|cannot.*be.*modified/i);
-      });
-    });
-  });
+                // User 2 should not be able to access this group
+                // CURRENT BEHAVIOR: Returns 404 instead of 403 (security issue - should not reveal existence)
+                await expect(driver.getGroup(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
-  describe('Input Validation Security', () => {
-    let testGroup: any;
+                await expect(driver.getGroupBalances(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
+            });
 
-    beforeEach(async () => {
-      testGroup = await driver.createGroupWithMembers(`Input Test Group ${uuidv4()}`, users, users[0].token);
-    });
+            test('should prevent users from accessing other users expenses', async () => {
+                // Create an expense in the shared test group
+                const expenseData = new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid]) // Only user 0 is participant - this is what the test is about
+                    .build();
+                const expense = await driver.createExpense(expenseData, users[0].token);
 
-    describe('XSS Prevention', () => {
-      test('should sanitize XSS attempts in expense descriptions', async () => {
-        const xssPayloads = [
-          '<script>alert("xss")</script>',
-          '<img src="x" onerror="alert(1)">',
-          'javascript:alert(1)',
-          '<svg onload="alert(1)">',
-          '"><script>alert(1)</script>',
-          '\u003cscript\u003ealert(1)\u003c/script\u003e',
-        ];
+                // SECURITY FIX: User 2 should NOT be able to access the expense since they're not a participant
+                // This should now return a 403 Forbidden error
+                await expect(driver.getExpense(expense.id, users[1].token)).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized|not.*participant/i);
+            });
 
-        for (const payload of xssPayloads) {
-          const expenseData = new ExpenseBuilder()
-            .withGroupId(testGroup.id)
-            .withPaidBy(users[0].uid)
-            .withParticipants(users.map(u => u.uid))
-            .withDescription(payload) // XSS payload - this is what the test is about
-            .build();
+            test('should prevent users from modifying other users expenses', async () => {
+                // Create an expense paid by user 1
+                const expenseData = new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants(users.map((u) => u.uid))
+                    .build();
+                const expense = await driver.createExpense(expenseData, users[0].token);
 
-          // SECURITY ISSUE: Some XSS payloads are rejected (good), others may pass through
-          try {
-            const expense = await driver.createExpense(expenseData, users[0].token);
-            const retrievedExpense = await driver.getExpense(expense.id, users[0].token);
+                // User 2 should not be able to modify user 1's expense
+                await expect(driver.updateExpense(expense.id, { amount: 200 }, users[1].token)).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized/i);
 
-            // The description should be sanitized (exact sanitization depends on your implementation)
-            expect(retrievedExpense.description).not.toContain('<script>');
-            expect(retrievedExpense.description).not.toContain('javascript:');
-            expect(retrievedExpense.description).not.toContain('onerror=');
-            expect(retrievedExpense.description).not.toContain('onload=');
-          } catch (error) {
-            // It's good if dangerous content is rejected
-            expect(error).toBeDefined();
-            expect((error as Error).message).toMatch(/400|invalid|dangerous/i);
-          }
-        }
-      });
+                await expect(driver.deleteExpense(expense.id, users[1].token)).rejects.toThrow(/403|forbidden|access.*denied|not.*authorized/i);
+            });
+        });
 
-      test('should sanitize XSS attempts in group names', async () => {
-        const xssPayload = '<script>alert("group-xss")</script>';
+        describe('Privilege Escalation Attempts', () => {
+            test('should allow any member to generate share links', async () => {
+                // Any group member should be able to generate share links
+                const shareLink = await driver.generateShareLink(testGroup.id, users[1].token);
+                expect(shareLink).toHaveProperty('linkId');
+                expect(shareLink).toHaveProperty('shareablePath');
+            });
 
-        // GOOD: API correctly rejects dangerous content in group names
-        await expect(
-          driver.createGroupWithMembers(xssPayload, [users[0]], users[0].token)
-        ).rejects.toThrow(/400|invalid|dangerous/i);
-      });
+            test('should prevent non-members from generating share links', async () => {
+                // Create a user who is not a member of the group
+                const nonMemberUser = await driver.createUser({
+                    email: `nonmember-${uuidv4()}@test.com`,
+                    password: 'testPass123!',
+                    displayName: 'Non Member User',
+                });
 
-    });
+                // Non-member should not be able to generate share links
+                await expect(driver.generateShareLink(testGroup.id, (nonMemberUser as any).token)).rejects.toThrow(/403|forbidden|member|not.*authorized/i);
+            });
 
-    describe('Data Injection Prevention', () => {
-      test('should prevent SQL injection in query parameters', async () => {
-        const sqlPayloads = [
-          "'; DROP TABLE expenses; --",
-          "' OR '1'='1",
-          "1' UNION SELECT * FROM users--",
-          "admin'/*",
-          ") OR 1=1--",
-        ];
+            test('should prevent users from modifying group membership directly', async () => {
+                // Try to add unauthorized users to a group by updating the document
+                const unauthorizedUser = await driver.createUser({
+                    email: `unauthorized-${uuidv4()}@test.com`,
+                    password: 'Password123!',
+                    displayName: 'Unauthorized User',
+                });
 
-        for (const payload of sqlPayloads) {
-          // Test various endpoints with SQL injection payloads
-          // SECURITY ISSUE: Some SQL injection payloads cause 500 errors instead of proper validation
-          await expect(
-            driver.getGroup(payload, users[0].token)
-          ).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
+                const maliciousUpdate = {
+                    data: {
+                        memberIds: [...(testGroup.memberIds || []), unauthorizedUser.uid],
+                    },
+                };
 
-          await expect(
-            driver.getExpense(payload, users[0].token)
-          ).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
-
-          await expect(
-            driver.getGroupBalances(payload, users[0].token)
-          ).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
-        }
-      });
-
-      test('should prevent prototype pollution in request bodies', async () => {
-        const pollutionPayloads = [
-          {
-            "__proto__": { "polluted": true },
-            "description": "Normal expense"
-          } as any,
-          {
-            "constructor": { "prototype": { "polluted": true } },
-            "description": "Another expense"
-          } as any,
-          {
-            "prototype": { "polluted": true },
-            "description": "Third expense"
-          } as any
-        ];
-
-        for (const payload of pollutionPayloads) {
-          const expenseData = {
-            ...new ExpenseBuilder()
-              .withGroupId(testGroup.id)
-              .withPaidBy(users[0].uid)
-              .withParticipants(users.map(u => u.uid))
-              .build(),
-            ...payload // Prototype pollution attempt - this is what the test is about
-          };
-
-          // The request should either be rejected or the dangerous properties should be filtered
-          try {
-            await driver.createExpense(expenseData, users[0].token);
-            // If it succeeds, verify prototype pollution didn't occur
-            expect((Object.prototype as any).polluted).toBeUndefined();
-          } catch (error) {
-            // It's okay if the request is rejected due to security filtering
-            expect(error).toBeDefined();
-          }
-        }
-      });
+                // SECURITY FIX: API should now reject attempts to modify group membership directly
+                await expect(driver.updateGroup(testGroup.id, maliciousUpdate, users[1].token)).rejects.toThrow(/400|403|forbidden|unauthorized|not.*allowed|validation|cannot.*be.*modified/i);
+            });
+        });
     });
 
-    describe('Data Type & Size Validation', () => {
-      test('should reject invalid data types in expense creation', async () => {
-        const invalidPayloads = [
-          { amount: "not-a-number" as any },
-          { amount: null as any },
-          { amount: {} as any },
-          { amount: [] as any },
-          { groupId: 123 as any },
-          { groupId: null as any },
-          { participants: "not-an-array" as any },
-          { participants: {} as any },
-          { date: "invalid-date" },
-          { splitType: 123 as any },
-          { category: {} as any },
-        ];
+    describe('Input Validation Security', () => {
+        let testGroup: any;
 
-        for (const invalidData of invalidPayloads) {
-          const expenseData = {
-            ...new ExpenseBuilder()
-              .withGroupId(testGroup.id)
-              .withPaidBy(users[0].uid)
-              .withParticipants(users.map(u => u.uid))
-              .build(),
-            ...invalidData // Invalid data type - this is what the test is about
-          };
+        beforeEach(async () => {
+            testGroup = await driver.createGroupWithMembers(`Input Test Group ${uuidv4()}`, users, users[0].token);
+        });
 
-          await expect(
-            driver.createExpense(expenseData as any, users[0].token)
-          ).rejects.toThrow(/400|validation|invalid|required/i);
-        }
-      });
+        describe('XSS Prevention', () => {
+            test('should sanitize XSS attempts in expense descriptions', async () => {
+                const xssPayloads = [
+                    '<script>alert("xss")</script>',
+                    '<img src="x" onerror="alert(1)">',
+                    'javascript:alert(1)',
+                    '<svg onload="alert(1)">',
+                    '"><script>alert(1)</script>',
+                    '\u003cscript\u003ealert(1)\u003c/script\u003e',
+                ];
 
-      test('should reject extremely large values', async () => {
-        const expenseData = new ExpenseBuilder()
-          .withGroupId(testGroup.id)
-          .withPaidBy(users[0].uid)
-          .withParticipants(users.map(u => u.uid))
-          .withAmount(Number.MAX_SAFE_INTEGER + 1) // Extremely large value - this is what the test is about
-          .build();
+                for (const payload of xssPayloads) {
+                    const expenseData = new ExpenseBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants(users.map((u) => u.uid))
+                        .withDescription(payload) // XSS payload - this is what the test is about
+                        .build();
 
-        await expect(
-          driver.createExpense(expenseData, users[0].token)
-        ).rejects.toThrow(/400|validation|invalid.*amount|too.*large/i);
-      });
+                    // SECURITY ISSUE: Some XSS payloads are rejected (good), others may pass through
+                    try {
+                        const expense = await driver.createExpense(expenseData, users[0].token);
+                        const retrievedExpense = await driver.getExpense(expense.id, users[0].token);
 
-      test('should reject negative amounts', async () => {
-        const expenseData = new ExpenseBuilder()
-          .withGroupId(testGroup.id)
-          .withPaidBy(users[0].uid)
-          .withParticipants(users.map(u => u.uid))
-          .withAmount(-100) // Negative amount - this is what the test is about
-          .build();
+                        // The description should be sanitized (exact sanitization depends on your implementation)
+                        expect(retrievedExpense.description).not.toContain('<script>');
+                        expect(retrievedExpense.description).not.toContain('javascript:');
+                        expect(retrievedExpense.description).not.toContain('onerror=');
+                        expect(retrievedExpense.description).not.toContain('onload=');
+                    } catch (error) {
+                        // It's good if dangerous content is rejected
+                        expect(error).toBeDefined();
+                        expect((error as Error).message).toMatch(/400|invalid|dangerous/i);
+                    }
+                }
+            });
 
-        await expect(
-          driver.createExpense(expenseData, users[0].token)
-        ).rejects.toThrow(/400|validation|invalid.*amount|negative/i);
-      });
+            test('should sanitize XSS attempts in group names', async () => {
+                const xssPayload = '<script>alert("group-xss")</script>';
 
-      test('should reject excessively long strings', async () => {
-        const veryLongString = 'A'.repeat(10000); // 10KB string
-        
-        const expenseData = new ExpenseBuilder()
-          .withGroupId(testGroup.id)
-          .withPaidBy(users[0].uid)
-          .withParticipants(users.map(u => u.uid))
-          .withDescription(veryLongString) // Very long string - this is what the test is about
-          .build();
+                // GOOD: API correctly rejects dangerous content in group names
+                await expect(driver.createGroupWithMembers(xssPayload, [users[0]], users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
+            });
+        });
 
-        await expect(
-          driver.createExpense(expenseData, users[0].token)
-        ).rejects.toThrow(/400|validation|too.*long|exceeds.*limit/i);
-      });
+        describe('Data Injection Prevention', () => {
+            test('should prevent SQL injection in query parameters', async () => {
+                const sqlPayloads = ["'; DROP TABLE expenses; --", "' OR '1'='1", "1' UNION SELECT * FROM users--", "admin'/*", ') OR 1=1--'];
 
-      test('should reject empty required strings', async () => {
-        const expenseData = new ExpenseBuilder()
-          .withGroupId(testGroup.id)
-          .withPaidBy(users[0].uid)
-          .withParticipants(users.map(u => u.uid))
-          .withDescription("") // Empty description - this is what the test is about
-          .build();
+                for (const payload of sqlPayloads) {
+                    // Test various endpoints with SQL injection payloads
+                    // SECURITY ISSUE: Some SQL injection payloads cause 500 errors instead of proper validation
+                    await expect(driver.getGroup(payload, users[0].token)).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
 
-        await expect(
-          driver.createExpense(expenseData, users[0].token)
-        ).rejects.toThrow(/400|validation|required|empty/i);
-      });
+                    await expect(driver.getExpense(payload, users[0].token)).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
+
+                    await expect(driver.getGroupBalances(payload, users[0].token)).rejects.toThrow(/400|404|500|not.*found|invalid.*id|internal.*error/i);
+                }
+            });
+
+            test('should prevent prototype pollution in request bodies', async () => {
+                const pollutionPayloads = [
+                    {
+                        __proto__: { polluted: true },
+                        description: 'Normal expense',
+                    } as any,
+                    {
+                        constructor: { prototype: { polluted: true } },
+                        description: 'Another expense',
+                    } as any,
+                    {
+                        prototype: { polluted: true },
+                        description: 'Third expense',
+                    } as any,
+                ];
+
+                for (const payload of pollutionPayloads) {
+                    const expenseData = {
+                        ...new ExpenseBuilder()
+                            .withGroupId(testGroup.id)
+                            .withPaidBy(users[0].uid)
+                            .withParticipants(users.map((u) => u.uid))
+                            .build(),
+                        ...payload, // Prototype pollution attempt - this is what the test is about
+                    };
+
+                    // The request should either be rejected or the dangerous properties should be filtered
+                    try {
+                        await driver.createExpense(expenseData, users[0].token);
+                        // If it succeeds, verify prototype pollution didn't occur
+                        expect((Object.prototype as any).polluted).toBeUndefined();
+                    } catch (error) {
+                        // It's okay if the request is rejected due to security filtering
+                        expect(error).toBeDefined();
+                    }
+                }
+            });
+        });
+
+        describe('Data Type & Size Validation', () => {
+            test('should reject invalid data types in expense creation', async () => {
+                const invalidPayloads = [
+                    { amount: 'not-a-number' as any },
+                    { amount: null as any },
+                    { amount: {} as any },
+                    { amount: [] as any },
+                    { groupId: 123 as any },
+                    { groupId: null as any },
+                    { participants: 'not-an-array' as any },
+                    { participants: {} as any },
+                    { date: 'invalid-date' },
+                    { splitType: 123 as any },
+                    { category: {} as any },
+                ];
+
+                for (const invalidData of invalidPayloads) {
+                    const expenseData = {
+                        ...new ExpenseBuilder()
+                            .withGroupId(testGroup.id)
+                            .withPaidBy(users[0].uid)
+                            .withParticipants(users.map((u) => u.uid))
+                            .build(),
+                        ...invalidData, // Invalid data type - this is what the test is about
+                    };
+
+                    await expect(driver.createExpense(expenseData as any, users[0].token)).rejects.toThrow(/400|validation|invalid|required/i);
+                }
+            });
+
+            test('should reject extremely large values', async () => {
+                const expenseData = new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants(users.map((u) => u.uid))
+                    .withAmount(Number.MAX_SAFE_INTEGER + 1) // Extremely large value - this is what the test is about
+                    .build();
+
+                await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|invalid.*amount|too.*large/i);
+            });
+
+            test('should reject negative amounts', async () => {
+                const expenseData = new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants(users.map((u) => u.uid))
+                    .withAmount(-100) // Negative amount - this is what the test is about
+                    .build();
+
+                await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|invalid.*amount|negative/i);
+            });
+
+            test('should reject excessively long strings', async () => {
+                const veryLongString = 'A'.repeat(10000); // 10KB string
+
+                const expenseData = new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants(users.map((u) => u.uid))
+                    .withDescription(veryLongString) // Very long string - this is what the test is about
+                    .build();
+
+                await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|too.*long|exceeds.*limit/i);
+            });
+
+            test('should reject empty required strings', async () => {
+                const expenseData = new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants(users.map((u) => u.uid))
+                    .withDescription('') // Empty description - this is what the test is about
+                    .build();
+
+                await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|required|empty/i);
+            });
+        });
     });
-  });
 
-  describe('Rate Limiting & DoS Prevention', () => {
-    test('should handle rapid successive requests gracefully', async () => {
-      // Make many requests in quick succession
-      const promises = Array.from({ length: 10 }, () => 
-        driver.listGroups(users[0].token)
-      );
+    describe('Rate Limiting & DoS Prevention', () => {
+        test('should handle rapid successive requests gracefully', async () => {
+            // Make many requests in quick succession
+            const promises = Array.from({ length: 10 }, () => driver.listGroups(users[0].token));
 
-      // All requests should either succeed or fail gracefully (no crashes)
-      const results = await Promise.allSettled(promises);
-      
-      // Verify no unhandled errors
-      results.forEach(result => {
-        if (result.status === 'rejected') {
-          // Should be a proper API error, not a server crash
-          expect(result.reason.message).toMatch(/429|rate.*limit|too.*many|400|401|403|404|500/i);
-        }
-      });
+            // All requests should either succeed or fail gracefully (no crashes)
+            const results = await Promise.allSettled(promises);
+
+            // Verify no unhandled errors
+            results.forEach((result) => {
+                if (result.status === 'rejected') {
+                    // Should be a proper API error, not a server crash
+                    expect(result.reason.message).toMatch(/429|rate.*limit|too.*many|400|401|403|404|500/i);
+                }
+            });
+        });
+
+        test('should reject requests with enormous payloads', async () => {
+            // Create a test group first for this test
+            const testGroup = await driver.createGroupWithMembers(`DoS Test Group ${uuidv4()}`, users, users[0].token);
+
+            const enormousPayload = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants(users.map((u) => u.uid))
+                .withDescription('A'.repeat(1000000)) // 1MB string - this is what the test is about
+                .build();
+
+            // SECURITY FIX: API should reject enormous payloads due to validation limits
+            await expect(driver.createExpense(enormousPayload, users[0].token)).rejects.toThrow(/400|validation|description|too.*long|max.*length/i);
+        });
     });
 
-    test('should reject requests with enormous payloads', async () => {
-      // Create a test group first for this test
-      const testGroup = await driver.createGroupWithMembers(`DoS Test Group ${uuidv4()}`, users, users[0].token);
-      
-      const enormousPayload = new ExpenseBuilder()
-        .withGroupId(testGroup.id)
-        .withPaidBy(users[0].uid)
-        .withParticipants(users.map(u => u.uid))
-        .withDescription('A'.repeat(1000000)) // 1MB string - this is what the test is about
-        .build();
+    describe('Information Disclosure Prevention', () => {
+        test('should not expose internal error details in production', async () => {
+            // Try to trigger an internal error
+            try {
+                await driver.getExpense('definitely-not-a-valid-id', users[0].token);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
 
-      // SECURITY FIX: API should reject enormous payloads due to validation limits
-      await expect(
-        driver.createExpense(enormousPayload, users[0].token)
-      ).rejects.toThrow(/400|validation|description|too.*long|max.*length/i);
-    });
-  });
+                // Should not expose internal paths, stack traces, or database details
+                expect(errorMessage).not.toMatch(/node_modules|src\/|lib\/|firebase\/functions/i);
+                // ACCEPTABLE: The word "error" in API response is fine, it's stack traces that are dangerous
+                expect(errorMessage).not.toMatch(/stack|trace|at.*line|at.*Object/i);
+                expect(errorMessage).not.toMatch(/firestore|database|collection/i);
+                expect(errorMessage).not.toMatch(/process\.env|config\./i);
+            }
+        });
 
-  describe('Information Disclosure Prevention', () => {
-    test('should not expose internal error details in production', async () => {
-      // Try to trigger an internal error
-      try {
-        await driver.getExpense('definitely-not-a-valid-id', users[0].token);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        
-        // Should not expose internal paths, stack traces, or database details
-        expect(errorMessage).not.toMatch(/node_modules|src\/|lib\/|firebase\/functions/i);
-        // ACCEPTABLE: The word "error" in API response is fine, it's stack traces that are dangerous
-        expect(errorMessage).not.toMatch(/stack|trace|at.*line|at.*Object/i);
-        expect(errorMessage).not.toMatch(/firestore|database|collection/i);
-        expect(errorMessage).not.toMatch(/process\.env|config\./i);
-      }
-    });
+        test('should not expose user data in error messages', async () => {
+            try {
+                // Try to access a non-existent expense
+                await driver.getExpense('non-existent-id', users[0].token);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
 
-    test('should not expose user data in error messages', async () => {
-      try {
-        // Try to access a non-existent expense
-        await driver.getExpense('non-existent-id', users[0].token);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        
-        // Should not expose other users' data or internal IDs
-        expect(errorMessage).not.toContain(users[1].uid);
-        expect(errorMessage).not.toContain(users[1].email);
-        expect(errorMessage).not.toMatch(/user.*\w{20,}/i); // Don't expose long user IDs
-      }
+                // Should not expose other users' data or internal IDs
+                expect(errorMessage).not.toContain(users[1].uid);
+                expect(errorMessage).not.toContain(users[1].email);
+                expect(errorMessage).not.toMatch(/user.*\w{20,}/i); // Don't expose long user IDs
+            }
+        });
     });
-  });
 });

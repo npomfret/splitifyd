@@ -15,18 +15,18 @@ describe('Performance - Complex Debt Graphs', () => {
     jest.setTimeout(10000); // Tests take ~2.8s
 
     beforeAll(async () => {
-    // Clear any existing test data first
-    await clearAllTestData();
-    
+        // Clear any existing test data first
+        await clearAllTestData();
+
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
         mainUser = await driver.createUser(new UserBuilder().build());
     });
 
-  afterAll(async () => {
-    // Clean up all test data
-    await clearAllTestData();
-  });
+    afterAll(async () => {
+        // Clean up all test data
+        await clearAllTestData();
+    });
 
     const testCases = [
         { users: 4, expensesPerUser: 3, description: 'small graph' },
@@ -47,17 +47,17 @@ describe('Performance - Complex Debt Graphs', () => {
             const metrics = await workers.createComplexDebtGraph({
                 users: complexUsers,
                 group: complexGroup,
-                expensesPerUser
+                expensesPerUser,
             });
 
             expect(metrics.balanceCalculationTime).toBeLessThan(5000);
-            
+
             const balances = await driver.getGroupBalances(complexGroup.id, mainUser.token);
             const totalBalance = Object.values(balances.userBalances).reduce((sum: number, balance: any) => {
                 return sum + (balance?.netBalance || 0);
             }, 0);
             expect(Math.abs(totalBalance)).toBeLessThan(0.01);
-            
+
             console.log(`Calculated balances for ${users} users with ${metrics.totalExpenses} expenses in ${metrics.balanceCalculationTime}ms`);
         }, 120000);
     });

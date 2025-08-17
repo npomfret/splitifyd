@@ -2,187 +2,187 @@ import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
 export class RegisterPage extends BasePage {
-  // Selectors
-  readonly url = '/register';
-  readonly fullNameInput = 'input[placeholder="Enter your full name"]';
-  readonly emailInput = 'input[placeholder="Enter your email"]';
-  readonly passwordInput = 'input[placeholder="Create a strong password"]';
-  readonly confirmPasswordInput = 'input[placeholder="Confirm your password"]';
-  readonly createAccountButton = 'Create Account';
+    // Selectors
+    readonly url = '/register';
+    readonly fullNameInput = 'input[placeholder="Enter your full name"]';
+    readonly emailInput = 'input[placeholder="Enter your email"]';
+    readonly passwordInput = 'input[placeholder="Create a strong password"]';
+    readonly confirmPasswordInput = 'input[placeholder="Confirm your password"]';
+    readonly createAccountButton = 'Create Account';
 
-  async navigate() {
-    await this.navigateToRegister();
-    
-    // Fail fast if we're not on the register page
-    // This ensures tests start from a known state
-    try {
-      await this.expectUrl(/\/register/);
-    } catch (error) {
-      throw new Error('Expected to navigate to register page but was redirected. Test requires clean authentication state.');
+    async navigate() {
+        await this.navigateToRegister();
+
+        // Fail fast if we're not on the register page
+        // This ensures tests start from a known state
+        try {
+            await this.expectUrl(/\/register/);
+        } catch (error) {
+            throw new Error('Expected to navigate to register page but was redirected. Test requires clean authentication state.');
+        }
     }
-  }
-  
-  async fillRegistrationForm(name: string, email: string, password: string) {
-    await this.fillPreactInput(this.fullNameInput, name);
-    await this.fillPreactInput(this.emailInput, email);
-    await this.fillPreactInput(this.passwordInput, password);
-    await this.fillPreactInput(this.confirmPasswordInput, password);
-    // Check both required checkboxes using page object methods
-    await this.checkTermsCheckbox();
-    await this.checkCookieCheckbox();
-  }
-  
-  async submitForm() {
-    // Use standardized button click with proper error handling
-    const submitButton = this.getSubmitButton();
-    await this.clickButton(submitButton, { buttonName: this.createAccountButton });
-  }
-  
-  async register(name: string, email: string, password: string) {
-    await this.fillRegistrationForm(name, email, password);
-    await this.submitForm();
-  }
 
-  // Element accessors for direct interaction in tests
-  getFullNameInput() {
-    return this.page.locator(this.fullNameInput);
-  }
+    async fillRegistrationForm(name: string, email: string, password: string) {
+        await this.fillPreactInput(this.fullNameInput, name);
+        await this.fillPreactInput(this.emailInput, email);
+        await this.fillPreactInput(this.passwordInput, password);
+        await this.fillPreactInput(this.confirmPasswordInput, password);
+        // Check both required checkboxes using page object methods
+        await this.checkTermsCheckbox();
+        await this.checkCookieCheckbox();
+    }
 
-  getEmailInput() {
-    return this.page.locator(this.emailInput);
-  }
+    async submitForm() {
+        // Use standardized button click with proper error handling
+        const submitButton = this.getSubmitButton();
+        await this.clickButton(submitButton, { buttonName: this.createAccountButton });
+    }
 
-  getPasswordInput() {
-    return this.page.locator(this.passwordInput);
-  }
+    async register(name: string, email: string, password: string) {
+        await this.fillRegistrationForm(name, email, password);
+        await this.submitForm();
+    }
 
-  getConfirmPasswordInput() {
-    return this.page.locator(this.confirmPasswordInput);
-  }
+    // Element accessors for direct interaction in tests
+    getFullNameInput() {
+        return this.page.locator(this.fullNameInput);
+    }
 
-  getPasswordInputs() {
-    return this.page.locator(SELECTORS.PASSWORD_INPUT);
-  }
+    getEmailInput() {
+        return this.page.locator(this.emailInput);
+    }
 
-  getTermsCheckbox() {
-    return this.page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]');
-  }
+    getPasswordInput() {
+        return this.page.locator(this.passwordInput);
+    }
 
-  getCookieCheckbox() {
-    return this.page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]');
-  }
+    getConfirmPasswordInput() {
+        return this.page.locator(this.confirmPasswordInput);
+    }
 
-  getSubmitButton() {
-    return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.createAccountButton });
-  }
+    getPasswordInputs() {
+        return this.page.locator(SELECTORS.PASSWORD_INPUT);
+    }
 
-  // Alternative selector methods for fallback
-  getNameInputByType() {
-    return this.page.locator(SELECTORS.TEXT_INPUT).first();
-  }
+    getTermsCheckbox() {
+        return this.page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]');
+    }
 
-  getEmailInputByType() {
-    return this.page.locator(SELECTORS.EMAIL_INPUT);
-  }
+    getCookieCheckbox() {
+        return this.page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]');
+    }
 
-  // Form element labels and headings
-  getCreateAccountHeading() {
-    return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.CREATE_ACCOUNT });
-  }
+    getSubmitButton() {
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.createAccountButton });
+    }
 
-  getFullNameLabel() {
-    return this.page.getByText('Full Name *');
-  }
+    // Alternative selector methods for fallback
+    getNameInputByType() {
+        return this.page.locator(SELECTORS.TEXT_INPUT).first();
+    }
 
-  getEmailLabel() {
-    return this.page.getByText('Email address *');
-  }
+    getEmailInputByType() {
+        return this.page.locator(SELECTORS.EMAIL_INPUT);
+    }
 
-  getPasswordLabel() {
-    return this.page.getByText('Password *', { exact: true });
-  }
+    // Form element labels and headings
+    getCreateAccountHeading() {
+        return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.CREATE_ACCOUNT });
+    }
 
-  getConfirmPasswordLabel() {
-    return this.page.getByText('Confirm Password *');
-  }
+    getFullNameLabel() {
+        return this.page.getByText('Full Name *');
+    }
 
-  getSignInLink() {
-    return this.page.getByRole(ARIA_ROLES.LINK, { name: 'Sign in' });
-  }
+    getEmailLabel() {
+        return this.page.getByText('Email address *');
+    }
 
-  // Terms and Cookie Policy specific accessors
-  getTermsText() {
-    return this.page.locator('text=I accept the Terms of Service');
-  }
+    getPasswordLabel() {
+        return this.page.getByText('Password *', { exact: true });
+    }
 
-  getCookieText() {
-    return this.page.locator('text=I accept the Cookie Policy');
-  }
+    getConfirmPasswordLabel() {
+        return this.page.getByText('Confirm Password *');
+    }
 
-  getTermsLink() {
-    return this.page.locator('a[href="/terms"]').first();
-  }
+    getSignInLink() {
+        return this.page.getByRole(ARIA_ROLES.LINK, { name: 'Sign in' });
+    }
 
-  getCookiesLink() {
-    return this.page.locator('a[href="/cookies"]').first();
-  }
+    // Terms and Cookie Policy specific accessors
+    getTermsText() {
+        return this.page.locator('text=I accept the Terms of Service');
+    }
 
-  getCreateAccountButton() {
-    return this.page.locator('button:has-text("Create Account")');
-  }
+    getCookieText() {
+        return this.page.locator('text=I accept the Cookie Policy');
+    }
 
-  // Helper method to check terms checkbox
-  async checkTermsCheckbox() {
-    await this.getTermsCheckbox().check();
-  }
+    getTermsLink() {
+        return this.page.locator('a[href="/terms"]').first();
+    }
 
-  // Helper method to check cookie checkbox
-  async checkCookieCheckbox() {
-    await this.getCookieCheckbox().check();
-  }
+    getCookiesLink() {
+        return this.page.locator('a[href="/cookies"]').first();
+    }
 
-  // Security testing methods
-  getRegisterForm() {
-    return this.page.locator('[data-testid="register-form"]');
-  }
+    getCreateAccountButton() {
+        return this.page.locator('button:has-text("Create Account")');
+    }
 
-  getEmailInputTestId() {
-    return this.page.locator('[data-testid="email-input"]');
-  }
+    // Helper method to check terms checkbox
+    async checkTermsCheckbox() {
+        await this.getTermsCheckbox().check();
+    }
 
-  getPasswordInputTestId() {
-    return this.page.locator('[data-testid="password-input"]');
-  }
+    // Helper method to check cookie checkbox
+    async checkCookieCheckbox() {
+        await this.getCookieCheckbox().check();
+    }
 
-  getConfirmPasswordInputTestId() {
-    return this.page.locator('[data-testid="confirm-password-input"]');
-  }
+    // Security testing methods
+    getRegisterForm() {
+        return this.page.locator('[data-testid="register-form"]');
+    }
 
-  getDisplayNameInputTestId() {
-    return this.page.locator('[data-testid="display-name-input"]');
-  }
+    getEmailInputTestId() {
+        return this.page.locator('[data-testid="email-input"]');
+    }
 
-  getRegisterSubmitTestId() {
-    return this.page.locator('[data-testid="register-submit"]');
-  }
+    getPasswordInputTestId() {
+        return this.page.locator('[data-testid="password-input"]');
+    }
 
-  getPasswordError() {
-    return this.page.locator('[data-testid="password-error"], [data-testid="error-message"]');
-  }
+    getConfirmPasswordInputTestId() {
+        return this.page.locator('[data-testid="confirm-password-input"]');
+    }
 
-  getEmailError() {
-    return this.page.locator('[data-testid="email-error"], [data-testid="error-message"]');
-  }
+    getDisplayNameInputTestId() {
+        return this.page.locator('[data-testid="display-name-input"]');
+    }
 
-  getResetForm() {
-    return this.page.locator('[data-testid="reset-form"], [data-testid="forgot-password-form"]');
-  }
+    getRegisterSubmitTestId() {
+        return this.page.locator('[data-testid="register-submit"]');
+    }
 
-  getResetSubmitTestId() {
-    return this.page.locator('[data-testid="reset-submit"]');
-  }
+    getPasswordError() {
+        return this.page.locator('[data-testid="password-error"], [data-testid="error-message"]');
+    }
 
-  getSuccessMessage() {
-    return this.page.locator('[data-testid="success-message"], text=sent, text=email');
-  }
+    getEmailError() {
+        return this.page.locator('[data-testid="email-error"], [data-testid="error-message"]');
+    }
+
+    getResetForm() {
+        return this.page.locator('[data-testid="reset-form"], [data-testid="forgot-password-form"]');
+    }
+
+    getResetSubmitTestId() {
+        return this.page.locator('[data-testid="reset-submit"]');
+    }
+
+    getSuccessMessage() {
+        return this.page.locator('[data-testid="success-message"], text=sent, text=email');
+    }
 }

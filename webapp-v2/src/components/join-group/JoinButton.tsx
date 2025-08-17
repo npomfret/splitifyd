@@ -8,27 +8,22 @@ import { Button } from '../ui/Button';
 import { LoadingSpinner } from '@/components/ui';
 
 interface JoinButtonProps {
-  onJoin: () => void;
-  loading?: boolean;
-  disabled?: boolean;
+    onJoin: () => void;
+    loading?: boolean;
+    disabled?: boolean;
 }
 
 export function JoinButton({ onJoin, loading = false, disabled = false }: JoinButtonProps) {
-  return (
-    <Button
-      onClick={onJoin}
-      disabled={loading || disabled}
-      fullWidth
-      className="py-3"
-    >
-      {loading ? (
-        <>
-          <LoadingSpinner size="sm" />
-          <span className="ml-2">Joining...</span>
-        </>
-      ) : (
-        'Join Group'
-      )}
-    </Button>
-  );
+    return (
+        <Button onClick={onJoin} disabled={loading || disabled} fullWidth className="py-3">
+            {loading ? (
+                <>
+                    <LoadingSpinner size="sm" />
+                    <span className="ml-2">Joining...</span>
+                </>
+            ) : (
+                'Join Group'
+            )}
+        </Button>
+    );
 }

@@ -10,296 +10,303 @@ import { UserRoles, SplitTypes } from '@shared/shared-types';
 
 // Base schemas
 export const UserThemeColorSchema = z.object({
-  light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
-  dark: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
-  name: z.string().min(1).max(50),
-  pattern: z.enum(['solid', 'dots', 'stripes', 'diagonal']),
-  assignedAt: z.string().datetime(),
-  colorIndex: z.number().int().min(0)
+    light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
+    dark: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
+    name: z.string().min(1).max(50),
+    pattern: z.enum(['solid', 'dots', 'stripes', 'diagonal']),
+    assignedAt: z.string().datetime(),
+    colorIndex: z.number().int().min(0),
 });
 
 export const MemberSchema = z.object({
-  uid: z.string().min(1),
-  name: z.string().min(1),
-  initials: z.string().min(1),
-  email: z.string().email().optional(),
-  displayName: z.string().min(1).optional(),
-  joinedAt: z.string().optional(),
-  themeColor: UserThemeColorSchema.optional()
+    uid: z.string().min(1),
+    name: z.string().min(1),
+    initials: z.string().min(1),
+    email: z.string().email().optional(),
+    displayName: z.string().min(1).optional(),
+    joinedAt: z.string().optional(),
+    themeColor: UserThemeColorSchema.optional(),
 });
 
 export const FirebaseConfigSchema = z.object({
-  apiKey: z.string(),
-  authDomain: z.string(),
-  projectId: z.string(),
-  storageBucket: z.string(),
-  messagingSenderId: z.string(),
-  appId: z.string(),
-  measurementId: z.string().optional()
+    apiKey: z.string(),
+    authDomain: z.string(),
+    projectId: z.string(),
+    storageBucket: z.string(),
+    messagingSenderId: z.string(),
+    appId: z.string(),
+    measurementId: z.string().optional(),
 });
 
 export const ApiConfigSchema = z.object({
-  timeout: z.number(),
-  retryAttempts: z.number()
+    timeout: z.number(),
+    retryAttempts: z.number(),
 });
 
 export const WarningBannerSchema = z.object({
-  enabled: z.boolean(),
-  message: z.string().min(1)
+    enabled: z.boolean(),
+    message: z.string().min(1),
 });
 
 export const EnvironmentConfigSchema = z.object({
-  warningBanner: WarningBannerSchema.optional()
+    warningBanner: WarningBannerSchema.optional(),
 });
 
 export const FormDefaultsSchema = z.object({
-  displayName: z.string().optional(),
-  email: z.string().optional(),
-  password: z.string().optional()
+    displayName: z.string().optional(),
+    email: z.string().optional(),
+    password: z.string().optional(),
 });
 
 // Configuration response
 export const AppConfigurationSchema = z.object({
-  firebase: FirebaseConfigSchema,
-  api: ApiConfigSchema,
-  environment: EnvironmentConfigSchema,
-  formDefaults: FormDefaultsSchema,
-  firebaseAuthUrl: z.string().optional(),
-  firebaseFirestoreUrl: z.string().optional()
+    firebase: FirebaseConfigSchema,
+    api: ApiConfigSchema,
+    environment: EnvironmentConfigSchema,
+    formDefaults: FormDefaultsSchema,
+    firebaseAuthUrl: z.string().optional(),
+    firebaseFirestoreUrl: z.string().optional(),
 });
 
 // Group schemas
 
 export const GroupSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  description: z.string().optional(),
-  memberIds: z.array(z.string()),
-  balance: z.object({
-    balancesByCurrency: z.record(z.string(), z.object({
-      currency: z.string(),
-      netBalance: z.number(),
-      totalOwed: z.number(),
-      totalOwing: z.number()
-    }))
-  }),
-  lastActivity: z.string().min(1),
-  lastActivityRaw: z.string(),
-  lastExpense: z.object({
-    description: z.string().min(1),
-    amount: z.number(),
-    date: z.string()
-  }).optional(),
-  
-  // Optional fields for detail view
-  members: z.array(MemberSchema).optional(),
-  createdBy: z.string().optional(),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
-  lastExpenseTime: z.string().optional()
+    id: z.string().min(1),
+    name: z.string().min(1),
+    description: z.string().optional(),
+    memberIds: z.array(z.string()),
+    balance: z.object({
+        balancesByCurrency: z.record(
+            z.string(),
+            z.object({
+                currency: z.string(),
+                netBalance: z.number(),
+                totalOwed: z.number(),
+                totalOwing: z.number(),
+            }),
+        ),
+    }),
+    lastActivity: z.string().min(1),
+    lastActivityRaw: z.string(),
+    lastExpense: z
+        .object({
+            description: z.string().min(1),
+            amount: z.number(),
+            date: z.string(),
+        })
+        .optional(),
+
+    // Optional fields for detail view
+    members: z.array(MemberSchema).optional(),
+    createdBy: z.string().optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+    lastExpenseTime: z.string().optional(),
 });
 
 export const ListGroupsResponseSchema = z.object({
-  groups: z.array(GroupSchema),
-  count: z.number(),
-  hasMore: z.boolean(),
-  nextCursor: z.string().optional(),
-  pagination: z.object({
-    limit: z.number(),
-    order: z.string()
-  })
+    groups: z.array(GroupSchema),
+    count: z.number(),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
+    pagination: z.object({
+        limit: z.number(),
+        order: z.string(),
+    }),
 });
 
 // Expense schemas
 export const ExpenseSplitSchema = z.object({
-  userId: z.string().min(1),
-  amount: z.number(),
-  percentage: z.number().optional(),
-  userName: z.string().min(1).optional()
+    userId: z.string().min(1),
+    amount: z.number(),
+    percentage: z.number().optional(),
+    userName: z.string().min(1).optional(),
 });
 
 export const ExpenseDataSchema = z.object({
-  id: z.string().min(1),
-  groupId: z.string().min(1),
-  description: z.string().min(1),
-  amount: z.number(),
-  currency: z.string().length(3),
-  paidBy: z.string().min(1),
-  paidByName: z.string().min(1).optional(),
-  category: z.string().min(1),
-  date: z.string(),
-  splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
-  participants: z.array(z.string().min(1)),
-  splits: z.array(ExpenseSplitSchema),
-  createdBy: z.string().min(1),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  receiptUrl: z.string().optional()
+    id: z.string().min(1),
+    groupId: z.string().min(1),
+    description: z.string().min(1),
+    amount: z.number(),
+    currency: z.string().length(3),
+    paidBy: z.string().min(1),
+    paidByName: z.string().min(1).optional(),
+    category: z.string().min(1),
+    date: z.string(),
+    splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
+    participants: z.array(z.string().min(1)),
+    splits: z.array(ExpenseSplitSchema),
+    createdBy: z.string().min(1),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    receiptUrl: z.string().optional(),
 });
 
 export const ExpenseListResponseSchema = z.object({
-  expenses: z.array(ExpenseDataSchema),
-  count: z.number(),
-  hasMore: z.boolean(),
-  nextCursor: z.string().optional()
+    expenses: z.array(ExpenseDataSchema),
+    count: z.number(),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
 });
 
 // Balance schemas - Updated to match server response structure
 export const UserBalanceSchema = z.object({
-  userId: z.string(),
-  netBalance: z.number(),
-  owes: z.record(z.string(), z.number()),
-  owedBy: z.record(z.string(), z.number())
+    userId: z.string(),
+    netBalance: z.number(),
+    owes: z.record(z.string(), z.number()),
+    owedBy: z.record(z.string(), z.number()),
 });
 
 export const SimplifiedDebtSchema = z.object({
-  from: z.object({ userId: z.string() }),
-  to: z.object({ userId: z.string() }),
-  amount: z.number(),
-  currency: z.string().length(3)
+    from: z.object({ userId: z.string() }),
+    to: z.object({ userId: z.string() }),
+    amount: z.number(),
+    currency: z.string().length(3),
 });
 
 export const GroupBalancesSchema = z.object({
-  groupId: z.string(),
-  userBalances: z.record(z.string(), UserBalanceSchema), // Legacy field for internal use
-  simplifiedDebts: z.array(SimplifiedDebtSchema),
-  lastUpdated: z.string(),
-  balancesByCurrency: z.record(z.string(), z.record(z.string(), UserBalanceSchema))
+    groupId: z.string(),
+    userBalances: z.record(z.string(), UserBalanceSchema), // Legacy field for internal use
+    simplifiedDebts: z.array(SimplifiedDebtSchema),
+    lastUpdated: z.string(),
+    balancesByCurrency: z.record(z.string(), z.record(z.string(), UserBalanceSchema)),
 });
 
 // Group members response schema
 export const GroupMembersResponseSchema = z.object({
-  members: z.array(z.object({
-    uid: z.string().min(1),
-    email: z.string().email(),
-    displayName: z.string().min(1),
-    role: z.enum([UserRoles.ADMIN, UserRoles.USER]).optional(),
-    termsAcceptedAt: z.any().optional(),
-    cookiePolicyAcceptedAt: z.any().optional(),
-    acceptedPolicies: z.record(z.string(), z.string()).optional(),
-    themeColor: UserThemeColorSchema.optional()
-  })),
-  totalCount: z.number(),
-  hasMore: z.boolean(),
-  nextCursor: z.string().optional()
+    members: z.array(
+        z.object({
+            uid: z.string().min(1),
+            email: z.string().email(),
+            displayName: z.string().min(1),
+            role: z.enum([UserRoles.ADMIN, UserRoles.USER]).optional(),
+            termsAcceptedAt: z.any().optional(),
+            cookiePolicyAcceptedAt: z.any().optional(),
+            acceptedPolicies: z.record(z.string(), z.string()).optional(),
+            themeColor: UserThemeColorSchema.optional(),
+        }),
+    ),
+    totalCount: z.number(),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
 });
 
 // Share schemas
 export const ShareableLinkResponseSchema = z.object({
-  linkId: z.string(),
-  shareablePath: z.string()
+    linkId: z.string(),
+    shareablePath: z.string(),
 });
 
 export const JoinGroupResponseSchema = z.object({
-  groupId: z.string(),
-  groupName: z.string(),
-  success: z.boolean()
+    groupId: z.string(),
+    groupName: z.string(),
+    success: z.boolean(),
 });
 
 // Health check schemas
 export const HealthCheckResponseSchema = z.object({
-  checks: z.object({
-    firestore: z.object({
-      status: z.enum(['healthy', 'unhealthy']),
-      responseTime: z.number().optional()
+    checks: z.object({
+        firestore: z.object({
+            status: z.enum(['healthy', 'unhealthy']),
+            responseTime: z.number().optional(),
+        }),
+        auth: z.object({
+            status: z.enum(['healthy', 'unhealthy']),
+            responseTime: z.number().optional(),
+        }),
     }),
-    auth: z.object({
-      status: z.enum(['healthy', 'unhealthy']),
-      responseTime: z.number().optional()
-    })
-  })
 });
 
 // Error response schema
 export const ApiErrorResponseSchema = z.object({
-  error: z.object({
-    code: z.string().min(1),
-    message: z.string().min(1),
-    details: z.unknown().optional()
-  })
+    error: z.object({
+        code: z.string().min(1),
+        message: z.string().min(1),
+        details: z.unknown().optional(),
+    }),
 });
 
 // Map of endpoints to their response schemas
 export const RegisterResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().min(1),
-  user: z.object({
-    uid: z.string().min(1),
-    email: z.string().email(),
-    displayName: z.string().min(2).max(50)
-  })
+    success: z.boolean(),
+    message: z.string().min(1),
+    user: z.object({
+        uid: z.string().min(1),
+        email: z.string().email(),
+        displayName: z.string().min(2).max(50),
+    }),
 });
 
 // Generic message response for operations like DELETE
 export const MessageResponseSchema = z.object({
-  message: z.string().min(1)
+    message: z.string().min(1),
 });
 
 // Settlement schemas
 export const SettlementSchema = z.object({
-  id: z.string().min(1),
-  groupId: z.string().min(1),
-  payerId: z.string().min(1),
-  payeeId: z.string().min(1),
-  amount: z.number().positive(),
-  currency: z.string().length(3),
-  date: z.string(),
-  note: z.string().optional(),
-  createdBy: z.string().min(1),
-  createdAt: z.string(),
-  updatedAt: z.string()
+    id: z.string().min(1),
+    groupId: z.string().min(1),
+    payerId: z.string().min(1),
+    payeeId: z.string().min(1),
+    amount: z.number().positive(),
+    currency: z.string().length(3),
+    date: z.string(),
+    note: z.string().optional(),
+    createdBy: z.string().min(1),
+    createdAt: z.string(),
+    updatedAt: z.string(),
 });
 
 export const SettlementListItemSchema = z.object({
-  id: z.string().min(1),
-  groupId: z.string().min(1),
-  payer: z.object({
-    uid: z.string().min(1),
-    displayName: z.string().min(1),
-    email: z.string().email().optional()
-  }),
-  payee: z.object({
-    uid: z.string().min(1),
-    displayName: z.string().min(1),
-    email: z.string().email().optional()
-  }),
-  amount: z.number().positive(),
-  currency: z.string().length(3),
-  date: z.string(),
-  note: z.string().optional(),
-  createdBy: z.string().min(1).optional(),
-  createdAt: z.string()
+    id: z.string().min(1),
+    groupId: z.string().min(1),
+    payer: z.object({
+        uid: z.string().min(1),
+        displayName: z.string().min(1),
+        email: z.string().email().optional(),
+    }),
+    payee: z.object({
+        uid: z.string().min(1),
+        displayName: z.string().min(1),
+        email: z.string().email().optional(),
+    }),
+    amount: z.number().positive(),
+    currency: z.string().length(3),
+    date: z.string(),
+    note: z.string().optional(),
+    createdBy: z.string().min(1).optional(),
+    createdAt: z.string(),
 });
 
 export const ListSettlementsResponseSchema = z.object({
-  settlements: z.array(SettlementListItemSchema),
-  count: z.number(),
-  hasMore: z.boolean(),
-  nextCursor: z.string().optional()
+    settlements: z.array(SettlementListItemSchema),
+    count: z.number(),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
 });
 
 export const responseSchemas = {
-  '/config': AppConfigurationSchema,
-  '/health': HealthCheckResponseSchema,
-  'GET /groups': ListGroupsResponseSchema,
-  'POST /groups': GroupSchema,
-  '/groups/:id': GroupSchema,
-  '/groups/:id/members': GroupMembersResponseSchema,
-  '/expenses': ExpenseDataSchema,
-  'DELETE /expenses': MessageResponseSchema,
-  '/expenses/group': ExpenseListResponseSchema,
-  '/groups/balances': GroupBalancesSchema,
-  'POST /groups/share': ShareableLinkResponseSchema,
-  '/groups/share': ShareableLinkResponseSchema,
-  '/groups/join': JoinGroupResponseSchema,
-  '/register': RegisterResponseSchema,
-  'POST /settlements': z.object({
-    success: z.boolean(),
-    data: SettlementSchema
-  }),
-  '/settlements': z.object({
-    success: z.boolean(),
-    data: ListSettlementsResponseSchema
-  }),
-  '/settlements/:settlementId': SettlementListItemSchema
+    '/config': AppConfigurationSchema,
+    '/health': HealthCheckResponseSchema,
+    'GET /groups': ListGroupsResponseSchema,
+    'POST /groups': GroupSchema,
+    '/groups/:id': GroupSchema,
+    '/groups/:id/members': GroupMembersResponseSchema,
+    '/expenses': ExpenseDataSchema,
+    'DELETE /expenses': MessageResponseSchema,
+    '/expenses/group': ExpenseListResponseSchema,
+    '/groups/balances': GroupBalancesSchema,
+    'POST /groups/share': ShareableLinkResponseSchema,
+    '/groups/share': ShareableLinkResponseSchema,
+    '/groups/join': JoinGroupResponseSchema,
+    '/register': RegisterResponseSchema,
+    'POST /settlements': z.object({
+        success: z.boolean(),
+        data: SettlementSchema,
+    }),
+    '/settlements': z.object({
+        success: z.boolean(),
+        data: ListSettlementsResponseSchema,
+    }),
+    '/settlements/:settlementId': SettlementListItemSchema,
 } as const;

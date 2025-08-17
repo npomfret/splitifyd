@@ -15,19 +15,19 @@ describe('Performance - Large Dataset Handling', () => {
     jest.setTimeout(10000); // Tests take ~1.3s
 
     beforeAll(async () => {
-    // Clear any existing test data first
-    await clearAllTestData();
-    
+        // Clear any existing test data first
+        await clearAllTestData();
+
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
 
         mainUser = await driver.createUser(new UserBuilder().build());
     });
 
-  afterAll(async () => {
-    // Clean up all test data
-    await clearAllTestData();
-  });
+    afterAll(async () => {
+        // Clean up all test data
+        await clearAllTestData();
+    });
 
     const testCases = [
         { totalExpenses: 10, batchSize: 5, description: 'small dataset', timeout: 30000 },
@@ -36,27 +36,31 @@ describe('Performance - Large Dataset Handling', () => {
     ];
 
     testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
-        it(`should handle groups with ${totalExpenses} expenses efficiently (${description})`, async () => {
-            const largeGroupUser1 = mainUser;
-            const largeGroupUser2 = await driver.createUser(new UserBuilder().build());
-            
-            const largeGroup = await driver.createGroupWithMembers(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
+        it(
+            `should handle groups with ${totalExpenses} expenses efficiently (${description})`,
+            async () => {
+                const largeGroupUser1 = mainUser;
+                const largeGroupUser2 = await driver.createUser(new UserBuilder().build());
 
-            const metrics = await workers.createLargeGroupExpenses({
-                group: largeGroup,
-                user1: largeGroupUser1,
-                user2: largeGroupUser2,
-                totalExpenses,
-                batchSize
-            });
+                const largeGroup = await driver.createGroupWithMembers(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
 
-            expect(metrics.retrievalTime).toBeLessThan(2000);
-            expect(metrics.balanceTime).toBeLessThan(3000);
-            
-            console.log(`Performance metrics for ${totalExpenses} expenses:
+                const metrics = await workers.createLargeGroupExpenses({
+                    group: largeGroup,
+                    user1: largeGroupUser1,
+                    user2: largeGroupUser2,
+                    totalExpenses,
+                    batchSize,
+                });
+
+                expect(metrics.retrievalTime).toBeLessThan(2000);
+                expect(metrics.balanceTime).toBeLessThan(3000);
+
+                console.log(`Performance metrics for ${totalExpenses} expenses:
                 - Creation: ${metrics.creationTime}ms
                 - Retrieval: ${metrics.retrievalTime}ms
                 - Balance calculation: ${metrics.balanceTime}ms`);
-        }, timeout);
+            },
+            timeout,
+        );
     });
 });

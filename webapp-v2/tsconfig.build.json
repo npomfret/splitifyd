@@ -1,16 +1,9 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
-  },
-  "include": [
-    "src",
-    "e2e",
-    "scripts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noUnusedLocals": false,
+        "noUnusedParameters": false
+    },
+    "include": ["src", "e2e", "scripts"],
+    "exclude": ["node_modules", "dist"]
 }

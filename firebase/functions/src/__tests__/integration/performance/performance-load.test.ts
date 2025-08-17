@@ -2,11 +2,11 @@
  * @jest-environment node
  */
 
-import {ApiDriver, User} from '../../support/ApiDriver';
-import {PerformanceTestWorkers} from './PerformanceTestWorkers';
-import {ExpenseBuilder, UserBuilder} from '../../support/builders';
+import { ApiDriver, User } from '../../support/ApiDriver';
+import { PerformanceTestWorkers } from './PerformanceTestWorkers';
+import { ExpenseBuilder, UserBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
-import type {Group} from "../../../shared/shared-types";
+import type { Group } from '../../../shared/shared-types';
 
 describe('Performance and Load Testing', () => {
     let driver: ApiDriver;
@@ -16,19 +16,19 @@ describe('Performance and Load Testing', () => {
     jest.setTimeout(13000); // Tests take ~46.3s
 
     beforeAll(async () => {
-    // Clear any existing test data first
-    await clearAllTestData();
-    
+        // Clear any existing test data first
+        await clearAllTestData();
+
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
         mainUser = await driver.createUser(new UserBuilder().build());
         await driver.createGroupWithMembers('Performance Test Group', [mainUser], mainUser.token);
     });
 
-  afterAll(async () => {
-    // Clean up all test data
-    await clearAllTestData();
-  });
+    afterAll(async () => {
+        // Clean up all test data
+        await clearAllTestData();
+    });
 
     describe('Concurrent User Operations', () => {
         const testCases = [
@@ -51,14 +51,14 @@ describe('Performance and Load Testing', () => {
                     users: testUsers,
                     group: concurrentGroup,
                     expensesPerUser,
-                    timeoutMs
+                    timeoutMs,
                 });
 
                 const expectedTotal = users * expensesPerUser;
                 expect(result.succeeded).toBe(expectedTotal);
                 expect(result.failed).toBe(0);
                 expect(result.totalTime).toBeLessThan(timeoutMs);
-                
+
                 const groupExpenses = await driver.getGroupExpenses(concurrentGroup.id, mainUser.token);
                 expect(groupExpenses.expenses.length).toBeGreaterThanOrEqual(Math.min(expectedTotal, 100));
             });
@@ -76,30 +76,30 @@ describe('Performance and Load Testing', () => {
             it(`should maintain data consistency with ${expensesPerUserPair * 2} concurrent balance updates (${description})`, async () => {
                 const user1 = await driver.createUser(new UserBuilder().build());
                 const user2 = await driver.createUser(new UserBuilder().build());
-                
+
                 const balanceGroup = await driver.createGroupWithMembers(`Balance Test Group (${expensesPerUserPair} expenses)`, [user1, user2], user1.token);
 
                 await workers.createBalanceTestExpenses({
                     user1,
                     user2,
                     group: balanceGroup,
-                    expensesPerUserPair
+                    expensesPerUserPair,
                 });
 
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 2000));
                 const balances = await driver.getGroupBalances(balanceGroup.id, user1.token);
-                
+
                 const user1Balance = balances.userBalances[user1.uid];
                 const user2Balance = balances.userBalances[user2.uid];
-                
+
                 expect(user1Balance).toBeDefined();
                 expect(user2Balance).toBeDefined();
-                
+
                 const user1Net = user1Balance?.netBalance || 0;
                 const user2Net = user2Balance?.netBalance || 0;
-                
+
                 expect(user1Net).toBeCloseTo(-user2Net, 2);
-                
+
                 console.log(`Balance test (${expensesPerUserPair} expenses each): User1=${user1Net}, User2=${user2Net}`);
             });
         });
@@ -113,28 +113,32 @@ describe('Performance and Load Testing', () => {
         ];
 
         testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
-            it(`should handle groups with ${totalExpenses} expenses efficiently (${description})`, async () => {
-                const largeGroupUser1 = mainUser;
-                const largeGroupUser2 = await driver.createUser(new UserBuilder().build());
-                
-                const largeGroup = await driver.createGroupWithMembers(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
+            it(
+                `should handle groups with ${totalExpenses} expenses efficiently (${description})`,
+                async () => {
+                    const largeGroupUser1 = mainUser;
+                    const largeGroupUser2 = await driver.createUser(new UserBuilder().build());
 
-                const metrics = await workers.createLargeGroupExpenses({
-                    group: largeGroup,
-                    user1: largeGroupUser1,
-                    user2: largeGroupUser2,
-                    totalExpenses,
-                    batchSize
-                });
+                    const largeGroup = await driver.createGroupWithMembers(`Large Dataset Group (${totalExpenses} expenses)`, [largeGroupUser1, largeGroupUser2], largeGroupUser1.token);
 
-                expect(metrics.retrievalTime).toBeLessThan(2000);
-                expect(metrics.balanceTime).toBeLessThan(3000);
-                
-                console.log(`Performance metrics for ${totalExpenses} expenses:
+                    const metrics = await workers.createLargeGroupExpenses({
+                        group: largeGroup,
+                        user1: largeGroupUser1,
+                        user2: largeGroupUser2,
+                        totalExpenses,
+                        batchSize,
+                    });
+
+                    expect(metrics.retrievalTime).toBeLessThan(2000);
+                    expect(metrics.balanceTime).toBeLessThan(3000);
+
+                    console.log(`Performance metrics for ${totalExpenses} expenses:
                     - Creation: ${metrics.creationTime}ms
                     - Retrieval: ${metrics.retrievalTime}ms
                     - Balance calculation: ${metrics.balanceTime}ms`);
-            }, timeout);
+                },
+                timeout,
+            );
         });
     });
 
@@ -158,17 +162,17 @@ describe('Performance and Load Testing', () => {
                 const metrics = await workers.createComplexDebtGraph({
                     users: complexUsers,
                     group: complexGroup,
-                    expensesPerUser
+                    expensesPerUser,
                 });
 
                 expect(metrics.balanceCalculationTime).toBeLessThan(5000);
-                
+
                 const balances = await driver.getGroupBalances(complexGroup.id, mainUser.token);
                 const totalBalance = Object.values(balances.userBalances).reduce((sum: number, balance: any) => {
                     return sum + (balance?.netBalance || 0);
                 }, 0);
                 expect(Math.abs(totalBalance)).toBeLessThan(0.01);
-                
+
                 console.log(`Calculated balances for ${users} users with ${metrics.totalExpenses} expenses in ${metrics.balanceCalculationTime}ms`);
             }, 120000);
         });
@@ -184,16 +188,16 @@ describe('Performance and Load Testing', () => {
         testCases.forEach(({ groupCount, expensesPerGroup, description }) => {
             it(`should handle users with ${groupCount} group memberships (${description})`, async () => {
                 const busyUser = await driver.createUser(new UserBuilder().build());
-                
+
                 const { responseTime } = await workers.handleGroupMemberships({
                     busyUser,
                     groupCount,
                     expensesPerGroup,
-                    userSuffix: 'test'
+                    userSuffix: 'test',
                 });
 
                 expect(responseTime).toBeLessThan(groupCount * 250);
-                
+
                 console.log(`Retrieved balances for user with ${groupCount} groups in ${responseTime}ms`);
             }, 120000);
         });
@@ -204,21 +208,24 @@ describe('Performance and Load Testing', () => {
         let benchmarkExpenses: any[] = [];
 
         beforeAll(async () => {
-    // Clear any existing test data first
-    await clearAllTestData();
-    
+            // Clear any existing test data first
+            await clearAllTestData();
+
             benchmarkGroup = await driver.createGroupWithMembers('Benchmark Group', [mainUser], mainUser.token);
-            
+
             for (let i = 0; i < 20; i++) {
-                const expense = await driver.createExpense(new ExpenseBuilder()
-                    .withGroupId(benchmarkGroup.id)
-                    .withDescription(`Benchmark expense ${i}`)
-                    .withAmount(100)
-                    .withPaidBy(mainUser.uid)
-                    .withSplitType('exact')
-                    .withParticipants([mainUser.uid])
-                    .withSplits([{ userId: mainUser.uid, amount: 100 }])
-                    .build(), mainUser.token);
+                const expense = await driver.createExpense(
+                    new ExpenseBuilder()
+                        .withGroupId(benchmarkGroup.id)
+                        .withDescription(`Benchmark expense ${i}`)
+                        .withAmount(100)
+                        .withPaidBy(mainUser.uid)
+                        .withSplitType('exact')
+                        .withParticipants([mainUser.uid])
+                        .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                        .build(),
+                    mainUser.token,
+                );
                 benchmarkExpenses.push(expense);
             }
         });
@@ -227,7 +234,7 @@ describe('Performance and Load Testing', () => {
             const readOperations = [
                 { name: 'Get group expenses', fn: () => driver.getGroupExpenses(benchmarkGroup.id, mainUser.token), target: 500 },
                 { name: 'Get balances', fn: () => driver.getGroupBalances(benchmarkGroup.id, mainUser.token), target: 500 },
-                { name: 'Get expense', fn: () => driver.getExpense(benchmarkExpenses[0].id, mainUser.token), target: 300 }
+                { name: 'Get expense', fn: () => driver.getExpense(benchmarkExpenses[0].id, mainUser.token), target: 300 },
             ];
 
             for (const operation of readOperations) {
@@ -235,7 +242,7 @@ describe('Performance and Load Testing', () => {
                 await operation.fn();
                 const endTime = Date.now();
                 const responseTime = endTime - startTime;
-                
+
                 console.log(`${operation.name}: ${responseTime}ms (target: <${operation.target}ms)`);
                 expect(responseTime).toBeLessThan(operation.target);
             }
@@ -243,31 +250,40 @@ describe('Performance and Load Testing', () => {
 
         it('should meet target response times for write operations', async () => {
             const writeOperations = [
-                { 
+                {
                     name: 'Create expense',
-                    fn: () => driver.createExpense(new ExpenseBuilder()
-                        .withGroupId(benchmarkGroup.id)
-                        .withDescription('Write benchmark expense')
-                        .withAmount(100)
-                        .withPaidBy(mainUser.uid)
-                        .withSplitType('exact')
-                        .withParticipants([mainUser.uid])
-                        .withSplits([{ userId: mainUser.uid, amount: 100 }])
-                        .build(), mainUser.token),
-                    target: 2000
+                    fn: () =>
+                        driver.createExpense(
+                            new ExpenseBuilder()
+                                .withGroupId(benchmarkGroup.id)
+                                .withDescription('Write benchmark expense')
+                                .withAmount(100)
+                                .withPaidBy(mainUser.uid)
+                                .withSplitType('exact')
+                                .withParticipants([mainUser.uid])
+                                .withSplits([{ userId: mainUser.uid, amount: 100 }])
+                                .build(),
+                            mainUser.token,
+                        ),
+                    target: 2000,
                 },
                 {
                     name: 'Update expense',
-                    fn: () => driver.updateExpense(benchmarkExpenses[0].id, {
-                        description: 'Updated benchmark expense'
-                    }, mainUser.token),
-                    target: 1500
+                    fn: () =>
+                        driver.updateExpense(
+                            benchmarkExpenses[0].id,
+                            {
+                                description: 'Updated benchmark expense',
+                            },
+                            mainUser.token,
+                        ),
+                    target: 1500,
                 },
                 {
                     name: 'Create group',
                     fn: () => driver.createGroupWithMembers('New benchmark group', [mainUser], mainUser.token),
-                    target: 2000
-                }
+                    target: 2000,
+                },
             ];
 
             for (const operation of writeOperations) {
@@ -275,7 +291,7 @@ describe('Performance and Load Testing', () => {
                 await operation.fn();
                 const endTime = Date.now();
                 const responseTime = endTime - startTime;
-                
+
                 console.log(`${operation.name}: ${responseTime}ms (target: <${operation.target}ms)`);
                 expect(responseTime).toBeLessThan(operation.target);
             }
@@ -285,13 +301,13 @@ describe('Performance and Load Testing', () => {
     describe('Memory and Resource Usage', () => {
         it('should not leak memory during repeated operations', async () => {
             const memoryGroup = await driver.createGroupWithMembers('Memory Test Group', [mainUser], mainUser.token);
-            
+
             await workers.performRepeatedOperations({
                 group: memoryGroup,
                 user: mainUser,
-                iterations: 50
+                iterations: 50,
             });
-            
+
             expect(true).toBe(true);
         }, 120000);
     });

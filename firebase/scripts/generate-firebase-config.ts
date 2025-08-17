@@ -11,43 +11,37 @@ const templatePath = path.join(__dirname, '../firebase.template.json');
 const configPath = path.join(__dirname, '../firebase.json');
 
 if (!fs.existsSync(templatePath)) {
-  logger.error('❌ firebase.template.json not found');
-  process.exit(1);
+    logger.error('❌ firebase.template.json not found');
+    process.exit(1);
 }
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-const requiredVars: readonly string[] = [
-  'EMULATOR_AUTH_PORT',
-  'EMULATOR_FUNCTIONS_PORT', 
-  'EMULATOR_FIRESTORE_PORT',
-  'EMULATOR_HOSTING_PORT',
-  'EMULATOR_UI_PORT'
-] as const;
+const requiredVars: readonly string[] = ['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_UI_PORT'] as const;
 
-const missingVars: string[] = requiredVars.filter(varName => !process.env[varName]);
+const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {
-  logger.error('❌ Missing required environment variables', {
-    missing: missingVars,
-    note: 'Ensure .env file is properly configured'
-  });
-  process.exit(1);
+    logger.error('❌ Missing required environment variables', {
+        missing: missingVars,
+        note: 'Ensure .env file is properly configured',
+    });
+    process.exit(1);
 }
 
-requiredVars.forEach(varName => {
-  const placeholder: string = `{{${varName}}}`;
-  const value: number = parseInt(process.env[varName]!);
-  configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
+requiredVars.forEach((varName) => {
+    const placeholder: string = `{{${varName}}}`;
+    const value: number = parseInt(process.env[varName]!);
+    configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
 });
 
 fs.writeFileSync(configPath, configContent);
 
 logger.info('🔥 Firebase configuration generated', {
-  ports: {
-    ui: process.env.EMULATOR_UI_PORT!,
-    auth: process.env.EMULATOR_AUTH_PORT!,
-    functions: process.env.EMULATOR_FUNCTIONS_PORT!,
-    firestore: process.env.EMULATOR_FIRESTORE_PORT!,
-    hosting: process.env.EMULATOR_HOSTING_PORT!
-  }
+    ports: {
+        ui: process.env.EMULATOR_UI_PORT!,
+        auth: process.env.EMULATOR_AUTH_PORT!,
+        functions: process.env.EMULATOR_FUNCTIONS_PORT!,
+        firestore: process.env.EMULATOR_FIRESTORE_PORT!,
+        hosting: process.env.EMULATOR_HOSTING_PORT!,
+    },
 });

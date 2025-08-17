@@ -1,109 +1,102 @@
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwd"
-          }
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "pwd"
+                    }
+                ]
+            },
+            {
+                "matcher": "Grep",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "pwd"
+                    }
+                ]
+            },
+            {
+                "matcher": "Glob",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "pwd"
+                    }
+                ]
+            },
+            {
+                "matcher": "Task",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "pwd"
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "matcher": "Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwd"
-          }
-        ]
-      },
-      {
-        "matcher": "Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwd"
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwd"
-          }
-        ]
-      }
-    ]
-  },
-  "permissions": {
-    "allow": [
-      "Bash",
-      "Bash(*)",
-      "Bash(awk:*)",
-      "Bash(cat:*)",
-      "Bash(chmod:*)",
-      "Bash(concurrently:*)",
-      "Bash(cp:*)",
-      "Bash(find:*)",
-      "Bash(git:*)",
-      "Bash(grep:*)",
-      "Bash(jest:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(mv:*)",
-      "Bash(node:*)",
-      "Bash(npm:*)",
-      "Bash(npx:*)",
-      "Bash(playwright:*)",
-      "Bash(rm:*)",
-      "Bash(sed:*)",
-      "Bash(tsc:*)",
-      "Bash(vite:*)",
-      "Bash(vitest:*)",
-      "Bash(xargs:*)",
-      "Read",
-      "Task",
-      "WebFetch",
-      "context-provider - *",
-      "context7 - *",
-      "ide - *",
-      "mcp__context-provider",
-      "mcp__context-provider__*",
-      "mcp__context7",
-      "mcp__context7__*",
-      "mcp__ide",
-      "mcp__ide__*",
-      "mcp__playwright",
-      "mcp__playwright__*",
-      "mcp__ts-morph",
-      "mcp__ts-morph__*",
-      "mcp__typescript-mcp",
-      "mcp__typescript-mcp__*",
-      "playwright - *",
-      "ts-morph - *",
-      "typescript-mcp - *"
-    ],
-    "deny": []
-  },
-  "mcpServers": {
-    "puppeteer": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@cloudflare/puppeteer-core",
-        "puppeteer-mcp"
-      ]
     },
-    "ide": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@vonloxx/mcp-ide"
-      ]
+    "permissions": {
+        "allow": [
+            "Bash",
+            "Bash(*)",
+            "Bash(awk:*)",
+            "Bash(cat:*)",
+            "Bash(chmod:*)",
+            "Bash(concurrently:*)",
+            "Bash(cp:*)",
+            "Bash(find:*)",
+            "Bash(git:*)",
+            "Bash(grep:*)",
+            "Bash(jest:*)",
+            "Bash(ls:*)",
+            "Bash(mkdir:*)",
+            "Bash(mv:*)",
+            "Bash(node:*)",
+            "Bash(npm:*)",
+            "Bash(npx:*)",
+            "Bash(playwright:*)",
+            "Bash(rm:*)",
+            "Bash(sed:*)",
+            "Bash(tsc:*)",
+            "Bash(vite:*)",
+            "Bash(vitest:*)",
+            "Bash(xargs:*)",
+            "Read",
+            "Task",
+            "WebFetch",
+            "context-provider - *",
+            "context7 - *",
+            "ide - *",
+            "mcp__context-provider",
+            "mcp__context-provider__*",
+            "mcp__context7",
+            "mcp__context7__*",
+            "mcp__ide",
+            "mcp__ide__*",
+            "mcp__playwright",
+            "mcp__playwright__*",
+            "mcp__ts-morph",
+            "mcp__ts-morph__*",
+            "mcp__typescript-mcp",
+            "mcp__typescript-mcp__*",
+            "playwright - *",
+            "ts-morph - *",
+            "typescript-mcp - *"
+        ],
+        "deny": []
+    },
+    "mcpServers": {
+        "puppeteer": {
+            "command": "npx",
+            "args": ["-y", "@cloudflare/puppeteer-core", "puppeteer-mcp"]
+        },
+        "ide": {
+            "command": "npx",
+            "args": ["-y", "@vonloxx/mcp-ide"]
+        }
     }
-  }
 }

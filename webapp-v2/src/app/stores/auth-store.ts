@@ -20,302 +20,318 @@ const errorSignal = signal<string | null>(null);
 const initializedSignal = signal<boolean>(false);
 
 class AuthStoreImpl implements AuthStore {
-  // State getters
-  get user() { return userSignal.value; }
-  get loading() { return loadingSignal.value; }
-  get error() { return errorSignal.value; }
-  get initialized() { return initializedSignal.value; }
+    // State getters
+    get user() {
+        return userSignal.value;
+    }
+    get loading() {
+        return loadingSignal.value;
+    }
+    get error() {
+        return errorSignal.value;
+    }
+    get initialized() {
+        return initializedSignal.value;
+    }
 
-  // Signal accessors for reactive components
-  get userSignal() { return userSignal; }
-  get loadingSignal() { return loadingSignal; }
-  get errorSignal() { return errorSignal; }
-  get initializedSignal() { return initializedSignal; }
+    // Signal accessors for reactive components
+    get userSignal() {
+        return userSignal;
+    }
+    get loadingSignal() {
+        return loadingSignal;
+    }
+    get errorSignal() {
+        return errorSignal;
+    }
+    get initializedSignal() {
+        return initializedSignal;
+    }
 
-  // Token refresh management
-  private refreshPromise: Promise<string> | null = null;
-  private refreshTimer: NodeJS.Timeout | null = null;
+    // Token refresh management
+    private refreshPromise: Promise<string> | null = null;
+    private refreshTimer: NodeJS.Timeout | null = null;
 
-  // User-scoped storage for preferences and auth data
-  private userStorage = createUserScopedStorage(() => userSignal.value?.uid || null);
+    // User-scoped storage for preferences and auth data
+    private userStorage = createUserScopedStorage(() => userSignal.value?.uid || null);
 
-  private constructor() {
-    // Private constructor - use static create() method instead
-  }
+    private constructor() {
+        // Private constructor - use static create() method instead
+    }
 
-  static async create(): Promise<AuthStoreImpl> {
-    const store = new AuthStoreImpl();
-    await store.initializeAuth();
-    return store;
-  }
+    static async create(): Promise<AuthStoreImpl> {
+        const store = new AuthStoreImpl();
+        await store.initializeAuth();
+        return store;
+    }
 
-  private async initializeAuth() {
-    try {
-      await firebaseService.initialize();
-      
-      // Set up auth state listener
-      firebaseService.onAuthStateChanged(async (firebaseUser) => {
-        if (firebaseUser) {
-          const user = mapFirebaseUser(firebaseUser);
-          userSignal.value = user;
-          
-          // Apply user's theme colors
-          themeStore.updateCurrentUserTheme(user);
-          
-          // Get and store ID token for API authentication
-          try {
-            const idToken = await firebaseUser.getIdToken();
+    private async initializeAuth() {
+        try {
+            await firebaseService.initialize();
+
+            // Set up auth state listener
+            firebaseService.onAuthStateChanged(async (firebaseUser) => {
+                if (firebaseUser) {
+                    const user = mapFirebaseUser(firebaseUser);
+                    userSignal.value = user;
+
+                    // Apply user's theme colors
+                    themeStore.updateCurrentUserTheme(user);
+
+                    // Get and store ID token for API authentication
+                    try {
+                        const idToken = await firebaseUser.getIdToken();
+                        apiClient.setAuthToken(idToken);
+                        localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
+
+                        // Set up user-scoped storage for other services
+                        CurrencyService.getInstance().setStorage(this.userStorage);
+                        expenseFormStore.setStorage(this.userStorage);
+
+                        // Schedule token refresh
+                        this.scheduleNextRefresh(idToken);
+                    } catch (error) {
+                        logError('Failed to get ID token', error);
+                    }
+                } else {
+                    userSignal.value = null;
+                    apiClient.setAuthToken(null);
+                    localStorage.removeItem(USER_ID_KEY);
+
+                    // Clear all stores when user becomes null (logout or session expired)
+                    groupsStore.reset();
+                    enhancedGroupDetailStore.reset();
+                    themeStore.reset();
+
+                    // Clear storage for other services
+                    CurrencyService.getInstance().clearStorage();
+                    expenseFormStore.clearStorage();
+
+                    // Clean up token refresh
+                    this.cleanup();
+                }
+                loadingSignal.value = false;
+                initializedSignal.value = true;
+            });
+        } catch (error) {
+            errorSignal.value = error instanceof Error ? error.message : 'Auth initialization failed';
+            loadingSignal.value = false;
+            initializedSignal.value = true;
+        }
+    }
+
+    async login(email: string, password: string): Promise<void> {
+        loadingSignal.value = true;
+        errorSignal.value = null;
+
+        try {
+            const userCredential = await firebaseService.signInWithEmailAndPassword(email, password);
+
+            // Get ID token for API authentication
+            const idToken = await userCredential.user.getIdToken();
             apiClient.setAuthToken(idToken);
-            localStorage.setItem(USER_ID_KEY, firebaseUser.uid);
-            
-            
-            // Set up user-scoped storage for other services
-            CurrencyService.getInstance().setStorage(this.userStorage);
-            expenseFormStore.setStorage(this.userStorage);
-            
+            localStorage.setItem(USER_ID_KEY, userCredential.user.uid);
+
             // Schedule token refresh
             this.scheduleNextRefresh(idToken);
-          } catch (error) {
-            logError('Failed to get ID token', error);
-          }
-        } else {
-          userSignal.value = null;
-          apiClient.setAuthToken(null);
-          localStorage.removeItem(USER_ID_KEY);
-          
-          // Clear all stores when user becomes null (logout or session expired)
-          groupsStore.reset();
-          enhancedGroupDetailStore.reset();
-          themeStore.reset();
-          
-          // Clear storage for other services
-          CurrencyService.getInstance().clearStorage();
-          expenseFormStore.clearStorage();
-          
-          // Clean up token refresh
-          this.cleanup();
+
+            // User state will be updated by onAuthStateChanged listener
+        } catch (error: any) {
+            errorSignal.value = this.getAuthErrorMessage(error);
+            throw error;
+        } finally {
+            loadingSignal.value = false;
         }
-        loadingSignal.value = false;
-        initializedSignal.value = true;
-      });
-      
-    } catch (error) {
-      errorSignal.value = error instanceof Error ? error.message : 'Auth initialization failed';
-      loadingSignal.value = false;
-      initializedSignal.value = true;
     }
-  }
 
-  async login(email: string, password: string): Promise<void> {
-    loadingSignal.value = true;
-    errorSignal.value = null;
+    async register(email: string, password: string, displayName: string, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
+        loadingSignal.value = true;
+        errorSignal.value = null;
 
-    try {
-      const userCredential = await firebaseService.signInWithEmailAndPassword(email, password);
-      
-      // Get ID token for API authentication
-      const idToken = await userCredential.user.getIdToken();
-      apiClient.setAuthToken(idToken);
-      localStorage.setItem(USER_ID_KEY, userCredential.user.uid);
-      
-      // Schedule token refresh
-      this.scheduleNextRefresh(idToken);
-      
-      // User state will be updated by onAuthStateChanged listener
-    } catch (error: any) {
-      errorSignal.value = this.getAuthErrorMessage(error);
-      throw error;
-    } finally {
-      loadingSignal.value = false;
+        try {
+            // Use server-side registration which creates both Firebase Auth user and Firestore document
+            await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
+
+            // Now sign in the user to get the Firebase Auth state
+            await this.login(email, password);
+
+            // User state will be updated by onAuthStateChanged listener
+        } catch (error: any) {
+            errorSignal.value = this.getAuthErrorMessage(error);
+            throw error;
+        } finally {
+            loadingSignal.value = false;
+        }
     }
-  }
 
-  async register(email: string, password: string, displayName: string, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
-    loadingSignal.value = true;
-    errorSignal.value = null;
+    async logout(): Promise<void> {
+        loadingSignal.value = true;
+        errorSignal.value = null;
 
-    try {
-      // Use server-side registration which creates both Firebase Auth user and Firestore document
-      await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
-      
-      // Now sign in the user to get the Firebase Auth state
-      await this.login(email, password);
-      
-      // User state will be updated by onAuthStateChanged listener
-    } catch (error: any) {
-      errorSignal.value = this.getAuthErrorMessage(error);
-      throw error;
-    } finally {
-      loadingSignal.value = false;
-    }
-  }
+        try {
+            // Clear user-scoped storage before signing out
+            this.userStorage.clear();
 
-  async logout(): Promise<void> {
-    loadingSignal.value = true;
-    errorSignal.value = null;
+            await firebaseService.signOut();
+            apiClient.setAuthToken(null);
+            localStorage.removeItem(USER_ID_KEY);
 
-    try {
-      // Clear user-scoped storage before signing out
-      this.userStorage.clear();
+            // Clear all store data on logout
+            groupsStore.reset();
+            enhancedGroupDetailStore.reset();
+            themeStore.reset();
 
-      await firebaseService.signOut();
-      apiClient.setAuthToken(null);
-      localStorage.removeItem(USER_ID_KEY);
-      
-      // Clear all store data on logout
-      groupsStore.reset();
-      enhancedGroupDetailStore.reset();
-      themeStore.reset();
-      
-      // Clean up token refresh
-      this.cleanup();
-      
-      // User state will be updated by onAuthStateChanged listener
-    } catch (error: any) {
-      errorSignal.value = this.getAuthErrorMessage(error);
-      throw error;
-    } finally {
-      loadingSignal.value = false;
-    }
-  }
+            // Clean up token refresh
+            this.cleanup();
 
-  async resetPassword(email: string): Promise<void> {
-    errorSignal.value = null;
+            // User state will be updated by onAuthStateChanged listener
+        } catch (error: any) {
+            errorSignal.value = this.getAuthErrorMessage(error);
+            throw error;
+        } finally {
+            loadingSignal.value = false;
+        }
+    }
 
-    try {
-      await firebaseService.sendPasswordResetEmail(email);
-    } catch (error: any) {
-      errorSignal.value = this.getAuthErrorMessage(error);
-      throw error;
-    }
-  }
+    async resetPassword(email: string): Promise<void> {
+        errorSignal.value = null;
 
-  clearError(): void {
-    errorSignal.value = null;
-  }
+        try {
+            await firebaseService.sendPasswordResetEmail(email);
+        } catch (error: any) {
+            errorSignal.value = this.getAuthErrorMessage(error);
+            throw error;
+        }
+    }
 
+    clearError(): void {
+        errorSignal.value = null;
+    }
 
-  /**
-   * Get user storage instance for use by other stores
-   */
-  getUserStorage() {
-    return this.userStorage;
-  }
+    /**
+     * Get user storage instance for use by other stores
+     */
+    getUserStorage() {
+        return this.userStorage;
+    }
 
-  async refreshAuthToken(): Promise<string> {
-    // Deduplicate concurrent refresh requests
-    if (this.refreshPromise) {
-      return this.refreshPromise;
-    }
-    
-    this.refreshPromise = this.performTokenRefresh();
-    
-    try {
-      const token = await this.refreshPromise;
-      return token;
-    } finally {
-      this.refreshPromise = null;
-    }
-  }
-  
-  private async performTokenRefresh(): Promise<string> {
-    const firebaseAuth = firebaseService.getAuth();
-    const currentUser = firebaseAuth.currentUser;
-    
-    if (!currentUser) {
-      throw new Error('No authenticated user');
-    }
-    
-    try {
-      const freshToken = await currentUser.getIdToken(true); // Force refresh
-      apiClient.setAuthToken(freshToken);
-      this.scheduleNextRefresh(freshToken);
-      return freshToken;
-    } catch (error) {
-      logError('Token refresh failed', error);
-      throw error;
-    }
-  }
-  
-  private scheduleNextRefresh(token: string): void {
-    // Clear existing timer
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-    }
-    
-    try {
-      // Decode token to get expiration (basic JWT decode)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiresAt = payload.exp * 1000; // Convert to milliseconds
-      const now = Date.now();
-      const timeUntilExpiry = expiresAt - now;
-      
-      // Refresh 5 minutes before expiration
-      const refreshIn = Math.max(0, timeUntilExpiry - (5 * 60 * 1000));
-      
-      this.refreshTimer = setTimeout(() => {
-        this.refreshAuthToken().catch(error => {
-          logError('Scheduled token refresh failed', error);
-        });
-      }, refreshIn);
-    } catch (error) {
-      // Fallback to 50-minute refresh if decode fails
-      this.refreshTimer = setTimeout(() => {
-        this.refreshAuthToken().catch(error => {
-          logError('Scheduled token refresh failed', error);
-        });
-      }, 50 * 60 * 1000);
-    }
-  }
-  
-  private cleanup(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
-    }
-    this.refreshPromise = null;
-  }
+    async refreshAuthToken(): Promise<string> {
+        // Deduplicate concurrent refresh requests
+        if (this.refreshPromise) {
+            return this.refreshPromise;
+        }
 
-  private getAuthErrorMessage(error: any): string {
-    // Handle API errors from our backend (e.g., EMAIL_EXISTS)
-    if (error?.code === AuthErrors.EMAIL_EXISTS_CODE) {
-      return 'This email is already registered.';
+        this.refreshPromise = this.performTokenRefresh();
+
+        try {
+            const token = await this.refreshPromise;
+            return token;
+        } finally {
+            this.refreshPromise = null;
+        }
     }
-    
-    // Handle Firebase Auth errors
-    if (error?.code) {
-      switch (error.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-          return 'Invalid email or password.';
-        case AuthErrors.EMAIL_EXISTS:
-          return 'This email is already registered.';
-        case 'auth/weak-password':
-          return 'Password is too weak. Please use at least 6 characters.';
-        case 'auth/invalid-email':
-          return 'Please enter a valid email address.';
-        case 'auth/too-many-requests':
-          return 'Too many failed attempts. Please try again later.';
-        case 'auth/network-request-failed':
-          return 'Network error. Please check your connection.';
-        default:
-          return error.message || 'An authentication error occurred.';
-      }
+
+    private async performTokenRefresh(): Promise<string> {
+        const firebaseAuth = firebaseService.getAuth();
+        const currentUser = firebaseAuth.currentUser;
+
+        if (!currentUser) {
+            throw new Error('No authenticated user');
+        }
+
+        try {
+            const freshToken = await currentUser.getIdToken(true); // Force refresh
+            apiClient.setAuthToken(freshToken);
+            this.scheduleNextRefresh(freshToken);
+            return freshToken;
+        } catch (error) {
+            logError('Token refresh failed', error);
+            throw error;
+        }
     }
-    return error?.message || 'An unexpected error occurred.';
-  }
+
+    private scheduleNextRefresh(token: string): void {
+        // Clear existing timer
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+        }
+
+        try {
+            // Decode token to get expiration (basic JWT decode)
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expiresAt = payload.exp * 1000; // Convert to milliseconds
+            const now = Date.now();
+            const timeUntilExpiry = expiresAt - now;
+
+            // Refresh 5 minutes before expiration
+            const refreshIn = Math.max(0, timeUntilExpiry - 5 * 60 * 1000);
+
+            this.refreshTimer = setTimeout(() => {
+                this.refreshAuthToken().catch((error) => {
+                    logError('Scheduled token refresh failed', error);
+                });
+            }, refreshIn);
+        } catch (error) {
+            // Fallback to 50-minute refresh if decode fails
+            this.refreshTimer = setTimeout(
+                () => {
+                    this.refreshAuthToken().catch((error) => {
+                        logError('Scheduled token refresh failed', error);
+                    });
+                },
+                50 * 60 * 1000,
+            );
+        }
+    }
+
+    private cleanup(): void {
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+        this.refreshPromise = null;
+    }
+
+    private getAuthErrorMessage(error: any): string {
+        // Handle API errors from our backend (e.g., EMAIL_EXISTS)
+        if (error?.code === AuthErrors.EMAIL_EXISTS_CODE) {
+            return 'This email is already registered.';
+        }
+
+        // Handle Firebase Auth errors
+        if (error?.code) {
+            switch (error.code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                    return 'Invalid email or password.';
+                case AuthErrors.EMAIL_EXISTS:
+                    return 'This email is already registered.';
+                case 'auth/weak-password':
+                    return 'Password is too weak. Please use at least 6 characters.';
+                case 'auth/invalid-email':
+                    return 'Please enter a valid email address.';
+                case 'auth/too-many-requests':
+                    return 'Too many failed attempts. Please try again later.';
+                case 'auth/network-request-failed':
+                    return 'Network error. Please check your connection.';
+                default:
+                    return error.message || 'An authentication error occurred.';
+            }
+        }
+        return error?.message || 'An unexpected error occurred.';
+    }
 }
 
 // Singleton instance promise
 let authStoreInstance: Promise<AuthStoreImpl> | null = null;
 
 export const createAuthStore = async (): Promise<AuthStoreImpl> => {
-  return await AuthStoreImpl.create();
+    return await AuthStoreImpl.create();
 };
 
 export const getAuthStore = (): Promise<AuthStoreImpl> => {
-  if (!authStoreInstance) {
-    authStoreInstance = AuthStoreImpl.create();
-  }
-  return authStoreInstance;
+    if (!authStoreInstance) {
+        authStoreInstance = AuthStoreImpl.create();
+    }
+    return authStoreInstance;
 };
