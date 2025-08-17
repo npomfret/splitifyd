@@ -1,35 +1,14 @@
 #!/usr/bin/env npx tsx
-import * as admin from 'firebase-admin';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import { PolicyIds, FirestoreCollections } from '../shared/shared-types';
 import { createPolicyInternal, publishPolicyInternal } from '../policies/handlers';
+import { db } from '../firebase';
+import { ApiDriver } from '../__tests__/support/ApiDriver';
 
-// Load environment variables
-const envPath = path.join(__dirname, '../../.env.development');
-dotenv.config({ path: envPath });
-
-// Read emulator configuration from firebase.json
-const firebaseConfigPath = path.join(__dirname, '../../../firebase.json');
-const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-
-const firestorePort = firebaseConfig.emulators.firestore.port;
-const authPort = firebaseConfig.emulators.auth.port;
-
-// Set emulator host BEFORE initializing admin SDK
-process.env.FIRESTORE_EMULATOR_HOST = `localhost:${firestorePort}`;
-process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${authPort}`;
-
-console.log(`Connecting to Firestore emulator at ${process.env.FIRESTORE_EMULATOR_HOST}`);
-console.log(`Auth emulator at ${process.env.FIREBASE_AUTH_EMULATOR_HOST}`);
-
-// Initialize admin SDK with emulator settings (same as functions)
-if (!admin.apps.length) {
-    admin.initializeApp({
-        projectId: 'splitifyd',
-    });
-}
+/*
+ * this script only seeds policy files to the emulator
+ */
 
 /**
  * Read policy file from docs/policies directory
@@ -50,8 +29,7 @@ function readPolicyFile(filename: string): string {
 async function seedPolicy(policyId: string, policyName: string, filename: string): Promise<void> {
     try {
         // Check if policy already exists
-        const firestore = admin.firestore();
-        const existingDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).get();
+        const existingDoc = await db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
         if (existingDoc.exists) {
             console.log(`⏭️  Policy ${policyId} already exists, skipping...`);
@@ -74,6 +52,49 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
         console.log(`✅ Published policy: ${policyId} (hash: ${publishResponse.currentVersionHash})`);
     } catch (error) {
         console.error(`❌ Failed to seed policy ${policyId}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Verify policies are accessible via API
+ */
+async function verifyPoliciesViaApi(): Promise<void> {
+    console.log('\n═══════════════════════════════════════════════════════');
+    console.log('🔍 VERIFYING POLICIES VIA API...');
+    console.log('═══════════════════════════════════════════════════════');
+    
+    const apiDriver = new ApiDriver();
+    
+    try {
+        // Test 1: Get all current policies
+        console.log('\n📋 Fetching all current policies via API...');
+        const allPolicies = await apiDriver.getAllPolicies();
+        
+        console.log(`✅ Successfully fetched ${allPolicies.count} policies via API`);
+        console.log('Policies available:', Object.keys(allPolicies.policies));
+        
+        // Test 2: Fetch each individual policy
+        const policyIds = [PolicyIds.TERMS_OF_SERVICE, PolicyIds.COOKIE_POLICY, PolicyIds.PRIVACY_POLICY];
+        
+        for (const policyId of policyIds) {
+            console.log(`\n📄 Fetching policy ${policyId} via API...`);
+            
+            try {
+                const policy = await apiDriver.getPolicy(policyId);
+                console.log(`✅ Successfully fetched policy: ${policy.policyName}`);
+                console.log(`   - ID: ${policy.id}`);
+                console.log(`   - Hash: ${policy.currentVersionHash}`);
+                console.log(`   - Text length: ${policy.text.length} characters`);
+            } catch (error) {
+                console.error(`❌ Failed to fetch policy ${policyId}:`, error);
+            }
+        }
+        
+        console.log('\n✅ API VERIFICATION COMPLETE - All policies are accessible!');
+        
+    } catch (error) {
+        console.error('\n❌ API VERIFICATION FAILED:', error);
         throw error;
     }
 }
@@ -105,8 +126,7 @@ export async function seedPolicies() {
         console.log('✅ Successfully seeded all policies');
 
         // Verify policies were created by querying Firestore directly
-        const firestore = admin.firestore();
-        const docs = await firestore.collection(FirestoreCollections.POLICIES).get();
+        const docs = await db.collection(FirestoreCollections.POLICIES).get();
         console.log(`Total documents in policies collection: ${docs.size}`);
 
         docs.forEach((doc) => {
@@ -117,6 +137,10 @@ export async function seedPolicies() {
                 hasVersions: !!data.versions,
             });
         });
+        
+        // Verify policies are accessible via API
+        await verifyPoliciesViaApi();
+        
     } catch (error) {
         console.error('❌ Error seeding policies:', error);
         process.exit(1);

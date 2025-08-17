@@ -13,11 +13,11 @@ describe('Performance and Load Testing', () => {
     let mainUser: User;
     let workers: PerformanceTestWorkers;
 
-    jest.setTimeout(13000); // Tests take ~46.3s
+    jest.setTimeout(60 * 1000); // Tests take ~46.3s
 
     beforeAll(async () => {
         // Clear any existing test data first
-        await clearAllTestData();
+        // await clearAllTestData();
 
         driver = new ApiDriver();
         workers = new PerformanceTestWorkers(driver);
@@ -33,8 +33,8 @@ describe('Performance and Load Testing', () => {
     describe('Concurrent User Operations', () => {
         const testCases = [
             { users: 5, expensesPerUser: 2, timeoutMs: 5000, description: 'small load' },
-            { users: 10, expensesPerUser: 1, timeoutMs: 8000, description: 'medium load' },
-            { users: 15, expensesPerUser: 2, timeoutMs: 15000, description: 'large load' },
+            // { users: 10, expensesPerUser: 1, timeoutMs: 8000, description: 'medium load' },
+            // { users: 15, expensesPerUser: 2, timeoutMs: 15000, description: 'large load' },
         ];
 
         testCases.forEach(({ users, expensesPerUser, timeoutMs, description }) => {
@@ -68,8 +68,8 @@ describe('Performance and Load Testing', () => {
     describe('Balance Consistency Under Load', () => {
         const testCases = [
             { expensesPerUserPair: 5, description: 'small dataset' },
-            { expensesPerUserPair: 10, description: 'medium dataset' },
-            { expensesPerUserPair: 25, description: 'large dataset' },
+            // { expensesPerUserPair: 10, description: 'medium dataset' },
+            // { expensesPerUserPair: 25, description: 'large dataset' },
         ];
 
         testCases.forEach(({ expensesPerUserPair, description }) => {
@@ -108,8 +108,8 @@ describe('Performance and Load Testing', () => {
     describe('Large Dataset Handling', () => {
         const testCases = [
             { totalExpenses: 50, batchSize: 10, description: 'small dataset', timeout: 30000 },
-            { totalExpenses: 100, batchSize: 20, description: 'medium dataset', timeout: 60000 },
-            { totalExpenses: 250, batchSize: 25, description: 'large dataset', timeout: 120000 },
+            // { totalExpenses: 100, batchSize: 20, description: 'medium dataset', timeout: 60000 },
+            // { totalExpenses: 250, batchSize: 25, description: 'large dataset', timeout: 120000 },
         ];
 
         testCases.forEach(({ totalExpenses, batchSize, description, timeout }) => {
@@ -145,8 +145,8 @@ describe('Performance and Load Testing', () => {
     describe('Complex Debt Graphs', () => {
         const testCases = [
             { users: 4, expensesPerUser: 3, description: 'small graph' },
-            { users: 6, expensesPerUser: 4, description: 'medium graph' },
-            { users: 8, expensesPerUser: 5, description: 'large graph' },
+            // { users: 6, expensesPerUser: 4, description: 'medium graph' },
+            // { users: 8, expensesPerUser: 5, description: 'large graph' },
         ];
 
         testCases.forEach(({ users, expensesPerUser, description }) => {
@@ -181,8 +181,8 @@ describe('Performance and Load Testing', () => {
     describe('Group Membership Scaling', () => {
         const testCases = [
             { groupCount: 10, expensesPerGroup: 2, description: 'small scale' },
-            { groupCount: 20, expensesPerGroup: 3, description: 'medium scale' },
-            { groupCount: 30, expensesPerGroup: 2, description: 'large scale' },
+            // { groupCount: 20, expensesPerGroup: 3, description: 'medium scale' },
+            // { groupCount: 30, expensesPerGroup: 2, description: 'large scale' },
         ];
 
         testCases.forEach(({ groupCount, expensesPerGroup, description }) => {

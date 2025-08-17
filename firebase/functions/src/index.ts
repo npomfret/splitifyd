@@ -18,7 +18,7 @@ import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberH
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, getGroup, updateGroup, deleteGroup, listGroups } from './groups/handlers';
 import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
-import { admin } from './firebase';
+import { admin, db } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { BUILD_INFO } from './utils/build-info';
@@ -89,7 +89,7 @@ function setupRoutes(app: express.Application): void {
         const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> = {};
 
         const firestoreStart = Date.now();
-        const testRef = admin.firestore().collection('_health_check').doc('test');
+        const testRef = db.collection('_health_check').doc('test');
         await testRef.set({ timestamp: createServerTimestamp() }, { merge: true });
         await testRef.get();
         checks.firestore = {

@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import {db} from "./firebase-emulator";
 
 /**
  * Utility functions for cleaning up test data from Firebase emulator
@@ -8,7 +9,6 @@ import * as admin from 'firebase-admin';
  * Clear all documents from a Firestore collection
  */
 export async function clearCollection(collectionPath: string): Promise<void> {
-    const db = admin.firestore();
     const collection = db.collection(collectionPath);
     const batchSize = 100;
 
@@ -30,7 +30,7 @@ async function deleteQueryBatch(query: FirebaseFirestore.Query, batchSize: numbe
         }
 
         // Delete documents in a batch
-        const batch = admin.firestore().batch();
+        const batch = db.batch();
         snapshot.docs.forEach((doc) => {
             batch.delete(doc.ref);
         });
@@ -117,7 +117,6 @@ export class TestResourceTracker {
     }
 
     async cleanup(): Promise<void> {
-        const db = admin.firestore();
         const batch = db.batch();
 
         // Delete groups (this should cascade to expenses and other related data)

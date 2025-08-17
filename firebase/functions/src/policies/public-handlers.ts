@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import * as admin from 'firebase-admin';
 import { logger } from '../logger';
+import { db } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { FirestoreCollections } from '../shared/shared-types';
@@ -10,20 +10,13 @@ import { FirestoreCollections } from '../shared/shared-types';
  */
 export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
     try {
-        const firestore = admin.firestore();
+        const firestore = db;
         const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
 
         const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
 
         policiesSnapshot.forEach((doc) => {
             const data = doc.data();
-            console.log('🔍 Found document:', doc.id, {
-                policyName: data.policyName,
-                currentVersionHash: data.currentVersionHash,
-                hasVersions: !!data.versions,
-                dataKeys: Object.keys(data),
-            });
-
             if (!data.policyName || !data.currentVersionHash) {
                 logger.warn('Policy document missing required fields', { policyId: doc.id });
                 return;
@@ -54,7 +47,7 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
     const { id } = req.params;
 
     try {
-        const firestore = admin.firestore();
+        const firestore = db;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {

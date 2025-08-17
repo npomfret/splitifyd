@@ -18,11 +18,12 @@ export class ChangeDetector {
     }
 
     /**
-     * Subscribe to any changes for a group's expenses
+     * Subscribe to any changes for a group's transactions (expenses and settlements)
      */
     subscribeToExpenseChanges(groupId: string, callback: ChangeCallback): () => void {
         // Note: userId parameter kept for compatibility but not currently used in the query
-        return this.subscribe('expense-changes', { groupId }, callback);
+        // Note: Method name kept as subscribeToExpenseChanges for backward compatibility
+        return this.subscribe('transaction-changes', { groupId }, callback);
     }
 
     private subscribe(collectionName: string, filters: Record<string, string>, callback: ChangeCallback): () => void {

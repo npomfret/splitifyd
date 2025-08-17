@@ -17,6 +17,9 @@ export interface FirebaseEmulatorConfig {
  * @returns Firebase emulator configuration
  */
 export function getFirebaseEmulatorConfig(projectRoot: string): FirebaseEmulatorConfig {
+    if(!fs.statSync(projectRoot)) {
+        throw Error(`Project root ${projectRoot} => ${path.resolve(projectRoot)} does not exist!`);
+    }
     // Read emulator configuration from firebase.json
     const firebaseConfigPath = path.join(projectRoot, 'firebase', 'firebase.json');
     const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));

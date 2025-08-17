@@ -7,8 +7,7 @@
 
 import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
-
-const db = admin.firestore();
+import {db} from "../../support/firebase-emulator";
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     beforeAll(async () => {
@@ -34,7 +33,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         }
 
         // Clean up test data
-        const collections = ['settlements', 'expense-changes', 'balance-changes'];
+        const collections = ['settlements', 'transaction-changes', 'balance-changes'];
         for (const collection of collections) {
             const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
 
@@ -48,14 +47,14 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         await clearAllTestData();
     });
 
-    it('should generate expense-change notification when settlement is created directly in Firestore', async () => {
-        // Set up a listener for expense-changes BEFORE creating the settlement
+    it('should generate transaction-change notification when settlement is created directly in Firestore', async () => {
+        // Set up a listener for transaction-changes BEFORE creating the settlement
         const changePromise = new Promise<any>((resolve, reject) => {
             const timeout = setTimeout(() => {
-                reject(new Error('Timeout: No expense-change notification received within 5 seconds'));
+                reject(new Error('Timeout: No transaction-change notification received within 5 seconds'));
             }, 5000);
 
-            const query = db.collection('expense-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
+            const query = db.collection('transaction-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
             changeListener = query.onSnapshot(
                 (snapshot) => {
@@ -174,7 +173,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
          * However, the frontend has a bug:
          *
          * 1. webapp-v2/src/app/stores/group-detail-store-enhanced.ts
-         *    - Listens to expense-changes (line 104)
+         *    - Listens to transaction-changes (line 104)
          *    - Calls refreshAll() when changes detected (line 117)
          *
          * 2. refreshAll() method (around line 280)
@@ -185,7 +184,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
          *
          * 3. webapp-v2/src/components/settlements/SettlementHistory.tsx
          *    - Only loads settlements on mount (line 52)
-         *    - Does not reload when expense-changes are detected
+         *    - Does not reload when transaction-changes are detected
          *
          * RESULT: New settlements don't appear in the UI until page is refreshed
          *

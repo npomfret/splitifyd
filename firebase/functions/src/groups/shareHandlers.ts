@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import * as admin from 'firebase-admin';
 import { randomBytes } from 'crypto';
+import { db } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -50,7 +50,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     const userId = req.user!.uid;
 
     try {
-        const groupRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+        const groupRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
         const groupDoc = await groupRef.get();
 
         if (!groupDoc.exists) {
@@ -71,7 +71,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         const shareToken = generateShareToken();
 
         // Use optimistic locking for generating share link
-        await admin.firestore().runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             const freshGroupDoc = await transaction.get(groupRef);
             if (!freshGroupDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
@@ -128,7 +128,7 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
     const userId = req.user!.uid;
 
     try {
-        const groupsQuery = await admin.firestore().collection(FirestoreCollections.GROUPS).where('data.shareableLink', '==', linkId).limit(1).get();
+        const groupsQuery = await db.collection(FirestoreCollections.GROUPS).where('data.shareableLink', '==', linkId).limit(1).get();
 
         if (groupsQuery.empty) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
@@ -181,7 +181,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     const userName = userEmail.split('@')[0];
 
     try {
-        const groupsQuery = await admin.firestore().collection(FirestoreCollections.GROUPS).where('data.shareableLink', '==', linkId).limit(1).get();
+        const groupsQuery = await db.collection(FirestoreCollections.GROUPS).where('data.shareableLink', '==', linkId).limit(1).get();
 
         if (groupsQuery.empty) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
@@ -190,8 +190,8 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
         const groupDoc = groupsQuery.docs[0];
         const groupId = groupDoc.id;
 
-        const result = await admin.firestore().runTransaction(async (transaction) => {
-            const groupRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+        const result = await db.runTransaction(async (transaction) => {
+            const groupRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
             const groupSnapshot = await transaction.get(groupRef);
 
             if (!groupSnapshot.exists) {

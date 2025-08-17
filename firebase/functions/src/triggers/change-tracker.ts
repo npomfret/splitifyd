@@ -1,5 +1,5 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { admin } from '../firebase';
+import { db } from '../firebase';
 import { logger } from '../logger';
 import * as adminFirestore from 'firebase-admin/firestore';
 import { 
@@ -10,8 +10,6 @@ import {
     createChangeDocument,
     ChangeType 
 } from '../utils/change-detection';
-
-const db = admin.firestore();
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -187,8 +185,8 @@ export const trackExpenseChanges = onDocumentWritten(
                         }
                     );
 
-                    // Write to expense-changes collection
-                    await db.collection('expense-changes').add(changeDoc);
+                    // Write to transaction-changes collection
+                    await db.collection('transaction-changes').add(changeDoc);
 
                     // Also create a balance change document since expenses affect balances
                     // Balance changes are always high priority
@@ -312,8 +310,8 @@ export const trackSettlementChanges = onDocumentWritten(
                         }
                     );
 
-                    // Write to expense-changes collection (settlements are treated as expenses)
-                    await db.collection('expense-changes').add(changeDoc);
+                    // Write to transaction-changes collection (settlements are a type of transaction)
+                    await db.collection('transaction-changes').add(changeDoc);
 
                     // Also create a balance change document since settlements affect balances
                     // Balance changes are always high priority

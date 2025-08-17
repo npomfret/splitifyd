@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { db } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -12,15 +13,15 @@ import { GroupData } from '../types/group-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
 const getSettlementsCollection = () => {
-    return admin.firestore().collection(FirestoreCollections.SETTLEMENTS);
+    return db.collection(FirestoreCollections.SETTLEMENTS);
 };
 
 const getGroupsCollection = () => {
-    return admin.firestore().collection(FirestoreCollections.GROUPS);
+    return db.collection(FirestoreCollections.GROUPS);
 };
 
 const getUsersCollection = () => {
-    return admin.firestore().collection(FirestoreCollections.USERS);
+    return db.collection(FirestoreCollections.USERS);
 };
 
 const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
@@ -121,7 +122,9 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
             settlement.note = settlementData.note;
         }
 
+        logger.info(`Attempting to write settlement ${settlementId} to Firestore. Data: ${JSON.stringify(settlement)}`);
         await getSettlementsCollection().doc(settlementId).set(settlement);
+        logger.info(`Settlement ${settlementId} successfully written to Firestore.`);
 
         const responseData: Settlement = {
             ...settlement,
@@ -215,7 +218,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
         }
 
         // Update with optimistic locking
-        await admin.firestore().runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             const freshDoc = await transaction.get(settlementRef);
             if (!freshDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
@@ -288,7 +291,7 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
         }
 
         // Delete with optimistic locking to prevent concurrent modifications
-        await admin.firestore().runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             // Step 1: Do ALL reads first
             const freshDoc = await transaction.get(settlementRef);
             if (!freshDoc.exists) {

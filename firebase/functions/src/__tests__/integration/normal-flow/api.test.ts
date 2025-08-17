@@ -10,12 +10,18 @@
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, GroupBuilder, UserBuilder, SettlementBuilder } from '../../support/builders';
+import { ExpenseBuilder, GroupBuilder, SettlementBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
+import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
 describe('Comprehensive API Test Suite', () => {
     let driver: ApiDriver;
-    let users: User[] = [];
+    let userPool: FirebaseIntegrationTestUserPool;
+
+    // Helper to get users from pool
+    const getTestUsers = (count: number): User[] => {
+        return userPool.getUsers(count);
+    };
 
     // Set a longer timeout for these integration tests
     jest.setTimeout(10000);
@@ -25,7 +31,10 @@ describe('Comprehensive API Test Suite', () => {
         await clearAllTestData();
 
         driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
+        
+        // Create user pool with 6 users (covers all test needs)
+        userPool = new FirebaseIntegrationTestUserPool(driver, 6);
+        await userPool.initialize();
     });
 
     afterAll(async () => {
@@ -35,6 +44,7 @@ describe('Comprehensive API Test Suite', () => {
 
     describe('User Authentication', () => {
         test('should allow users to register and log in', () => {
+            const users = getTestUsers(2);
             expect(users.length).toBe(2);
             users.forEach((user) => {
                 expect(user.uid).toBeDefined();
@@ -47,6 +57,7 @@ describe('Comprehensive API Test Suite', () => {
     describe('Group Management', () => {
         describe('Group Creation', () => {
             test('should create a new group', async () => {
+                const users = getTestUsers(1);
                 const groupData = new GroupBuilder().withName(`Test Group ${uuidv4()}`).build();
 
                 const createdGroup = await driver.createGroup(groupData, users[0].token);
@@ -62,6 +73,7 @@ describe('Comprehensive API Test Suite', () => {
 
         describe('Group Sharing & Access Control', () => {
             test('should return 404 for non-existent group ID', async () => {
+                const users = getTestUsers(1);
                 // Try to access a group that doesn't exist
                 const fakeGroupId = 'non-existent-group-id-12345';
 
@@ -69,12 +81,13 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should return 404 for valid group when user is not a member (security: hide existence)', async () => {
+                const users = getTestUsers(2);
                 // Create a group using the new API
                 const groupData = new GroupBuilder().withName(`Members Only Group ${uuidv4()}`).build();
                 const testGroup = await driver.createGroup(groupData, users[0].token);
 
-                // Create a third user who is not part of the group
-                const outsiderUser = await driver.createUser(new UserBuilder().build());
+                // Use second user from pool as outsider
+                const outsiderUser = users[1];
 
                 // Try to access group as non-member
                 // NOTE: Returns 404 instead of 403 for security - doesn't reveal group existence
@@ -82,6 +95,7 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should allow group members to access group details', async () => {
+                const users = getTestUsers(2);
                 // Create a group with both users as members
                 const groupData = new GroupBuilder().withName(`Shared Group ${uuidv4()}`).build();
                 const testGroup = await driver.createGroupWithMembers(groupData.name, users, users[0].token);
@@ -95,6 +109,7 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should generate shareable link for group', async () => {
+                const users = getTestUsers(2);
                 // Create a test group
                 const testGroup = await driver.createGroupWithMembers(`Share Link Test Group ${uuidv4()}`, users, users[0].token);
 
@@ -108,6 +123,7 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should allow any member to generate shareable link', async () => {
+                const users = getTestUsers(2);
                 // Create a new group where user[0] is the creator and user[1] is a member
                 const memberGroup = await driver.createGroupWithMembers(`Member Share Test Group ${uuidv4()}`, users, users[0].token);
 
@@ -121,6 +137,7 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should not allow non-members to generate shareable link', async () => {
+                const users = getTestUsers(2);
                 // Create a group with only user[0]
                 const groupData = new GroupBuilder().withName(`Non-Member Test Group ${uuidv4()}`).build();
                 const restrictedGroup = await driver.createGroup(groupData, users[0].token);
@@ -130,6 +147,7 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should allow new users to join group via share link', async () => {
+                const users = getTestUsers(2);
                 // First, create a new group and generate a share link
                 const shareableGroupData = new GroupBuilder().withMember(users[0]).build();
 
@@ -138,8 +156,8 @@ describe('Comprehensive API Test Suite', () => {
                 // Generate share link
                 const shareResponse = await driver.generateShareLink(shareableGroup.id, users[0].token);
 
-                // Create a new user who will join via the link
-                const newUser = await driver.createUser(new UserBuilder().build());
+                // Use second user from pool who will join via the link
+                const newUser = users[1];
 
                 // Join the group using the share token
                 const joinResponse = await driver.joinGroupViaShareLink(shareResponse.linkId, newUser.token);
@@ -156,6 +174,7 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should not allow duplicate joining via share link', async () => {
+                const users = getTestUsers(2);
                 // Create a group with a share link
                 const dupTestGroupData = new GroupBuilder().withMember(users[0]).build();
 
@@ -170,13 +189,15 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should reject invalid share tokens', async () => {
-                const invalidUser = await driver.createUser(new UserBuilder().build());
+                const users = getTestUsers(1);
+                const invalidUser = users[0];
 
                 // Try to join with an invalid token
                 await expect(driver.joinGroupViaShareLink('INVALID_TOKEN_12345', invalidUser.token)).rejects.toThrow(/status 404.*INVALID_LINK/);
             });
 
             test('should allow multiple users to join group using the same share link', async () => {
+                const users = getTestUsers(4); // Need 1 creator + 3 to join
                 // Create a new group with only one member
                 const multiJoinGroupData = new GroupBuilder().withMember(users[0]).build();
 
@@ -185,8 +206,8 @@ describe('Comprehensive API Test Suite', () => {
                 // Generate a share link
                 const shareResponse = await driver.generateShareLink(multiJoinGroup.id, users[0].token);
 
-                // Create multiple new users who will join via the same link
-                const newUsers = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
+                // Use 3 users from pool who will join via the same link
+                const newUsers = users.slice(1, 4);
 
                 // All users should be able to join using the same link
                 for (const user of newUsers) {
@@ -213,8 +234,10 @@ describe('Comprehensive API Test Suite', () => {
 
     describe('Expense Management', () => {
         let testGroup: any;
+        let users: User[];
 
         beforeEach(async () => {
+            users = getTestUsers(2);
             testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
         });
 
@@ -444,15 +467,15 @@ describe('Comprehensive API Test Suite', () => {
         let settlementUsers: User[];
 
         beforeEach(async () => {
-            settlementUsers = [users[0], users[1]];
-            testGroup = await driver.createGroupWithMembers(`Settlement Test Group ${uuidv4()}`, settlementUsers, users[0].token);
+            settlementUsers = getTestUsers(2);
+            testGroup = await driver.createGroupWithMembers(`Settlement Test Group ${uuidv4()}`, settlementUsers, settlementUsers[0].token);
         });
 
         describe('Settlement Creation', () => {
             test('should create a new settlement', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(75.5).withNote('Test settlement payment').build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(75.5).withNote('Test settlement payment').build();
 
-                const createdSettlement = await driver.createSettlement(settlementData, users[0].token);
+                const createdSettlement = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
                 expect(createdSettlement.id).toBeDefined();
                 expect(createdSettlement.groupId).toBe(testGroup.id);
@@ -461,125 +484,125 @@ describe('Comprehensive API Test Suite', () => {
             });
 
             test('should create a settlement without optional fields', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(25.0).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(25.0).build();
 
-                const createdSettlement = await driver.createSettlement(settlementData, users[0].token);
+                const createdSettlement = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
                 expect(createdSettlement.id).toBeDefined();
                 expect(createdSettlement.amount).toBe(25.0);
             });
 
             test('should reject settlement with invalid group', async () => {
-                const settlementData = new SettlementBuilder().withGroupId('invalid-group-id').withPayer(users[0].uid).withPayee(users[1].uid).build();
+                const settlementData = new SettlementBuilder().withGroupId('invalid-group-id').withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-                await expect(driver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/status 404.*GROUP_NOT_FOUND/);
+                await expect(driver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 404.*GROUP_NOT_FOUND/);
             });
 
             test('should reject settlement between non-group-members', async () => {
-                const outsiderUser = await driver.createUser(new UserBuilder().build());
+                const outsiderUser = getTestUsers(3)[2]; // Get a third user from pool
 
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(outsiderUser.uid).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(outsiderUser.uid).build();
 
-                await expect(driver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/status 400.*USER_NOT_IN_GROUP/);
+                await expect(driver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*USER_NOT_IN_GROUP/);
             });
 
             test('should validate required fields', async () => {
                 const invalidData = {};
 
-                await expect(driver.createSettlement(invalidData, users[0].token)).rejects.toThrow(/VALIDATION_ERROR|validation|required/);
+                await expect(driver.createSettlement(invalidData, settlementUsers[0].token)).rejects.toThrow(/VALIDATION_ERROR|validation|required/);
             });
 
             test('should validate positive amounts', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(-50).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(-50).build();
 
-                await expect(driver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
+                await expect(driver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
             });
         });
 
         describe('Settlement Retrieval', () => {
             test('should retrieve a settlement by ID', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(100.0).withNote('Retrieve test').build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(100.0).withNote('Retrieve test').build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
-                const retrieved = await driver.getSettlement(created.id, users[0].token);
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+                const retrieved = await driver.getSettlement(created.id, settlementUsers[0].token);
 
                 expect(retrieved.id).toBe(created.id);
                 expect(retrieved.amount).toBe(100.0);
                 expect(retrieved.note).toBe('Retrieve test');
                 expect(retrieved.payer).toBeDefined();
                 expect(retrieved.payee).toBeDefined();
-                expect(retrieved.payer.uid).toBe(users[0].uid);
-                expect(retrieved.payee.uid).toBe(users[1].uid);
+                expect(retrieved.payer.uid).toBe(settlementUsers[0].uid);
+                expect(retrieved.payee.uid).toBe(settlementUsers[1].uid);
             });
 
             test('should reject retrieval by non-group-member', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
-                const outsiderUser = await driver.createUser(new UserBuilder().build());
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+                const outsiderUser = getTestUsers(3)[2]; // Get a third user from pool
 
                 await expect(driver.getSettlement(created.id, outsiderUser.token)).rejects.toThrow(/status 403.*NOT_GROUP_MEMBER/);
             });
 
             test('should handle non-existent settlement', async () => {
-                await expect(driver.getSettlement('non-existent-id', users[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+                await expect(driver.getSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
             });
         });
 
         describe('Settlement Updates', () => {
             test('should update settlement fields', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(50.0).withNote('Original note').build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(50.0).withNote('Original note').build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
                 const updateData = {
                     amount: 75.25,
                     note: 'Updated note',
                 };
 
-                const updated = await driver.updateSettlement(created.id, updateData, users[0].token);
+                const updated = await driver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 
                 expect(updated.amount).toBe(75.25);
                 expect(updated.note).toBe('Updated note');
             });
 
             test('should reject update by non-creator', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(driver.updateSettlement(created.id, { amount: 100 }, users[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+                await expect(driver.updateSettlement(created.id, { amount: 100 }, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
             });
 
             test('should validate update data', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(driver.updateSettlement(created.id, { amount: -100 }, users[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
+                await expect(driver.updateSettlement(created.id, { amount: -100 }, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
             });
         });
 
         describe('Settlement Deletion', () => {
             test('should delete a settlement', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
-                await driver.deleteSettlement(created.id, users[0].token);
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+                await driver.deleteSettlement(created.id, settlementUsers[0].token);
 
-                await expect(driver.getSettlement(created.id, users[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+                await expect(driver.getSettlement(created.id, settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
             });
 
             test('should reject deletion by non-creator', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).build();
+                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-                const created = await driver.createSettlement(settlementData, users[0].token);
+                const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(driver.deleteSettlement(created.id, users[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+                await expect(driver.deleteSettlement(created.id, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
             });
 
             test('should handle deletion of non-existent settlement', async () => {
-                await expect(driver.deleteSettlement('non-existent-id', users[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+                await expect(driver.deleteSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
             });
         });
 
@@ -587,16 +610,16 @@ describe('Comprehensive API Test Suite', () => {
             test('should list settlements for a group', async () => {
                 await Promise.all([
                     driver.createSettlement(
-                        new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(50).withNote('First settlement').build(),
-                        users[0].token,
+                        new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(50).withNote('First settlement').build(),
+                        settlementUsers[0].token,
                     ),
                     driver.createSettlement(
-                        new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[1].uid).withPayee(users[0].uid).withAmount(25).withNote('Second settlement').build(),
-                        users[1].token,
+                        new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[1].uid).withPayee(settlementUsers[0].uid).withAmount(25).withNote('Second settlement').build(),
+                        settlementUsers[1].token,
                     ),
                 ]);
 
-                const response = await driver.listSettlements(users[0].token, { groupId: testGroup.id });
+                const response = await driver.listSettlements(settlementUsers[0].token, { groupId: testGroup.id });
 
                 expect(response.settlements).toBeDefined();
                 expect(Array.isArray(response.settlements)).toBe(true);
@@ -615,18 +638,18 @@ describe('Comprehensive API Test Suite', () => {
                         driver.createSettlement(
                             new SettlementBuilder()
                                 .withGroupId(testGroup.id)
-                                .withPayer(users[0].uid)
-                                .withPayee(users[1].uid)
+                                .withPayer(settlementUsers[0].uid)
+                                .withPayee(settlementUsers[1].uid)
                                 .withAmount(10 * (i + 1))
                                 .withNote(`Settlement ${i + 1}`)
                                 .build(),
-                            users[0].token,
+                            settlementUsers[0].token,
                         ),
                     );
                 }
                 await Promise.all(settlements);
 
-                const firstPage = await driver.listSettlements(users[0].token, {
+                const firstPage = await driver.listSettlements(settlementUsers[0].token, {
                     groupId: testGroup.id,
                     limit: 3,
                 });
@@ -635,7 +658,7 @@ describe('Comprehensive API Test Suite', () => {
                 expect(firstPage.hasMore).toBe(true);
                 expect(firstPage.nextCursor).toBeDefined();
 
-                const secondPage = await driver.listSettlements(users[0].token, {
+                const secondPage = await driver.listSettlements(settlementUsers[0].token, {
                     groupId: testGroup.id,
                     limit: 3,
                     cursor: firstPage.nextCursor,
@@ -649,8 +672,10 @@ describe('Comprehensive API Test Suite', () => {
 
     describe('Balance Calculations', () => {
         let balanceTestGroup: any;
+        let users: User[];
 
         beforeEach(async () => {
+            users = getTestUsers(2);
             balanceTestGroup = await driver.createGroupWithMembers(`Balance Test Group ${uuidv4()}`, users, users[0].token);
         });
 

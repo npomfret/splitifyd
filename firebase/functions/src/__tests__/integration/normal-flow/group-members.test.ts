@@ -4,24 +4,22 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { UserBuilder, GroupBuilder } from '../../support/builders';
-import {beforeAll} from "@jest/globals";
+import { GroupBuilder } from '../../support/builders';
+import { beforeAll } from '@jest/globals';
+import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
 jest.setTimeout(6000); // it takes about 4s
 
 describe('Group Members Integration Tests', () => {
     const driver = new ApiDriver();
-    let testUsers: User[] = [];// a pool of users
+    let userPool: FirebaseIntegrationTestUserPool;
 
-    const _testUsers = (count: number) => testUsers.slice(0, count);
+    const _testUsers = (count: number) => userPool.getUsers(count);
 
     beforeAll(async () => {
-        const users: User[] = [];
-        for (let i = 0; i < 5; i++) {
-            users.push(await driver.createUser(new UserBuilder().build()));
-        }
-
-        testUsers = users;
+        // Create user pool with 5 users
+        userPool = new FirebaseIntegrationTestUserPool(driver, 5);
+        await userPool.initialize();
     });
 
     // Helper function to create a group with multiple members
@@ -74,9 +72,9 @@ describe('Group Members Integration Tests', () => {
         });
 
         it('should throw FORBIDDEN if user is not a member', async () => {
-            const users = _testUsers(1);
-            const groupId = await createGroupWithMembers(driver, users);
-            const nonMember = await driver.createUser(new UserBuilder().build());
+            const users = _testUsers(2); // Need 2 users - one for group, one as non-member
+            const groupId = await createGroupWithMembers(driver, [users[0]]);
+            const nonMember = users[1]; // Use second user as non-member
 
             await expect(driver.getGroupMembers(groupId, nonMember.token)).rejects.toThrow();
         });

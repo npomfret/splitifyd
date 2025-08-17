@@ -135,7 +135,7 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    match /expense-changes/{changeId} {
+    match /transaction-changes/{changeId} {
       // Allow read for authenticated users to avoid evaluation errors
       // In production, more restrictive rules would check affectedUsers
       allow read: if request.auth != null;

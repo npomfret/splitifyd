@@ -4,11 +4,13 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder, GroupBuilder } from '../../support/builders';
+import { ExpenseBuilder, GroupBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
+import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
 describe('Business Logic Edge Cases', () => {
     let driver: ApiDriver;
+    let userPool: FirebaseIntegrationTestUserPool;
     let users: User[] = [];
     let testGroup: any;
 
@@ -19,7 +21,13 @@ describe('Business Logic Edge Cases', () => {
         await clearAllTestData();
 
         driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
+        
+        // Create user pool with 4 users (3 for main tests + 1 for isolated test)
+        userPool = new FirebaseIntegrationTestUserPool(driver, 4);
+        await userPool.initialize();
+        
+        // Set the first 3 users for main tests
+        users = userPool.getUsers(3);
     });
 
     afterAll(async () => {
@@ -439,8 +447,8 @@ describe('Business Logic Edge Cases', () => {
         });
 
         test('should handle multiple expenses with same participants', async () => {
-            // Create a single test user for this isolated test
-            const testUser = await driver.createUser(new UserBuilder().build());
+            // Use the 4th user from pool for this isolated test
+            const testUser = userPool.getUser(3);
 
             const multiExpenseGroupData = new GroupBuilder().withName(`Multi Expense Group ${uuidv4()}`).build();
             const multiExpenseGroup = await driver.createGroup(multiExpenseGroupData, testUser.token);

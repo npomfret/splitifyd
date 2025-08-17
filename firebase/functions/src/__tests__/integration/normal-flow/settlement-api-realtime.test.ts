@@ -5,32 +5,37 @@
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
-import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
-
-const db = admin.firestore();
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { SettlementBuilder, UserBuilder } from '../../support/builders';
+import { SettlementBuilder } from '../../support/builders';
+import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import {db} from "../../support/firebase-emulator";
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
-    beforeAll(async () => {
-        await clearAllTestData();
-    });
+    let userPool: FirebaseIntegrationTestUserPool;
     let driver: ApiDriver;
     let user1: User;
     let user2: User;
     let groupId: string;
     let changeListener: any;
 
-    // Increase timeout for integration tests
-    jest.setTimeout(15000);
+    jest.setTimeout(10000);
+
+    beforeAll(async () => {
+        await clearAllTestData();
+        
+        driver = new ApiDriver();
+        
+        // Create user pool with 2 users
+        userPool = new FirebaseIntegrationTestUserPool(driver, 2);
+        await userPool.initialize();
+    });
 
     beforeEach(async () => {
-        driver = new ApiDriver();
-
-        // Create test users
-        user1 = await driver.createUser(new UserBuilder().build());
-        user2 = await driver.createUser(new UserBuilder().build());
+        // Use users from pool
+        const users = userPool.getUsers(2);
+        user1 = users[0];
+        user2 = users[1];
     });
 
     afterEach(async () => {
@@ -41,7 +46,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         }
 
         // Clean up test data
-        const collections = ['settlements', 'groups', 'expense-changes', 'balance-changes'];
+        const collections = ['settlements', 'groups', 'transaction-changes', 'balance-changes'];
         for (const collection of collections) {
             const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
 
@@ -55,22 +60,29 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         await clearAllTestData();
     });
 
-    it('should generate expense-change notification when settlement is created via API', async () => {
+    it('should generate transaction-change notification when settlement is created via API', async () => {
         // Create a group with both users as members using ApiDriver
         const testGroup = await driver.createGroupWithMembers('Test Group for Settlement API', [user1, user2], user1.token);
         groupId = testGroup.id;
 
-        // Set up a listener for expense-changes BEFORE creating the settlement
+        const seconds = 2;
+
+        // Set up a listener for transaction-changes BEFORE creating the settlement
         const changePromise = new Promise<any>((resolve, reject) => {
             const timeout = setTimeout(() => {
-                reject(new Error('Timeout: No expense-change notification received within 10 seconds after API settlement creation'));
-            }, 10000);
+                reject(new Error(`Timeout: No transaction-change notification received within ${seconds} seconds after API settlement creation`));
+            }, seconds * 1000);
 
-            const query = db.collection('expense-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
+            const query = db.collection('transaction-changes')
+                .where('groupId', '==', groupId)
+                .orderBy('timestamp', 'desc')
+                .limit(1);
 
             changeListener = query.onSnapshot(
                 (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
+                        console.log(`observed change:`, JSON.stringify(change));
+
                         if (change.type === 'added') {
                             const data = change.doc.data();
                             if (data.settlementId) {
@@ -101,7 +113,9 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         console.log(`Creating settlement via API for group ${groupId}`);
 
         const createdSettlement = await driver.createSettlement(settlementData, user1.token);
-
+        expect(createdSettlement).toBeDefined();
+        expect(createdSettlement.id).toBeDefined();
+        console.log('API response:', JSON.stringify(createdSettlement, null, 2));
         console.log(`Settlement created via API: ${createdSettlement.id}`);
 
         // Wait for the change notification
@@ -116,29 +130,65 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             expect(changeNotification.metadata.affectedUsers).toContain(user1.uid);
             expect(changeNotification.metadata.affectedUsers).toContain(user2.uid);
 
-            console.log('✅ SUCCESS: Settlement created via API generated expense-change notification');
+            console.log('✅ SUCCESS: Settlement created via API generated transaction-change notification');
             console.log('Change notification:', JSON.stringify(changeNotification, null, 2));
         } catch (error) {
             // This is the expected failure that reproduces the E2E test issue
-            console.log('❌ REPRODUCED: Settlement created via API did NOT generate expense-change notification');
+            console.log('❌ REPRODUCED: Settlement created via API did NOT generate transaction-change notification');
             console.log('This explains why the E2E test fails - frontend never gets notified to refresh settlements');
 
             // Let's check if the settlement was actually created in Firestore
-            const settlementDoc = await db.collection('settlements').doc(createdSettlement.id).get();
-            expect(settlementDoc.exists).toBe(true);
-            console.log('Settlement exists in Firestore:', settlementDoc.data());
+            if (!createdSettlement || !createdSettlement.id) {
+                console.log('Settlement response is invalid:', createdSettlement);
+                throw new Error('Settlement was not created properly - missing ID');
+            }
+            
+            // Poll for the settlement to appear in Firestore
+            let settlementDoc;
+            let attempts = 0;
+            const maxAttempts = 10;
+            const pollInterval = 100; // 500ms
+            
+            while (attempts < maxAttempts) {
+                settlementDoc = await db.collection('settlements').doc(createdSettlement.id).get();
+                if (settlementDoc.exists) {
+                    console.log(`Settlement found after ${attempts + 1} attempts`);
+                    break;
+                }
+                attempts++;
+                if (attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, pollInterval));
+                }
+            }
+            
+            // Check all settlements in the group
+            const allSettlements = await db.collection('settlements').where('groupId', '==', groupId).get();
+            console.log(`Found ${allSettlements.size} settlements in group ${groupId}`);
+            allSettlements.docs.forEach(doc => {
+                console.log(`Settlement ${doc.id}:`, doc.data());
+            });
+            
+            if (!settlementDoc || !settlementDoc.exists) {
+                console.log(`Settlement ${createdSettlement.id} does not exist in Firestore after ${maxAttempts} attempts!`);
+                console.log('API returned settlement:', createdSettlement);
+                
+                // This is the actual bug - the API says it created the settlement but it's not in Firestore
+                console.log('⚠️ BUG FOUND: Settlement created via API returns success but document not in Firestore');
+            } else {
+                console.log('Settlement exists in Firestore:', settlementDoc.data());
+            }
 
-            // Check if there are any expense-changes at all for this group
-            const expenseChanges = await db.collection('expense-changes').where('groupId', '==', groupId).get();
+            // Check if there are any transaction-changes at all for this group
+            const transactionChanges = await db.collection('transaction-changes').where('groupId', '==', groupId).get();
 
-            console.log(`Found ${expenseChanges.size} expense-change documents for group ${groupId}`);
-            expenseChanges.docs.forEach((doc) => {
-                console.log('Expense change:', doc.data());
+            console.log(`Found ${transactionChanges.size} transaction-change documents for group ${groupId}`);
+            transactionChanges.docs.forEach((doc) => {
+                console.log('Transaction change:', doc.data());
             });
 
             throw error;
         }
-    }, 15000);
+    }, 4000);
 
     it('documents the difference between API and direct Firestore settlement creation', async () => {
         /**

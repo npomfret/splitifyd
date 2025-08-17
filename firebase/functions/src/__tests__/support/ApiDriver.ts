@@ -1,5 +1,5 @@
 import type {ExpenseData, Group, User as BaseUser} from '../../shared/shared-types';
-import {getFirebaseEmulatorConfig, findProjectRoot} from '@splitifyd/test-support';
+import {API_BASE_URL, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -38,13 +38,9 @@ export class ApiDriver {
     };
 
     constructor() {
-        // Get Firebase emulator configuration
-        const projectRoot = findProjectRoot(__dirname);
-        const config = getFirebaseEmulatorConfig(projectRoot);
-
-        this.baseUrl = config.baseUrl;
-        this.authPort = config.authPort;
-        this.firebaseApiKey = config.firebaseApiKey;
+        this.baseUrl = API_BASE_URL;
+        this.authPort = Number(new URL(FIREBASE_AUTH_URL).port);
+        this.firebaseApiKey = FIREBASE_API_KEY;
     }
 
     getBaseUrl(): string {
@@ -314,6 +310,14 @@ export class ApiDriver {
 
     async removeGroupMember(groupId: string, memberId: string, token: string): Promise<{ success: boolean; message: string }> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
+    }
+
+    async getAllPolicies(): Promise<{ policies: Record<string, { policyName: string; currentVersionHash: string }>; count: number }> {
+        return await this.apiRequest('/policies/current', 'GET', null, null);
+    }
+
+    async getPolicy(policyId: string): Promise<{ id: string; policyName: string; currentVersionHash: string; text: string; createdAt: string }> {
+        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
     private async pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {

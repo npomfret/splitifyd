@@ -5,10 +5,8 @@ import * as http from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
-
-import { generateTestData } from '../functions/scripts/generate-test-data';
-import { seedPolicies } from '../functions/src/scripts/seed-policies';
 import { logger } from './logger';
+import {FIRESTORE_URL} from "../functions/src/__tests__/support/firebase-emulator";
 
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
@@ -29,6 +27,8 @@ const PROJECT_ID = firebaseRc.projects.default;
 const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
 const UI_PORT: string = firebaseConfig.emulators.ui.port!;
 const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port!;
+const FIRESTORE_PORT: string = firebaseConfig.emulators.firestore.port!;
+const AUTH_PORT: string = firebaseConfig.emulators.auth.port!;
 
 // Load .env file to get dev form defaults
 const envPath = path.join(__dirname, '../functions/.env');
@@ -40,8 +40,16 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
 
+// Set emulator environment variables BEFORE any Firebase imports
+process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
+process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
+
 const devFormEmail = process.env.DEV_FORM_EMAIL || '';
 const devFormPassword = process.env.DEV_FORM_PASSWORD || '';
+
+// NOW import the functions that use Firebase AFTER setting emulator env vars
+const { generateTestData } = require('../functions/scripts/generate-test-data');
+const { seedPolicies } = require('../functions/src/scripts/seed-policies');
 
 logger.info('🚀 Starting Firebase emulator with test data generation...', {
     projectId: PROJECT_ID,
@@ -160,7 +168,7 @@ setTimeout(() => {
         logger.info('🚀 You can now use the webapp and all endpoints are available');
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
-        logger.info('📊 STARTING POLICY SEEDING...');
+        logger.info(`📊 STARTING POLICY SEEDING (to ${FIRESTORE_URL})...`);
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
 
@@ -170,7 +178,11 @@ setTimeout(() => {
             logger.info('✅ Policy seeding completed successfully!');
             logger.info('📋 Privacy policy, terms, and cookie policy are now available');
         } catch (error) {
-            logger.error('❌ Policy seeding failed', { error });
+            logger.error('⚠️ Policy seeding failed (non-fatal)', { error });
+            logger.info('💡 You can manually seed policies later by running:');
+            logger.info('   cd firebase/functions && npx tsx src/scripts/seed-policies.ts');
+            logger.info('');
+            logger.info('🔧 Continuing with emulator startup...');
         }
 
         logger.info('');
@@ -185,8 +197,18 @@ setTimeout(() => {
             logger.info('✅ Test data generation completed successfully!');
             logger.info('🎲 Groups now contain expenses and payments for testing');
         } catch (error) {
-            logger.error('❌ Test data generation failed', { error });
+            logger.error('⚠️ Test data generation failed (non-fatal)', { error });
+            logger.info('💡 You can manually generate test data later by running:');
+            logger.info('   cd firebase/functions && npx tsx scripts/generate-test-data.ts');
+            logger.info('');
+            logger.info('🔧 The emulator is still running and functional');
         }
+        
+        logger.info('');
+        logger.info('═══════════════════════════════════════════════════════');
+        logger.info('✨ EMULATOR IS READY FOR USE ✨');
+        logger.info('═══════════════════════════════════════════════════════');
+        logger.info('');
     };
 
     startupProcess().catch((error) => {

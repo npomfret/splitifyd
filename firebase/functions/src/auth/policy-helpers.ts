@@ -1,6 +1,6 @@
-import * as admin from 'firebase-admin';
 import { logger } from '../logger';
 import { ApiError } from '../utils/errors';
+import { db } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
 
@@ -10,7 +10,7 @@ import { FirestoreCollections } from '../shared/shared-types';
  */
 export async function getCurrentPolicyVersions(): Promise<Record<string, string>> {
     try {
-        const firestore = admin.firestore();
+        const firestore = db;
         const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
 
         const acceptedPolicies: Record<string, string> = {};

@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { db } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
 import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -12,11 +13,11 @@ import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/sh
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
 const getExpensesCollection = () => {
-    return admin.firestore().collection(FirestoreCollections.EXPENSES);
+    return db.collection(FirestoreCollections.EXPENSES);
 };
 
 const getGroupsCollection = () => {
-    return admin.firestore().collection(FirestoreCollections.GROUPS);
+    return db.collection(FirestoreCollections.GROUPS);
 };
 
 const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {
@@ -150,7 +151,7 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
 
     try {
         // Use transaction to create expense and update group metadata atomically
-        await admin.firestore().runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             const groupDocRef = getGroupsCollection().doc(expenseData.groupId);
             const groupDoc = await transaction.get(groupDocRef);
 
@@ -283,7 +284,7 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
 
         // If date is being updated, we need to update group metadata too
         if (updateData.date) {
-            await admin.firestore().runTransaction(async (transaction) => {
+            await db.runTransaction(async (transaction) => {
                 // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
                 // Step 1: Do ALL reads first
@@ -329,7 +330,7 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
             });
         } else {
             // No date change, update expense with history in transaction
-            await admin.firestore().runTransaction(async (transaction) => {
+            await db.runTransaction(async (transaction) => {
                 // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
                 // Step 1: Do ALL reads first
@@ -421,7 +422,7 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
 
     try {
         // Use transaction to delete expense and update group metadata atomically
-        await admin.firestore().runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
             // Step 1: Do ALL reads first

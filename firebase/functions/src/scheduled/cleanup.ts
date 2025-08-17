@@ -1,8 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { admin } from '../firebase';
+import { admin, db } from '../firebase';
 import { logger } from '../logger';
-
-const db = admin.firestore();
 
 /**
  * Clean up old change documents to prevent storage bloat
@@ -21,7 +19,7 @@ export const cleanupChanges = onSchedule(
         const cutoffDate = new Date();
         cutoffDate.setMinutes(cutoffDate.getMinutes() - 5); // Keep only last 5 minutes of changes
 
-        const collections = ['group-changes', 'expense-changes', 'balance-changes'];
+        const collections = ['group-changes', 'transaction-changes', 'balance-changes'];
 
         for (const collectionName of collections) {
             try {

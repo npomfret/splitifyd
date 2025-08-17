@@ -69,7 +69,6 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
 
 ---
 
-
 ## Executive Summary
 
 This document outlines a pragmatic approach for adding real-time capabilities to Splitifyd using **Notification-Driven REST** architecture. Instead of complex full streaming, we use lightweight change notifications to trigger REST API refreshes, providing a real-time feel with minimal complexity and cost.

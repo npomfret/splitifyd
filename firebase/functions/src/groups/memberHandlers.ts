@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { db } from '../firebase';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { userService } from '../services/userService';
@@ -63,7 +64,7 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
 
     try {
         // Verify user has access to the group
-        const docRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+        const docRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
         const doc = await docRef.get();
 
         if (!doc.exists) {
@@ -137,7 +138,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
     const groupId = validateGroupId(req.params.id);
 
     try {
-        const docRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+        const docRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
         const doc = await docRef.get();
 
         if (!doc.exists) {
@@ -236,7 +237,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
     }
 
     try {
-        const docRef = admin.firestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+        const docRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
         const doc = await docRef.get();
 
         if (!doc.exists) {

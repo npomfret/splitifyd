@@ -1,6 +1,6 @@
-import * as admin from 'firebase-admin';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { db } from '../firebase';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
@@ -47,7 +47,7 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
         }
 
         // Validate that the policy exists and the version hash is current
-        const firestore = admin.firestore();
+        const firestore = db;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
         if (!policyDoc.exists) {
@@ -118,7 +118,7 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', 'acceptances array is required and must not be empty');
         }
 
-        const firestore = admin.firestore();
+        const firestore = db;
         const batch = firestore.batch();
 
         // Validate all policies and version hashes first
@@ -198,7 +198,7 @@ export const getUserPolicyStatus = async (req: AuthenticatedRequest, res: Respon
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
         }
 
-        const firestore = admin.firestore();
+        const firestore = db;
 
         // Get all policies
         const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();

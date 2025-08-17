@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { db } from '../firebase';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { createOptimisticTimestamp, createTrueServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
@@ -17,7 +18,7 @@ import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-
  * Get the groups collection reference
  */
 const getGroupsCollection = () => {
-    return admin.firestore().collection(FirestoreCollections.GROUPS); // Using existing collection during migration
+    return db.collection(FirestoreCollections.GROUPS); // Using existing collection during migration
 };
 
 /**
@@ -264,7 +265,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const { docRef, group } = await fetchGroupWithAccess(groupId, userId, true);
 
     // Update with optimistic locking (timestamp is handled by optimistic locking system)
-    await admin.firestore().runTransaction(async (transaction) => {
+    await db.runTransaction(async (transaction) => {
         const freshDoc = await transaction.get(docRef);
         if (!freshDoc.exists) {
             throw Errors.NOT_FOUND('Group');
@@ -316,7 +317,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const { docRef } = await fetchGroupWithAccess(groupId, userId, true);
 
     // Check if group has expenses
-    const expensesSnapshot = await admin.firestore().collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
+    const expensesSnapshot = await db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
 
     if (!expensesSnapshot.empty) {
         throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
