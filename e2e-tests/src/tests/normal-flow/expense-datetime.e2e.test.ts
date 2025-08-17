@@ -63,7 +63,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
 
         // Note: Last Night button sets evening time (8:00 PM), not default noon
         // Check if time button is visible (should be after clicking Last Night)
-        let timeButton = page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+        let timeButton = expenseFormPage.getTimeButton();
         const timeButtonCount = await timeButton.count();
 
         if (timeButtonCount === 0) {
@@ -75,7 +75,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
                 await expenseFormPage.clickClockIcon();
             }
             // Re-get the time button after clicking clock icon
-            timeButton = page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+            timeButton = expenseFormPage.getTimeButton();
         }
 
         // Time should be visible now (showing 8:00 PM from Last Night button)
@@ -83,24 +83,24 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
 
         // Click time to edit
         await timeButton.click();
-        const timeInput = page.getByPlaceholder('Enter time (e.g., 2:30pm)');
+        const timeInput = expenseFormPage.getTimeInput();
         await expect(timeInput).toBeVisible();
         await expect(timeInput).toBeFocused();
 
         // Show time suggestions when typing
         await timeInput.fill('3');
-        await expect(page.getByRole('button', { name: '3:00 AM' })).toBeVisible();
-        await expect(page.getByRole('button', { name: '3:00 PM' })).toBeVisible();
+        await expect(expenseFormPage.getTimeSuggestion('3:00 AM')).toBeVisible();
+        await expect(expenseFormPage.getTimeSuggestion('3:00 PM')).toBeVisible();
 
         // Accept time selection from suggestions
-        await page.getByRole('button', { name: '3:00 PM' }).click();
-        await expect(page.getByRole('button', { name: 'at 3:00 PM' })).toBeVisible();
+        await expenseFormPage.getTimeSuggestion('3:00 PM').click();
+        await expect(expenseFormPage.getTimeSuggestion('at 3:00 PM')).toBeVisible();
 
         // Parse freeform time input
-        await page.getByRole('button', { name: 'at 3:00 PM' }).click();
+        await expenseFormPage.getTimeSuggestion('at 3:00 PM').click();
         await timeInput.fill('2:45pm');
-        await page.getByRole('heading', { name: 'Expense Details' }).click(); // Blur to commit
-        await expect(page.getByRole('button', { name: 'at 2:45 PM' })).toBeVisible();
+        await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
+        await expect(expenseFormPage.getTimeSuggestion('at 2:45 PM')).toBeVisible();
 
         // === SUBMIT EXPENSE WITH CUSTOM DATE/TIME ===
         await expenseFormPage.waitForExpenseFormSections();
@@ -116,9 +116,9 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
         expect(yesterdayForExpenseValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
         // Set a specific time
-        await page.getByRole('button', { name: 'at 2:45 PM' }).click();
+        await expenseFormPage.getTimeSuggestion('at 2:45 PM').click();
         await timeInput.fill('7:30pm');
-        await page.getByRole('heading', { name: 'Expense Details' }).click(); // Blur to commit
+        await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
 
         // Select the payer - find the payer radio button by display name
         const payerLabel = page

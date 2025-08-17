@@ -3,6 +3,31 @@ import { EMULATOR_URL } from '../helpers';
 
 export abstract class BasePage {
     constructor(protected page: Page) {}
+    
+    // Common element accessors
+    getHeading(name: string | RegExp) {
+        return this.page.getByRole('heading', { name });
+    }
+    
+    getHeadingByLevel(level: number) {
+        return this.page.getByRole('heading', { level });
+    }
+    
+    getLink(name: string | RegExp) {
+        return this.page.getByRole('link', { name });
+    }
+    
+    getButton(name: string | RegExp) {
+        return this.page.getByRole('button', { name });
+    }
+    
+    getDialog() {
+        return this.page.getByRole('dialog');
+    }
+    
+    getTextbox() {
+        return this.page.getByRole('textbox');
+    }
 
     /**
      * Waits for and validates that an element has focus.

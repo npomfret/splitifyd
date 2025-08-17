@@ -118,6 +118,14 @@ export class ExpenseFormPage extends BasePage {
     private getSaveExpenseButton(): Locator {
         return this.page.getByRole('button', { name: /save expense/i });
     }
+    
+    getUpdateExpenseButton(): Locator {
+        return this.page.getByRole('button', { name: /update expense/i });
+    }
+    
+    getEditButton(): Locator {
+        return this.page.getByRole('button', { name: /edit/i });
+    }
 
     // Split type controls
     getExactAmountsText(): Locator {
@@ -384,6 +392,27 @@ export class ExpenseFormPage extends BasePage {
 
     async clickLastNightButton() {
         await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
+    }
+    
+    // Time-related methods
+    getTimeButton() {
+        return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+    }
+    
+    getTimeInput() {
+        return this.page.getByPlaceholder('Enter time (e.g., 2:30pm)');
+    }
+    
+    getTimeSuggestion(time: string) {
+        return this.page.getByRole('button', { name: time });
+    }
+    
+    getExpenseDetailsHeading() {
+        return this.page.getByRole('heading', { name: 'Expense Details' });
+    }
+    
+    getExpenseHeadingWithAmount(pattern: RegExp) {
+        return this.page.getByRole('heading', { name: pattern });
     }
 
     async clickSelectAllButton() {

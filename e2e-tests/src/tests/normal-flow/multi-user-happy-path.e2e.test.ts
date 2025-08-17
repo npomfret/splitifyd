@@ -217,7 +217,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         const balancesSection = page
             .locator('section, div')
             .filter({
-                has: page.getByRole('heading', { name: 'Balances' }),
+                has: groupDetailPage.getBalancesHeading(),
             })
             .first();
 

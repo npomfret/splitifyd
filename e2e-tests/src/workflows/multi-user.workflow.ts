@@ -8,12 +8,8 @@ import type { User as BaseUser } from '@shared/shared-types';
  * Encapsulates the creation of multiple users, groups, and collaborative operations.
  */
 export class MultiUserWorkflow {
-    private users: Array<{ page: Page; user: BaseUser }> = [];
-    private groupId?: string;
-    private expenses: Array<{ description: string; amount: number; paidBy: string }> = [];
-    private shareLink?: string;
 
-    constructor(private browser: any) {}
+    constructor() {}
 
     /**
      * Reliably gets the share link from the group page.
@@ -67,60 +63,6 @@ export class MultiUserWorkflow {
 
             throw new Error(`Failed to join group via share link: ${error}. Page state: ${JSON.stringify(pageState, null, 2)}`);
         }
-    }
-
-    /**
-     * Joins a group via share link when user is not logged in.
-     * Handles login flow first, then joins the group.
-     */
-    async joinGroupViaShareLinkWithLogin(page: Page, shareLink: string, user: BaseUser): Promise<void> {
-        const joinGroupPage = new JoinGroupPage(page);
-
-        // Navigate to share link first
-        await joinGroupPage.navigateToShareLink(shareLink);
-
-        // Check if login is needed
-        const isLoggedIn = await joinGroupPage.isUserLoggedIn();
-
-        if (!isLoggedIn) {
-            // Store the original share link URL
-            const shareUrl = page.url();
-
-            // Check if we have a login button on the join page
-            const loginButton = joinGroupPage.getLoginButton();
-            if (await loginButton.isVisible()) {
-                // Click the login button on the join page
-                await loginButton.click();
-                await page.waitForLoadState('domcontentloaded');
-            } else {
-                // Navigate to login page directly
-                const loginPage = new LoginPage(page);
-                await loginPage.navigate();
-            }
-
-            // Perform login
-            const loginPage = new LoginPage(page);
-            const password = 'TestPassword123!'; // Standard test password
-            await loginPage.login(user.email, password);
-
-            // After login, wait for redirect to complete
-            await page.waitForLoadState('domcontentloaded');
-
-            // Check where we ended up
-            const currentUrl = page.url();
-            if (!currentUrl.includes('/join')) {
-                // We weren't redirected to join page, navigate back to share link
-                await page.goto(shareUrl);
-                await page.waitForLoadState('domcontentloaded');
-            }
-        }
-
-        // Now attempt to join
-        await joinGroupPage.joinGroup();
-
-        // Wait for redirect to group page
-        await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
-        await page.waitForLoadState('domcontentloaded');
     }
 
     /**

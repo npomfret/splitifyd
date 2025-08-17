@@ -14,7 +14,7 @@ test.describe('Share Link - Error Scenarios', () => {
         const baseUrl = page.url().split('/dashboard')[0];
         const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
 
-        const multiUserWorkflow = new MultiUserWorkflow(null);
+        const multiUserWorkflow = new MultiUserWorkflow();
         await multiUserWorkflow.testInvalidShareLink(page, invalidShareLink);
     });
 
@@ -37,7 +37,7 @@ test.describe('Share Link - Error Scenarios', () => {
 
         // Test with malicious/invalid linkId - should show error
         const invalidLink = `${baseUrl}/join?linkId=../../malicious`;
-        const multiUserWorkflow = new MultiUserWorkflow(null);
+        const multiUserWorkflow = new MultiUserWorkflow();
         await multiUserWorkflow.testInvalidShareLink(page, invalidLink);
     });
 });

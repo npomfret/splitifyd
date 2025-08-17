@@ -24,16 +24,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
 
         // Get share link from Alice's page
-        await alicePage.getByRole('button', { name: /share/i }).click();
-        const shareLinkInput = alicePage.getByRole('dialog').getByRole('textbox');
-        const shareLink = await shareLinkInput.inputValue();
-        // Close modal by clicking close button or outside
-        const closeButton = alicePage.getByRole('button', { name: /close|×/i }).first();
-        if (await closeButton.isVisible()) {
-            await closeButton.click();
-        } else {
-            await alicePage.click('body', { position: { x: 10, y: 10 } });
-        }
+        const aliceGroupDetailPage = new GroupDetailPage(alicePage);
+        const shareLink = await aliceGroupDetailPage.getShareLink();
 
         // Have Bob join via robust JoinGroupPage
         const bobJoinGroupPage = new JoinGroupPage(bobPage);
@@ -48,7 +40,6 @@ test.describe('Complex Unsettled Group Scenario', () => {
         await expect(bobPage.getByText(groupName)).toBeVisible();
 
         // Alice adds beach house expense ($800)
-        const aliceGroupDetailPage = new GroupDetailPage(alicePage);
         const memberCount = 2; // Alice and Bob
         const aliceExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(memberCount);
         await aliceExpenseFormPage.submitExpense({

@@ -54,7 +54,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
                 await page.goto(shareLink);
 
                 // Just click join button - that's all that's needed
-                const joinButton = page.getByRole('button', { name: /join group/i });
+                const joinButton = joinGroupPage.getJoinGroupButton();
                 await joinButton.click();
                 await page.waitForURL(new RegExp(`/groups/${groupId}`), { timeout: 10000 });
 
@@ -121,8 +121,9 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             // Join with random delays to create race conditions
             const joinPromises = pages.slice(1).map(async (page, i) => {
                 try {
+                    const joinGroupPage = new JoinGroupPage(page);
                     await page.goto(shareLink);
-                    const joinButton = page.getByRole('button', { name: /join group/i });
+                    const joinButton = joinGroupPage.getJoinGroupButton();
                     await joinButton.click();
                     await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
                     return true;
