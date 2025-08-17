@@ -3,7 +3,7 @@
 Generate a commit message:
 
 - [ ] read all the files in @docs/guides
-- [ ] use the git cli to view and analyse this changeset
+- [ ] use the git cli to view and analyse this changeset. ALL OF IT, every single changed file. No exceptions.
 - [ ] **check every line of every file**
 - [ ] have we violated any of the rules or patterns? if so: **STOP**
 
