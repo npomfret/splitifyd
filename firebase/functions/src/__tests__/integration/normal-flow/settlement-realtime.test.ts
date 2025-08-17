@@ -52,7 +52,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         const changePromise = new Promise<any>((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error('Timeout: No transaction-change notification received within 5 seconds'));
-            }, 5000);
+            }, 1000);
 
             const query = db.collection('transaction-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
@@ -104,14 +104,14 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             // If this fails, it means the trackSettlementChanges trigger isn't working
             throw new Error(`Settlement change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
         }
-    }, 10000);
+    }, 3000);
 
     it('should generate balance-change notification when settlement is created', async () => {
         // Set up a listener for balance-changes
         const changePromise = new Promise<any>((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error('Timeout: No balance-change notification received within 5 seconds'));
-            }, 5000);
+            }, 1000);
 
             const query = db.collection('balance-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
@@ -163,7 +163,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         } catch (error) {
             throw new Error(`Balance change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
         }
-    }, 10000);
+    }, 3000);
 
     it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
         /**
