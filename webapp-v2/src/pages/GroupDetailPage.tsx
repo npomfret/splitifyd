@@ -170,7 +170,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <GroupDetailGrid
                 leftSidebar={
                     <>
-                        <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} variant="sidebar" />
+                        <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} variant="sidebar" onInviteClick={handleShare} />
 
                         <GroupActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} variant="vertical" />
                     </>
@@ -202,7 +202,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only members list */}
                         <div className="lg:hidden">
-                            <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} />
+                            <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} onInviteClick={handleShare} />
                         </div>
 
                         {/* Mobile-only balance summary */}

@@ -2,6 +2,8 @@ import { Card } from '../ui/Card';
 import { SidebarCard } from '../ui/SidebarCard';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { Avatar } from '../ui/Avatar';
+import { Button } from '../ui/Button';
+import { UserPlusIcon } from '@heroicons/react/24/outline';
 import type { User } from '../../../../firebase/functions/src/shared/shared-types';
 
 interface MembersListProps {
@@ -9,9 +11,10 @@ interface MembersListProps {
     createdBy: string;
     loading?: boolean;
     variant?: 'default' | 'sidebar';
+    onInviteClick?: () => void;
 }
 
-export function MembersList({ members, createdBy, loading = false, variant = 'default' }: MembersListProps) {
+export function MembersList({ members, createdBy, loading = false, variant = 'default', onInviteClick }: MembersListProps) {
     const content = loading ? (
         <div className="flex justify-center py-8">
             <LoadingSpinner size="md" />
@@ -43,12 +46,43 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
     );
 
     if (variant === 'sidebar') {
-        return <SidebarCard title="Members">{content}</SidebarCard>;
+        return (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-semibold text-gray-900">Members</h3>
+                    {onInviteClick && (
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={onInviteClick}
+                            className="p-1 h-auto"
+                            ariaLabel="Invite Others"
+                        >
+                            <UserPlusIcon className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+                {content}
+            </div>
+        );
     }
 
     return (
         <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Members</h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Members</h2>
+                {onInviteClick && (
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={onInviteClick}
+                        className="p-2"
+                        ariaLabel="Invite Others"
+                    >
+                        <UserPlusIcon className="h-5 w-5" />
+                    </Button>
+                )}
+            </div>
             {content}
         </Card>
     );

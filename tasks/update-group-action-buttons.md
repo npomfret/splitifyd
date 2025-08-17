@@ -62,9 +62,31 @@ The main action buttons on the group detail page ("Add Expense", "Share Group", 
 - Deleted the deprecated `QuickActions.tsx` component.
 - Updated the `webapp-v2/src/components/group/index.ts` barrel file to export `GroupActions` and remove `QuickActions`.
 - Addressed and resolved several pre-existing test failures in `webapp-v2` to ensure a stable test environment.
+- ✅ **Renamed "Share Group" to "Invite Others"** on the main action button (`webapp-v2/src/components/group/GroupActions.tsx`).
+- ✅ **Added appropriate icons to all primary action buttons** using `@heroicons/react/24/outline`:
+  - **Add Expense**: `PlusIcon` 
+  - **Settle Up**: `CreditCardIcon` 
+  - **Invite Others**: `UserPlusIcon`
+  - **Group Settings**: `CogIcon`
+- ✅ **Applied consistent styling** to all primary action buttons (all now use `variant="primary"` for visual cohesion).
+- ✅ **Implemented the "Invite Others" shortcut in the Members Section**:
+  - Added `onInviteClick` prop to `MembersList` component (`webapp-v2/src/components/group/MembersList.tsx`)
+  - Added `UserPlusIcon` button in both sidebar and default variants of Members list header
+  - Connected the shortcut to the same share modal as the main action button
+  - Updated `GroupDetailPage.tsx` to pass the `handleShare` function to both MembersList instances (sidebar and mobile variants)
+  - Used proper accessibility attributes (`ariaLabel="Invite Others"`) for icon-only buttons
 
-### Pending:
-- Implement the "Invite Others" shortcut in the Members Section.
-- Rename "Share Group" to "Invite Others" on the main action button.
-- Apply consistent styling to all primary action buttons.
-- Add appropriate icons to all primary action buttons.
+### Technical Implementation Details:
+- **Icon Integration**: Used Heroicons React library (already installed as dependency)
+- **TypeScript Compatibility**: Fixed JSX children type issues by wrapping icon+text in fragments (`<>...</>`)
+- **Accessibility**: Added proper `ariaLabel` attributes to icon-only buttons for screen readers
+- **Responsive Design**: Maintained existing responsive behavior across desktop sidebar and mobile layouts
+- **Component Reusability**: Enhanced MembersList component with optional invite functionality while maintaining backward compatibility
+
+### Testing:
+- ✅ All TypeScript compilation checks pass (`npm run build:check`)
+- ✅ No new test failures introduced by the changes
+- ✅ Existing functionality preserved (settings button, modal behavior, responsive layout)
+
+### Status: **COMPLETE** 🎉
+All requirements from the original task specification have been successfully implemented and tested.

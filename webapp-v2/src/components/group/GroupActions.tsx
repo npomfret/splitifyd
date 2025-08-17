@@ -1,6 +1,7 @@
 import { Button } from '../ui/Button';
 import { SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
+import { PlusIcon, UserPlusIcon, CreditCardIcon, CogIcon } from '@heroicons/react/24/outline';
 
 interface GroupActionsProps {
     onAddExpense?: () => void;
@@ -15,20 +16,32 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, is
     const commonButtons = (
         <>
             <Button variant="primary" onClick={onAddExpense} className={variant === 'vertical' ? 'w-full' : ''}>
-                Add Expense
+                <>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Expense
+                </>
             </Button>
-            <Button variant="secondary" onClick={onSettleUp} className={variant === 'vertical' ? 'w-full' : ''}>
-                Settle Up
+            <Button variant="primary" onClick={onSettleUp} className={variant === 'vertical' ? 'w-full' : ''}>
+                <>
+                    <CreditCardIcon className="h-4 w-4 mr-2" />
+                    Settle Up
+                </>
             </Button>
-            <Button variant="ghost" onClick={onShare} className={variant === 'vertical' ? 'w-full' : ''}>
-                Share Group
+            <Button variant="primary" onClick={onShare} className={variant === 'vertical' ? 'w-full' : ''}>
+                <>
+                    <UserPlusIcon className="h-4 w-4 mr-2" />
+                    Invite Others
+                </>
             </Button>
         </>
     );
 
     const settingsButton = isGroupOwner && onSettings ? (
         <Button variant="ghost" onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''}>
-            Group Settings
+            <>
+                <CogIcon className="h-4 w-4 mr-2" />
+                Group Settings
+            </>
         </Button>
     ) : null;
 
