@@ -31,7 +31,7 @@ test.describe('Share Link - Edge Cases', () => {
                     email: userFixture.user.email 
                 });
                 if (!joinResult.success) {
-                    throw new Error(`Failed to join group: ${joinResult.reason}`);
+                    throw new Error(`Failed to join group: ${JSON.stringify(joinResult)}`);
                 }
             });
 

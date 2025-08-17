@@ -7,7 +7,7 @@ import {
     calculatePriority,
     createChangeDocument,
     shouldNotifyUser,
-} from '../../utils/change-detection';/comm
+} from '../../utils/change-detection';
 
 describe('Change Detection Utilities', () => {
     describe('ChangeDebouncer', () => {

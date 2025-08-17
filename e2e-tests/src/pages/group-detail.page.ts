@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
+import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
 
@@ -553,12 +554,18 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Clicks on an expense by its description to view details
+     * Returns the ExpenseDetailPage for further interactions
      */
-    async clickExpenseToView(description: string) {
+    async clickExpenseToView(description: string): Promise<ExpenseDetailPage> {
         const expense = this.getExpenseByDescription(description);
         // Note: Expense item is not a button but a clickable element
         await expense.click();
-        await this.page.waitForLoadState('domcontentloaded');
+        
+        // Create and wait for expense detail page to be ready
+        const expenseDetailPage = new ExpenseDetailPage(this.page);
+        await expenseDetailPage.waitForPageReady();
+        
+        return expenseDetailPage;
     }
 
     getExpenseByDescription(description: string) {
@@ -817,6 +824,7 @@ export class GroupDetailPage extends BasePage {
     getEditButton() {
         return this.page.getByRole('button', { name: /edit/i });
     }
+
 
     /**
      * Get amount input field

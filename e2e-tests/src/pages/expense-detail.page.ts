@@ -1,0 +1,90 @@
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { ExpenseFormPage } from './expense-form.page';
+
+export class ExpenseDetailPage extends BasePage {
+    constructor(page: Page) {
+        super(page);
+    }
+
+    /**
+     * Wait for the expense detail page to be fully loaded
+     */
+    async waitForPageReady(): Promise<void> {
+        // Wait for URL pattern to match expense detail
+        await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+$/);
+        await this.page.waitForLoadState('domcontentloaded');
+
+        // Wait for expense heading to be visible
+        const expenseHeading = this.page.getByRole('heading', { level: 1 }).first();
+        await expect(expenseHeading).toBeVisible();
+    }
+
+    /**
+     * Get the edit button for the expense
+     */
+    getEditButton(): Locator {
+        return this.page.getByRole('button', { name: /edit/i });
+    }
+
+    /**
+     * Click the edit expense button and return the expense form page for editing
+     */
+    async clickEditExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
+        const editButton = this.getEditButton();
+        await this.clickButton(editButton, { buttonName: 'Edit Expense' });
+
+        // Wait for navigation to edit expense page
+        await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*edit=true/);
+        await this.page.waitForLoadState('domcontentloaded');
+
+        // Create and validate the expense form page in edit mode
+        const expenseFormPage = new ExpenseFormPage(this.page);
+        await expenseFormPage.waitForFormReady(expectedMemberCount);
+
+        return expenseFormPage;
+    }
+
+    /**
+     * Get the delete button for the expense
+     */
+    getDeleteButton(): Locator {
+        return this.page.getByRole('button', { name: /delete/i });
+    }
+
+    /**
+     * Get expense description text (specifically the paragraph, not the heading)
+     */
+    getExpenseDescription(description: string): Locator {
+        return this.page.getByText(description, { exact: true }).first();
+    }
+
+    /**
+     * Get expense amount text
+     */
+    getExpenseAmount(amount: string): Locator {
+        return this.page.getByText(amount);
+    }
+
+    /**
+     * Get the expense heading that contains both description and amount
+     */
+    getExpenseHeading(pattern: RegExp): Locator {
+        return this.page.getByRole('heading', { name: pattern });
+    }
+
+
+    /**
+     * Verify expense amount is visible
+     */
+    async verifyExpenseAmount(amount: string): Promise<void> {
+        await expect(this.getExpenseAmount(amount)).toBeVisible();
+    }
+
+    /**
+     * Verify expense heading with description and amount pattern
+     */
+    async verifyExpenseHeading(pattern: RegExp): Promise<void> {
+        await expect(this.getExpenseHeading(pattern)).toBeVisible();
+    }
+}

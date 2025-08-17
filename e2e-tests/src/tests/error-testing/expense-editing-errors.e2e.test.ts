@@ -1,14 +1,12 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
-import { editExpenseUrlPattern, expenseDetailUrlPattern, groupDetailUrlPattern, waitForURLWithContext } from '../../helpers/wait-helpers';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { GroupWorkflow } from '../../workflows';
 
 setupMCPDebugOnFailure();
 
 test.describe('Expense Editing Error Testing', () => {
-    test('should edit expense amount (increase)', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    test('should edit expense amount (increase)', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
         // Skip error checking for edit operations
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
@@ -16,62 +14,48 @@ test.describe('Expense Editing Error Testing', () => {
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmount'), 'Testing expense amount editing');
+        await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmount'), 'Testing expense amount editing');
 
         // Navigate to expense form with proper waiting
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const formPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Fill expense form
-        await expenseFormPage.fillDescription('Amount Edit Test');
-        await expenseFormPage.fillAmount('50');
-        await expenseFormPage.selectAllParticipants();
-        await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
+        await formPage.fillDescription('Amount Edit Test');
+        await formPage.fillAmount('50');
+        await formPage.selectAllParticipants();
+        await formPage.selectCategoryFromSuggestions('Food & Dining');
 
         // Save expense
-        await expenseFormPage.clickSaveExpenseButton();
-        await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await formPage.clickSaveExpenseButton();
+        await groupDetailPage.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
 
         // Verify expense was created
-        await expect(groupDetailPage.getExpenseByDescription('Amount Edit Test')).toBeVisible();
-        await expect(groupDetailPage.getExpenseAmount('$50.00')).toBeVisible();
+        await groupDetailPage.verifyExpenseInList('Amount Edit Test', '$50.00');
 
-        // Click on expense to view details (following working pattern)
-        const expenseElement = groupDetailPage.getExpenseByDescription('Amount Edit Test');
-        await expenseElement.click();
+        // Click on expense to view details
+        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Amount Edit Test');
 
-        // Wait for expense detail page to load
-        await page.waitForLoadState('domcontentloaded');
+        // Click edit button and get the expense form page for editing
+        const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
 
-        // Look for edit button (following working pattern with proper timeout)
-        const editButton = groupDetailPage.getEditButton();
-        await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-        await editButton.click();
+        // Edit the amount
+        await editFormPage.fillAmount('75.50');
 
-        // Wait for edit page to load (following working pattern)
-        await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-
-        // Edit the amount (following working pattern with proper timeout)
-        const amountField = groupDetailPage.getAmountField();
-        await expect(amountField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-
-        // Change amount from $50.00 to $75.50
-        await groupDetailPage.fillPreactInput(amountField, '75.50');
-
-        // Save changes (following working pattern)
-        const updateButton = page.getByRole('button', { name: /update expense/i });
-        await expect(updateButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+        // Save changes
+        const updateButton = editFormPage.getUpdateExpenseButton();
         await updateButton.click();
 
-        // Wait for navigation to expense detail page (following working pattern)
-        await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        // Wait for navigation to expense detail page
+        await editFormPage.expectUrl(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
 
-        // Verify the change was applied - use exact match to avoid strict mode violation
-        await expect(page.getByText('Amount Edit Test', { exact: true })).toBeVisible();
-        // Check that the amount heading contains the new value
-        await expect(page.getByRole('heading', { name: /Amount Edit Test.*\$75\.50/ })).toBeVisible();
+        // Wait for the expense detail page to be ready with updated content
+        await expenseDetailPage.waitForPageReady();
+        
+        // Verify the change was applied
+        await expenseDetailPage.verifyExpenseHeading(/Amount Edit Test.*\$75\.50/);
     });
 
-    test('should edit expense amount (decrease)', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    test('should edit expense amount (decrease)', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
         // Skip error checking for edit operations
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
@@ -79,48 +63,42 @@ test.describe('Expense Editing Error Testing', () => {
         const expectedMemberCount = 1;
 
         // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmountDown'), 'Testing expense amount decrease');
+        await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmountDown'), 'Testing expense amount decrease');
 
         // Navigate to expense form with proper waiting
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
+        const formPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
 
-        await expenseFormPage.fillDescription('High Amount Expense');
-        await expenseFormPage.fillAmount('150');
-        await expenseFormPage.selectAllParticipants();
-        await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
+        await formPage.fillDescription('High Amount Expense');
+        await formPage.fillAmount('150');
+        await formPage.selectAllParticipants();
+        await formPage.selectCategoryFromSuggestions('Food & Dining');
 
-        await expenseFormPage.clickSaveExpenseButton();
-        await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await formPage.clickSaveExpenseButton();
+        await groupDetailPage.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
 
         // Edit to decrease amount
-        const expenseElement = groupDetailPage.getExpenseByDescription('High Amount Expense');
-        await expect(expenseElement).toBeVisible();
-        await expenseElement.click();
-        await page.waitForLoadState('domcontentloaded');
+        await groupDetailPage.verifyExpenseVisible('High Amount Expense');
+        const expenseDetailPage = await groupDetailPage.clickExpenseToView('High Amount Expense');
 
-        const editButton = page.getByRole('button', { name: /edit/i });
-        await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-        await editButton.click();
-
-        await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        // Click edit button and get the expense form page for editing
+        const editFormPage = await expenseDetailPage.clickEditExpenseButton(expectedMemberCount);
 
         // Change amount from $150.00 to $25.75
-        const amountField = page.locator('input[type="number"]').first();
-        await expect(amountField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-        await groupDetailPage.fillPreactInput(amountField, '25.75');
+        await editFormPage.fillAmount('25.75');
 
-        const updateButton = page.getByRole('button', { name: /update expense/i });
-        await expect(updateButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+        const updateButton = editFormPage.getUpdateExpenseButton();
         await updateButton.click();
 
-        await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await editFormPage.expectUrl(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
 
-        // Verify amount was decreased - use exact match to avoid strict mode violation
-        await expect(page.getByText('High Amount Expense', { exact: true })).toBeVisible();
-        await expect(page.getByRole('heading', { name: /High Amount Expense.*\$25\.75/ })).toBeVisible();
+        // Wait for the expense detail page to be ready with updated content
+        await expenseDetailPage.waitForPageReady();
+
+        // Verify amount was decreased
+        await expenseDetailPage.verifyExpenseHeading(/High Amount Expense.*\$25\.75/);
     });
 
-    test('should edit expense description successfully', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    test('should edit expense description successfully', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
         // Skip error checking for edit operations
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
@@ -128,48 +106,40 @@ test.describe('Expense Editing Error Testing', () => {
         const expectedMemberCount = 1;
 
         // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditDesc'), 'Testing expense description editing');
+        await GroupWorkflow.createGroup(page, generateTestGroupName('EditDesc'), 'Testing expense description editing');
 
         // Navigate to expense form with proper waiting
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
+        const formPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
 
-        await expenseFormPage.fillDescription('Original Description');
-        await expenseFormPage.fillAmount('42.99');
-        await expenseFormPage.selectAllParticipants();
-        await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
+        await formPage.fillDescription('Original Description');
+        await formPage.fillAmount('42.99');
+        await formPage.selectAllParticipants();
+        await formPage.selectCategoryFromSuggestions('Food & Dining');
 
-        await expenseFormPage.clickSaveExpenseButton();
-        await waitForURLWithContext(page, groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await formPage.clickSaveExpenseButton();
+        await groupDetailPage.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
 
         // Verify expense was created
-        await expect(groupDetailPage.getExpenseByDescription('Original Description')).toBeVisible();
+        await groupDetailPage.verifyExpenseVisible('Original Description');
 
-        // Edit the description - rest of the test continues from here...
-        const expenseElement = groupDetailPage.getExpenseByDescription('Original Description');
-        await expenseElement.click();
-        await page.waitForLoadState('domcontentloaded');
+        // Edit the description
+        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Original Description');
 
-        const editButton = page.getByRole('button', { name: /edit/i });
-        await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-        await editButton.click();
-        await page.waitForLoadState('domcontentloaded');
-
-        await waitForURLWithContext(page, editExpenseUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-
-        const descriptionField = page.getByPlaceholder('What was this expense for?');
-        await expect(descriptionField).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+        // Click edit button and get the expense form page for editing
+        const editFormPage = await expenseDetailPage.clickEditExpenseButton(expectedMemberCount);
 
         // Change description
-        await groupDetailPage.fillPreactInput(descriptionField, 'Updated Description Text');
+        await editFormPage.fillDescription('Updated Description Text');
 
-        const updateButton = page.getByRole('button', { name: /update expense/i });
-        await expect(updateButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+        const updateButton = editFormPage.getUpdateExpenseButton();
         await updateButton.click();
 
-        await waitForURLWithContext(page, expenseDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await editFormPage.expectUrl(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
 
-        // Verify description was updated - use exact match to avoid strict mode violation
-        await expect(page.getByText('Updated Description Text', { exact: true })).toBeVisible();
-        await expect(page.getByRole('heading', { name: /Updated Description Text.*\$42\.99/ })).toBeVisible();
+        // Wait for the expense detail page to be ready with updated content
+        await expenseDetailPage.waitForPageReady();
+
+        // Verify description was updated
+        await expenseDetailPage.verifyExpenseHeading(/Updated Description Text.*\$42\.99/);
     });
 });
