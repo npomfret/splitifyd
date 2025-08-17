@@ -22,7 +22,7 @@ npm run test # runs all tests (the emulator is not needed)
 To run just one test:
 
 ```shell
-npx jest src/__tests__/integration/normal-flow/group-members.test.ts --verbose --json --outputFile test-report.json 
+npx jest src/<...path...>.test.ts --verbose --json --outputFile test-report.json 
 ```
 
 ## Guidelines for Writing Tests
