@@ -1,7 +1,7 @@
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { formatDistanceToNow } from '../../utils/dateUtils';
-import type { Group } from '../../../../firebase/functions/src/shared/shared-types';
+import { formatDistanceToNow } from '@/utils/dateUtils.ts';
+import type { Group } from '@shared/shared-types.ts';
 
 interface GroupHeaderProps {
     group: Group;
