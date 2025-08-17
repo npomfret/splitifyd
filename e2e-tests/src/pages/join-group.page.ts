@@ -268,7 +268,7 @@ export class JoinGroupPage extends BasePage {
         if (currentUrl.includes('/login')) {
             return {
                 success: false,
-                reason: `User needs to log in first (at ${currentUrl})`,
+                reason: `has been redirected to login (at ${currentUrl})`,
                 needsLogin: true,
                 alreadyMember: false,
                 error: false,
