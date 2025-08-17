@@ -1,6 +1,6 @@
 import { signal, computed } from '@preact/signals';
 import type { UserThemeColor } from '@shared/shared-types';
-import type { User } from '../../types/auth';
+import type { User } from '@/types/auth.ts';
 
 export interface ThemeState {
     userThemes: Map<string, UserThemeColor>;

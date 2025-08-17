@@ -1,4 +1,4 @@
-import { multiUserTest, expect } from '../../fixtures/multi-user-test';
+import { multiUserTest, expect } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';

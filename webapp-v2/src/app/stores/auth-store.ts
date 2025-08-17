@@ -1,15 +1,15 @@
 import { signal } from '@preact/signals';
-import type { AuthStore, User } from '../../types/auth';
-import { mapFirebaseUser } from '../../types/auth';
+import type { AuthStore, User } from '@/types/auth.ts';
+import { mapFirebaseUser } from '@/types/auth.ts';
 import { firebaseService } from '../firebase';
 import { apiClient } from '../apiClient';
-import { USER_ID_KEY } from '../../constants';
-import { logError } from '../../utils/browser-logger';
+import { USER_ID_KEY } from '@/constants.ts';
+import { logError } from '@/utils/browser-logger.ts';
 import { AuthErrors } from '@shared/shared-types';
 import { groupsStore } from './groups-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { themeStore } from './theme-store';
-import { createUserScopedStorage } from '../../utils/userScopedStorage';
+import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { CurrencyService } from '../services/currencyService';
 import { expenseFormStore } from './expense-form-store';
 

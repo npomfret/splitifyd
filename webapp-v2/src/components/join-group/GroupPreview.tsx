@@ -6,7 +6,7 @@
 
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import type { Group } from '../../../../firebase/functions/src/shared/shared-types';
+import type { Group } from '@shared/shared-types.ts';
 
 interface GroupPreviewProps {
     group: Group;

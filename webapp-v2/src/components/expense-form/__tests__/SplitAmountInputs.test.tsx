@@ -71,16 +71,16 @@ describe('SplitAmountInputs', () => {
             expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
             expect(screen.getByText('Bob Smith')).toBeInTheDocument();
 
-            const inputs = screen.getAllByRole('spinbutton');
+            const inputs = screen.getAllByRole('textbox');
             expect(inputs).toHaveLength(2);
-            expect(inputs[0]).toHaveValue(20);
-            expect(inputs[1]).toHaveValue(20);
+            expect(inputs[0]).toHaveDisplayValue('20');
+            expect(inputs[1]).toHaveDisplayValue('20');
         });
 
         it('calls updateSplitAmount when input values change', () => {
             render(<SplitAmountInputs {...defaultProps} splitType="exact" />);
 
-            const inputs = screen.getAllByRole('spinbutton');
+            const inputs = screen.getAllByRole('textbox');
             fireEvent.input(inputs[0], { target: { value: '25.50' } });
 
             expect(mockUpdateSplitAmount).toHaveBeenCalledWith('user1', 25.5);
@@ -116,9 +116,9 @@ describe('SplitAmountInputs', () => {
 
             render(<SplitAmountInputs {...defaultProps} splitType="exact" splits={zeroSplits} />);
 
-            const inputs = screen.getAllByRole('spinbutton');
-            expect(inputs[0]).toHaveValue(0);
-            expect(inputs[1]).toHaveValue(0);
+            const inputs = screen.getAllByRole('textbox');
+            expect(inputs[0]).toHaveDisplayValue('');
+            expect(inputs[1]).toHaveDisplayValue('');
         });
     });
 
@@ -130,16 +130,16 @@ describe('SplitAmountInputs', () => {
             expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
             expect(screen.getByText('Bob Smith')).toBeInTheDocument();
 
-            const inputs = screen.getAllByRole('spinbutton');
+            const inputs = screen.getAllByRole('textbox');
             expect(inputs).toHaveLength(2);
-            expect(inputs[0]).toHaveValue(50);
-            expect(inputs[1]).toHaveValue(50);
+            expect(inputs[0]).toHaveDisplayValue('50');
+            expect(inputs[1]).toHaveDisplayValue('50');
         });
 
         it('calls updateSplitPercentage when input values change', () => {
             render(<SplitAmountInputs {...defaultProps} splitType="percentage" />);
 
-            const inputs = screen.getAllByRole('spinbutton');
+            const inputs = screen.getAllByRole('textbox');
             fireEvent.input(inputs[0], { target: { value: '60' } });
 
             expect(mockUpdateSplitPercentage).toHaveBeenCalledWith('user1', 60);
@@ -181,9 +181,9 @@ describe('SplitAmountInputs', () => {
 
             render(<SplitAmountInputs {...defaultProps} splitType="percentage" splits={zeroSplits} />);
 
-            const inputs = screen.getAllByRole('spinbutton');
-            expect(inputs[0]).toHaveValue(0);
-            expect(inputs[1]).toHaveValue(0);
+            const inputs = screen.getAllByRole('textbox');
+            expect(inputs[0]).toHaveDisplayValue('');
+            expect(inputs[1]).toHaveDisplayValue('');
         });
 
         it('displays percentage symbol and calculated amount', () => {
@@ -200,11 +200,9 @@ describe('SplitAmountInputs', () => {
         it('has correct attributes for exact amount inputs', () => {
             render(<SplitAmountInputs {...defaultProps} splitType="exact" />);
 
-            const inputs = screen.getAllByRole('spinbutton');
+            const inputs = screen.getAllByRole('textbox');
             inputs.forEach((input) => {
-                expect(input).toHaveAttribute('type', 'number');
-                expect(input).toHaveAttribute('step', '0.01');
-                expect(input).toHaveAttribute('min', '0.01');
+                expect(input).toHaveAttribute('type', 'text');
                 expect(input).toHaveAttribute('inputMode', 'decimal');
             });
         });
@@ -212,12 +210,9 @@ describe('SplitAmountInputs', () => {
         it('has correct attributes for percentage inputs', () => {
             render(<SplitAmountInputs {...defaultProps} splitType="percentage" />);
 
-            const inputs = screen.getAllByRole('spinbutton');
+            const inputs = screen.getAllByRole('textbox');
             inputs.forEach((input) => {
-                expect(input).toHaveAttribute('type', 'number');
-                expect(input).toHaveAttribute('step', '0.1');
-                expect(input).toHaveAttribute('min', '0');
-                expect(input).toHaveAttribute('max', '100');
+                expect(input).toHaveAttribute('type', 'text');
                 expect(input).toHaveAttribute('inputMode', 'decimal');
             });
         });

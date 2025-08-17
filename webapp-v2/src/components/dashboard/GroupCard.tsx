@@ -1,6 +1,6 @@
 import type { Group } from '@shared/shared-types';
 import { Card } from '../ui';
-import { formatCurrency } from '../../utils/currency';
+import { formatCurrency } from '@/utils/currency';
 
 interface GroupCardProps {
     group: Group;

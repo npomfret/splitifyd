@@ -1,11 +1,11 @@
 import { route } from 'preact-router';
 import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { Card } from '../components/ui';
-import { Stack } from '../components/ui/Stack';
-import { LoadingState, ErrorState } from '../components/ui';
+import { Card } from '@/components/ui';
+import { Stack } from '@/components/ui';
+import { LoadingState, ErrorState } from '@/components/ui';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { ExpenseFormHeader, ExpenseBasicFields, PayerSelector, ParticipantSelector, SplitTypeSelector, SplitAmountInputs, ExpenseFormActions } from '../components/expense-form';
+import { ExpenseFormHeader, ExpenseBasicFields, PayerSelector, ParticipantSelector, SplitTypeSelector, SplitAmountInputs, ExpenseFormActions } from '@/components/expense-form';
 
 interface AddExpensePageProps {
     groupId?: string;

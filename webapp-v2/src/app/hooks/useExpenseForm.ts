@@ -5,9 +5,9 @@ import { expenseFormStore, getRecentAmounts } from '../stores/expense-form-store
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { apiClient } from '../apiClient';
 import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/shared-types';
-import { logError } from '../../utils/browser-logger';
+import { logError } from '@/utils/browser-logger.ts';
 import { useAuth } from './useAuth';
-import { extractTimeFromISO } from '../../utils/dateUtils';
+import { extractTimeFromISO } from '@/utils/dateUtils.ts';
 
 interface UseExpenseFormOptions {
     groupId: string;

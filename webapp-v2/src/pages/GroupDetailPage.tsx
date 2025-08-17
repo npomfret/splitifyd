@@ -7,7 +7,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { GroupHeader, QuickActions, MembersList, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
+import { GroupActions, GroupHeader, MembersList, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { logError } from '../utils/browser-logger';
@@ -170,18 +170,18 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <GroupDetailGrid
                 leftSidebar={
                     <>
-                        <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} variant="sidebar" />
+                        <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} variant="sidebar" onInviteClick={handleShare} />
 
-                        <QuickActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} variant="vertical" />
+                        <GroupActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} variant="vertical" />
                     </>
                 }
                 mainContent={
                     <Stack spacing="lg">
-                        <GroupHeader group={group.value!} onSettingsClick={isGroupOwner.value ? handleSettings : undefined} />
+                        <GroupHeader group={group.value!} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
 
                         {/* Mobile-only quick actions */}
                         <div className="lg:hidden">
-                            <QuickActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} />
+                            <GroupActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
                         </div>
 
                         <ExpensesList
@@ -202,7 +202,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only members list */}
                         <div className="lg:hidden">
-                            <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} />
+                            <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} onInviteClick={handleShare} />
                         </div>
 
                         {/* Mobile-only balance summary */}

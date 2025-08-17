@@ -1,9 +1,9 @@
 import { Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput, Button } from '../ui';
 import { Stack } from '../ui/Stack';
 import { ExpenseCategory } from '@shared/shared-types';
-import { CurrencyService } from '../../app/services/currencyService';
-import { formatCurrency } from '../../utils/currency';
-import { getToday, getYesterday, getThisMorning, getLastNight } from '../../utils/dateUtils';
+import { CurrencyService } from '@/app/services/currencyService.ts';
+import { formatCurrency } from '@/utils/currency';
+import { getToday, getYesterday, getThisMorning, getLastNight } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
 
 interface ExpenseBasicFieldsProps {

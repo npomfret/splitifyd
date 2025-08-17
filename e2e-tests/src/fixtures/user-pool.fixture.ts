@@ -1,8 +1,7 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@shared/shared-types';
 import { generateShortId } from '../utils/test-helpers';
-import { EMULATOR_URL } from '../helpers';
-import { RegisterPage } from '../pages/register.page';
+import { RegisterPage } from '../pages';
 import { expect } from '@playwright/test';
 
 /**

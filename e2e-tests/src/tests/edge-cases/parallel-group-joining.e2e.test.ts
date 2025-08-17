@@ -1,10 +1,10 @@
 import { expect, Page, test } from '@playwright/test';
 import { setupMCPDebugOnFailure } from '../../helpers';
-import { DashboardPage, GroupDetailPage, JoinGroupPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
-import { LoginPage } from '../../pages/login.page';
+import { LoginPage } from '../../pages';
 
 setupMCPDebugOnFailure();
 

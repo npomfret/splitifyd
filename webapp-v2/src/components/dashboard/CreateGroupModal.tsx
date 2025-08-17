@@ -1,8 +1,8 @@
 import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { enhancedGroupsStore } from '../../app/stores/groups-store-enhanced';
+import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Input, Button, Form } from '../ui';
-import type { CreateGroupRequest } from '../../../../firebase/functions/src/shared/shared-types';
+import type { CreateGroupRequest } from '@shared/shared-types.ts';
 
 const groupNameSignal = signal('');
 const groupDescriptionSignal = signal('');

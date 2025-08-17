@@ -1,7 +1,5 @@
 import { Page } from '@playwright/test';
-import { GroupDetailPage, JoinGroupPage, LoginPage } from '../pages';
-import { TIMEOUT_CONTEXTS } from '../config/timeouts';
-import type { User as BaseUser } from '@shared/shared-types';
+import { GroupDetailPage, JoinGroupPage } from '../pages';
 
 /**
  * Multi-user workflow class that handles complex multi-user test scenarios.

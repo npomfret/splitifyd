@@ -2,7 +2,7 @@ import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
 import { Button } from '../ui/Button';
 import { ExpenseItem } from './ExpenseItem';
-import type { ExpenseData, User } from '../../../../firebase/functions/src/shared/shared-types';
+import type { ExpenseData, User } from '@shared/shared-types.ts';
 
 interface ExpensesListProps {
     expenses: ExpenseData[];

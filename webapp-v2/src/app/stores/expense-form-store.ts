@@ -1,11 +1,11 @@
 import { signal } from '@preact/signals';
-import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '../../../../firebase/functions/src/shared/shared-types';
+import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '@shared/shared-types.ts';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { groupsStore } from './groups-store';
-import { logWarning } from '../../utils/browser-logger';
-import { getUTCDateTime, isDateInFuture } from '../../utils/dateUtils';
-import type { UserScopedStorage } from '../../utils/userScopedStorage';
+import { logWarning } from '@/utils/browser-logger.ts';
+import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
+import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
 export interface ExpenseFormStore {
     // Form fields

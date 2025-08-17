@@ -2,12 +2,12 @@ import { useState, useEffect } from 'preact/hooks';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { ErrorState } from '../ui/ErrorState';
+import { LoadingSpinner } from '@/components/ui';
+import { ErrorState } from '@/components/ui';
 import { Container } from '../ui/Container';
 import { PolicyRenderer } from './PolicyRenderer';
-import { apiClient, type PolicyAcceptanceStatus } from '../../app/apiClient';
-import { logError } from '../../utils/browser-logger';
+import { apiClient, type PolicyAcceptanceStatus } from '@/app/apiClient.ts';
+import { logError } from '@/utils/browser-logger.ts';
 
 interface PolicyAcceptanceModalProps {
     policies: PolicyAcceptanceStatus[];

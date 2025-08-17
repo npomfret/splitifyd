@@ -1,14 +1,16 @@
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { CogIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import type { Group } from '@shared/shared-types.ts';
 
 interface GroupHeaderProps {
     group: Group;
-    onSettingsClick?: () => void;
+    onSettings?: () => void;
+    isGroupOwner?: boolean;
 }
 
-export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
+export function GroupHeader({ group, onSettings, isGroupOwner }: GroupHeaderProps) {
     return (
         <Card className="p-6">
             <div className="flex justify-between items-start mb-4">
@@ -16,9 +18,15 @@ export function GroupHeader({ group, onSettingsClick }: GroupHeaderProps) {
                     <h1 className="text-2xl font-bold mb-2">{group.name}</h1>
                     {group.description && <p className="text-gray-600">{group.description}</p>}
                 </div>
-                {onSettingsClick && (
-                    <Button variant="secondary" size="sm" onClick={onSettingsClick}>
-                        Settings
+                {isGroupOwner && onSettings && (
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={onSettings}
+                        className="p-2"
+                        ariaLabel="Group Settings"
+                    >
+                        <CogIcon className="h-5 w-5" />
                     </Button>
                 )}
             </div>

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'preact/hooks';
-import { getCurrenciesAsync, getCurrency, COMMON_CURRENCIES, type Currency } from '../../utils/currency';
-import { useDebounce } from '../../utils/debounce';
+import { getCurrenciesAsync, getCurrency, COMMON_CURRENCIES, type Currency } from '@/utils/currency';
+import { useDebounce } from '@/utils/debounce.ts';
 
 interface CurrencySelectorProps {
     value: string;
