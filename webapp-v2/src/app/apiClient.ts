@@ -7,7 +7,6 @@
 
 import { responseSchemas, ApiErrorResponseSchema } from '../api/apiSchemas';
 import { z } from 'zod';
-import { AUTH_TOKEN_KEY } from '../constants';
 import { logWarning, logError, logApiRequest, logApiResponse } from '../utils/browser-logger';
 import type {
     CreateGroupRequest,
@@ -210,6 +209,8 @@ export class ApiClient {
         reject: (error: any) => void;
         config: RequestConfig;
     }> = [];
+    private authRefreshCallback: (() => Promise<void>) | null = null;
+    private authLogoutCallback: (() => Promise<void>) | null = null;
 
     constructor() {
         // Auth token will be set by auth store after user authentication
@@ -250,6 +251,12 @@ export class ApiClient {
         // This avoids the chicken-and-egg problem and ensures proper user isolation
     }
 
+    // Set auth callbacks to avoid circular dependencies
+    setAuthCallbacks(refreshCallback: () => Promise<void>, logoutCallback: () => Promise<void>) {
+        this.authRefreshCallback = refreshCallback;
+        this.authLogoutCallback = logoutCallback;
+    }
+
     // Set up 401 response interceptor
     private setup401Interceptor(): void {
         this.addResponseInterceptor(async (response, config) => {
@@ -270,12 +277,12 @@ export class ApiClient {
                 this.refreshingToken = true;
 
                 try {
-                    // Dynamically import to avoid circular dependency
-                    const { getAuthStore } = await import('./stores/auth-store');
-                    const authStore = await getAuthStore();
-
-                    // Refresh the token
-                    await authStore.refreshAuthToken();
+                    // Use callback pattern to avoid circular dependency
+                    if (this.authRefreshCallback) {
+                        await this.authRefreshCallback();
+                    } else {
+                        throw new Error('Auth refresh callback not set');
+                    }
 
                     // Process queued requests
                     this.processQueue(null);
@@ -291,9 +298,9 @@ export class ApiClient {
 
                     // If refresh failed, logout the user
                     try {
-                        const { getAuthStore } = await import('./stores/auth-store');
-                        const authStore = await getAuthStore();
-                        await authStore.logout();
+                        if (this.authLogoutCallback) {
+                            await this.authLogoutCallback();
+                        }
                     } catch (logoutError) {
                         logError('Failed to logout after token refresh failure', logoutError);
                     }

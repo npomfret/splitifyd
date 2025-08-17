@@ -69,6 +69,12 @@ class AuthStoreImpl implements AuthStore {
         try {
             await firebaseService.initialize();
 
+            // Set up API client auth callbacks to avoid circular dependencies
+            apiClient.setAuthCallbacks(
+                async () => { await this.refreshAuthToken(); },
+                () => this.logout()
+            );
+
             // Set up auth state listener
             firebaseService.onAuthStateChanged(async (firebaseUser) => {
                 if (firebaseUser) {

@@ -1,7 +1,17 @@
 #!/bin/bash
 
-TEST_FILE="src/tests/normal-flow/balance-visualization-single-user.e2e.test.ts:89:3"
-TEST_FILTER=""
+# Detect script location and set working directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Change to project root if we're not already there
+if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
+    echo "📂 Changing working directory to project root: $PROJECT_ROOT"
+    cd "$PROJECT_ROOT"
+fi
+
+TEST_FILE="src/tests/normal-flow/balance-visualization-multi-user.e2e.test.ts"
+TEST_FILTER="should update debt correctly after partial settlement"
 
 # Make max runs configurable, default to 25
 MAX_SUCCESSES=${1:-25}
@@ -14,24 +24,24 @@ START_TIME=$(date +%s)
 HEADED_FLAG=""
 if [[ " $* " == *" --headed "* ]] || [[ " $* " == *" headed "* ]]; then
     HEADED_FLAG="--headed"
-    echo "🖥️  Browser mode: HEADED (visible browser window)"
+    echo "🖥️ Browser mode: HEADED (visible browser window)"
 else
-    echo "🖥️  Browser mode: HEADLESS (background execution)"
+    echo "🖥️ Browser mode: HEADLESS (background execution)"
 fi
 
 # Clean up any existing screenshots in the ad-hoc folder
-echo "🧹 Cleaning up existing screenshots in playwright-report/ad-hoc..."
-rm -f playwright-report/ad-hoc/*.png 2>/dev/null
+echo "🧹 Cleaning up existing playwright-report/ad-hoc..."
+rm -f e2e-tests/playwright-report/ad-hoc/*.png 2>/dev/null
 
 echo "🚀 Starting repeated test runs for: $TEST_FILE"
 if [ -n "$TEST_FILTER" ]; then
     echo "🎯 Test filter: '$TEST_FILTER'"
 fi
 echo "📍 Working directory: $(pwd)"
-echo "📊 Results will be stored in: playwright-report/ad-hoc/"
-echo "📸 Screenshots on failure: playwright-report/ad-hoc/data/"
+echo "📊 Results will be stored in: e2e-tests/playwright-report/ad-hoc/"
+echo "📸 Screenshots on failure: e2e-tests/playwright-report/ad-hoc/data/"
 echo "🔢 Will stop after: $MAX_SUCCESSES successful runs OR first failure"
-echo "⚙️  Configuration: MAX_SUCCESSES=$MAX_SUCCESSES (pass a number as first argument to override)"
+echo "⚙️ Configuration: MAX_SUCCESSES=$MAX_SUCCESSES (pass a number as first argument to override)"
 echo "⏰ Started at: $(date)"
 echo ""
 
@@ -46,9 +56,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     
     # Run the test
     if [ -n "$TEST_FILTER" ]; then
-        npm run build && PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=playwright-report/ad-hoc npx playwright test --workers=1 $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE" --grep "$TEST_FILTER"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=1 $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE" --grep "$TEST_FILTER"
     else
-        npm run build && PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=playwright-report/ad-hoc npx playwright test --workers=1 $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=1 $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE"
     fi
     
     # Check exit code
