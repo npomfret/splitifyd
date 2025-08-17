@@ -16,8 +16,13 @@ export class CreateGroupModalPage extends BasePage {
         // Wait for modal to be fully visible - use heading to avoid ambiguity
         await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'visible' });
 
-        // Get the input using the correct selector - label text without asterisk
-        const nameInput = this.page.getByLabel('Group Name');
+        // Get the modal/dialog container to scope our selectors
+        // This avoids conflicts with other elements on the page
+        const modal = this.page.locator('[role="dialog"], .fixed.inset-0').last();
+        
+        // Get the input using a more specific selector - scoped to the modal
+        // Use placeholder to be more specific and avoid conflicts
+        const nameInput = modal.getByPlaceholder('e.g., Apartment Expenses, Trip to Paris');
 
         // Wait for input to be visible and enabled
         await nameInput.waitFor({ state: 'visible' });
@@ -27,7 +32,7 @@ export class CreateGroupModalPage extends BasePage {
         await this.fillPreactInput(nameInput, name);
 
         if (description) {
-            const descInput = this.page.getByPlaceholder(PLACEHOLDERS.GROUP_DESCRIPTION);
+            const descInput = modal.getByPlaceholder(PLACEHOLDERS.GROUP_DESCRIPTION);
             await this.fillPreactInput(descInput, description);
         }
     }

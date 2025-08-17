@@ -615,6 +615,21 @@ export class ApiClient {
         });
     }
 
+    async updateGroup(id: string, data: { name?: string; description?: string }): Promise<{ message: string }> {
+        return this.request({
+            endpoint: `/groups/${id}`,
+            method: 'PUT',
+            body: data,
+        });
+    }
+
+    async deleteGroup(id: string): Promise<{ message: string }> {
+        return this.request({
+            endpoint: `/groups/${id}`,
+            method: 'DELETE',
+        });
+    }
+
     async getGroupBalances(groupId: string): Promise<GroupBalances> {
         return this.request({
             endpoint: '/groups/balances',

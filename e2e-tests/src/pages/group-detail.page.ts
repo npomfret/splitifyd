@@ -20,7 +20,8 @@ export class GroupDetailPage extends BasePage {
 
     // Element accessors for group information
     getGroupTitle() {
-        return this.page.getByRole('heading').first();
+        // The group title is specifically an h1 element
+        return this.page.locator('h1').first();
     }
 
     getGroupTitleByName(name: string) {
@@ -90,11 +91,11 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: /share/i });
     }
     
-    private getShareDialog() {
+    getShareDialog() {
         return this.page.getByRole('dialog');
     }
     
-    private getShareLinkInput() {
+    getShareLinkInput() {
         return this.getShareDialog().locator('input[type="text"]');
     }
     
@@ -474,18 +475,14 @@ export class GroupDetailPage extends BasePage {
      * @returns The share link URL
      */
     async shareGroupAndWaitForJoin(joinerPage: any): Promise<string> {
-        // Import JoinGroupPage for proper page object pattern
-        const { JoinGroupPage } = await import('./join-group.page');
-        
         // Get the share link from the modal
         const shareLink = await this.getShareLink();
 
         // Have the second user navigate to share link and join with fast timeout
         await this.navigatePageToShareLink(joinerPage, shareLink);
 
-        // Use JoinGroupPage methods instead of direct getByRole
-        const joinGroupPage = new JoinGroupPage(joinerPage);
-        const joinButton = joinGroupPage.getJoinGroupButton();
+        // Click join button with fast timeout
+        const joinButton = joinerPage.getByRole('button', { name: /join group/i });
         await joinButton.waitFor({ state: 'visible', timeout: 1000 });
         await this.clickButton(joinButton, { buttonName: 'Join Group' });
 
@@ -679,6 +676,98 @@ export class GroupDetailPage extends BasePage {
         // Target the admin badge which is typically a small text element with specific styling
         // Use exact match and look for the element with the smallest font size (text-xs class)
         return this.page.locator('.text-xs').filter({ hasText: 'Admin' }).first();
+    }
+
+    /**
+     * Gets the settings button (only visible for group owner)
+     */
+    getSettingsButton() {
+        return this.page.getByRole('button', { name: 'Settings' });
+    }
+
+    /**
+     * Opens the edit group modal by clicking the settings button
+     */
+    async openEditGroupModal() {
+        const settingsButton = this.getSettingsButton();
+        await this.clickButton(settingsButton, { buttonName: 'Settings' });
+
+        // Wait for modal to appear
+        await expect(this.page.getByRole('dialog')).toBeVisible();
+
+        // Return a simple modal object with the methods the tests expect
+        const modal = this.page.getByRole('dialog');
+        const saveButton = modal.getByRole('button', { name: 'Save Changes' });
+        
+        return {
+            modal,
+            saveButton,
+            editGroupName: async (name: string) => {
+                const nameInput = modal.locator('input[type="text"]').first();
+                // Use Preact-aware input filling
+                await this.fillPreactInput(nameInput, name);
+            },
+            clearGroupName: async () => {
+                const nameInput = modal.locator('input[type="text"]').first();
+                // Clear using fill('') which triggers Preact's input events properly
+                await nameInput.fill('');
+                // Trigger blur to ensure validation runs
+                await nameInput.blur();
+            },
+            editDescription: async (description: string) => {
+                const descriptionTextarea = modal.locator('textarea').first();
+                await descriptionTextarea.click();
+                await descriptionTextarea.press('Control+a');
+                await descriptionTextarea.type(description);
+            },
+            saveChanges: async () => {
+                // Ensure button is enabled before clicking
+                await expect(saveButton).toBeEnabled();
+                await saveButton.click();
+                // Wait for the modal to close after saving
+                // Use a longer timeout as the save operation might take time
+                await expect(modal).not.toBeVisible({ timeout: 10000 });
+            },
+            cancel: async () => {
+                const cancelButton = modal.getByRole('button', { name: 'Cancel' });
+                await cancelButton.click();
+            },
+            deleteGroup: async () => {
+                const deleteButton = modal.getByRole('button', { name: 'Delete Group' });
+                await deleteButton.click();
+            }
+        };
+    }
+
+    /**
+     * Handles the delete confirmation dialog
+     */
+    async handleDeleteConfirmDialog(confirm: boolean) {
+        // Wait for confirmation dialog to appear
+        // The confirmation dialog appears on top of the edit modal
+        await this.page.waitForLoadState('domcontentloaded');
+        
+        // The ConfirmDialog component creates a fixed overlay with the Delete Group title
+        // Look for the modal content within the overlay - it has "Delete Group" as title
+        // and the confirm message
+        const confirmTitle = this.page.getByRole('heading', { name: 'Delete Group' });
+        await expect(confirmTitle).toBeVisible({ timeout: 5000 });
+        
+        // Find the dialog container which is the parent of the title
+        const confirmDialog = confirmTitle.locator('..').locator('..');
+
+        if (confirm) {
+            // Find and click the Delete button in the confirmation dialog
+            // The button text is "Delete" as set by confirmText prop
+            const deleteButton = confirmDialog.getByRole('button', { name: 'Delete' });
+            await expect(deleteButton).toBeVisible();
+            await expect(deleteButton).toBeEnabled();
+            await deleteButton.click();
+        } else {
+            // Click the Cancel button
+            const cancelButton = confirmDialog.getByRole('button', { name: 'Cancel' });
+            await cancelButton.click();
+        }
     }
 
     // ==============================

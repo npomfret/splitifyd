@@ -7,7 +7,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { GroupHeader, QuickActions, MembersList, ExpensesList, BalanceSummary, ShareGroupModal } from '@/components/group';
+import { GroupHeader, QuickActions, MembersList, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { logError } from '../utils/browser-logger';
@@ -22,6 +22,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const showSettlementForm = useSignal(false);
     const showSettlementHistory = useSignal(false);
     const showDeletedExpenses = useSignal(false);
+    const showEditModal = useSignal(false);
 
     // Computed values from store
     const group = useComputed(() => enhancedGroupDetailStore.group);
@@ -146,7 +147,21 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleSettings = () => {
-        // TODO: Implement group settings functionality
+        showEditModal.value = true;
+    };
+
+    const handleGroupUpdateSuccess = async () => {
+        // Refresh group data after successful update
+        try {
+            await enhancedGroupDetailStore.loadGroup(groupId!);
+        } catch (error) {
+            logError('Failed to refresh group after update', error, { groupId });
+        }
+    };
+
+    const handleGroupDelete = () => {
+        // Navigate to dashboard after group deletion
+        route('/dashboard');
     };
 
     // Render group detail
@@ -162,7 +177,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 }
                 mainContent={
                     <Stack spacing="lg">
-                        <GroupHeader group={group.value!} onSettingsClick={handleSettings} />
+                        <GroupHeader group={group.value!} onSettingsClick={isGroupOwner.value ? handleSettings : undefined} />
 
                         {/* Mobile-only quick actions */}
                         <div className="lg:hidden">
@@ -215,6 +230,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
             {/* Share Modal */}
             <ShareGroupModal isOpen={showShareModal.value} onClose={() => (showShareModal.value = false)} groupId={groupId!} groupName={group.value!.name} />
+
+            {/* Edit Group Modal */}
+            {isGroupOwner.value && (
+                <EditGroupModal
+                    isOpen={showEditModal.value}
+                    group={group.value!}
+                    onClose={() => (showEditModal.value = false)}
+                    onSuccess={handleGroupUpdateSuccess}
+                    onDelete={handleGroupDelete}
+                />
+            )}
 
             {/* Settlement Form Modal */}
             <SettlementForm
