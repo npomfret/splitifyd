@@ -66,11 +66,7 @@
             "Bash(vitest:*)",
             "Bash(xargs:*)",
             "Read",
-            "Task",
             "WebFetch",
-            "context-provider - *",
-            "context7 - *",
-            "ide - *",
             "mcp__context-provider",
             "mcp__context-provider__*",
             "mcp__context7",
@@ -82,12 +78,12 @@
             "mcp__ts-morph",
             "mcp__ts-morph__*",
             "mcp__typescript-mcp",
-            "mcp__typescript-mcp__*",
-            "playwright - *",
-            "ts-morph - *",
-            "typescript-mcp - *"
+            "mcp__typescript-mcp__*"
         ],
-        "deny": []
+        "deny": [
+            "Bash(git commit:*)",
+            "Bash(git push:*)"
+        ]
     },
     "mcpServers": {
         "puppeteer": {
