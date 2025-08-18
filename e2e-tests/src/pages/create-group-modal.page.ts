@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../constants/selectors';
 import { TIMEOUTS } from '../config/timeouts';
@@ -104,5 +104,17 @@ export class CreateGroupModalPage extends BasePage {
     getCreateGroupFormButton() {
         // More direct selector for tests that need the Create Group button in the form
         return this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
+    }
+
+    /**
+     * Get error message elements for network error testing
+     * Updated based on browser debugging - the error appears as a paragraph element in the modal
+     */
+    getErrorMessage(pattern?: string | RegExp): Locator {
+        if (pattern) {
+            // Look for error text in various possible containers, including paragraphs inside the modal
+            return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"], [role="dialog"] p, .modal p, .fixed p').filter({ hasText: pattern });
+        }
+        return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"], [role="dialog"] p, .modal p, .fixed p');
     }
 }

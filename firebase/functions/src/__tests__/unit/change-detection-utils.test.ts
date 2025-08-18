@@ -1,7 +1,6 @@
 import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
 import * as admin from 'firebase-admin/firestore';
 import {
-    ChangeDebouncer,
     getChangedFields,
     getGroupChangedFields,
     calculatePriority,
@@ -10,94 +9,6 @@ import {
 } from '../../utils/change-detection';
 
 describe('Change Detection Utilities', () => {
-    describe('ChangeDebouncer', () => {
-        beforeEach(() => {
-            jest.useFakeTimers();
-            ChangeDebouncer.clearAll();
-        });
-
-        afterEach(() => {
-            jest.useRealTimers();
-            ChangeDebouncer.clearAll();
-        });
-
-        it('should debounce multiple calls with the same key', async () => {
-            const callback = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-            
-            ChangeDebouncer.debounce('test-key', callback, 500);
-            ChangeDebouncer.debounce('test-key', callback, 500);
-            ChangeDebouncer.debounce('test-key', callback, 500);
-            
-            expect(callback).not.toHaveBeenCalled();
-            
-            jest.advanceTimersByTime(500);
-            await Promise.resolve(); // Let microtasks run
-            
-            expect(callback).toHaveBeenCalledTimes(1);
-        });
-
-        it('should handle different keys independently', async () => {
-            const callback1 = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-            const callback2 = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-            
-            ChangeDebouncer.debounce('key1', callback1, 200);
-            ChangeDebouncer.debounce('key2', callback2, 300);
-            
-            jest.advanceTimersByTime(200);
-            await Promise.resolve();
-            
-            expect(callback1).toHaveBeenCalledTimes(1);
-            expect(callback2).not.toHaveBeenCalled();
-            
-            jest.advanceTimersByTime(100);
-            await Promise.resolve();
-            
-            expect(callback2).toHaveBeenCalledTimes(1);
-        });
-
-        it('should handle callback errors gracefully', async () => {
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-            const callback = jest.fn<() => Promise<void>>().mockRejectedValue(new Error('Test error'));
-            
-            ChangeDebouncer.debounce('error-key', callback, 100);
-            
-            jest.advanceTimersByTime(100);
-            await Promise.resolve();
-            
-            expect(callback).toHaveBeenCalledTimes(1);
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Error in debounced callback for error-key:',
-                expect.any(Error)
-            );
-            
-            consoleErrorSpy.mockRestore();
-        });
-
-        it('should clear pending timeouts', () => {
-            const callback = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-            
-            ChangeDebouncer.debounce('clear-key', callback, 500);
-            ChangeDebouncer.clearPending('clear-key');
-            
-            jest.advanceTimersByTime(500);
-            
-            expect(callback).not.toHaveBeenCalled();
-        });
-
-        it('should clear all pending timeouts', () => {
-            const callback1 = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-            const callback2 = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
-            
-            ChangeDebouncer.debounce('key1', callback1, 500);
-            ChangeDebouncer.debounce('key2', callback2, 500);
-            ChangeDebouncer.clearAll();
-            
-            jest.advanceTimersByTime(500);
-            
-            expect(callback1).not.toHaveBeenCalled();
-            expect(callback2).not.toHaveBeenCalled();
-        });
-    });
 
     describe('getChangedFields', () => {
         it('should return ["*"] for new document', () => {

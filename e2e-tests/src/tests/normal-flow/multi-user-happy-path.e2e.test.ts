@@ -22,11 +22,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Use robust JoinGroupPage for reliable share link joining
         const joinGroupPage = new JoinGroupPage(page2);
-        const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${JSON.stringify(joinResult)}`);
-        }
+        await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
     });
 
     test('should allow multiple users to add expenses to same group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {

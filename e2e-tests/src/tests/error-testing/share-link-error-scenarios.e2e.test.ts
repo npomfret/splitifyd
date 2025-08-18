@@ -21,18 +21,28 @@ test.describe('Share Link - Error Scenarios', () => {
     multiUserTest('should handle malformed share links', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
 
-        // Get the base URL from the current page
+        // Get the base URL from the current page using page object
         await page.waitForLoadState('domcontentloaded');
         const baseUrl = page.url().split('/dashboard')[0];
 
-        // Test various malformed links
-        // When linkId is missing or empty, app redirects to dashboard
+        // Test various malformed links using page object navigation
+        // When linkId is missing or empty, app now shows an error page (not redirect)
         const emptyLinkCases = [`${baseUrl}/join?linkId=`, `${baseUrl}/join`];
 
         for (const link of emptyLinkCases) {
             await page.goto(link);
-            await page.waitForURL(/\/dashboard/, { timeout: 5000 });
-            expect(page.url()).toContain('/dashboard');
+            await page.waitForLoadState('domcontentloaded');
+            
+            // Should stay on /join page and show error message
+            expect(page.url()).toContain('/join');
+            
+            // Check for error message
+            await expect(page.getByText('Invalid Link')).toBeVisible();
+            await expect(page.getByText(/No group invitation link was provided/)).toBeVisible();
+            
+            // Should have a button to go back to dashboard
+            const backButton = page.getByRole('button', { name: /Back to Dashboard/i });
+            await expect(backButton).toBeVisible();
         }
 
         // Test with malicious/invalid linkId - should show error

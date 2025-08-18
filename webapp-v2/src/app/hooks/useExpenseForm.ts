@@ -19,6 +19,7 @@ interface UseExpenseFormOptions {
 
 export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseExpenseFormOptions) {
     const isInitialized = useSignal(false);
+    const initError = useSignal<string | null>(null);
     const authStore = useAuth();
 
     // Computed values from stores
@@ -51,7 +52,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
     // Initialize form on mount
     useEffect(() => {
         if (!groupId) {
-            route('/dashboard');
+            initError.value = 'No group ID provided';
             return;
         }
 
@@ -102,7 +103,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
                         }
                     } catch (error) {
                         logError('Failed to load expense for editing', error);
-                        route(`/groups/${groupId}`);
+                        initError.value = error instanceof Error ? error.message : 'Failed to load expense for editing';
                         return;
                     }
                 } else if (isCopyMode && sourceExpenseId) {
@@ -141,7 +142,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
                         }
                     } catch (error) {
                         logError('Failed to load expense for copying', error);
-                        route(`/groups/${groupId}`);
+                        initError.value = error instanceof Error ? error.message : 'Failed to load source expense for copying';
                         return;
                     }
                 } else {
@@ -155,7 +156,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
                 isInitialized.value = true;
             } catch (error) {
                 logError('Failed to initialize expense form', error);
-                route('/dashboard');
+                initError.value = error instanceof Error ? error.message : 'Failed to initialize expense form';
             }
         };
 
@@ -245,6 +246,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
     return {
         // State
         isInitialized: isInitialized.value,
+        initError: initError.value,
         loading: loading.value,
         saving: saving.value,
         formError: formError.value,

@@ -21,13 +21,14 @@ import { createSettlement, getSettlement, updateSettlement, deleteSettlement, li
 import { admin, db } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
+import { getUserProfile, updateUserProfile, changePassword, sendPasswordResetEmail, deleteUserAccount } from './user/handlers';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from './shared/shared-types';
 
 // Import triggers and scheduled functions
-import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker-v1';
+import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { cleanupChanges } from './scheduled/cleanup';
 
 // Test emulator connections when running locally
@@ -260,6 +261,13 @@ function setupRoutes(app: express.Application): void {
     app.post('/user/policies/accept', authenticate, asyncHandler(acceptPolicy));
     app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
     app.get('/user/policies/status', authenticate, asyncHandler(getUserPolicyStatus));
+
+    // User profile endpoints (requires auth)
+    app.get('/user/profile', authenticate, asyncHandler(getUserProfile));
+    app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
+    app.post('/user/change-password', authenticate, asyncHandler(changePassword));
+    app.post('/user/reset-password', asyncHandler(sendPasswordResetEmail)); // No auth required
+    app.delete('/user/account', authenticate, asyncHandler(deleteUserAccount));
 
     // Auth endpoints (no auth required)
     app.post('/register', asyncHandler(register));

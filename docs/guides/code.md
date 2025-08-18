@@ -10,6 +10,7 @@ This document defines the key architectural patterns, rules, and standards for t
 - **DO NOT use `ts-node`** - it always causes ERR_UNKNOWN_FILE_EXTENSION problems.
 - **Always use `tsx` instead** for TypeScript execution.
 - Use `npx tsx script.ts` in npm scripts and bash commands.
+- Use `npm run format` often!
 
 ---
 

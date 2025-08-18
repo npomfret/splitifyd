@@ -35,8 +35,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         joinGroupStore.reset();
 
         if (!actualLinkId) {
-            // No link ID provided - redirect to dashboard
-            route('/dashboard');
+            // No link ID provided - don't load preview
             return;
         }
 
@@ -63,6 +62,24 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
             // Success handled by useEffect above
         }
     };
+
+    // Show error if no link ID provided
+    if (!actualLinkId) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <Card className="w-full max-w-md">
+                    <div className="text-center py-8">
+                        <div className="text-red-500 text-4xl mb-4">⚠️</div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Link</h2>
+                        <p className="text-gray-600 mb-6">No group invitation link was provided. Please use a valid invitation link to join a group.</p>
+                        <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
+                            Back to Dashboard
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
 
     // Show loading state while loading preview
     if (loadingPreview) {

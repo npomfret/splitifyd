@@ -1,5 +1,7 @@
+import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
+import { createErrorContext } from '../utils/error-formatting';
 
 export class RegisterPage extends BasePage {
     // Selectors
@@ -170,9 +172,6 @@ export class RegisterPage extends BasePage {
         return this.page.locator('[data-testid="password-error"], [data-testid="error-message"]');
     }
 
-    getEmailError() {
-        return this.page.locator('[data-testid="email-error"], [data-testid="error-message"]');
-    }
 
     getResetForm() {
         return this.page.locator('[data-testid="reset-form"], [data-testid="forgot-password-form"]');
@@ -184,5 +183,152 @@ export class RegisterPage extends BasePage {
 
     getSuccessMessage() {
         return this.page.locator('[data-testid="success-message"], text=sent, text=email');
+    }
+
+    // Enhanced methods for error testing patterns
+    
+    /**
+     * Enhanced error handling - looks for multiple error patterns
+     * Updated to match actual error display structure found via browser debugging
+     * Uses more specific selectors to avoid matching required field asterisks
+     */
+    getEmailError() {
+        return this.page.locator('[data-testid="error-message"], .error-message, div.text-red-600.bg-red-50');
+    }
+
+    /**
+     * Wait for and handle API response errors during registration
+     */
+    async waitForRegistrationResponse(expectedStatus?: number): Promise<void> {
+        const responsePromise = this.page.waitForResponse(response => 
+            response.url().includes('/api/register') && 
+            (expectedStatus ? response.status() === expectedStatus : response.status() >= 400)
+        );
+        return responsePromise.then(() => {});
+    }
+
+    /**
+     * Enhanced registration with error handling for duplicate email testing
+     */
+    async registerWithErrorHandling(name: string, email: string, password: string): Promise<void> {
+        await this.fillRegistrationForm(name, email, password);
+        
+        // Start watching for responses before clicking submit
+        const responsePromise = this.waitForRegistrationResponse();
+        await this.submitForm();
+        
+        // Wait for the response to complete
+        await responsePromise;
+    }
+
+    /**
+     * Verify form submission state (enabled/disabled)
+     */
+    async verifyFormSubmissionState(expectedEnabled: boolean): Promise<void> {
+        const submitButton = this.getSubmitButton();
+        if (expectedEnabled) {
+            await expect(submitButton).toBeEnabled();
+        } else {
+            await expect(submitButton).toBeDisabled();
+        }
+    }
+
+    /**
+     * Fill individual form fields using page object methods
+     */
+    async fillFormField(fieldType: 'name' | 'email' | 'password' | 'confirmPassword', value: string): Promise<void> {
+        const input = this.getFormField(fieldType);
+        await this.fillPreactInput(input, value);
+    }
+
+    /**
+     * Get form field by type
+     */
+    getFormField(fieldType: 'name' | 'email' | 'password' | 'confirmPassword'): Locator {
+        switch (fieldType) {
+            case 'name': return this.getFullNameInput();
+            case 'email': return this.getEmailInput();
+            case 'password': return this.getPasswordInput();
+            case 'confirmPassword': return this.getConfirmPasswordInput();
+        }
+    }
+
+    /**
+     * Enhanced checkbox methods for terms acceptance testing
+     */
+    async toggleTermsCheckbox(): Promise<void> {
+        await this.getTermsCheckbox().click();
+    }
+
+    async toggleCookieCheckbox(): Promise<void> {
+        await this.getCookieCheckbox().click();
+    }
+
+    /**
+     * Verify checkbox states
+     */
+    async verifyCheckboxState(checkboxType: 'terms' | 'cookie', expectedChecked: boolean): Promise<void> {
+        const checkbox = checkboxType === 'terms' ? this.getTermsCheckbox() : this.getCookieCheckbox();
+        if (expectedChecked) {
+            await expect(checkbox).toBeChecked();
+        } else {
+            await expect(checkbox).not.toBeChecked();
+        }
+    }
+
+    /**
+     * Enhanced error message detection for various error types
+     */
+    getErrorMessage(pattern?: string | RegExp): Locator {
+        if (pattern) {
+            return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"]').filter({ hasText: pattern });
+        }
+        return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"]');
+    }
+
+    /**
+     * Wait for page to be ready for form interaction
+     * Enhanced with structured error reporting following the new error patterns
+     */
+    async waitForFormReady(userInfo?: { displayName?: string; email?: string }): Promise<void> {
+        const currentUrl = this.page.url();
+        const expectedUrlPattern = /\/register/;
+        
+        // Enhanced URL check with better error reporting
+        if (!currentUrl.match(expectedUrlPattern)) {
+            const errorContext = createErrorContext(
+                'Register form URL validation failed - navigation to register page likely failed',
+                currentUrl,
+                userInfo,
+                {
+                    expectedUrlPattern: '/register',
+                    actualUrl: currentUrl
+                }
+            );
+            
+            throw new Error(`waitForFormReady failed\n${JSON.stringify(errorContext, null, 2)}`);
+        }
+
+        await this.page.waitForLoadState('domcontentloaded');
+        
+        try {
+            await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
+            await expect(this.getFullNameInput()).toBeVisible({ timeout: 5000 });
+            await expect(this.getEmailInput()).toBeVisible({ timeout: 5000 });
+        } catch (error) {
+            const errorContext = createErrorContext(
+                'Register form elements not visible - page may not have loaded correctly',
+                currentUrl,
+                userInfo,
+                {
+                    submitButtonVisible: await this.getSubmitButton().isVisible().catch(() => false),
+                    nameInputVisible: await this.getFullNameInput().isVisible().catch(() => false),
+                    emailInputVisible: await this.getEmailInput().isVisible().catch(() => false),
+                    originalError: error instanceof Error ? error.message : String(error)
+                }
+            );
+            
+            throw new Error(`waitForFormReady failed\n${JSON.stringify(errorContext, null, 2)}`);
+        }
     }
 }

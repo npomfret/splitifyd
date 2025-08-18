@@ -1,4 +1,5 @@
 import {db} from "./firebase-emulator";
+import { FirestoreCollections } from '../../shared/shared-types';
 
 /**
  * Utility functions for cleaning up test data from Firebase emulator
@@ -50,26 +51,22 @@ async function deleteQueryBatch(query: FirebaseFirestore.Query, batchSize: numbe
  * This is a nuclear option - clears everything
  */
 export async function clearAllTestData(): Promise<void> {
-    console.log('Clearing all test data from emulator...');
-
     // Main collections to clear (including new change tracking collections)
     const collections = [
-        'users', 
-        'groups', 
-        'expenses', 
-        'settlements', 
+        FirestoreCollections.USERS,
+        FirestoreCollections.GROUPS,
+        FirestoreCollections.EXPENSES,
+        FirestoreCollections.SETTLEMENTS,
         'userGroups', 
         'balances', 
         'shareLinks', 
         'settlementBalances',
-        'group-changes',
-        'expense-changes', 
-        'balance-changes'
+        FirestoreCollections.GROUP_CHANGES,
+        FirestoreCollections.TRANSACTION_CHANGES,
+        FirestoreCollections.BALANCE_CHANGES
     ];
 
     // Clear all main collections
     const promises = collections.map((collection) => clearCollection(collection));
     await Promise.all(promises);
-
-    console.log('Test data cleared successfully');
 }

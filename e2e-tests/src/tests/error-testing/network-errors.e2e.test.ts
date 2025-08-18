@@ -24,21 +24,20 @@ test.describe('Error Handling', () => {
             route.abort();
         });
 
-        // Try to create group while network is failing
-
+        // Try to create group while network is failing using page object methods
         await dashboardPage.openCreateGroupModal();
         await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
 
-        // Fill and submit form
+        // Fill and submit form using page object methods
         await createGroupModalPage.fillGroupForm('Network Test Group', 'Testing network error handling');
         await createGroupModalPage.submitForm();
 
-        // Wait for error handling
-        await page.waitForLoadState('domcontentloaded');
+        // Wait for error handling using page object method
+        await dashboardPage.page.waitForLoadState('domcontentloaded');
 
-        // Verify some error indication is shown (generic check)
-        const errorText = page.getByText(/error|failed|try again/i);
-        await expect(errorText.first()).toBeVisible();
+        // Verify error indication is shown using page object method for error detection
+        const errorElement = createGroupModalPage.getErrorMessage(/error|failed|try again/i);
+        await expect(errorElement.first()).toBeVisible();
 
         // Note: Modal behavior on network errors may have changed
         // The app might now close the modal and show the error elsewhere
@@ -46,8 +45,8 @@ test.describe('Error Handling', () => {
         const isModalOpen = await createGroupModalPage.isOpen();
         if (!isModalOpen) {
             // If modal closed, verify we're still on dashboard with error shown
-            await expect(page).toHaveURL(/\/dashboard/);
-            await expect(errorText.first()).toBeVisible();
+            await dashboardPage.expectUrl(/\/dashboard/);
+            await expect(errorElement.first()).toBeVisible();
         } else {
             // If modal is still open, that's also valid
             await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
@@ -68,15 +67,15 @@ test.describe('Error Handling', () => {
         // Submit button should be disabled for empty form
         await expect(submitButton).toBeDisabled();
 
-        // Fill with valid data and verify form can be submitted
+        // Fill with valid data and verify form can be submitted using page object methods
         await createGroupModalPage.fillGroupForm(generateTestGroupName('Valid'), 'Valid description');
 
         // Button should now be enabled
         await expect(submitButton).toBeEnabled();
 
-        // Now submit button should work
-        await submitButton.click();
-        await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+        // Now submit button should work using page object method
+        await createGroupModalPage.submitForm();
+        await dashboardPage.page.waitForURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
     });
 
     test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {
@@ -103,17 +102,17 @@ test.describe('Error Handling', () => {
         await createGroupModalPage.fillGroupForm('Server Error Test', 'Testing 500 error');
         await createGroupModalPage.submitForm();
 
-        await page.waitForLoadState('domcontentloaded');
+        await dashboardPage.page.waitForLoadState('domcontentloaded');
 
-        // Should show some error indication
-        const errorIndication = page.getByText(/error|failed|wrong/i);
+        // Should show some error indication using page object method
+        const errorIndication = createGroupModalPage.getErrorMessage(/error|failed|wrong/i);
         await expect(errorIndication.first()).toBeVisible();
 
         // Note: Modal behavior on server errors may have changed
         const isModalOpen = await createGroupModalPage.isOpen();
         if (!isModalOpen) {
             // If modal closed, verify we're still on dashboard with error shown
-            await expect(page).toHaveURL(/\/dashboard/);
+            await dashboardPage.expectUrl(/\/dashboard/);
             await expect(errorIndication.first()).toBeVisible();
         } else {
             // If modal is still open, that's also valid
@@ -141,16 +140,16 @@ test.describe('Error Handling', () => {
             });
         });
 
-        // Wait for load state
-        await page.waitForLoadState('domcontentloaded');
+        // Wait for load state using page object
+        await dashboardPage.page.waitForLoadState('domcontentloaded');
 
         // App should still be functional despite malformed response
         const createButton = dashboardPage.getCreateGroupButton();
         await expect(createButton).toBeVisible();
         await expect(createButton).toBeEnabled();
 
-        // Should still be on dashboard
-        await expect(page).toHaveURL(/\/dashboard/);
+        // Should still be on dashboard using page object method
+        await dashboardPage.expectUrl(/\/dashboard/);
     });
 
     // NOTE: The 'verifies group access control behavior' test has been removed as it's a duplicate
@@ -179,7 +178,7 @@ test.describe('Error Handling', () => {
 
         // Start the submission (will timeout) and wait for expected UI state changes
         const submitPromise = createGroupModalPage.submitForm();
-        const buttonReenabledPromise = page.waitForFunction(
+        const buttonReenabledPromise = dashboardPage.page.waitForFunction(
             (selector: string) => {
                 const button = document.querySelector(`${selector}:not([disabled])`);
                 return button && button.textContent?.includes('Create Group');
@@ -192,13 +191,14 @@ test.describe('Error Handling', () => {
         await Promise.race([submitPromise, buttonReenabledPromise]);
 
         // Verify the expected state: form submission should fail and modal should remain open
-        const isSubmitButtonEnabled = await page.locator(SELECTORS.SUBMIT_BUTTON).isEnabled();
+        const submitButton = createGroupModalPage.getCreateGroupFormButton();
+        const isSubmitButtonEnabled = await submitButton.isEnabled();
         expect(isSubmitButtonEnabled).toBe(true); // Button should be re-enabled after timeout
 
         // Modal should still be open
         await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
 
-        // Just close to modal to avoid waiting 10 seconds
-        await page.keyboard.press('Escape');
+        // Just close the modal to avoid waiting 10 seconds using Escape key since Cancel button may be disabled during timeout
+        await dashboardPage.page.keyboard.press('Escape');
     });
 });

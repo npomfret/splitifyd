@@ -11,22 +11,24 @@ test.describe('Share Link Error Handling', () => {
 
         const invalidShareLink = `${page.url().split('/dashboard')[0]}/join?linkId=invalid-group-id`;
 
+        // Navigate to invalid share link using page object method
         await groupDetailPage.navigateToShareLink(invalidShareLink);
         await page.waitForLoadState('domcontentloaded');
 
         // The app now shows an error message for invalid links instead of 404
         await expect(joinGroupPage.getErrorMessage()).toBeVisible();
 
-        // Should show an error message
-        await expect(page.getByText(/Invalid share link|Group not found|expired/i)).toBeVisible();
+        // Should show specific error message using page object method
+        const errorMessage = joinGroupPage.getSpecificErrorMessage(/Invalid share link|Group not found|expired/i);
+        await expect(errorMessage).toBeVisible();
 
-        // Should have a button to go back to dashboard
-        const backButton = page.getByRole('button', { name: /back to dashboard/i });
+        // Should have a button to go back to dashboard using page object method
+        const backButton = joinGroupPage.getBackToDashboardButton();
         await expect(backButton).toBeVisible();
 
-        // Click the button to verify it works
+        // Click the button to verify it works using page object method
         await backButton.click();
-        await page.waitForURL(/\/dashboard/);
-        await expect(page).toHaveURL(/\/dashboard/);
+        await joinGroupPage.page.waitForURL(/\/dashboard/);
+        await joinGroupPage.expectUrl(/\/dashboard/);
     });
 });

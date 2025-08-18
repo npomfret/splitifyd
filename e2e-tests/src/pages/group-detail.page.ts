@@ -4,6 +4,7 @@ import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
+import { ButtonClickError } from '../errors/test-errors';
 
 interface ExpenseData {
     description: string;
@@ -59,28 +60,121 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: /settle up/i });
     }
 
-    async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
-        await this.clickButton(this.getAddExpenseButton(), { buttonName: 'Add Expense' });
+    /**
+     * Waits for the Add Expense button to be visible and enabled.
+     * This ensures the page is fully loaded before attempting to interact with the button.
+     */
+    async waitForAddExpenseButton(timeout = 5000): Promise<void> {
+        const addButton = this.getAddExpenseButton();
+        
+        // Wait for button to be visible
+        await expect(addButton).toBeVisible({ timeout });
+        
+        // Wait for button to be enabled
+        await expect(addButton).toBeEnabled({ timeout });
+    }
+
+    async clickAddExpenseButton(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
+        // Wait for button to be ready first
+        await this.waitForAddExpenseButton();
+        
+        // Now attempt navigation - will throw if it fails
+        return await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
+    }
+
+    /**
+     * Navigates to add expense form with comprehensive state detection.
+     * Throws ButtonClickError with all context if navigation fails.
+     */
+    private async attemptAddExpenseNavigation(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
+        const startUrl = this.page.url();
+        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
+        const addButton = this.getAddExpenseButton();
+
+        // Button readiness is already checked in clickAddExpenseButton
+        // Trust that the button is ready when this method is called
+        await this.clickButton(addButton, { buttonName: 'Add Expense' });
 
         // Wait for navigation to expense form
-        await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+        await this.page.waitForURL(expectedUrlPattern, { timeout: 5000 });
         await this.page.waitForLoadState('domcontentloaded');
 
-        // Wait for any loading spinner to disappear before proceeding
-        // This ensures the expense form is fully loaded
+        // sanity check!
+        let currentUrl = this.page.url();
+        if (!currentUrl.match(expectedUrlPattern)) {
+            const result = {
+                success: false,
+                reason: 'Navigation failed - wrong URL pattern',
+                startUrl,
+                currentUrl:  this.page.url(),
+                expectedPattern: expectedUrlPattern.toString(),
+                userInfo
+            };
+            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+            error.context.expectedPattern = expectedUrlPattern.toString();
+            throw error;
+        }
+
+        // Wait for any loading spinner to disappear
         const loadingSpinner = this.page.locator('.animate-spin');
         const loadingText = this.page.getByText('Loading expense form...');
-        
+
         if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
-            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
+            try {
+                await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
+                await expect(loadingText).not.toBeVisible({ timeout: 5000 });
+            } catch (timeoutError) {
+                const result = {
+                    success: false,
+                    reason: 'Loading spinner or text did not disappear within timeout',
+                    startUrl,
+                    currentUrl:  this.page.url(),
+                    userInfo,
+                    loadingSpinnerVisible: await loadingSpinner.isVisible().catch(() => false),
+                    loadingTextVisible: await loadingText.isVisible().catch(() => false),
+                    timeout: 5000
+                };
+                const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+                error.context.originalError = timeoutError;
+                throw error;
+            }
+        }
+
+        // sanity check - verify we're still on the correct page
+        if (!this.page.url().match(expectedUrlPattern)) {
+            const result = {
+                success: false,
+                reason: 'Navigation failed after loading - wrong URL pattern',
+                startUrl,
+                currentUrl:  this.page.url(),
+                expectedPattern: expectedUrlPattern.toString(),
+                userInfo
+            };
+            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+            error.context.expectedPattern = expectedUrlPattern.toString();
+            throw error;
         }
 
         // Create and validate the expense form page
         const expenseFormPage = new ExpenseFormPage(this.page);
-        await expenseFormPage.waitForFormReady(expectedMemberCount);
 
-        return expenseFormPage;
+        // Try to wait for form to be ready
+        try {
+            await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
+            return expenseFormPage;
+        } catch (formError) {
+            const result = {
+                success: false,
+                reason: 'Expense form failed to load properly',
+                startUrl,
+                currentUrl:  this.page.url(),
+                userInfo,
+                error: String(formError)
+            };
+            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+            error.context.originalError = formError;
+            throw error;
+        }
     }
 
     getNoExpensesMessage() {
@@ -91,19 +185,19 @@ export class GroupDetailPage extends BasePage {
     getShareButton() {
         return this.page.getByRole('button', { name: /invite others/i }).first();
     }
-    
+
     getShareDialog() {
         return this.page.getByRole('dialog');
     }
-    
+
     getShareLinkInput() {
         return this.getShareDialog().locator('input[type="text"]');
     }
-    
+
     getCloseButton() {
         return this.page.getByRole('button', { name: /close|×/i }).first();
     }
-    
+
     // User-related accessors
     getUserName(displayName: string) {
         return this.page.getByText(displayName).first();
@@ -560,11 +654,11 @@ export class GroupDetailPage extends BasePage {
         const expense = this.getExpenseByDescription(description);
         // Note: Expense item is not a button but a clickable element
         await expense.click();
-        
+
         // Create and wait for expense detail page to be ready
         const expenseDetailPage = new ExpenseDetailPage(this.page);
         await expenseDetailPage.waitForPageReady();
-        
+
         return expenseDetailPage;
     }
 
@@ -705,7 +799,7 @@ export class GroupDetailPage extends BasePage {
         // Return a simple modal object with the methods the tests expect
         const modal = this.page.getByRole('dialog');
         const saveButton = modal.getByRole('button', { name: 'Save Changes' });
-        
+
         return {
             modal,
             saveButton,
@@ -716,16 +810,15 @@ export class GroupDetailPage extends BasePage {
             },
             clearGroupName: async () => {
                 const nameInput = modal.locator('input[type="text"]').first();
-                // Clear using fill('') which triggers Preact's input events properly
-                await nameInput.fill('');
+                // Clear using fillPreactInput with empty string
+                await this.fillPreactInput(nameInput, '');
                 // Trigger blur to ensure validation runs
                 await nameInput.blur();
             },
             editDescription: async (description: string) => {
                 const descriptionTextarea = modal.locator('textarea').first();
-                await descriptionTextarea.click();
-                await descriptionTextarea.press('Control+a');
-                await descriptionTextarea.type(description);
+                // Use fillPreactInput for proper Preact signal updates
+                await this.fillPreactInput(descriptionTextarea, description);
             },
             saveChanges: async () => {
                 // Ensure button is enabled before clicking
@@ -733,7 +826,23 @@ export class GroupDetailPage extends BasePage {
                 await saveButton.click();
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
-                await expect(modal).not.toBeVisible({ timeout: 10000 });
+                try {
+                    await expect(modal).not.toBeVisible({ timeout: 10000 });
+                } catch (timeoutError) {
+                    const currentUrl = this.page.url();
+                    const result = {
+                        success: false,
+                        reason: 'Edit group modal did not close after saving',
+                        currentUrl,
+                        buttonName: 'Save Changes',
+                        modalVisible: await modal.isVisible().catch(() => false),
+                        saveButtonEnabled: await saveButton.isEnabled().catch(() => false),
+                        timeout: 10000
+                    };
+                    const error = ButtonClickError.fromResult('Save group changes', result);
+                    error.context.originalError = timeoutError;
+                    throw error;
+                }
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });
@@ -753,13 +862,13 @@ export class GroupDetailPage extends BasePage {
         // Wait for confirmation dialog to appear
         // The confirmation dialog appears on top of the edit modal
         await this.page.waitForLoadState('domcontentloaded');
-        
+
         // The ConfirmDialog component creates a fixed overlay with the Delete Group title
         // Look for the modal content within the overlay - it has "Delete Group" as title
         // and the confirm message
         const confirmTitle = this.page.getByRole('heading', { name: 'Delete Group' });
         await expect(confirmTitle).toBeVisible({ timeout: 5000 });
-        
+
         // Find the dialog container which is the parent of the title
         const confirmDialog = confirmTitle.locator('..').locator('..');
 

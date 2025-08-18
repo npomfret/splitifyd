@@ -18,7 +18,15 @@ export const FirestoreCollections = {
     SETTLEMENTS: 'settlements',
     USERS: 'users',
     POLICIES: 'policies',
+    // Change tracking collections
+    GROUP_CHANGES: 'group-changes',
+    TRANSACTION_CHANGES: 'transaction-changes',
+    BALANCE_CHANGES: 'balance-changes',
 } as const;
+
+// Type-safe collection names
+export type FirestoreCollectionName = typeof FirestoreCollections[keyof typeof FirestoreCollections];
+export type ChangeCollectionName = typeof FirestoreCollections.GROUP_CHANGES | typeof FirestoreCollections.TRANSACTION_CHANGES | typeof FirestoreCollections.BALANCE_CHANGES;
 
 export const SplitTypes = {
     EQUAL: 'equal',
@@ -284,7 +292,6 @@ export interface ListGroupsResponse {
 // Group members response
 export interface GroupMembersResponse {
     members: User[];
-    totalCount: number;
     hasMore: boolean;
     nextCursor?: string;
 }

@@ -1,7 +1,7 @@
 import { route } from 'preact-router';
 import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { Card } from '@/components/ui';
+import { Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { LoadingState, ErrorState } from '@/components/ui';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -22,10 +22,23 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     // Authentication check
     useAuthRequired();
 
-    // Redirect if no groupId
+    // Show error if no groupId
     if (!groupId) {
-        route('/dashboard');
-        return null;
+        return (
+            <BaseLayout title="Error - Splitifyd">
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+                    <Card className="max-w-md w-full">
+                        <Stack spacing="md">
+                            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+                            <p className="text-gray-600">No group specified. Cannot add expense without a group.</p>
+                            <Button variant="primary" onClick={() => route('/dashboard')}>
+                                Back to Dashboard
+                            </Button>
+                        </Stack>
+                    </Card>
+                </div>
+            </BaseLayout>
+        );
     }
 
     // Use the custom hook for all form logic
@@ -38,7 +51,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     });
 
     // Show loading while initializing
-    if (!formState.isDataReady) {
+    if (!formState.isDataReady && !formState.initError) {
         return (
             <BaseLayout title="Loading... - Splitifyd">
                 <LoadingState fullPage message="Loading expense form..." />
@@ -46,10 +59,42 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         );
     }
 
-    // Redirect if group not found
+    // Show error if initialization failed
+    if (formState.initError) {
+        return (
+            <BaseLayout title="Error - Splitifyd">
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+                    <Card className="max-w-md w-full">
+                        <Stack spacing="md">
+                            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+                            <p className="text-gray-600">{formState.initError}</p>
+                            <Button variant="primary" onClick={() => route(`/groups/${groupId}`)}>
+                                Back to Group
+                            </Button>
+                        </Stack>
+                    </Card>
+                </div>
+            </BaseLayout>
+        );
+    }
+
+    // Show error if group not found
     if (!formState.group) {
-        route('/dashboard');
-        return null;
+        return (
+            <BaseLayout title="Error - Splitifyd">
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+                    <Card className="max-w-md w-full">
+                        <Stack spacing="md">
+                            <h2 className="text-xl font-semibold text-red-600">Group Not Found</h2>
+                            <p className="text-gray-600">The group you're trying to add an expense to doesn't exist or you don't have access to it.</p>
+                            <Button variant="primary" onClick={() => route('/dashboard')}>
+                                Back to Dashboard
+                            </Button>
+                        </Stack>
+                    </Card>
+                </div>
+            </BaseLayout>
+        );
     }
 
     // Determine page title and description based on mode

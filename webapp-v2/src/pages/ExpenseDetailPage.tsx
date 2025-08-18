@@ -49,8 +49,15 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
     // Load expense data
     useEffect(() => {
-        if (!groupId || !expenseId) {
-            route('/dashboard');
+        if (!groupId) {
+            error.value = 'Missing group ID';
+            loading.value = false;
+            return;
+        }
+
+        if (!expenseId) {
+            error.value = 'Missing expense ID';
+            loading.value = false;
             return;
         }
 

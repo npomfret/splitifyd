@@ -164,11 +164,7 @@ describe('Optimistic Locking Integration Tests', () => {
 
             const results = await Promise.allSettled(updatePromises);
 
-            // Log the actual errors for debugging
-            console.log(
-                'Update results:',
-                results.map((r) => (r.status === 'rejected' ? { status: 'rejected', error: r.reason?.response?.data?.error || r.reason?.message } : { status: 'fulfilled' })),
-            );
+            // Check the actual errors
 
             // Check results
             const successes = results.filter((r) => r.status === 'fulfilled');
@@ -222,11 +218,7 @@ describe('Optimistic Locking Integration Tests', () => {
 
             const results = await Promise.allSettled(promises);
 
-            // Log the actual errors for debugging
-            console.log(
-                'Delete/Update results:',
-                results.map((r) => (r.status === 'rejected' ? { status: 'rejected', error: r.reason?.response?.data?.error || r.reason?.message } : { status: 'fulfilled' })),
-            );
+            // Check the actual errors
 
             // One should succeed, one might fail with conflict or not found
             const successes = results.filter((r) => r.status === 'fulfilled');

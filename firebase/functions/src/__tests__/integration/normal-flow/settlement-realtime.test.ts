@@ -8,6 +8,7 @@
 import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import {db} from "../../support/firebase-emulator";
+import { FirestoreCollections } from '../../../shared/shared-types';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     beforeAll(async () => {
@@ -33,7 +34,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         }
 
         // Clean up test data
-        const collections = ['settlements', 'transaction-changes', 'balance-changes'];
+        const collections = ['settlements', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
         for (const collection of collections) {
             const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
 
@@ -54,14 +55,14 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
                 reject(new Error('Timeout: No transaction-change notification received within 5 seconds'));
             }, 1000);
 
-            const query = db.collection('transaction-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
+            const query = db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
             changeListener = query.onSnapshot(
                 (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const data = change.doc.data();
-                            if (data.settlementId) {
+                            if (data.type === 'settlement') {
                                 clearTimeout(timeout);
                                 resolve(data);
                             }
@@ -96,10 +97,11 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             // Verify the change notification was created
             expect(changeNotification).toBeDefined();
             expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.settlementId).toBe(settlementRef.id);
-            expect(changeNotification.changeType).toBe('created');
-            expect(changeNotification.metadata.affectedUsers).toContain(userId1);
-            expect(changeNotification.metadata.affectedUsers).toContain(userId2);
+            expect(changeNotification.id).toBe(settlementRef.id);
+            expect(changeNotification.type).toBe('settlement');
+            expect(changeNotification.action).toBe('created');
+            expect(changeNotification.users).toContain(userId1);
+            expect(changeNotification.users).toContain(userId2);
         } catch (error) {
             // If this fails, it means the trackSettlementChanges trigger isn't working
             throw new Error(`Settlement change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -113,14 +115,14 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
                 reject(new Error('Timeout: No balance-change notification received within 5 seconds'));
             }, 1000);
 
-            const query = db.collection('balance-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
+            const query = db.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
             changeListener = query.onSnapshot(
                 (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const data = change.doc.data();
-                            if (data.metadata?.triggeredBy === 'settlement') {
+                            if (data.type === 'balance') {
                                 clearTimeout(timeout);
                                 resolve(data);
                             }
@@ -146,7 +148,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             createdBy: userId2,
         };
 
-        const settlementRef = await db.collection('settlements').add(settlementData);
+        await db.collection('settlements').add(settlementData);
 
         // Wait for the change notification
         try {
@@ -155,11 +157,10 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             // Verify the balance change notification was created
             expect(changeNotification).toBeDefined();
             expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.changeType).toBe('recalculated');
-            expect(changeNotification.metadata.triggeredBy).toBe('settlement');
-            expect(changeNotification.metadata.triggerId).toBe(settlementRef.id);
-            expect(changeNotification.metadata.affectedUsers).toContain(userId1);
-            expect(changeNotification.metadata.affectedUsers).toContain(userId2);
+            expect(changeNotification.type).toBe('balance');
+            expect(changeNotification.action).toBe('recalculated');
+            expect(changeNotification.users).toContain(userId1);
+            expect(changeNotification.users).toContain(userId2);
         } catch (error) {
             throw new Error(`Balance change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -196,14 +197,11 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         // This test just documents the issue
         expect(true).toBe(true);
 
-        console.log(`
-      Frontend Bug Identified:
-      - Settlements generate realtime notifications correctly
-      - Frontend receives the notifications
-      - But refreshAll() doesn't fetch settlements
-      - So SettlementHistory doesn't update
-      
-      This causes E2E test failures when checking for settlements in history
-    `);
+        // Frontend Bug Identified:
+        // - Settlements generate realtime notifications correctly
+        // - Frontend receives the notifications
+        // - But refreshAll() doesn't fetch settlements
+        // - So SettlementHistory doesn't update
+        // This causes E2E test failures when checking for settlements in history
     });
 });

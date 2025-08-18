@@ -19,45 +19,47 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
         pageTest('Login form validation', async ({ loginPageNavigated }) => {
             const { page, loginPage } = loginPageNavigated;
 
-            // Clear any pre-filled data using Preact-compatible method
-            const emailInput = loginPage.getEmailInput();
-            const passwordInput = loginPage.getPasswordInput();
-            await loginPage.fillPreactInput(emailInput, '');
-            await loginPage.fillPreactInput(passwordInput, '');
+            // Wait for form to be ready
+            await loginPage.waitForFormReady();
+
+            // Clear any pre-filled data using page object method
+            await loginPage.clearFormField('email');
+            await loginPage.clearFormField('password');
 
             // Test 1: Empty form - submit disabled
-            const submitButton = loginPage.getSubmitButton();
-            await expect(submitButton).toBeDisabled();
+            await loginPage.verifyFormSubmissionState(false);
 
             // Test 2: Invalid email format
-            await loginPage.fillPreactInput(emailInput, 'notanemail');
-            await loginPage.fillPreactInput(passwordInput, 'ValidPassword123');
+            await loginPage.fillFormField('email', 'notanemail');
+            await loginPage.fillFormField('password', 'ValidPassword123');
             await loginPage.submitForm();
             // Should stay on login page due to validation
             await expect(page).toHaveURL(/\/login/);
 
             // Test 3: Only email filled - submit disabled
-            await loginPage.fillPreactInput(emailInput, '');
-            await loginPage.fillPreactInput(passwordInput, '');
-            await loginPage.fillPreactInput(emailInput, generateTestEmail());
-            await expect(submitButton).toBeDisabled();
+            await loginPage.clearFormField('email');
+            await loginPage.clearFormField('password');
+            await loginPage.fillFormField('email', generateTestEmail());
+            await loginPage.verifyFormSubmissionState(false);
 
             // Test 4: Only password filled - submit disabled
-            await loginPage.fillPreactInput(emailInput, '');
-            await loginPage.fillPreactInput(passwordInput, 'Password123');
-            await expect(submitButton).toBeDisabled();
+            await loginPage.clearFormField('email');
+            await loginPage.fillFormField('password', 'Password123');
+            await loginPage.verifyFormSubmissionState(false);
 
             // Test 5: Both fields filled - submit enabled
-            await loginPage.fillPreactInput(emailInput, generateTestEmail());
-            await expect(submitButton).toBeEnabled();
+            await loginPage.fillFormField('email', generateTestEmail());
+            await loginPage.verifyFormSubmissionState(true);
         });
 
         pageTest('Register form validation', async ({ registerPageNavigated }) => {
             const { page, registerPage } = registerPageNavigated;
 
+            // Wait for form to be ready
+            await registerPage.waitForFormReady();
+
             // Test 1: Empty form - submit disabled
-            const submitButton = registerPage.getSubmitButton();
-            await expect(submitButton).toBeDisabled();
+            await registerPage.verifyFormSubmissionState(false);
 
             // Test 2: All fields visible
             await expect(registerPage.getFullNameLabel()).toBeVisible();
@@ -65,32 +67,26 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
             await expect(registerPage.getPasswordLabel()).toBeVisible();
             await expect(registerPage.getConfirmPasswordLabel()).toBeVisible();
 
-            // Test 3: Password mismatch
-            const nameInput = registerPage.getNameInputByType();
-            const emailInput = registerPage.getEmailInputByType();
-            const passwordInputs = registerPage.getPasswordInputs();
-
-            await registerPage.fillPreactInput(nameInput, generateTestUserName());
-            await registerPage.fillPreactInput(emailInput, generateTestEmail());
-            await registerPage.fillPreactInput(passwordInputs.first(), 'Password123');
-            await registerPage.fillPreactInput(passwordInputs.last(), 'DifferentPassword123');
+            // Test 3: Password mismatch using page object methods
+            await registerPage.fillFormField('name', generateTestUserName());
+            await registerPage.fillFormField('email', generateTestEmail());
+            await registerPage.fillFormField('password', 'Password123');
+            await registerPage.fillFormField('confirmPassword', 'DifferentPassword123');
 
             // Submit should be disabled with mismatched passwords
-            await expect(submitButton).toBeDisabled();
+            await registerPage.verifyFormSubmissionState(false);
 
             // Test 4: Fix password match and check required checkboxes
-            await registerPage.fillPreactInput(passwordInputs.last(), 'Password123');
-            const termsCheckbox = registerPage.getTermsCheckbox();
-            const cookieCheckbox = registerPage.getCookieCheckbox();
-            await termsCheckbox.check();
-            await cookieCheckbox.check();
+            await registerPage.fillFormField('confirmPassword', 'Password123');
+            await registerPage.checkTermsCheckbox();
+            await registerPage.checkCookieCheckbox();
 
             // Now button should be enabled
-            await expect(submitButton).toBeEnabled();
+            await registerPage.verifyFormSubmissionState(true);
 
             // Test 5: Uncheck a required checkbox - submit disabled
-            await termsCheckbox.uncheck();
-            await expect(submitButton).toBeDisabled();
+            await registerPage.toggleTermsCheckbox();
+            await registerPage.verifyFormSubmissionState(false);
         });
     });
 
@@ -151,17 +147,15 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
             // Navigate to expense form with proper waiting
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
-            // Fill basic expense details
+            // Fill basic expense details using page object methods
             await expenseFormPage.fillDescription('Split Test Expense');
             await expenseFormPage.fillAmount('100');
 
-            // Switch to exact amounts
-            await page.getByText('Exact amounts').click();
+            // Switch to exact amounts using page object method
+            await expenseFormPage.selectExactAmountsSplit();
 
-            // Manually modify one split amount to create invalid total
-            const splitInputs = page.locator('input[type="number"][step]').filter({ hasText: '' });
-            const firstSplitInput = splitInputs.first();
-            await firstSplitInput.fill('60'); // Make total = 160 instead of 100
+            // Modify split amount to create invalid total using page object method
+            await expenseFormPage.fillSplitAmount(0, '60'); // Make total = 160 instead of 100
 
             // Submit should be disabled when exact amounts don't add up correctly
             await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
@@ -177,12 +171,12 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
             // Navigate to expense form with proper waiting
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
-            // Fill basic expense details
+            // Fill basic expense details using page object methods
             await expenseFormPage.fillDescription('Percentage Test Expense');
             await expenseFormPage.fillAmount('200');
 
-            // Switch to percentage
-            await page.getByText('Percentage', { exact: true }).click();
+            // Switch to percentage using page object method
+            await expenseFormPage.selectPercentageSplit();
 
             // For a single member, percentage split should be valid by default (100%)
             // Submit should remain enabled since all required fields are filled and percentages are valid

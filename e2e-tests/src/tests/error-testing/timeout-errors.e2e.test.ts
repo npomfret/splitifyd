@@ -29,7 +29,7 @@ test.describe('Timeout Error Handling', () => {
 
         // Start the submission (will timeout) and wait for expected UI state changes
         const submitPromise = createGroupModalPage.submitForm();
-        const buttonReenabledPromise = page.waitForFunction(
+        const buttonReenabledPromise = createGroupModalPage.page.waitForFunction(
             (selector: string) => {
                 const button = document.querySelector(`${selector}:not([disabled])`);
                 return button && button.textContent?.includes('Create Group');

@@ -1,10 +1,10 @@
 # Notification-Driven REST Implementation Plan
 
-## Latest Progress Update (2025-08-17)
+## Latest Progress Update (2025-08-18)
 
-### Session 1 Accomplishments
+### Current Implementation Status
 
-Successfully implemented significant portions of **Phase 1** and **Phase 2.1** of the streaming implementation plan:
+Successfully implemented **Phase 1**, **Phase 1.5**, and most of **Phase 2** of the notification-driven REST architecture:
 
 #### Phase 1: Core Infrastructure ✅ COMPLETED
 1. **ConnectionManager** (webapp-v2/src/utils/connection-manager.ts)
@@ -14,8 +14,9 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
    - Singleton pattern with Preact signals integration
    - Complete unit test coverage
 
-2. **Enhanced Change Detection** (firebase/functions/src/triggers/change-tracker.ts)
-   - Implemented debouncing with 500ms for groups, 200ms for expenses/settlements
+2. **Change Detection Triggers** (firebase/functions/src/triggers/change-tracker.ts)
+   - **Using Firebase v2 functions** (working perfectly in emulator and production)
+   - **Immediate processing** (debouncing removed for better responsiveness)
    - Priority calculation based on field criticality
    - Changed field detection for optimized updates
    - Metadata enrichment for affected users
@@ -25,17 +26,9 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
    - Added metrics logging for monitoring
    - Batch processing to avoid timeouts
 
-#### Phase 2.1: Enhanced REST Endpoints ✅ COMPLETED  
-- Modified listGroups endpoint to include change metadata
-- Parallel query execution for performance
-- Returns lastChangeTimestamp, changeCount, serverTime, hasRecentChanges
-- Maintains backward compatibility with includeMetadata flag
-
-### Session 2 Accomplishments
-
-#### Phase 1.5: Integration Tests for Change Detection ✅ COMPLETED
+#### Phase 1.5: Testing & Validation ✅ COMPLETED
 1. **Unit Tests** (firebase/functions/src/__tests__/unit/change-detection-utils.test.ts)
-   - Complete test coverage for ChangeDebouncer class
+   - Complete test coverage for change detection utilities
    - Tests for priority calculation across groups, expenses, settlements
    - Tests for changed field detection and notification logic
    - Tests for change document creation
@@ -43,7 +36,7 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
 2. **Integration Tests** (firebase/functions/src/__tests__/integration/normal-flow/change-detection.test.ts)
    - Comprehensive tests for group change tracking
    - Tests for expense and settlement change detection
-   - Debouncing verification tests
+   - Tests for immediate processing (no debouncing)
    - Cross-entity change tracking tests
    - Priority calculation validation
 
@@ -52,31 +45,64 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
    - Query helpers for change collections
    - Cleanup utilities for test data
 
-#### Critical Fix: Firebase Trigger Compatibility
-- **Issue Discovered**: Firebase v2 triggers don't fire in emulator environment
-- **Solution Implemented**: Migrated all triggers to v1 format (firebase/functions/src/triggers/change-tracker-v1.ts)
-- **Result**: All change detection triggers now work correctly in development
-- **Note**: Emulator restart required after pulling changes
+#### Phase 2: Smart REST with Auto-Refresh ✅ MOSTLY COMPLETED
 
-### TypeScript Compilation
-- Fixed all TypeScript errors in the codebase
-- Project now builds successfully without errors
-- Proper typing for browser APIs and Firestore operations
-- Fixed expense update API validation issues
+##### Phase 2.1: Enhanced REST Endpoints ✅ COMPLETED
+- Modified listGroups endpoint to include change metadata
+- Parallel query execution for performance
+- Returns lastChangeTimestamp, changeCount, serverTime, hasRecentChanges
+- Maintains backward compatibility with includeMetadata flag
+
+##### Phase 2.2: Smart Client Stores ✅ COMPLETED
+- **Enhanced Groups Store** (webapp-v2/src/app/stores/groups-store-enhanced.ts)
+  - Subscribes to real-time changes via ChangeDetector
+  - Auto-refresh on change notifications
+  - Basic optimistic update support
+  - Currently used in DashboardPage
+  
+- **Enhanced Group Detail Store** (webapp-v2/src/app/stores/group-detail-store-enhanced.ts)
+  - Similar real-time capabilities for group details
+  - Change subscription for expenses and balances
+
+- **Change Detector** (webapp-v2/src/utils/change-detector.ts)
+  - Firestore listener management
+  - Subscribes to group, expense, and balance changes
+  - Triggers callbacks for store refreshes
+
+##### Phase 2.3: Zod Schemas ⏳ NEEDS VERIFICATION
+- May need updates for new metadata responses
+
+##### Phase 2.4-2.5: Additional Integration Tests ⏳ PENDING
+- Need more tests for enhanced REST endpoints
+- Need tests for store auto-refresh behavior
+
+### Key Technical Changes (Aug 18, 2025)
+
+#### Debouncing Removed
+- **Commit d4fc0f7b**: Removed all debouncing functionality
+- Changes now process immediately instead of with delays
+- Improves real-time responsiveness
+- All tests updated to expect immediate processing
+
+#### v2 Functions Working
+- Initially thought v2 functions didn't work in emulator (incorrect)
+- Temporarily migrated to v1 (Aug 17), then back to v2 (Aug 18)
+- **Current state: v2 functions working perfectly**
+- File `change-tracker-v1.ts` no longer exists
 
 ### Next Steps
-- Phase 2.2: Implement smart groups-store with auto-refresh  
-- Phase 2.3: Add Zod schemas for new API responses
-- Phase 2.4-2.5: Integration tests for REST and store
+- Phase 2.3: Verify and update Zod schemas for new API responses
+- Phase 2.4-2.5: Add comprehensive integration tests for enhanced stores
+- Phase 3: Production optimization and monitoring (not started)
 
 ---
 
-## Implementation Status (As of 2025-08-17)
+## Implementation Status (As of 2025-08-18)
 
 ### Phase 1: Core Infrastructure & Change Detection - **✅ COMPLETED**
 
 -   **Firestore Security Rules:** ✅ Implemented (simplified for emulator use).
--   **Change Detection Triggers:** ✅ Migrated to v1 format for emulator compatibility (firebase/functions/src/triggers/change-tracker-v1.ts).
+-   **Change Detection Triggers:** ✅ Using v2 functions successfully (firebase/functions/src/triggers/change-tracker.ts).
 -   **Connection State Management (`ConnectionManager`):** ✅ Fully implemented with TypeScript types, exponential backoff, and network quality monitoring (webapp-v2/src/utils/connection-manager.ts).
 -   **Automatic Cleanup:** ✅ Updated to run every 5 minutes with metrics logging (firebase/functions/src/scheduled/cleanup.ts).
 -   **Unit Tests:** ✅ Complete test coverage for ConnectionManager and change detection utilities.
@@ -86,20 +112,19 @@ Successfully implemented significant portions of **Phase 1** and **Phase 2.1** o
 -   **Unit Tests:** ✅ Full coverage for change detection utilities (firebase/functions/src/__tests__/unit/change-detection-utils.test.ts).
 -   **Integration Tests:** ✅ Comprehensive tests for all change tracking flows (firebase/functions/src/__tests__/integration/normal-flow/change-detection.test.ts).
 -   **Test Helpers:** ✅ Polling and query utilities for async testing (firebase/functions/src/__tests__/support/changeCollectionHelpers.ts).
--   **Trigger Compatibility:** ✅ Fixed v2 trigger issues by migrating to v1 format.
+-   **Trigger Processing:** ✅ Immediate processing (debouncing removed for better responsiveness).
 
-### Phase 2: Smart REST with Auto-Refresh - **In Progress**
+### Phase 2: Smart REST with Auto-Refresh - **✅ MOSTLY COMPLETED**
 
--   **Enhanced REST Endpoints:** ✅ The `/groups` endpoint now includes metadata field for change tracking with parallel query execution (firebase/functions/src/groups/handlers.ts:349-471).
--   **Smart Client Store (`groups-store.ts`):** ⏳ Not yet implemented - planned for next phase.
--   **Zod Schemas:** ⏳ Pending - need to add schemas for new API responses.
--   **Integration Tests:** ⏳ Pending - need tests for enhanced endpoints.
+-   **Enhanced REST Endpoints:** ✅ The `/groups` endpoint includes metadata field for change tracking with parallel query execution (firebase/functions/src/groups/handlers.ts).
+-   **Smart Client Stores:** ✅ Implemented and working:
+    - `groups-store-enhanced.ts` - Used in DashboardPage with real-time subscriptions
+    - `group-detail-store-enhanced.ts` - Provides real-time updates for group details
+    - `ChangeDetector` class - Manages Firestore listeners and triggers refreshes
+-   **Zod Schemas:** ⏳ May need updates for new metadata responses.
+-   **Integration Tests:** ⏳ Need additional tests for enhanced stores and auto-refresh.
 
-### Phase 3: Progressive Streaming Migration - **Not Started**
-
--   **Group Detail Streaming (`group-detail-store.ts`):** ❌ The store does not exist yet.
-
-### Phase 4: Optimization & Production Polish - **Not Started**
+### Phase 3: Optimization & Production Polish - **Not Started**
 
 ---
 
@@ -162,42 +187,48 @@ match /expense-changes/{changeId} {
 }
 ```
 
-##### 1.2 Change Detection with Smart Debouncing
+##### 1.2 Change Detection with Immediate Processing
 
 ```typescript
 // firebase/functions/src/triggers/change-tracker.ts
-import { debounce } from '../utils/debounce';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 
-const pendingChanges = new Map<string, NodeJS.Timeout>();
+export const trackGroupChanges = onDocumentWritten(
+    {
+        document: `${FirestoreCollections.GROUPS}/{groupId}`,
+        region: 'us-central1',
+    },
+    async (event) => {
+        const groupId = event.params.groupId;
+        const before = event.data?.before;
+        const after = event.data?.after;
 
-export const trackGroupChanges = functions.firestore.document('groups/{groupId}').onWrite(async (change, context) => {
-    const groupId = context.params.groupId;
+        // Determine change type
+        let changeType: ChangeType;
+        if (!before?.exists && after?.exists) {
+            changeType = 'created';
+        } else if (before?.exists && !after?.exists) {
+            changeType = 'deleted';
+        } else {
+            changeType = 'updated';
+        }
 
-    // Debounce rapid changes
-    if (pendingChanges.has(groupId)) {
-        clearTimeout(pendingChanges.get(groupId));
-    }
-
-    const timeoutId = setTimeout(async () => {
+        // Create change document immediately (no debouncing)
         const changeDoc = {
             groupId,
             timestamp: Date.now(),
-            type: !change.before.exists ? 'created' : !change.after.exists ? 'deleted' : 'modified',
-            userId: change.after?.data()?.lastModifiedBy,
-            fields: getChangedFields(change.before, change.after),
+            type: changeType,
+            userId: after?.data()?.lastModifiedBy,
+            fields: getChangedFields(before, after),
             metadata: {
-                priority: calculatePriority(change),
-                affectedUsers: change.after?.data()?.memberIds || [],
+                priority: calculatePriority(changeType, changedFields, 'group'),
+                affectedUsers: after?.data()?.memberIds || [],
             },
         };
 
-        await admin.firestore().collection('group-changes').add(changeDoc);
-
-        pendingChanges.delete(groupId);
-    }, 500); // 500ms debounce
-
-    pendingChanges.set(groupId, timeoutId);
-});
+        await db.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
+    }
+);
 
 // Helper functions
 function getChangedFields(before: any, after: any): string[] {
@@ -337,8 +368,8 @@ export const cleanupChanges = functions.pubsub.schedule('every 5 minutes').onRun
 #### Success Criteria
 
 - Connection state properly managed and displayed
-- Change detection working with <500ms latency
-- Debouncing prevents excessive notifications
+- Change detection working with immediate processing
+- v2 Firebase functions working in emulator and production
 - Cleanup runs successfully every 5 minutes
 - Zero console errors during connection changes
 
@@ -887,21 +918,23 @@ const FEATURE_FLAGS = {
 
 ### Phase 1: Foundation (✅ COMPLETED)
 - Connection management
-- Change detection with debouncing
+- Change detection with immediate processing
+- v2 Firebase functions implementation
 - Cleanup schedule
 - Unit tests
 
-### Phase 2: Notification + REST (Week 1)
-- Day 1-2: Notification listeners
-- Day 3: REST refresh logic
-- Day 4: Optimistic updates
-- Day 5: Testing
+### Phase 2: Smart REST with Auto-Refresh (✅ MOSTLY COMPLETED)
+- Enhanced REST endpoints with metadata (✅ Done)
+- Smart client stores with change subscriptions (✅ Done)
+- ChangeDetector for Firestore listeners (✅ Done)
+- Zod schema updates (⏳ Needs verification)
+- Integration tests for stores (⏳ Pending)
 
-### Phase 3: Polish (Week 2)
-- Day 1: Error handling and fallbacks
-- Day 2: Simple monitoring
-- Day 3: UI indicators
-- Day 4-5: Production testing and deployment
+### Phase 3: Optimization & Production Polish (Not Started)
+- Error handling and fallbacks
+- Production monitoring and metrics
+- Performance optimization
+- UI polish and indicators
 
 ## Future Enhancements
 

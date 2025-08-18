@@ -43,8 +43,8 @@ test.describe('Single User Balance Visualization', () => {
         const groupName = `Single User Test ${uniqueId}`;
         await groupWorkflow.createGroupAndNavigate(groupName, 'Testing single user balance');
 
-        // Add expenses
-        const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+        // Add expenses - pass user info for better error reporting
+        const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount, user);
         await expenseFormPage1.submitExpense({
             description: 'Dinner',
             amount: 120,
@@ -53,7 +53,7 @@ test.describe('Single User Balance Visualization', () => {
             splitType: 'equal',
         });
 
-        const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount, user);
         await expenseFormPage2.submitExpense({
             description: 'Groceries',
             amount: 80,
