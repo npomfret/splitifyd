@@ -10,3 +10,4 @@ export { SettlementFormPage } from './settlement-form.page';
 export { HomepagePage } from './homepage.page';
 export { JoinGroupPage } from './join-group.page';
 export { PricingPage } from './pricing.page';
+export { SettingsPage } from './settings.page';
