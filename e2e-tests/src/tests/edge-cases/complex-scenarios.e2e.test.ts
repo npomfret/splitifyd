@@ -29,11 +29,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
 
         // Have Bob join via robust JoinGroupPage
         const bobJoinGroupPage = new JoinGroupPage(bobPage);
-        const bobJoinResult = await bobJoinGroupPage.attemptJoinWithStateDetection(shareLink);
-
-        if (!bobJoinResult.success) {
-            throw new Error(`Bob failed to join group: ${JSON.stringify(bobJoinResult)}`);
-        }
+        await bobJoinGroupPage.attemptJoinWithStateDetection(shareLink);
 
         // Verify Bob is now on the group page
         await expect(bobPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

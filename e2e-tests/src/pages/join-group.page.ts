@@ -4,6 +4,7 @@ import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import { NavigationResult } from '../types';
 import * as path from 'path';
 import * as fs from 'fs';
+import { JoinGroupError, AuthenticationError, NavigationError } from '../errors/test-errors';
 
 /**
  * Page object for join group functionality via share links.
@@ -241,17 +242,14 @@ export class JoinGroupPage extends BasePage {
 
     /**
      * Comprehensive join flow that handles all authentication states.
-     * Returns information about the join result.
+     * Throws specific error types based on the failure reason.
      * @param shareLink - The share link to join
      * @param userInfo - Optional user info for debugging (e.g., {displayName: 'User Name', email: 'user@example.com'})
      */
     async attemptJoinWithStateDetection(
         shareLink: string,
         userInfo?: { displayName?: string; email?: string },
-    ): Promise<NavigationResult & {
-        needsLogin: boolean;
-        alreadyMember: boolean;
-    }> {
+    ): Promise<void> {
         // Log the attempt for debugging
         const timestamp = new Date().toISOString();
         console.log(`[${timestamp}] Attempting to join with share link: ${shareLink}`, userInfo ? `User: ${JSON.stringify(userInfo)}` : '');
@@ -279,17 +277,20 @@ export class JoinGroupPage extends BasePage {
             const pageState = await this.getPageState();
             console.log(`[${timestamp}] User redirected to login page. State:`, JSON.stringify(pageState, null, 2));
             
-            return {
-                success: false,
-                reason: `User redirected to login`,
-                needsLogin: true,
-                alreadyMember: false,
-                error: false,
-                currentUrl,
-                userInfo,
-                timestamp,
-                pageState,
-            };
+            throw new AuthenticationError(
+                'User redirected to login',
+                'Join group via share link',
+                {
+                    success: false,
+                    reason: 'User redirected to login',
+                    currentUrl,
+                    userInfo,
+                    timestamp,
+                    pageState,
+                    authState: 'not_authenticated',
+                    needsLogin: true
+                }
+            );
         }
 
         // Check various states
@@ -305,36 +306,43 @@ export class JoinGroupPage extends BasePage {
             const pageState = await this.getPageState();
             console.log(`[${timestamp}] Share link error detected. State:`, JSON.stringify(pageState, null, 2));
             
-            return {
-                success: false,
-                reason: `Invalid share link or group not found`,
-                needsLogin: false,
-                alreadyMember: false,
-                error: true,
-                currentUrl,
-                userInfo,
-
-
-                timestamp,
-                pageState,
-            };
+            throw new JoinGroupError(
+                'Invalid share link or group not found',
+                'Join group via share link',
+                {
+                    success: false,
+                    reason: 'Invalid share link or group not found',
+                    currentUrl,
+                    userInfo,
+                    timestamp,
+                    pageState,
+                    shareLink,
+                    needsLogin: false,
+                    alreadyMember: false,
+                    error: true
+                }
+            );
         }
 
         if (alreadyMember) {
             const pageState = await this.getPageState();
             console.log(`[${timestamp}] User already member. State:`, JSON.stringify(pageState, null, 2));
             
-            return {
-                success: false,
-                reason: `User is already a member of this group`,
-                needsLogin: false,
-                alreadyMember: true,
-                error: false,
-                currentUrl,
-                userInfo,
-                timestamp,
-                pageState,
-            };
+            throw new JoinGroupError(
+                'User is already a member of this group',
+                'Join group via share link',
+                {
+                    success: false,
+                    reason: 'User is already a member of this group',
+                    currentUrl,
+                    userInfo,
+                    timestamp,
+                    pageState,
+                    shareLink,
+                    needsLogin: false,
+                    alreadyMember: true
+                }
+            );
         }
 
         // If join page is visible, user is definitely logged in - proceed to join
@@ -344,33 +352,28 @@ export class JoinGroupPage extends BasePage {
                 await this.joinGroup({ skipRedirectWait: false });
                 const pageState = await this.getPageState();
                 console.log(`[${timestamp}] Successfully joined group. State:`, JSON.stringify(pageState, null, 2));
-                
-                return {
-                    success: true,
-                    reason: 'Successfully joined group',
-                    needsLogin: false,
-                    alreadyMember: false,
-                    error: false,
-                    currentUrl: this.page.url(), // Get updated URL after join
-                    userInfo,
-                    timestamp,
-                    pageState,
-                };
+                // Success - method returns normally
+                return;
             } catch (error) {
                 const pageState = await this.getPageState();
                 console.log(`[${timestamp}] Failed to join group. Error: ${error}. State:`, JSON.stringify(pageState, null, 2));
                 
-                return {
-                    success: false,
-                    reason: `Failed to join group: ${error}`,
-                    needsLogin: false,
-                    alreadyMember: false,
-                    error: true,
-                    currentUrl,
-                    userInfo,
-                    timestamp,
-                    pageState,
-                };
+                throw new JoinGroupError(
+                    `Failed to join group: ${error}`,
+                    'Join group via share link',
+                    {
+                        success: false,
+                        reason: `Failed to join group: ${error}`,
+                        currentUrl,
+                        userInfo,
+                        timestamp,
+                        pageState,
+                        shareLink,
+                        needsLogin: false,
+                        alreadyMember: false,
+                        originalError: String(error)
+                    }
+                );
             }
         }
 
@@ -382,34 +385,52 @@ export class JoinGroupPage extends BasePage {
             const pageState = await this.getPageState();
             console.log(`[${timestamp}] User needs to log in. State:`, JSON.stringify(pageState, null, 2));
             
-            return {
-                success: false,
-                reason: `User needs to log in first`,
-                needsLogin: true,
-                alreadyMember: false,
-                error: false,
-                currentUrl,
-                userInfo,
-                timestamp,
-                pageState,
-            };
+            throw new AuthenticationError(
+                'User needs to log in first',
+                'Join group via share link',
+                {
+                    success: false,
+                    reason: 'User needs to log in first',
+                    currentUrl,
+                    userInfo,
+                    timestamp,
+                    pageState,
+                    authState: 'not_authenticated',
+                    needsLogin: true
+                }
+            );
         }
 
         // If we get here, something unexpected happened
         const pageState = await this.getPageState();
         console.log(`[${timestamp}] Unexpected state - join page not visible. State:`, JSON.stringify(pageState, null, 2));
         
-        return {
-            success: false,
-            reason: `Join group page not visible`,
-            needsLogin: false,
-            alreadyMember: false,
-            error: true,
-            currentUrl,
-            userInfo,
-            timestamp,
-            pageState,
-        };
+        throw new NavigationError(
+            'Join group page not visible - unexpected state',
+            'Join group via share link',
+            {
+                success: false,
+                reason: 'Join group page not visible - unexpected state',
+                currentUrl,
+                userInfo,
+                timestamp,
+                pageState,
+                shareLink,
+                error: true
+            }
+        );
+    }
+    
+    /**
+     * Join group with error throwing instead of result objects.
+     * Simply delegates to attemptJoinWithStateDetection which now throws directly.
+     */
+    async joinGroupOrThrow(
+        shareLink: string,
+        userInfo?: { displayName?: string; email?: string }
+    ): Promise<void> {
+        // attemptJoinWithStateDetection now throws directly instead of returning a result
+        await this.attemptJoinWithStateDetection(shareLink, userInfo);
     }
 
     // Helper for debugging failed joins

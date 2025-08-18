@@ -29,11 +29,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins using robust JoinGroupPage
         const joinGroupPage = new JoinGroupPage(page2);
-        const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${JSON.stringify(joinResult)}`);
-        }
+        await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Try to wait for synchronization but don't fail the test
         try {
@@ -102,11 +98,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2);
-        const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult2.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${JSON.stringify(joinResult2)}`);
-        }
+        await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -151,11 +143,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2);
-        const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult2.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${joinResult2.reason}`);
-        }
+        await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -217,11 +205,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2);
-        const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult2.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${joinResult2.reason}`);
-        }
+        await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -285,11 +269,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2);
-        const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult2.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${joinResult2.reason}`);
-        }
+        await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -336,11 +316,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
         // User 2 joins
         const joinGroupPage = new JoinGroupPage(page2);
-        const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
-
-        if (!joinResult.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${JSON.stringify(joinResult)}`);
-        }
+        await joinGroupPage.attemptJoinWithStateDetection(shareLink);
 
         // Synchronize both users - no reloads needed with real-time updates
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -421,11 +397,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2);
-        const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-
-        if (!joinResult2.success) {
-            throw new Error(`User ${user2.displayName} (${user2.email}) failed to join group: ${joinResult2.reason}`);
-        }
+        await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);

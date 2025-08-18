@@ -5,7 +5,7 @@ import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
 import { GroupDetailPage, JoinGroupPage, RegisterPage, LoginPage } from '../../pages';
 import {generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
-import { formatErrorMessage } from '../../utils/error-formatting';
+import { throwIfFailed } from '../../utils/error-factory';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -29,13 +29,10 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // User2 (already logged in) joins via share link
             const joinGroupPage2 = new JoinGroupPage(page2);
-            const joinResult = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
+            await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
                 displayName: user2.displayName, 
                 email: user2.email 
             });
-            if (!joinResult.success) {
-                throw new Error(formatErrorMessage('Join group via share link', joinResult));
-            }
 
             // Verify user2 is now in the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -60,13 +57,10 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // User2 joins first time
             const joinGroupPage2 = new JoinGroupPage(page2);
-            const joinResult = await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
+            await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
                 displayName: user2.displayName, 
                 email: user2.email 
             });
-            if (!joinResult.success) {
-                throw new Error(formatErrorMessage('Join group via share link', joinResult));
-            }
 
             // User2 tries to join again - should show already member message
             await multiUserWorkflow.testShareLinkAlreadyMember(page2, shareLink);
@@ -98,16 +92,10 @@ test.describe('Comprehensive Share Link Testing', () => {
             const shareLink = await multiUserWorkflow.getShareLink(page1);
 
             // Navigate to share link with unauthenticated user
-            const result = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
-            
-            // Log result for debugging
-            if (!result.success) {
-                console.log('Join attempt failed with result:', JSON.stringify(result, null, 2));
-            }
-
-            expect(result.success).toBe(false);
-            expect(result.needsLogin).toBe(true);
-            expect(result.reason).toContain('login');
+            // Should throw AuthenticationError since user is not logged in
+            await expect(async () => {
+                await joinGroupPage.attemptJoinWithStateDetection(shareLink);
+            }).rejects.toThrow('User redirected to login');
         });
 
         singleMixedAuthTest('should allow unregistered user to register and join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
@@ -153,14 +141,10 @@ test.describe('Comprehensive Share Link Testing', () => {
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
-            const joinResult = await joinPage.attemptJoinWithStateDetection(shareLink, {
+            await joinPage.attemptJoinWithStateDetection(shareLink, {
                 displayName: newUserName,
                 email: newUserEmail
             });
-            
-            if (!joinResult.success) {
-                throw new Error(formatErrorMessage('Join group via share link after registration', joinResult));
-            }
             
             // Should be redirected to the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
@@ -215,14 +199,10 @@ test.describe('Comprehensive Share Link Testing', () => {
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
-            const joinResult = await joinPage.attemptJoinWithStateDetection(shareLink, {
+            await joinPage.attemptJoinWithStateDetection(shareLink, {
                 displayName: user2.displayName,
                 email: user2.email
             });
-            
-            if (!joinResult.success) {
-                throw new Error(formatErrorMessage('Join group via share link after login', joinResult));
-            }
             
             // Should be redirected to the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });

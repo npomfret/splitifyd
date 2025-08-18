@@ -29,10 +29,7 @@ multiUserTest.describe('Multi-User Group Access', () => {
         // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
         const { JoinGroupPage } = await import('../../pages');
         const joinGroupPage = new JoinGroupPage(user2Page);
-        const joinResult = await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
-        if (!joinResult.success) {
-            throw new Error(`Failed to join group: ${joinResult.reason}`);
-        }
+        await joinGroupPage.attemptJoinWithStateDetection(shareLink, { displayName: user2.displayName, email: user2.email });
 
         // Verify user 2 is in the group
         await expect(user2Page).toHaveURL(`/groups/${groupId}`);
