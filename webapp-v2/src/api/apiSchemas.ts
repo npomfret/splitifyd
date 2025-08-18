@@ -104,6 +104,32 @@ export const GroupSchema = z.object({
     lastExpenseTime: z.string().optional(),
 });
 
+// Change metadata schema for REST responses
+export const ChangeMetadataSchema = z.object({
+    lastChangeTimestamp: z.number(),
+    changeCount: z.number(),
+    serverTime: z.number(),
+    hasRecentChanges: z.boolean().optional(),
+});
+
+// Minimal change document schemas for Firestore notifications
+export const MinimalChangeDocumentSchema = z.object({
+    id: z.string(),
+    type: z.enum(['group', 'expense', 'settlement']),
+    action: z.enum(['created', 'updated', 'deleted']),
+    timestamp: z.any(), // Firestore Timestamp
+    users: z.array(z.string()),
+    groupId: z.string().optional(), // Only for expense/settlement
+});
+
+export const MinimalBalanceChangeDocumentSchema = z.object({
+    groupId: z.string(),
+    type: z.literal('balance'),
+    action: z.literal('recalculated'),
+    timestamp: z.any(), // Firestore Timestamp
+    users: z.array(z.string()),
+});
+
 export const ListGroupsResponseSchema = z.object({
     groups: z.array(GroupSchema),
     count: z.number(),
@@ -113,6 +139,7 @@ export const ListGroupsResponseSchema = z.object({
         limit: z.number(),
         order: z.string(),
     }),
+    metadata: ChangeMetadataSchema.optional(),
 });
 
 // Expense schemas

@@ -59,22 +59,35 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         errorSignal.value = null;
 
         try {
-            const response = await apiClient.getGroups();
+            // Include metadata to get change information
+            const response = await apiClient.getGroups({ includeMetadata: true });
 
-            // Simple timestamp check - only update if we get newer data
-            const currentGroups = groupsSignal.value;
-            const hasNewerData = response.groups.some((newGroup: Group) => {
-                const existing = currentGroups.find((g) => g.id === newGroup.id);
-                if (!existing) return true;
-                if (!existing.updatedAt || !newGroup.updatedAt) return true;
-                return new Date(newGroup.updatedAt) > new Date(existing.updatedAt);
-            });
+            // Use metadata if available to check for newer data
+            if (response.metadata) {
+                const hasNewerData = response.metadata.lastChangeTimestamp > lastRefreshSignal.value;
+                if (!hasNewerData && groupsSignal.value.length > 0) {
+                    // No new changes, skip update
+                    initializedSignal.value = true;
+                    return;
+                }
+            } else {
+                // Fallback to timestamp check if no metadata
+                const currentGroups = groupsSignal.value;
+                const hasNewerData = response.groups.some((newGroup: Group) => {
+                    const existing = currentGroups.find((g) => g.id === newGroup.id);
+                    if (!existing) return true;
+                    if (!existing.updatedAt || !newGroup.updatedAt) return true;
+                    return new Date(newGroup.updatedAt) > new Date(existing.updatedAt);
+                });
 
-            if (hasNewerData || currentGroups.length === 0) {
-                groupsSignal.value = response.groups;
-                lastRefreshSignal.value = Date.now();
+                if (!hasNewerData && currentGroups.length > 0) {
+                    initializedSignal.value = true;
+                    return;
+                }
             }
 
+            groupsSignal.value = response.groups;
+            lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
             initializedSignal.value = true;
         } catch (error) {
             errorSignal.value = this.getErrorMessage(error);

@@ -1,8 +1,14 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { db } from '../firebase';
 import { logger } from '../logger';
-import * as adminFirestore from 'firebase-admin/firestore';
-import { getChangedFields, getGroupChangedFields, calculatePriority, createChangeDocument, ChangeType } from '../utils/change-detection';
+import { 
+    getChangedFields, 
+    getGroupChangedFields, 
+    calculatePriority, 
+    createMinimalChangeDocument,
+    createMinimalBalanceChangeDocument,
+    ChangeType 
+} from '../utils/change-detection';
 import { FirestoreCollections } from '../shared/shared-types';
 
 /**
@@ -59,35 +65,25 @@ export const trackGroupChanges = onDocumentWritten(
                 affectedUsers,
             });
 
-            // Get the user who made the change (if available)
-            const changeUserId = afterData?.userId || afterData?.data?.lastModifiedBy;
-
             logger.info('🔥 Creating group change document', {
                 groupId,
                 changeType,
                 priority,
-                changedFields: changedFields.slice(0, 10), // Log first 10 fields
-                affectedUsers,
-                changeUserId,
+                affectedUsers: affectedUsers.length,
             });
 
-            // Create standardized change document
-            const changeDoc = createChangeDocument(
+            // Create minimal change document for client notifications
+            const changeDoc = createMinimalChangeDocument(
                 groupId,
                 'group',
                 changeType,
-                {
-                    priority,
-                    affectedUsers,
-                    changedFields,
-                },
-                {
-                    groupId, // Include for consistency
-                    changeUserId,
-                },
+                affectedUsers
             );
 
-            logger.info('🔥 GROUP CHANGE DOC CREATED', { groupId, changeDoc });
+            logger.info('🔥 GROUP CHANGE DOC CREATED', { 
+                groupId, 
+                docStructure: Object.keys(changeDoc) 
+            });
 
             // Write to group-changes collection
             const docRef = await db.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
@@ -171,49 +167,31 @@ export const trackExpenseChanges = onDocumentWritten(
                 participants.forEach((userId: string) => affectedUsers.add(userId));
             }
 
-            // Get the user who made the change
-            const changeUserId = afterData?.createdBy || afterData?.lastModifiedBy;
-
             logger.info('Creating expense change document', {
                 expenseId,
                 groupId,
                 changeType,
                 priority,
-                changedFields: changedFields.slice(0, 10),
+                affectedUsers: affectedUsers.size,
             });
 
-            // Create standardized change document
-            const changeDoc = createChangeDocument(
+            // Create minimal change document for expense
+            const changeDoc = createMinimalChangeDocument(
                 expenseId,
                 'expense',
                 changeType,
-                {
-                    priority,
-                    affectedUsers: Array.from(affectedUsers),
-                    changedFields,
-                },
-                {
-                    groupId,
-                    changeUserId,
-                },
+                Array.from(affectedUsers),
+                groupId
             );
 
             // Write to transaction-changes collection (expenses use transaction-changes)
             await db.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
 
-            // Also create a balance change document since expenses affect balances
-            // Balance changes are always high priority
-            const balanceChangeDoc = {
+            // Also create a minimal balance change document since expenses affect balances
+            const balanceChangeDoc = createMinimalBalanceChangeDocument(
                 groupId,
-                changeType: 'recalculated' as const,
-                timestamp: adminFirestore.Timestamp.now(),
-                metadata: {
-                    priority: 'high' as const,
-                    affectedUsers: Array.from(affectedUsers),
-                    triggeredBy: 'expense',
-                    triggerId: expenseId,
-                },
-            };
+                Array.from(affectedUsers)
+            );
 
             await db.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
 
@@ -290,49 +268,31 @@ export const trackSettlementChanges = onDocumentWritten(
                 if (payee) affectedUsers.add(payee);
             }
 
-            // Get the user who made the change
-            const changeUserId = afterData?.createdBy || afterData?.lastModifiedBy;
-
             logger.info('Creating settlement change document', {
                 settlementId,
                 groupId,
                 changeType,
                 priority,
-                changedFields: changedFields.slice(0, 10),
+                affectedUsers: affectedUsers.size,
             });
 
-            // Create standardized change document
-            const changeDoc = createChangeDocument(
+            // Create minimal change document for settlement
+            const changeDoc = createMinimalChangeDocument(
                 settlementId,
                 'settlement',
                 changeType,
-                {
-                    priority,
-                    affectedUsers: Array.from(affectedUsers),
-                    changedFields,
-                },
-                {
-                    groupId,
-                    changeUserId,
-                },
+                Array.from(affectedUsers),
+                groupId
             );
 
             // Write to transaction-changes collection (settlements are a type of transaction)
             await db.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
 
-            // Also create a balance change document since settlements affect balances
-            // Balance changes are always high priority
-            const balanceChangeDoc = {
+            // Also create a minimal balance change document since settlements affect balances
+            const balanceChangeDoc = createMinimalBalanceChangeDocument(
                 groupId,
-                changeType: 'recalculated' as const,
-                timestamp: adminFirestore.Timestamp.now(),
-                metadata: {
-                    priority: 'high' as const,
-                    affectedUsers: Array.from(affectedUsers),
-                    triggeredBy: 'settlement',
-                    triggerId: settlementId,
-                },
-            };
+                Array.from(affectedUsers)
+            );
 
             await db.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
 

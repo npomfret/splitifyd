@@ -7,38 +7,40 @@ import { FirestoreCollections, ChangeCollectionName } from '../../shared/shared-
  * Helper functions for querying change collections in tests
  */
 
-export interface ChangeDocument extends DocumentData {
-    changeType: 'created' | 'updated' | 'deleted';
+// New minimal change document structure
+export interface MinimalChangeDocument extends DocumentData {
+    id: string;
+    type: 'group' | 'expense' | 'settlement';
+    action: 'created' | 'updated' | 'deleted';
     timestamp: admin.firestore.Timestamp;
-    metadata: {
-        priority: 'high' | 'medium' | 'low';
-        affectedUsers: string[];
-        changedFields?: string[];
-    };
+    users: string[];
+    groupId?: string; // Only for expense/settlement
 }
 
-export interface GroupChangeDocument extends ChangeDocument {
+export interface MinimalBalanceChangeDocument extends DocumentData {
     groupId: string;
-    changeUserId?: string;
-}
-
-export interface ExpenseChangeDocument extends ChangeDocument {
-    expenseId: string;
-    groupId: string;
-    changeUserId?: string;
-}
-
-export interface BalanceChangeDocument {
-    groupId: string;
-    changeType: 'recalculated';
+    type: 'balance';
+    action: 'recalculated';
     timestamp: admin.firestore.Timestamp;
-    metadata: {
-        priority: 'high';
-        affectedUsers: string[];
-        triggeredBy: 'expense' | 'settlement';
-        triggerId: string;
-    };
+    users: string[];
 }
+
+// Type aliases for test compatibility
+export interface GroupChangeDocument extends MinimalChangeDocument {
+    type: 'group';
+}
+
+export interface ExpenseChangeDocument extends MinimalChangeDocument {
+    type: 'expense';
+    groupId: string;
+}
+
+export interface SettlementChangeDocument extends MinimalChangeDocument {
+    type: 'settlement';
+    groupId: string;
+}
+
+export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
 
 /**
  * Poll for a change document matching the specified criteria
@@ -60,7 +62,9 @@ export async function pollForChange<T extends DocumentData>(
         
         // Add groupId filter if provided
         if (groupId) {
-            query = query.where('groupId', '==', groupId);
+            // GROUP_CHANGES uses 'id' field, others use 'groupId'
+            const filterField = collection === FirestoreCollections.GROUP_CHANGES ? 'id' : 'groupId';
+            query = query.where(filterField, '==', groupId);
         }
         
         // Order by timestamp descending to get most recent first
@@ -86,7 +90,7 @@ export async function pollForChange<T extends DocumentData>(
  */
 export async function getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
     const snapshot = await db.collection(FirestoreCollections.GROUP_CHANGES)
-        .where('groupId', '==', groupId)
+        .where('id', '==', groupId)
         .orderBy('timestamp', 'desc')
         .get();
     
@@ -99,10 +103,24 @@ export async function getGroupChanges(groupId: string): Promise<GroupChangeDocum
 export async function getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
     const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
         .where('groupId', '==', groupId)
+        .where('type', '==', 'expense')
         .orderBy('timestamp', 'desc')
         .get();
     
     return snapshot.docs.map(doc => doc.data() as ExpenseChangeDocument);
+}
+
+/**
+ * Get all settlement change documents for a specific group
+ */
+export async function getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
+    const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
+        .where('groupId', '==', groupId)
+        .where('type', '==', 'settlement')
+        .orderBy('timestamp', 'desc')
+        .get();
+    
+    return snapshot.docs.map(doc => doc.data() as SettlementChangeDocument);
 }
 
 /**
@@ -124,8 +142,10 @@ export async function clearGroupChangeDocuments(groupId: string): Promise<void> 
     const collections = [FirestoreCollections.GROUP_CHANGES, FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
     
     for (const collection of collections) {
+        // GROUP_CHANGES uses 'id' field, others use 'groupId'
+        const filterField = collection === FirestoreCollections.GROUP_CHANGES ? 'id' : 'groupId';
         const snapshot = await db.collection(collection)
-            .where('groupId', '==', groupId)
+            .where(filterField, '==', groupId)
             .get();
         
         const batch = db.batch();
