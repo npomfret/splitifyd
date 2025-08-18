@@ -82,7 +82,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             changeListener = query.onSnapshot(
                 (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
-                        console.log(`observed change:`, JSON.stringify(change));
+                        // Observed change
 
                         if (change.type === 'added') {
                             const data = change.doc.data();
@@ -111,13 +111,11 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             .withDate(new Date().toISOString())
             .build();
 
-        console.log(`Creating settlement via API for group ${groupId}`);
+        // Creating settlement via API
 
         const createdSettlement = await driver.createSettlement(settlementData, user1.token);
         expect(createdSettlement).toBeDefined();
         expect(createdSettlement.id).toBeDefined();
-        console.log('API response:', JSON.stringify(createdSettlement, null, 2));
-        console.log(`Settlement created via API: ${createdSettlement.id}`);
 
         // Wait for the change notification
         try {
@@ -131,16 +129,14 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             expect(changeNotification.metadata.affectedUsers).toContain(user1.uid);
             expect(changeNotification.metadata.affectedUsers).toContain(user2.uid);
 
-            console.log('✅ SUCCESS: Settlement created via API generated transaction-change notification');
-            console.log('Change notification:', JSON.stringify(changeNotification, null, 2));
+            // SUCCESS: Settlement created via API generated transaction-change notification
         } catch (error) {
             // This was the original failure that reproduced the E2E test issue, but should be fixed now
-            console.log('❌ UNEXPECTED: Settlement created via API did NOT generate transaction-change notification');
-            console.log('This should not happen anymore - the trigger bug has been fixed');
+            // UNEXPECTED: Settlement created via API did NOT generate transaction-change notification
+            // This should not happen anymore - the trigger bug has been fixed
 
             // Let's check if the settlement was actually created in Firestore
             if (!createdSettlement || !createdSettlement.id) {
-                console.log('Settlement response is invalid:', createdSettlement);
                 throw new Error('Settlement was not created properly - missing ID');
             }
             
@@ -153,7 +149,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             while (attempts < maxAttempts) {
                 settlementDoc = await db.collection('settlements').doc(createdSettlement.id).get();
                 if (settlementDoc.exists) {
-                    console.log(`Settlement found after ${attempts + 1} attempts`);
+                    // Settlement found
                     break;
                 }
                 attempts++;
@@ -164,28 +160,16 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             
             // Check all settlements in the group
             const allSettlements = await db.collection('settlements').where('groupId', '==', groupId).get();
-            console.log(`Found ${allSettlements.size} settlements in group ${groupId}`);
-            allSettlements.docs.forEach(doc => {
-                console.log(`Settlement ${doc.id}:`, doc.data());
-            });
+            expect(allSettlements.size).toBeGreaterThan(0);
             
             if (!settlementDoc || !settlementDoc.exists) {
-                console.log(`Settlement ${createdSettlement.id} does not exist in Firestore after ${maxAttempts} attempts!`);
-                console.log('API returned settlement:', createdSettlement);
-                
-                // This is the actual bug - the API says it created the settlement but it's not in Firestore
-                console.log('⚠️ BUG FOUND: Settlement created via API returns success but document not in Firestore');
-            } else {
-                console.log('Settlement exists in Firestore:', settlementDoc.data());
+                // BUG: Settlement created via API returns success but document not in Firestore
+                throw new Error(`Settlement ${createdSettlement.id} does not exist in Firestore after ${maxAttempts} attempts`);
             }
 
             // Check if there are any transaction-changes at all for this group
             const transactionChanges = await db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get();
-
-            console.log(`Found ${transactionChanges.size} transaction-change documents for group ${groupId}`);
-            transactionChanges.docs.forEach((doc) => {
-                console.log('Transaction change:', doc.data());
-            });
+            expect(transactionChanges.size).toBeGreaterThanOrEqual(0);
 
             throw error;
         }
@@ -202,15 +186,11 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
          * before saving to Firestore.
          */
 
-        console.log(`
-      Settlement Realtime Update Analysis:
-      
-      Direct Firestore Creation: ✅ Works (settlement-realtime.test.ts passes)
-      API-based Creation: ✅ Fixed (E2E tests now pass, this test now passes)
-      
-      Resolution: Fixed undefined values in trigger change documents
-      Impact: Frontend settlement history now updates in real-time
-    `);
+        // Settlement Realtime Update Analysis:
+        // Direct Firestore Creation: Works (settlement-realtime.test.ts passes)
+        // API-based Creation: Fixed (E2E tests now pass, this test now passes)
+        // Resolution: Fixed undefined values in trigger change documents
+        // Impact: Frontend settlement history now updates in real-time
 
         expect(true).toBe(true);
     });

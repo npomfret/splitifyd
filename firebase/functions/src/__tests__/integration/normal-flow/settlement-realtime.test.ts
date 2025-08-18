@@ -197,14 +197,11 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         // This test just documents the issue
         expect(true).toBe(true);
 
-        console.log(`
-      Frontend Bug Identified:
-      - Settlements generate realtime notifications correctly
-      - Frontend receives the notifications
-      - But refreshAll() doesn't fetch settlements
-      - So SettlementHistory doesn't update
-      
-      This causes E2E test failures when checking for settlements in history
-    `);
+        // Frontend Bug Identified:
+        // - Settlements generate realtime notifications correctly
+        // - Frontend receives the notifications
+        // - But refreshAll() doesn't fetch settlements
+        // - So SettlementHistory doesn't update
+        // This causes E2E test failures when checking for settlements in history
     });
 });
