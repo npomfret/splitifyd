@@ -41,7 +41,7 @@ describe('User Profile Management API Tests', () => {
 
     describe('GET /user/profile', () => {
         it('should get current user profile', async () => {
-            const response = await driver['apiRequest']('/user/profile', 'GET', null, testUser.token);
+            const response = await driver.getUserProfile(testUser.token);
 
             expect(response).toMatchObject({
                 uid: testUser.uid,
@@ -56,7 +56,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             try {
-                await driver['apiRequest']('/user/profile', 'GET', null, null);
+                await driver.getUserProfile(null);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('401');
@@ -65,7 +65,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should not return another user profile', async () => {
             // Can only get own profile via this endpoint
-            const response = await driver['apiRequest']('/user/profile', 'GET', null, testUser.token);
+            const response = await driver.getUserProfile(testUser.token);
 
             expect(response.uid).toBe(testUser.uid);
             expect(response.uid).not.toBe(secondUser.uid);
@@ -85,7 +85,7 @@ describe('User Profile Management API Tests', () => {
             expect(response.displayName).toBe(newDisplayName);
 
             // Verify the update persisted
-            const getResponse = await driver['apiRequest']('/user/profile', 'GET', null, testUser.token);
+            const getResponse = await driver.getUserProfile(testUser.token);
             expect(getResponse.displayName).toBe(newDisplayName);
         });
 
@@ -127,7 +127,7 @@ describe('User Profile Management API Tests', () => {
                 displayName: 'New Name',
                 photoURL: 'https://example.com/new-photo.jpg',
             };
-            const response = await driver['apiRequest']('/user/profile', 'PUT', updates, testUser.token);
+            const response = await driver.updateUserProfile(testUser.token, updates);
 
             expect(response.displayName).toBe(updates.displayName);
             expect(response.photoURL).toBe(updates.photoURL);
@@ -189,7 +189,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject update with no fields', async () => {
             try {
-                await driver['apiRequest']('/user/profile', 'PUT', {}, testUser.token);
+                await driver.updateUserProfile(testUser.token, {});
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('At least one field');
@@ -211,7 +211,7 @@ describe('User Profile Management API Tests', () => {
         });
 
         it('should update updatedAt timestamp', async () => {
-            const beforeResponse = await driver['apiRequest']('/user/profile', 'GET', null, testUser.token);
+            const beforeResponse = await driver.getUserProfile(testUser.token);
             const beforeUpdate = beforeResponse.updatedAt;
 
             // Wait a bit to ensure timestamp difference
@@ -393,7 +393,7 @@ describe('User Profile Management API Tests', () => {
 
             // Verify user is deleted (subsequent requests should fail)
             try {
-                await driver['apiRequest']('/user/profile', 'GET', null, testUser.token);
+                await driver.getUserProfile(testUser.token);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('401');
@@ -515,9 +515,9 @@ describe('User Profile Management API Tests', () => {
             // Perform multiple concurrent updates with unique names to track
             const uniquePrefix = `Concurrent-${Date.now()}-${Math.random().toString(36).substring(7)}`;
             const updates = [
-                driver['apiRequest']('/user/profile', 'PUT', { displayName: `${uniquePrefix}-Name-1` }, testUser.token),
-                driver['apiRequest']('/user/profile', 'PUT', { displayName: `${uniquePrefix}-Name-2` }, testUser.token),
-                driver['apiRequest']('/user/profile', 'PUT', { displayName: `${uniquePrefix}-Name-3` }, testUser.token),
+                driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-1` }),
+                driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-2` }),
+                driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-3` }),
             ];
 
             const responses = await Promise.all(updates);
@@ -529,7 +529,7 @@ describe('User Profile Management API Tests', () => {
             });
 
             // Final state should be one of our specific updates
-            const finalProfile = await driver['apiRequest']('/user/profile', 'GET', null, testUser.token);
+            const finalProfile = await driver.getUserProfile(testUser.token);
             expect(finalProfile.displayName).toContain(uniquePrefix);
             expect([`${uniquePrefix}-Name-1`, `${uniquePrefix}-Name-2`, `${uniquePrefix}-Name-3`]).toContain(finalProfile.displayName);
         });

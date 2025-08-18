@@ -252,8 +252,7 @@ export class JoinGroupPage extends BasePage {
     ): Promise<void> {
         // Log the attempt for debugging
         const timestamp = new Date().toISOString();
-        console.log(`[${timestamp}] Attempting to join with share link: ${shareLink}`, userInfo ? `User: ${JSON.stringify(userInfo)}` : '');
-        
+
         await this.navigateToShareLink(shareLink);
 
         // Wait for any redirects to complete
@@ -275,8 +274,7 @@ export class JoinGroupPage extends BasePage {
         const currentUrl = this.page.url();
         if (currentUrl.includes('/login')) {
             const pageState = await this.getPageState();
-            console.log(`[${timestamp}] User redirected to login page. State:`, JSON.stringify(pageState, null, 2));
-            
+
             throw new AuthenticationError(
                 'User redirected to login',
                 'Join group via share link',
@@ -304,8 +302,7 @@ export class JoinGroupPage extends BasePage {
 
         if (error) {
             const pageState = await this.getPageState();
-            console.log(`[${timestamp}] Share link error detected. State:`, JSON.stringify(pageState, null, 2));
-            
+
             throw new JoinGroupError(
                 'Invalid share link or group not found',
                 'Join group via share link',
@@ -326,8 +323,7 @@ export class JoinGroupPage extends BasePage {
 
         if (alreadyMember) {
             const pageState = await this.getPageState();
-            console.log(`[${timestamp}] User already member. State:`, JSON.stringify(pageState, null, 2));
-            
+
             throw new JoinGroupError(
                 'User is already a member of this group',
                 'Join group via share link',
@@ -351,13 +347,11 @@ export class JoinGroupPage extends BasePage {
             try {
                 await this.joinGroup({ skipRedirectWait: false });
                 const pageState = await this.getPageState();
-                console.log(`[${timestamp}] Successfully joined group. State:`, JSON.stringify(pageState, null, 2));
                 // Success - method returns normally
                 return;
             } catch (error) {
                 const pageState = await this.getPageState();
-                console.log(`[${timestamp}] Failed to join group. Error: ${error}. State:`, JSON.stringify(pageState, null, 2));
-                
+
                 throw new JoinGroupError(
                     `Failed to join group: ${error}`,
                     'Join group via share link',
@@ -383,8 +377,7 @@ export class JoinGroupPage extends BasePage {
 
         if (needsLogin) {
             const pageState = await this.getPageState();
-            console.log(`[${timestamp}] User needs to log in. State:`, JSON.stringify(pageState, null, 2));
-            
+
             throw new AuthenticationError(
                 'User needs to log in first',
                 'Join group via share link',
@@ -403,8 +396,7 @@ export class JoinGroupPage extends BasePage {
 
         // If we get here, something unexpected happened
         const pageState = await this.getPageState();
-        console.log(`[${timestamp}] Unexpected state - join page not visible. State:`, JSON.stringify(pageState, null, 2));
-        
+
         throw new NavigationError(
             'Join group page not visible - unexpected state',
             'Join group via share link',
