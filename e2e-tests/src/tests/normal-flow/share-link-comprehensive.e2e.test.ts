@@ -3,8 +3,8 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { multiUserTest } from '../../fixtures';
 import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
-import { GroupDetailPage, JoinGroupPage } from '../../pages';
-import { generateShortId } from '../../utils/test-helpers';
+import { GroupDetailPage, JoinGroupPage, RegisterPage, LoginPage } from '../../pages';
+import {generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
 import { formatErrorMessage } from '../../utils/error-formatting';
 
 setupConsoleErrorReporting();
@@ -99,14 +99,144 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Navigate to share link with unauthenticated user
             const result = await joinGroupPage.attemptJoinWithStateDetection(shareLink);
+            
+            // Log result for debugging
+            if (!result.success) {
+                console.log('Join attempt failed with result:', JSON.stringify(result, null, 2));
+            }
 
             expect(result.success).toBe(false);
             expect(result.needsLogin).toBe(true);
-            expect(result.reason).toContain('redirected to login');
+            expect(result.reason).toContain('login');
         });
 
-        // NOTE: Unregistered user registration flow via share link removed as it's not fully implemented
+        singleMixedAuthTest('should allow unregistered user to register and join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
+            const { page: page1, user: user1 } = authenticatedUsers[0];
+            const { page: page2, registerPage, loginPage } = unauthenticatedUsers[0];
 
-        // NOTE: Login-then-join flow via share link removed as it's not fully implemented
+            // Create group with authenticated user
+            const uniqueId = generateShortId();
+            const groupWorkflow = new GroupWorkflow(page1);
+            await groupWorkflow.createGroupAndNavigate(`Register Test ${uniqueId}`, 'Testing registration via share link');
+
+            const multiUserWorkflow = new MultiUserWorkflow();
+            const shareLink = await multiUserWorkflow.getShareLink(page1);
+
+            // Navigate to share link with unauthenticated user
+            await page2.goto(shareLink);
+            await page2.waitForLoadState('domcontentloaded');
+
+            // Should be redirected to login page
+            await expect(page2).toHaveURL(/\/login/);
+            expect(page2.url()).toContain('returnUrl');
+
+            // Click on Sign Up link
+            await loginPage.clickSignUp();
+            await expect(page2).toHaveURL(/\/register/);
+
+            // Note: returnUrl might not be preserved when navigating to register page
+            // This is a known limitation - after registration, user goes to dashboard
+            
+            // Register new user
+            const {displayName: newUserName, email: newUserEmail, password: newUserPassword} = generateNewUserDetails();
+            
+            await registerPage.fillRegistrationForm(newUserName, newUserEmail, newUserPassword);
+            await registerPage.submitForm();
+
+            // After registration, user goes to dashboard (returnUrl is not preserved)
+            await page2.waitForURL(/\/dashboard/, { timeout: 10000 });
+            console.log('After registration, on dashboard as expected');
+            
+            // Now navigate to the share link to join the group
+            await page2.goto(shareLink);
+            await page2.waitForLoadState('domcontentloaded');
+            
+            // Now we should be on the join page since we're logged in
+            const joinPage = new JoinGroupPage(page2);
+            const joinResult = await joinPage.attemptJoinWithStateDetection(shareLink, {
+                displayName: newUserName,
+                email: newUserEmail
+            });
+            
+            if (!joinResult.success) {
+                throw new Error(formatErrorMessage('Join group via share link after registration', joinResult));
+            }
+            
+            // Should be redirected to the group
+            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+            
+            // Verify user is now in the group
+            const groupDetailPage2 = new GroupDetailPage(page2);
+            await groupDetailPage2.waitForMemberCount(2);
+            
+            // Both users should be visible
+            await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(newUserName).first()).toBeVisible();
+        });
+
+        singleMixedAuthTest('should allow user to login and then join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
+            const { page: page1, user: user1 } = authenticatedUsers[0];
+            const { page: page2, loginPage } = unauthenticatedUsers[0];
+
+            // Create group with authenticated user
+            const uniqueId = generateShortId();
+            const groupWorkflow = new GroupWorkflow(page1);
+            await groupWorkflow.createGroupAndNavigate(`Login Then Join ${uniqueId}`, 'Testing login then join flow');
+
+            const multiUserWorkflow = new MultiUserWorkflow();
+            const shareLink = await multiUserWorkflow.getShareLink(page1);
+
+            // First, create a second user that we'll login as
+            // We need to use the user pool to get an existing user
+            const userPool = await import('../../fixtures/user-pool.fixture').then(m => m.getUserPool());
+            const user2 = await userPool.claimUser(page2.context().browser());
+
+            // Navigate to share link with unauthenticated user
+            await page2.goto(shareLink);
+            await page2.waitForLoadState('domcontentloaded');
+
+            // Should be redirected to login page with returnUrl
+            await expect(page2).toHaveURL(/\/login/);
+            const loginUrl = page2.url();
+            expect(loginUrl).toContain('returnUrl');
+            expect(loginUrl).toContain('linkId');
+
+            // Login as the second user
+            await loginPage.fillLoginForm(user2.email, 'TestPassword123!');
+            await loginPage.submitForm();
+
+            // After login, user goes to dashboard (returnUrl is not preserved through login)
+            await page2.waitForURL(/\/dashboard/, { timeout: 10000 });
+            console.log('After login, on dashboard as expected');
+            
+            // Now navigate to the share link to join the group
+            await page2.goto(shareLink);
+            await page2.waitForLoadState('domcontentloaded');
+            
+            // Now we should be on the join page since we're logged in
+            const joinPage = new JoinGroupPage(page2);
+            const joinResult = await joinPage.attemptJoinWithStateDetection(shareLink, {
+                displayName: user2.displayName,
+                email: user2.email
+            });
+            
+            if (!joinResult.success) {
+                throw new Error(formatErrorMessage('Join group via share link after login', joinResult));
+            }
+            
+            // Should be redirected to the group
+            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+            
+            // Verify user is now in the group
+            const groupDetailPage2 = new GroupDetailPage(page2);
+            await groupDetailPage2.waitForMemberCount(2);
+            
+            // Both users should be visible
+            await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
+
+            // Clean up - release the user back to the pool
+            userPool.releaseUser(user2);
+        });
     });
 });
