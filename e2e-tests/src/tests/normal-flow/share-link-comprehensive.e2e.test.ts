@@ -102,7 +102,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             expect(result.success).toBe(false);
             expect(result.needsLogin).toBe(true);
-            expect(result.reason).toContain('log in');
+            expect(result.reason).toContain('redirected to login');
         });
 
         // NOTE: Unregistered user registration flow via share link removed as it's not fully implemented

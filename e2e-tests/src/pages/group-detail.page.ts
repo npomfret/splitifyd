@@ -63,12 +63,12 @@ export class GroupDetailPage extends BasePage {
 
     async clickAddExpenseButton(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
         const result = await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
-        
+
         if (!result.success) {
             const screenshotPath = await takeDebugScreenshot(this.page, 'add-expense-failure');
             throw new Error(formatErrorMessage('Navigate to Add Expense form', result, screenshotPath));
         }
-        
+
         return result.expenseFormPage!;
     }
 
@@ -81,38 +81,27 @@ export class GroupDetailPage extends BasePage {
         userInfo?: { displayName?: string; email?: string }
     ): Promise<ButtonClickResult & { expenseFormPage?: ExpenseFormPage }> {
         const startUrl = this.page.url();
-        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
-        const addButton = this.getAddExpenseButton();
-        
-        // Check button state
-        const addButtonVisible = await addButton.isVisible().catch(() => false);
-        const addButtonEnabled = await addButton.isEnabled().catch(() => false);
-        
-        if (!addButtonVisible) {
-            return {
-                success: false,
-                reason: 'Add Expense button is not visible',
-                startUrl,
-                currentUrl: this.page.url(),
-                addButtonVisible,
-                addButtonEnabled,
-                userInfo
-            };
-        }
-        
-        if (!addButtonEnabled) {
-            return {
-                success: false,
-                reason: 'Add Expense button is disabled',
-                startUrl,
-                currentUrl: this.page.url(),
-                addButtonVisible,
-                addButtonEnabled,
-                userInfo
-            };
-        }
-        
+
         try {
+            const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
+            const addButton = this.getAddExpenseButton();
+
+            // Check button state
+            const addButtonVisible = await addButton.isVisible().catch(() => false);
+            const addButtonEnabled = await addButton.isEnabled().catch(() => false);
+
+            if (!addButtonVisible || !addButtonEnabled) {
+                return {
+                    success: false,
+                    reason: '"Add Expense" button is not clickable',
+                    startUrl,
+                    currentUrl: this.page.url(),
+                    addButtonVisible,
+                    addButtonEnabled,
+                    userInfo
+                };
+            }
+
             await this.clickButton(addButton, { buttonName: 'Add Expense' });
 
             // Wait for navigation to expense form
@@ -134,7 +123,7 @@ export class GroupDetailPage extends BasePage {
             // Wait for any loading spinner to disappear
             const loadingSpinner = this.page.locator('.animate-spin');
             const loadingText = this.page.getByText('Loading expense form...');
-            
+
             if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
                 await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
                 await expect(loadingText).not.toBeVisible({ timeout: 5000 });
@@ -154,7 +143,7 @@ export class GroupDetailPage extends BasePage {
 
             // Create and validate the expense form page
             const expenseFormPage = new ExpenseFormPage(this.page);
-            
+
             // Try to wait for form to be ready
             try {
                 await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
@@ -189,8 +178,6 @@ export class GroupDetailPage extends BasePage {
                 reason: 'Failed to click Add Expense button or navigate',
                 startUrl,
                 currentUrl: this.page.url(),
-                addButtonVisible,
-                addButtonEnabled,
                 error: String(error),
                 userInfo
             };
@@ -205,19 +192,19 @@ export class GroupDetailPage extends BasePage {
     getShareButton() {
         return this.page.getByRole('button', { name: /invite others/i }).first();
     }
-    
+
     getShareDialog() {
         return this.page.getByRole('dialog');
     }
-    
+
     getShareLinkInput() {
         return this.getShareDialog().locator('input[type="text"]');
     }
-    
+
     getCloseButton() {
         return this.page.getByRole('button', { name: /close|×/i }).first();
     }
-    
+
     // User-related accessors
     getUserName(displayName: string) {
         return this.page.getByText(displayName).first();
@@ -674,11 +661,11 @@ export class GroupDetailPage extends BasePage {
         const expense = this.getExpenseByDescription(description);
         // Note: Expense item is not a button but a clickable element
         await expense.click();
-        
+
         // Create and wait for expense detail page to be ready
         const expenseDetailPage = new ExpenseDetailPage(this.page);
         await expenseDetailPage.waitForPageReady();
-        
+
         return expenseDetailPage;
     }
 
@@ -819,7 +806,7 @@ export class GroupDetailPage extends BasePage {
         // Return a simple modal object with the methods the tests expect
         const modal = this.page.getByRole('dialog');
         const saveButton = modal.getByRole('button', { name: 'Save Changes' });
-        
+
         return {
             modal,
             saveButton,
@@ -867,13 +854,13 @@ export class GroupDetailPage extends BasePage {
         // Wait for confirmation dialog to appear
         // The confirmation dialog appears on top of the edit modal
         await this.page.waitForLoadState('domcontentloaded');
-        
+
         // The ConfirmDialog component creates a fixed overlay with the Delete Group title
         // Look for the modal content within the overlay - it has "Delete Group" as title
         // and the confirm message
         const confirmTitle = this.page.getByRole('heading', { name: 'Delete Group' });
         await expect(confirmTitle).toBeVisible({ timeout: 5000 });
-        
+
         // Find the dialog container which is the parent of the title
         const confirmDialog = confirmTitle.locator('..').locator('..');
 
