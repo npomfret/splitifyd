@@ -173,7 +173,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
 
             throw error;
         }
-    }, 4000);
+    }, 3000);
 
     it('documents that API settlement creation now works correctly', async () => {
         /**
