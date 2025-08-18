@@ -44,11 +44,7 @@ test.describe('Three User Settlement Management', () => {
         // SEQUENTIAL JOIN 1: Second user joins first
         const groupDetailPage2 = secondUser.groupDetailPage;
         const joinGroupPage2 = new JoinGroupPage(page2);
-        const joinResult2 = await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
-
-        if (!joinResult2.success) {
-            throw new Error(`Second user failed to join group: ${JSON.stringify(joinResult2)}`);
-        }
+        await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
 
         // Verify second user can actually access the group page
         const page2Url = page2.url();
@@ -69,11 +65,7 @@ test.describe('Three User Settlement Management', () => {
         // SEQUENTIAL JOIN 2: Third user joins ONLY AFTER second user is fully synchronized
         const groupDetailPage3 = thirdUser.groupDetailPage;
         const joinGroupPage3 = new JoinGroupPage(page3);
-        const joinResult3 = await joinGroupPage3.attemptJoinWithStateDetection(shareLink);
-
-        if (!joinResult3.success) {
-            throw new Error(`Third user failed to join group: ${JSON.stringify(joinResult3)}`);
-        }
+        await joinGroupPage3.attemptJoinWithStateDetection(shareLink);
 
         // Verify third user can actually access the group page
         const page3Url = page3.url();

@@ -4,8 +4,7 @@ import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
-import { ButtonClickResult } from '../types';
-import { formatErrorMessage, takeDebugScreenshot } from '../utils/error-formatting';
+import { ButtonClickError } from '../errors/test-errors';
 
 interface ExpenseData {
     description: string;
@@ -61,126 +60,120 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: /settle up/i });
     }
 
+    /**
+     * Waits for the Add Expense button to be visible and enabled.
+     * This ensures the page is fully loaded before attempting to interact with the button.
+     */
+    async waitForAddExpenseButton(timeout = 5000): Promise<void> {
+        const addButton = this.getAddExpenseButton();
+        
+        // Wait for button to be visible
+        await expect(addButton).toBeVisible({ timeout });
+        
+        // Wait for button to be enabled
+        await expect(addButton).toBeEnabled({ timeout });
+    }
+
     async clickAddExpenseButton(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
-        const result = await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
-
-        if (!result.success) {
-            const screenshotPath = await takeDebugScreenshot(this.page, 'add-expense-failure');
-            throw new Error(formatErrorMessage('Navigate to Add Expense form', result, screenshotPath));
-        }
-
-        return result.expenseFormPage!;
+        // Wait for button to be ready first
+        await this.waitForAddExpenseButton();
+        
+        // Now attempt navigation - will throw if it fails
+        return await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
     }
 
     /**
-     * Attempts to navigate to add expense form with comprehensive state detection.
-     * Returns structured information about the navigation result.
+     * Navigates to add expense form with comprehensive state detection.
+     * Throws ButtonClickError with all context if navigation fails.
      */
-    private async attemptAddExpenseNavigation(
-        expectedMemberCount: number,
-        userInfo?: { displayName?: string; email?: string }
-    ): Promise<ButtonClickResult & { expenseFormPage?: ExpenseFormPage }> {
+    private async attemptAddExpenseNavigation(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
         const startUrl = this.page.url();
+        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
+        const addButton = this.getAddExpenseButton();
 
-        try {
-            const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
-            const addButton = this.getAddExpenseButton();
+        // Button readiness is already checked in clickAddExpenseButton
+        // Trust that the button is ready when this method is called
+        await this.clickButton(addButton, { buttonName: 'Add Expense' });
 
-            // Check button state
-            const addButtonVisible = await addButton.isVisible().catch(() => false);
-            const addButtonEnabled = await addButton.isEnabled().catch(() => false);
+        // Wait for navigation to expense form
+        await this.page.waitForURL(expectedUrlPattern, { timeout: 5000 });
+        await this.page.waitForLoadState('domcontentloaded');
 
-            if (!addButtonVisible || !addButtonEnabled) {
-                return {
-                    success: false,
-                    reason: '"Add Expense" button is not clickable',
-                    startUrl,
-                    currentUrl: this.page.url(),
-                    addButtonVisible,
-                    addButtonEnabled,
-                    userInfo
-                };
-            }
-
-            await this.clickButton(addButton, { buttonName: 'Add Expense' });
-
-            // Wait for navigation to expense form
-            await this.page.waitForURL(expectedUrlPattern, { timeout: 5000 });
-            await this.page.waitForLoadState('domcontentloaded');
-
-            // sanity check!
-            let currentUrl = this.page.url();
-            if (!currentUrl.match(expectedUrlPattern)) {
-                return {
-                    success: false,
-                    reason: `Navigation failed - wrong URL pattern`,
-                    startUrl,
-                    currentUrl,
-                    userInfo
-                };
-            }
-
-            // Wait for any loading spinner to disappear
-            const loadingSpinner = this.page.locator('.animate-spin');
-            const loadingText = this.page.getByText('Loading expense form...');
-
-            if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-                await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
-                await expect(loadingText).not.toBeVisible({ timeout: 5000 });
-            }
-
-            // sanity check - verify we're still on the correct page
-            currentUrl = this.page.url();
-            if (!currentUrl.match(expectedUrlPattern)) {
-                return {
-                    success: false,
-                    reason: `Navigation failed - wrong URL pattern`,
-                    startUrl,
-                    currentUrl,
-                    userInfo
-                };
-            }
-
-            // Create and validate the expense form page
-            const expenseFormPage = new ExpenseFormPage(this.page);
-
-            // Try to wait for form to be ready
-            try {
-                await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
-                currentUrl = this.page.url();
-
-                return {
-                    success: true,
-                    reason: 'Successfully navigated to expense form',
-                    startUrl,
-                    currentUrl,
-                    addButtonVisible,
-                    addButtonEnabled,
-                    expenseFormPage,
-                    userInfo
-                };
-            } catch (formError) {
-                currentUrl = this.page.url();
-                return {
-                    success: false,
-                    reason: 'Expense form failed to load properly',
-                    startUrl,
-                    currentUrl,
-                    addButtonVisible,
-                    addButtonEnabled,
-                    error: String(formError),
-                    userInfo
-                };
-            }
-        } catch (error) {
-            return {
+        // sanity check!
+        let currentUrl = this.page.url();
+        if (!currentUrl.match(expectedUrlPattern)) {
+            const result = {
                 success: false,
-                reason: 'Failed to click Add Expense button or navigate',
+                reason: 'Navigation failed - wrong URL pattern',
                 startUrl,
-                currentUrl: this.page.url(),
-                error: String(error),
+                currentUrl:  this.page.url(),
+                expectedPattern: expectedUrlPattern.toString(),
                 userInfo
             };
+            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+            error.context.expectedPattern = expectedUrlPattern.toString();
+            throw error;
+        }
+
+        // Wait for any loading spinner to disappear
+        const loadingSpinner = this.page.locator('.animate-spin');
+        const loadingText = this.page.getByText('Loading expense form...');
+
+        if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
+            try {
+                await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
+                await expect(loadingText).not.toBeVisible({ timeout: 5000 });
+            } catch (timeoutError) {
+                const result = {
+                    success: false,
+                    reason: 'Loading spinner or text did not disappear within timeout',
+                    startUrl,
+                    currentUrl:  this.page.url(),
+                    userInfo,
+                    loadingSpinnerVisible: await loadingSpinner.isVisible().catch(() => false),
+                    loadingTextVisible: await loadingText.isVisible().catch(() => false),
+                    timeout: 5000
+                };
+                const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+                error.context.originalError = timeoutError;
+                throw error;
+            }
+        }
+
+        // sanity check - verify we're still on the correct page
+        if (!this.page.url().match(expectedUrlPattern)) {
+            const result = {
+                success: false,
+                reason: 'Navigation failed after loading - wrong URL pattern',
+                startUrl,
+                currentUrl:  this.page.url(),
+                expectedPattern: expectedUrlPattern.toString(),
+                userInfo
+            };
+            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+            error.context.expectedPattern = expectedUrlPattern.toString();
+            throw error;
+        }
+
+        // Create and validate the expense form page
+        const expenseFormPage = new ExpenseFormPage(this.page);
+
+        // Try to wait for form to be ready
+        try {
+            await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
+            return expenseFormPage;
+        } catch (formError) {
+            const result = {
+                success: false,
+                reason: 'Expense form failed to load properly',
+                startUrl,
+                currentUrl:  this.page.url(),
+                userInfo,
+                error: String(formError)
+            };
+            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
+            error.context.originalError = formError;
+            throw error;
         }
     }
 
@@ -817,16 +810,15 @@ export class GroupDetailPage extends BasePage {
             },
             clearGroupName: async () => {
                 const nameInput = modal.locator('input[type="text"]').first();
-                // Clear using fill('') which triggers Preact's input events properly
-                await nameInput.fill('');
+                // Clear using fillPreactInput with empty string
+                await this.fillPreactInput(nameInput, '');
                 // Trigger blur to ensure validation runs
                 await nameInput.blur();
             },
             editDescription: async (description: string) => {
                 const descriptionTextarea = modal.locator('textarea').first();
-                await descriptionTextarea.click();
-                await descriptionTextarea.press('Control+a');
-                await descriptionTextarea.type(description);
+                // Use fillPreactInput for proper Preact signal updates
+                await this.fillPreactInput(descriptionTextarea, description);
             },
             saveChanges: async () => {
                 // Ensure button is enabled before clicking
@@ -834,7 +826,23 @@ export class GroupDetailPage extends BasePage {
                 await saveButton.click();
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
-                await expect(modal).not.toBeVisible({ timeout: 10000 });
+                try {
+                    await expect(modal).not.toBeVisible({ timeout: 10000 });
+                } catch (timeoutError) {
+                    const currentUrl = this.page.url();
+                    const result = {
+                        success: false,
+                        reason: 'Edit group modal did not close after saving',
+                        currentUrl,
+                        buttonName: 'Save Changes',
+                        modalVisible: await modal.isVisible().catch(() => false),
+                        saveButtonEnabled: await saveButton.isEnabled().catch(() => false),
+                        timeout: 10000
+                    };
+                    const error = ButtonClickError.fromResult('Save group changes', result);
+                    error.context.originalError = timeoutError;
+                    throw error;
+                }
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });
