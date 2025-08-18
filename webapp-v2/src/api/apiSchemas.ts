@@ -311,6 +311,13 @@ export const ListSettlementsResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
+// User profile schemas
+export const UserProfileResponseSchema = z.object({
+    uid: z.string().min(1),
+    email: z.string().email(),
+    displayName: z.string(),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
@@ -335,4 +342,10 @@ export const responseSchemas = {
         data: ListSettlementsResponseSchema,
     }),
     '/settlements/:settlementId': SettlementListItemSchema,
+    // User profile endpoints
+    'GET /user/profile': UserProfileResponseSchema,
+    'PUT /user/profile': UserProfileResponseSchema,
+    'POST /user/change-password': MessageResponseSchema,
+    'POST /user/reset-password': MessageResponseSchema,
+    'DELETE /user/account': MessageResponseSchema,
 } as const;
