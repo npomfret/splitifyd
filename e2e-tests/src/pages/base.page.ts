@@ -2,31 +2,38 @@ import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 
 export abstract class BasePage {
-    constructor(protected page: Page) {}
+    constructor(protected _page: Page) {}
+
+    /**
+     * Public getter for the page property
+     */
+    get page(): Page {
+        return this._page;
+    }
     
     // Common element accessors
     getHeading(name: string | RegExp) {
-        return this.page.getByRole('heading', { name });
+        return this._page.getByRole('heading', { name });
     }
     
     getHeadingByLevel(level: number) {
-        return this.page.getByRole('heading', { level });
+        return this._page.getByRole('heading', { level });
     }
     
     getLink(name: string | RegExp) {
-        return this.page.getByRole('link', { name });
+        return this._page.getByRole('link', { name });
     }
     
     getButton(name: string | RegExp) {
-        return this.page.getByRole('button', { name });
+        return this._page.getByRole('button', { name });
     }
     
     getDialog() {
-        return this.page.getByRole('dialog');
+        return this._page.getByRole('dialog');
     }
     
     getTextbox() {
-        return this.page.getByRole('textbox');
+        return this._page.getByRole('textbox');
     }
 
     /**
@@ -84,7 +91,7 @@ export abstract class BasePage {
      * Includes retry logic to handle text truncation which has been observed to happen under high load (typically during parallel test execution).
      */
     async fillPreactInput(selector: string | Locator, value: string, maxRetries = 3) {
-        const input = typeof selector === 'string' ? this.page.locator(selector) : selector;
+        const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -98,7 +105,7 @@ export abstract class BasePage {
 
                 // Ensure still focused before typing
                 await this.waitForFocus(input);
-                await this.page.waitForLoadState('domcontentloaded');
+                await this._page.waitForLoadState('domcontentloaded');
 
                 // Check if this is a number input or has decimal inputMode
                 const inputType = await input.getAttribute('type');
@@ -117,7 +124,7 @@ export abstract class BasePage {
                 // Check if input was successful
                 const actualValue = await input.inputValue();
                 if (actualValue === value) {
-                    await this.page.waitForLoadState('domcontentloaded');
+                    await this._page.waitForLoadState('domcontentloaded');
                     return; // Success!
                 }
 
@@ -129,7 +136,7 @@ export abstract class BasePage {
                     if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
                         // Values are numerically equal (e.g., "45.50" and "45.5")
                         // With text inputs, this should no longer happen, but keep for safety
-                        await this.page.waitForLoadState('domcontentloaded');
+                        await this._page.waitForLoadState('domcontentloaded');
                         return; // Success - number normalization is expected!
                     }
                 }
@@ -142,7 +149,7 @@ export abstract class BasePage {
                         console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
                     }
                     // Use DOM state waiting instead of arbitrary timeout
-                    await this.page.waitForLoadState('domcontentloaded');
+                    await this._page.waitForLoadState('domcontentloaded');
                 }
             } catch (error) {
                 if (attempt === maxRetries) {
@@ -150,17 +157,17 @@ export abstract class BasePage {
                 }
                 console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
                 // Use DOM state waiting instead of arbitrary timeout
-                await this.page.waitForLoadState('domcontentloaded');
+                await this._page.waitForLoadState('domcontentloaded');
             }
         }
 
         // Final validation after all retries (throws error if still incorrect)
         await this.validateInputValue(input, value);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this._page.waitForLoadState('domcontentloaded');
     }
 
     async waitForNetworkIdle() {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this._page.waitForLoadState('domcontentloaded');
     }
 
     /**
@@ -172,7 +179,7 @@ export abstract class BasePage {
 
         if (isDisabled) {
             // Gather validation error messages for better debugging
-            const errorMessages = await this.page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
+            const errorMessages = await this._page.locator('.error-message, .text-red-500, [role="alert"]').allTextContents();
             const buttonTitle = await button.getAttribute('title');
             const buttonName = buttonText || (await button.textContent()) || 'Submit';
 
@@ -256,7 +263,7 @@ export abstract class BasePage {
      * Use this before clicking submit buttons in forms.
      */
     async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
-        const button = submitButton || this.page.getByRole('button', { name: /submit|create|save|sign in|register/i });
+        const button = submitButton || this._page.getByRole('button', { name: /submit|create|save|sign in|register/i });
         await this.expectButtonEnabled(button, 'Submit');
     }
 
@@ -264,14 +271,14 @@ export abstract class BasePage {
      * Expects the page to match a URL pattern
      */
     async expectUrl(pattern: string | RegExp): Promise<void> {
-        await expect(this.page).toHaveURL(pattern);
+        await expect(this._page).toHaveURL(pattern);
     }
 
     /**
      * Extracts a parameter from the current URL
      */
     getUrlParam(paramName: string): string | null {
-        const url = new URL(this.page.url());
+        const url = new URL(this._page.url());
         const pathParts = url.pathname.split('/');
         const paramIndex = pathParts.indexOf(paramName);
 
@@ -292,42 +299,42 @@ export abstract class BasePage {
      * Navigation helper methods to replace direct page.goto() calls
      */
     async navigateToHomepage(): Promise<void> {
-        await this.page.goto(EMULATOR_URL);
+        await this._page.goto(EMULATOR_URL);
         await this.waitForNetworkIdle();
     }
 
     async navigateToRoot(): Promise<void> {
-        await this.page.goto(EMULATOR_URL);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this._page.goto(EMULATOR_URL);
+        await this._page.waitForLoadState('domcontentloaded');
     }
 
     async navigateToLogin(): Promise<void> {
-        await this.page.goto(`${EMULATOR_URL}/login`);
+        await this._page.goto(`${EMULATOR_URL}/login`);
         await this.waitForNetworkIdle();
     }
 
     async navigateToRegister(): Promise<void> {
-        await this.page.goto(`${EMULATOR_URL}/register`);
+        await this._page.goto(`${EMULATOR_URL}/register`);
         await this.waitForNetworkIdle();
     }
 
     async navigateToPricing(): Promise<void> {
-        await this.page.goto(`${EMULATOR_URL}/pricing`);
+        await this._page.goto(`${EMULATOR_URL}/pricing`);
         await this.waitForNetworkIdle();
     }
 
     async navigateToDashboard(): Promise<void> {
-        await this.page.goto(`${EMULATOR_URL}/dashboard`);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this._page.goto(`${EMULATOR_URL}/dashboard`);
+        await this._page.waitForLoadState('domcontentloaded');
     }
 
     async navigateToShareLink(shareLink: string): Promise<void> {
-        await this.page.goto(shareLink);
+        await this._page.goto(shareLink);
         await this.waitForNetworkIdle();
     }
 
     async navigateToStaticPath(path: string): Promise<void> {
-        await this.page.goto(`${EMULATOR_URL}${path}`);
+        await this._page.goto(`${EMULATOR_URL}${path}`);
         await this.waitForNetworkIdle();
     }
 }

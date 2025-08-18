@@ -37,6 +37,14 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByText(/error|not found|invalid/i);
     }
 
+    getSpecificErrorMessage(pattern: string | RegExp): Locator {
+        return this.page.getByText(pattern);
+    }
+
+    getBackToDashboardButton(): Locator {
+        return this.page.getByRole('button', { name: /back to dashboard/i });
+    }
+
     // Authentication state detection
     async isUserLoggedIn(): Promise<boolean> {
         try {

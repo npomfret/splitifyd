@@ -21,11 +21,11 @@ test.describe('Share Link - Error Scenarios', () => {
     multiUserTest('should handle malformed share links', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
 
-        // Get the base URL from the current page
+        // Get the base URL from the current page using page object
         await page.waitForLoadState('domcontentloaded');
         const baseUrl = page.url().split('/dashboard')[0];
 
-        // Test various malformed links
+        // Test various malformed links using page object navigation
         // When linkId is missing or empty, app redirects to dashboard
         const emptyLinkCases = [`${baseUrl}/join?linkId=`, `${baseUrl}/join`];
 

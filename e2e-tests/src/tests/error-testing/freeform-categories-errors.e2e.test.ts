@@ -63,39 +63,29 @@ test.describe('Freeform Categories Error Testing', () => {
         // Verify expense was created
         await expect(groupDetailPage.getExpenseByDescription('Business lunch')).toBeVisible();
 
-        // Click on the expense to view details/edit
-        const expenseElement = groupDetailPage.getExpenseByDescription('Business lunch');
-        await expenseElement.click();
+        // Click on the expense to view details using page object method
+        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Business lunch');
 
-        // Should navigate to expense detail or edit page
-        await page.waitForLoadState('domcontentloaded');
+        // Click edit button and get the expense form page for editing using page object method
+        const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
 
-        // Look for edit button and click it
-        const editButton = page.getByRole('button', { name: /edit/i });
-        await expect(editButton).toBeVisible({ timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-        await editButton.click();
-
-        // Wait for navigation to the edit page
-        await waitForURLWithContext(page, editExpenseUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
-
-        // Now we should be on the edit expense page
-        // Change the category to a custom one
-        const categoryInput = expenseFormPage.getCategoryInput();
-        await expect(categoryInput).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-
+        // Change the category to a custom one using page object method
         const customCategory = 'Corporate Client Meeting';
-        await groupDetailPage.fillPreactInput(categoryInput, customCategory);
+        await editFormPage.typeCategoryText(customCategory);
 
-        // Save the changes - in edit mode the button says "Update Expense"
-        const updateButton = page.getByRole('button', { name: /update expense/i });
+        // Save the changes using page object method
+        const updateButton = editFormPage.getUpdateExpenseButton();
         await updateButton.click();
 
-        // After updating, we navigate to the expense detail page, not group detail
-        await waitForURLWithContext(page, expenseDetailUrlPattern());
+        // After updating, wait for navigation to expense detail page
+        await editFormPage.expectUrl(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
 
-        // Verify we're on the expense detail page with the updated category
-        await expect(page.getByText('Business lunch', { exact: true })).toBeVisible();
-        await expect(page.getByText(customCategory)).toBeVisible();
+        // Wait for the expense detail page to be ready with updated content
+        await expenseDetailPage.waitForPageReady();
+
+        // Verify we're on the expense detail page with the updated category using page object methods
+        await expenseDetailPage.verifyExpenseHeading(/Business lunch.*\$55\.00/);
+        await expect(expenseDetailPage.page.getByText(customCategory)).toBeVisible();
     });
 
     test('should prevent submission with empty category', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
@@ -114,17 +104,15 @@ test.describe('Freeform Categories Error Testing', () => {
         await expenseFormPage.fillDescription('Test empty category');
         await expenseFormPage.fillAmount('10.00');
 
-        // Clear category field (it might have a default)
-        const categoryInput = expenseFormPage.getCategoryInput();
-        await groupDetailPage.fillPreactInput(categoryInput, '');
+        // Clear category field using page object method
+        await expenseFormPage.typeCategoryText('');
 
-        // Try to submit
+        // Try to submit using page object method
         const saveButton = expenseFormPage.getSaveButtonForValidation();
         await saveButton.click();
 
-        // Should stay on the same page (not navigate away)
-        await page.waitForLoadState('domcontentloaded');
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+        // Should stay on the same page (not navigate away) using page object method
+        await expenseFormPage.expectUrl(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
 
         // There should be an error message or the form should be invalid
         // (specific validation UI depends on implementation)

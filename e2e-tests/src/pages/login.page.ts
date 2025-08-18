@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 
@@ -119,5 +119,73 @@ export class LoginPage extends BasePage {
 
     getErrorMessage() {
         return this.page.locator('[data-testid="error-message"]');
+    }
+
+    // Enhanced methods for form validation testing
+
+    /**
+     * Fill individual form fields using page object methods
+     */
+    async fillFormField(fieldType: 'email' | 'password', value: string): Promise<void> {
+        const input = this.getFormField(fieldType);
+        await this.fillPreactInput(input, value);
+    }
+
+    /**
+     * Get form field by type
+     */
+    getFormField(fieldType: 'email' | 'password'): Locator {
+        switch (fieldType) {
+            case 'email': return this.getEmailInput();
+            case 'password': return this.getPasswordInput();
+        }
+    }
+
+    /**
+     * Clear form fields using page object methods
+     */
+    async clearFormField(fieldType: 'email' | 'password'): Promise<void> {
+        const input = this.getFormField(fieldType);
+        await this.fillPreactInput(input, '');
+    }
+
+    /**
+     * Verify form submission state (enabled/disabled)
+     */
+    async verifyFormSubmissionState(expectedEnabled: boolean): Promise<void> {
+        const submitButton = this.getSubmitButton();
+        if (expectedEnabled) {
+            await expect(submitButton).toBeEnabled();
+        } else {
+            await expect(submitButton).toBeDisabled();
+        }
+    }
+
+    /**
+     * Wait for page to be ready for form interaction
+     */
+    async waitForFormReady(): Promise<void> {
+        await this.page.waitForLoadState('domcontentloaded');
+        await expect(this.getSubmitButton()).toBeVisible();
+        await expect(this.getEmailInput()).toBeVisible();
+        await expect(this.getPasswordInput()).toBeVisible();
+    }
+
+    /**
+     * Enhanced error message detection for various error types
+     */
+    getFormErrorMessage(pattern?: string | RegExp): Locator {
+        if (pattern) {
+            return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"]').filter({ hasText: pattern });
+        }
+        return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"]');
+    }
+
+    /**
+     * Check if form has validation errors
+     */
+    async hasValidationErrors(): Promise<boolean> {
+        const errorElements = this.getFormErrorMessage();
+        return (await errorElements.count()) > 0;
     }
 }

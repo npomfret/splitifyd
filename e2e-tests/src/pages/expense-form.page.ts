@@ -536,4 +536,41 @@ export class ExpenseFormPage extends BasePage {
         // Match text inputs with class w-20 for percentages (appears in split section)
         return this.page.locator('input.w-20[type="text"]').first();
     }
+
+    /**
+     * Get split amount inputs (for exact amounts validation)
+     */
+    getSplitAmountInputs(): Locator {
+        return this.page.locator('input[type="number"][step]').filter({ hasText: '' });
+    }
+
+    /**
+     * Get first split amount input
+     */
+    getFirstSplitAmountInput(): Locator {
+        return this.getSplitAmountInputs().first();
+    }
+
+    /**
+     * Select exact amounts split type using page object method
+     */
+    async selectExactAmountsSplit(): Promise<void> {
+        await this.page.getByText('Exact amounts').click();
+    }
+
+    /**
+     * Select percentage split type using page object method
+     */
+    async selectPercentageSplit(): Promise<void> {
+        await this.getPercentageText().click();
+    }
+
+    /**
+     * Fill split amount for exact amounts
+     */
+    async fillSplitAmount(index: number, amount: string): Promise<void> {
+        const splitInputs = this.getSplitAmountInputs();
+        const targetInput = splitInputs.nth(index);
+        await targetInput.fill(amount);
+    }
 }

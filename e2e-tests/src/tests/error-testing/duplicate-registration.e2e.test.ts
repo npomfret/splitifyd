@@ -15,21 +15,22 @@ test.describe('Duplicate User Registration E2E', () => {
 
         // First registration - should succeed
         await registerPage.navigate();
+        await registerPage.waitForFormReady();
 
-        // Fill registration form
+        // Fill registration form using page object method
         await registerPage.register(displayName, email, password);
 
         // Should redirect to dashboard after successful registration
         await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
 
-        // Log out to attempt second registration
-        // Use the new DashboardPage signOut method
+        // Log out to attempt second registration using page object
         const { DashboardPage } = await import('../../pages');
         const dashboardPage = new DashboardPage(page);
         await dashboardPage.signOut();
 
-        // Navigate to register page
+        // Navigate to register page using page object
         await registerPage.navigate();
+        await registerPage.waitForFormReady();
 
         // Start capturing console messages before the registration attempt
         const consoleMessages: string[] = [];
@@ -37,32 +38,23 @@ test.describe('Duplicate User Registration E2E', () => {
             consoleMessages.push(`${msg.type()}: ${msg.text()}`);
         });
 
-        // Wait for register page to load
-        await page.waitForLoadState('domcontentloaded');
+        // Fill form again with same email using enhanced page object methods
+        await registerPage.fillFormField('name', displayName);
+        await registerPage.fillFormField('email', email);
+        await registerPage.fillFormField('password', password);
+        await registerPage.fillFormField('confirmPassword', password);
+        await registerPage.checkTermsCheckbox();
+        await registerPage.checkCookieCheckbox();
 
-        // Fill form again with same email using page object methods
-        const nameInput = registerPage.getFullNameInput();
-        const emailInput = registerPage.getEmailInput();
-        const passwordInput = registerPage.getPasswordInput();
-        const confirmPasswordInput = registerPage.getConfirmPasswordInput();
-        const termsCheckbox = registerPage.getTermsCheckbox();
-        const cookieCheckbox = registerPage.getCookieCheckbox();
-        const submitButton = registerPage.getSubmitButton();
-
-        await registerPage.fillPreactInput(nameInput, displayName);
-        await registerPage.fillPreactInput(emailInput, email);
-        await registerPage.fillPreactInput(passwordInput, password);
-        await registerPage.fillPreactInput(confirmPasswordInput, password);
-        await termsCheckbox.check();
-        await cookieCheckbox.check();
-
-        // Click register button and wait for the expected error response
-        await Promise.all([page.waitForResponse((response) => response.url().includes('/api/register') && response.status() >= 400, { timeout: TIMEOUT_CONTEXTS.API_RESPONSE }), submitButton.click()]);
+        // Submit form and wait for error response using page object method
+        const responsePromise = registerPage.waitForRegistrationResponse(409);
+        await registerPage.submitForm();
+        await responsePromise;
 
         // Should NOT redirect - should stay on registration page
-        await expect(page).toHaveURL(/\/register/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+        await registerPage.expectUrl(/\/register/);
 
-        // Check for error message on screen using the RegisterPage's error method
+        // Check for error message using enhanced page object method
         const errorElement = registerPage.getEmailError();
         await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
 
@@ -87,19 +79,20 @@ test.describe('Duplicate User Registration E2E', () => {
         const password = 'TestPassword123!';
         const displayName = generateTestUserName('Persist');
 
-        // First registration
+        // First registration using page object
         await registerPage.navigate();
+        await registerPage.waitForFormReady();
         await registerPage.register(displayName, email, password);
 
         // Wait for dashboard
         await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
 
-        // Log out
-        const userMenuButton = page.getByRole('button', { name: displayName });
-        await userMenuButton.click();
-        await page.getByText('Sign out').click();
+        // Log out using page object
+        const { DashboardPage } = await import('../../pages');
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.signOut();
 
-        // Wait for navigation after logout
+        // Wait for navigation after logout using page object
         await page.waitForURL(
             (url) => {
                 const urlStr = url.toString();
@@ -109,38 +102,35 @@ test.describe('Duplicate User Registration E2E', () => {
             { timeout: TIMEOUT_CONTEXTS.URL_CHANGE },
         );
 
-        // Second attempt - navigate to register page
+        // Second attempt - navigate to register page using page object
         await registerPage.navigate();
-        await page.waitForLoadState('domcontentloaded');
+        await registerPage.waitForFormReady();
 
-        // Fill form using the shared helper to trigger Preact signals
-        const nameInput = registerPage.getFullNameInput();
-        const emailInput = registerPage.getEmailInput();
-        const passwordInput = registerPage.getPasswordInput();
-        const confirmPasswordInput = registerPage.getConfirmPasswordInput();
+        // Fill form using enhanced page object methods
+        await registerPage.fillFormField('name', displayName);
+        await registerPage.fillFormField('email', email);
+        await registerPage.fillFormField('password', password);
+        await registerPage.fillFormField('confirmPassword', password);
+        await registerPage.checkTermsCheckbox();
+        await registerPage.checkCookieCheckbox();
 
-        await registerPage.fillPreactInput(nameInput, displayName);
-        await registerPage.fillPreactInput(emailInput, email);
-        await registerPage.fillPreactInput(passwordInput, password);
-        await registerPage.fillPreactInput(confirmPasswordInput, password);
-        const termsCheckbox = registerPage.getTermsCheckbox();
-        const cookieCheckbox = registerPage.getCookieCheckbox();
-        const submitButton = registerPage.getSubmitButton();
+        // Submit and wait for the expected error response using page object method
+        const responsePromise2 = registerPage.waitForRegistrationResponse(409);
+        await registerPage.submitForm();
+        await responsePromise2;
 
-        await termsCheckbox.check();
-        await cookieCheckbox.check();
-
-        // Submit and wait for the expected error response
-        await Promise.all([page.waitForResponse((response) => response.url().includes('/api/register') && response.status() >= 400, { timeout: TIMEOUT_CONTEXTS.API_RESPONSE }), submitButton.click()]);
-
-        // Form fields should still contain the values
+        // Form fields should still contain the values - using page object getters
+        const nameInput = registerPage.getFormField('name');
+        const emailInput = registerPage.getFormField('email');
+        const passwordInput = registerPage.getFormField('password');
+        
         await expect(nameInput).toHaveValue(displayName);
         await expect(emailInput).toHaveValue(email);
         // Password might be cleared for security - check if it has value
         const passwordValue = await passwordInput.inputValue();
         expect(passwordValue.length).toBeGreaterThanOrEqual(0); // Allow it to be cleared or retained
 
-        // Error should be visible
+        // Error should be visible using page object method
         const errorElement = registerPage.getEmailError();
         await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     });
@@ -153,15 +143,16 @@ test.describe('Duplicate User Registration E2E', () => {
         const password = 'TestPassword123!';
         const displayName = generateTestUserName('Recovery');
 
-        // First registration
+        // First registration using page object
         await registerPage.navigate();
+        await registerPage.waitForFormReady();
         await registerPage.register(displayName, email1, password);
         await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
 
-        // Log out
-        const userMenuButton = page.getByRole('button', { name: displayName });
-        await userMenuButton.click();
-        await page.getByText('Sign out').click();
+        // Log out using page object
+        const { DashboardPage } = await import('../../pages');
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.signOut();
 
         // Wait for navigation after logout
         await page.waitForURL(
@@ -173,36 +164,30 @@ test.describe('Duplicate User Registration E2E', () => {
             { timeout: TIMEOUT_CONTEXTS.URL_CHANGE },
         );
 
-        // Try duplicate (should fail)
+        // Try duplicate (should fail) using page object methods
         await registerPage.navigate();
-        await page.waitForLoadState('domcontentloaded');
+        await registerPage.waitForFormReady();
 
-        // Use shared helper for Preact input handling
-        const nameInput = registerPage.getFullNameInput();
-        const emailInput = registerPage.getEmailInput();
-        const passwordInput = registerPage.getPasswordInput();
-        const confirmPasswordInput = registerPage.getConfirmPasswordInput();
-        const termsCheckbox = registerPage.getTermsCheckbox();
-        const submitButton = registerPage.getSubmitButton();
+        // Fill form with duplicate email using enhanced page object methods
+        await registerPage.fillFormField('name', displayName);
+        await registerPage.fillFormField('email', email1);
+        await registerPage.fillFormField('password', password);
+        await registerPage.fillFormField('confirmPassword', password);
+        await registerPage.checkTermsCheckbox();
+        await registerPage.checkCookieCheckbox();
 
-        await registerPage.fillPreactInput(nameInput, displayName);
-        await registerPage.fillPreactInput(emailInput, email1);
-        await registerPage.fillPreactInput(passwordInput, password);
-        await registerPage.fillPreactInput(confirmPasswordInput, password);
-        const cookieCheckbox = registerPage.getCookieCheckbox();
-        await termsCheckbox.check();
-        await cookieCheckbox.check();
+        // Submit and wait for the expected error response using page object method
+        const responsePromise3 = registerPage.waitForRegistrationResponse(409);
+        await registerPage.submitForm();
+        await responsePromise3;
 
-        // Submit and wait for the expected error response
-        await Promise.all([page.waitForResponse((response) => response.url().includes('/api/register') && response.status() >= 400, { timeout: TIMEOUT_CONTEXTS.API_RESPONSE }), submitButton.click()]);
-
-        // Should see error
+        // Should see error using page object method
         const errorElement = registerPage.getEmailError();
         await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
 
-        // Now change email and try again using page object
-        await registerPage.fillPreactInput(emailInput, email2);
-        await submitButton.click();
+        // Now change email and try again using page object method
+        await registerPage.fillFormField('email', email2);
+        await registerPage.submitForm();
 
         // Should succeed this time
         await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
