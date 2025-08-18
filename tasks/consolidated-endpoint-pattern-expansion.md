@@ -76,20 +76,69 @@ async getGroupFullDetails(id: string, options?: {
 - Expenses/settlements change frequently → query by groupId ✅  
 - Follows Firestore best practices for one-to-many relationships
 
-## Implementation Plan
+## Work Items
 
-### Phase 1: Fix Immediate Race Conditions (Priority: HIGH)
-1. **AddExpensePage**: Update useExpenseForm to use consolidated endpoint
-2. **ExpenseDetailPage**: Create `/expenses/:id/full-details` endpoint
+### HIGH Priority - Fix Immediate Issues
 
-### Phase 2: Enhance Consolidated Endpoint (Priority: MEDIUM)
-1. Add pagination parameters to getGroupFullDetails
-2. Update frontend to support progressive loading
-3. Add cursor-based pagination to UI components
+#### WI-001: Fix AddExpensePage Loading Spinner Bug
+- **Type**: Bug Fix
+- **Effort**: Small (15 mins)
+- **Description**: Add `loadingSignal.value = false;` to catch block in `enhancedGroupDetailStore.ts`
+- **Files**: `/webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
+- **Acceptance Criteria**: Loading spinner disappears when group loading fails
+- **Testing**: Verify error scenarios reset loading state properly
 
-### Phase 3: Additional Consolidation (Priority: LOW)
-1. Consider `/dashboard/full-details` for dashboard page
-2. Monitor for other race condition patterns in user testing
+#### WI-002: Create ExpenseDetailPage Consolidated Endpoint
+- **Type**: Feature
+- **Effort**: Medium (2-3 hours)
+- **Description**: Create `/expenses/:id/full-details` endpoint to eliminate race conditions
+- **Files**: 
+  - `/firebase/functions/src/expenses/handlers.ts` - Add new endpoint
+  - `/webapp-v2/src/pages/ExpenseDetailPage.tsx` - Update to use consolidated endpoint
+- **Acceptance Criteria**: Single API call loads expense + group data atomically
+- **Testing**: Verify no loading state conflicts
+
+### MEDIUM Priority - Progressive Enhancements
+
+#### WI-003: Add Pagination to Group Full Details Endpoint
+- **Type**: Enhancement
+- **Effort**: Medium (2-3 hours)
+- **Description**: Add expense/settlement pagination parameters to `/groups/:id/full-details`
+- **Files**: `/firebase/functions/src/groups/handlers.ts`
+- **API Changes**:
+  ```typescript
+  async getGroupFullDetails(id: string, options?: {
+    expenseLimit?: number;
+    expenseCursor?: string;  
+    settlementLimit?: number;
+    settlementCursor?: string;
+  })
+  ```
+- **Acceptance Criteria**: Supports progressive loading for large groups
+- **Testing**: Verify pagination works with large datasets
+
+#### WI-004: Frontend Progressive Loading Support
+- **Type**: Enhancement  
+- **Effort**: Medium (2-3 hours)
+- **Description**: Update group detail store to support "load more" functionality
+- **Files**: `/webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
+- **Acceptance Criteria**: Users can load more expenses/settlements incrementally
+- **Testing**: Verify smooth UX for pagination
+
+### LOW Priority - Future Optimizations
+
+#### WI-005: Dashboard Consolidation Analysis
+- **Type**: Research
+- **Effort**: Small (1 hour)
+- **Description**: Analyze if dashboard page needs consolidated endpoint pattern
+- **Deliverable**: Analysis document with recommendation
+- **Acceptance Criteria**: Clear recommendation with technical justification
+
+#### WI-006: Race Condition Monitoring
+- **Type**: Monitoring
+- **Effort**: Small (ongoing)
+- **Description**: Monitor user feedback and analytics for other race condition patterns
+- **Acceptance Criteria**: Systematic tracking of loading state issues
 
 ## Technical Notes
 
