@@ -110,3 +110,13 @@ async getGroupFullDetails(id: string, options?: {
 - `/webapp-v2/src/app/hooks/useExpenseForm.ts` - Needs consolidation
 - `/webapp-v2/src/pages/ExpenseDetailPage.tsx` - Needs consolidation
 - `/firebase/functions/src/groups/handlers.ts` - Contains consolidated endpoint
+
+## Update: Root Cause Analysis for AddExpensePage
+
+Further investigation into the `AddExpensePage` race condition revealed that the initial analysis was partially incorrect.
+
+- **Correct Finding**: The `useExpenseForm.ts` hook *was* already using the consolidated endpoint via the `enhancedGroupDetailStore.fetchGroup(groupId)` method.
+- **True Root Cause**: The "stuck loading spinner" bug was not caused by multiple API calls. It was caused by a bug in the error handling logic within the `loadGroup` method of `enhancedGroupDetailStore.ts`. In the event of an API error (e.g., the group fails to load), the `loading` signal was never set back to `false`.
+- **Revised Solution**: The fix is not to change the `useExpenseForm` hook, but to add `loadingSignal.value = false;` to the `catch` block in `enhancedGroupDetailStore.ts` to ensure the loading state is always reset.
+
+This finding means that the `AddExpensePage` part of **Phase 1** is simpler than anticipated, requiring only a minor fix to the store instead of a larger refactoring of the hook. The analysis for `ExpenseDetailPage` remains valid.
