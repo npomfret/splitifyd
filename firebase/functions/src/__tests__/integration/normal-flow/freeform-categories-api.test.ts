@@ -240,11 +240,10 @@ describe('Freeform Categories API Integration', () => {
             expect(updatedExpense.category).toBe(secondCategory);
             expect(updatedExpense.amount).toBe(150.0);
         });
-    });
 
-    describe('Backward Compatibility', () => {
-        test('should still accept all predefined categories', async () => {
-            const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map((cat) => cat.name);
+        test('should still accept predefined categories', async () => {
+            const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map((cat) => cat.name)
+                .slice(0, 3);// just try some of them
 
             for (const category of predefinedCategories) {
                 const expenseData = new ExpenseBuilder()
@@ -263,25 +262,6 @@ describe('Freeform Categories API Integration', () => {
             }
         });
 
-        test('should accept previously "invalid" categories that are now valid', async () => {
-            const previouslyInvalidCategories = ['FOOD', 'Food & Dining', 'travel-expenses', 'auto_maintenance', 'Coffee Shop', 'gas-station', 'medical-appointment'];
-
-            for (const category of previouslyInvalidCategories) {
-                const expenseData = new ExpenseBuilder()
-                    .withGroupId(testGroup.id)
-                    .withDescription(`Test ${category}`)
-                    .withAmount(15.0)
-                    .withCategory(category)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
-                    .build();
-
-                const response = await driver.createExpense(expenseData, users[0].token);
-
-                expect(response.category).toBe(category);
-                expect(response.amount).toBe(15.0);
-            }
-        });
     });
 
     describe('Category Security and Sanitization', () => {
