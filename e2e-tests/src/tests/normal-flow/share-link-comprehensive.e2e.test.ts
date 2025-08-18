@@ -5,6 +5,7 @@ import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
 import { GroupDetailPage, JoinGroupPage } from '../../pages';
 import { generateShortId } from '../../utils/test-helpers';
+import { formatErrorMessage } from '../../utils/error-formatting';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -33,7 +34,7 @@ test.describe('Comprehensive Share Link Testing', () => {
                 email: user2.email 
             });
             if (!joinResult.success) {
-                throw new Error(`Failed to join group: ${joinResult.reason}`);
+                throw new Error(formatErrorMessage('Join group via share link', joinResult));
             }
 
             // Verify user2 is now in the group
@@ -64,7 +65,7 @@ test.describe('Comprehensive Share Link Testing', () => {
                 email: user2.email 
             });
             if (!joinResult.success) {
-                throw new Error(`Failed to join group: ${joinResult.reason}`);
+                throw new Error(formatErrorMessage('Join group via share link', joinResult));
             }
 
             // User2 tries to join again - should show already member message

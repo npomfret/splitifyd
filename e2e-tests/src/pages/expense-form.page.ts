@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
+import { createErrorContext } from '../utils/error-formatting';
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {
@@ -22,10 +23,27 @@ export class ExpenseFormPage extends BasePage {
      * Waits for the expense form to be fully ready with all members loaded.
      * This is called automatically by clickAddExpenseButton() so forms are always ready.
      * Note: Loading spinner check is handled in clickAddExpenseButton() before this method is called.
+     * @param expectedMemberCount - The expected number of members in the group
+     * @param userInfo - Optional user info for debugging
      */
-    async waitForFormReady(expectedMemberCount: number): Promise<void> {
-        // sanity check the url
-        await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+    async waitForFormReady(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<void> {
+        const currentUrl = this.page.url();
+        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
+        
+        // Enhanced URL check with better error reporting
+        if (!currentUrl.match(expectedUrlPattern)) {
+            const errorContext = createErrorContext(
+                'Expense form URL validation failed - navigation to expense form likely failed',
+                currentUrl,
+                userInfo,
+                {
+                    expectedUrlPattern: '/groups/[id]/add-expense',
+                    expectedMemberCount
+                }
+            );
+            
+            throw new Error(`waitForFormReady failed\n${JSON.stringify(errorContext, null, 2)}`);
+        }
 
         // Step 1: Wait for basic page layout elements to be visible
         // Check for the expense form header

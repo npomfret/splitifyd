@@ -1,6 +1,7 @@
 import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import { NavigationResult } from '../types';
 
 /**
  * Page object for join group functionality via share links.
@@ -237,14 +238,9 @@ export class JoinGroupPage extends BasePage {
     async attemptJoinWithStateDetection(
         shareLink: string,
         userInfo?: { displayName?: string; email?: string },
-    ): Promise<{
-        success: boolean;
-        reason: string;
+    ): Promise<NavigationResult & {
         needsLogin: boolean;
         alreadyMember: boolean;
-        error: boolean;
-        currentUrl?: string;
-        userInfo?: { displayName?: string; email?: string };
     }> {
         await this.navigateToShareLink(shareLink);
 
