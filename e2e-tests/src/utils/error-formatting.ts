@@ -3,7 +3,8 @@
  */
 
 import { NavigationResult, OperationResult } from '../types';
-import * as fs from "node:fs";
+import * as path from 'path';
+import * as fs from 'fs';
 import assert from "assert";
 
 /**
@@ -26,9 +27,17 @@ export async function takeDebugScreenshot(
     prefix: string = 'debug'
 ): Promise<string> {
     const timestamp = Date.now();
-    const path = `e2e-tests/playwright-report/ad-hoc/${prefix}-${timestamp}.png`;
-    await page.screenshot({ path, fullPage: false });
-    return path;
+    const projectRoot = path.resolve(__dirname, '../../..');
+    const tmpDir = path.join(projectRoot, 'tmp');
+    
+    // Ensure tmp directory exists
+    if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+    }
+    
+    const screenshotPath = path.join(tmpDir, `${prefix}-${timestamp}.png`);
+    await page.screenshot({ path: screenshotPath, fullPage: false });
+    return screenshotPath;
 }
 
 /**

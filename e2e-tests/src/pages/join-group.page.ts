@@ -2,6 +2,8 @@ import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import { NavigationResult } from '../types';
+import * as path from 'path';
+import * as fs from 'fs';
 
 /**
  * Page object for join group functionality via share links.
@@ -408,13 +410,6 @@ export class JoinGroupPage extends BasePage {
             timestamp,
             pageState,
         };
-    }
-
-    async takeDebugScreenshot(name: string = 'join-group-debug'): Promise<void> {
-        await this.page.screenshot({
-            path: `tmp/debug-screenshots/${name}-${Date.now()}.png`,
-            fullPage: true,
-        });
     }
 
     // Helper for debugging failed joins
