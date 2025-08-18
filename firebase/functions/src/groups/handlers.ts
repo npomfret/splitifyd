@@ -13,6 +13,9 @@ import { logger } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { _getGroupMembersData } from './memberHandlers';
+import { _getGroupExpensesData } from '../expenses/handlers';
+import { _getGroupSettlementsData } from '../settlements/handlers';
 
 /**
  * Get the groups collection reference
@@ -472,6 +475,56 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     }
 
     res.json(response);
+};
+
+/**
+ * Get consolidated group details (group + members + expenses + balances + settlements)
+ * Reuses existing tested handler logic to eliminate race conditions
+ */
+export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const userId = req.user?.uid;
+    if (!userId) {
+        throw Errors.UNAUTHORIZED();
+    }
+    const groupId = validateGroupId(req.params.id);
+
+    try {
+        // Reuse existing tested functions for each data type
+        const { group } = await fetchGroupWithAccess(groupId, userId);
+        
+        // Use extracted internal functions to eliminate duplication
+        const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
+            // Get members using extracted function
+            _getGroupMembersData(groupId, group.memberIds),
+            
+            // Get expenses using extracted function  
+            _getGroupExpensesData(groupId, { limit: 20 }),
+            
+            // Get balances using existing calculator
+            calculateGroupBalances(groupId),
+            
+            // Get settlements using extracted function
+            _getGroupSettlementsData(groupId, { limit: 20 })
+        ]);
+
+        // Construct response using existing patterns
+        const response = {
+            group,
+            members: membersData,
+            expenses: expensesData,
+            balances: balancesData,
+            settlements: settlementsData
+        };
+
+        res.json(response);
+    } catch (error) {
+        logger.error('Error in getGroupFullDetails', {
+            error: error instanceof Error ? error : new Error(String(error)),
+            groupId,
+            userId,
+        });
+        throw error;
+    }
 };
 
 /**

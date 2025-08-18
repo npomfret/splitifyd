@@ -496,19 +496,26 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
     }
 };
 
-export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-
-    const groupId = req.query.groupId as string;
-    if (!groupId) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
-    }
-
-    await verifyGroupMembership(groupId, userId);
-
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const cursor = req.query.cursor as string;
-    const includeDeleted = req.query.includeDeleted === 'true';
+/**
+ * Internal function to get group expenses data
+ * Used by both the HTTP handler and consolidated endpoints
+ */
+export const _getGroupExpensesData = async (
+    groupId: string, 
+    options: {
+        limit?: number;
+        cursor?: string;
+        includeDeleted?: boolean;
+    } = {}
+): Promise<{
+    expenses: any[];
+    count: number;
+    hasMore: boolean;
+    nextCursor?: string;
+}> => {
+    const limit = Math.min(options.limit || 20, 100);
+    const cursor = options.cursor;
+    const includeDeleted = options.includeDeleted || false;
 
     let query = getExpensesCollection()
         .where('groupId', '==', groupId)
@@ -591,12 +598,36 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
         nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
     }
 
-    res.json({
+    return {
         expenses,
         count: expenses.length,
         hasMore,
         nextCursor,
+    };
+};
+
+export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const userId = validateUserAuth(req);
+
+    const groupId = req.query.groupId as string;
+    if (!groupId) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
+    }
+
+    await verifyGroupMembership(groupId, userId);
+
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const cursor = req.query.cursor as string;
+    const includeDeleted = req.query.includeDeleted === 'true';
+
+    // Use extracted function to get expenses data
+    const result = await _getGroupExpensesData(groupId, {
+        limit,
+        cursor,
+        includeDeleted
     });
+
+    res.json(result);
 };
 
 export const listUserExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

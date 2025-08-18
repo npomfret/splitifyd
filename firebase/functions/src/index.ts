@@ -16,7 +16,7 @@ import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './gr
 import { getGroupBalances } from './groups/balanceHandlers';
 import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
-import { createGroup, getGroup, updateGroup, deleteGroup, listGroups } from './groups/handlers';
+import { createGroup, getGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
 import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { admin, db } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
@@ -293,6 +293,7 @@ function setupRoutes(app: express.Application): void {
 
     // Parameterized routes come last
     app.get(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(getGroup));
+    app.get(`/${FirestoreCollections.GROUPS}/:id/full-details`, authenticate, asyncHandler(getGroupFullDetails));
     app.get(`/${FirestoreCollections.GROUPS}/:id/members`, authenticate, asyncHandler(getGroupMembers));
     app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));

@@ -403,6 +403,93 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
     }
 };
 
+/**
+ * Internal function to get group settlements data
+ * Used by both the HTTP handler and consolidated endpoints
+ */
+export const _getGroupSettlementsData = async (
+    groupId: string,
+    options: {
+        limit?: number;
+        cursor?: string;
+        userId?: string;
+        startDate?: string;
+        endDate?: string;
+    } = {}
+): Promise<{
+    settlements: SettlementListItem[];
+    count: number;
+    hasMore: boolean;
+    nextCursor?: string;
+}> => {
+    const limit = options.limit || 50;
+    const cursor = options.cursor;
+    const filterUserId = options.userId;
+    const startDate = options.startDate;
+    const endDate = options.endDate;
+
+    let query: admin.firestore.Query = getSettlementsCollection()
+        .where('groupId', '==', groupId)
+        .orderBy('date', 'desc')
+        .limit(limit);
+
+    if (filterUserId) {
+        query = query.where(admin.firestore.Filter.or(
+            admin.firestore.Filter.where('payerId', '==', filterUserId),
+            admin.firestore.Filter.where('payeeId', '==', filterUserId)
+        ));
+    }
+
+    if (startDate) {
+        query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
+    }
+
+    if (endDate) {
+        query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
+    }
+
+    if (cursor) {
+        const cursorDoc = await getSettlementsCollection().doc(cursor).get();
+        if (cursorDoc.exists) {
+            query = query.startAfter(cursorDoc);
+        }
+    }
+
+    const snapshot = await query.get();
+
+    const settlements: SettlementListItem[] = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            const [payerData, payeeData] = await Promise.all([
+                fetchUserData(data.payerId),
+                fetchUserData(data.payeeId)
+            ]);
+
+            return {
+                id: doc.id,
+                groupId: data.groupId,
+                payer: payerData,
+                payee: payeeData,
+                amount: data.amount,
+                currency: data.currency,
+                date: timestampToISO(data.date),
+                note: data.note,
+                createdAt: timestampToISO(data.createdAt),
+            };
+        }),
+    );
+
+    const hasMore = snapshot.docs.length === limit;
+    const nextCursor = hasMore && snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : undefined;
+
+    return {
+        settlements,
+        count: settlements.length,
+        hasMore,
+        nextCursor,
+    };
+};
+
 export const listSettlements = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = validateUserAuth(req);
@@ -416,59 +503,18 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
 
         await verifyGroupMembership(groupId, userId);
 
-        let query: admin.firestore.Query = getSettlementsCollection().where('groupId', '==', groupId).orderBy('date', 'desc').limit(limit);
-
-        if (filterUserId) {
-            query = query.where(admin.firestore.Filter.or(admin.firestore.Filter.where('payerId', '==', filterUserId), admin.firestore.Filter.where('payeeId', '==', filterUserId)));
-        }
-
-        if (startDate) {
-            query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
-        }
-
-        if (endDate) {
-            query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
-        }
-
-        if (cursor) {
-            const cursorDoc = await getSettlementsCollection().doc(cursor).get();
-            if (cursorDoc.exists) {
-                query = query.startAfter(cursorDoc);
-            }
-        }
-
-        const snapshot = await query.get();
-
-        const settlements: SettlementListItem[] = await Promise.all(
-            snapshot.docs.map(async (doc) => {
-                const data = doc.data();
-                const [payerData, payeeData] = await Promise.all([fetchUserData(data.payerId), fetchUserData(data.payeeId)]);
-
-                return {
-                    id: doc.id,
-                    groupId: data.groupId,
-                    payer: payerData,
-                    payee: payeeData,
-                    amount: data.amount,
-                    currency: data.currency,
-                    date: timestampToISO(data.date),
-                    note: data.note,
-                    createdAt: timestampToISO(data.createdAt),
-                };
-            }),
-        );
-
-        const hasMore = snapshot.docs.length === limit;
-        const nextCursor = hasMore && snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : undefined;
+        // Use extracted function to get settlements data
+        const result = await _getGroupSettlementsData(groupId, {
+            limit,
+            cursor,
+            userId: filterUserId,
+            startDate,
+            endDate
+        });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
-            data: {
-                settlements,
-                count: settlements.length,
-                hasMore,
-                nextCursor,
-            },
+            data: result,
         });
     } catch (error) {
         logger.error('Error listing settlements:', error instanceof Error ? error : new Error('Unknown error'));

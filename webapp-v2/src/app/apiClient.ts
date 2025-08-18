@@ -20,6 +20,7 @@ import type {
     CreateSettlementRequest,
     Settlement,
     SettlementListItem,
+    User,
 } from '@shared/shared-types';
 
 // Define HealthCheckResponse locally since it's not in shared types
@@ -584,6 +585,21 @@ export class ApiClient {
             params: { id },
         });
     }
+
+    async getGroupFullDetails(id: string): Promise<{
+        group: Group;
+        members: { members: User[] };
+        expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
+        balances: GroupBalances;
+        settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
+    }> {
+        return this.request({
+            endpoint: '/groups/:id/full-details',
+            method: 'GET',
+            params: { id },
+        });
+    }
+
 
     async getGroupMembers(id: string): Promise<GroupMembersResponse> {
         return this.request({

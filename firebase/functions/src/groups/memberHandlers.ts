@@ -51,6 +51,47 @@ const getInitials = (nameOrEmail: string): string => {
 };
 
 /**
+ * Internal function to get group members data
+ * Used by both the HTTP handler and consolidated endpoints
+ */
+export const _getGroupMembersData = async (groupId: string, memberIds: string[]): Promise<GroupMembersResponse> => {
+    // Fetch member profiles
+    const memberProfiles = await userService.getUsers(memberIds);
+
+    // Convert to User format
+    const members: User[] = memberIds.map((memberId: string) => {
+        const profile = memberProfiles.get(memberId);
+        if (!profile) {
+            logger.warn('Member profile not found', { memberId, groupId });
+            // Return minimal user object for missing profiles
+            return {
+                uid: memberId,
+                name: 'Unknown User',
+                initials: '?',
+                email: '',
+                displayName: 'Unknown User',
+            };
+        }
+
+        return {
+            uid: memberId,
+            name: profile.displayName,
+            initials: getInitials(profile.displayName),
+            email: profile.email,
+            displayName: profile.displayName,
+        };
+    });
+
+    // Sort members alphabetically by display name
+    members.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+    return {
+        members,
+        hasMore: false,
+    };
+};
+
+/**
  * Get members of a group
  * Returns member profiles for all users in the group
  */
@@ -78,40 +119,8 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
             throw Errors.FORBIDDEN();
         }
 
-        // Fetch member profiles
-        const memberProfiles = await userService.getUsers(group.memberIds);
-
-        // Convert to User format
-        const members: User[] = group.memberIds.map((memberId: string) => {
-            const profile = memberProfiles.get(memberId);
-            if (!profile) {
-                logger.warn('Member profile not found', { memberId, groupId });
-                // Return minimal user object for missing profiles
-                return {
-                    uid: memberId,
-                    name: 'Unknown User',
-                    initials: '?',
-                    email: '',
-                    displayName: 'Unknown User',
-                };
-            }
-
-            return {
-                uid: memberId,
-                name: profile.displayName,
-                initials: getInitials(profile.displayName),
-                email: profile.email,
-                displayName: profile.displayName,
-            };
-        });
-
-        // Sort members alphabetically by display name
-        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-        const response: GroupMembersResponse = {
-            members,
-            hasMore: false,
-        };
+        // Use extracted function to get members data
+        const response = await _getGroupMembersData(groupId, group.memberIds);
 
         res.json(response);
     } catch (error) {

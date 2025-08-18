@@ -115,15 +115,29 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.currentGroupId = groupId;
 
         try {
-            // Initial load via REST
-            const [groupData] = await Promise.all([apiClient.getGroup(groupId), this.fetchMembers(), this.fetchExpenses(), this.fetchBalances(), this.fetchSettlements()]);
+            // Use consolidated endpoint to eliminate race conditions
+            const fullDetails = await apiClient.getGroupFullDetails(groupId);
 
-            groupSignal.value = groupData;
+            // Update all signals atomically using batch to prevent race conditions
+            batch(() => {
+                groupSignal.value = fullDetails.group;
+                membersSignal.value = fullDetails.members.members;
+                expensesSignal.value = fullDetails.expenses.expenses;
+                balancesSignal.value = fullDetails.balances;
+                settlementsSignal.value = fullDetails.settlements.settlements;
+                
+                // Update pagination state
+                hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
+                expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
+                hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
+                
+                // CRITICAL: Only set loading to false AFTER all data is populated
+                loadingSignal.value = false;
+            });
         } catch (error) {
             errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
             throw error;
-        } finally {
-            loadingSignal.value = false;
         }
     }
 
@@ -181,6 +195,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         loadingMembersSignal.value = true;
         try {
             const memberData = await apiClient.getGroupMembers(this.currentGroupId);
+            if (memberData.members.length === 0) {
+                logError('group has no members', {groupId: this.currentGroupId})
+            }
             membersSignal.value = memberData.members;
         } catch (error) {
             logWarning('Failed to fetch members', { error });

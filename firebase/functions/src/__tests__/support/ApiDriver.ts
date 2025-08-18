@@ -273,6 +273,16 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
     }
 
+    async getGroupFullDetails(groupId: string, token: string): Promise<{
+        group: any;
+        members: { members: any[] };
+        expenses: { expenses: any[]; hasMore: boolean; nextCursor?: string };
+        balances: any;
+        settlements: { settlements: any[]; hasMore: boolean; nextCursor?: string };
+    }> {
+        return await this.apiRequest(`/groups/${groupId}/full-details`, 'GET', null, token);
+    }
+
     async updateGroup(groupId: string, data: any, token: string): Promise<void> {
         return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
     }
