@@ -65,8 +65,8 @@ export class GroupDetailPage extends BasePage {
         const result = await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
 
         if (!result.success) {
-            const screenshotPath = await takeDebugScreenshot(this.page, 'add-expense-failure');
-            throw new Error(formatErrorMessage('Navigate to Add Expense form', result, screenshotPath));
+            // const screenshotPath = await takeDebugScreenshot(this.page, 'add-expense-failure');
+            throw new Error(formatErrorMessage('Navigate to Add Expense form', result));
         }
 
         return result.expenseFormPage!;

@@ -3,6 +3,8 @@
  */
 
 import { NavigationResult, OperationResult } from '../types';
+import * as fs from "node:fs";
+import assert from "assert";
 
 /**
  * Formats a navigation or operation result into a readable error message

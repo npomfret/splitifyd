@@ -7,7 +7,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { GroupActions, GroupHeader, MembersList, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
+import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { logError } from '../utils/browser-logger';
@@ -170,7 +170,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <GroupDetailGrid
                 leftSidebar={
                     <>
-                        <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} variant="sidebar" onInviteClick={handleShare} />
+                        <MembersListWithManagement 
+                            members={members.value} 
+                            createdBy={group.value!.createdBy || ''} 
+                            currentUserId={currentUser.value.uid}
+                            groupId={groupId!}
+                            balances={balances.value}
+                            loading={loadingMembers.value} 
+                            variant="sidebar" 
+                            onInviteClick={handleShare}
+                            onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
+                        />
 
                         <GroupActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} variant="vertical" />
                     </>
@@ -202,7 +212,16 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only members list */}
                         <div className="lg:hidden">
-                            <MembersList members={members.value} createdBy={group.value!.createdBy || ''} loading={loadingMembers.value} onInviteClick={handleShare} />
+                            <MembersListWithManagement 
+                                members={members.value} 
+                                createdBy={group.value!.createdBy || ''} 
+                                currentUserId={currentUser.value.uid}
+                                groupId={groupId!}
+                                balances={balances.value}
+                                loading={loadingMembers.value} 
+                                onInviteClick={handleShare}
+                                onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
+                            />
                         </div>
 
                         {/* Mobile-only balance summary */}
