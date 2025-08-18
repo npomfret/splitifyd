@@ -110,7 +110,6 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
 
         const response: GroupMembersResponse = {
             members,
-            totalCount: members.length,
             hasMore: false,
         };
 

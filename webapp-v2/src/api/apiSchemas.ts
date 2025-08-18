@@ -213,7 +213,6 @@ export const GroupMembersResponseSchema = z.object({
             themeColor: UserThemeColorSchema.optional(),
         }),
     ),
-    totalCount: z.number(),
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
 });

@@ -48,9 +48,9 @@ describe('Group Members Integration Tests', () => {
 
             expect(response).toMatchObject({
                 members: expect.arrayContaining([expect.objectContaining({ uid: users[0].uid }), expect.objectContaining({ uid: users[1].uid }), expect.objectContaining({ uid: users[2].uid })]),
-                totalCount: 3,
                 hasMore: false,
             });
+            expect(response.members.length).toBe(3);
         });
 
         it('should return members sorted alphabetically', async () => {
@@ -96,7 +96,7 @@ describe('Group Members Integration Tests', () => {
             // Verify member was removed by checking group members via API
             const membersResponse = await driver.getGroupMembers(groupId, users[0].token);
             expect(membersResponse.members.map((m: any) => m.uid)).not.toContain(memberToLeave.uid);
-            expect(membersResponse.totalCount).toBe(2);
+            expect(membersResponse.members.length).toBe(2);
         });
 
         it('should prevent the creator from leaving', async () => {
@@ -163,7 +163,7 @@ describe('Group Members Integration Tests', () => {
             // Verify member was removed by checking group members via API
             const membersResponse = await driver.getGroupMembers(groupId, creator.token);
             expect(membersResponse.members.map((m: any) => m.uid)).not.toContain(memberToRemove.uid);
-            expect(membersResponse.totalCount).toBe(2);
+            expect(membersResponse.members.length).toBe(2);
         });
 
         it('should prevent non-creator from removing members', async () => {
@@ -234,7 +234,7 @@ describe('Group Members Integration Tests', () => {
             // Verify only creator remains via API
             const membersResponse = await driver.getGroupMembers(groupId, users[0].token);
             expect(membersResponse.members.map((m: any) => m.uid)).toEqual([users[0].uid]);
-            expect(membersResponse.totalCount).toBe(1);
+            expect(membersResponse.members.length).toBe(1);
         });
 
         it('should prevent access after leaving group', async () => {
@@ -265,7 +265,7 @@ describe('Group Members Integration Tests', () => {
             // Verify only creator remains via API
             const membersResponse = await driver.getGroupMembers(groupId, creator.token);
             expect(membersResponse.members.map((m: any) => m.uid)).toEqual([creator.uid]);
-            expect(membersResponse.totalCount).toBe(1);
+            expect(membersResponse.members.length).toBe(1);
         });
     });
 });

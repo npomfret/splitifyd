@@ -320,6 +320,26 @@ export class ApiDriver {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
+    async getUserProfile(token: string | null): Promise<any> {
+        return await this.apiRequest('/user/profile', 'GET', null, token);
+    }
+
+    async updateUserProfile(token: string | null, updates: { displayName?: string; photoURL?: string | null }): Promise<any> {
+        return await this.apiRequest('/user/profile', 'PUT', updates, token);
+    }
+
+    async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<any> {
+        return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
+    }
+
+    async sendPasswordResetEmail(email: string): Promise<any> {
+        return await this.apiRequest('/user/reset-password', 'POST', { email }, null);
+    }
+
+    async deleteUserAccount(token: string | null, confirmDelete: boolean): Promise<any> {
+        return await this.apiRequest('/user/account', 'DELETE', { confirmDelete }, token);
+    }
+
     private async pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {
         const {timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry} = options;
 

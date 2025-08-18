@@ -292,7 +292,6 @@ export interface ListGroupsResponse {
 // Group members response
 export interface GroupMembersResponse {
     members: User[];
-    totalCount: number;
     hasMore: boolean;
     nextCursor?: string;
 }

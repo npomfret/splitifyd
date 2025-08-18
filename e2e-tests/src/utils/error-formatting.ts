@@ -5,6 +5,7 @@
 import { NavigationResult } from '../types';
 import * as path from 'path';
 import * as fs from 'fs';
+import assert from "assert";
 
 /**
  * Takes a screenshot and returns the path
