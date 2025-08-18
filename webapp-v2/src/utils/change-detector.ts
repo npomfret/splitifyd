@@ -74,7 +74,8 @@ export class ChangeDetector {
         if (filters.groupId) {
             q = query(collectionRef, where('groupId', '==', filters.groupId));
         } else if (filters.userId) {
-            q = query(collectionRef, where('metadata.affectedUsers', 'array-contains', filters.userId));
+            // For GROUP_CHANGES collection, filter by users field (not metadata.affectedUsers)
+            q = query(collectionRef, where('users', 'array-contains', filters.userId));
         } else {
             q = query(collectionRef);
         }

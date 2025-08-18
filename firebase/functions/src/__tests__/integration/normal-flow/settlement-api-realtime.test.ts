@@ -82,11 +82,10 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             changeListener = query.onSnapshot(
                 (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
-                        // Observed change
-
                         if (change.type === 'added') {
                             const data = change.doc.data();
-                            if (data.settlementId) {
+                            // Check for settlement type in the new minimal structure
+                            if (data.type === 'settlement') {
                                 clearTimeout(timeout);
                                 resolve(data);
                             }
@@ -121,13 +120,14 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         try {
             const changeNotification = await changePromise;
 
-            // Verify the change notification was created
+            // Verify the change notification was created with new minimal structure
             expect(changeNotification).toBeDefined();
             expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.settlementId).toBe(createdSettlement.id);
-            expect(changeNotification.changeType).toBe('created');
-            expect(changeNotification.metadata.affectedUsers).toContain(user1.uid);
-            expect(changeNotification.metadata.affectedUsers).toContain(user2.uid);
+            expect(changeNotification.id).toBe(createdSettlement.id);
+            expect(changeNotification.type).toBe('settlement');
+            expect(changeNotification.action).toBe('created');
+            expect(changeNotification.users).toContain(user1.uid);
+            expect(changeNotification.users).toContain(user2.uid);
 
             // SUCCESS: Settlement created via API generated transaction-change notification
         } catch (error) {

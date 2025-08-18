@@ -62,7 +62,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const data = change.doc.data();
-                            if (data.settlementId) {
+                            if (data.type === 'settlement') {
                                 clearTimeout(timeout);
                                 resolve(data);
                             }
@@ -97,10 +97,11 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             // Verify the change notification was created
             expect(changeNotification).toBeDefined();
             expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.settlementId).toBe(settlementRef.id);
-            expect(changeNotification.changeType).toBe('created');
-            expect(changeNotification.metadata.affectedUsers).toContain(userId1);
-            expect(changeNotification.metadata.affectedUsers).toContain(userId2);
+            expect(changeNotification.id).toBe(settlementRef.id);
+            expect(changeNotification.type).toBe('settlement');
+            expect(changeNotification.action).toBe('created');
+            expect(changeNotification.users).toContain(userId1);
+            expect(changeNotification.users).toContain(userId2);
         } catch (error) {
             // If this fails, it means the trackSettlementChanges trigger isn't working
             throw new Error(`Settlement change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -121,7 +122,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
                             const data = change.doc.data();
-                            if (data.metadata?.triggeredBy === 'settlement') {
+                            if (data.type === 'balance') {
                                 clearTimeout(timeout);
                                 resolve(data);
                             }
@@ -147,7 +148,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             createdBy: userId2,
         };
 
-        const settlementRef = await db.collection('settlements').add(settlementData);
+        await db.collection('settlements').add(settlementData);
 
         // Wait for the change notification
         try {
@@ -156,11 +157,10 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             // Verify the balance change notification was created
             expect(changeNotification).toBeDefined();
             expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.changeType).toBe('recalculated');
-            expect(changeNotification.metadata.triggeredBy).toBe('settlement');
-            expect(changeNotification.metadata.triggerId).toBe(settlementRef.id);
-            expect(changeNotification.metadata.affectedUsers).toContain(userId1);
-            expect(changeNotification.metadata.affectedUsers).toContain(userId2);
+            expect(changeNotification.type).toBe('balance');
+            expect(changeNotification.action).toBe('recalculated');
+            expect(changeNotification.users).toContain(userId1);
+            expect(changeNotification.users).toContain(userId2);
         } catch (error) {
             throw new Error(`Balance change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
         }

@@ -173,3 +173,69 @@ export function createChangeDocument(
     // Remove all undefined fields recursively to prevent Firestore errors
     return removeUndefinedFields(baseDoc);
 }
+
+/**
+ * Create a minimal change document optimized for trigger-based refresh
+ * Contains only the essential information needed to trigger client refreshes
+ * 
+ * Structure:
+ * {
+ *   id: "abc123",           // Entity ID
+ *   type: "group",          // Entity type: group, expense, or settlement
+ *   action: "updated",      // Action: created, updated, or deleted
+ *   timestamp: Timestamp,   // When the change occurred
+ *   users: ["user1", ...],  // Affected users who should refresh
+ *   groupId?: "group123"    // For expense/settlement changes only
+ * }
+ */
+export function createMinimalChangeDocument(
+    entityId: string,
+    entityType: 'group' | 'expense' | 'settlement',
+    changeType: ChangeType,
+    affectedUsers: string[],
+    groupId?: string
+): Record<string, any> {
+    const baseDoc: Record<string, any> = {
+        id: entityId,
+        type: entityType,
+        action: changeType,
+        timestamp: admin.Timestamp.now(),
+        users: affectedUsers
+    };
+
+    // Add groupId for expense and settlement changes
+    if (entityType === 'expense' || entityType === 'settlement') {
+        if (!groupId) {
+            throw new Error(`${entityType} change document must include groupId`);
+        }
+        baseDoc.groupId = groupId;
+    }
+
+    return removeUndefinedFields(baseDoc);
+}
+
+/**
+ * Create a minimal balance change document
+ * Balances are always recalculated, never created/updated/deleted
+ * 
+ * Structure:
+ * {
+ *   groupId: "abc123",      // Group whose balances changed
+ *   type: "balance",        // Always "balance"
+ *   action: "recalculated", // Always "recalculated"
+ *   timestamp: Timestamp,   // When the change occurred
+ *   users: ["user1", ...]   // Affected users who should refresh
+ * }
+ */
+export function createMinimalBalanceChangeDocument(
+    groupId: string,
+    affectedUsers: string[]
+): Record<string, any> {
+    return removeUndefinedFields({
+        groupId,
+        type: 'balance',
+        action: 'recalculated',
+        timestamp: admin.Timestamp.now(),
+        users: affectedUsers
+    });
+}

@@ -11,6 +11,7 @@ import {
     countRecentChanges,
     GroupChangeDocument,
     ExpenseChangeDocument,
+    SettlementChangeDocument,
     BalanceChangeDocument,
 } from '../../support/changeCollectionHelpers';
 import { FirestoreCollections } from '../../../shared/shared-types';
@@ -67,14 +68,14 @@ describe('Change Detection Integration Tests', () => {
             // Poll for the change document
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.groupId === groupId && doc.changeType === 'created',
+                (doc) => doc.id === groupId && doc.action === 'created',
                 { timeout: 2000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.changeType).toBe('created');
-            expect(change?.metadata.priority).toBe('high');
-            expect(change?.metadata.affectedUsers).toContain(user1.uid);
+            expect(change?.action).toBe('created');
+            expect(change?.type).toBe('group');
+            expect(change?.users).toContain(user1.uid);
         });
 
         it('should create an "updated" change document when a group is modified', async () => {
@@ -107,14 +108,13 @@ describe('Change Detection Integration Tests', () => {
             // Poll for the update change document
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.groupId === groupId && doc.changeType === 'updated',
+                (doc) => doc.id === groupId && doc.action === 'updated',
                 { timeout: 2000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.changeType).toBe('updated');
-            expect(change?.metadata.priority).toBe('high'); // Name is a critical field
-            expect(change?.metadata.changedFields).toContain('name');
+            expect(change?.action).toBe('updated');
+            expect(change?.type).toBe('group');
         });
 
         it('should immediately process multiple rapid group updates', async () => {
@@ -147,7 +147,7 @@ describe('Change Detection Integration Tests', () => {
             );
 
             expect(recentChanges.length).toBe(3); // Each sequential update creates change document
-            expect(recentChanges.every(c => c.changeType === 'updated')).toBe(true);
+            expect(recentChanges.every(c => c.action === 'updated')).toBe(true);
         });
 
         it('should track affected users when members are added', async () => {
@@ -167,8 +167,8 @@ describe('Change Detection Integration Tests', () => {
             const latestChange = changes[0];
 
             expect(latestChange).toBeTruthy();
-            expect(latestChange.metadata.affectedUsers).toContain(user1.uid);
-            expect(latestChange.metadata.affectedUsers).toContain(user2.uid);
+            expect(latestChange.users).toContain(user1.uid);
+            expect(latestChange.users).toContain(user2.uid);
         });
 
         it('should calculate correct priority for different field changes', async () => {
@@ -197,13 +197,13 @@ describe('Change Detection Integration Tests', () => {
 
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.groupId === groupId && doc.changeType === 'updated',
+                (doc) => doc.id === groupId && doc.action === 'updated',
                 { timeout: 2000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.metadata.priority).toBe('medium');
-            expect(change?.metadata.changedFields).toContain('description');
+            expect(change?.type).toBe('group');
+            expect(change?.action).toBe('updated');
         });
     });
 
@@ -258,28 +258,27 @@ describe('Change Detection Integration Tests', () => {
             // Check expense change document
             const expenseChange = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.expenseId === expense.id && doc.changeType === 'created',
+                (doc) => doc.id === expense.id && doc.action === 'created',
                 { timeout: 2000, groupId }
             );
 
             expect(expenseChange).toBeTruthy();
             expect(expenseChange?.groupId).toBe(groupId);
-            expect(expenseChange?.changeType).toBe('created');
-            expect(expenseChange?.metadata.priority).toBe('high');
-            expect(expenseChange?.metadata.affectedUsers).toContain(user1.uid);
-            expect(expenseChange?.metadata.affectedUsers).toContain(user2.uid);
+            expect(expenseChange?.action).toBe('created');
+            expect(expenseChange?.type).toBe('expense');
+            expect(expenseChange?.users).toContain(user1.uid);
+            expect(expenseChange?.users).toContain(user2.uid);
 
             // Check balance change document (expenses trigger balance recalculation)
             const balanceChange = await pollForChange<BalanceChangeDocument>(
                 FirestoreCollections.BALANCE_CHANGES,
-                (doc) => doc.groupId === groupId && doc.metadata.triggeredBy === 'expense',
+                (doc) => doc.groupId === groupId && doc.type === 'balance',
                 { timeout: 2000, groupId }
             );
 
             expect(balanceChange).toBeTruthy();
-            expect(balanceChange?.changeType).toBe('recalculated');
-            expect(balanceChange?.metadata.priority).toBe('high');
-            expect(balanceChange?.metadata.triggerId).toBe(expense.id);
+            expect(balanceChange?.action).toBe('recalculated');
+            expect(balanceChange?.type).toBe('balance');
         });
 
         it('should track expense updates with correct priority', async () => {
@@ -327,13 +326,13 @@ describe('Change Detection Integration Tests', () => {
 
             const change = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.expenseId === expense.id && doc.changeType === 'updated',
+                (doc) => doc.id === expense.id && doc.action === 'updated',
                 { timeout: 2000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.metadata.priority).toBe('high');
-            expect(change?.metadata.changedFields).toContain('amount');
+            expect(change?.action).toBe('updated');
+            expect(change?.type).toBe('expense');
         });
 
         it('should immediately process rapid expense updates', async () => {
@@ -447,20 +446,16 @@ describe('Change Detection Integration Tests', () => {
             // Wait for trigger processing  
             await waitForTriggerProcessing('expense');
 
-            // Look for the soft delete change (shows as updated with deletedAt field)
+            // Look for the soft delete change (shows as updated)
             const change = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.expenseId === expense.id && 
-                        doc.changeType === 'updated' && 
-                        (doc.metadata.changedFields?.includes('deletedAt') ?? false),
+                (doc) => doc.id === expense.id && doc.action === 'updated',
                 { timeout: 1000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.changeType).toBe('updated');
-            expect(change?.metadata.priority).toBe('high');
-            expect(change?.metadata.changedFields).toContain('deletedAt');
-            expect(change?.metadata.changedFields).toContain('deletedBy');
+            expect(change?.action).toBe('updated');
+            expect(change?.type).toBe('expense');
         });
     });
 
@@ -503,28 +498,28 @@ describe('Change Detection Integration Tests', () => {
             await waitForTriggerProcessing('settlement');
 
             // Check settlement change document (stored in transaction-changes)
-            const settlementChange = await pollForChange<ExpenseChangeDocument>(
+            const settlementChange = await pollForChange<SettlementChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.settlementId === settlement.id && doc.changeType === 'created',
+                (doc) => doc.id === settlement.id && doc.action === 'created' && doc.type === 'settlement',
                 { timeout: 2000, groupId }
             );
 
             expect(settlementChange).toBeTruthy();
             expect(settlementChange?.groupId).toBe(groupId);
-            expect(settlementChange?.metadata.priority).toBe('high');
-            expect(settlementChange?.metadata.affectedUsers).toContain(user1.uid);
-            expect(settlementChange?.metadata.affectedUsers).toContain(user2.uid);
+            expect(settlementChange?.type).toBe('settlement');
+            expect(settlementChange?.users).toContain(user1.uid);
+            expect(settlementChange?.users).toContain(user2.uid);
 
             // Check balance change document
             const balanceChange = await pollForChange<BalanceChangeDocument>(
                 FirestoreCollections.BALANCE_CHANGES,
-                (doc) => doc.groupId === groupId && doc.metadata.triggeredBy === 'settlement',
+                (doc) => doc.groupId === groupId && doc.type === 'balance',
                 { timeout: 2000, groupId }
             );
 
             expect(balanceChange).toBeTruthy();
-            expect(balanceChange?.changeType).toBe('recalculated');
-            expect(balanceChange?.metadata.priority).toBe('high');
+            expect(balanceChange?.action).toBe('recalculated');
+            expect(balanceChange?.type).toBe('balance');
         });
 
         it('should handle both API format (payerId/payeeId) and legacy format (from/to)', async () => {
@@ -543,15 +538,15 @@ describe('Change Detection Integration Tests', () => {
 
             await waitForTriggerProcessing('settlement');
 
-            const change = await pollForChange<ExpenseChangeDocument>(
+            const change = await pollForChange<SettlementChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.settlementId === settlement.id,
+                (doc) => doc.id === settlement.id && doc.type === 'settlement',
                 { timeout: 2000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.metadata.affectedUsers).toContain(user1.uid);
-            expect(change?.metadata.affectedUsers).toContain(user2.uid);
+            expect(change?.users).toContain(user1.uid);
+            expect(change?.users).toContain(user2.uid);
         });
     });
 
@@ -616,16 +611,8 @@ describe('Change Detection Integration Tests', () => {
             expect(expenseChanges.length).toBeGreaterThan(0);
             expect(balanceChanges.length).toBeGreaterThan(0);
 
-            // Verify balance changes were triggered by both expense and settlement
-            const expenseTriggeredBalance = balanceChanges.find(
-                (b) => b.metadata.triggeredBy === 'expense'
-            );
-            const settlementTriggeredBalance = balanceChanges.find(
-                (b) => b.metadata.triggeredBy === 'settlement'
-            );
-
-            expect(expenseTriggeredBalance).toBeTruthy();
-            expect(settlementTriggeredBalance).toBeTruthy();
+            // Verify we have multiple balance changes (one for expense, one for settlement)
+            expect(balanceChanges.length).toBeGreaterThanOrEqual(2);
         });
     });
 });
