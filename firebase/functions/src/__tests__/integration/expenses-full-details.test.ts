@@ -49,7 +49,8 @@ describe('Expenses Full Details API', () => {
             currency: 'USD',
             category: 'Food',
             participants: [alice.uid, bob.uid, charlie.uid],
-            splitType: 'equal'
+            splitType: 'equal',
+            date: new Date().toISOString()
         }, alice.token);
         expenseId = expense.id;
     });
@@ -128,7 +129,8 @@ describe('Expenses Full Details API', () => {
                     { userId: alice.uid, amount: 30 },
                     { userId: bob.uid, amount: 40 },
                     { userId: charlie.uid, amount: 30 }
-                ]
+                ],
+                date: new Date().toISOString()
             }, alice.token);
 
             const fullDetails = await apiDriver.getExpenseFullDetails(complexExpense.id, alice.token);
