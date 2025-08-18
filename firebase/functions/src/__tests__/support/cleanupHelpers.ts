@@ -51,8 +51,6 @@ async function deleteQueryBatch(query: FirebaseFirestore.Query, batchSize: numbe
  * This is a nuclear option - clears everything
  */
 export async function clearAllTestData(): Promise<void> {
-    console.log('Clearing all test data from emulator...');
-
     // Main collections to clear (including new change tracking collections)
     const collections = [
         FirestoreCollections.USERS,
@@ -71,6 +69,4 @@ export async function clearAllTestData(): Promise<void> {
     // Clear all main collections
     const promises = collections.map((collection) => clearCollection(collection));
     await Promise.all(promises);
-
-    console.log('Test data cleared successfully');
 }
