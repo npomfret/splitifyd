@@ -73,7 +73,13 @@ const fetchUserData = async (userId: string): Promise<User> => {
     const userDoc = await getUsersCollection().doc(userId).get();
 
     if (!userDoc.exists) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+        logger.warn('User document not found in settlements', { userId });
+        // Return minimal user object for missing profiles instead of throwing
+        return {
+            uid: userId,
+            email: '',
+            displayName: 'Unknown User',
+        };
     }
 
     const userData = userDoc.data();

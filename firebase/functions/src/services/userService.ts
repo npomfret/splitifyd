@@ -65,9 +65,10 @@ export class UserService {
             result.set(userRecord.uid, profile);
         }
 
-        // Handle not found users - throw error for any missing users
+        // Handle not found users - log warning but don't throw error
+        // Let calling code handle missing users gracefully
         if (getUsersResult.notFound.length > 0) {
-            throw new Error(`Users not found: ${getUsersResult.notFound.length} users`);
+            console.warn(`Users not found: ${getUsersResult.notFound.length} users`);
         }
     }
 }
