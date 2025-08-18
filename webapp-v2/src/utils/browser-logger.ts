@@ -33,7 +33,6 @@ function getUserContext(): Record<string, any> {
         sessionId: SESSION_ID,
         timestamp: new Date().toISOString(),
         url: window.location.href,
-        userAgent: navigator.userAgent,
     };
 
     // Try to get user ID from localStorage
