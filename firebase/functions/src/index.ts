@@ -11,7 +11,7 @@ import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
 import { createServerTimestamp, timestampToISO } from './utils/dateHelpers';
-import { createExpense, getExpense, updateExpense, deleteExpense, listGroupExpenses, listUserExpenses, getExpenseHistory } from './expenses/handlers';
+import { createExpense, getExpense, updateExpense, deleteExpense, listGroupExpenses, listUserExpenses, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { getGroupBalances } from './groups/balanceHandlers';
 import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberHandlers';
@@ -280,6 +280,7 @@ function setupRoutes(app: express.Application): void {
     app.get(`/${FirestoreCollections.EXPENSES}/group`, authenticate, asyncHandler(listGroupExpenses));
     app.get(`/${FirestoreCollections.EXPENSES}/user`, authenticate, asyncHandler(listUserExpenses));
     app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
+    app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
 
     // NEW Group endpoints (requires auth) - RESTful API
     app.post(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(createGroup));

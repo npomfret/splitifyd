@@ -80,23 +80,35 @@ async getGroupFullDetails(id: string, options?: {
 
 ### HIGH Priority - Fix Immediate Issues
 
-#### WI-001: Fix AddExpensePage Loading Spinner Bug
+#### WI-001: Fix AddExpensePage Loading Spinner Bug ✅ COMPLETED
 - **Type**: Bug Fix
 - **Effort**: Small (15 mins)
 - **Description**: Add `loadingSignal.value = false;` to catch block in `enhancedGroupDetailStore.ts`
 - **Files**: `/webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
 - **Acceptance Criteria**: Loading spinner disappears when group loading fails
 - **Testing**: Verify error scenarios reset loading state properly
+- **Implementation**: Added line 140: `loadingSignal.value = false;` in catch block
 
-#### WI-002: Create ExpenseDetailPage Consolidated Endpoint
+#### WI-002: Create ExpenseDetailPage Consolidated Endpoint ✅ COMPLETED
 - **Type**: Feature
 - **Effort**: Medium (2-3 hours)
 - **Description**: Create `/expenses/:id/full-details` endpoint to eliminate race conditions
 - **Files**: 
   - `/firebase/functions/src/expenses/handlers.ts` - Add new endpoint
+  - `/firebase/functions/src/index.ts` - Register route
+  - `/webapp-v2/src/app/apiClient.ts` - Add client method
   - `/webapp-v2/src/pages/ExpenseDetailPage.tsx` - Update to use consolidated endpoint
 - **Acceptance Criteria**: Single API call loads expense + group data atomically
 - **Testing**: Verify no loading state conflicts
+- **Implementation**: 
+  - Added `getExpenseFullDetails` handler (lines 764-814) following groups handler pattern
+  - Registered route: `GET /expenses/:id/full-details` in index.ts:283
+  - Added `getExpenseFullDetails()` method to apiClient.ts (lines 700-709)
+  - Updated ExpenseDetailPage to use consolidated endpoint with atomic batch() updates
+  - Created comprehensive integration test: `expenses-full-details.test.ts`
+  - Added ApiDriver method: `getExpenseFullDetails()` (lines 286-292)
+  - Eliminated race condition between expense and group loading
+  - **CONSISTENT** with groups full details pattern using existing tested functions
 
 ### MEDIUM Priority - Progressive Enhancements
 

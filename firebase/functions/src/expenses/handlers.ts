@@ -11,6 +11,7 @@ import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calcul
 import { GroupData } from '../types/group-types';
 import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { _getGroupMembersData } from '../groups/memberHandlers';
 
 const getExpensesCollection = () => {
     return db.collection(FirestoreCollections.EXPENSES);
@@ -754,4 +755,78 @@ export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response
         history,
         count: history.length,
     });
+};
+
+/**
+ * Get consolidated expense details (expense + group + members)
+ * Eliminates race conditions by providing all needed data in one request
+ */
+export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const userId = validateUserAuth(req);
+    const expenseId = validateExpenseId(req.params.id);
+
+    try {
+        // Reuse existing tested functions for each data type
+        const { expense } = await fetchExpense(expenseId, userId);
+        
+        // Get group document (access already verified by fetchExpense)
+        const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
+        if (!groupDoc.exists) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+        
+        const groupData = groupDoc.data();
+        if (!groupData?.data?.name) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
+        }
+        
+        // Transform group data using same pattern as groups handler
+        const group = {
+            id: groupDoc.id,
+            name: groupData.data.name,
+            description: groupData.data.description || '',
+            createdBy: groupData.data.createdBy,
+            memberIds: groupData.data.memberIds || [],
+            createdAt: groupData.createdAt.toDate().toISOString(),
+            updatedAt: groupData.updatedAt.toDate().toISOString(),
+        };
+        
+        // Use extracted internal functions to eliminate duplication
+        const membersData = await _getGroupMembersData(expense.groupId, group.memberIds);
+
+        // Format expense response using existing patterns
+        const expenseResponse = {
+            id: expense.id,
+            groupId: expense.groupId,
+            createdBy: expense.createdBy,
+            paidBy: expense.paidBy,
+            amount: expense.amount,
+            currency: expense.currency,
+            description: expense.description,
+            category: expense.category,
+            date: timestampToISO(expense.date),
+            splitType: expense.splitType,
+            participants: expense.participants,
+            splits: expense.splits,
+            receiptUrl: expense.receiptUrl,
+            createdAt: timestampToISO(expense.createdAt),
+            updatedAt: timestampToISO(expense.updatedAt),
+        };
+
+        // Construct response using existing patterns
+        const response = {
+            expense: expenseResponse,
+            group,
+            members: membersData,
+        };
+
+        res.json(response);
+    } catch (error) {
+        logger.error('Error in getExpenseFullDetails', {
+            error: error instanceof Error ? error : new Error(String(error)),
+            expenseId,
+            userId,
+        });
+        throw error;
+    }
 };

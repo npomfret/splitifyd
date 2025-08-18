@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
-import { useSignal, useComputed } from '@preact/signals';
+import { useSignal, useComputed, batch } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -10,7 +10,7 @@ import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
 import { formatCurrency } from '@/utils/currency';
-import type { ExpenseData } from '@shared/shared-types';
+import type { ExpenseData, Group, User } from '@shared/shared-types';
 import { logError } from '../utils/browser-logger';
 
 interface ExpenseDetailPageProps {
@@ -32,9 +32,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     const error = useSignal<string | null>(null);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
 
-    // Get group data from store if available
-    const group = useComputed(() => enhancedGroupDetailStore.group);
-    const members = useComputed(() => enhancedGroupDetailStore.members);
+    // Local state for page data (replaces store dependency)
+    const group = useSignal<Group | null>(null);
+    const members = useSignal<User[]>([]);
 
     // Create member lookup map
     const memberMap = useComputed(() => {
@@ -66,21 +66,15 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 loading.value = true;
                 error.value = null;
 
-                // Ensure group data is loaded
-                if (!group.value || group.value.id !== groupId) {
-                    await enhancedGroupDetailStore.fetchGroup(groupId);
-                }
-
-                // Fetch expense data
-                const response = await apiClient.request<ExpenseData>('/expenses', {
-                    method: 'GET',
-                    query: { id: expenseId },
+                // Use consolidated endpoint to get expense + group + members atomically
+                const fullDetails = await apiClient.getExpenseFullDetails(expenseId);
+                
+                // Update all local state atomically using batch to prevent race conditions
+                batch(() => {
+                    expense.value = fullDetails.expense;
+                    group.value = fullDetails.group;
+                    members.value = fullDetails.members.members;
                 });
-                if (response) {
-                    expense.value = response;
-                } else {
-                    throw new Error('Expense not found');
-                }
             } catch (err) {
                 logError('Failed to load expense', err);
                 error.value = err instanceof Error ? err.message : 'Failed to load expense';

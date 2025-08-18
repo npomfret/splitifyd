@@ -697,6 +697,17 @@ export class ApiClient {
         });
     }
 
+    async getExpenseFullDetails(expenseId: string): Promise<{
+        expense: ExpenseData;
+        group: Group;
+        members: { members: User[] };
+    }> {
+        return this.request({
+            endpoint: `/expenses/${expenseId}/full-details`,
+            method: 'GET',
+        });
+    }
+
     async createSettlement(data: CreateSettlementRequest): Promise<Settlement> {
         const response = await this.request<{ success: boolean; data: Settlement }>({
             endpoint: '/settlements',

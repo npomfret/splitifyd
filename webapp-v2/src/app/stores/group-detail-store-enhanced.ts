@@ -137,6 +137,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             });
         } catch (error) {
             errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
+            loadingSignal.value = false;
             throw error;
         }
     }
