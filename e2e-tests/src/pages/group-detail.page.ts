@@ -119,6 +119,18 @@ export class GroupDetailPage extends BasePage {
             await this.page.waitForURL(expectedUrlPattern, { timeout: 5000 });
             await this.page.waitForLoadState('domcontentloaded');
 
+            // sanity check!
+            let currentUrl = this.page.url();
+            if (!currentUrl.match(expectedUrlPattern)) {
+                return {
+                    success: false,
+                    reason: `Navigation failed - wrong URL pattern`,
+                    startUrl,
+                    currentUrl,
+                    userInfo
+                };
+            }
+
             // Wait for any loading spinner to disappear
             const loadingSpinner = this.page.locator('.animate-spin');
             const loadingText = this.page.getByText('Loading expense form...');
@@ -128,17 +140,14 @@ export class GroupDetailPage extends BasePage {
                 await expect(loadingText).not.toBeVisible({ timeout: 5000 });
             }
 
-            const currentUrl = this.page.url();
-            
             // sanity check - verify we're still on the correct page
+            currentUrl = this.page.url();
             if (!currentUrl.match(expectedUrlPattern)) {
                 return {
                     success: false,
                     reason: `Navigation failed - wrong URL pattern`,
                     startUrl,
                     currentUrl,
-                    addButtonVisible,
-                    addButtonEnabled,
                     userInfo
                 };
             }
@@ -149,7 +158,8 @@ export class GroupDetailPage extends BasePage {
             // Try to wait for form to be ready
             try {
                 await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
-                
+                currentUrl = this.page.url();
+
                 return {
                     success: true,
                     reason: 'Successfully navigated to expense form',
@@ -161,6 +171,7 @@ export class GroupDetailPage extends BasePage {
                     userInfo
                 };
             } catch (formError) {
+                currentUrl = this.page.url();
                 return {
                     success: false,
                     reason: 'Expense form failed to load properly',
