@@ -133,8 +133,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // After registration, user goes to dashboard (returnUrl is not preserved)
             await page2.waitForURL(/\/dashboard/, { timeout: 10000 });
-            console.log('After registration, on dashboard as expected');
-            
+
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
             await page2.waitForLoadState('domcontentloaded');
@@ -191,8 +190,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // After login, user goes to dashboard (returnUrl is not preserved through login)
             await page2.waitForURL(/\/dashboard/, { timeout: 10000 });
-            console.log('After login, on dashboard as expected');
-            
+
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
             await page2.waitForLoadState('domcontentloaded');
