@@ -10,7 +10,7 @@
         "clean": "rm -rf lib coverage",
         "test": "npm run build && npm run test:unit && npm run test:integration",
         "test:unit": "npm run build && jest src/__tests__/unit/",
-        "test:integration": "npm run build && jest src/__tests__/integration/ --maxWorkers=1 --json --outputFile=test-integration-results.json --reporters=default --reporters=jest-html-reporter",
+        "test:integration": "npm run build && jest src/__tests__/integration/ --maxWorkers=1 --json --outputFile=test-integration-results.json --reporters=default",
         "validate-cors": "node scripts/validate-cors.js",
         "seed:policies": "tsx src/scripts/seed-policies.ts"
     },
