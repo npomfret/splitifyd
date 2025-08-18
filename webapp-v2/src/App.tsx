@@ -22,6 +22,7 @@ const TermsOfServicePage = lazy(() => import('./pages/static/TermsOfServicePage'
 const PrivacyPolicyPage = lazy(() => import('./pages/static/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
 const CookiePolicyPage = lazy(() => import('./pages/static/CookiePolicyPage').then((m) => ({ default: m.CookiePolicyPage })));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute({ component: Component, ...props }: any) {
@@ -95,6 +96,9 @@ export function App() {
 
                 {/* Dashboard Routes - Protected */}
                 <Route path="/dashboard" component={(props: any) => <ProtectedRoute component={DashboardPage} {...props} />} />
+
+                {/* Settings Routes - Protected */}
+                <Route path="/settings" component={(props: any) => <ProtectedRoute component={SettingsPage} {...props} />} />
 
                 {/* Group Routes - Protected */}
                 <Route path="/groups/:id" component={(props: any) => <ProtectedRoute component={GroupDetailPage} {...props} />} />

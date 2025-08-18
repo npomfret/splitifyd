@@ -870,6 +870,46 @@ export class ApiClient {
             skipAuth: true, // Public endpoint
         });
     }
+
+    // User profile management methods
+    async getUserProfile(): Promise<{ uid: string; email: string; displayName: string }> {
+        return this.request({
+            endpoint: '/user/profile',
+            method: 'GET',
+        });
+    }
+
+    async updateUserProfile(data: { displayName?: string }): Promise<{ uid: string; email: string; displayName: string }> {
+        return this.request({
+            endpoint: '/user/profile',
+            method: 'PUT',
+            body: data,
+        });
+    }
+
+    async changePassword(data: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+        return this.request({
+            endpoint: '/user/change-password',
+            method: 'POST',
+            body: data,
+        });
+    }
+
+    async sendPasswordResetEmail(email: string): Promise<{ message: string }> {
+        return this.request({
+            endpoint: '/user/reset-password',
+            method: 'POST',
+            body: { email },
+            skipAuth: true, // Public endpoint
+        });
+    }
+
+    async deleteUserAccount(): Promise<{ message: string }> {
+        return this.request({
+            endpoint: '/user/account',
+            method: 'DELETE',
+        });
+    }
 }
 
 // Export types for external use
