@@ -1244,3 +1244,63 @@ With Phase 2 complete, the next priority items are:
    - Profile editing UI
    - Password change functionality
    - Display name updates
+
+---
+
+## Critical API Issue Fix
+
+**Date:** 2025-01-18  
+**Updated By:** Development Team
+
+### Member Management API Response Structure Fix
+
+**Status: IN PROGRESS 🔧**
+
+A critical issue was discovered with the `/groups/{id}/members` API endpoint where the response structure was broken due to recent changes.
+
+#### Issue Details:
+
+**Problem:** The API was returning `totalCount` field in the response, but this field was removed from the TypeScript interface `GroupMembersResponse`, causing runtime errors.
+
+**Root Cause:** Inconsistency between API implementation and type definitions after removing the `totalCount` field.
+
+#### Changes Made:
+
+1. **Type Definition Update** (`shared-types.ts`)
+   - Removed `totalCount: number` from `GroupMembersResponse` interface
+   - The interface now only contains: `members`, `hasMore`, and optional `nextCursor`
+
+2. **API Handler Update** (`memberHandlers.ts`)
+   - Removed `totalCount: members.length` from the response object
+   - Response now correctly matches the type definition
+
+3. **Test Updates**
+   - Updated all test files to use `members.length` instead of `totalCount`
+   - Fixed `group-members.test.ts` integration tests
+   - Updated `ApiDriver.ts` with proper typed methods instead of bracket notation
+
+4. **User Service Cache Issue**
+   - Discovered and removed problematic request-level caching in `UserService`
+   - Cache was preventing real-time updates of user display names
+   - Removed cache entirely to ensure fresh data on every request
+
+#### Files Modified:
+- `/firebase/functions/src/shared/shared-types.ts` - Removed totalCount from interface
+- `/firebase/functions/src/groups/memberHandlers.ts` - Removed totalCount from response
+- `/firebase/functions/src/__tests__/integration/normal-flow/group-members.test.ts` - Updated assertions
+- `/firebase/functions/src/__tests__/support/ApiDriver.ts` - Added proper methods
+- `/firebase/functions/src/services/userService.ts` - Removed cache implementation
+- `/firebase/functions/src/__tests__/integration/normal-flow/user-profile.test.ts` - Replaced bracket notation
+
+#### Test Results:
+- ✅ All 16 group-members integration tests passing
+- ✅ TypeScript compilation successful
+- ✅ No type errors in build
+
+#### Lessons Learned:
+1. Always ensure API responses match TypeScript interfaces
+2. Be cautious with caching mechanisms that can prevent real-time updates
+3. Use proper typed methods in test utilities instead of bracket notation
+4. When removing fields from APIs, update all consumers including tests
+
+**Status: Awaiting full deployment testing**
