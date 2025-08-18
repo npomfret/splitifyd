@@ -46,7 +46,6 @@ test.describe('Parallel Group Joining Edge Cases', () => {
 
             // Get share link
             const shareLink = await creatorGroupDetailPage.getShareLink();
-            console.log(`Group created by ${creatorUser.displayName}`);
 
             // Other users join in parallel
             const joinPromises = pages.slice(1).map(async (page, i) => {
