@@ -10,7 +10,7 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="src/tests/error-testing/expense-editing-errors.e2e.test.ts"
+TEST_FILE="src/tests/normal-flow/balance-visualization-multi-user.e2e.test.ts"
 TEST_FILTER=""
 
 # Make max runs configurable, default to 25

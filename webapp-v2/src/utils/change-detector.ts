@@ -1,6 +1,7 @@
 import { collection, query, where, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { getDb } from '../app/firebase';
 import { logInfo, logWarning } from './browser-logger';
+import { FirestoreCollections } from '@shared/shared-types';
 
 export type ChangeCallback = () => void;
 
@@ -14,7 +15,7 @@ export class ChangeDetector {
      * Subscribe to any changes for a user's groups
      */
     subscribeToGroupChanges(userId: string, callback: ChangeCallback): () => void {
-        return this.subscribe('group-changes', { userId }, callback);
+        return this.subscribe(FirestoreCollections.GROUP_CHANGES, { userId }, callback);
     }
 
     /**
@@ -23,7 +24,14 @@ export class ChangeDetector {
     subscribeToExpenseChanges(groupId: string, callback: ChangeCallback): () => void {
         // Note: userId parameter kept for compatibility but not currently used in the query
         // Note: Method name kept as subscribeToExpenseChanges for backward compatibility
-        return this.subscribe('transaction-changes', { groupId }, callback);
+        return this.subscribe(FirestoreCollections.TRANSACTION_CHANGES, { groupId }, callback);
+    }
+
+    /**
+     * Subscribe to balance changes for a group
+     */
+    subscribeToBalanceChanges(groupId: string, callback: ChangeCallback): () => void {
+        return this.subscribe(FirestoreCollections.BALANCE_CHANGES, { groupId }, callback);
     }
 
     private subscribe(collectionName: string, filters: Record<string, string>, callback: ChangeCallback): () => void {

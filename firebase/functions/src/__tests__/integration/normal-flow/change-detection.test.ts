@@ -7,12 +7,13 @@ import {
     getExpenseChanges,
     getBalanceChanges,
     clearGroupChangeDocuments,
-    waitForDebounce,
+    waitForTriggerProcessing,
     countRecentChanges,
     GroupChangeDocument,
     ExpenseChangeDocument,
     BalanceChangeDocument,
 } from '../../support/changeCollectionHelpers';
+import { FirestoreCollections } from '../../../shared/shared-types';
 
 describe('Change Detection Integration Tests', () => {
     let apiDriver: ApiDriver;
@@ -60,12 +61,12 @@ describe('Change Detection Integration Tests', () => {
             );
             groupId = group.id;
 
-            // Wait for debouncing
-            await waitForDebounce('group');
+            // Wait for trigger processing
+            await waitForTriggerProcessing('group');
 
             // Poll for the change document
             const change = await pollForChange<GroupChangeDocument>(
-                'group-changes',
+                FirestoreCollections.GROUP_CHANGES,
                 (doc) => doc.groupId === groupId && doc.changeType === 'created',
                 { timeout: 2000, groupId }
             );
@@ -88,7 +89,7 @@ describe('Change Detection Integration Tests', () => {
             groupId = group.id;
 
             // Wait for initial change to complete
-            await waitForDebounce('group');
+            await waitForTriggerProcessing('group');
             await clearGroupChangeDocuments(groupId);
 
             // Update the group
@@ -100,12 +101,12 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            // Wait for debouncing
-            await waitForDebounce('group');
+            // Wait for trigger processing
+            await waitForTriggerProcessing('group');
 
             // Poll for the update change document
             const change = await pollForChange<GroupChangeDocument>(
-                'group-changes',
+                FirestoreCollections.GROUP_CHANGES,
                 (doc) => doc.groupId === groupId && doc.changeType === 'updated',
                 { timeout: 2000, groupId }
             );
@@ -116,39 +117,37 @@ describe('Change Detection Integration Tests', () => {
             expect(change?.metadata.changedFields).toContain('name');
         });
 
-        it('should debounce multiple rapid group updates', async () => {
+        it('should immediately process multiple rapid group updates', async () => {
             // Create a group
             const group = await apiDriver.createGroup(
                 {
-                    name: 'Debounce Test Group',
-                    description: 'Testing debouncing',
+                    name: 'Immediate Processing Test Group',
+                    description: 'Testing immediate processing',
                 },
                 user1.token
             );
             groupId = group.id;
 
             // Wait for initial change
-            await waitForDebounce('group');
+            await waitForTriggerProcessing('group');
             await clearGroupChangeDocuments(groupId);
 
-            // Make multiple rapid updates
-            await Promise.all([
-                apiDriver.updateGroup(groupId, { name: 'Update 1' }, user1.token),
-                apiDriver.updateGroup(groupId, { name: 'Update 2' }, user1.token),
-                apiDriver.updateGroup(groupId, { name: 'Update 3' }, user1.token),
-            ]);
+            // Make multiple sequential updates (more realistic than concurrent)
+            await apiDriver.updateGroup(groupId, { name: 'Update 1' }, user1.token);
+            await apiDriver.updateGroup(groupId, { name: 'Update 2' }, user1.token);
+            await apiDriver.updateGroup(groupId, { name: 'Update 3' }, user1.token);
 
-            // Wait for debouncing
-            await waitForDebounce('group');
+            // Wait briefly for all changes to be processed
+            await waitForTriggerProcessing('group');
 
-            // Should only have one change document
+            // Should have multiple change documents (one for each update)
             const changes = await getGroupChanges(groupId);
             const recentChanges = changes.filter(
-                (c) => c.timestamp.toMillis() > Date.now() - 2000
+                (c) => c.timestamp.toMillis() > Date.now() - 3000
             );
 
-            expect(recentChanges.length).toBe(1);
-            expect(recentChanges[0].changeType).toBe('updated');
+            expect(recentChanges.length).toBe(3); // Each sequential update creates change document
+            expect(recentChanges.every(c => c.changeType === 'updated')).toBe(true);
         });
 
         it('should track affected users when members are added', async () => {
@@ -160,8 +159,8 @@ describe('Change Detection Integration Tests', () => {
             );
             groupId = group.id;
 
-            // Wait for debouncing
-            await waitForDebounce('group');
+            // Wait for trigger processing
+            await waitForTriggerProcessing('group');
 
             // Get the change document
             const changes = await getGroupChanges(groupId);
@@ -184,7 +183,7 @@ describe('Change Detection Integration Tests', () => {
             groupId = group.id;
 
             // Wait and clear initial change
-            await waitForDebounce('group');
+            await waitForTriggerProcessing('group');
             await clearGroupChangeDocuments(groupId);
 
             // Update description (medium priority field)
@@ -194,10 +193,10 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await waitForDebounce('group');
+            await waitForTriggerProcessing('group');
 
             const change = await pollForChange<GroupChangeDocument>(
-                'group-changes',
+                FirestoreCollections.GROUP_CHANGES,
                 (doc) => doc.groupId === groupId && doc.changeType === 'updated',
                 { timeout: 2000, groupId }
             );
@@ -225,7 +224,7 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             // Wait for group setup to complete
-            await waitForDebounce('group');
+            await waitForTriggerProcessing('group');
             await clearGroupChangeDocuments(groupId);
         });
 
@@ -250,15 +249,15 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            // Wait for debouncing
-            await waitForDebounce('expense');
+            // Wait for trigger processing
+            await waitForTriggerProcessing('expense');
             
             // Add extra wait for trigger to fire
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Check expense change document
             const expenseChange = await pollForChange<ExpenseChangeDocument>(
-                'expense-changes',
+                FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.expenseId === expense.id && doc.changeType === 'created',
                 { timeout: 2000, groupId }
             );
@@ -272,7 +271,7 @@ describe('Change Detection Integration Tests', () => {
 
             // Check balance change document (expenses trigger balance recalculation)
             const balanceChange = await pollForChange<BalanceChangeDocument>(
-                'balance-changes',
+                FirestoreCollections.BALANCE_CHANGES,
                 (doc) => doc.groupId === groupId && doc.metadata.triggeredBy === 'expense',
                 { timeout: 2000, groupId }
             );
@@ -304,7 +303,7 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait and clear initial changes
-            await waitForDebounce('expense');
+            await waitForTriggerProcessing('expense');
             await clearGroupChangeDocuments(groupId);
 
             // Update expense amount (high priority)
@@ -324,10 +323,10 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await waitForDebounce('expense');
+            await waitForTriggerProcessing('expense');
 
             const change = await pollForChange<ExpenseChangeDocument>(
-                'expense-changes',
+                FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.expenseId === expense.id && doc.changeType === 'updated',
                 { timeout: 2000, groupId }
             );
@@ -337,12 +336,12 @@ describe('Change Detection Integration Tests', () => {
             expect(change?.metadata.changedFields).toContain('amount');
         });
 
-        it('should debounce rapid expense updates', async () => {
+        it('should immediately process rapid expense updates', async () => {
             // Create an expense
             const expense = await apiDriver.createExpense(
                 {
                     groupId,
-                    description: 'Debounce Test',
+                    description: 'Immediate Processing Test',
                     amount: 100,
                     currency: 'USD',
                     category: 'General',
@@ -358,43 +357,67 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait and clear initial changes
-            await waitForDebounce('expense');
+            await waitForTriggerProcessing('expense');
             await clearGroupChangeDocuments(groupId);
 
-            // Make multiple rapid updates
-            const updates = [];
-            for (let i = 1; i <= 3; i++) {
-                updates.push(
-                    apiDriver.updateExpense(
-                        expense.id,
-                        {
-                            description: `Update ${i}`,
-                            amount: 100,
-                            currency: 'USD',
-                            date: new Date().toISOString(),
-                            participants: [user1.uid],
-                            splitType: 'equal',
-                            splits: [
-                                { userId: user1.uid, amount: 100 },
-                            ],
-                        },
-                        user1.token
-                    )
-                );
-            }
-            await Promise.all(updates);
+            // Make multiple sequential updates (more realistic than concurrent)
+            await apiDriver.updateExpense(
+                expense.id,
+                {
+                    description: 'Update 1',
+                    amount: 100,
+                    currency: 'USD',
+                    date: new Date().toISOString(),
+                    participants: [user1.uid],
+                    splitType: 'equal',
+                    splits: [
+                        { userId: user1.uid, amount: 100 },
+                    ],
+                },
+                user1.token
+            );
+            await apiDriver.updateExpense(
+                expense.id,
+                {
+                    description: 'Update 2',
+                    amount: 100,
+                    currency: 'USD',
+                    date: new Date().toISOString(),
+                    participants: [user1.uid],
+                    splitType: 'equal',
+                    splits: [
+                        { userId: user1.uid, amount: 100 },
+                    ],
+                },
+                user1.token
+            );
+            await apiDriver.updateExpense(
+                expense.id,
+                {
+                    description: 'Update 3',
+                    amount: 100,
+                    currency: 'USD',
+                    date: new Date().toISOString(),
+                    participants: [user1.uid],
+                    splitType: 'equal',
+                    splits: [
+                        { userId: user1.uid, amount: 100 },
+                    ],
+                },
+                user1.token
+            );
 
-            // Wait for debouncing (200ms for expenses)
-            await waitForDebounce('expense');
+            // Wait briefly for all changes to be processed
+            await waitForTriggerProcessing('expense');
 
             // Count recent changes
-            const changeCount = await countRecentChanges('expense-changes', groupId, 2000);
+            const changeCount = await countRecentChanges(FirestoreCollections.TRANSACTION_CHANGES, groupId, 3000);
             
-            // Should only have one change document due to debouncing
-            expect(changeCount).toBe(1);
+            // Should have multiple change documents (one for each sequential update)
+            expect(changeCount).toBe(3);
         });
 
-        it('should immediately track expense deletion without debouncing', async () => {
+        it('should track expense deletion (soft delete) immediately', async () => {
             // Create an expense
             const expense = await apiDriver.createExpense(
                 {
@@ -415,22 +438,29 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait and clear initial changes
-            await waitForDebounce('expense');
+            await waitForTriggerProcessing('expense');
             await clearGroupChangeDocuments(groupId);
 
-            // Delete the expense
+            // Delete the expense (soft delete - adds deletedAt field)
             await apiDriver.deleteExpense(expense.id, user1.token);
 
-            // Should not need to wait for debouncing (deletes are immediate)
+            // Wait for trigger processing  
+            await waitForTriggerProcessing('expense');
+
+            // Look for the soft delete change (shows as updated with deletedAt field)
             const change = await pollForChange<ExpenseChangeDocument>(
-                'expense-changes',
-                (doc) => doc.expenseId === expense.id && doc.changeType === 'deleted',
-                { timeout: 500, groupId } // Shorter timeout since no debouncing
+                FirestoreCollections.TRANSACTION_CHANGES,
+                (doc) => doc.expenseId === expense.id && 
+                        doc.changeType === 'updated' && 
+                        (doc.metadata.changedFields?.includes('deletedAt') ?? false),
+                { timeout: 1000, groupId }
             );
 
             expect(change).toBeTruthy();
-            expect(change?.changeType).toBe('deleted');
+            expect(change?.changeType).toBe('updated');
             expect(change?.metadata.priority).toBe('high');
+            expect(change?.metadata.changedFields).toContain('deletedAt');
+            expect(change?.metadata.changedFields).toContain('deletedBy');
         });
     });
 
@@ -451,7 +481,7 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             // Wait for group setup
-            await waitForDebounce('group');
+            await waitForTriggerProcessing('group');
             await clearGroupChangeDocuments(groupId);
         });
 
@@ -470,11 +500,11 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait for debouncing
-            await waitForDebounce('settlement');
+            await waitForTriggerProcessing('settlement');
 
-            // Check settlement change document (stored in expense-changes)
+            // Check settlement change document (stored in transaction-changes)
             const settlementChange = await pollForChange<ExpenseChangeDocument>(
-                'expense-changes',
+                FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.settlementId === settlement.id && doc.changeType === 'created',
                 { timeout: 2000, groupId }
             );
@@ -487,7 +517,7 @@ describe('Change Detection Integration Tests', () => {
 
             // Check balance change document
             const balanceChange = await pollForChange<BalanceChangeDocument>(
-                'balance-changes',
+                FirestoreCollections.BALANCE_CHANGES,
                 (doc) => doc.groupId === groupId && doc.metadata.triggeredBy === 'settlement',
                 { timeout: 2000, groupId }
             );
@@ -511,10 +541,10 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await waitForDebounce('settlement');
+            await waitForTriggerProcessing('settlement');
 
             const change = await pollForChange<ExpenseChangeDocument>(
-                'expense-changes',
+                FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.settlementId === settlement.id,
                 { timeout: 2000, groupId }
             );
@@ -575,7 +605,7 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait for all changes to complete
-            await waitForDebounce('settlement');
+            await waitForTriggerProcessing('settlement');
 
             // Verify we have changes for all entity types
             const groupChanges = await getGroupChanges(groupId);

@@ -363,7 +363,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
         // Get recent changes (last 60 seconds)
         const changesQuery = admin
             .firestore()
-            .collection('group-changes')
+            .collection(FirestoreCollections.GROUP_CHANGES)
             .where('timestamp', '>', new Date(Date.now() - 60000))
             .where('metadata.affectedUsers', 'array-contains', userId)
             .orderBy('timestamp', 'desc')

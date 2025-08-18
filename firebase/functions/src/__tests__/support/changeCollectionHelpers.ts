@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import type { DocumentData } from 'firebase-admin/firestore';
 import {db} from "./firebase-emulator";
+import { FirestoreCollections, ChangeCollectionName } from '../../shared/shared-types';
 
 /**
  * Helper functions for querying change collections in tests
@@ -43,7 +44,7 @@ export interface BalanceChangeDocument {
  * Poll for a change document matching the specified criteria
  */
 export async function pollForChange<T extends DocumentData>(
-    collection: 'group-changes' | 'expense-changes' | 'balance-changes',
+    collection: ChangeCollectionName,
     matcher: (doc: T) => boolean,
     options: {
         timeout?: number;
@@ -84,7 +85,7 @@ export async function pollForChange<T extends DocumentData>(
  * Get all change documents for a specific group
  */
 export async function getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
-    const snapshot = await db.collection('group-changes')
+    const snapshot = await db.collection(FirestoreCollections.GROUP_CHANGES)
         .where('groupId', '==', groupId)
         .orderBy('timestamp', 'desc')
         .get();
@@ -96,7 +97,7 @@ export async function getGroupChanges(groupId: string): Promise<GroupChangeDocum
  * Get all expense change documents for a specific group
  */
 export async function getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
-    const snapshot = await db.collection('expense-changes')
+    const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
         .where('groupId', '==', groupId)
         .orderBy('timestamp', 'desc')
         .get();
@@ -108,7 +109,7 @@ export async function getExpenseChanges(groupId: string): Promise<ExpenseChangeD
  * Get all balance change documents for a specific group
  */
 export async function getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
-    const snapshot = await db.collection('balance-changes')
+    const snapshot = await db.collection(FirestoreCollections.BALANCE_CHANGES)
         .where('groupId', '==', groupId)
         .orderBy('timestamp', 'desc')
         .get();
@@ -120,7 +121,7 @@ export async function getBalanceChanges(groupId: string): Promise<BalanceChangeD
  * Clear all change documents for a specific group
  */
 export async function clearGroupChangeDocuments(groupId: string): Promise<void> {
-    const collections = ['group-changes', 'expense-changes', 'balance-changes'];
+    const collections = [FirestoreCollections.GROUP_CHANGES, FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
     
     for (const collection of collections) {
         const snapshot = await db.collection(collection)
@@ -137,20 +138,21 @@ export async function clearGroupChangeDocuments(groupId: string): Promise<void> 
 }
 
 /**
- * Wait for debouncing to complete (waits for the maximum debounce time)
+ * Wait for triggers to complete processing (waits for async operations)
  */
-export async function waitForDebounce(type: 'group' | 'expense' | 'settlement' = 'group'): Promise<void> {
-    // Groups: 500ms, Expenses/Settlements: 200ms
-    // Add some buffer time
-    const debounceTime = type === 'group' ? 600 : 300;
-    await new Promise(resolve => setTimeout(resolve, debounceTime));
+export async function waitForTriggerProcessing(type: 'group' | 'expense' | 'settlement' = 'group'): Promise<void> {
+    // Allow time for triggers to process and create change documents
+    // Different wait times based on complexity
+    const waitTime = type === 'group' ? 600 : 300;
+    await new Promise(resolve => setTimeout(resolve, waitTime));
 }
+
 
 /**
  * Count change documents created in the last N milliseconds
  */
 export async function countRecentChanges(
-    collection: 'group-changes' | 'expense-changes' | 'balance-changes',
+    collection: ChangeCollectionName,
     groupId: string,
     withinMs: number = 1000
 ): Promise<number> {

@@ -27,7 +27,7 @@ import * as path from 'path';
 import { FirestoreCollections } from './shared/shared-types';
 
 // Import triggers and scheduled functions
-import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker-v1';
+import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { cleanupChanges } from './scheduled/cleanup';
 
 // Test emulator connections when running locally

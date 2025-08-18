@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin/firestore';
+import { removeUndefinedFields } from './firestore-helpers';
 
 export type ChangeType = 'created' | 'updated' | 'deleted';
 export type ChangePriority = 'high' | 'medium' | 'low';
@@ -9,50 +10,6 @@ export interface ChangeMetadata {
     changedFields?: string[];
 }
 
-/**
- * Debouncing manager for change events
- */
-export class ChangeDebouncer {
-    private static pendingChanges = new Map<string, NodeJS.Timeout>();
-    private static readonly DEFAULT_DELAY = 500; // 500ms default debounce
-
-    static debounce(
-        key: string,
-        callback: () => Promise<void>,
-        delay: number = ChangeDebouncer.DEFAULT_DELAY
-    ): void {
-        // Clear existing timeout for this key
-        const existing = this.pendingChanges.get(key);
-        if (existing) {
-            clearTimeout(existing);
-        }
-
-        // Set new timeout
-        const timeoutId = setTimeout(async () => {
-            this.pendingChanges.delete(key);
-            try {
-                await callback();
-            } catch (error) {
-                console.error(`Error in debounced callback for ${key}:`, error);
-            }
-        }, delay);
-
-        this.pendingChanges.set(key, timeoutId);
-    }
-
-    static clearPending(key: string): void {
-        const timeout = this.pendingChanges.get(key);
-        if (timeout) {
-            clearTimeout(timeout);
-            this.pendingChanges.delete(key);
-        }
-    }
-
-    static clearAll(): void {
-        this.pendingChanges.forEach(timeout => clearTimeout(timeout));
-        this.pendingChanges.clear();
-    }
-}
 
 /**
  * Get list of changed fields between two documents
@@ -213,5 +170,6 @@ export function createChangeDocument(
         }
     }
 
-    return baseDoc;
+    // Remove all undefined fields recursively to prevent Firestore errors
+    return removeUndefinedFields(baseDoc);
 }

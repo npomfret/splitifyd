@@ -8,6 +8,7 @@
 import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import {db} from "../../support/firebase-emulator";
+import { FirestoreCollections } from '../../../shared/shared-types';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     beforeAll(async () => {
@@ -33,7 +34,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         }
 
         // Clean up test data
-        const collections = ['settlements', 'transaction-changes', 'balance-changes'];
+        const collections = ['settlements', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
         for (const collection of collections) {
             const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
 
@@ -54,7 +55,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
                 reject(new Error('Timeout: No transaction-change notification received within 5 seconds'));
             }, 5000);
 
-            const query = db.collection('transaction-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
+            const query = db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
             changeListener = query.onSnapshot(
                 (snapshot) => {
@@ -113,7 +114,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
                 reject(new Error('Timeout: No balance-change notification received within 5 seconds'));
             }, 5000);
 
-            const query = db.collection('balance-changes').where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
+            const query = db.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
 
             changeListener = query.onSnapshot(
                 (snapshot) => {
