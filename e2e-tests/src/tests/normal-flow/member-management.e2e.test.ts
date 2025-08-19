@@ -1,15 +1,18 @@
-import { authenticatedPageTest, expect } from '../../fixtures';
+import { expect, multiUserTest } from '../../fixtures/multi-user-test';
+import { authenticatedPageTest } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import { JoinGroupPage } from '../../pages';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 
 // Enable debugging helpers
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
-authenticatedPageTest.describe('Member Management', () => {
+authenticatedPageTest.describe('Member Management - Owner Restrictions', () => {
     authenticatedPageTest(
-        'group owner should not see leave button',
+        'group owner should not see leave button and should see settings',
         async ({ authenticatedPage, groupDetailPage }) => {
             const { page } = authenticatedPage;
             const groupWorkflow = new GroupWorkflow(page);
@@ -23,97 +26,251 @@ authenticatedPageTest.describe('Member Management', () => {
             await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
 
             // Verify Leave Group button is NOT visible for owner
-            const leaveButton = page.getByRole('button', { name: /leave group/i });
-            await expect(leaveButton).not.toBeVisible();
+            await expect(groupDetailPage.getLeaveGroupButton()).not.toBeVisible();
 
             // But Settings button should be visible
-            const settingsButton = groupDetailPage.getSettingsButton();
-            await expect(settingsButton).toBeVisible();
+            await expect(groupDetailPage.getSettingsButton()).toBeVisible();
+        },
+    );
+});
+
+multiUserTest.describe('Member Management - Multi-User Operations', () => {
+    multiUserTest(
+        'non-owner member should be able to leave group',
+        async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+            const { page: ownerPage, user: owner } = authenticatedPage;
+            const { page: memberPage, user: member } = secondUser;
+            const memberGroupDetailPage = secondUser.groupDetailPage;
+            
+            // Owner creates group
+            const groupWorkflow = new GroupWorkflow(ownerPage);
+            const groupName = generateTestGroupName('Leave Test');
+            const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member leave functionality');
+            
+            // Get share link
+            await expect(ownerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            const shareLink = await groupDetailPage.getShareLink();
+            
+            // Member joins the group
+            const joinGroupPage = new JoinGroupPage(memberPage);
+            await memberPage.goto(shareLink);
+            await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+            await joinGroupPage.getJoinGroupButton().click();
+            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            
+            // Wait for both users to see each other in the member list
+            await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            
+            // Verify member sees Leave Group button
+            await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
+            
+            // Member clicks Leave Group
+            await memberGroupDetailPage.clickLeaveGroup();
+            
+            // Confirm in the dialog
+            await memberGroupDetailPage.confirmLeaveGroup();
+            
+            // Member should be redirected to dashboard
+            await memberPage.waitForURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            
+            // Owner should see updated member count (only 1 member now)
+            await groupDetailPage.waitForMemberCount(1);
+            
+            // Verify the member who left is no longer in the list
+            await groupDetailPage.verifyMemberNotVisible(member.displayName);
         },
     );
 
-    authenticatedPageTest(
-        'should show leave button for non-owner members',
-        async ({ authenticatedPage, groupDetailPage }) => {
-            const { page } = authenticatedPage;
-            const groupWorkflow = new GroupWorkflow(page);
-
-            // Create a group
-            const groupName = generateTestGroupName('Member Test');
-            await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member functionality');
+    multiUserTest(
+        'group owner should be able to remove a member',
+        async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+            const { page: ownerPage, user: owner } = authenticatedPage;
+            const { page: memberPage, user: member } = secondUser;
+            const memberGroupDetailPage = secondUser.groupDetailPage;
             
-            // Wait for group to load
-            await page.waitForLoadState('domcontentloaded');
-            await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
-
-            // In a real multi-user test, we would:
-            // 1. Create a second user
-            // 2. Share the group link
-            // 3. Have the second user join
-            // 4. Verify they see the leave button
-            
-            // For now, we verify the UI elements exist for the owner
-            const settingsButton = groupDetailPage.getSettingsButton();
-            await expect(settingsButton).toBeVisible();
-            
-            // The leave button should not be visible for the owner
-            const leaveButton = page.getByRole('button', { name: /leave group/i });
-            await expect(leaveButton).not.toBeVisible();
-        },
-    );
-
-    authenticatedPageTest(
-        'should show remove member UI for owners',
-        async ({ authenticatedPage, groupDetailPage }) => {
-            const { page } = authenticatedPage;
-            
-            // Create a group
-            const groupWorkflow = new GroupWorkflow(page);
+            // Owner creates group
+            const groupWorkflow = new GroupWorkflow(ownerPage);
             const groupName = generateTestGroupName('Remove Test');
-            await groupWorkflow.createGroupAndNavigate(groupName, 'Testing remove member UI');
+            const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member removal');
             
-            // Wait for group to load
-            await page.waitForLoadState('domcontentloaded');
-            await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
+            // Get share link
+            await expect(ownerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            const shareLink = await groupDetailPage.getShareLink();
             
-            // Check members section exists
-            const membersSection = page.getByText('Members').first();
-            await expect(membersSection).toBeVisible();
+            // Member joins the group
+            const joinGroupPage = new JoinGroupPage(memberPage);
+            await memberPage.goto(shareLink);
+            await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+            await joinGroupPage.getJoinGroupButton().click();
+            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
-            // In a real test with multiple members:
-            // 1. We would add other members
-            // 2. Hover over their elements to see remove buttons
-            // 3. Click remove and confirm the dialog
+            // Wait for synchronization
+            await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
             
-            // For now verify the owner is shown
-            const ownerBadge = page.getByText('Admin').first();
-            await expect(ownerBadge).toBeVisible();
+            // Owner removes the member
+            await groupDetailPage.clickRemoveMember(member.displayName);
+            
+            // Confirm removal in dialog
+            await groupDetailPage.confirmRemoveMember();
+            
+            // Member should be redirected to dashboard
+            await memberPage.waitForURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            
+            // Owner should see updated member list
+            await groupDetailPage.waitForMemberCount(1);
+            
+            // Verify the removed member is no longer visible
+            await groupDetailPage.verifyMemberNotVisible(member.displayName);
         },
     );
 
-    authenticatedPageTest(
-        'should validate leave group dialog',
-        async ({ authenticatedPage, groupDetailPage }) => {
-            const { page } = authenticatedPage;
+    multiUserTest(
+        'should prevent leaving group with outstanding balance',
+        async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+            const { page: ownerPage, user: owner } = authenticatedPage;
+            const { page: memberPage, user: member } = secondUser;
+            const memberGroupDetailPage = secondUser.groupDetailPage;
             
-            // This test would require a multi-user setup to properly test
-            // For now, we can verify the dialog elements exist in the DOM
+            // Owner creates group
+            const groupWorkflow = new GroupWorkflow(ownerPage);
+            const groupName = generateTestGroupName('Balance Test');
+            const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing balance restrictions');
             
-            // Create a group
-            const groupWorkflow = new GroupWorkflow(page);
-            const groupName = generateTestGroupName('Dialog Test');
-            await groupWorkflow.createGroupAndNavigate(groupName, 'Testing dialogs');
+            // Get share link and have member join
+            const shareLink = await groupDetailPage.getShareLink();
+            const joinGroupPage = new JoinGroupPage(memberPage);
+            await memberPage.goto(shareLink);
+            await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+            await joinGroupPage.getJoinGroupButton().click();
+            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
-            // Wait for group to load
-            await page.waitForLoadState('domcontentloaded');
+            // Wait for synchronization
+            await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
             
-            // Verify the component is loaded (it includes the dialog code)
-            const membersSection = page.getByText('Members').first();
-            await expect(membersSection).toBeVisible();
+            // Owner adds an expense that creates a balance
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+            await expenseFormPage.submitExpense({
+                description: 'Test expense for balance',
+                amount: 100,
+                currency: 'USD',
+                paidBy: owner.displayName,
+                splitType: 'equal',
+            });
             
-            // Check that confirmation dialog elements are in the DOM (hidden)
-            // The actual dialog would only show when clicking Leave Group
-            // which requires being a non-owner member
+            // Wait for expense to be processed and balances to update
+            await groupDetailPage.waitForBalancesToLoad(groupId);
+            await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+            
+            // Member tries to leave group
+            await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
+            await memberGroupDetailPage.clickLeaveGroup();
+            
+            // Should see error message about outstanding balance
+            await memberGroupDetailPage.verifyLeaveErrorMessage();
+            
+            // Cancel the leave attempt
+            await memberGroupDetailPage.cancelLeaveGroup();
+            
+            // Member records a settlement to clear the balance
+            const settlementFormPage = await memberGroupDetailPage.clickSettleUpButton(2);
+            
+            // Fill and submit settlement for the full owed amount (50 in this case)
+            await settlementFormPage.fillAndSubmitSettlement('50', owner.displayName);
+            
+            // Wait for settlement to process and balances to update
+            await groupDetailPage.waitForBalancesToLoad(groupId);
+            await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+            
+            // Now member should be able to leave
+            await memberGroupDetailPage.clickLeaveGroup();
+            await memberGroupDetailPage.confirmLeaveGroup();
+            
+            // Member should be redirected to dashboard
+            await memberPage.waitForURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+        },
+    );
+
+    multiUserTest(
+        'should prevent owner from removing member with outstanding balance',
+        async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+            const { page: ownerPage, user: owner } = authenticatedPage;
+            const { page: memberPage, user: member } = secondUser;
+            const memberGroupDetailPage = secondUser.groupDetailPage;
+            
+            // Owner creates group
+            const groupWorkflow = new GroupWorkflow(ownerPage);
+            const groupName = generateTestGroupName('Remove Balance');
+            const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing removal with balance');
+            
+            // Member joins
+            const shareLink = await groupDetailPage.getShareLink();
+            const joinGroupPage = new JoinGroupPage(memberPage);
+            await memberPage.goto(shareLink);
+            await joinGroupPage.getJoinGroupButton().click();
+            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+            
+            // Wait for synchronization
+            await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            
+            // Member adds expense creating a balance
+            const expenseFormPage = await memberGroupDetailPage.clickAddExpenseButton(2);
+            await expenseFormPage.submitExpense({
+                description: 'Member expense',
+                amount: 60,
+                currency: 'USD',
+                paidBy: member.displayName,
+                splitType: 'equal',
+            });
+            
+            // Wait for balances to update
+            await groupDetailPage.waitForBalancesToLoad(groupId);
+            await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+            
+            // Owner tries to remove member
+            await groupDetailPage.clickRemoveMember(member.displayName);
+            
+            // Should see error about outstanding balance
+            await groupDetailPage.verifyRemoveErrorMessage();
+        },
+    );
+
+    multiUserTest(
+        'should handle edge case of removing last non-owner member',
+        async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+            const { page: ownerPage, user: owner } = authenticatedPage;
+            const { page: memberPage, user: member } = secondUser;
+            
+            // Owner creates group
+            const groupWorkflow = new GroupWorkflow(ownerPage);
+            const groupName = generateTestGroupName('Last Member');
+            await groupWorkflow.createGroupAndNavigate(groupName, 'Testing last member removal');
+            
+            // Member joins
+            const shareLink = await groupDetailPage.getShareLink();
+            const joinGroupPage = new JoinGroupPage(memberPage);
+            await memberPage.goto(shareLink);
+            await joinGroupPage.getJoinGroupButton().click();
+            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+            
+            // Wait for synchronization  
+            await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+            
+            // Owner removes the only other member
+            await groupDetailPage.clickRemoveMember(member.displayName);
+            await groupDetailPage.confirmRemoveMember();
+            
+            // Owner should still be in the group
+            await expect(ownerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            
+            // Group should show only 1 member (the owner)
+            await groupDetailPage.waitForMemberCount(1);
+            
+            // Group title should still be visible
+            await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
         },
     );
 });

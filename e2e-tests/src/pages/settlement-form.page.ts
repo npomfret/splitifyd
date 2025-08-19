@@ -196,4 +196,23 @@ export class SettlementFormPage extends BasePage {
         // Wait for settlement processing to complete
         await this.page.waitForLoadState('domcontentloaded');
     }
+
+    /**
+     * Simplified method to fill and submit settlement form
+     * Used when the form is already open and ready
+     */
+    async fillAndSubmitSettlement(amount: string, payeeName: string): Promise<void> {
+        const amountInput = this.getAmountInput();
+        await this.fillPreactInput(amountInput, amount);
+
+        const payeeSelect = this.getPayeeSelect();
+        await payeeSelect.selectOption({ label: payeeName });
+
+        const submitButton = this.getRecordPaymentButton();
+        await this.clickButton(submitButton, { buttonName: 'Record Payment' });
+
+        // Wait for modal to close
+        const modal = this.getModal();
+        await expect(modal).not.toBeVisible({ timeout: 5000 });
+    }
 }

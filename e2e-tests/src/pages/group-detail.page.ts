@@ -1022,4 +1022,77 @@ export class GroupDetailPage extends BasePage {
         await this.waitForMemberCount(1); // Wait for at least the creator to show
         await this.waitForBalancesToLoad(groupId);
     }
+
+    // ========== Member Management Methods ==========
+    
+    // Member management element accessors
+    getLeaveGroupButton(): Locator {
+        return this.page.getByRole('button', { name: /leave group/i });
+    }
+
+    getMemberItem(memberName: string): Locator {
+        return this.page.locator('[data-testid="member-item"]').filter({ hasText: memberName });
+    }
+
+    getRemoveMemberButton(memberName: string): Locator {
+        const memberItem = this.getMemberItem(memberName);
+        // Try both possible selectors for remove button
+        return memberItem.locator('[data-testid="remove-member-button"]').or(
+            this.page.getByRole('button', { name: new RegExp(`remove.*${memberName}`, 'i') })
+        );
+    }
+
+    getMembersList(): Locator {
+        return this.page.locator('[data-testid="member-item"]');
+    }
+
+    getMembersSection(): Locator {
+        return this.page.getByText('Members').first();
+    }
+
+
+    // Member management actions
+    async clickLeaveGroup(): Promise<void> {
+        const leaveButton = this.getLeaveGroupButton();
+        await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
+    }
+
+    async confirmLeaveGroup(): Promise<void> {
+        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|leave/i });
+        await expect(confirmButton).toBeVisible({ timeout: 2000 });
+        await this.clickButton(confirmButton, { buttonName: 'Confirm Leave' });
+    }
+
+    async cancelLeaveGroup(): Promise<void> {
+        const cancelButton = this.page.getByRole('button', { name: /cancel|close/i });
+        await this.clickButton(cancelButton, { buttonName: 'Cancel Leave' });
+    }
+
+    async clickRemoveMember(memberName: string): Promise<void> {
+        const memberItem = this.getMemberItem(memberName);
+        await expect(memberItem).toBeVisible();
+        const removeButton = this.getRemoveMemberButton(memberName);
+        await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
+    }
+
+    async confirmRemoveMember(): Promise<void> {
+        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|remove/i });
+        await expect(confirmButton).toBeVisible({ timeout: 2000 });
+        await this.clickButton(confirmButton, { buttonName: 'Confirm Remove' });
+    }
+
+
+    async verifyMemberNotVisible(memberName: string): Promise<void> {
+        await expect(this.page.getByText(memberName)).not.toBeVisible();
+    }
+
+    async verifyLeaveErrorMessage(): Promise<void> {
+        const errorMessage = this.page.getByText(/outstanding balance|settle.*first|cannot leave/i);
+        await expect(errorMessage).toBeVisible({ timeout: 3000 });
+    }
+
+    async verifyRemoveErrorMessage(): Promise<void> {
+        const errorMessage = this.page.getByText(/outstanding balance|settle.*first|cannot remove/i);
+        await expect(errorMessage).toBeVisible({ timeout: 3000 });
+    }
 }
