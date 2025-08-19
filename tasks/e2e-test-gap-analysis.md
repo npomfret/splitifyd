@@ -138,3 +138,108 @@ Inconsistent error handling can lead to unpredictable behavior in the client app
 
 **Recommendation:**
 Refactor the error handling in `user/handlers.ts` to consistently use the `ApiError` class or the predefined `Errors` from `utils/errors.ts`. This will ensure that all API responses have a standard error format.
+
+## 3. Integration Test Review
+
+### 3.1. Over-testing of Basic Validation
+
+**Finding:**
+The integration tests, particularly `data-validation.test.ts`, dedicate a significant number of tests to basic input validation (e.g., future dates, string lengths, empty strings). While important, this level of detail is better suited for faster, more focused unit tests.
+
+**Impact:**
+This inflates the runtime of the integration test suite with checks that don't require a full Firebase emulator environment.
+
+**Recommendation:**
+*   Move fine-grained validation tests (e.g., specific date formats, character limits, null/undefined checks) to unit tests for the Joi validation schemas.
+*   Keep a smaller set of "smoke tests" in the integration suite to ensure the validation middleware is correctly wired up for each endpoint.
+
+### 3.2. Under-testing of Complex Business Logic
+
+**Finding:**
+The tests for complex scenarios are underdeveloped. For example, `complex-unsettled-balance.test.ts` only covers one specific scenario. There is insufficient testing for multi-expense, multi-settlement balance calculations, and edge cases in debt simplification.
+
+**Impact:**
+Potential bugs in the core financial logic may go undetected. The current tests do not provide enough confidence in the accuracy of balance calculations under varied conditions.
+
+**Recommendation:**
+*   Expand `complex-unsettled-balance.test.ts` to include more scenarios:
+    *   Circular debts (A owes B, B owes C, C owes A).
+    *   Multiple currencies within the same group.
+    *   Scenarios where settlements only partially cover a debt.
+*   Create new integration tests specifically for the `debtSimplifier` logic with complex inputs.
+
+### 3.3. Inefficient Test Execution
+
+**Finding:**
+The `trigger-debug.test.ts` and `change-detection.test.ts` files use fixed `setTimeout` waits (e.g., `new Promise(resolve => setTimeout(resolve, 3000))`). This is an anti-pattern that leads to slow and potentially flaky tests.
+
+**Impact:**
+Tests are slower than necessary and can fail if the asynchronous operation takes longer than the fixed wait time, or pass even if the operation fails, as long as it fails after the timeout.
+
+**Recommendation:**
+*   Refactor all tests that use `setTimeout` to use a polling mechanism, like the `pollForChange` helper already present in the codebase.
+*   The `pollForChange` helper should be made more generic and moved to a shared test utility file so it can be reused across different test suites.
+
+### 3.4. Redundant Test Setup
+
+**Finding:**
+Multiple test files (`api.test.ts`, `groups.test.ts`, `edit-expense.test.ts`, etc.) repeat the same setup logic for creating users and groups.
+
+**Impact:**
+This leads to code duplication, making the tests harder to maintain.
+
+**Recommendation:**
+*   Create a centralized test setup helper or a Jest `beforeAll` / `beforeEach` block in a shared setup file to handle user and group creation.
+*   The existing `FirebaseIntegrationTestUserPool` is a good pattern that should be used more consistently across all integration tests.
+
+### 3.5. Overlapping and Unfocused Tests
+
+**Finding:**
+There is significant overlap between `api.test.ts` and other, more specific test files like `groups.test.ts` and `user-management.test.ts`. The `api.test.ts` file has become a catch-all suite that re-tests functionality already covered elsewhere.
+
+**Impact:**
+This increases the number of tests to run and maintain without providing additional test coverage. It's unclear where the canonical test for a specific feature resides.
+
+**Recommendation:**
+*   Refactor `api.test.ts` to be a high-level "smoke test" suite that only verifies that endpoints are wired up and return a successful response.
+*   Move the detailed business logic tests from `api.test.ts` into the appropriate feature-specific test files (e.g., move group creation logic tests to `groups.test.ts`).
+
+### 3.6. Missing Tests for Critical User Flows
+
+**Finding:**
+There is a lack of integration tests for critical user profile and authentication flows. For instance, there are no tests to verify what happens when a user updates their profile information (like `displayName`) and how that change is reflected in their group memberships. Password change and reset flows are also untested at the integration level.
+
+**Impact:**
+Bugs in profile updates or authentication can have a significant impact on user experience and security.
+
+**Recommendation:**
+*   Add integration tests to `user-profile.test.ts` that:
+    *   Verify a user can change their `displayName` and `photoURL`.
+    *   Verify that after a `displayName` change, the new name is correctly retrieved when fetching group members.
+*   Add integration tests for the password change endpoint.
+
+### 3.7. Inconsistent Error Assertion
+
+**Finding:**
+Error assertions across the test suite are inconsistent. Some tests use `rejects.toThrow(/some string/i)`, while others inspect the error object for specific properties.
+
+**Example from `security.test.ts`:**
+```typescript
+await expect(driver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
+```
+
+**Example from `duplicate-user-registration.test.ts`:**
+```typescript
+expect(error.response.data).toMatchObject({
+    error: {
+        code: 'EMAIL_EXISTS',
+        message: expect.stringContaining('email already exists'),
+    },
+});
+```
+
+**Impact:**
+Inconsistent error checking can make tests less precise and harder to read. The application uses a standardized `ApiError` format, and tests should leverage that.
+
+**Recommendation:**
+*   Standardize all API error assertions to check for the specific `error.response.data.error.code` and `message`, rather than relying on broad string matching on the error message. This will make the tests more robust and less brittle.
