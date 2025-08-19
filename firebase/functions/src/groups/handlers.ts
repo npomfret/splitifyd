@@ -480,6 +480,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
 /**
  * Get consolidated group details (group + members + expenses + balances + settlements)
  * Reuses existing tested handler logic to eliminate race conditions
+ * Supports pagination for expenses and settlements
  */
 export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = req.user?.uid;
@@ -487,6 +488,12 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
         throw Errors.UNAUTHORIZED();
     }
     const groupId = validateGroupId(req.params.id);
+
+    // Parse pagination parameters from query string
+    const expenseLimit = Math.min(parseInt(req.query.expenseLimit as string) || 20, 100);
+    const expenseCursor = req.query.expenseCursor as string;
+    const settlementLimit = Math.min(parseInt(req.query.settlementLimit as string) || 20, 100);
+    const settlementCursor = req.query.settlementCursor as string;
 
     try {
         // Reuse existing tested functions for each data type
@@ -497,14 +504,20 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
             // Get members using extracted function
             _getGroupMembersData(groupId, group.memberIds),
             
-            // Get expenses using extracted function  
-            _getGroupExpensesData(groupId, { limit: 20 }),
+            // Get expenses using extracted function with pagination
+            _getGroupExpensesData(groupId, { 
+                limit: expenseLimit,
+                cursor: expenseCursor 
+            }),
             
             // Get balances using existing calculator
             calculateGroupBalances(groupId),
             
-            // Get settlements using extracted function
-            _getGroupSettlementsData(groupId, { limit: 20 })
+            // Get settlements using extracted function with pagination
+            _getGroupSettlementsData(groupId, { 
+                limit: settlementLimit,
+                cursor: settlementCursor 
+            })
         ]);
 
         // Construct response using existing patterns
