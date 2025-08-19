@@ -1,7 +1,7 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@shared/shared-types';
 import {generateNewUserDetails, generateShortId} from '../utils/test-helpers';
-import { RegisterPage } from '../pages';
+import {LoginPage, RegisterPage} from '../pages';
 import { expect } from '@playwright/test';
 
 /**
@@ -21,6 +21,8 @@ export class UserPool {
     private availableUsers: BaseUser[] = [];
     // Track users currently in use (for debugging/stats)
     private usersInUse: Set<string> = new Set(); // uid
+    // Track active contexts to ensure cleanup
+    private activeContexts: Set<any> = new Set();
 
     constructor() {
         // Enforce singleton pattern - only one UserPool per process
@@ -33,6 +35,28 @@ export class UserPool {
 
         // Each worker starts with an empty pool and creates users on-demand
         console.log('🔧 User pool initialized (on-demand mode)');
+        
+        // Register cleanup on process exit to ensure contexts are closed
+        process.on('exit', () => this.cleanup());
+        process.on('SIGINT', () => this.cleanup());
+        process.on('SIGTERM', () => this.cleanup());
+    }
+    
+    /**
+     * Cleanup all active contexts
+     */
+    private cleanup(): void {
+        if (this.activeContexts.size > 0) {
+            console.log(`⚠️ Cleaning up ${this.activeContexts.size} active contexts`);
+            for (const context of this.activeContexts) {
+                try {
+                    context.close();
+                } catch (error) {
+                    // Ignore errors during cleanup
+                }
+            }
+            this.activeContexts.clear();
+        }
     }
 
     /**
@@ -98,24 +122,28 @@ export class UserPool {
         const {displayName, email, password} = generateNewUserDetails();
 
         // Create a temporary context and page for user registration
-        const tempContext = await browser.newContext();
-        const tempPage = await tempContext.newPage();
-
-        // Add console error reporting to catch JavaScript errors during user creation
-        const consoleErrors: string[] = [];
-        const pageErrors: string[] = [];
-
-        tempPage.on('console', (msg: any) => {
-            if (msg.type() === 'error') {
-                consoleErrors.push(`CONSOLE ERROR: ${msg.text()}`);
-            }
-        });
-
-        tempPage.on('pageerror', (error: Error) => {
-            pageErrors.push(`PAGE ERROR: ${error.message}`);
-        });
-
+        let tempContext: any = null;
+        let tempPage: any = null;
+        
         try {
+            tempContext = await browser.newContext();
+            // Track this context for cleanup
+            this.activeContexts.add(tempContext);
+            tempPage = await tempContext.newPage();
+
+            // Add console error reporting to catch JavaScript errors during user creation
+            const consoleErrors: string[] = [];
+            const pageErrors: string[] = [];
+
+            tempPage.on('console', (msg: any) => {
+                if (msg.type() === 'error') {
+                    consoleErrors.push(`CONSOLE ERROR: ${msg.text()}`);
+                }
+            });
+
+            tempPage.on('pageerror', (error: Error) => {
+                pageErrors.push(`PAGE ERROR: ${error.message}`);
+            });
             // Use RegisterPage to properly navigate and fill form
             const registerPage = new RegisterPage(tempPage);
             await registerPage.navigateToRegister();
@@ -151,24 +179,62 @@ export class UserPool {
 
             // Wait for user menu button to be ready and clickable
             const userMenuButton = tempPage.locator('[data-testid="user-menu-button"]');
-            await userMenuButton.waitFor({ state: 'visible' });
+            await userMenuButton.waitFor({ state: 'visible', timeout: TIMEOUTS.EXTENDED });
+            
+            // Click and wait for dropdown to open
             await userMenuButton.click();
-
-            // Wait for dropdown to be visible and stable (animation complete)
+            
+            // Wait a bit for the dropdown state to update
+            await tempPage.waitForTimeout(100);
+            
+            // The dropdown uses inline style display:none/block, so we need to wait for it to be visible
+            // We check for the sign-out button to be visible which indicates the dropdown is open
             const signOutButton = tempPage.locator('[data-testid="sign-out-button"]');
-            await signOutButton.waitFor({ state: 'visible' });
+            
+            // Try clicking menu again if sign-out button is not visible after first click
+            try {
+                await signOutButton.waitFor({ state: 'visible', timeout: 1000 });
+            } catch {
+                console.log('Dropdown did not open on first click, retrying...');
+                // Click menu button again
+                await userMenuButton.click();
+                await tempPage.waitForTimeout(200);
+                // Wait for sign-out button to be visible
+                await signOutButton.waitFor({ state: 'visible', timeout: TIMEOUTS.EXTENDED });
+            }
+            
+            // Ensure the button is stable and clickable
+            await expect(signOutButton).toBeVisible();
+            
+            // Click sign-out with force option to bypass any potential overlay issues
+            await signOutButton.click({ force: true, timeout: TIMEOUTS.EXTENDED });
 
-            // Ensure the dropdown is fully rendered by checking it's in the viewport
-            await expect(signOutButton).toBeInViewport();
-            await signOutButton.click();
-
-            // Wait for logout to complete
-            await tempPage.waitForURL((url: URL) => !url.toString().includes('/dashboard'), {
+            // Wait for logout to complete - should redirect to login page
+            await tempPage.waitForURL('**/login', {
                 timeout: TIMEOUTS.EXTENDED * 2,
             });
+
+            // debugging mystery screenshots
+            await new LoginPage(tempPage).fillLoginForm(displayName, "", false);
         } finally {
-            // Always close the temporary context to avoid empty browser windows
-            await tempContext.close();
+            // Always close the page and context to avoid resource leaks
+            // Close in reverse order of creation to prevent issues
+            if (tempPage) {
+                try {
+                    await tempPage.close();
+                } catch (error) {
+                    console.log('Warning: Failed to close temp page:', error);
+                }
+            }
+            if (tempContext) {
+                try {
+                    await tempContext.close();
+                    // Remove from tracking after successful close
+                    this.activeContexts.delete(tempContext);
+                } catch (error) {
+                    console.log('Warning: Failed to close temp context:', error);
+                }
+            }
         }
 
         return {
