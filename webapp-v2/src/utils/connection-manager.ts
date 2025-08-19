@@ -1,4 +1,4 @@
-import { signal, computed } from '@preact/signals';
+import { signal } from '@preact/signals';
 
 interface NetworkInformation extends EventTarget {
     effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
@@ -196,9 +196,3 @@ export class ConnectionManager {
         this.listeners.clear();
     }
 }
-
-// Computed signal for easy consumption
-export const connectionState = computed(() => {
-    const manager = ConnectionManager.getInstance();
-    return manager.getState();
-});

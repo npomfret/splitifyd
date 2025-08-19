@@ -72,17 +72,6 @@ export class FirebaseIntegrationTestUserPool {
     }
 
     /**
-     * Get all users in the pool.
-     */
-    getAllUsers(): User[] {
-        if (!this.initialized) {
-            throw new Error('User pool not initialized. Call initialize() in beforeAll()');
-        }
-        
-        return [...this.pool];
-    }
-
-    /**
      * Get the size of the pool.
      */
     size(): number {

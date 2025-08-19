@@ -27,35 +27,3 @@ export function removeUndefinedFields(obj: any): any {
 
     return obj;
 }
-
-/**
- * Validates that an object doesn't contain undefined values at any level
- */
-export function hasUndefinedFields(obj: any, path = ''): string | null {
-    if (obj === null || typeof obj !== 'object') {
-        return null;
-    }
-
-    if (Array.isArray(obj)) {
-        for (let i = 0; i < obj.length; i++) {
-            const result = hasUndefinedFields(obj[i], `${path}[${i}]`);
-            if (result) return result;
-        }
-        return null;
-    }
-
-    for (const [key, value] of Object.entries(obj)) {
-        const currentPath = path ? `${path}.${key}` : key;
-        
-        if (value === undefined) {
-            return currentPath;
-        }
-        
-        if (typeof value === 'object' && value !== null) {
-            const result = hasUndefinedFields(value, currentPath);
-            if (result) return result;
-        }
-    }
-
-    return null;
-}

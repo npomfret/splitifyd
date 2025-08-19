@@ -24,15 +24,6 @@ export const createOptimisticTimestamp = (): Timestamp => {
 
 /**
  * Creates a server-side timestamp (maintains backward compatibility)
- * ⚠️ DEPRECATED: Use createOptimisticTimestamp() for optimistic locking or createServerTimestamp() for general use
- * @returns Firestore Timestamp with current time
- */
-export const createPreciseTimestamp = (): Timestamp => {
-    return Timestamp.now();
-};
-
-/**
- * Creates a server-side timestamp (maintains backward compatibility)
  * @deprecated Use createOptimisticTimestamp() for optimistic locking or createTrueServerTimestamp() for server timestamps
  * @returns Firestore Timestamp with current time
  */
@@ -48,14 +39,6 @@ export const createServerTimestamp = (): Timestamp => {
  */
 export const createTrueServerTimestamp = (): FieldValue => {
     return FieldValue.serverTimestamp();
-};
-
-/**
- * Creates a precise timestamp for optimistic locking (alias for clarity)
- * @deprecated Use createOptimisticTimestamp() for better clarity
- */
-export const createOptimisticLockTimestamp = (): Timestamp => {
-    return createOptimisticTimestamp();
 };
 
 /**
