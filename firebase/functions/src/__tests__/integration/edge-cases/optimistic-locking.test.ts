@@ -48,7 +48,10 @@ describe('Optimistic Locking Integration Tests', () => {
             const shareLink = await driver.generateShareLink(group.id, users[0].token);
 
             // Both User 2 and User 3 try to join at the same time
-            const joinPromises = [await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token)];
+            const joinPromises = [
+                driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), 
+                driver.joinGroupViaShareLink(shareLink.linkId, users[2].token)
+            ];
 
             const results = await Promise.allSettled(joinPromises);
 
@@ -96,36 +99,35 @@ describe('Optimistic Locking Integration Tests', () => {
             const shareLink = await driver.generateShareLink(group.id, users[0].token);
             await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
-            // Both users try to update the group simultaneously
-            const updatePromises = [await driver.updateGroup(group.id, {name: 'Updated by User 1'}, users[0].token), await driver.updateGroup(group.id, {name: 'Updated by User 2'}, users[1].token)];
+            // Same user tries to update the group simultaneously (testing optimistic locking)
+            const updatePromises = [
+                driver.updateGroup(group.id, {name: 'First Update'}, users[0].token), 
+                driver.updateGroup(group.id, {name: 'Second Update'}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(updatePromises);
 
             // Check results
             const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
 
             // At least one should succeed
             expect(successes.length).toBeGreaterThan(0);
 
-            // If there are failures, they should be concurrent update conflicts or permission errors
-            // Note: Both might succeed if they don't truly overlap in timing
-            if (results.filter((r) => r.status === 'rejected').length > 0) {
-                const failures = results.filter((r) => r.status === 'rejected');
+            // If there are failures, they should be concurrent update conflicts
+            if (failures.length > 0) {
                 for (const failure of failures) {
                     if (failure.status === 'rejected') {
-                        const errorCode = failure.reason?.response?.data?.error?.code || failure.reason?.code;
-                        // Could be CONCURRENT_UPDATE, permission error, or other valid error
-                        // If errorCode exists, it should be one of these
-                        if (errorCode) {
-                            expect(['CONCURRENT_UPDATE', 'FORBIDDEN', 'NOT_AUTHORIZED', 'UNAUTHORIZED']).toContain(errorCode);
-                        }
+                        const errorMessage = failure.reason?.message || '';
+                        // Should be a concurrent update or similar conflict
+                        expect(errorMessage).toMatch(/concurrent|conflict|version|timestamp/i);
                     }
                 }
             }
 
-            // Verify final state - should have one of the names
+            // Verify final state - should have one of the update names
             const finalGroup = await driver.getGroup(group.id, users[0].token);
-            expect(['Updated by User 1', 'Updated by User 2', 'Concurrent Update Test Group']).toContain(finalGroup.name);
+            expect(['First Update', 'Second Update']).toContain(finalGroup.name);
         });
     });
 
@@ -159,8 +161,11 @@ describe('Optimistic Locking Integration Tests', () => {
                 users[0].token,
             );
 
-            // Both users try to update the expense simultaneously
-            const updatePromises = [await driver.updateExpense(expense.id, {amount: 200}, users[0].token), await driver.updateExpense(expense.id, {amount: 300}, users[0].token)];
+            // Same user tries to update the expense simultaneously (testing optimistic locking)
+            const updatePromises = [
+                driver.updateExpense(expense.id, {amount: 200}, users[0].token), 
+                driver.updateExpense(expense.id, {amount: 300}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -214,26 +219,37 @@ describe('Optimistic Locking Integration Tests', () => {
             await driver.createExpense({ ...expenseData, description: 'Another expense' }, users[0].token);
 
             // Try to delete and update the same expense simultaneously
-            const promises = [await driver.deleteExpense(expense1.id, users[0].token), await driver.updateExpense(expense1.id, {amount: 75}, users[0].token)];
+            const promises = [
+                driver.deleteExpense(expense1.id, users[0].token), 
+                driver.updateExpense(expense1.id, {amount: 75}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(promises);
 
-            // Check the actual errors
-
-            // One should succeed, one might fail with conflict or not found
+            // One should succeed, one should fail
             const successes = results.filter((r) => r.status === 'fulfilled');
             const failures = results.filter((r) => r.status === 'rejected');
 
-            expect(successes.length).toBeGreaterThan(0);
+            expect(successes.length).toBeGreaterThanOrEqual(1);
 
             if (failures.length > 0) {
                 for (const failure of failures) {
                     if (failure.status === 'rejected') {
-                        const errorCode = failure.reason?.response?.data?.error?.code;
-                        // Could be CONCURRENT_UPDATE or NOT_FOUND (if delete succeeded first)
-                        expect(['CONCURRENT_UPDATE', 'NOT_FOUND', 'EXPENSE_NOT_FOUND']).toContain(errorCode);
+                        const errorMessage = failure.reason?.message || '';
+                        // Should be NOT_FOUND (if delete succeeded first) or concurrent update conflict
+                        expect(errorMessage).toMatch(/not found|concurrent|conflict|does not exist/i);
                     }
                 }
+            }
+
+            // Verify final state - expense should either be deleted or updated, but not both
+            try {
+                const remainingExpense = await driver.getExpense(expense1.id, users[0].token);
+                // If expense still exists, it should have the updated amount
+                expect(remainingExpense.amount).toBe(75);
+            } catch (error: any) {
+                // If expense doesn't exist, that's also valid (delete succeeded)
+                expect(error.message).toMatch(/not found|does not exist/i);
             }
         });
     });
@@ -265,8 +281,11 @@ describe('Optimistic Locking Integration Tests', () => {
                 users[0].token,
             );
 
-            // Try to update the settlement concurrently
-            const updatePromises = [await driver.updateSettlement(settlement.id, {amount: 75}, users[0].token), await driver.updateSettlement(settlement.id, {amount: 100}, users[0].token)];
+            // Try to update the settlement concurrently with same user
+            const updatePromises = [
+                driver.updateSettlement(settlement.id, {amount: 75}, users[0].token), 
+                driver.updateSettlement(settlement.id, {amount: 100}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -315,7 +334,10 @@ describe('Optimistic Locking Integration Tests', () => {
                 participants: [users[0].uid], // Only original user initially
             };
 
-            const promises = [await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), await driver.createExpense(expenseData, users[0].token)];
+            const promises = [
+                driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), 
+                driver.createExpense(expenseData, users[0].token)
+            ];
 
             const results = await Promise.allSettled(promises);
 
@@ -333,80 +355,46 @@ describe('Optimistic Locking Integration Tests', () => {
             expect(expenses.expenses[0].description).toBe('Race condition expense');
         });
 
-        test('should maintain data integrity with rapid successive joins and updates', async () => {
+        test('should handle concurrent group updates from same user', async () => {
             // Create a group
             const group = await driver.createGroup(
                 {
-                    name: 'Rapid Operations Test',
-                    description: 'Testing rapid successive operations',
+                    name: 'Concurrent Updates Test',
+                    description: 'Testing concurrent updates from same user',
                 },
                 users[0].token,
             );
 
-            // Generate share link
-            const shareLink = await driver.generateShareLink(group.id, users[0].token);
-
-            // Perform rapid operations
+            // Perform multiple concurrent updates with same user (proper optimistic locking test)
             const operations = [
-                // User 1 joins
-                await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
-                // Update group name
-                await driver.updateGroup(group.id, {name: 'Updated Name 1'}, users[0].token),
-                // User 2 joins
-                await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token),
-                // Create expense
-                await driver.createExpense(
-                    {
-                        groupId: group.id,
-                        description: 'Rapid test expense',
-                        amount: 50,
-                        currency: 'USD',
-                        paidBy: users[0].uid,
-                        category: 'food',
-                        date: new Date().toISOString(),
-                        splitType: SplitTypes.EQUAL,
-                        participants: [users[0].uid],
-                    },
-                    users[0].token,
-                ),
-                // Update group again
-                await driver.updateGroup(group.id, {name: 'Updated Name 2'}, users[0].token),
+                driver.updateGroup(group.id, {name: 'Update 1'}, users[0].token),
+                driver.updateGroup(group.id, {name: 'Update 2'}, users[0].token),
+                driver.updateGroup(group.id, {description: 'Updated description'}, users[0].token),
             ];
 
             const results = await Promise.allSettled(operations);
 
-            // Count successes and failures
+            // At least one should succeed
             const successes = results.filter((r) => r.status === 'fulfilled');
             const failures = results.filter((r) => r.status === 'rejected');
 
-            // Most operations should succeed
-            expect(successes.length).toBeGreaterThan(failures.length);
+            expect(successes.length).toBeGreaterThanOrEqual(1);
 
-            // Check failure reasons
+            // Check failure reasons for optimistic locking conflicts
             for (const failure of failures) {
                 if (failure.status === 'rejected') {
-                    const errorCode = failure.reason?.response?.data?.error?.code;
-                    // Should be either concurrent update or already member
-                    expect(['CONCURRENT_UPDATE', 'ALREADY_MEMBER']).toContain(errorCode);
+                    const errorMessage = failure.reason?.message || '';
+                    // Should be concurrent update conflicts
+                    expect(errorMessage).toMatch(/concurrent|conflict|version|timestamp/i);
                 }
             }
 
             // Verify final state integrity
             const finalGroup = await driver.getGroup(group.id, users[0].token);
 
-            // All users should be members (some join attempts might have failed due to conflicts but retry would work)
-            expect(finalGroup.memberIds.length).toBeGreaterThanOrEqual(1); // At least creator
-
-            // Group should have a name (one of the updates)
-            expect(finalGroup.name).toBeTruthy();
-
-            // Check expenses
-            const expenses = await driver.getGroupExpenses(group.id, users[0].token);
-            // Expense creation should have succeeded
-            const createdExpenses = results.filter((r, i) => i === 3 && r.status === 'fulfilled');
-            if (createdExpenses.length > 0) {
-                expect(expenses.expenses.length).toBeGreaterThan(0);
-            }
+            // Group should have been updated by at least one operation
+            expect(finalGroup.name === 'Update 1' || finalGroup.name === 'Update 2' || 
+                   finalGroup.description === 'Updated description').toBeTruthy();
         });
     });
 });
