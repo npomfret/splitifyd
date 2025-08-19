@@ -7,6 +7,7 @@ import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
+import { validateUpdateUserProfile, validateDeleteUser } from './validation';
 
 /**
  * Get current user's profile
@@ -51,57 +52,16 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
             throw Errors.UNAUTHORIZED();
         }
 
-        const { displayName, photoURL } = req.body;
+        // Validate request body using Joi
+        const validatedData = validateUpdateUserProfile(req.body);
 
-        // Validate displayName first if provided
-        if (displayName !== undefined) {
-            // Validate displayName
-            if (typeof displayName !== 'string') {
-                throw Errors.INVALID_INPUT('Display name must be a string');
-            }
-            
-            // Check if it's empty string before trimming
-            if (displayName === '') {
-                throw Errors.INVALID_INPUT('Display name cannot be empty');
-            }
-            
-            const trimmedDisplayName = displayName.trim();
-            if (trimmedDisplayName.length === 0) {
-                throw Errors.INVALID_INPUT('Display name cannot be empty');
-            }
-            
-            if (trimmedDisplayName.length > 100) {
-                throw Errors.INVALID_INPUT('Display name must be 100 characters or less');
-            }
-        }
-
-        if (photoURL !== undefined && photoURL !== null) {
-            // Validate photoURL if provided
-            if (typeof photoURL !== 'string') {
-                throw Errors.INVALID_INPUT('Photo URL must be a string or null');
-            }
-            
-            if (photoURL.length > 0) {
-                try {
-                    new URL(photoURL);
-                } catch {
-                    throw Errors.INVALID_INPUT('Invalid photo URL format');
-                }
-            }
-        }
-
-        // After validation, check if at least one field was provided
-        if (displayName === undefined && photoURL === undefined) {
-            throw Errors.INVALID_INPUT('At least one field (displayName or photoURL) must be provided');
-        }
-
-        // Build update object
+        // Build update object for Firebase Auth
         const updateData: admin.auth.UpdateRequest = {};
-        if (displayName !== undefined) {
-            updateData.displayName = displayName.trim();
+        if (validatedData.displayName !== undefined) {
+            updateData.displayName = validatedData.displayName;
         }
-        if (photoURL !== undefined) {
-            updateData.photoURL = photoURL === null ? null : photoURL;
+        if (validatedData.photoURL !== undefined) {
+            updateData.photoURL = validatedData.photoURL === null ? null : validatedData.photoURL;
         }
 
         // Update Firebase Auth
@@ -111,11 +71,11 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
         const firestoreUpdate: any = {
             updatedAt: createServerTimestamp(),
         };
-        if (displayName !== undefined) {
-            firestoreUpdate.displayName = displayName.trim();
+        if (validatedData.displayName !== undefined) {
+            firestoreUpdate.displayName = validatedData.displayName;
         }
-        if (photoURL !== undefined) {
-            firestoreUpdate.photoURL = photoURL;
+        if (validatedData.photoURL !== undefined) {
+            firestoreUpdate.photoURL = validatedData.photoURL;
         }
 
         await db.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
@@ -281,12 +241,10 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
             throw Errors.UNAUTHORIZED();
         }
 
-        const { confirmDelete } = req.body;
-
-        // Require explicit confirmation
-        if (confirmDelete !== true) {
-            throw Errors.INVALID_INPUT('Account deletion must be explicitly confirmed');
-        }
+        // Validate request body using Joi
+        validateDeleteUser(req.body);
+        
+        // confirmDelete validation is handled by Joi, no need for manual check
 
         // Check if user has any groups or outstanding balances
         // This is a simplified check - in production you'd want more thorough validation

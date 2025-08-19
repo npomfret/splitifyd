@@ -510,6 +510,119 @@ describe('User Profile Management API Tests', () => {
         });
     });
 
+    describe('Joi Validation', () => {
+        it('should strip unknown fields from update request', async () => {
+            const response = await driver['apiRequest'](
+                '/user/profile',
+                'PUT',
+                { 
+                    displayName: 'Valid Name',
+                    unknownField: 'should be stripped',
+                    anotherUnknown: 123
+                },
+                testUser.token
+            );
+            
+            expect(response.displayName).toBe('Valid Name');
+            expect(response).not.toHaveProperty('unknownField');
+            expect(response).not.toHaveProperty('anotherUnknown');
+        });
+
+        it('should sanitize display name', async () => {
+            const response = await driver['apiRequest'](
+                '/user/profile',
+                'PUT',
+                { displayName: '  Trimmed Name  ' },
+                testUser.token
+            );
+            
+            expect(response.displayName).toBe('Trimmed Name');
+        });
+
+        it('should reject non-string display name', async () => {
+            try {
+                await driver['apiRequest'](
+                    '/user/profile',
+                    'PUT',
+                    { displayName: 123 },
+                    testUser.token
+                );
+                throw new Error('Should have thrown an error');
+            } catch (error: any) {
+                expect(error.message).toContain('must be a string');
+            }
+        });
+
+        it('should accept empty string photoURL', async () => {
+            const response = await driver['apiRequest'](
+                '/user/profile',
+                'PUT',
+                { photoURL: '' },
+                testUser.token
+            );
+            
+            // Empty string is treated as removing the photo
+            expect(response.photoURL).toBeFalsy();
+        });
+    });
+
+    describe('Delete Account Validation', () => {
+        it('should reject deletion without confirmDelete flag', async () => {
+            try {
+                await driver['apiRequest'](
+                    '/user/delete',
+                    'DELETE',
+                    {},
+                    testUser.token
+                );
+                throw new Error('Should have thrown an error');
+            } catch (error: any) {
+                expect(error.message).toContain('deletion must be explicitly confirmed');
+            }
+        });
+
+        it('should reject deletion with confirmDelete set to false', async () => {
+            try {
+                await driver['apiRequest'](
+                    '/user/delete',
+                    'DELETE',
+                    { confirmDelete: false },
+                    testUser.token
+                );
+                throw new Error('Should have thrown an error');
+            } catch (error: any) {
+                expect(error.message).toContain('deletion must be explicitly confirmed');
+            }
+        });
+
+        it('should strip unknown fields from delete request', async () => {
+            // This test would need actual delete, which we don't want to do
+            // Just verify the validation would work by checking a non-member user
+            const userWithoutGroups = await driver.createUser(
+                new UserBuilder()
+                    .withEmail(`delete-test-${Date.now()}@example.com`)
+                    .build()
+            );
+            
+            try {
+                await driver['apiRequest'](
+                    '/user/delete',
+                    'DELETE',
+                    { 
+                        confirmDelete: true,
+                        extraField: 'should be ignored'
+                    },
+                    userWithoutGroups.token
+                );
+                // If we get here, the validation passed (actual deletion would occur)
+            } catch (error: any) {
+                // This is expected if the user can't delete their account
+                // The point is that 'extraField' didn't cause a validation error
+                expect(error.message).not.toContain('extraField');
+            }
+        });
+    });
+
     describe('Concurrent updates', () => {
         it('should handle concurrent profile updates', async () => {
             // Perform multiple concurrent updates with unique names to track

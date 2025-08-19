@@ -6,15 +6,10 @@ import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp } from '../utils/dateHelpers';
-
-interface AcceptPolicyRequest {
-    policyId: string;
-    versionHash: string;
-}
-
-interface AcceptMultiplePoliciesRequest {
-    acceptances: AcceptPolicyRequest[];
-}
+import { 
+    validateAcceptPolicy, 
+    validateAcceptMultiplePolicies
+} from './validation';
 
 interface PolicyAcceptanceStatus {
     policyId: string;
@@ -40,11 +35,8 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
         }
 
-        const { policyId, versionHash } = req.body as AcceptPolicyRequest;
-
-        if (!policyId || !versionHash) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', 'policyId and versionHash are required');
-        }
+        // Validate request body using Joi
+        const { policyId, versionHash } = validateAcceptPolicy(req.body);
 
         // Validate that the policy exists and the version hash is current
         const firestore = db;
@@ -112,11 +104,8 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
         }
 
-        const { acceptances } = req.body as AcceptMultiplePoliciesRequest;
-
-        if (!acceptances || !Array.isArray(acceptances) || acceptances.length === 0) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', 'acceptances array is required and must not be empty');
-        }
+        // Validate request body using Joi
+        const { acceptances } = validateAcceptMultiplePolicies(req.body);
 
         const firestore = db;
         const batch = firestore.batch();
