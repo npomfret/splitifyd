@@ -6,7 +6,7 @@ import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '@/constants.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { AuthErrors } from '@shared/shared-types';
-import { groupsStore } from './groups-store';
+import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { themeStore } from './theme-store';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';

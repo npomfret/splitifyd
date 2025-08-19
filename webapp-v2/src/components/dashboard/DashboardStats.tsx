@@ -1,10 +1,10 @@
 import { useComputed } from '@preact/signals';
-import { groupsStore } from '@/app/stores/groups-store.ts';
+import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { SidebarCard } from '@/components/ui';
 
 export function DashboardStats() {
-    const groups = useComputed(() => groupsStore.groups);
-    const loading = useComputed(() => groupsStore.loading);
+    const groups = useComputed(() => enhancedGroupsStore.groups);
+    const loading = useComputed(() => enhancedGroupsStore.loading);
 
     const stats = useComputed(() => {
         const groupsList = groups.value;

@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { createErrorContext } from '../utils/error-formatting';
+import {createButtonClickError} from "../utils/error-factory.ts";
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {
@@ -180,19 +181,29 @@ export class ExpenseFormPage extends BasePage {
      * This properly handles the async save operation.
      */
     async clickSaveExpenseButton(): Promise<void> {
-        const saveButton = this.getSaveExpenseButton();
+        try {
+            const saveButton = this.getSaveExpenseButton();
 
-        // Wait for button to be enabled
-        await expect(saveButton).toBeEnabled({ timeout: 500 });
+            // Wait for button to be enabled
+            await expect(saveButton).toBeEnabled({timeout: 500});
 
-        // Click the button
-        await this.clickButton(saveButton, { buttonName: 'Save Expense' });
+            // Click the button
+            await this.clickButton(saveButton, {buttonName: 'Save Expense'});
 
-        // First wait for saving state to begin - button text changes to "Saving..."
-        await expect(this.page.getByRole('button', { name: 'Saving...' })).toBeVisible({ timeout: 250 });
+            // First wait for saving state to begin - button text changes to "Saving..."
+            await expect(this.page.getByRole('button', {name: 'Saving...'})).toBeVisible({timeout: 250});
 
-        // Then wait for saving state to complete - button text changes back to "Save Expense"
-        await expect(this.page.getByRole('button', { name: 'Saving...' })).not.toBeVisible({ timeout: 3000 });
+            // Then wait for saving state to complete - button text changes back to "Save Expense"
+            await expect(this.page.getByRole('button', {name: 'Saving...'})).not.toBeVisible({timeout: 3000});
+        } catch (e: any) {
+            throw createButtonClickError('clickSaveExpenseButton', {
+                success: false,
+                reason: e.message(),
+                buttonName: 'Save Expense',
+                error: e.stack,
+                currentUrl: this.page.url()
+            })
+        }
     }
 
     /**

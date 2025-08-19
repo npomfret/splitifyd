@@ -2,7 +2,7 @@ import { signal } from '@preact/signals';
 import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '@shared/shared-types.ts';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
-import { groupsStore } from './groups-store';
+import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';

@@ -118,8 +118,42 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async updateGroup(id: string, updates: Partial<Group>): Promise<void> {
-        // For now, just refresh to get server state
-        await this.refreshGroups();
+        // Store original state for rollback
+        const originalGroups = groupsSignal.value;
+        const groupIndex = originalGroups.findIndex(g => g.id === id);
+        
+        if (groupIndex === -1) {
+            throw new Error(`Group with id ${id} not found`);
+        }
+
+        // Apply optimistic update immediately
+        const optimisticGroups = [...originalGroups];
+        optimisticGroups[groupIndex] = {
+            ...optimisticGroups[groupIndex],
+            ...updates,
+            updatedAt: new Date().toISOString(), // Update timestamp
+        };
+        groupsSignal.value = optimisticGroups;
+
+        try {
+            // Send update to server (only name and description are supported by API)
+            const updateData: { name?: string; description?: string } = {};
+            if (updates.name !== undefined) updateData.name = updates.name;
+            if (updates.description !== undefined) updateData.description = updates.description;
+            
+            if (Object.keys(updateData).length > 0) {
+                await apiClient.updateGroup(id, updateData);
+            }
+            
+            // Fetch fresh data from server to ensure consistency
+            // This also ensures we get any server-side computed fields
+            await this.fetchGroups();
+        } catch (error) {
+            // Rollback on failure
+            groupsSignal.value = originalGroups;
+            errorSignal.value = this.getErrorMessage(error);
+            throw error;
+        }
     }
 
     async refreshGroups(): Promise<void> {
