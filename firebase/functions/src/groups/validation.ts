@@ -19,7 +19,6 @@ const createGroupSchema = Joi.object({
             'string.max': `Group name must be less than ${VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH} characters`,
         }),
     description: Joi.string().trim().max(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH).allow('').optional(),
-    memberEmails: Joi.array().items(Joi.string().email()).max(VALIDATION_LIMITS.MAX_GROUP_MEMBERS).optional(),
     members: Joi.array()
         .items(
             Joi.object({
@@ -91,6 +90,11 @@ export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequ
 
     if ('description' in data && data.description !== undefined) {
         sanitized.description = sanitizeString(data.description);
+    }
+
+    // Handle members array if present
+    if ('members' in data && data.members) {
+        sanitized.members = data.members;
     }
 
     return sanitized as T;
