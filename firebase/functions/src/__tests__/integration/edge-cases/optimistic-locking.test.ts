@@ -48,7 +48,7 @@ describe('Optimistic Locking Integration Tests', () => {
             const shareLink = await driver.generateShareLink(group.id, users[0].token);
 
             // Both User 2 and User 3 try to join at the same time
-            const joinPromises = [driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), driver.joinGroupViaShareLink(shareLink.linkId, users[2].token)];
+            const joinPromises = [await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token)];
 
             const results = await Promise.allSettled(joinPromises);
 
@@ -97,7 +97,7 @@ describe('Optimistic Locking Integration Tests', () => {
             await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // Both users try to update the group simultaneously
-            const updatePromises = [driver.updateGroup(group.id, { name: 'Updated by User 1' }, users[0].token), driver.updateGroup(group.id, { name: 'Updated by User 2' }, users[1].token)];
+            const updatePromises = [await driver.updateGroup(group.id, {name: 'Updated by User 1'}, users[0].token), await driver.updateGroup(group.id, {name: 'Updated by User 2'}, users[1].token)];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -160,7 +160,7 @@ describe('Optimistic Locking Integration Tests', () => {
             );
 
             // Both users try to update the expense simultaneously
-            const updatePromises = [driver.updateExpense(expense.id, { amount: 200 }, users[0].token), driver.updateExpense(expense.id, { amount: 300 }, users[0].token)];
+            const updatePromises = [await driver.updateExpense(expense.id, {amount: 200}, users[0].token), await driver.updateExpense(expense.id, {amount: 300}, users[0].token)];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -214,7 +214,7 @@ describe('Optimistic Locking Integration Tests', () => {
             await driver.createExpense({ ...expenseData, description: 'Another expense' }, users[0].token);
 
             // Try to delete and update the same expense simultaneously
-            const promises = [driver.deleteExpense(expense1.id, users[0].token), driver.updateExpense(expense1.id, { amount: 75 }, users[0].token)];
+            const promises = [await driver.deleteExpense(expense1.id, users[0].token), await driver.updateExpense(expense1.id, {amount: 75}, users[0].token)];
 
             const results = await Promise.allSettled(promises);
 
@@ -266,7 +266,7 @@ describe('Optimistic Locking Integration Tests', () => {
             );
 
             // Try to update the settlement concurrently
-            const updatePromises = [driver.updateSettlement(settlement.id, { amount: 75 }, users[0].token), driver.updateSettlement(settlement.id, { amount: 100 }, users[0].token)];
+            const updatePromises = [await driver.updateSettlement(settlement.id, {amount: 75}, users[0].token), await driver.updateSettlement(settlement.id, {amount: 100}, users[0].token)];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -315,7 +315,7 @@ describe('Optimistic Locking Integration Tests', () => {
                 participants: [users[0].uid], // Only original user initially
             };
 
-            const promises = [driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), driver.createExpense(expenseData, users[0].token)];
+            const promises = [await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), await driver.createExpense(expenseData, users[0].token)];
 
             const results = await Promise.allSettled(promises);
 
@@ -349,13 +349,13 @@ describe('Optimistic Locking Integration Tests', () => {
             // Perform rapid operations
             const operations = [
                 // User 1 joins
-                driver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
+                await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
                 // Update group name
-                driver.updateGroup(group.id, { name: 'Updated Name 1' }, users[0].token),
+                await driver.updateGroup(group.id, {name: 'Updated Name 1'}, users[0].token),
                 // User 2 joins
-                driver.joinGroupViaShareLink(shareLink.linkId, users[2].token),
+                await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token),
                 // Create expense
-                driver.createExpense(
+                await driver.createExpense(
                     {
                         groupId: group.id,
                         description: 'Rapid test expense',
@@ -370,7 +370,7 @@ describe('Optimistic Locking Integration Tests', () => {
                     users[0].token,
                 ),
                 // Update group again
-                driver.updateGroup(group.id, { name: 'Updated Name 2' }, users[0].token),
+                await driver.updateGroup(group.id, {name: 'Updated Name 2'}, users[0].token),
             ];
 
             const results = await Promise.allSettled(operations);

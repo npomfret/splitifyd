@@ -515,9 +515,9 @@ describe('User Profile Management API Tests', () => {
             // Perform multiple concurrent updates with unique names to track
             const uniquePrefix = `Concurrent-${Date.now()}-${Math.random().toString(36).substring(7)}`;
             const updates = [
-                driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-1` }),
-                driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-2` }),
-                driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-3` }),
+                await driver.updateUserProfile(testUser.token, {displayName: `${uniquePrefix}-Name-1`}),
+                await driver.updateUserProfile(testUser.token, {displayName: `${uniquePrefix}-Name-2`}),
+                await driver.updateUserProfile(testUser.token, {displayName: `${uniquePrefix}-Name-3`}),
             ];
 
             const responses = await Promise.all(updates);

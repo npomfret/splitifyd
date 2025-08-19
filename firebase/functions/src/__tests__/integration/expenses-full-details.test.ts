@@ -145,9 +145,9 @@ describe('Expenses Full Details API', () => {
         it('should handle parallel requests correctly', async () => {
             // Test that multiple simultaneous requests work correctly
             const requests = [
-                apiDriver.getExpenseFullDetails(expenseId, alice.token),
-                apiDriver.getExpenseFullDetails(expenseId, bob.token),
-                apiDriver.getExpenseFullDetails(expenseId, charlie.token)
+                await apiDriver.getExpenseFullDetails(expenseId, alice.token),
+                await apiDriver.getExpenseFullDetails(expenseId, bob.token),
+                await apiDriver.getExpenseFullDetails(expenseId, charlie.token)
             ];
 
             const results = await Promise.all(requests);

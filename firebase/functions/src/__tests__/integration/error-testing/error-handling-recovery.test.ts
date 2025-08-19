@@ -198,7 +198,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const startTime = Date.now();
 
                 // Perform multiple operations
-                const operations = [driver.getGroup(testGroup.id, mainUser.token), driver.getGroupExpenses(testGroup.id, mainUser.token), driver.listGroups(mainUser.token)];
+                const operations = [await await driver.getGroup(testGroup.id, mainUser.token), await await driver.getGroupExpenses(testGroup.id, mainUser.token), await await driver.listGroups(mainUser.token)];
 
                 const results = await Promise.allSettled(operations);
                 const endTime = Date.now();
