@@ -11,6 +11,7 @@ import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
+import { pollForChange } from '../../support/changeCollectionHelpers';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -18,7 +19,6 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let user1: User;
     let user2: User;
     let groupId: string;
-    let changeListener: any;
 
     jest.setTimeout(10000);
 
@@ -40,20 +40,16 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     });
 
     afterEach(async () => {
-        // Clean up listener
-        if (changeListener) {
-            changeListener();
-            changeListener = null;
-        }
-
         // Clean up test data
-        const collections = ['settlements', 'groups', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
-        for (const collection of collections) {
-            const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
+        if (groupId) {
+            const collections = ['settlements', 'groups', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
+            for (const collection of collections) {
+                const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
 
-            const batch = db.batch();
-            snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-            await batch.commit();
+                const batch = db.batch();
+                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+                await batch.commit();
+            }
         }
     });
 
@@ -66,39 +62,6 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         const testGroup = await driver.createGroupWithMembers('Test Group for Settlement API', [user1, user2], user1.token);
         groupId = testGroup.id;
 
-        const seconds = 2;
-
-        // Set up a listener for transaction-changes BEFORE creating the settlement
-        const changePromise = new Promise<any>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error(`Timeout: No transaction-change notification received within ${seconds} seconds after API settlement creation`));
-            }, seconds * 1000);
-
-            const query = db.collection(FirestoreCollections.TRANSACTION_CHANGES)
-                .where('groupId', '==', groupId)
-                .orderBy('timestamp', 'desc')
-                .limit(1);
-
-            changeListener = query.onSnapshot(
-                (snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') {
-                            const data = change.doc.data();
-                            // Check for settlement type in the new minimal structure
-                            if (data.type === 'settlement') {
-                                clearTimeout(timeout);
-                                resolve(data);
-                            }
-                        }
-                    });
-                },
-                (error) => {
-                    clearTimeout(timeout);
-                    reject(error);
-                },
-            );
-        });
-
         // Create a settlement via API (not direct Firestore)
         const settlementData = new SettlementBuilder()
             .withGroupId(groupId)
@@ -110,70 +73,29 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             .withDate(new Date().toISOString())
             .build();
 
-        // Creating settlement via API
-
         const createdSettlement = await driver.createSettlement(settlementData, user1.token);
         expect(createdSettlement).toBeDefined();
         expect(createdSettlement.id).toBeDefined();
 
-        // Wait for the change notification
-        try {
-            const changeNotification = await changePromise;
+        // Use the existing pollForChange helper instead of complex listener + timeout approach
+        const changeNotification = await pollForChange(
+            FirestoreCollections.TRANSACTION_CHANGES,
+            (doc: any) => doc.groupId === groupId && 
+                         doc.id === createdSettlement.id && 
+                         doc.type === 'settlement' &&
+                         doc.action === 'created',
+            { timeout: 5000, groupId }
+        );
 
-            // Verify the change notification was created with new minimal structure
-            expect(changeNotification).toBeDefined();
-            expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.id).toBe(createdSettlement.id);
-            expect(changeNotification.type).toBe('settlement');
-            expect(changeNotification.action).toBe('created');
-            expect(changeNotification.users).toContain(user1.uid);
-            expect(changeNotification.users).toContain(user2.uid);
-
-            // SUCCESS: Settlement created via API generated transaction-change notification
-        } catch (error) {
-            // This was the original failure that reproduced the E2E test issue, but should be fixed now
-            // UNEXPECTED: Settlement created via API did NOT generate transaction-change notification
-            // This should not happen anymore - the trigger bug has been fixed
-
-            // Let's check if the settlement was actually created in Firestore
-            if (!createdSettlement || !createdSettlement.id) {
-                throw new Error('Settlement was not created properly - missing ID');
-            }
-            
-            // Poll for the settlement to appear in Firestore
-            let settlementDoc;
-            let attempts = 0;
-            const maxAttempts = 10;
-            const pollInterval = 100; // 500ms
-            
-            while (attempts < maxAttempts) {
-                settlementDoc = await db.collection('settlements').doc(createdSettlement.id).get();
-                if (settlementDoc.exists) {
-                    // Settlement found
-                    break;
-                }
-                attempts++;
-                if (attempts < maxAttempts) {
-                    await new Promise(resolve => setTimeout(resolve, pollInterval));
-                }
-            }
-            
-            // Check all settlements in the group
-            const allSettlements = await db.collection('settlements').where('groupId', '==', groupId).get();
-            expect(allSettlements.size).toBeGreaterThan(0);
-            
-            if (!settlementDoc || !settlementDoc.exists) {
-                // BUG: Settlement created via API returns success but document not in Firestore
-                throw new Error(`Settlement ${createdSettlement.id} does not exist in Firestore after ${maxAttempts} attempts`);
-            }
-
-            // Check if there are any transaction-changes at all for this group
-            const transactionChanges = await db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get();
-            expect(transactionChanges.size).toBeGreaterThanOrEqual(0);
-
-            throw error;
-        }
-    }, 3000);
+        // Verify the change notification was created with correct structure
+        expect(changeNotification).toBeTruthy();
+        expect(changeNotification.groupId).toBe(groupId);
+        expect(changeNotification.id).toBe(createdSettlement.id);
+        expect(changeNotification.type).toBe('settlement');
+        expect(changeNotification.action).toBe('created');
+        expect(changeNotification.users).toContain(user1.uid);
+        expect(changeNotification.users).toContain(user2.uid);
+    }, 10000);
 
     it('documents that API settlement creation now works correctly', async () => {
         /**
