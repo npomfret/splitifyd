@@ -100,3 +100,102 @@ export const validateDeleteUser = (body: unknown): DeleteUserRequest => {
 
     return value as DeleteUserRequest;
 };
+
+/**
+ * Schema for change password request
+ */
+const changePasswordSchema = Joi.object({
+    currentPassword: Joi.string()
+        .required()
+        .messages({
+            'any.required': 'Current password is required',
+            'string.empty': 'Current password cannot be empty',
+        }),
+    newPassword: Joi.string()
+        .min(6)
+        .max(128)
+        .required()
+        .messages({
+            'any.required': 'New password is required',
+            'string.empty': 'New password cannot be empty',
+            'string.min': 'New password must be at least 6 characters long',
+            'string.max': 'New password must be 128 characters or less',
+        }),
+});
+
+/**
+ * Change password request interface
+ */
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+}
+
+/**
+ * Validate change password request
+ */
+export const validateChangePassword = (body: unknown): ChangePasswordRequest => {
+    const { error, value } = changePasswordSchema.validate(body, { 
+        abortEarly: false,
+        stripUnknown: true 
+    });
+
+    if (error) {
+        const firstError = error.details[0];
+        throw Errors.INVALID_INPUT(firstError.message);
+    }
+
+    // Check that passwords are different
+    if (value.currentPassword === value.newPassword) {
+        throw Errors.INVALID_INPUT('New password must be different from current password');
+    }
+
+    return value as ChangePasswordRequest;
+};
+
+/**
+ * Schema for send password reset email request
+ */
+const sendPasswordResetSchema = Joi.object({
+    email: Joi.string()
+        .email()
+        .required()
+        .messages({
+            'any.required': 'Email is required',
+            'string.empty': 'Email cannot be empty',
+            'string.email': 'Invalid email format',
+        }),
+});
+
+/**
+ * Send password reset request interface
+ */
+export interface SendPasswordResetRequest {
+    email: string;
+}
+
+/**
+ * Validate send password reset request
+ */
+export const validateSendPasswordReset = (body: unknown): SendPasswordResetRequest => {
+    const { error, value } = sendPasswordResetSchema.validate(body, { 
+        abortEarly: false,
+        stripUnknown: true 
+    });
+
+    if (error) {
+        const firstError = error.details[0];
+        
+        // For missing email field, use specific error
+        if (firstError.type === 'any.required' && firstError.path[0] === 'email') {
+            throw Errors.MISSING_FIELD('email');
+        }
+        
+        throw Errors.INVALID_INPUT(firstError.message);
+    }
+
+    // Sanitize email
+    return {
+        email: sanitizeString(value.email.toLowerCase())
+    };
+};
