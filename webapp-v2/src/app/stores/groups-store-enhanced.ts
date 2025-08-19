@@ -3,6 +3,7 @@ import type { Group, CreateGroupRequest } from '@shared/shared-types.ts';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { ChangeDetector } from '@/utils/change-detector.ts';
+import { streamingMetrics } from '@/utils/streaming-metrics';
 
 export interface EnhancedGroupsStore {
     groups: Group[];
@@ -58,9 +59,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         loadingSignal.value = true;
         errorSignal.value = null;
 
+        const startTime = Date.now();
+
         try {
             // Include metadata to get change information
             const response = await apiClient.getGroups({ includeMetadata: true });
+
+            // Track REST refresh metrics
+            const latency = Date.now() - startTime;
+            streamingMetrics.trackRestRefresh(latency);
 
             // Use metadata if available to check for newer data
             if (response.metadata) {
@@ -173,11 +180,24 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
 
         // Subscribe to group changes - any change triggers refresh
-        this.changeUnsubscribe = this.changeDetector.subscribeToGroupChanges(userId, () => {
-            // Any change = refresh immediately
-            logWarning('Group change detected, refreshing', {});
-            this.refreshGroups().catch((error) => logWarning('Failed to refresh groups', { error }));
-        });
+        this.changeUnsubscribe = this.changeDetector.subscribeToGroupChanges(
+            userId,
+            () => {
+                // Any change = refresh immediately
+                logWarning('Group change detected, refreshing', {});
+                this.refreshGroups().catch((error) => logWarning('Failed to refresh groups', { error }));
+            },
+            {
+                maxRetries: 3,
+                retryDelay: 2000,
+                onError: (error) => {
+                    logWarning('Change subscription error, notifications may be delayed', { 
+                        error: error.message,
+                        userId 
+                    });
+                }
+            }
+        );
     }
 
     clearError(): void {
