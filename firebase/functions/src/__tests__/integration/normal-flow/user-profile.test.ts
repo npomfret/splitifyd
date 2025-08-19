@@ -75,12 +75,7 @@ describe('User Profile Management API Tests', () => {
     describe('PUT /user/profile', () => {
         it('should update display name', async () => {
             const newDisplayName = 'Updated Name';
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { displayName: newDisplayName },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { displayName: newDisplayName });
 
             expect(response.displayName).toBe(newDisplayName);
 
@@ -91,32 +86,17 @@ describe('User Profile Management API Tests', () => {
 
         it('should update photo URL', async () => {
             const photoURL = 'https://example.com/photo.jpg';
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { photoURL },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { photoURL });
 
             expect(response.photoURL).toBe(photoURL);
         });
 
         it('should clear photo URL when set to null', async () => {
             // First set a photo URL
-            await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { photoURL: 'https://example.com/photo.jpg' },
-                testUser.token
-            );
+            await driver.updateUserProfile(testUser.token, { photoURL: 'https://example.com/photo.jpg' });
 
             // Then clear it
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { photoURL: null },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { photoURL: null });
 
             // Firebase Auth removes photoURL rather than setting it to null
             expect(response.photoURL).toBeFalsy();
@@ -135,12 +115,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject empty display name', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/profile',
-                    'PUT',
-                    { displayName: '' },
-                    testUser.token
-                );
+                await driver.updateUserProfile(testUser.token, { displayName: '' });
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('Display name cannot be empty');
@@ -150,12 +125,7 @@ describe('User Profile Management API Tests', () => {
         it('should reject display name that is too long', async () => {
             const longName = 'a'.repeat(101);
             try {
-                await driver['apiRequest'](
-                    '/user/profile',
-                    'PUT',
-                    { displayName: longName },
-                    testUser.token
-                );
+                await driver.updateUserProfile(testUser.token, { displayName: longName });
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('Display name must be 100 characters or less');
@@ -163,24 +133,14 @@ describe('User Profile Management API Tests', () => {
         });
 
         it('should trim whitespace from display name', async () => {
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { displayName: '  Trimmed Name  ' },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { displayName: '  Trimmed Name  ' });
 
             expect(response.displayName).toBe('Trimmed Name');
         });
 
         it('should reject invalid photo URL', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/profile',
-                    'PUT',
-                    { photoURL: 'not-a-url' },
-                    testUser.token
-                );
+                await driver.updateUserProfile(testUser.token, { photoURL: 'not-a-url' });
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('Invalid photo URL format');
@@ -198,12 +158,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/profile',
-                    'PUT',
-                    { displayName: 'New Name' },
-                    null
-                );
+                await driver.updateUserProfile(null, { displayName: 'New Name' });
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('401');
@@ -217,12 +172,7 @@ describe('User Profile Management API Tests', () => {
             // Wait a bit to ensure timestamp difference
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { displayName: 'Updated Name' },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { displayName: 'Updated Name' });
 
             expect(response.updatedAt).toBeDefined();
             expect(response.updatedAt).not.toBe(beforeUpdate);
@@ -231,30 +181,14 @@ describe('User Profile Management API Tests', () => {
 
     describe('POST /user/change-password', () => {
         it('should change password successfully', async () => {
-            const response = await driver['apiRequest'](
-                '/user/change-password',
-                'POST',
-                {
-                    currentPassword: 'ValidPass123!',
-                    newPassword: 'newPassword456',
-                },
-                testUser.token
-            );
+            const response = await driver.changePassword(testUser.token, 'ValidPass123!', 'newPassword456');
 
             expect(response.message).toBe('Password changed successfully');
         });
 
         it('should reject short password', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/change-password',
-                    'POST',
-                    {
-                        currentPassword: 'ValidPass123!',
-                        newPassword: '12345',
-                    },
-                    testUser.token
-                );
+                await driver.changePassword(testUser.token, 'ValidPass123!', '12345');
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('at least 6 characters');
@@ -263,15 +197,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject password that is too long', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/change-password',
-                    'POST',
-                    {
-                        currentPassword: 'ValidPass123!',
-                        newPassword: 'a'.repeat(129),
-                    },
-                    testUser.token
-                );
+                await driver.changePassword(testUser.token, 'ValidPass123!', 'a'.repeat(129));
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('128 characters or less');
@@ -280,15 +206,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject same password', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/change-password',
-                    'POST',
-                    {
-                        currentPassword: 'ValidPass123!',
-                        newPassword: 'ValidPass123!',
-                    },
-                    testUser.token
-                );
+                await driver.changePassword(testUser.token, 'ValidPass123!', 'ValidPass123!');
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('must be different');
@@ -297,6 +215,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject missing passwords', async () => {
             try {
+                // This test specifically needs to send incomplete data to test validation
                 await driver['apiRequest'](
                     '/user/change-password',
                     'POST',
@@ -311,15 +230,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/change-password',
-                    'POST',
-                    {
-                        currentPassword: 'ValidPass123!',
-                        newPassword: 'newPassword456',
-                    },
-                    null
-                );
+                await driver.changePassword(null, 'ValidPass123!', 'newPassword456');
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('401');
@@ -329,9 +240,7 @@ describe('User Profile Management API Tests', () => {
 
     describe('POST /user/reset-password', () => {
         it('should send password reset email', async () => {
-            const response = await driver['apiRequest']('/user/reset-password', 'POST', {
-                email: testUser.email,
-            });
+            const response = await driver.sendPasswordResetEmail(testUser.email);
 
             expect(response.message).toContain('Password reset email sent');
 
@@ -343,9 +252,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject invalid email format', async () => {
             try {
-                await driver['apiRequest']('/user/reset-password', 'POST', {
-                    email: 'not-an-email',
-                });
+                await driver.sendPasswordResetEmail('not-an-email');
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('Invalid email format');
@@ -354,6 +261,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject missing email', async () => {
             try {
+                // This test specifically needs to send empty data to test validation
                 await driver['apiRequest']('/user/reset-password', 'POST', {});
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
@@ -362,9 +270,7 @@ describe('User Profile Management API Tests', () => {
         });
 
         it('should not reveal if email exists', async () => {
-            const response = await driver['apiRequest']('/user/reset-password', 'POST', {
-                email: 'nonexistent@example.com',
-            });
+            const response = await driver.sendPasswordResetEmail('nonexistent@example.com');
 
             // Should return success even for non-existent emails (security)
             expect(response.message).toContain('If the email exists');
@@ -372,9 +278,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should not require authentication', async () => {
             // This endpoint should work without a token
-            const response = await driver['apiRequest']('/user/reset-password', 'POST', {
-                email: testUser.email,
-            }, null);
+            const response = await driver.sendPasswordResetEmail(testUser.email);
 
             expect(response.message).toBeDefined();
         });
@@ -382,12 +286,7 @@ describe('User Profile Management API Tests', () => {
 
     describe('DELETE /user/account', () => {
         it('should delete account when user has no groups', async () => {
-            const response = await driver['apiRequest'](
-                '/user/account',
-                'DELETE',
-                { confirmDelete: true },
-                testUser.token
-            );
+            const response = await driver.deleteUserAccount(testUser.token, true);
 
             expect(response.message).toBe('Account deleted successfully');
 
@@ -402,7 +301,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject deletion without confirmation', async () => {
             try {
-                await driver['apiRequest']('/user/account', 'DELETE', {}, testUser.token);
+                await driver.deleteUserAccount(testUser.token, false);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('must be explicitly confirmed');
@@ -411,12 +310,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject deletion with false confirmation', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/account',
-                    'DELETE',
-                    { confirmDelete: false },
-                    testUser.token
-                );
+                await driver.deleteUserAccount(testUser.token, false);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('must be explicitly confirmed');
@@ -434,12 +328,7 @@ describe('User Profile Management API Tests', () => {
             await driver.createGroup(group, testUser.token);
 
             try {
-                await driver['apiRequest'](
-                    '/user/account',
-                    'DELETE',
-                    { confirmDelete: true },
-                    testUser.token
-                );
+                await driver.deleteUserAccount(testUser.token, true);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('Cannot delete account while member of groups');
@@ -448,12 +337,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should return 401 when not authenticated', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/account',
-                    'DELETE',
-                    { confirmDelete: true },
-                    null
-                );
+                await driver.deleteUserAccount(null, true);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('401');
@@ -475,12 +359,7 @@ describe('User Profile Management API Tests', () => {
 
             // Update display name with unique value
             const newDisplayName = `Updated-Display-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const updateResponse = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { displayName: newDisplayName },
-                testUser.token
-            );
+            const updateResponse = await driver.updateUserProfile(testUser.token, { displayName: newDisplayName });
             
             // Verify the update was successful
             expect(updateResponse.displayName).toBe(newDisplayName);
@@ -512,6 +391,7 @@ describe('User Profile Management API Tests', () => {
 
     describe('Joi Validation', () => {
         it('should strip unknown fields from update request', async () => {
+            // This test specifically needs to send extra fields to test Joi stripping
             const response = await driver['apiRequest'](
                 '/user/profile',
                 'PUT',
@@ -529,18 +409,14 @@ describe('User Profile Management API Tests', () => {
         });
 
         it('should sanitize display name', async () => {
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { displayName: '  Trimmed Name  ' },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { displayName: '  Trimmed Name  ' });
             
             expect(response.displayName).toBe('Trimmed Name');
         });
 
         it('should reject non-string display name', async () => {
             try {
+                // This test specifically needs to send invalid data type to test validation
                 await driver['apiRequest'](
                     '/user/profile',
                     'PUT',
@@ -554,12 +430,7 @@ describe('User Profile Management API Tests', () => {
         });
 
         it('should accept empty string photoURL', async () => {
-            const response = await driver['apiRequest'](
-                '/user/profile',
-                'PUT',
-                { photoURL: '' },
-                testUser.token
-            );
+            const response = await driver.updateUserProfile(testUser.token, { photoURL: '' });
             
             // Empty string is treated as removing the photo
             expect(response.photoURL).toBeFalsy();
@@ -569,12 +440,7 @@ describe('User Profile Management API Tests', () => {
     describe('Delete Account Validation', () => {
         it('should reject deletion without confirmDelete flag', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/account',
-                    'DELETE',
-                    {},
-                    testUser.token
-                );
+                await driver.deleteUserAccount(testUser.token, false);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('deletion must be explicitly confirmed');
@@ -583,12 +449,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should reject deletion with confirmDelete set to false', async () => {
             try {
-                await driver['apiRequest'](
-                    '/user/account',
-                    'DELETE',
-                    { confirmDelete: false },
-                    testUser.token
-                );
+                await driver.deleteUserAccount(testUser.token, false);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('deletion must be explicitly confirmed');
@@ -605,8 +466,9 @@ describe('User Profile Management API Tests', () => {
             );
             
             try {
+                // This test specifically needs to send extra fields to test Joi stripping
                 await driver['apiRequest'](
-                    '/user/delete',
+                    '/user/account',
                     'DELETE',
                     { 
                         confirmDelete: true,
