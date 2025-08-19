@@ -120,6 +120,18 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
     }
     const memberIds = groupData.data.memberIds;
 
+    // Validate that paidBy is a group member
+    if (!memberIds.includes(expenseData.paidBy)) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
+    }
+
+    // Validate that all participants are group members
+    for (const participantId of expenseData.participants) {
+        if (!memberIds.includes(participantId)) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
+        }
+    }
+
     const now = createServerTimestamp();
     const docRef = getExpensesCollection().doc();
 
@@ -239,6 +251,30 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
     const isOwner = await isGroupOwner(expense.groupId, userId);
     if (expense.createdBy !== userId && !isOwner) {
         throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'Only the expense creator or group owner can edit this expense');
+    }
+
+    // If updating paidBy or participants, validate they are group members
+    if (updateData.paidBy || updateData.participants) {
+        const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
+        const groupData = groupDoc.data();
+        if (!groupData?.data?.memberIds) {
+            throw new Error(`Group ${expense.groupId} not found or missing member data`);
+        }
+        const memberIds = groupData.data.memberIds;
+
+        // Validate paidBy if it's being updated
+        if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
+        }
+
+        // Validate participants if they're being updated
+        if (updateData.participants) {
+            for (const participantId of updateData.participants) {
+                if (!memberIds.includes(participantId)) {
+                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
+                }
+            }
+        }
     }
 
     // Type note: This is intentionally `any` because we're building a dynamic update object

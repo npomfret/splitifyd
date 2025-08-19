@@ -94,6 +94,7 @@ const updateExpenseSchema = Joi.object({
     description: Joi.string().trim().min(1).max(200).optional(),
     category: Joi.string().trim().min(1).max(50).optional(),
     date: dateValidationSchema.optional(),
+    paidBy: Joi.string().optional(),
     splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).optional(),
     participants: Joi.array().items(Joi.string()).min(1).optional(),
     splits: Joi.array().items(expenseSplitSchema).optional(),
@@ -282,6 +283,10 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         update.date = value.date;
     }
 
+    if ('paidBy' in value) {
+        update.paidBy = value.paidBy;
+    }
+
     if ('splitType' in value || 'participants' in value || 'splits' in value) {
         const splitType = value.splitType || SplitTypes.EQUAL;
         if (!value.participants) {
@@ -303,6 +308,13 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
 
     if ('receiptUrl' in value) {
         update.receiptUrl = value.receiptUrl?.trim();
+    }
+
+    // If both paidBy and participants are being updated, ensure paidBy is in participants
+    if ('paidBy' in update && 'participants' in update) {
+        if (!update.participants!.includes(update.paidBy!)) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
+        }
     }
 
     return sanitizeExpenseData(update) as UpdateExpenseRequest;

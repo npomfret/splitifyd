@@ -343,4 +343,130 @@ describe('Enhanced Data Validation Tests', () => {
             }
         });
     });
+
+    describe('Group Member Validation', () => {
+        test('should reject expense with paidBy user who is not a group member', async () => {
+            // Create a third user who is not in the group
+            const nonMemberUser = await driver.createUser(new UserBuilder().build());
+            
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(nonMemberUser.uid) // Non-member as payer - this is what the test is about
+                .withParticipants([nonMemberUser.uid, users[0].uid]) // Include payer in participants to pass first validation
+                .build();
+
+            await expect(driver.createExpense(expenseData, users[0].token))
+                .rejects.toThrow(/INVALID_PAYER|Payer must be a member of the group/);
+        });
+
+        test('should reject expense with participant who is not a group member', async () => {
+            // Create a third user who is not in the group
+            const nonMemberUser = await driver.createUser(new UserBuilder().build());
+            
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, nonMemberUser.uid]) // Non-member as participant - this is what the test is about
+                .build();
+
+            await expect(driver.createExpense(expenseData, users[0].token))
+                .rejects.toThrow(/INVALID_PARTICIPANT|Participant.*is not a member of the group/);
+        });
+
+        test('should reject expense with multiple non-member participants', async () => {
+            // Create two users who are not in the group
+            const nonMember1 = await driver.createUser(new UserBuilder().build());
+            const nonMember2 = await driver.createUser(new UserBuilder().build());
+            
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, nonMember1.uid, nonMember2.uid]) // Multiple non-members - this is what the test is about
+                .build();
+
+            await expect(driver.createExpense(expenseData, users[0].token))
+                .rejects.toThrow(/INVALID_PARTICIPANT|Participant.*is not a member of the group/);
+        });
+
+        test('should accept expense when all participants are group members', async () => {
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid]) // All valid members
+                .build();
+
+            const response = await driver.createExpense(expenseData, users[0].token);
+            expect(response.id).toBeDefined();
+            expect(response.paidBy).toBe(users[0].uid);
+            expect(response.participants).toEqual(expect.arrayContaining([users[0].uid, users[1].uid]));
+        });
+
+        test('should reject expense update with non-member as paidBy', async () => {
+            // First create a valid expense
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+
+            const response = await driver.createExpense(expenseData, users[0].token);
+            
+            // Create a non-member user
+            const nonMemberUser = await driver.createUser(new UserBuilder().build());
+            
+            // Try to update the expense with non-member as paidBy
+            const updateData = {
+                paidBy: nonMemberUser.uid // Non-member as payer - this is what the test is about
+            };
+
+            await expect(driver.updateExpense(response.id, updateData, users[0].token))
+                .rejects.toThrow(/INVALID_PAYER|Payer must be a member of the group/);
+        });
+
+        test('should reject expense update with non-member in participants', async () => {
+            // First create a valid expense
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+
+            const response = await driver.createExpense(expenseData, users[0].token);
+            
+            // Create a non-member user
+            const nonMemberUser = await driver.createUser(new UserBuilder().build());
+            
+            // Try to update the expense with non-member in participants
+            const updateData = {
+                participants: [users[0].uid, nonMemberUser.uid] // Non-member as participant - this is what the test is about
+            };
+
+            await expect(driver.updateExpense(response.id, updateData, users[0].token))
+                .rejects.toThrow(/INVALID_PARTICIPANT|Participant.*is not a member of the group/);
+        });
+
+        test('should accept expense update when all participants are group members', async () => {
+            // First create a valid expense
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .build();
+
+            const response = await driver.createExpense(expenseData, users[0].token);
+            
+            // Update with valid members
+            const updateData = {
+                paidBy: users[1].uid,
+                participants: [users[0].uid, users[1].uid]
+            };
+
+            await driver.updateExpense(response.id, updateData, users[0].token);
+            
+            // Fetch the updated expense to verify the changes
+            const updatedExpense = await driver.getExpense(response.id, users[0].token);
+            expect(updatedExpense.paidBy).toBe(users[1].uid);
+            expect(updatedExpense.participants).toEqual(expect.arrayContaining([users[0].uid, users[1].uid]));
+        });
+    });
 });
