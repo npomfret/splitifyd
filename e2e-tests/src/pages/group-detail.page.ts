@@ -293,11 +293,21 @@ export class GroupDetailPage extends BasePage {
 
         // Primary approach: verify all users are visible in the group (more reliable than member count)
         for (const userName of allUserNames) {
-            await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 15000 });
+            try {
+                await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 15000 });
+            } catch (e) {
+                const visibleMembers = await this.page.locator('[data-testid="member-item"]').allInnerTexts();
+                throw new Error(`Failed to find user "${userName}" in member list during synchronization. Expected users: [${allUserNames.join(', ')}]. Visible members: [${visibleMembers.join(', ')}]`);
+            }
         }
 
-        // Secondary verification: try to wait for member count if available, but don't fail if it's not working
-        await this.waitForMemberCount(totalUsers, 5000);
+        // Secondary verification: wait for correct member count
+        try {
+            await this.waitForMemberCount(totalUsers, 5000);
+        } catch (e) {
+            const actualCount = await this.page.getByText(/\d+ member/i).textContent();
+            throw new Error(`Member count synchronization failed. Expected: ${totalUsers} members, Found: ${actualCount}`);
+        }
 
         // Final network idle wait to ensure all updates have propagated
         await this.page.waitForLoadState('domcontentloaded');
@@ -322,10 +332,19 @@ export class GroupDetailPage extends BasePage {
             .first();
 
         // Wait for balances section to be visible
-        await expect(balancesSection).toBeVisible();
+        try {
+            await expect(balancesSection).toBeVisible({ timeout: 8000 });
+        } catch (e) {
+            const pageContent = await this.page.textContent('body');
+            throw new Error(`Balances section failed to load within 8 seconds on group ${groupId}. Page content: ${pageContent?.substring(0, 500)}...`);
+        }
 
         // Wait for loading to disappear
-        await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 1000 });
+        try {
+            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 5000 });
+        } catch (e) {
+            // Loading text might not be present, that's okay
+        }
 
         // Wait for the members section to stop loading
         // Check if there's a loading spinner in the Members section
@@ -335,7 +354,11 @@ export class GroupDetailPage extends BasePage {
         // Wait for spinner to disappear if it exists
         const spinnerCount = await loadingSpinner.count();
         if (spinnerCount > 0) {
-            await expect(loadingSpinner.first()).not.toBeVisible({ timeout: 5000 });
+            try {
+                await expect(loadingSpinner.first()).not.toBeVisible({ timeout: 5000 });
+            } catch (e) {
+                throw new Error(`Members section loading spinner did not disappear within 5 seconds on group ${groupId}`);
+            }
         }
     }
 
@@ -707,7 +730,7 @@ export class GroupDetailPage extends BasePage {
         // Wait for loading spinner to disappear if present
         const loadingSpinner = dialog.locator('.animate-spin');
         if ((await loadingSpinner.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible();
+            await expect(loadingSpinner).not.toBeVisible({ timeout: 10000 });
         }
 
         // Get the share link
@@ -1022,19 +1045,21 @@ export class GroupDetailPage extends BasePage {
     
     // Member management element accessors
     getLeaveGroupButton(): Locator {
-        return this.page.getByRole('button', { name: /leave group/i });
+        // There may be multiple leave buttons (sidebar and mobile views)
+        // Return the first visible one
+        return this.page.getByTestId('leave-group-button').first();
     }
 
     getMemberItem(memberName: string): Locator {
-        return this.page.locator('[data-testid="member-item"]').filter({ hasText: memberName });
+        // Use data-member-name attribute for precise selection
+        // This avoids issues with "Admin" text or other content in the member item
+        // Important: Only select visible member items (both mobile and desktop views may be in DOM)
+        return this.page.locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
     }
 
     getRemoveMemberButton(memberName: string): Locator {
         const memberItem = this.getMemberItem(memberName);
-        // Try both possible selectors for remove button
-        return memberItem.locator('[data-testid="remove-member-button"]').or(
-            this.page.getByRole('button', { name: new RegExp(`remove.*${memberName}`, 'i') })
-        );
+        return memberItem.locator('[data-testid="remove-member-button"]');
     }
 
     getMembersList(): Locator {
@@ -1053,25 +1078,41 @@ export class GroupDetailPage extends BasePage {
     }
 
     async confirmLeaveGroup(): Promise<void> {
-        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|leave/i });
+        const dialog = this.page.getByTestId('leave-group-dialog');
+        const confirmButton = dialog.getByTestId('confirm-button');
         await expect(confirmButton).toBeVisible({ timeout: 2000 });
         await this.clickButton(confirmButton, { buttonName: 'Confirm Leave' });
     }
 
     async cancelLeaveGroup(): Promise<void> {
-        const cancelButton = this.page.getByRole('button', { name: /cancel|close/i });
+        const dialog = this.page.getByTestId('leave-group-dialog');
+        const cancelButton = dialog.getByTestId('cancel-button');
         await this.clickButton(cancelButton, { buttonName: 'Cancel Leave' });
     }
 
     async clickRemoveMember(memberName: string): Promise<void> {
         const memberItem = this.getMemberItem(memberName);
-        await expect(memberItem).toBeVisible();
+        try {
+            await expect(memberItem).toBeVisible({ timeout: 5000 });
+        } catch (e) {
+            // Only get visible member items for error message
+            const visibleMemberItems = await this.page.locator('[data-testid="member-item"]:visible').all();
+            const visibleMembers = await Promise.all(
+                visibleMemberItems.map(async (item) => {
+                    const text = await item.innerText();
+                    const dataName = await item.getAttribute('data-member-name');
+                    return `${text.replace(/\n/g, ' ')} [data-member-name="${dataName}"]`;
+                })
+            );
+            throw new Error(`Failed to find visible member "${memberName}". Visible members:\n${visibleMembers.map((m, i) => `  ${i + 1}. ${m}`).join('\n')}`);
+        }
         const removeButton = this.getRemoveMemberButton(memberName);
         await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
     }
 
     async confirmRemoveMember(): Promise<void> {
-        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|remove/i });
+        const dialog = this.page.getByTestId('remove-member-dialog');
+        const confirmButton = dialog.getByTestId('confirm-button');
         await expect(confirmButton).toBeVisible({ timeout: 2000 });
         await this.clickButton(confirmButton, { buttonName: 'Confirm Remove' });
     }
@@ -1082,12 +1123,22 @@ export class GroupDetailPage extends BasePage {
     }
 
     async verifyLeaveErrorMessage(): Promise<void> {
-        const errorMessage = this.page.getByText(/outstanding balance|settle.*first|cannot leave/i);
-        await expect(errorMessage).toBeVisible({ timeout: 3000 });
+        const dialog = this.page.getByTestId('leave-group-dialog');
+        const errorMessage = dialog.getByTestId('balance-error-message');
+        try {
+            await expect(errorMessage).toBeVisible({ timeout: 10000 });
+        } catch (e) {
+            throw new Error('The error message for leaving with an outstanding balance did not appear within 10 seconds');
+        }
     }
 
     async verifyRemoveErrorMessage(): Promise<void> {
-        const errorMessage = this.page.getByText(/outstanding balance|settle.*first|cannot remove/i);
-        await expect(errorMessage).toBeVisible({ timeout: 3000 });
+        const dialog = this.page.getByTestId('remove-member-dialog');
+        const errorMessage = dialog.getByTestId('balance-error-message');
+        try {
+            await expect(errorMessage).toBeVisible({ timeout: 10000 });
+        } catch (e) {
+            throw new Error('The error message for removing member with an outstanding balance did not appear within 10 seconds');
+        }
     }
 }

@@ -11,9 +11,10 @@ interface ConfirmDialogProps {
     onCancel: () => void;
     variant?: 'danger' | 'warning' | 'info';
     loading?: boolean;
+    'data-testid'?: string;
 }
 
-export function ConfirmDialog({ isOpen, title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, onCancel, variant = 'info', loading = false }: ConfirmDialogProps) {
+export function ConfirmDialog({ isOpen, title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, onCancel, variant = 'info', loading = false, 'data-testid': dataTestId }: ConfirmDialogProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Handle escape key to close modal
@@ -65,8 +66,8 @@ export function ConfirmDialog({ isOpen, title, message, confirmText = 'Confirm',
     const styles = getVariantStyles();
 
     return (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={handleBackdropClick}>
-            <div className="relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" ref={modalRef}>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={handleBackdropClick} data-testid={dataTestId}>
+            <div className="relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" ref={modalRef} data-testid="confirmation-dialog">
                 {/* Icon */}
                 <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${styles.iconBg} mb-4`}>
                     {variant === 'danger' ? (
@@ -92,15 +93,20 @@ export function ConfirmDialog({ isOpen, title, message, confirmText = 'Confirm',
                 {/* Content */}
                 <div className="text-center">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{message}</p>
+                    <p 
+                        className="text-sm text-gray-500 dark:text-gray-400 mb-6" 
+                        data-testid={message.includes('outstanding balance') ? 'balance-error-message' : undefined}
+                    >
+                        {message}
+                    </p>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-end space-x-3">
-                    <Button variant="secondary" onClick={onCancel} disabled={loading}>
+                    <Button variant="secondary" onClick={onCancel} disabled={loading} data-testid="cancel-button">
                         {cancelText}
                     </Button>
-                    <Button variant={styles.button} onClick={onConfirm} loading={loading}>
+                    <Button variant={styles.button} onClick={onConfirm} loading={loading} data-testid="confirm-button">
                         {confirmText}
                     </Button>
                 </div>

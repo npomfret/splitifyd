@@ -420,4 +420,5 @@ export interface GroupBalances {
     userBalances: Record<string, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: string; // ISO string
+    balancesByCurrency: Record<string, Record<string, UserBalance>>;
 }

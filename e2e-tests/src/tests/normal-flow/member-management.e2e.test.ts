@@ -230,11 +230,9 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await groupDetailPage.waitForBalancesToLoad(groupId);
             await memberGroupDetailPage.waitForBalancesToLoad(groupId);
             
-            // Owner tries to remove member
-            await groupDetailPage.clickRemoveMember(member.displayName);
-            
-            // Should see error about outstanding balance
-            await groupDetailPage.verifyRemoveErrorMessage();
+            // Owner tries to remove member - button should be disabled
+            const removeButton = groupDetailPage.getRemoveMemberButton(member.displayName);
+            await expect(removeButton).toBeDisabled({ timeout: 5000 });
         },
     );
 

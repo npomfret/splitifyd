@@ -6,7 +6,7 @@ import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '@/components/ui';
 import { UserPlusIcon, UserMinusIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
-import type { User } from '@shared/shared-types.ts';
+import type { User, GroupBalances } from '@shared/shared-types.ts';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
 
@@ -15,7 +15,7 @@ interface MembersListWithManagementProps {
     createdBy: string;
     currentUserId: string;
     groupId: string;
-    balances?: any; // GroupBalances type doesn't include balancesByCurrency yet
+    balances?: GroupBalances | null;
     loading?: boolean;
     variant?: 'default' | 'sidebar';
     onInviteClick?: () => void;
@@ -41,36 +41,42 @@ export function MembersListWithManagement({
     const isOwner = currentUserId === createdBy;
     const isLastMember = members.length === 1;
     
-    // Check if current user has outstanding balance
-    const hasOutstandingBalance = useComputed(() => {
-        if (!balances?.balancesByCurrency) return false;
+    // Helper function to get user balance from Group.balance structure
+    // Structure: balancesByCurrency: Record<currency, Record<userId, UserBalance>>
+    const getUserBalance = (userId: string): number => {
+        if (!balances?.balancesByCurrency) return 0;
         
+        // Check each currency for this user's balance
         for (const currency in balances.balancesByCurrency) {
             const currencyBalances = balances.balancesByCurrency[currency];
-            const userBalance = currencyBalances[currentUserId];
+            const userBalance = currencyBalances?.[userId];
+            
             if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
-                return true;
+                return Math.abs(userBalance.netBalance);
             }
         }
-        return false;
+        
+        return 0;
+    };
+    
+    // Check if current user has outstanding balance
+    const hasOutstandingBalance = useComputed(() => {
+        return getUserBalance(currentUserId) > 0;
     });
 
     // Check if a specific member has outstanding balance
     const memberHasOutstandingBalance = (memberId: string): boolean => {
-        if (!balances?.balancesByCurrency) return false;
-        
-        for (const currency in balances.balancesByCurrency) {
-            const currencyBalances = balances.balancesByCurrency[currency];
-            const memberBalance = currencyBalances[memberId];
-            if (memberBalance && Math.abs(memberBalance.netBalance) > 0.01) {
-                return true;
-            }
-        }
-        return false;
+        return getUserBalance(memberId) > 0;
     };
 
     const handleLeaveGroup = async () => {
         if (isProcessing.value) return;
+        
+        // Check if user has outstanding balance and prevent leaving if so
+        if (hasOutstandingBalance.value) {
+            // Don't leave - the dialog should show error message and user can cancel
+            return;
+        }
         
         try {
             isProcessing.value = true;
@@ -90,6 +96,12 @@ export function MembersListWithManagement({
     const handleRemoveMember = async () => {
         if (!memberToRemove.value || isProcessing.value) return;
         
+        // Check if member has outstanding balance and prevent removal if so
+        if (memberHasOutstandingBalance(memberToRemove.value.uid)) {
+            // Don't remove - the dialog should show error message and user can cancel
+            return;
+        }
+        
         try {
             isProcessing.value = true;
             await apiClient.removeGroupMember(groupId, memberToRemove.value.uid);
@@ -100,8 +112,6 @@ export function MembersListWithManagement({
                 onMemberChange();
             }
         } catch (error: any) {
-            logError('Failed to remove member', error);
-            // Error will be logged
             logError('Failed to remove member', error);
         } finally {
             isProcessing.value = false;
@@ -122,7 +132,7 @@ export function MembersListWithManagement({
     ) : variant === 'sidebar' ? (
         <div className="space-y-3">
             {members.map((member) => (
-                <div key={member.uid} className="flex items-center gap-3 group">
+                <div key={member.uid} className="flex items-center gap-3 group" data-testid="member-item" data-member-id={member.uid} data-member-name={member.displayName || member.email || 'Unknown User'}>
                     <Avatar 
                         displayName={member.displayName || member.email || 'Unknown User'} 
                         userId={member.uid} 
@@ -143,6 +153,7 @@ export function MembersListWithManagement({
                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
                             ariaLabel={`Remove ${member.displayName || 'member'}`}
                             disabled={memberHasOutstandingBalance(member.uid)}
+                            data-testid="remove-member-button"
                         >
                             <UserMinusIcon className="h-4 w-4 text-red-500" />
                         </Button>
@@ -153,7 +164,7 @@ export function MembersListWithManagement({
     ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {members.map((member) => (
-                <div key={member.uid} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 group">
+                <div key={member.uid} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 group" data-testid="member-item" data-member-id={member.uid} data-member-name={member.displayName || member.email || 'Unknown User'}>
                     <Avatar 
                         displayName={member.displayName || member.email || 'Unknown User'} 
                         userId={member.uid} 
@@ -174,6 +185,7 @@ export function MembersListWithManagement({
                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
                             ariaLabel={`Remove ${member.displayName || 'member'}`}
                             disabled={memberHasOutstandingBalance(member.uid)}
+                            data-testid="remove-member-button"
                         >
                             <UserMinusIcon className="h-4 w-4 text-red-500" />
                         </Button>
@@ -208,7 +220,7 @@ export function MembersListWithManagement({
                                     onClick={() => showLeaveConfirm.value = true}
                                     className="p-1 h-auto"
                                     ariaLabel="Leave Group"
-                                    disabled={hasOutstandingBalance.value}
+                                    data-testid="leave-group-button"
                                 >
                                     <ArrowRightOnRectangleIcon className="h-4 w-4 text-gray-500" />
                                 </Button>
@@ -233,12 +245,17 @@ export function MembersListWithManagement({
                     onConfirm={handleLeaveGroup}
                     onCancel={() => showLeaveConfirm.value = false}
                     loading={isProcessing.value}
+                    data-testid="leave-group-dialog"
                 />
 
                 <ConfirmDialog
                     isOpen={showRemoveConfirm.value}
                     title="Remove Member?"
-                    message={`Are you sure you want to remove ${memberToRemove.value?.displayName || 'this member'} from the group?`}
+                    message={
+                        memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
+                            ? `${memberToRemove.value.displayName || 'This member'} has an outstanding balance in this group. Please settle up before removing.`
+                            : `Are you sure you want to remove ${memberToRemove.value?.displayName || 'this member'} from the group?`
+                    }
                     confirmText="Remove"
                     cancelText="Cancel"
                     variant="danger"
@@ -248,6 +265,7 @@ export function MembersListWithManagement({
                         memberToRemove.value = null;
                     }}
                     loading={isProcessing.value}
+                    data-testid="remove-member-dialog"
                 />
             </>
         );
@@ -276,7 +294,7 @@ export function MembersListWithManagement({
                                 size="sm" 
                                 onClick={() => showLeaveConfirm.value = true}
                                 className="flex items-center gap-2"
-                                disabled={hasOutstandingBalance.value}
+                                data-testid="leave-group-button"
                             >
                                 <>
                                     <ArrowRightOnRectangleIcon className="h-4 w-4" />
@@ -304,12 +322,17 @@ export function MembersListWithManagement({
                 onConfirm={handleLeaveGroup}
                 onCancel={() => showLeaveConfirm.value = false}
                 loading={isProcessing.value}
+                data-testid="leave-group-dialog"
             />
 
             <ConfirmDialog
                 isOpen={showRemoveConfirm.value}
                 title="Remove Member?"
-                message={`Are you sure you want to remove ${memberToRemove.value?.displayName || 'this member'} from the group?`}
+                message={
+                    memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
+                        ? `${memberToRemove.value.displayName || 'This member'} has an outstanding balance in this group. Please settle up before removing.`
+                        : `Are you sure you want to remove ${memberToRemove.value?.displayName || 'this member'} from the group?`
+                }
                 confirmText="Remove"
                 cancelText="Cancel"
                 variant="danger"
@@ -319,6 +342,7 @@ export function MembersListWithManagement({
                     memberToRemove.value = null;
                 }}
                 loading={isProcessing.value}
+                data-testid="remove-member-dialog"
             />
         </>
     );

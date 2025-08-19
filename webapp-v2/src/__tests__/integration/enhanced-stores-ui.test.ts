@@ -397,7 +397,8 @@ describe('Enhanced Stores UI Integration', () => {
                 groupId: 'group1',
                 userBalances: {},
                 simplifiedDebts: [],
-                lastUpdated: '2024-01-01T00:00:00Z'
+                lastUpdated: '2024-01-01T00:00:00Z',
+                balancesByCurrency: {},
             });
             vi.mocked(apiClient.listSettlements).mockResolvedValue({
                 settlements: [],

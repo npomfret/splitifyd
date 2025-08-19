@@ -13,9 +13,10 @@ interface ButtonProps {
     className?: string;
     id?: string;
     ariaLabel?: string;
+    'data-testid'?: string;
 }
 
-export function Button({ variant = 'primary', size = 'md', loading = false, disabled = false, fullWidth = false, onClick, type = 'button', children, className = '', id, ariaLabel }: ButtonProps) {
+export function Button({ variant = 'primary', size = 'md', loading = false, disabled = false, fullWidth = false, onClick, type = 'button', children, className = '', id, ariaLabel, 'data-testid': dataTestId }: ButtonProps) {
     const isDisabled = disabled || loading;
 
     // Extract text content from children for logging
@@ -77,7 +78,7 @@ export function Button({ variant = 'primary', size = 'md', loading = false, disa
     const buttonClasses = [...baseClasses, sizeClasses[size], ...variantClasses[variant], className].filter(Boolean).join(' ');
 
     return (
-        <button id={id} type={type} onClick={handleClick} disabled={isDisabled} className={buttonClasses} aria-label={ariaLabel} aria-busy={loading}>
+        <button id={id} type={type} onClick={handleClick} disabled={isDisabled} className={buttonClasses} aria-label={ariaLabel} aria-busy={loading} data-testid={dataTestId}>
             {loading && (
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
