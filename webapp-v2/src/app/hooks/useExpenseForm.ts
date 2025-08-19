@@ -32,11 +32,13 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
     const isFormValid = useComputed(() => expenseFormStore.isFormValid);
     const hasRequiredFields = useComputed(() => expenseFormStore.hasRequiredFields);
 
-    // Data readiness signal - only true when loading is false AND we have members
+    // Data readiness signal - only true when initialized, loading is false AND we have members
     const isDataReady = useComputed(() => {
-        // Data is ready only when loading is false AND we have members.
-        return !loading.value && members.value.length > 0;
+        // Data is ready only when initialization is complete AND loading is false AND we have members.
+        // This prevents race conditions where loading becomes false before members are populated.
+        return isInitialized.value && !loading.value && members.value.length > 0;
     });
+
     // Form field values
     const description = useComputed(() => expenseFormStore.description);
     const amount = useComputed(() => expenseFormStore.amount);
