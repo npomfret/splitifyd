@@ -4,6 +4,6 @@
         "noUnusedLocals": false,
         "noUnusedParameters": false
     },
-    "include": ["src", "e2e", "scripts"],
+    "include": ["src", "scripts"],
     "exclude": ["node_modules", "dist"]
 }
