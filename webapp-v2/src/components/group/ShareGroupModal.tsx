@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
 import { logError } from '@/utils/browser-logger.ts';
+import { QRCodeCanvas } from 'qrcode.react';
 
 interface ShareGroupModalProps {
     isOpen: boolean;
@@ -167,14 +168,10 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                     </button>
                                 </div>
 
-                                {/* QR Code placeholder section */}
+                                {/* QR Code section */}
                                 <div class="flex flex-col items-center py-4">
-                                    <div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
-                                        <span class="text-xs text-gray-400 text-center px-2">
-                                            QR Code
-                                            <br />
-                                            Coming Soon
-                                        </span>
+                                    <div class="p-4 bg-white rounded-lg border border-gray-200">
+                                        <QRCodeCanvas value={shareLink} size={150} />
                                     </div>
                                     <p class="text-sm text-gray-500 mt-2">Or scan this code</p>
                                 </div>

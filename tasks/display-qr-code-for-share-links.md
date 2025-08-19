@@ -63,3 +63,9 @@ To make it easier and faster to share a group invitation link with someone in pe
 - **Convenience:** Drastically improves the user experience for in-person sharing.
 - **Speed:** Eliminates the need to manually type or send a link via messaging apps when people are physically together.
 - **Modern Feel:** Adds a modern and professional touch to the sharing feature.
+
+---
+
+## Implementation Notes
+
+This feature has been implemented as described above. The `qrcode.react` library was installed and used to display the QR code in the `ShareGroupModal.tsx` component. The feature has been visually verified and is working as expected.
