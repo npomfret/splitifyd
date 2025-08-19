@@ -448,4 +448,148 @@ describe('EnhancedGroupsStore', () => {
             expect(enhancedGroupsStore.error).toBeNull();
         });
     });
+
+    describe('integration: auto-refresh workflow', () => {
+        it('completes full auto-refresh cycle on change notification', async () => {
+            const userId = 'test-user-123';
+            const initialGroups = [createTestGroup({ id: 'group-1', name: 'Initial' })];
+            const updatedGroups = [createTestGroup({ id: 'group-1', name: 'Updated' })];
+
+            // Setup initial state
+            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
+            await enhancedGroupsStore.fetchGroups();
+            expect(enhancedGroupsStore.groups[0].name).toBe('Initial');
+
+            // Setup change subscription
+            let changeCallback: (() => void) | undefined;
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+                changeCallback = callback;
+                return vi.fn();
+            });
+
+            enhancedGroupsStore.subscribeToChanges(userId);
+
+            // Mock the refresh response
+            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(updatedGroups, {
+                lastChangeTimestamp: Date.now() + 1000,
+                serverTime: Date.now() + 1000,
+            }));
+
+            // Trigger change notification
+            expect(changeCallback).toBeDefined();
+            if (changeCallback) {
+                changeCallback();
+                
+                // Wait for async refresh
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+
+            // Verify data was refreshed
+            expect(enhancedGroupsStore.groups[0].name).toBe('Updated');
+            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2); // Initial + refresh
+        });
+
+        it('handles rapid change notifications by triggering multiple refreshes', async () => {
+            const userId = 'test-user-123';
+            
+            let changeCallback: (() => void) | undefined;
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+                changeCallback = callback;
+                return vi.fn();
+            });
+
+            enhancedGroupsStore.subscribeToChanges(userId);
+            
+            const mockResponse = createTestResponseWithMetadata([createTestGroup()]);
+            mockApiClient.getGroups.mockResolvedValue(mockResponse);
+
+            // Trigger multiple rapid changes
+            if (changeCallback) {
+                changeCallback();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                changeCallback();
+                await new Promise(resolve => setTimeout(resolve, 10));
+                changeCallback();
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+
+            // Each change triggers a refresh (no debouncing implemented)
+            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(3);
+        });
+
+        it('applies optimistic updates and refreshes after server update', async () => {
+            const userId = 'test-user-123';
+            const groupId = 'group-1';
+            const originalGroup = createTestGroup({ id: groupId, name: 'Original' });
+            
+            // Setup initial state
+            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([originalGroup]));
+            await enhancedGroupsStore.fetchGroups();
+            expect(enhancedGroupsStore.groups[0].name).toBe('Original');
+
+            // Mock successful update and subsequent refresh
+            const optimisticName = 'Optimistic Update';
+            mockApiClient.updateGroup.mockResolvedValue({ message: 'Updated' });
+            
+            // Mock the refresh that happens after updateGroup
+            const updatedGroup = createTestGroup({ id: groupId, name: optimisticName });
+            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([updatedGroup]));
+            
+            // Perform the update
+            await enhancedGroupsStore.updateGroup(groupId, { name: optimisticName });
+            
+            // After update completes, data should be refreshed from server
+            expect(enhancedGroupsStore.groups[0].name).toBe(optimisticName);
+            
+            // Verify both the update and refresh were called
+            expect(mockApiClient.updateGroup).toHaveBeenCalledWith(groupId, { name: optimisticName });
+            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2); // Initial + after update
+        });
+
+        it('recovers from failed auto-refresh attempts', async () => {
+            const userId = 'test-user-123';
+            
+            // Set initial state first
+            const initialGroups = [createTestGroup({ id: 'initial' })];
+            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
+            await enhancedGroupsStore.fetchGroups();
+            
+            let changeCallback: (() => void) | undefined;
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+                changeCallback = callback;
+                return vi.fn();
+            });
+
+            enhancedGroupsStore.subscribeToChanges(userId);
+
+            // First refresh fails - error is set by fetchGroups
+            mockApiClient.getGroups.mockRejectedValueOnce(new Error('Network error'));
+            
+            if (changeCallback) {
+                changeCallback();
+                await new Promise(resolve => setTimeout(resolve, 20));
+            }
+
+            // Error is set from fetchGroups failure (not suppressed in background refresh)
+            expect(enhancedGroupsStore.error).toBe('Network error');
+            
+            // Clear the error
+            enhancedGroupsStore.clearError();
+
+            // Second refresh succeeds
+            const newGroups = [createTestGroup({ id: 'new' })];
+            const successResponse = createTestResponseWithMetadata(newGroups);
+            mockApiClient.getGroups.mockResolvedValueOnce(successResponse);
+            
+            if (changeCallback) {
+                changeCallback();
+                await new Promise(resolve => setTimeout(resolve, 20));
+            }
+
+            // Should recover and load new data
+            expect(enhancedGroupsStore.groups).toHaveLength(1);
+            expect(enhancedGroupsStore.groups[0].id).toBe('new');
+            expect(enhancedGroupsStore.error).toBeNull();
+        });
+    });
 });
