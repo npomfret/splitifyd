@@ -297,12 +297,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         // Secondary verification: try to wait for member count if available, but don't fail if it's not working
-        try {
-            await this.waitForMemberCount(totalUsers, 5000);
-        } catch (error) {
-            console.log(`Member count verification failed for ${totalUsers} users, but user names are visible. This might be a real-time update delay.`);
-            // Continue with the test since the important thing is that users are visible
-        }
+        await this.waitForMemberCount(totalUsers, 5000);
 
         // Final network idle wait to ensure all updates have propagated
         await this.page.waitForLoadState('domcontentloaded');
