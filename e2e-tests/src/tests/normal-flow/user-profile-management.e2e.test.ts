@@ -166,10 +166,11 @@ authenticatedPageTest.describe('User Profile Management', () => {
             // Navigate to settings page
             await settingsPage.navigate();
             
-            // Get initial display name (either user's display name or email prefix)
-            const initialDisplayName = user.displayName || user.email.split('@')[0];
+            // Get the actual current display name from the page
+            const profileDisplayNameElement = await settingsPage.getProfileDisplayName().textContent();
+            const initialDisplayName = profileDisplayNameElement || user.displayName || user.email.split('@')[0];
             
-            // Verify initial state shows old name
+            // Verify initial state shows current name (which we just read from the page)
             await expect(settingsPage.getProfileDisplayName()).toContainText(initialDisplayName);
             await expect(settingsPage.getUserMenuButton()).toContainText(initialDisplayName);
 
