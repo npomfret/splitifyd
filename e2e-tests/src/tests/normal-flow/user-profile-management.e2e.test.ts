@@ -41,12 +41,12 @@ authenticatedPageTest.describe('User Profile Management', () => {
             // Update display name using POM method
             await settingsPage.updateDisplayName(newDisplayName);
 
-            // Verify display name was updated in UI
-            await expect(settingsPage.getProfileDisplayName()).toContainText(newDisplayName);
+            // Verify real-time updates - both in settings and navigation (no page reload needed)
+            await settingsPage.verifyRealTimeDisplayNameUpdate(newDisplayName);
 
-            // Verify display name appears in header/navigation
+            // Also verify display name persists when navigating to dashboard
             await settingsPage.navigateToDashboard();
-            await expect(page.getByTestId('user-menu-button')).toContainText(newDisplayName);
+            await expect(settingsPage.getUserMenuButton()).toContainText(newDisplayName);
         }
     );
 
@@ -125,9 +125,10 @@ authenticatedPageTest.describe('User Profile Management', () => {
             // Verify loading state (button disabled)
             await settingsPage.verifyLoadingState('save');
 
-            // Wait for completion
-            await settingsPage.verifySuccessMessage('Profile updated successfully');
+            // Wait for completion and verify real-time update
             await settingsPage.waitForLoadingComplete('save');
+            // Verify the display name updated in real-time
+            await expect(settingsPage.getProfileDisplayName()).toContainText(testDisplayName);
         }
     );
 
@@ -151,6 +152,50 @@ authenticatedPageTest.describe('User Profile Management', () => {
             // Verify form is hidden and change password button is visible again
             await settingsPage.verifyPasswordFormVisible(false);
             await expect(settingsPage.getChangePasswordButton()).toBeVisible();
+        }
+    );
+
+    authenticatedPageTest(
+        'should update display name in real-time across all UI components without page reload',
+        async ({ authenticatedPage }) => {
+            const { page, user } = authenticatedPage;
+            const settingsPage = new SettingsPage(page);
+            
+            const realTimeDisplayName = `RealTime ${Date.now()}`;
+
+            // Navigate to settings page
+            await settingsPage.navigate();
+            
+            // Get initial display name (either user's display name or email prefix)
+            const initialDisplayName = user.displayName || user.email.split('@')[0];
+            
+            // Verify initial state shows old name
+            await expect(settingsPage.getProfileDisplayName()).toContainText(initialDisplayName);
+            await expect(settingsPage.getUserMenuButton()).toContainText(initialDisplayName);
+
+            // Update display name
+            await settingsPage.updateDisplayName(realTimeDisplayName);
+
+            // Verify real-time updates without any page reload:
+            // 1. Profile display section shows NEW name
+            await expect(settingsPage.getProfileDisplayName()).toContainText(realTimeDisplayName);
+            
+            // 2. Profile display section does NOT show OLD name
+            await expect(settingsPage.getProfileDisplayName()).not.toContainText(initialDisplayName);
+            
+            // 3. User menu shows NEW name
+            await expect(settingsPage.getUserMenuButton()).toContainText(realTimeDisplayName);
+            
+            // 4. User menu does NOT show OLD name
+            await expect(settingsPage.getUserMenuButton()).not.toContainText(initialDisplayName);
+            
+            // 5. Input field shows NEW value
+            await expect(settingsPage.getDisplayNameInput()).toHaveValue(realTimeDisplayName);
+            
+            // 6. Open user dropdown to verify it also shows updated name and not old name
+            await settingsPage.getUserMenuButton().click();
+            await expect(settingsPage.getUserDropdownMenu()).toContainText(realTimeDisplayName);
+            await expect(settingsPage.getUserDropdownMenu()).not.toContainText(initialDisplayName);
         }
     );
 });

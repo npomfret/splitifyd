@@ -210,6 +210,36 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
+    async updateUserProfile(updates: { displayName?: string }): Promise<void> {
+        errorSignal.value = null;
+
+        try {
+            // Call API to update user profile
+            const updatedUser = await apiClient.updateUserProfile(updates);
+            
+            // Update the user signal with the new data for real-time UI updates
+            if (userSignal.value) {
+                userSignal.value = {
+                    ...userSignal.value,
+                    displayName: updatedUser.displayName || userSignal.value.displayName,
+                };
+            }
+
+            // Also update the Firebase Auth user object to keep it in sync
+            const firebaseAuth = firebaseService.getAuth();
+            const currentUser = firebaseAuth.currentUser;
+            if (currentUser) {
+                // Note: We don't await this as the UI is already updated optimistically
+                currentUser.reload().catch((error) => {
+                    logError('Failed to reload Firebase user after profile update', error);
+                });
+            }
+        } catch (error: any) {
+            errorSignal.value = this.getAuthErrorMessage(error);
+            throw error;
+        }
+    }
+
     clearError(): void {
         errorSignal.value = null;
     }
