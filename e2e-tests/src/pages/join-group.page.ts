@@ -1,9 +1,6 @@
 import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
-import { NavigationResult } from '../types';
-import * as path from 'path';
-import * as fs from 'fs';
 import { JoinGroupError, AuthenticationError, NavigationError } from '../errors/test-errors';
 
 /**

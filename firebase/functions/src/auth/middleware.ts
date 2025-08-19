@@ -94,16 +94,6 @@ function getRateLimiter(): InMemoryRateLimiter {
 }
 
 /**
- * Clean up rate limiter resources (for testing)
- */
-export function cleanupRateLimiter(): void {
-    if (rateLimiter) {
-        rateLimiter.destroy();
-        rateLimiter = null;
-    }
-}
-
-/**
  * Verify Firebase Auth token and attach user to request
  */
 export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {

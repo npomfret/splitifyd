@@ -3,9 +3,8 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { multiUserTest } from '../../fixtures';
 import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
-import { GroupDetailPage, JoinGroupPage, RegisterPage, LoginPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
 import {generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
-import { throwIfFailed } from '../../utils/error-factory';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();

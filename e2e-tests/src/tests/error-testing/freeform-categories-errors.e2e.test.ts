@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { GroupWorkflow, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
-import { editExpenseUrlPattern, expenseDetailUrlPattern, groupDetailUrlPattern, waitForURLWithContext } from '../../helpers/wait-helpers';
+import { groupDetailUrlPattern, waitForURLWithContext } from '../../helpers/wait-helpers';
 
 setupMCPDebugOnFailure();
 

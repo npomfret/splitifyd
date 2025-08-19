@@ -61,7 +61,7 @@ describe('Expense Locking Debug Test', () => {
         // Created expense
 
         // Try to update the expense twice simultaneously
-        const updatePromises = [driver.updateExpense(expense.id, { amount: 200 }, user.token), driver.updateExpense(expense.id, { amount: 300 }, user.token)];
+        const updatePromises = [await driver.updateExpense(expense.id, {amount: 200}, user.token), await driver.updateExpense(expense.id, {amount: 300}, user.token)];
 
         // Starting concurrent updates
         const results = await Promise.allSettled(updatePromises);

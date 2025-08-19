@@ -122,3 +122,53 @@ const result = await pollUntil(
 expect(result.value).toBe(expectedValue);
 ```
 
+## Firebase Trigger Testing Patterns
+
+When testing Firebase triggers (Firestore document changes, Cloud Functions), avoid flaky timing-based approaches.
+
+### ❌ Avoid These Anti-Patterns
+
+```typescript
+// DON'T: Fixed timeouts with listeners
+const changePromise = new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => {
+    reject(new Error('Timeout after 2 seconds'));
+  }, 2000);  // Arbitrary fixed timeout
+  
+  const listener = db.collection('changes').onSnapshot(snapshot => {
+    // Complex listener logic...
+    clearTimeout(timeout);
+    resolve(data);
+  });
+});
+```
+
+```typescript
+// DON'T: Arbitrary sleep delays
+await new Promise(resolve => setTimeout(resolve, 2000));
+const changes = await getChanges();  // Hope trigger fired by now
+```
+
+### ✅ Use Condition-Based Polling
+
+```typescript
+// DO: Use the pollForChange helper
+import { pollForChange } from '../support/changeCollectionHelpers';
+
+const change = await pollForChange(
+  FirestoreCollections.TRANSACTION_CHANGES,
+  (doc) => doc.id === expectedId && 
+           doc.type === 'settlement' &&
+           doc.users.includes(userId),
+  { timeout: 5000, groupId }
+);
+```
+
+### Key Principles
+
+1. **Poll for specific conditions**, not arbitrary time periods
+2. **Use existing helpers** like `pollForChange` instead of custom listeners
+3. **Check for exact state** you expect (all required fields/values)
+4. **Set reasonable timeouts** (5-10 seconds for triggers)
+5. **Clean up properly** - remove unused listener variables and callbacks
+

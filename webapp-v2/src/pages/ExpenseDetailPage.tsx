@@ -2,7 +2,6 @@ import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed, batch } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
-import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button, Avatar } from '@/components/ui';
 import { Stack } from '@/components/ui';

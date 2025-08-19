@@ -1,4 +1,4 @@
-import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
+import { authenticatedPageTest as test } from '../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { GroupWorkflow } from '../../workflows';

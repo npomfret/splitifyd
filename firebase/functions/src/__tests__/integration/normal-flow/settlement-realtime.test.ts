@@ -9,6 +9,7 @@ import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
+import { pollForChange } from '../../support/changeCollectionHelpers';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     beforeAll(async () => {
@@ -17,7 +18,6 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     let groupId: string;
     let userId1: string;
     let userId2: string;
-    let changeListener: any;
 
     beforeEach(() => {
         // Generate test IDs
@@ -27,20 +27,16 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     });
 
     afterEach(async () => {
-        // Clean up listener
-        if (changeListener) {
-            changeListener();
-            changeListener = null;
-        }
-
         // Clean up test data
-        const collections = ['settlements', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
-        for (const collection of collections) {
-            const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
+        if (groupId) {
+            const collections = ['settlements', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
+            for (const collection of collections) {
+                const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
 
-            const batch = db.batch();
-            snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-            await batch.commit();
+                const batch = db.batch();
+                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+                await batch.commit();
+            }
         }
     });
 
@@ -49,33 +45,6 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     });
 
     it('should generate transaction-change notification when settlement is created directly in Firestore', async () => {
-        // Set up a listener for transaction-changes BEFORE creating the settlement
-        const changePromise = new Promise<any>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('Timeout: No transaction-change notification received within 5 seconds'));
-            }, 1000);
-
-            const query = db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
-
-            changeListener = query.onSnapshot(
-                (snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') {
-                            const data = change.doc.data();
-                            if (data.type === 'settlement') {
-                                clearTimeout(timeout);
-                                resolve(data);
-                            }
-                        }
-                    });
-                },
-                (error) => {
-                    clearTimeout(timeout);
-                    reject(error);
-                },
-            );
-        });
-
         // Create a settlement directly in Firestore (simulating what the API does)
         const settlementData = {
             groupId: groupId,
@@ -90,52 +59,27 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
 
         const settlementRef = await db.collection('settlements').add(settlementData);
 
-        // Wait for the change notification
-        try {
-            const changeNotification = await changePromise;
+        // Poll for the change notification
+        const changeNotification = await pollForChange(
+            FirestoreCollections.TRANSACTION_CHANGES,
+            (doc: any) => doc.groupId === groupId && 
+                         doc.id === settlementRef.id && 
+                         doc.type === 'settlement' &&
+                         doc.action === 'created',
+            { timeout: 5000, groupId }
+        );
 
-            // Verify the change notification was created
-            expect(changeNotification).toBeDefined();
-            expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.id).toBe(settlementRef.id);
-            expect(changeNotification.type).toBe('settlement');
-            expect(changeNotification.action).toBe('created');
-            expect(changeNotification.users).toContain(userId1);
-            expect(changeNotification.users).toContain(userId2);
-        } catch (error) {
-            // If this fails, it means the trackSettlementChanges trigger isn't working
-            throw new Error(`Settlement change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }, 3000);
+        // Verify the change notification was created
+        expect(changeNotification).toBeTruthy();
+        expect(changeNotification.groupId).toBe(groupId);
+        expect(changeNotification.id).toBe(settlementRef.id);
+        expect(changeNotification.type).toBe('settlement');
+        expect(changeNotification.action).toBe('created');
+        expect(changeNotification.users).toContain(userId1);
+        expect(changeNotification.users).toContain(userId2);
+    }, 10000);
 
     it('should generate balance-change notification when settlement is created', async () => {
-        // Set up a listener for balance-changes
-        const changePromise = new Promise<any>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('Timeout: No balance-change notification received within 5 seconds'));
-            }, 1000);
-
-            const query = db.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').limit(1);
-
-            changeListener = query.onSnapshot(
-                (snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') {
-                            const data = change.doc.data();
-                            if (data.type === 'balance') {
-                                clearTimeout(timeout);
-                                resolve(data);
-                            }
-                        }
-                    });
-                },
-                (error) => {
-                    clearTimeout(timeout);
-                    reject(error);
-                },
-            );
-        });
-
         // Create a settlement
         const settlementData = {
             groupId: groupId,
@@ -150,21 +94,23 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
 
         await db.collection('settlements').add(settlementData);
 
-        // Wait for the change notification
-        try {
-            const changeNotification = await changePromise;
+        // Poll for the balance change notification
+        const changeNotification = await pollForChange(
+            FirestoreCollections.BALANCE_CHANGES,
+            (doc: any) => doc.groupId === groupId && 
+                         doc.type === 'balance' &&
+                         doc.action === 'recalculated',
+            { timeout: 5000, groupId }
+        );
 
-            // Verify the balance change notification was created
-            expect(changeNotification).toBeDefined();
-            expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.type).toBe('balance');
-            expect(changeNotification.action).toBe('recalculated');
-            expect(changeNotification.users).toContain(userId1);
-            expect(changeNotification.users).toContain(userId2);
-        } catch (error) {
-            throw new Error(`Balance change tracking failed: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }, 3000);
+        // Verify the balance change notification was created
+        expect(changeNotification).toBeTruthy();
+        expect(changeNotification.groupId).toBe(groupId);
+        expect(changeNotification.type).toBe('balance');
+        expect(changeNotification.action).toBe('recalculated');
+        expect(changeNotification.users).toContain(userId1);
+        expect(changeNotification.users).toContain(userId2);
+    }, 10000);
 
     it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
         /**

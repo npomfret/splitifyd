@@ -93,7 +93,7 @@ describe('ConnectionManager', () => {
         it('should call callback after delay', async () => {
             const callback = vi.fn().mockResolvedValue(undefined);
             
-            manager.reconnectWithBackoff('test', callback, { baseDelay: 1000 });
+            await manager.reconnectWithBackoff('test', callback, {baseDelay: 1000});
             
             expect(callback).not.toHaveBeenCalled();
             
@@ -109,9 +109,9 @@ describe('ConnectionManager', () => {
                 .mockRejectedValueOnce(new Error('fail'))
                 .mockResolvedValueOnce(undefined);
             
-            manager.reconnectWithBackoff('test', callback, { 
+            await manager.reconnectWithBackoff('test', callback, {
                 baseDelay: 1000,
-                maxAttempts: 5 
+                maxAttempts: 5
             });
             
             // First attempt after 1000ms
@@ -133,9 +133,9 @@ describe('ConnectionManager', () => {
         it('should respect maxAttempts', async () => {
             const callback = vi.fn().mockRejectedValue(new Error('fail'));
             
-            manager.reconnectWithBackoff('test', callback, { 
+            await manager.reconnectWithBackoff('test', callback, {
                 baseDelay: 100,
-                maxAttempts: 2 
+                maxAttempts: 2
             });
             
             // First attempt
@@ -155,8 +155,8 @@ describe('ConnectionManager', () => {
             const callback1 = vi.fn().mockResolvedValue(undefined);
             const callback2 = vi.fn().mockResolvedValue(undefined);
             
-            manager.reconnectWithBackoff('test', callback1, { baseDelay: 2000 });
-            manager.reconnectWithBackoff('test', callback2, { baseDelay: 1000 });
+            await manager.reconnectWithBackoff('test', callback1, {baseDelay: 2000});
+            await manager.reconnectWithBackoff('test', callback2, {baseDelay: 1000});
             
             await vi.advanceTimersByTimeAsync(1000);
             

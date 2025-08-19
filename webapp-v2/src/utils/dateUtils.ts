@@ -3,10 +3,6 @@ export const formatLocalDateTime = (utcString: string): string => {
     return date.toLocaleString();
 };
 
-export const formatLocalDate = (utcString: string): string => {
-    const date = new Date(utcString);
-    return date.toLocaleDateString();
-};
 export const getUTCMidnight = (localDateString: string): string => {
     const [year, month, day] = localDateString.split('-').map(Number);
     const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));

@@ -1,4 +1,4 @@
-import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
+import { authenticatedPageTest, expect } from '../../fixtures';
 import { test as baseTest } from '../../fixtures/base-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { SettingsPage, RegisterPage, DashboardPage } from '../../pages';

@@ -1,9 +1,6 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { JoinGroupPage } from '../../pages';
-import { RegisterPage } from '../../pages';
-import { DashboardPage } from '../../pages';
 
 // Enable debugging helpers
 setupConsoleErrorReporting();

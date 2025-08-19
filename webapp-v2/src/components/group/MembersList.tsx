@@ -1,5 +1,4 @@
 import { Card } from '../ui/Card';
-import { SidebarCard } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
