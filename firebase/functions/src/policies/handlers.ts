@@ -6,7 +6,8 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { PolicyDocument, CreatePolicyRequest, UpdatePolicyRequest, PublishPolicyRequest, PolicyVersion, FirestoreCollections } from '../shared/shared-types';
+import { PolicyDocument, PolicyVersion, FirestoreCollections } from '../shared/shared-types';
+import { validateCreatePolicy, validateUpdatePolicy, validatePublishPolicy } from './validation';
 
 /**
  * Calculate SHA-256 hash of policy text
@@ -168,11 +169,9 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
  */
 export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { text, publish = false }: UpdatePolicyRequest = req.body;
-
-    if (!text || typeof text !== 'string') {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TEXT', 'Policy text is required');
-    }
+    
+    // Validate request body using Joi
+    const { text, publish = false } = validateUpdatePolicy(req.body);
 
     try {
         const firestore = db;
@@ -302,11 +301,9 @@ export const publishPolicyInternal = async (id: string, versionHash: string): Pr
  */
 export const publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { versionHash }: PublishPolicyRequest = req.body;
-
-    if (!versionHash) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_HASH', 'Version hash is required');
-    }
+    
+    // Validate request body using Joi
+    const { versionHash } = validatePublishPolicy(req.body);
 
     try {
         const firestore = db;
@@ -429,11 +426,8 @@ export const createPolicyInternal = async (policyName: string, text: string, cus
  * POST /admin/policies - Create new policy
  */
 export const createPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const { policyName, text }: CreatePolicyRequest = req.body;
-
-    if (!policyName || !text) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
-    }
+    // Validate request body using Joi
+    const { policyName, text } = validateCreatePolicy(req.body);
 
     try {
         const firestore = db;

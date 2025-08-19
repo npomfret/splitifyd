@@ -7,7 +7,7 @@ import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
-import { validateUpdateUserProfile, validateDeleteUser } from './validation';
+import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword, validateSendPasswordReset } from './validation';
 
 /**
  * Get current user's profile
@@ -112,29 +112,8 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
             throw Errors.UNAUTHORIZED();
         }
 
-        const { currentPassword, newPassword } = req.body;
-
-        // Validate input
-        if (!currentPassword || !newPassword) {
-            throw Errors.INVALID_INPUT('Current password and new password are required');
-        }
-
-        if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
-            throw Errors.INVALID_INPUT('Passwords must be strings');
-        }
-
-        // Validate new password strength
-        if (newPassword.length < 6) {
-            throw Errors.INVALID_INPUT('New password must be at least 6 characters long');
-        }
-
-        if (newPassword.length > 128) {
-            throw Errors.INVALID_INPUT('New password must be 128 characters or less');
-        }
-
-        if (currentPassword === newPassword) {
-            throw Errors.INVALID_INPUT('New password must be different from current password');
-        }
+        // Validate request body using Joi
+        const validatedData = validateChangePassword(req.body);
 
         // Get user email for re-authentication
         const userRecord = await admin.auth().getUser(userId);
@@ -150,7 +129,7 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
 
         // Update password in Firebase Auth
         await admin.auth().updateUser(userId, {
-            password: newPassword,
+            password: validatedData.newPassword,
         });
 
         // Update Firestore to track password change
@@ -174,26 +153,12 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
  */
 export const sendPasswordResetEmail = async (req: any, res: Response): Promise<void> => {
     try {
-        const { email } = req.body;
-
-        // Validate input
-        if (!email) {
-            throw Errors.MISSING_FIELD('email');
-        }
-
-        if (typeof email !== 'string') {
-            throw Errors.INVALID_INPUT('Email must be a string');
-        }
-
-        // Basic email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            throw Errors.INVALID_INPUT('Invalid email format');
-        }
+        // Validate request body using Joi
+        const validatedData = validateSendPasswordReset(req.body);
 
         try {
             // Check if user exists first
-            await admin.auth().getUserByEmail(email);
+            await admin.auth().getUserByEmail(validatedData.email);
             
             // Generate password reset link
             // Note: This would typically be done on the client side using Firebase Auth SDK
@@ -203,11 +168,11 @@ export const sendPasswordResetEmail = async (req: any, res: Response): Promise<v
                 handleCodeInApp: true,
             };
 
-            const resetLink = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+            const resetLink = await admin.auth().generatePasswordResetLink(validatedData.email, actionCodeSettings);
 
             // In production, you would send this link via email
             // For now, we'll return a success message
-            logger.info('Password reset link generated', { email, resetLink });
+            logger.info('Password reset link generated', { email: validatedData.email, resetLink });
 
             res.status(HTTP_STATUS.OK).json({
                 message: 'Password reset email sent successfully',
