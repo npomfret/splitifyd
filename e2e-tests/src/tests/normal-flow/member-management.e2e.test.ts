@@ -115,8 +115,14 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             // Confirm removal in dialog
             await groupDetailPage.confirmRemoveMember();
             
-            // Member should be redirected to dashboard
-            await memberPage.waitForURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            // Wait a moment for the removal to be processed and real-time updates to propagate
+            // Member should see 404 because they no longer have access to the group
+            await expect(async () => {
+                const currentUrl = memberPage.url();
+                if (!currentUrl.includes('/404')) {
+                    throw new Error(`Expected 404 page, but got: ${currentUrl}`);
+                }
+            }).toPass({ timeout: 10000, intervals: [1000] });
             
             // Owner should see updated member list
             await groupDetailPage.waitForMemberCount(1);

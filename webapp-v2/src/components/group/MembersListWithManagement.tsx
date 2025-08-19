@@ -44,7 +44,9 @@ export function MembersListWithManagement({
     // Helper function to get user balance from Group.balance structure
     // Structure: balancesByCurrency: Record<currency, Record<userId, UserBalance>>
     const getUserBalance = (userId: string): number => {
-        if (!balances?.balancesByCurrency) return 0;
+        if (!balances?.balancesByCurrency) {
+            return 0;
+        }
         
         // Check each currency for this user's balance
         for (const currency in balances.balancesByCurrency) {
@@ -60,7 +62,12 @@ export function MembersListWithManagement({
     };
     
     // Check if current user has outstanding balance
+    // Important: This must be reactive to both currentUserId and balances changes
     const hasOutstandingBalance = useComputed(() => {
+        // Force reactivity by accessing balances directly
+        const currentBalances = balances;
+        if (!currentBalances) return false;
+        
         return getUserBalance(currentUserId) > 0;
     });
 
@@ -235,7 +242,7 @@ export function MembersListWithManagement({
                     isOpen={showLeaveConfirm.value}
                     title="Leave Group?"
                     message={
-                        hasOutstandingBalance.value 
+                        getUserBalance(currentUserId) > 0
                             ? "You have an outstanding balance in this group. Please settle up before leaving."
                             : "Are you sure you want to leave this group? You'll need an invitation to rejoin."
                     }
@@ -312,7 +319,7 @@ export function MembersListWithManagement({
                 isOpen={showLeaveConfirm.value}
                 title="Leave Group?"
                 message={
-                    hasOutstandingBalance.value 
+                    getUserBalance(currentUserId) > 0
                         ? "You have an outstanding balance in this group. Please settle up before leaving."
                         : "Are you sure you want to leave this group? You'll need an invitation to rejoin."
                 }

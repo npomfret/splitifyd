@@ -198,7 +198,7 @@ export class ExpenseFormPage extends BasePage {
         } catch (e: any) {
             throw createButtonClickError('clickSaveExpenseButton', {
                 success: false,
-                reason: e.message(),
+                reason: e.message,
                 buttonName: 'Save Expense',
                 error: e.stack,
                 currentUrl: this.page.url()
