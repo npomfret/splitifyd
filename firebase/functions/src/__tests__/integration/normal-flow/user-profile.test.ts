@@ -570,7 +570,7 @@ describe('User Profile Management API Tests', () => {
         it('should reject deletion without confirmDelete flag', async () => {
             try {
                 await driver['apiRequest'](
-                    '/user/delete',
+                    '/user/account',
                     'DELETE',
                     {},
                     testUser.token
@@ -584,7 +584,7 @@ describe('User Profile Management API Tests', () => {
         it('should reject deletion with confirmDelete set to false', async () => {
             try {
                 await driver['apiRequest'](
-                    '/user/delete',
+                    '/user/account',
                     'DELETE',
                     { confirmDelete: false },
                     testUser.token
