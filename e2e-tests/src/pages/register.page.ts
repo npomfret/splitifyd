@@ -43,6 +43,14 @@ export class RegisterPage extends BasePage {
     async register(name: string, email: string, password: string) {
         await this.fillRegistrationForm(name, email, password);
         await this.submitForm();
+        
+        // Wait for the registration to complete and redirect to dashboard
+        // First wait for the submit button to show loading state (becomes disabled)
+        const submitButton = this.getSubmitButton();
+        await expect(submitButton).toBeDisabled({ timeout: 2000 });
+        
+        // Then wait for the redirect to dashboard (registration success)
+        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     }
 
     // Element accessors for direct interaction in tests
