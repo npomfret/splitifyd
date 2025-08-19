@@ -55,12 +55,11 @@ export function SettingsPage() {
         setSuccessMessage('');
 
         try {
-            await apiClient.updateUserProfile({ displayName: displayName.trim() });
+            // Use the auth store's updateUserProfile method for real-time updates
+            await authStore.updateUserProfile({ displayName: displayName.trim() });
             setOriginalDisplayName(displayName.trim());
             setSuccessMessage('Profile updated successfully');
-            
-            // Force token refresh to get updated user data
-            await authStore.refreshAuthToken();
+            // No need for token refresh or page reload - UI updates automatically via signals
         } catch (error) {
             setErrorMessage('Failed to update profile. Please try again.');
             console.error('Profile update error:', error);

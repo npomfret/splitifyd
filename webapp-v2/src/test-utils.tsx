@@ -12,6 +12,7 @@ const mockAuthStore = {
     register: () => Promise.resolve(),
     logout: () => Promise.resolve(),
     resetPassword: () => Promise.resolve(),
+    updateUserProfile: () => Promise.resolve(),
     clearError: () => {},
     refreshAuthToken: () => Promise.resolve('mock-token'),
 };

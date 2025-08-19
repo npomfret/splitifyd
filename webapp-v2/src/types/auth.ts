@@ -22,6 +22,7 @@ export interface AuthActions {
     register: (email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
+    updateUserProfile: (updates: { displayName?: string }) => Promise<void>;
     clearError: () => void;
     refreshAuthToken: () => Promise<string>;
 }

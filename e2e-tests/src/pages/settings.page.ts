@@ -33,6 +33,14 @@ export class SettingsPage extends BasePage {
         return this.page.getByTestId('profile-email');
     }
 
+    getUserMenuButton(): Locator {
+        return this.page.getByTestId('user-menu-button');
+    }
+
+    getUserDropdownMenu(): Locator {
+        return this.page.getByTestId('user-dropdown-menu');
+    }
+
     getDisplayNameInput(): Locator {
         return this.page.getByLabel('Display Name');
     }
@@ -69,7 +77,8 @@ export class SettingsPage extends BasePage {
     // Success/Error Messages
     getSuccessMessage(text?: string): Locator {
         if (text) {
-            return this.page.getByText(text);
+            // Use a more specific locator for the exact success message text
+            return this.page.locator('[role="alert"], .bg-green-50, .text-green-600').filter({ hasText: text });
         }
         return this.page.locator('.text-green-600, .bg-green-50, [role="alert"]').filter({ hasText: /successfully|updated|changed/i });
     }
@@ -93,18 +102,27 @@ export class SettingsPage extends BasePage {
         const saveButton = this.getSaveChangesButton();
         await this.clickButton(saveButton, { buttonName: this.saveChangesButtonText });
         
-        // Wait for success and completion
-        await this.verifySuccessMessage('Profile updated successfully');
+        // Wait for loading to complete (button becomes disabled after successful save)
         await this.waitForLoadingComplete('save');
         
-        // Refresh the page to see the updated display name in UI (no real-time updates)
-        await this.page.reload();
-        await this.waitForNetworkIdle();
+        // Real-time updates: verify the display name updated in both places
+        // 1. In the profile display section
+        await expect(this.getProfileDisplayName()).toContainText(newDisplayName);
+        // 2. In the user menu at the top right corner
+        await expect(this.getUserMenuButton()).toContainText(newDisplayName);
     }
 
     async verifyDisplayNameValue(expectedName: string): Promise<void> {
         const displayNameInput = this.getDisplayNameInput();
         await expect(displayNameInput).toHaveValue(expectedName);
+    }
+
+    async verifyRealTimeDisplayNameUpdate(expectedName: string): Promise<void> {
+        // Verify the display name updates in real-time in the profile section
+        await expect(this.getProfileDisplayName()).toContainText(expectedName);
+        
+        // Verify the user menu in navigation also updates automatically
+        await expect(this.getUserMenuButton()).toContainText(expectedName);
     }
 
     async verifySaveButtonState(expectedEnabled: boolean): Promise<void> {
@@ -188,7 +206,8 @@ export class SettingsPage extends BasePage {
     // Message Verification
     async verifySuccessMessage(expectedText?: string): Promise<void> {
         const message = expectedText ? this.getSuccessMessage(expectedText) : this.getSuccessMessage();
-        await expect(message).toBeVisible();
+        // Increase timeout as the success message may take a moment to appear after API call
+        await expect(message).toBeVisible({ timeout: 5000 });
     }
 
     async verifyErrorMessage(expectedText?: string): Promise<void> {
