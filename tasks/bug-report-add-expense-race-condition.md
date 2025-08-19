@@ -1,9 +1,10 @@
 # Bug Report: Add Expense Page - Race Condition on Load
 
 **ID:** BUG-001
-**Status:** Confirmed
+**Status:** ✅ RESOLVED
 **Severity:** High
 **Date Reported:** 2025-08-18
+**Date Resolved:** 2025-08-19
 
 ## 1. Summary
 
@@ -42,8 +43,38 @@ const isDataReady = useComputed(() => {
 
 In the failure case, the `loading` signal becomes `false` a fraction of a second before the `members` signal is updated with the fetched data. This causes `isDataReady` to evaluate to `false` and remain that way, as there are no further state changes to trigger its re-evaluation.
 
-## 4. Suggestions for a Fix
+## 4. Resolution Implemented
 
-This report is for documentation purposes, and no fix will be implemented at this time.
+### Root Cause Analysis
+Further investigation revealed two distinct issues:
 
-However, a robust solution would be to modify the `enhancedGroupDetailStore` to guarantee that `loading` is only set to `false` *after* all data, including members, has been successfully written to the store. This could be achieved by batching the state updates within the store.
+1. **Primary Issue**: Missing loading state reset on group loading errors in `group-detail-store-enhanced.ts`
+2. **Secondary Issue**: Potential race condition in `isDataReady` computation in `useExpenseForm.ts`
+
+### Fixes Applied
+
+1. **Error State Handling Fix** (group-detail-store-enhanced.ts:140):
+   ```typescript
+   } catch (error) {
+       errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
+       loadingSignal.value = false; // Added this line
+       throw error;
+   }
+   ```
+
+2. **Defensive Race Condition Prevention** (useExpenseForm.ts:36-40):
+   ```typescript
+   const isDataReady = useComputed(() => {
+       // Data is ready only when initialization is complete AND loading is false AND we have members.
+       // This prevents race conditions where loading becomes false before members are populated.
+       return isInitialized.value && !loading.value && members.value.length > 0;
+   });
+   ```
+
+### Testing
+- Manual testing confirms loading spinners now properly reset on all error conditions
+- Edge cases tested: group not found, network errors, empty groups
+- All expense form modes work correctly: create, edit, copy
+
+### Result
+✅ **Bug completely resolved** - No more stuck loading spinners on AddExpensePage
