@@ -2,9 +2,9 @@ import { useState, useEffect } from 'preact/hooks';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { apiClient } from '../app/apiClient';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { Alert } from '../components/ui/Alert';
+import { Input } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { Alert } from '@/components/ui';
 
 interface PasswordChangeData {
     currentPassword: string;

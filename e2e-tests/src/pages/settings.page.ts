@@ -1,6 +1,6 @@
 import { expect, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
-import { SELECTORS, ARIA_ROLES } from '../constants/selectors';
+import { ARIA_ROLES } from '../constants/selectors';
 
 export class SettingsPage extends BasePage {
     // URL and button texts

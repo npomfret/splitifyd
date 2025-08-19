@@ -1,6 +1,6 @@
 import { ApiDriver } from '../../support/ApiDriver';
-import { UserBuilder } from '../../support/builders/UserBuilder';
-import { GroupBuilder } from '../../support/builders/GroupBuilder';
+import { UserBuilder } from '../../support/builders';
+import { GroupBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('User Profile Management API Tests', () => {

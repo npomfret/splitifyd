@@ -4,9 +4,9 @@ import { Card } from '../ui/Card';
 import { LoadingSpinner } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui';
 import { UserPlusIcon, UserMinusIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
-import type { User, GroupBalances } from '@shared/shared-types.ts';
+import type { User } from '@shared/shared-types.ts';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
 
