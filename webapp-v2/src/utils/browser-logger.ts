@@ -98,11 +98,13 @@ export function logUserAction(action: string, details?: Record<string, any>): vo
         ...details,
     };
 
-    console.log(
-        `%c🎯 USER ACTION: ${action}`,
-        LOG_STYLES.userAction,
-        JSON.stringify(logData), // put it on one line
-    );
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.log(
+            `%c🎯 USER ACTION: ${action}`,
+            LOG_STYLES.userAction,
+            JSON.stringify(logData), // put it on one line
+        );
+    }
 }
 
 /**
@@ -126,7 +128,9 @@ export function logButtonClick(
         ...details,
     };
 
-    console.log(`%c🔘 BUTTON CLICK: ${buttonText}`, LOG_STYLES.buttonClick, JSON.stringify(logData));
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.log(`%c🔘 BUTTON CLICK: ${buttonText}`, LOG_STYLES.buttonClick, JSON.stringify(logData));
+    }
 }
 
 /**
@@ -159,7 +163,9 @@ export function logApiRequest(
         logData.headers = safeHeaders;
     }
 
-    console.log(`%c📤 API REQUEST: ${method} ${endpoint}`, LOG_STYLES.apiRequest, JSON.stringify(logData));
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.log(`%c📤 API REQUEST: ${method} ${endpoint}`, LOG_STYLES.apiRequest, JSON.stringify(logData));
+    }
 }
 
 /**
@@ -191,11 +197,13 @@ export function logApiResponse(
     const icon = isError ? '❌' : '✅';
     const style = isError ? LOG_STYLES.error : LOG_STYLES.apiResponse;
 
-    console.log(
-        `%c${icon} API RESPONSE: ${method} ${endpoint} - ${status}`,
-        style,
-        JSON.stringify(logData), // keep it on a single line
-    );
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.log(
+            `%c${icon} API RESPONSE: ${method} ${endpoint} - ${status}`,
+            style,
+            JSON.stringify(logData), // keep it on a single line
+        );
+    }
 }
 
 /**
@@ -211,7 +219,9 @@ export function logNavigation(from: string, to: string, details?: Record<string,
         ...details,
     };
 
-    console.log(`%c🧭 NAVIGATION: ${from} → ${to}`, LOG_STYLES.navigation, JSON.stringify(logData));
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.log(`%c🧭 NAVIGATION: ${from} → ${to}`, LOG_STYLES.navigation, JSON.stringify(logData));
+    }
 }
 
 /**
@@ -240,8 +250,11 @@ export function logError(message: string, error?: unknown, data?: Record<string,
         logData.error = error;
     }
 
-    // Single line log with message followed by JSON
-    console.error(`${message}:`, JSON.stringify(logData));
+    // Only log to console if not in test environment
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        // Single line log with message followed by JSON
+        console.error(`${message}:`, JSON.stringify(logData));
+    }
 }
 
 /**
@@ -259,7 +272,9 @@ export function logWarning(message: string, data?: Record<string, any>): void {
     }
 
     // Single line log with message followed by JSON
-    console.warn(`${message}:`, JSON.stringify(logData));
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.warn(`${message}:`, JSON.stringify(logData));
+    }
 }
 
 /**
@@ -277,5 +292,7 @@ export function logInfo(message: string, data?: Record<string, any>): void {
     }
 
     // Single line log with message followed by JSON
-    console.info(`${message}:`, JSON.stringify(logData));
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        console.info(`${message}:`, JSON.stringify(logData));
+    }
 }

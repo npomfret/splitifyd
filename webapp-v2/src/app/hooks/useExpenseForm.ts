@@ -55,6 +55,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
     useEffect(() => {
         if (!groupId) {
             initError.value = 'No group ID provided';
+            route('/dashboard');
             return;
         }
 

@@ -13,6 +13,12 @@ vi.mock('@/utils/browser-logger', () => ({
     logError: vi.fn(),
 }));
 
+vi.mock('qrcode.react', () => ({
+    QRCodeCanvas: ({ value, size }: { value: string; size: number }) => {
+        return <canvas data-testid="qr-code" data-value={value} width={size} height={size} />;
+    },
+}));
+
 describe('ShareGroupModal', () => {
     const defaultProps = {
         isOpen: true,
@@ -74,7 +80,7 @@ describe('ShareGroupModal', () => {
             expect(screen.getByText('Share this link with anyone you want to join this group.')).toBeInTheDocument();
         });
 
-        it('displays QR code placeholder section', async () => {
+        it('displays QR code section', async () => {
             (apiClient.generateShareLink as any).mockResolvedValue({
                 shareablePath: '/join/abc123',
             });
@@ -82,9 +88,10 @@ describe('ShareGroupModal', () => {
             render(<ShareGroupModal {...defaultProps} />);
 
             await waitFor(() => {
-                expect(screen.getByText(/QR Code/)).toBeInTheDocument();
-                expect(screen.getByText(/Coming Soon/)).toBeInTheDocument();
                 expect(screen.getByText('Or scan this code')).toBeInTheDocument();
+                // QR code is rendered as a canvas element
+                const qrContainer = screen.getByText('Or scan this code').parentElement;
+                expect(qrContainer?.querySelector('canvas')).toBeInTheDocument();
             });
         });
 
