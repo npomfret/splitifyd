@@ -3,8 +3,6 @@
  */
 
 import { NavigationResult } from '../types';
-import * as path from 'path';
-import * as fs from 'fs';
 
 /**
  * Creates a standard error context object
