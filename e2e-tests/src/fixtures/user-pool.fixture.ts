@@ -4,6 +4,8 @@ import {generateNewUserDetails, generateShortId} from '../utils/test-helpers';
 import {LoginPage, RegisterPage} from '../pages';
 import { expect } from '@playwright/test';
 
+let staticCount = 1;
+
 /**
  * Simple in-memory user pool implementation.
  *
@@ -119,7 +121,7 @@ export class UserPool {
     private async createUser(browser: any): Promise<BaseUser> {
         // Use the same ID for both display name and email so they match
         const uniqueId = generateShortId();
-        const {displayName, email, password} = generateNewUserDetails();
+        const {displayName, email, password} = generateNewUserDetails(`u${staticCount++}`);
 
         // Create a temporary context and page for user registration
         let tempContext: any = null;

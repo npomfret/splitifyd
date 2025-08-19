@@ -27,11 +27,11 @@ export function generateTestGroupName(prefix: string = 'Group'): string {
     return `${prefix} ${generateShortId()}`;
 }
 
-export function generateNewUserDetails() {
+export function generateNewUserDetails(prefix= "u") {
     const id = generateShortId();
     return {
-        displayName: `u ${id}`,
-        email: `u-${id}@example.com`,
+        displayName: `${prefix} ${id}`,
+        email: `${prefix}-${id}@example.com`,
         password: 'TestPassword123!'
     };
 }
