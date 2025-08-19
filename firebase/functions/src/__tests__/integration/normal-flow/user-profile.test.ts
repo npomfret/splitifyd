@@ -357,7 +357,7 @@ describe('User Profile Management API Tests', () => {
                 await driver['apiRequest']('/user/reset-password', 'POST', {});
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
-                expect(error.message).toContain('Email is required');
+                expect(error.message).toContain('Missing required field: email');
             }
         });
 
