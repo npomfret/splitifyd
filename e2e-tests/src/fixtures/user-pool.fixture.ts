@@ -1,6 +1,6 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@shared/shared-types';
-import { generateShortId } from '../utils/test-helpers';
+import {generateNewUserDetails, generateShortId} from '../utils/test-helpers';
 import { RegisterPage } from '../pages';
 import { expect } from '@playwright/test';
 
@@ -57,7 +57,7 @@ export class UserPool {
         } else {
             // Pool is empty, create a new user on-demand
             // console.log(`🔨 Creating new user on-demand`);
-            user = await this.createUser(browser, 'u');
+            user = await this.createUser(browser);
             // console.log(`✅ Created new user: ${user.email}`);
         }
 
@@ -92,12 +92,10 @@ export class UserPool {
      * Create a new test user using a temporary browser context.
      * The temporary context is closed after user creation to avoid empty browser windows.
      */
-    private async createUser(browser: any, prefix: string): Promise<BaseUser> {
+    private async createUser(browser: any): Promise<BaseUser> {
         // Use the same ID for both display name and email so they match
         const uniqueId = generateShortId();
-        const displayName = `${prefix} ${uniqueId}`;
-        const email = `${prefix}-${uniqueId}@example.com`;
-        const password = 'TestPassword123!';
+        const {displayName, email, password} = generateNewUserDetails();
 
         // Create a temporary context and page for user registration
         const tempContext = await browser.newContext();
