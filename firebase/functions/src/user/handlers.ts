@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { Errors } from '../utils/errors';
 
 /**
  * Get current user's profile
@@ -14,8 +15,7 @@ export const getUserProfile = async (req: AuthenticatedRequest, res: Response): 
     try {
         const userId = req.user?.uid;
         if (!userId) {
-            res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'User not authenticated' });
-            return;
+            throw Errors.UNAUTHORIZED();
         }
 
         // Get user from Firebase Auth
@@ -37,7 +37,7 @@ export const getUserProfile = async (req: AuthenticatedRequest, res: Response): 
         });
     } catch (error) {
         logger.error('Failed to get user profile', { error: error as Error, userId: req.user?.uid });
-        res.status(HTTP_STATUS.INTERNAL_ERROR).json({ error: 'Failed to get user profile' });
+        throw error;
     }
 };
 
@@ -48,8 +48,7 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
     try {
         const userId = req.user?.uid;
         if (!userId) {
-            res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'User not authenticated' });
-            return;
+            throw Errors.UNAUTHORIZED();
         }
 
         const { displayName, photoURL } = req.body;
@@ -58,49 +57,42 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
         if (displayName !== undefined) {
             // Validate displayName
             if (typeof displayName !== 'string') {
-                res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Display name must be a string' });
-                return;
+                throw Errors.INVALID_INPUT('Display name must be a string');
             }
             
             // Check if it's empty string before trimming
             if (displayName === '') {
-                res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Display name cannot be empty' });
-                return;
+                throw Errors.INVALID_INPUT('Display name cannot be empty');
             }
             
             const trimmedDisplayName = displayName.trim();
             if (trimmedDisplayName.length === 0) {
-                res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Display name cannot be empty' });
-                return;
+                throw Errors.INVALID_INPUT('Display name cannot be empty');
             }
             
             if (trimmedDisplayName.length > 100) {
-                res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Display name must be 100 characters or less' });
-                return;
+                throw Errors.INVALID_INPUT('Display name must be 100 characters or less');
             }
         }
 
         if (photoURL !== undefined && photoURL !== null) {
             // Validate photoURL if provided
             if (typeof photoURL !== 'string') {
-                res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Photo URL must be a string or null' });
-                return;
+                throw Errors.INVALID_INPUT('Photo URL must be a string or null');
             }
             
             if (photoURL.length > 0) {
                 try {
                     new URL(photoURL);
                 } catch {
-                    res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid photo URL format' });
-                    return;
+                    throw Errors.INVALID_INPUT('Invalid photo URL format');
                 }
             }
         }
 
         // After validation, check if at least one field was provided
         if (displayName === undefined && photoURL === undefined) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'At least one field (displayName or photoURL) must be provided' });
-            return;
+            throw Errors.INVALID_INPUT('At least one field (displayName or photoURL) must be provided');
         }
 
         // Build update object
@@ -145,7 +137,7 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
         });
     } catch (error) {
         logger.error('Failed to update user profile', { error: error as Error, userId: req.user?.uid });
-        res.status(HTTP_STATUS.INTERNAL_ERROR).json({ error: 'Failed to update user profile' });
+        throw error;
     }
 };
 
@@ -157,44 +149,37 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
     try {
         const userId = req.user?.uid;
         if (!userId) {
-            res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'User not authenticated' });
-            return;
+            throw Errors.UNAUTHORIZED();
         }
 
         const { currentPassword, newPassword } = req.body;
 
         // Validate input
         if (!currentPassword || !newPassword) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Current password and new password are required' });
-            return;
+            throw Errors.INVALID_INPUT('Current password and new password are required');
         }
 
         if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Passwords must be strings' });
-            return;
+            throw Errors.INVALID_INPUT('Passwords must be strings');
         }
 
         // Validate new password strength
         if (newPassword.length < 6) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'New password must be at least 6 characters long' });
-            return;
+            throw Errors.INVALID_INPUT('New password must be at least 6 characters long');
         }
 
         if (newPassword.length > 128) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'New password must be 128 characters or less' });
-            return;
+            throw Errors.INVALID_INPUT('New password must be 128 characters or less');
         }
 
         if (currentPassword === newPassword) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'New password must be different from current password' });
-            return;
+            throw Errors.INVALID_INPUT('New password must be different from current password');
         }
 
         // Get user email for re-authentication
         const userRecord = await admin.auth().getUser(userId);
         if (!userRecord.email) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'User email not found' });
-            return;
+            throw Errors.INVALID_INPUT('User email not found');
         }
 
         // Note: In a real implementation, we would verify the current password
@@ -219,7 +204,7 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
         });
     } catch (error) {
         logger.error('Failed to change password', { error: error as Error, userId: req.user?.uid });
-        res.status(HTTP_STATUS.INTERNAL_ERROR).json({ error: 'Failed to change password' });
+        throw error;
     }
 };
 
@@ -233,20 +218,17 @@ export const sendPasswordResetEmail = async (req: any, res: Response): Promise<v
 
         // Validate input
         if (!email) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Email is required' });
-            return;
+            throw Errors.MISSING_FIELD('email');
         }
 
         if (typeof email !== 'string') {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Email must be a string' });
-            return;
+            throw Errors.INVALID_INPUT('Email must be a string');
         }
 
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid email format' });
-            return;
+            throw Errors.INVALID_INPUT('Invalid email format');
         }
 
         try {
@@ -284,7 +266,7 @@ export const sendPasswordResetEmail = async (req: any, res: Response): Promise<v
         }
     } catch (error: any) {
         logger.error('Failed to send password reset email', { error });
-        res.status(HTTP_STATUS.INTERNAL_ERROR).json({ error: 'Failed to send password reset email' });
+        throw error;
     }
 };
 
@@ -296,16 +278,14 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
     try {
         const userId = req.user?.uid;
         if (!userId) {
-            res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'User not authenticated' });
-            return;
+            throw Errors.UNAUTHORIZED();
         }
 
         const { confirmDelete } = req.body;
 
         // Require explicit confirmation
         if (confirmDelete !== true) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Account deletion must be explicitly confirmed' });
-            return;
+            throw Errors.INVALID_INPUT('Account deletion must be explicitly confirmed');
         }
 
         // Check if user has any groups or outstanding balances
@@ -316,10 +296,7 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
             .get();
 
         if (!groupsSnapshot.empty) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({ 
-                error: 'Cannot delete account while member of groups. Please leave all groups first.' 
-            });
-            return;
+            throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');
         }
 
         // Delete user data from Firestore
@@ -333,6 +310,6 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
         });
     } catch (error) {
         logger.error('Failed to delete user account', { error: error as Error, userId: req.user?.uid });
-        res.status(HTTP_STATUS.INTERNAL_ERROR).json({ error: 'Failed to delete user account' });
+        throw error;
     }
 };

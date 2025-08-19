@@ -30,8 +30,8 @@ export function generateTestGroupName(prefix: string = 'Group'): string {
 export function generateNewUserDetails() {
     const id = generateShortId();
     return {
-        displayName: `u_${id}`,
-        email: `${id}@example.com`,
+        displayName: `u ${id}`,
+        email: `u-${id}@example.com`,
         password: 'TestPassword123!'
     };
 }
