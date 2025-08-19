@@ -117,11 +117,26 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             
             // Wait a moment for the removal to be processed and real-time updates to propagate
             // Member should see 404 because they no longer have access to the group
+            // Note: Permission checks happen on page load, so we may need to refresh
             await expect(async () => {
                 const currentUrl = memberPage.url();
-                if (!currentUrl.includes('/404')) {
-                    throw new Error(`Expected 404 page, but got: ${currentUrl}`);
+                
+                // Check if we're already on the 404 page
+                if (currentUrl.includes('/404')) {
+                    return;
                 }
+                
+                // If still on group page, refresh to trigger permission check
+                if (currentUrl.includes('/groups/')) {
+                    await memberPage.reload({ waitUntil: 'domcontentloaded', timeout: 5000 });
+                    
+                    const newUrl = memberPage.url();
+                    if (newUrl.includes('/404')) {
+                        return;
+                    }
+                }
+                
+                throw new Error(`Expected 404 page, but got: ${currentUrl}`);
             }).toPass({ timeout: 10000, intervals: [1000] });
             
             // Owner should see updated member list
