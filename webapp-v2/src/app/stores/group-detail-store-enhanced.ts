@@ -248,9 +248,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
         if (!this.currentGroupId) return;
 
-        // Remember the userId filter for loadMore operations
-        this.currentSettlementsUserId = userId;
-
         loadingSettlementsSignal.value = true;
         try {
             const response = await apiClient.listSettlements(this.currentGroupId, 20, cursor, userId);
@@ -273,15 +270,56 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     async loadMoreExpenses(): Promise<void> {
-        if (!hasMoreExpensesSignal.value || !expenseCursorSignal.value) return;
-        await this.fetchExpenses(expenseCursorSignal.value);
+        if (!hasMoreExpensesSignal.value || !expenseCursorSignal.value || !this.currentGroupId) return;
+        
+        // Use consolidated endpoint for progressive loading to maintain consistency
+        loadingExpensesSignal.value = true;
+        try {
+            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                expenseCursor: expenseCursorSignal.value,
+                expenseLimit: 20
+            });
+
+            batch(() => {
+                // Append new expenses to existing ones
+                expensesSignal.value = [...expensesSignal.value, ...fullDetails.expenses.expenses];
+                
+                // Update pagination state
+                hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
+                expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
+            });
+        } catch (error) {
+            logWarning('Failed to load more expenses', { error });
+        } finally {
+            loadingExpensesSignal.value = false;
+        }
     }
 
-    private currentSettlementsUserId?: string;
 
     async loadMoreSettlements(): Promise<void> {
-        if (!hasMoreSettlementsSignal.value || !settlementsCursorSignal.value) return;
-        await this.fetchSettlements(settlementsCursorSignal.value, this.currentSettlementsUserId);
+        if (!hasMoreSettlementsSignal.value || !settlementsCursorSignal.value || !this.currentGroupId) return;
+        
+        // Use consolidated endpoint for progressive loading to maintain consistency
+        loadingSettlementsSignal.value = true;
+        try {
+            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                settlementCursor: settlementsCursorSignal.value,
+                settlementLimit: 20
+            });
+
+            batch(() => {
+                // Append new settlements to existing ones
+                settlementsSignal.value = [...settlementsSignal.value, ...fullDetails.settlements.settlements];
+                
+                // Update pagination state
+                hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
+            });
+        } catch (error) {
+            logWarning('Failed to load more settlements', { error });
+        } finally {
+            loadingSettlementsSignal.value = false;
+        }
     }
 
     async refreshAll(): Promise<void> {

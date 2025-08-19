@@ -273,14 +273,39 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
     }
 
-    async getGroupFullDetails(groupId: string, token: string): Promise<{
+    async getGroupFullDetails(groupId: string, token: string, options?: {
+        expenseLimit?: number;
+        expenseCursor?: string;
+        settlementLimit?: number;
+        settlementCursor?: string;
+    }): Promise<{
         group: any;
         members: { members: any[] };
         expenses: { expenses: any[]; hasMore: boolean; nextCursor?: string };
         balances: any;
         settlements: { settlements: any[]; hasMore: boolean; nextCursor?: string };
     }> {
-        return await this.apiRequest(`/groups/${groupId}/full-details`, 'GET', null, token);
+        let url = `/groups/${groupId}/full-details`;
+        const queryParams: string[] = [];
+        
+        if (options?.expenseLimit) {
+            queryParams.push(`expenseLimit=${options.expenseLimit}`);
+        }
+        if (options?.expenseCursor) {
+            queryParams.push(`expenseCursor=${encodeURIComponent(options.expenseCursor)}`);
+        }
+        if (options?.settlementLimit) {
+            queryParams.push(`settlementLimit=${options.settlementLimit}`);
+        }
+        if (options?.settlementCursor) {
+            queryParams.push(`settlementCursor=${encodeURIComponent(options.settlementCursor)}`);
+        }
+        
+        if (queryParams.length > 0) {
+            url += `?${queryParams.join('&')}`;
+        }
+        
+        return await this.apiRequest(url, 'GET', null, token);
     }
 
     async getExpenseFullDetails(expenseId: string, token: string): Promise<{

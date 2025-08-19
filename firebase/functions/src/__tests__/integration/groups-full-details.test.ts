@@ -168,6 +168,68 @@ describe('Groups Full Details API', () => {
             expect(fullDetails.expenses.nextCursor).toBeDefined();
         });
 
+        it('should support pagination parameters for expenses and settlements', async () => {
+            // Create multiple expenses and settlements
+            const expensePromises = [];
+            for (let i = 0; i < 15; i++) {
+                expensePromises.push(
+                    apiDriver.createExpense({
+                        groupId,
+                        description: `Expense ${i}`,
+                        amount: 30,
+                        paidBy: alice.uid,
+                        splitType: 'equal',
+                        participants: [alice.uid, bob.uid],
+                        date: new Date(Date.now() - i * 1000).toISOString(),
+                        category: 'food',
+                        currency: 'USD'
+                    }, alice.token)
+                );
+            }
+            await Promise.all(expensePromises);
+
+            const settlementPromises = [];
+            for (let i = 0; i < 15; i++) {
+                settlementPromises.push(
+                    apiDriver.createSettlement({
+                        groupId,
+                        payerId: bob.uid,
+                        payeeId: alice.uid,
+                        amount: 5,
+                        note: `Settlement ${i}`,
+                        currency: 'USD',
+                        date: new Date(Date.now() - i * 2000).toISOString()
+                    }, bob.token)
+                );
+            }
+            await Promise.all(settlementPromises);
+
+            // Test with custom pagination limits
+            const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token, {
+                expenseLimit: 5,
+                settlementLimit: 3
+            });
+
+            // Should respect the custom limits
+            expect(fullDetails.expenses.expenses).toHaveLength(5);
+            expect(fullDetails.expenses.hasMore).toBe(true);
+            expect(fullDetails.expenses.nextCursor).toBeDefined();
+
+            expect(fullDetails.settlements.settlements).toHaveLength(3);
+            expect(fullDetails.settlements.hasMore).toBe(true);
+            expect(fullDetails.settlements.nextCursor).toBeDefined();
+
+            // Test pagination with cursor
+            const nextPage = await apiDriver.getGroupFullDetails(groupId, alice.token, {
+                expenseLimit: 5,
+                expenseCursor: fullDetails.expenses.nextCursor!
+            });
+
+            // Should return next 5 expenses
+            expect(nextPage.expenses.expenses).toHaveLength(5);
+            expect(nextPage.expenses.expenses[0].id).not.toBe(fullDetails.expenses.expenses[0].id);
+        });
+
         it('should return consistent data across individual and consolidated endpoints', async () => {
             // Add test data
             await apiDriver.createExpense({

@@ -586,17 +586,38 @@ export class ApiClient {
         });
     }
 
-    async getGroupFullDetails(id: string): Promise<{
+    async getGroupFullDetails(id: string, options?: {
+        expenseLimit?: number;
+        expenseCursor?: string;
+        settlementLimit?: number;
+        settlementCursor?: string;
+    }): Promise<{
         group: Group;
         members: { members: User[] };
         expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
         balances: GroupBalances;
         settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
     }> {
+        const queryParams: Record<string, string> = {};
+        
+        if (options?.expenseLimit) {
+            queryParams.expenseLimit = options.expenseLimit.toString();
+        }
+        if (options?.expenseCursor) {
+            queryParams.expenseCursor = options.expenseCursor;
+        }
+        if (options?.settlementLimit) {
+            queryParams.settlementLimit = options.settlementLimit.toString();
+        }
+        if (options?.settlementCursor) {
+            queryParams.settlementCursor = options.settlementCursor;
+        }
+
         return this.request({
             endpoint: '/groups/:id/full-details',
             method: 'GET',
             params: { id },
+            query: Object.keys(queryParams).length > 0 ? queryParams : undefined,
         });
     }
 
