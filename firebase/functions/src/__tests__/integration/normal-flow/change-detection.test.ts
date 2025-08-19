@@ -159,16 +159,20 @@ describe('Change Detection Integration Tests', () => {
             );
             groupId = group.id;
 
-            // Wait for trigger processing
-            await waitForTriggerProcessing('group');
-
-            // Get the change document
-            const changes = await getGroupChanges(groupId);
-            const latestChange = changes[0];
-
-            expect(latestChange).toBeTruthy();
-            expect(latestChange.users).toContain(user1.uid);
-            expect(latestChange.users).toContain(user2.uid);
+            // Poll for change document that includes both users
+            // createGroupWithMembers: 1) creates group (user1), 2) user2 joins via share link
+            // We need the final change document after user2 joins
+            const foundChange = await pollForChange<GroupChangeDocument>(
+                FirestoreCollections.GROUP_CHANGES,
+                (doc) => doc.id === groupId && 
+                         doc.users.includes(user1.uid) && 
+                         doc.users.includes(user2.uid),
+                { timeout: 5000, groupId }
+            );
+            
+            expect(foundChange).toBeTruthy();
+            expect(foundChange!.users).toContain(user1.uid);
+            expect(foundChange!.users).toContain(user2.uid);
         });
 
         it('should calculate correct priority for different field changes', async () => {
