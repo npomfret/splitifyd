@@ -71,7 +71,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
         const validationError = validateForm();
         if (validationError) {
-            console.warn('[CreateGroupModal] Validation failed:', validationError);
+            // Validation error is displayed in the modal
             setValidationError(validationError);
             return;
         }

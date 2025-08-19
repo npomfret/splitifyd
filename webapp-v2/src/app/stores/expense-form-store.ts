@@ -623,9 +623,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         validationErrorsSignal.value = errors;
         const isValid = Object.keys(errors).length === 0;
 
-        // Log validation failures to console for test visibility
+        // Log validation failures using browser logger
         if (!isValid) {
-            console.warn('[ExpenseForm] Validation failed:', errors);
+            logWarning('[ExpenseForm] Validation failed', { errors });
         }
 
         return isValid;
@@ -634,7 +634,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     async saveExpense(groupId: string): Promise<ExpenseData> {
         if (!this.validateForm()) {
             const errors = validationErrorsSignal.value;
-            console.warn('[ExpenseForm] Cannot submit form due to validation errors:', errors);
+            logWarning('[ExpenseForm] Cannot submit form due to validation errors', { errors });
             throw new Error('Please fix validation errors');
         }
 

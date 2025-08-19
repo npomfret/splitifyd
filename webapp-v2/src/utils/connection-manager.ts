@@ -1,4 +1,5 @@
 import { signal } from '@preact/signals';
+import { logWarning, logError, logInfo } from './browser-logger';
 
 interface NetworkInformation extends EventTarget {
     effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
@@ -129,7 +130,7 @@ export class ConnectionManager {
         this.clearReconnectTimeout(key);
 
         if (this.reconnectAttempts.value >= maxAttempts) {
-            console.warn(`Max reconnect attempts (${maxAttempts}) reached for ${key}`);
+            logWarning(`Max reconnect attempts reached for ${key}`, { maxAttempts });
             return;
         }
 
@@ -146,7 +147,10 @@ export class ConnectionManager {
             } catch (error) {
                 // Failure - increment attempts and retry
                 this.reconnectAttempts.value++;
-                console.debug(`Reconnect attempt ${this.reconnectAttempts.value} failed for ${key}:`, error);
+                logInfo(`Reconnect attempt failed for ${key}`, { 
+                    attempt: this.reconnectAttempts.value, 
+                    error: error instanceof Error ? error.message : String(error) 
+                });
                 
                 // Retry if we haven't hit the limit
                 if (this.reconnectAttempts.value < maxAttempts) {
@@ -177,7 +181,7 @@ export class ConnectionManager {
             try {
                 listener();
             } catch (error) {
-                console.error('Error in connection state listener:', error);
+                logError('Error in connection state listener', { error });
             }
         });
     }
