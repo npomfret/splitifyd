@@ -42,9 +42,9 @@ describe('RESTful Group Endpoints', () => {
             expect(response.name).toBe(groupData.name);
             expect(response.description).toBe(groupData.description);
             expect(response.createdBy).toBe(users[0].uid);
-            expect(response.memberIds).toHaveLength(1);
-            expect(response.memberIds[0]).toBe(users[0].uid);
-            // memberIds is the array of member UIDs
+            expect(Object.keys(response.members)).toHaveLength(1);
+            expect(response.members).toHaveProperty(users[0].uid);
+            // members is a map of member UIDs to member info
             // expenseCount removed - calculated on demand
         });
 
@@ -62,7 +62,7 @@ describe('RESTful Group Endpoints', () => {
 
             const response = await driver.createGroup(groupData, users[0].token);
 
-            expect(response.memberIds).toHaveLength(1);
+            expect(Object.keys(response.members)).toHaveLength(1);
             expect(response.id).toBeDefined();
             expect(response.name).toBe(groupData.name);
         });
@@ -121,7 +121,7 @@ describe('RESTful Group Endpoints', () => {
             expect(response.id).toBe(testGroup.id);
             expect(response.name).toBe(testGroup.name);
             expect(response.description).toBe(testGroup.description);
-            expect(response.memberIds).toHaveLength(1);
+            expect(Object.keys(response.members)).toHaveLength(1);
             expect(response.balance).toBeDefined();
             // userBalance is null for groups without expenses
             if (response.balance.userBalance) {
@@ -313,7 +313,7 @@ describe('RESTful Group Endpoints', () => {
             const firstGroup = response.groups[0];
             expect(firstGroup).toHaveProperty('id');
             expect(firstGroup).toHaveProperty('name');
-            expect(firstGroup).toHaveProperty('memberIds');
+            expect(firstGroup).toHaveProperty('members');
             expect(firstGroup).toHaveProperty('balance');
             expect(firstGroup.balance).toHaveProperty('userBalance');
             expect(firstGroup.balance).toHaveProperty('balancesByCurrency');

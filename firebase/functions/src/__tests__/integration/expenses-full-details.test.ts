@@ -77,7 +77,7 @@ describe('Expenses Full Details API', () => {
             expect(fullDetails.group.id).toBe(groupId);
             expect(fullDetails.group.name).toBe('Expense Full Details Test Group');
             expect(fullDetails.group.createdBy).toBe(alice.uid);
-            expect(fullDetails.group.memberIds).toEqual(expect.arrayContaining([alice.uid, bob.uid, charlie.uid]));
+            expect(Object.keys(fullDetails.group.members)).toEqual(expect.arrayContaining([alice.uid, bob.uid, charlie.uid]));
 
             // Verify members data
             expect(fullDetails.members).toBeDefined();
