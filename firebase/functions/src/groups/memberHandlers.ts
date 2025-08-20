@@ -297,7 +297,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info('member-removed', { id: memberId, groupId });
+        logger.info('member-removed', { id: memberId, groupId, userId });
 
         res.json({
             success: true,
