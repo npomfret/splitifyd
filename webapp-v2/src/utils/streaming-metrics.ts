@@ -150,8 +150,8 @@ class StreamingMetricsCollector {
     }
 
     private estimateReadsPerHour(): number {
-        const nowMs = Date.now();
-        const oneHourAgo = nowMs - (60 * 60 * 1000);
+        // const nowMs = Date.now();
+        // const oneHourAgo = nowMs - (60 * 60 * 1000);
         
         // Simple estimation - could be made more accurate with time windows
         const estimatedReads = this.estimateFirestoreReads();

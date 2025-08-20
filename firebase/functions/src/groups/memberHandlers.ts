@@ -11,6 +11,18 @@ import { User, GroupMembersResponse, FirestoreCollections } from '../shared/shar
 import { Group } from '../shared/shared-types';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 
+// Helper functions
+const getMemberIds = (group: Group): string[] => {
+    return group.members ? Object.keys(group.members) : group.memberIds || [];
+};
+
+const isMember = (group: Group, userId: string): boolean => {
+    if (group.members) {
+        return userId in group.members;
+    }
+    return group.memberIds?.includes(userId) || false;
+};
+
 /**
  * Transform a Firestore document to a Group
  */
@@ -31,10 +43,11 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
         name: groupData.name!,
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
-        memberIds: groupData.memberIds!,
+        members: groupData.members,
+        memberIds: Object.keys(groupData.members), // Computed from members
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
-    };
+    } as Group;
 };
 
 /**
@@ -54,13 +67,17 @@ const getInitials = (nameOrEmail: string): string => {
  * Internal function to get group members data
  * Used by both the HTTP handler and consolidated endpoints
  */
-export const _getGroupMembersData = async (groupId: string, memberIds: string[]): Promise<GroupMembersResponse> => {
+export const _getGroupMembersData = async (groupId: string, membersMap: Record<string, any>): Promise<GroupMembersResponse> => {
+    const memberIds = Object.keys(membersMap);
+    
     // Fetch member profiles
     const memberProfiles = await userService.getUsers(memberIds);
 
     // Convert to User format
     const members: User[] = memberIds.map((memberId: string) => {
         const profile = memberProfiles.get(memberId);
+        const memberInfo = membersMap[memberId];
+        
         if (!profile) {
             // Return minimal user object for missing profiles
             return {
@@ -69,6 +86,7 @@ export const _getGroupMembersData = async (groupId: string, memberIds: string[])
                 initials: '?',
                 email: '',
                 displayName: 'Unknown User',
+                themeColor: memberInfo.theme, // Include theme even for missing profiles
             };
         }
 
@@ -78,6 +96,7 @@ export const _getGroupMembersData = async (groupId: string, memberIds: string[])
             initials: getInitials(profile.displayName),
             email: profile.email,
             displayName: profile.displayName,
+            themeColor: memberInfo.theme, // Include theme color from group members map
         };
     });
 
@@ -114,12 +133,12 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
         const group = transformGroupDocument(doc);
 
         // Check if user is a member
-        if (!group.memberIds.includes(userId)) {
+        if (!isMember(group, userId)) {
             throw Errors.FORBIDDEN();
         }
 
-        // Use extracted function to get members data
-        const response = await _getGroupMembersData(groupId, group.memberIds);
+        // Use extracted function to get members data with theme information
+        const response = await _getGroupMembersData(groupId, group.members);
 
         res.json(response);
     } catch (error) {
@@ -154,7 +173,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
         const group = transformGroupDocument(doc);
 
         // Check if user is a member
-        if (!group.memberIds.includes(userId)) {
+        if (!isMember(group, userId)) {
             throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
         }
 
@@ -164,7 +183,8 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
         }
 
         // Can't leave if you're the only member
-        if (group.memberIds.length === 1) {
+        const memberIds = getMemberIds(group);
+        if (memberIds.length === 1) {
             throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
         }
 
@@ -195,12 +215,13 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
             // Allow leaving if balance calculation fails (non-critical)
         }
 
-        // Remove user from members list
-        const updatedMembers = group.memberIds.filter((id) => id !== userId);
+        // Remove user from members map
+        const updatedMembers = { ...group.members };
+        delete updatedMembers[userId];
 
         // Update group
         await docRef.update({
-            'data.memberIds': updatedMembers,
+            'data.members': updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
 
@@ -253,7 +274,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
         }
 
         // Check if member exists in group
-        if (!group.memberIds.includes(memberId)) {
+        if (!isMember(group, memberId)) {
             throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
         }
 
@@ -289,12 +310,13 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
             // Allow removal if balance calculation fails (non-critical)
         }
 
-        // Remove member from group
-        const updatedMembers = group.memberIds.filter((id) => id !== memberId);
+        // Remove member from group members map
+        const updatedMembers = { ...group.members };
+        delete updatedMembers[memberId];
 
         // Update group
         await docRef.update({
-            'data.memberIds': updatedMembers,
+            'data.members': updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
 

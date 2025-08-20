@@ -14,7 +14,8 @@ export interface GroupWithBalance extends Group {
 export interface GroupData {
     name: string;
     description?: string;
-    memberIds?: string[];
+    members: Record<string, any>;
+    createdBy: string;
     createdAt: string;
     updatedAt: string;
 }

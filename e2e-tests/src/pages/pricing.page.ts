@@ -1,6 +1,11 @@
+import { Page } from '@playwright/test';
 import { BasePage } from './base.page';
+import type { User as BaseUser } from '@shared/shared-types';
 
 export class PricingPage extends BasePage {
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
+    }
     // Navigation
     async navigate() {
         await this.navigateToPricing();

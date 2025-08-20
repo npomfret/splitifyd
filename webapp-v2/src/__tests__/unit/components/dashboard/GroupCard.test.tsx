@@ -8,6 +8,20 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     return {
         id: `group-${Math.random().toString(36).substr(2, 9)}`,
         name: 'Test Group',
+        members: {
+            'test-user': {
+                joinedAt: new Date().toISOString(),
+                role: 'owner' as const,
+                theme: {
+                    light: '#ff0000',
+                    dark: '#cc0000',
+                    name: 'red',
+                    pattern: 'solid' as const,
+                    assignedAt: new Date().toISOString(),
+                    colorIndex: 0,
+                },
+            },
+        },
         memberIds: ['test-user'],
         createdBy: 'test-user',
         createdAt: new Date().toISOString(),

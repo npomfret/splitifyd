@@ -1,9 +1,13 @@
-import { expect } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import type { User as BaseUser } from '@shared/shared-types';
 
 export class DashboardPage extends BasePage {
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
+    }
     // Selectors
     readonly url = '/dashboard';
     readonly userNameText = '.text-sm.font-medium.text-gray-700';

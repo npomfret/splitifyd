@@ -15,6 +15,7 @@ export interface AuthState {
     loading: boolean;
     error: string | null;
     initialized: boolean;
+    isUpdatingProfile?: boolean;
 }
 
 export interface AuthActions {

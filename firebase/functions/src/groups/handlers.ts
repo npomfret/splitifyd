@@ -39,15 +39,31 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
     }
     const groupData = data.data;
 
+    // Transform members to ensure joinedAt follows the same pattern as createdAt/updatedAt
+    const transformedMembers: Record<string, any> = {};
+    for (const [userId, member] of Object.entries(groupData.members)) {
+        const memberData = member as any;
+        transformedMembers[userId] = {
+            ...memberData,
+            // Convert Firestore Timestamp to ISO string if it exists, matching pattern of createdAt/updatedAt
+            joinedAt: memberData.joinedAt?.toDate 
+                ? memberData.joinedAt.toDate().toISOString()
+                : (memberData.joinedAt?._seconds 
+                    ? new Date(memberData.joinedAt._seconds * 1000).toISOString()
+                    : memberData.joinedAt)
+        };
+    }
+
     return {
         id: doc.id,
         name: groupData.name!,
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
-        memberIds: groupData.memberIds!,
+        members: transformedMembers,
+        memberIds: Object.keys(groupData.members), // Computed from members
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
-    };
+    } as Group;
 };
 
 /**
@@ -111,7 +127,7 @@ const fetchGroupWithAccess = async (groupId: string, userId: string, requireWrit
     }
 
     // For read operations, check if user is a member
-    if (group.memberIds.includes(userId)) {
+    if (userId in group.members) {
         const groupWithComputed = await addComputedFields(group, userId);
         return { docRef, group: groupWithComputed };
     }
@@ -144,13 +160,38 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
         // For the data field, we need actual timestamps for the response
         const now = createOptimisticTimestamp();
+        
+        // Create member list with theme assignments
+        const initialMemberIds = sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId];
+        const members: Record<string, any> = {};
+        
+        // Ensure creator is always first with theme index 0
+        members[userId] = {
+            isCreator: true,
+            themeIndex: 0,
+            joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
+        };
+        
+        // Add other members with incrementing theme indices
+        let memberIndex = 1;
+        for (const memberId of initialMemberIds) {
+            if (memberId !== userId) {
+                members[memberId] = {
+                    isCreator: false,
+                    themeIndex: memberIndex,
+                    joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
+                };
+                memberIndex++;
+            }
+        }
 
         const newGroup: Group = {
             id: docRef.id,
             name: sanitizedData.name,
             description: sanitizedData.description ?? '',
             createdBy: userId,
-            memberIds: sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId],
+            members: members,
+            memberIds: Object.keys(members), // DEPRECATED: Computed from members for backward compatibility
             createdAt: timestampToISO(now),
             updatedAt: timestampToISO(now),
         };
@@ -491,8 +532,8 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
         
         // Use extracted internal functions to eliminate duplication
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
-            // Get members using extracted function
-            _getGroupMembersData(groupId, group.memberIds),
+            // Get members using extracted function with theme information
+            _getGroupMembersData(groupId, group.members),
             
             // Get expenses using extracted function with pagination
             _getGroupExpensesData(groupId, { 

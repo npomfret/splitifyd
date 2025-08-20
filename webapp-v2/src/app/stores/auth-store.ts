@@ -18,6 +18,7 @@ const userSignal = signal<User | null>(null);
 const loadingSignal = signal<boolean>(true);
 const errorSignal = signal<string | null>(null);
 const initializedSignal = signal<boolean>(false);
+const isUpdatingProfileSignal = signal<boolean>(false);
 
 class AuthStoreImpl implements AuthStore {
     // State getters
@@ -33,6 +34,9 @@ class AuthStoreImpl implements AuthStore {
     get initialized() {
         return initializedSignal.value;
     }
+    get isUpdatingProfile() {
+        return isUpdatingProfileSignal.value;
+    }
 
     // Signal accessors for reactive components
     get userSignal() {
@@ -46,6 +50,9 @@ class AuthStoreImpl implements AuthStore {
     }
     get initializedSignal() {
         return initializedSignal;
+    }
+    get isUpdatingProfileSignal() {
+        return isUpdatingProfileSignal;
     }
 
     // Token refresh management
@@ -212,12 +219,13 @@ class AuthStoreImpl implements AuthStore {
 
     async updateUserProfile(updates: { displayName?: string }): Promise<void> {
         errorSignal.value = null;
+        isUpdatingProfileSignal.value = true;
 
         try {
             // Call API to update user profile
             const updatedUser = await apiClient.updateUserProfile(updates);
             
-            // Update the user signal with the new data for real-time UI updates
+            // Update the user signal with the new data from server
             if (userSignal.value) {
                 userSignal.value = {
                     ...userSignal.value,
@@ -229,14 +237,13 @@ class AuthStoreImpl implements AuthStore {
             const firebaseAuth = firebaseService.getAuth();
             const currentUser = firebaseAuth.currentUser;
             if (currentUser) {
-                // Note: We don't await this as the UI is already updated optimistically
-                currentUser.reload().catch((error) => {
-                    logError('Failed to reload Firebase user after profile update', error);
-                });
+                await currentUser.reload();
             }
         } catch (error: any) {
             errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
+        } finally {
+            isUpdatingProfileSignal.value = false;
         }
     }
 

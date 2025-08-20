@@ -41,7 +41,7 @@ describe('ChangeDetector', () => {
         mockWhere.mockReturnValue({} as any);
         
         // Default mock implementation that can be overridden in individual tests
-        mockOnSnapshot.mockImplementation((queryRef, callback, errorCallback) => {
+        mockOnSnapshot.mockImplementation((_, _callback, _errorCallback) => {
             return mockUnsubscribe;
         });
 
@@ -68,8 +68,8 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedCallback = successCallback as any;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
 
@@ -98,8 +98,8 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedCallback = successCallback as any;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
 
@@ -128,8 +128,8 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the error handler
             let capturedErrorHandler: ((error: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedErrorHandler = errorCallback;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedErrorHandler = _errorCallback;
                 return mockUnsubscribe;
             });
 
@@ -175,8 +175,8 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedCallback = successCallback as any;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
 
@@ -228,8 +228,8 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedCallback = successCallback as any;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
 
@@ -305,8 +305,8 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedCallback = successCallback as any;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
 
@@ -366,8 +366,8 @@ describe('ChangeDetector', () => {
 
             // Mock an error in the listener
             let capturedErrorHandler: ((error: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
-                capturedErrorHandler = errorCallback;
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+                capturedErrorHandler = _errorCallback;
                 return mockUnsubscribe;
             });
 
@@ -394,11 +394,11 @@ describe('ChangeDetector', () => {
             let attemptCount = 0;
 
             // Mock onSnapshot to fail first 2 times, succeed on 3rd
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
                 attemptCount++;
                 if (attemptCount <= 2) {
                     // Simulate immediate error
-                    setTimeout(() => errorCallback && (errorCallback as any)(new Error('Connection failed')), 0);
+                    setTimeout(() => _errorCallback && (_errorCallback as any)(new Error('Connection failed')), 0);
                 }
                 return mockUnsubscribe;
             });
@@ -432,7 +432,7 @@ describe('ChangeDetector', () => {
 
             let failureCount = 0;
             // Mock onSnapshot to always fail
-            mockOnSnapshot.mockImplementation((queryRef, successCallback, errorCallback) => {
+            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
                 failureCount++;
                 // Immediately trigger the error
                 if (errorCallback) {

@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { createErrorContext } from '../utils/error-formatting';
 import {createButtonClickError} from "../utils/error-factory.ts";
+import type { User as BaseUser } from '@shared/shared-types';
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {
@@ -16,8 +17,8 @@ interface ExpenseData {
 export class ExpenseFormPage extends BasePage {
     readonly url = '/groups/[id]/add-expense';
 
-    constructor(page: Page) {
-        super(page);
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
     }
 
     /**

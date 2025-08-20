@@ -29,16 +29,16 @@ export interface MultiUserFixtures {
     secondaryUsers: UserFixture[];
 }
 
-function createPageObjects(page: Page): PageObjects {
+function createPageObjects(page: Page, user?: BaseUser): PageObjects {
     return {
-        login: new LoginPage(page),
-        register: new RegisterPage(page),
-        homepage: new HomepagePage(page),
-        pricing: new PricingPage(page),
-        dashboard: new DashboardPage(page),
-        groupDetail: new GroupDetailPage(page),
-        expenseDetail: new ExpenseDetailPage(page),
-        createGroupModal: new CreateGroupModalPage(page),
+        login: new LoginPage(page, user),
+        register: new RegisterPage(page, user),
+        homepage: new HomepagePage(page, user),
+        pricing: new PricingPage(page, user),
+        dashboard: new DashboardPage(page, user),
+        groupDetail: new GroupDetailPage(page, user),
+        expenseDetail: new ExpenseDetailPage(page, user),
+        createGroupModal: new CreateGroupModalPage(page, user),
     };
 }
 
@@ -57,7 +57,7 @@ async function createUserFixture(browser: any, existingPage?: Page, existingCont
         page,
         user,
         context,
-        pages: createPageObjects(page),
+        pages: createPageObjects(page, user),
     };
 }
 

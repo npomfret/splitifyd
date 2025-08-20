@@ -42,10 +42,10 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
     const balanceDisplays = Object.values(currencyBalances).map((balance) => getBalanceDisplay(balance.netBalance, balance.currency));
 
     // Determine overall status color (prioritize owed > owing > settled)
-    const hasOwed = Object.values(currencyBalances).some((b) => b.netBalance < 0);
-    const hasOwing = Object.values(currencyBalances).some((b) => b.netBalance > 0);
-    const overallColor = hasOwed ? 'text-red-600' : hasOwing ? 'text-green-600' : 'text-blue-400';
-    const overallBgColor = hasOwed ? 'bg-red-50' : hasOwing ? 'bg-green-50' : 'bg-blue-50';
+    // const hasOwed = Object.values(currencyBalances).some((b) => b.netBalance < 0);
+    // const hasOwing = Object.values(currencyBalances).some((b) => b.netBalance > 0);
+    // const overallColor = hasOwed ? 'text-red-600' : hasOwing ? 'text-green-600' : 'text-blue-400';
+    // const overallBgColor = hasOwed ? 'bg-red-50' : hasOwing ? 'bg-green-50' : 'bg-blue-50';
 
     const handleActionClick = (e: Event, action: () => void) => {
         e.preventDefault();

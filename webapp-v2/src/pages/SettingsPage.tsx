@@ -48,9 +48,8 @@ export function SettingsPage() {
     }, [successMessage, errorMessage]);
 
     const handleDisplayNameUpdate = async () => {
-        if (!user || isLoading) return;
+        if (!user || authStore.isUpdatingProfile) return;
 
-        setIsLoading(true);
         setErrorMessage('');
         setSuccessMessage('');
 
@@ -63,8 +62,6 @@ export function SettingsPage() {
         } catch (error) {
             setErrorMessage('Failed to update profile. Please try again.');
             console.error('Profile update error:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -183,7 +180,7 @@ export function SettingsPage() {
                                 value={displayName}
                                 onChange={setDisplayName}
                                 placeholder="Enter your display name"
-                                disabled={isLoading}
+                                disabled={authStore.isUpdatingProfile}
                                 error={
                                     isDisplayNameEmpty 
                                         ? 'Display name cannot be empty' 
@@ -195,8 +192,8 @@ export function SettingsPage() {
 
                             <Button
                                 onClick={handleDisplayNameUpdate}
-                                disabled={!hasDisplayNameChanged || isLoading || isDisplayNameEmpty || isDisplayNameTooLong}
-                                loading={isLoading}
+                                disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
+                                loading={authStore.isUpdatingProfile}
                             >
                                 Save Changes
                             </Button>

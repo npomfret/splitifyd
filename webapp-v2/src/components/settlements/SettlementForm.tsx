@@ -133,7 +133,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 note: noteSignal.value.trim() || undefined,
             };
 
-            const createdSettlement = await apiClient.createSettlement(settlementData);
+            await apiClient.createSettlement(settlementData);
             await enhancedGroupDetailStore.refreshAll();
 
             if (onSuccess) {

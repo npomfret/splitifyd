@@ -10,7 +10,7 @@ interface ShareGroupModalProps {
     groupName: string;
 }
 
-export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGroupModalProps) {
+export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalProps) {
     const [shareLink, setShareLink] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

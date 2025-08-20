@@ -95,7 +95,7 @@ describe('API Client Integration Tests', () => {
 
             expect(fetchedGroup.id).toBe(testGroup.id);
             expect(fetchedGroup.name).toBe('Single Group Test');
-            expect(fetchedGroup.memberIds.length).toBeGreaterThanOrEqual(1);
+            expect(Object.keys(fetchedGroup.members).length).toBeGreaterThanOrEqual(1);
         });
 
         it('should create a new group', async () => {

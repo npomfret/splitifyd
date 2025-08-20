@@ -1,10 +1,13 @@
 import { expect, Locator, Page } from '@playwright/test';
+import * as path from 'path';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
 import { ButtonClickError } from '../errors/test-errors';
+import { createValidationError } from '../utils/error-factory';
+import type { User as BaseUser } from '@shared/shared-types';
 
 interface ExpenseData {
     description: string;
@@ -16,8 +19,8 @@ interface ExpenseData {
 }
 
 export class GroupDetailPage extends BasePage {
-    constructor(page: Page) {
-        super(page);
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
     }
 
     // Element accessors for group information
@@ -1009,8 +1012,88 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
         const balancesSection = this.getBalancesSectionByContext();
-        await expect(balancesSection.getByText(`${debtorName} → ${creditorName}`)).toBeVisible();
-        await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible();
+        
+        // Get actual content for better error reporting
+        const actualContent = await balancesSection.textContent().catch(() => 'Unable to get content');
+        const expectedText = `${debtorName} → ${creditorName}`;
+        
+        // Get current page URL and user identifier from the page object
+        const currentUrl = this.page.url();
+        const userIdentifier = this.userInfo ? `${this.userInfo.displayName}'s screen` : `User viewing ${currentUrl}`;
+        
+        // Check if the expected text exists
+        try {
+            await expect(balancesSection.getByText(expectedText)).toBeVisible({ timeout: 2000 });
+        } catch (error) {
+            // Extract actual debt relationships from the content
+            const arrowMatches = actualContent?.match(/[\w\s]+ → [\w\s]+/g) || [];
+            
+            // Capture screenshot for debugging
+            const screenshotFileName = `debt-verification-failed-${Date.now()}.png`;
+            const screenshotPath = `tmp/${screenshotFileName}`;
+            let screenshotUrl: string | undefined;
+            
+            try {
+                await this.page.screenshot({ 
+                    path: screenshotPath,
+                    fullPage: true 
+                });
+                // Convert to absolute path and file URL
+                const absolutePath = path.resolve(screenshotPath);
+                screenshotUrl = `file://${absolutePath}`;
+            } catch (err) {
+                // Screenshot failed, continue without it
+            }
+            
+            throw createValidationError(
+                `Verify debt relationship in Balances section (${userIdentifier})`,
+                {
+                    debtRelationship: expectedText,
+                    description: `Expected ${userIdentifier} to see "${debtorName}" owes "${creditorName}" in the Balances section`
+                },
+                {
+                    debtRelationshipsFound: arrowMatches.length > 0 ? arrowMatches : ['none'],
+                    sectionContent: actualContent?.substring(0, 500) || '(empty)',
+                    isSettledUp: actualContent?.includes('All settled up') || false,
+                    userScreen: userIdentifier
+                },
+                {
+                    debtorName,
+                    creditorName,
+                    screenshot: screenshotUrl,
+                    userContext: userIdentifier,
+                    pageUrl: currentUrl,
+                    tip: arrowMatches.length === 0 && actualContent?.includes('All settled up') 
+                        ? `${userIdentifier} shows as settled when it should show a debt. Check the balance calculation/synchronization.`
+                        : `The expected debt relationship was not found on ${userIdentifier}. Check if the users are displayed correctly.`
+                }
+            );
+        }
+        
+        // Verify amount with better error message
+        try {
+            await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible({ timeout: 2000 });
+        } catch (error) {
+            const amounts = await balancesSection.locator('.text-red-600').allTextContents();
+            
+            throw createValidationError(
+                `Verify debt amount in Balances section (${userIdentifier})`,
+                {
+                    amount: amount,
+                    description: `Expected to see amount "${amount}" in red text`
+                },
+                {
+                    amountsFound: amounts.length > 0 ? amounts : ['none'],
+                    sectionContent: actualContent?.substring(0, 200) || '(empty)'
+                },
+                {
+                    expectedRelationship: expectedText,
+                    tip: amounts.length === 0 
+                        ? 'No debt amounts found - the balance might be showing as settled'
+                        : `Found amounts ${amounts.join(', ')} but not ${amount}`
+                }
+            );
+        }
     }
 
     /**

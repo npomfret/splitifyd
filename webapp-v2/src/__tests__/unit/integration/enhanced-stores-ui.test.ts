@@ -412,9 +412,9 @@ describe('Enhanced Stores UI Integration', () => {
             const dashboardGroup = enhancedGroupsStore.groups.find(g => g.id === 'group1');
             const detailGroup = enhancedGroupDetailStore.group;
 
-            expect(dashboardGroup?.id).toBe(detailGroup?.id);
-            expect(dashboardGroup?.name).toBe(detailGroup?.name);
-            expect(dashboardGroup?.memberIds).toEqual(detailGroup?.memberIds);
+            expect(dashboardGroup!.id).toBe(detailGroup!.id);
+            expect(dashboardGroup!.name).toBe(detailGroup!.name);
+            expect(dashboardGroup!.members).toEqual(detailGroup!.members);
         });
     });
 

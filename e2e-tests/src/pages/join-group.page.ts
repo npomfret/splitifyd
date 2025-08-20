@@ -1,13 +1,17 @@
-import { Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import { JoinGroupError, AuthenticationError, NavigationError } from '../errors/test-errors';
+import type { User as BaseUser } from '@shared/shared-types';
 
 /**
  * Page object for join group functionality via share links.
  * Handles different authentication states and provides robust join operations.
  */
 export class JoinGroupPage extends BasePage {
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
+    }
     // Core selectors with retry logic
     getJoinGroupHeading(): Locator {
         return this.page.getByRole('heading', { name: /join group/i });

@@ -420,7 +420,7 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
         await Promise.all(
             groupBatch.map(async (group) => {
                 // Get all members of this group
-                const groupMembers = users.filter((user) => group.memberIds?.includes(user.uid));
+                const groupMembers = users.filter((user) => user.uid in group.members);
 
                 if (groupMembers.length === 0) return;
 
@@ -465,7 +465,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     logger.info('Creating balanced expenses and settlements for "Settled Group" so no one owes anything');
 
     // Get all members of this group from the refreshed data
-    const groupMembers = users.filter((user) => settledGroup.memberIds?.includes(user.uid));
+    const groupMembers = users.filter((user) => user.uid in settledGroup.members);
 
     if (groupMembers.length < 2) return;
 
@@ -647,7 +647,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
     logger.info('Creating many expenses for "Large Group" to test pagination');
 
     // Get all members of this group from the refreshed data
-    const groupMembers = users.filter((user) => largeGroup.memberIds?.includes(user.uid));
+    const groupMembers = users.filter((user) => user.uid in largeGroup.members);
 
     if (groupMembers.length === 0) return;
 
@@ -701,7 +701,7 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Us
         await Promise.all(
             groupBatch.map(async (group) => {
                 // Get all members of this group
-                const groupMembers = users.filter((user) => group.memberIds?.includes(user.uid));
+                const groupMembers = users.filter((user) => user.uid in group.members);
 
                 if (groupMembers.length < 2) return;
 
@@ -776,7 +776,7 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Us
 
     for (const group of groupsWithExpenses) {
         // Get a group member to perform the deletion (preferably the creator)
-        const deleter = users.find((u) => u.uid === group.createdBy) || users.find((u) => group.memberIds?.includes(u.uid));
+        const deleter = users.find((u) => u.uid === group.createdBy) || users.find((u) => u.uid in group.members);
         if (!deleter) {
             logger.warn(`No valid user found to delete expenses from group: ${group.name}`);
             continue;

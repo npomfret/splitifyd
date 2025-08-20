@@ -9,7 +9,7 @@ interface SettlementHistoryProps {
     limit?: number;
 }
 
-export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHistoryProps) {
+export function SettlementHistory({ groupId, userId }: SettlementHistoryProps) {
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
 
@@ -89,25 +89,9 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
                                 <p class="text-sm font-medium text-gray-900">
-                                    {isCurrentUserPayer ? (
-                                        <>
-                                            <span class="text-blue-600">You</span>
-                                            {' paid '}
-                                            <span class="font-semibold">{settlement.payee.displayName}</span>
-                                        </>
-                                    ) : isCurrentUserPayee ? (
-                                        <>
-                                            <span class="font-semibold">{settlement.payer.displayName}</span>
-                                            {' paid '}
-                                            <span class="text-blue-600">you</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span class="font-semibold">{settlement.payer.displayName}</span>
-                                            {' paid '}
-                                            <span class="font-semibold">{settlement.payee.displayName}</span>
-                                        </>
-                                    )}
+                                    <span class="font-semibold">{settlement.payer.displayName}</span>
+                                    {' → '}
+                                    <span class="font-semibold">{settlement.payee.displayName}</span>
                                 </p>
 
                                 {settlement.note && <p class="mt-1 text-sm text-gray-500">{settlement.note}</p>}

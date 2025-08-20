@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import type { Group, User, ExpenseData, GroupBalances, SettlementListItem } from '@shared/shared-types';
 
 // Mock dependencies
 vi.mock('@/app/apiClient');
@@ -244,7 +243,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
         it('should refresh data when changes are detected', async () => {
             let expenseCallback: (() => void) | undefined;
             const mockChangeDetector = {
-                subscribeToExpenseChanges: vi.fn((groupId, callback) => {
+                subscribeToExpenseChanges: vi.fn((_, callback) => {
                     expenseCallback = callback;
                     return vi.fn();
                 }),
