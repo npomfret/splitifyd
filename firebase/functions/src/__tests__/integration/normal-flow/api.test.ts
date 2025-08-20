@@ -10,7 +10,7 @@
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, GroupBuilder, SettlementBuilder } from '../../support/builders';
+import { ExpenseBuilder, CreateGroupRequestBuilder, SettlementBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
@@ -58,7 +58,7 @@ describe('Comprehensive API Test Suite', () => {
         describe('Group Creation', () => {
             test('should create a new group', async () => {
                 const users = getTestUsers(1);
-                const groupData = new GroupBuilder().withName(`Test Group ${uuidv4()}`).build();
+                const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).build();
 
                 const createdGroup = await driver.createGroup(groupData, users[0].token);
 
@@ -83,7 +83,7 @@ describe('Comprehensive API Test Suite', () => {
             test('should return 404 for valid group when user is not a member (security: hide existence)', async () => {
                 const users = getTestUsers(2);
                 // Create a group using the new API
-                const groupData = new GroupBuilder().withName(`Members Only Group ${uuidv4()}`).build();
+                const groupData = new CreateGroupRequestBuilder().withName(`Members Only Group ${uuidv4()}`).build();
                 const testGroup = await driver.createGroup(groupData, users[0].token);
 
                 // Use second user from pool as outsider
@@ -97,7 +97,7 @@ describe('Comprehensive API Test Suite', () => {
             test('should allow group members to access group details', async () => {
                 const users = getTestUsers(2);
                 // Create a group with both users as members
-                const groupData = new GroupBuilder().withName(`Shared Group ${uuidv4()}`).build();
+                const groupData = new CreateGroupRequestBuilder().withName(`Shared Group ${uuidv4()}`).build();
                 const testGroup = await driver.createGroupWithMembers(groupData.name, users, users[0].token);
 
                 // Both members should be able to access the group
@@ -139,7 +139,7 @@ describe('Comprehensive API Test Suite', () => {
             test('should not allow non-members to generate shareable link', async () => {
                 const users = getTestUsers(2);
                 // Create a group with only user[0]
-                const groupData = new GroupBuilder().withName(`Non-Member Test Group ${uuidv4()}`).build();
+                const groupData = new CreateGroupRequestBuilder().withName(`Non-Member Test Group ${uuidv4()}`).build();
                 const restrictedGroup = await driver.createGroup(groupData, users[0].token);
 
                 // User[1] (non-member) should not be able to generate a share link
@@ -149,7 +149,7 @@ describe('Comprehensive API Test Suite', () => {
             test('should allow new users to join group via share link', async () => {
                 const users = getTestUsers(2);
                 // First, create a new group and generate a share link
-                const shareableGroupData = new GroupBuilder().withMember(users[0]).build();
+                const shareableGroupData = new CreateGroupRequestBuilder().withMember(users[0]).build();
 
                 const shareableGroup = await driver.createGroup(shareableGroupData, users[0].token);
 
@@ -176,7 +176,7 @@ describe('Comprehensive API Test Suite', () => {
             test('should not allow duplicate joining via share link', async () => {
                 const users = getTestUsers(2);
                 // Create a group with a share link
-                const dupTestGroupData = new GroupBuilder().withMember(users[0]).build();
+                const dupTestGroupData = new CreateGroupRequestBuilder().withMember(users[0]).build();
 
                 const dupTestGroup = await driver.createGroup(dupTestGroupData, users[0].token);
                 const shareResponse = await driver.generateShareLink(dupTestGroup.id, users[0].token);
@@ -199,7 +199,7 @@ describe('Comprehensive API Test Suite', () => {
             test('should allow multiple users to join group using the same share link', async () => {
                 const users = getTestUsers(4); // Need 1 creator + 3 to join
                 // Create a new group with only one member
-                const multiJoinGroupData = new GroupBuilder().withMember(users[0]).build();
+                const multiJoinGroupData = new CreateGroupRequestBuilder().withMember(users[0]).build();
 
                 const multiJoinGroup = await driver.createGroup(multiJoinGroupData, users[0].token);
 

@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, GroupBuilder } from '../../support/builders';
+import { ExpenseBuilder, CreateGroupRequestBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
@@ -36,7 +36,7 @@ describe('Business Logic Edge Cases', () => {
     });
 
     beforeEach(async () => {
-        const groupData = new GroupBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
+        const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
         testGroup = await driver.createGroup(groupData, users[0].token);
     });
 
@@ -416,7 +416,7 @@ describe('Business Logic Edge Cases', () => {
         test('should handle viewing group with no expenses', async () => {
             // Create a fresh group with no expenses using the builder
             // Note: Only the creator will be a member initially
-            const groupData = new GroupBuilder().withName(`Empty Group ${uuidv4()}`).build();
+            const groupData = new CreateGroupRequestBuilder().withName(`Empty Group ${uuidv4()}`).build();
             const emptyGroup = await driver.createGroup(groupData, users[0].token);
 
             // Verify the group was created
@@ -450,7 +450,7 @@ describe('Business Logic Edge Cases', () => {
             // Use the 4th user from pool for this isolated test
             const testUser = userPool.getUser(3);
 
-            const multiExpenseGroupData = new GroupBuilder().withName(`Multi Expense Group ${uuidv4()}`).build();
+            const multiExpenseGroupData = new CreateGroupRequestBuilder().withName(`Multi Expense Group ${uuidv4()}`).build();
             const multiExpenseGroup = await driver.createGroup(multiExpenseGroupData, testUser.token);
 
             // Create multiple expenses where the user pays themselves (testing expense tracking)
@@ -530,7 +530,7 @@ describe('Business Logic Edge Cases', () => {
 
         test('should handle complex split scenarios', async () => {
             // Create a fresh group for this test to ensure clean state
-            const complexGroupData = new GroupBuilder().withName(`Complex Split Group ${uuidv4()}`).build();
+            const complexGroupData = new CreateGroupRequestBuilder().withName(`Complex Split Group ${uuidv4()}`).build();
             const complexGroup = await driver.createGroup(complexGroupData, users[0].token);
 
             // Scenario: Mixed split types in one group - just verify structure

@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder, GroupBuilder } from '../../support/builders';
+import { ExpenseBuilder, UserBuilder, CreateGroupRequestBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '../../../shared/shared-types';
 
@@ -29,7 +29,7 @@ describe('Freeform Categories API Integration', () => {
     });
 
     beforeEach(async () => {
-        const groupData = new GroupBuilder().withName(`Freeform Categories Test Group ${uuidv4()}`).withMembers(users).build();
+        const groupData = new CreateGroupRequestBuilder().withName(`Freeform Categories Test Group ${uuidv4()}`).withMembers(users).build();
         testGroup = await driver.createGroup(groupData, users[0].token);
     });
 

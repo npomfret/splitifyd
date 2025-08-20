@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { User, CreateGroupRequest } from '../../../shared/shared-types';
 
-export class GroupBuilder {
+export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;
 
     constructor() {

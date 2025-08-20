@@ -8,7 +8,7 @@ import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { v4 as uuidv4 } from 'uuid';
 import { UserBuilder } from '../../support/builders';
-import { GroupBuilder } from '../../support/builders';
+import { CreateGroupRequestBuilder } from '../../support/builders';
 import { ExpenseBuilder } from '../../support/builders';
 import { SettlementBuilder } from '../../support/builders';
 
@@ -31,7 +31,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
 
     test('should show correct balances when multiple users create expenses with equal split', async () => {
         // Create group with Alice (same as E2E test)
-        const groupData = new GroupBuilder().withName('Vacation Trip 2024').withDescription('Beach house rental and activities').build();
+        const groupData = new CreateGroupRequestBuilder().withName('Vacation Trip 2024').withDescription('Beach house rental and activities').build();
         const group = await driver.createGroup(groupData, alice.token);
 
         // Add Bob to the group
@@ -111,7 +111,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         // - Settlement of actual debt amount should result in "all settled up"
 
         // Create group with Alice
-        const groupData = new GroupBuilder().withName('Settlement Bug Test Group').withDescription('Testing exact settlement balance scenario').build();
+        const groupData = new CreateGroupRequestBuilder().withName('Settlement Bug Test Group').withDescription('Testing exact settlement balance scenario').build();
         const group = await driver.createGroup(groupData, alice.token);
 
         // Add Bob to the group
@@ -206,7 +206,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     test('should handle the specific case where expense splits might be calculated incorrectly', async () => {
         // This test isolates the expense splitting logic to see if that's where the bug occurs
 
-        const groupData = new GroupBuilder().withName('Split Calculation Test').build();
+        const groupData = new CreateGroupRequestBuilder().withName('Split Calculation Test').build();
         const group = await driver.createGroup(groupData, alice.token);
 
         const shareLink = await driver.generateShareLink(group.id, alice.token);

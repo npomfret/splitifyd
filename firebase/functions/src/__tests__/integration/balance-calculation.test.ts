@@ -1,5 +1,5 @@
 import { ApiDriver, User } from '../support/ApiDriver';
-import { UserBuilder, GroupBuilder, ExpenseBuilder } from '../support/builders';
+import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../support/builders';
 
 describe('Balance Calculation Integration Test', () => {
     let apiDriver: ApiDriver;
@@ -45,7 +45,7 @@ describe('Balance Calculation Integration Test', () => {
 
         // Step 1: User 1 creates a group using builder
         console.log('\nStep 1: User 1 creating group...');
-        const groupData = new GroupBuilder()
+        const groupData = new CreateGroupRequestBuilder()
             .withName('Test Balance Group')
             .withDescription('Testing balance calculations')
             .build();
