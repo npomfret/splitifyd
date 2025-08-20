@@ -299,8 +299,71 @@ export class GroupDetailPage extends BasePage {
             try {
                 await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 2000 });
             } catch (e) {
-                const visibleMembers = await this.page.locator('[data-testid="member-item"]').allInnerTexts();
-                throw new Error(`Failed to find user "${userName}" in member list during synchronization. Expected users: [${allUserNames.join(', ')}]. Visible members: [${visibleMembers.join(', ')}]`);
+                // Capture detailed state for debugging
+                const memberElements = await this.page.locator('[data-testid="member-item"]').all();
+                const visibleMembers = await Promise.all(
+                    memberElements.map(async (el) => {
+                        const name = await el.getAttribute('data-member-name');
+                        const id = await el.getAttribute('data-member-id');
+                        const innerText = await el.innerText();
+                        return {
+                            name: name || 'Unknown',
+                            id: id || 'no-id',
+                            text: innerText.replace(/\n/g, ' ')
+                        };
+                    })
+                );
+                
+                const memberCount = await this.page.locator('[data-testid="member-count"]').textContent().catch(() => 'count-not-found');
+                const pageUrl = this.page.url();
+                
+                // Get browser context info
+                const browserUser = this.userInfo?.displayName || this.userInfo?.email || 'Unknown User';
+                const browserUserId = this.userInfo?.uid || 'unknown-id';
+                
+                const expected = {
+                    users: allUserNames,
+                    userCount: totalUsers,
+                    operation: 'waitForUserSynchronization'
+                };
+                
+                const actual = {
+                    visibleMembers: visibleMembers.map(m => m.name),
+                    memberCount,
+                    missingUser: userName
+                };
+                
+                const context = {
+                    browserContext: {
+                        user: browserUser,
+                        userId: browserUserId,
+                        pageUrl,
+                        viewingAs: `Browser of: ${browserUser} (${browserUserId})`
+                    },
+                    synchronizationState: {
+                        missingUser: userName,
+                        expectedUsers: allUserNames,
+                        visibleMembers: visibleMembers.map(m => m.name),
+                        duplicates: visibleMembers.filter((m, i, arr) => 
+                            arr.findIndex(x => x.id === m.id) !== i
+                        ).map(m => m.name)
+                    },
+                    memberDetails: visibleMembers.map((m, i) => ({
+                        index: i,
+                        name: m.name,
+                        id: m.id,
+                        displayText: m.text
+                    })),
+                    memberCount,
+                    timestamp: new Date().toISOString()
+                };
+                
+                throw createValidationError(
+                    `User synchronization in ${browserUser}'s browser`,
+                    expected,
+                    actual,
+                    context
+                );
             }
         }
 

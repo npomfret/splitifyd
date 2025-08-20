@@ -16,6 +16,27 @@ import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-
 import { _getGroupMembersData } from './memberHandlers';
 import { _getGroupExpensesData } from '../expenses/handlers';
 import { _getGroupSettlementsData } from '../settlements/handlers';
+import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
+import type { UserThemeColor } from '../shared/shared-types';
+
+/**
+ * Get theme color for a member based on their index
+ */
+const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
+    const colorIndex = memberIndex % USER_COLORS.length;
+    const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
+    const color = USER_COLORS[colorIndex];
+    const pattern = COLOR_PATTERNS[patternIndex];
+    
+    return {
+        light: color.light,
+        dark: color.dark,
+        name: color.name,
+        pattern,
+        assignedAt: new Date().toISOString(),
+        colorIndex,
+    };
+};
 
 /**
  * Get the groups collection reference
@@ -166,8 +187,8 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
         
         // Ensure creator is always first with theme index 0
         members[userId] = {
-            isCreator: true,
-            themeIndex: 0,
+            role: 'owner' as const,
+            theme: getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
         };
         
@@ -176,8 +197,8 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
         for (const memberId of initialMemberIds) {
             if (memberId !== userId) {
                 members[memberId] = {
-                    isCreator: false,
-                    themeIndex: memberIndex,
+                    role: 'member' as const,
+                    theme: getThemeColorForMember(memberIndex),
                     joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
                 };
                 memberIndex++;

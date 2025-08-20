@@ -7,11 +7,32 @@ import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { FirestoreCollections } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
+import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
+import type { UserThemeColor } from '../shared/shared-types';
 
 const generateShareToken = (): string => {
     const bytes = randomBytes(12);
     const base64url = bytes.toString('base64url');
     return base64url.substring(0, 16);
+};
+
+/**
+ * Get theme color for a member based on their index
+ */
+const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
+    const colorIndex = memberIndex % USER_COLORS.length;
+    const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
+    const color = USER_COLORS[colorIndex];
+    const pattern = COLOR_PATTERNS[patternIndex];
+    
+    return {
+        light: color.light,
+        dark: color.dark,
+        name: color.name,
+        pattern,
+        assignedAt: new Date().toISOString(),
+        colorIndex,
+    };
 };
 
 interface ValidationResult {
@@ -211,8 +232,8 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             
             // Create new member with theme assignment
             const newMember = {
-                isCreator: false,
-                themeIndex: memberIndex,
+                role: 'member' as const,
+                theme: getThemeColorForMember(memberIndex),
                 joinedAt: new Date().toISOString(), // Use ISO string to match createdAt/updatedAt pattern
             };
             

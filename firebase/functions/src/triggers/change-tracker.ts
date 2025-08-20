@@ -47,7 +47,17 @@ export const trackGroupChanges = onDocumentWritten(
             // Get affected users from the group (nested in data field)
             const afterData = after?.data();
             const beforeData = before?.data();
-            const affectedUsers = afterData?.data?.memberIds || beforeData?.data?.memberIds || [];
+            
+            // Members are stored as a map, not an array of IDs
+            const afterMembers = afterData?.data?.members || {};
+            const beforeMembers = beforeData?.data?.members || {};
+            
+            // Combine all member IDs from both before and after states
+            const allMemberIds = new Set([
+                ...Object.keys(afterMembers),
+                ...Object.keys(beforeMembers)
+            ]);
+            const affectedUsers = Array.from(allMemberIds);
 
 
 
