@@ -1,13 +1,12 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { UserBalance, simplifyDebts } from '../utils/debtSimplifier';
 import { GroupBalance } from '../models/groupBalance';
-import { logger } from '../logger';
 import { db } from '../firebase';
 import { userService } from './userService';
 import { FirestoreCollections, DELETED_AT_FIELD } from '../shared/shared-types';
 
 export async function calculateGroupBalances(groupId: string): Promise<GroupBalance> {
-    logger.info('[BalanceCalculator] Calculating balances', { groupId });
+    // Calculating balances for group
     const expensesSnapshot = await db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get();
 
     const expenses = expensesSnapshot.docs
@@ -20,11 +19,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         )
         .filter((expense) => !expense[DELETED_AT_FIELD]);
 
-    logger.info('[BalanceCalculator] Found expenses', {
-        totalExpenses: expensesSnapshot.size,
-        nonDeletedExpenses: expenses.length,
-        expenseDetails: expenses.map((e) => ({ id: e.id!, amount: e.amount!, currency: e.currency!, paidBy: e.paidBy! })),
-    });
+    // Found expenses
 
     const settlementsSnapshot = await db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get();
 
@@ -36,9 +31,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
             }) as any,
     );
 
-    logger.info('[BalanceCalculator] Found settlements', {
-        totalSettlements: settlements.length,
-    });
+    // Found settlements
 
     const groupDoc = await db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
 
@@ -57,10 +50,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
 
     const memberProfiles = await userService.getUsers(memberIds);
 
-    logger.info('[BalanceCalculator] Group members', {
-        memberCount: memberIds.length,
-        memberIds,
-    });
+    // Processing group members
 
     // Track balances per currency
     const balancesByCurrency: Record<string, Record<string, UserBalance>> = {};
@@ -112,14 +102,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         for (const expense of currencyExpenses) {
             const payerId = expense.paidBy;
 
-            logger.info('[BalanceCalculator] Processing expense', {
-                expenseId: expense.id,
-                description: expense.description,
-                amount: expense.amount,
-                paidBy: payerId,
-                participants: expense.participants,
-                splits: expense.splits,
-            });
+            // Processing expense
 
             if (!userBalances[payerId]) {
                 userBalances[payerId] = {
@@ -164,13 +147,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
             const payeeId = settlement.payeeId;
             const amount = settlement.amount;
 
-            logger.info('[BalanceCalculator] Processing settlement', {
-                settlementId: settlement.id,
-                payerId,
-                payeeId,
-                amount,
-                date: settlement.date,
-            });
+            // Processing settlement
 
             if (!userBalances[payerId]) {
                 userBalances[payerId] = {
@@ -260,11 +237,7 @@ export async function calculateGroupBalances(groupId: string): Promise<GroupBala
         }
     }
 
-    logger.info('[BalanceCalculator] Final balances by currency', {
-        balancesByCurrency,
-        userBalances: userBalances,
-        allCurrencies: Array.from(allCurrencies),
-    });
+    // Calculated final balances
 
     const userNames = new Map<string, string>();
     for (const [userId, profile] of memberProfiles) {
