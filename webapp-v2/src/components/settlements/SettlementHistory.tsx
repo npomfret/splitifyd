@@ -1,17 +1,23 @@
-import { useEffect } from 'preact/hooks';
-import { LoadingSpinner } from '../ui';
+import { useEffect, useState } from 'preact/hooks';
+import { LoadingSpinner, ConfirmDialog } from '../ui';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
+import { apiClient } from '@/app/apiClient.ts';
+import type { SettlementListItem } from '@shared/shared-types.ts';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface SettlementHistoryProps {
     groupId: string;
     userId?: string;
     limit?: number;
+    onEditSettlement?: (settlement: SettlementListItem) => void;
 }
 
-export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHistoryProps) {
+export function SettlementHistory({ groupId, userId, limit = 10, onEditSettlement }: SettlementHistoryProps) {
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
+    const [settlementToDelete, setSettlementToDelete] = useState<SettlementListItem | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Use store state
     const settlements = enhancedGroupDetailStore.settlements;
@@ -50,6 +56,30 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
             style: 'currency',
             currency: 'USD',
         }).format(amount);
+    };
+
+    const handleDeleteClick = (settlement: SettlementListItem) => {
+        setSettlementToDelete(settlement);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!settlementToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await apiClient.deleteSettlement(settlementToDelete.id);
+            await enhancedGroupDetailStore.loadGroup(groupId);
+            await enhancedGroupDetailStore.fetchSettlements();
+            setSettlementToDelete(null);
+        } catch (error) {
+            console.error('Failed to delete settlement:', error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setSettlementToDelete(null);
     };
 
     if (isLoading && settlements.length === 0) {
@@ -115,11 +145,32 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
                                 <p class="mt-1 text-xs text-gray-400">{formatDate(settlement.date)}</p>
                             </div>
 
-                            <div class="text-right ml-4">
-                                <p class={`text-lg font-bold ${isCurrentUserPayee ? 'text-green-600' : isCurrentUserPayer ? 'text-gray-700' : 'text-gray-600'}`}>
-                                    {isCurrentUserPayee && '+'}
-                                    {formatAmount(settlement.amount)}
-                                </p>
+                            <div class="flex items-start gap-2 ml-4">
+                                <div class="text-right">
+                                    <p class={`text-lg font-bold ${isCurrentUserPayee ? 'text-green-600' : isCurrentUserPayer ? 'text-gray-700' : 'text-gray-600'}`}>
+                                        {isCurrentUserPayee && '+'}
+                                        {formatAmount(settlement.amount)}
+                                    </p>
+                                </div>
+                                
+                                <div class="flex gap-1">
+                                    {onEditSettlement && (
+                                        <button
+                                            onClick={() => onEditSettlement(settlement)}
+                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                            title="Edit payment"
+                                        >
+                                            <PencilIcon class="h-4 w-4" />
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => handleDeleteClick(settlement)}
+                                        class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                        title="Delete payment"
+                                    >
+                                        <TrashIcon class="h-4 w-4" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -136,6 +187,19 @@ export function SettlementHistory({ groupId, userId, limit = 10 }: SettlementHis
                         {isLoading ? 'Loading...' : 'Load more'}
                     </button>
                 </div>
+            )}
+
+            {settlementToDelete && (
+                <ConfirmDialog
+                    isOpen={!!settlementToDelete}
+                    title="Delete Payment"
+                    message={`Are you sure you want to delete this payment of ${formatAmount(settlementToDelete.amount)} from ${settlementToDelete.payer.displayName} to ${settlementToDelete.payee.displayName}? This action cannot be undone.`}
+                    confirmText="Delete"
+                    cancelText="Cancel"
+                    onConfirm={handleConfirmDelete}
+                    onCancel={handleCancelDelete}
+                    loading={isDeleting}
+                />
             )}
         </div>
     );

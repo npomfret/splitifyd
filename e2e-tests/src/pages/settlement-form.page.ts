@@ -39,6 +39,10 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().getByRole('button', { name: /record payment/i });
     }
 
+    getUpdatePaymentButton(): Locator {
+        return this.getModal().getByRole('button', { name: /update payment/i });
+    }
+
     // Helper methods
     async waitForDropdownOptions(dropdown: Locator, expectedCount?: number): Promise<void> {
         await expect(async () => {
