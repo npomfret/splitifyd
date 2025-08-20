@@ -130,11 +130,10 @@ Successfully implemented **Phase 1**, **Phase 1.5**, and **Phase 2** of the noti
 - File `change-tracker-v1.ts` no longer exists
 
 ### Next Steps
-- Phase 3: Production optimization and monitoring
-  - Error handling and recovery strategies
-  - Performance monitoring and metrics
-  - UI polish (connection indicators, etc.)
-  - Cost tracking and optimization
+- Phase 3: User Experience Enhancements
+  - Connection status indicators
+  - Visual feedback for online/offline states
+  - Pulse animations for active connections
 
 ---
 
@@ -167,7 +166,7 @@ Successfully implemented **Phase 1**, **Phase 1.5**, and **Phase 2** of the noti
 -   **Comprehensive Testing:** ✅ Complete test coverage with all TypeScript errors fixed.
 -   **Zod Schema Validation:** ✅ All metadata fields properly validated at runtime.
 
-### Phase 3: Optimization & Production Polish - **Not Started**
+### Phase 3: User Experience Enhancements - **Not Started**
 
 ---
 
@@ -682,57 +681,17 @@ class GroupsStore {
 
 ---
 
-### Phase 3: Optimization & Production Polish (Week 3)
+### Phase 3: User Experience Enhancements (Week 3)
 
 #### Objectives
 
-- Add monitoring and metrics
 - Polish user experience with connection indicators
-- Track costs and performance
+- Show real-time connection status
+- Visual feedback for online/offline states
 
 #### Technical Implementation
 
-##### 3.1 Performance Monitoring
-
-```typescript
-// webapp-v2/src/utils/metrics.ts
-export class MetricsCollector {
-    private metrics = {
-        notificationCount: 0,
-        restRefreshCount: 0,
-        averageRefreshLatency: 0,
-        firestoreReadsPerHour: 0
-    };
-    
-    trackNotification() {
-        this.metrics.notificationCount++;
-    }
-    
-    trackRestRefresh(latency: number) {
-        this.metrics.restRefreshCount++;
-        // Update rolling average
-        this.metrics.averageRefreshLatency = 
-            (this.metrics.averageRefreshLatency * (this.metrics.restRefreshCount - 1) + latency) 
-            / this.metrics.restRefreshCount;
-    }
-    
-    getMetrics() {
-        return {
-            ...this.metrics,
-            estimatedCostPerHour: this.calculateCost()
-        };
-    }
-    
-    private calculateCost() {
-        // Rough estimate: 1 notification read = $0.00001
-        const notificationReads = this.metrics.notificationCount;
-        const restReads = this.metrics.restRefreshCount * 20; // Assume 20 docs per refresh
-        return (notificationReads + restReads) * 0.00001;
-    }
-}
-```
-
-##### 3.2 User Experience
+##### 3.1 User Experience
 
 ```typescript
 // webapp-v2/src/components/ui/RealTimeIndicator.tsx
@@ -758,17 +717,16 @@ export function RealTimeIndicator() {
 
 #### Success Criteria
 
-- Notifications trigger REST refreshes within 500ms
-- Simple metrics show cost and performance
 - Connection indicator shows online/offline status
+- Visual indicators update immediately on connection change
+- Pulse animation shows active connection
 - No memory leaks from listeners
 
 #### Testing Requirements
 
-- Test notification listeners with mock data
-- Test optimistic updates and rollback
 - Test connection state changes
-- Test metric collection accuracy
+- Test visual indicator updates
+- Test component unmount cleanup
 
 ---
 
