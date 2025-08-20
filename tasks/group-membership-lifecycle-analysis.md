@@ -47,18 +47,25 @@ All user and policy handlers now use proper Joi validation schemas instead of di
 - Created `policy-validation.test.ts` with comprehensive validation tests
 - All tests passing
 
-### P1: Implement Real-Time UI Updates
+### P1: Fix Real-Time UI Update Reliability
 
-**Problem**: Frontend requires manual page reloads to see changes.
+**Problem**: Real-time updates are implemented but not working reliably. E2E tests still require `page.reload()` calls with comments stating "Real-time updates are not fully implemented yet".
+
+**Current State**: 
+- ChangeDetector class already uses Firestore `onSnapshot` listeners
+- Change collections (GROUP_CHANGES, TRANSACTION_CHANGES, BALANCE_CHANGES) trigger refreshes
+- System has retry logic and error handling
+- **But updates are unreliable in practice**
 
 **Required Actions**:
-1. Add Firestore `onSnapshot` listeners to frontend stores
-2. Remove `page.reload()` calls from components
-3. Update E2E tests to work without reloads
-4. Handle offline/online state transitions
+1. Debug why existing real-time listeners are not working consistently
+2. Fix timing/race conditions in change detection system
+3. Remove `page.reload()` calls from E2E tests once reliable
+4. Improve error handling for offline/connection issues
 
 **Affected Areas**:
-- Group updates (name, description, members)
+- E2E tests (currently have workaround reloads)
+- Group updates (name, description, members)  
 - Expense creation/updates
 - Balance changes
 - Settlements
@@ -71,6 +78,6 @@ All user and policy handlers now use proper Joi validation schemas instead of di
 
 ## Implementation Priority
 
-1. **Immediate**: Fix validation gap (security issue) - 2-4 hours
-2. **Next Sprint**: Real-time updates (UX improvement) - 1-2 days  
+1. **Immediate**: Fix validation gap (security issue) - ✅ COMPLETED
+2. **Next Sprint**: Fix real-time update reliability (UX improvement) - 1-2 days  
 3. **When Time Permits**: Documentation cleanup - 2-3 hours
