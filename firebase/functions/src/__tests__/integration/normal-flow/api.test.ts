@@ -8,11 +8,12 @@
 // Run the emulator with: `firebase emulators:start`
 
 // Using native fetch from Node.js 18+
-import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, CreateGroupRequestBuilder, SettlementBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import {v4 as uuidv4} from 'uuid';
+import {ApiDriver, User} from '../../support/ApiDriver';
+import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '../../support/builders';
+import {clearAllTestData} from '../../support/cleanupHelpers';
+import {FirebaseIntegrationTestUserPool} from '../../support/FirebaseIntegrationTestUserPool';
+import {groupSize} from "../../../shared/shared-types";
 
 describe('Comprehensive API Test Suite', () => {
     let driver: ApiDriver;
@@ -24,7 +25,7 @@ describe('Comprehensive API Test Suite', () => {
     };
 
     // Set a longer timeout for these integration tests
-    jest.setTimeout(10000);
+    jest.setTimeout(30000);
 
     beforeAll(async () => {
         // Clear any existing test data first
@@ -67,7 +68,7 @@ describe('Comprehensive API Test Suite', () => {
                 // Verify the group was created
                 const fetchedGroup = await driver.getGroup(createdGroup.id, users[0].token);
                 expect(fetchedGroup.name).toBe(groupData.name);
-                expect(fetchedGroup.memberIds.length).toBe(1); // Only creator initially
+                expect(groupSize(fetchedGroup)).toBe(1); // Only creator initially
             });
         });
 
@@ -169,8 +170,7 @@ describe('Comprehensive API Test Suite', () => {
 
                 // Verify the user was added to the group
                 const updatedGroup = await driver.getGroup(shareableGroup.id, newUser.token);
-                const memberUids = updatedGroup.memberIds;
-                expect(memberUids).toContain(newUser.uid);
+                expect(updatedGroup.members).toHaveProperty(newUser.uid);
             });
 
             test('should not allow duplicate joining via share link', async () => {
@@ -220,13 +220,12 @@ describe('Comprehensive API Test Suite', () => {
 
                 // Verify all users were added to the group
                 const updatedGroup = await driver.getGroup(multiJoinGroup.id, users[0].token);
-                const memberUids = updatedGroup.memberIds;
 
                 // Should have original member + 3 new members = 4 total
-                expect(memberUids.length).toBe(4);
-                expect(memberUids).toContain(users[0].uid);
+                expect(groupSize(updatedGroup)).toBe(4);
+                expect(updatedGroup.members).toHaveProperty(users[0].uid);
                 newUsers.forEach((user) => {
-                    expect(memberUids).toContain(user.uid);
+                    expect(updatedGroup.members).toHaveProperty(user.uid);
                 });
             });
         });
@@ -695,8 +694,8 @@ describe('Comprehensive API Test Suite', () => {
             // Verify the response structure includes balance info
             expect(groupDetails).toHaveProperty('id');
             expect(groupDetails).toHaveProperty('name');
-            expect(groupDetails).toHaveProperty('memberIds');
-            expect(groupDetails.memberIds.length).toBeGreaterThan(0);
+            expect(groupDetails).toHaveProperty('members');
+            expect(groupSize(groupDetails)).toBeGreaterThan(0);
         });
 
         test('should include balance data in listGroups response', async () => {

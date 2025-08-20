@@ -6,7 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { SplitTypes } from '../../../shared/shared-types';
+import {groupSize, SplitTypes} from '../../../shared/shared-types';
 
 describe('Optimistic Locking Integration Tests', () => {
     jest.setTimeout(25000); // it takes about 18s
@@ -79,10 +79,10 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Verify final state - both users should be members
             const finalGroup = await driver.getGroup(group.id, users[0].token);
-            expect(finalGroup.memberIds).toContain(users[0].uid);
-            expect(finalGroup.memberIds).toContain(users[1].uid);
-            expect(finalGroup.memberIds).toContain(users[2].uid);
-            expect(finalGroup.memberIds.length).toBe(3);
+            expect(finalGroup.members).toHaveProperty(users[0].uid);
+            expect(finalGroup.members).toHaveProperty(users[1].uid);
+            expect(finalGroup.members).toHaveProperty(users[2].uid);
+            expect(groupSize(finalGroup)).toBe(3);
         });
 
         test('should prevent concurrent group updates', async () => {
@@ -348,7 +348,7 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Verify final state
             const finalGroup = await driver.getGroup(group.id, users[0].token);
-            expect(finalGroup.memberIds).toContain(users[1].uid);
+            expect(finalGroup.members).toHaveProperty(users[1].uid);
 
             const expenses = await driver.getGroupExpenses(group.id, users[0].token);
             expect(expenses.expenses.length).toBe(1);

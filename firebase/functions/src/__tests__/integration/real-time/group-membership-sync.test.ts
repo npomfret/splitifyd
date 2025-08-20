@@ -70,11 +70,6 @@ describe('Group Membership Real-Time Sync Tests', () => {
                     members
                 });
 
-                console.log('Group membership change detected:', {
-                    memberCount,
-                    memberIds: Object.keys(members)
-                });
-
                 // Resolve when we detect user2 has joined
                 if (memberCount === 2 && members[user2.uid]) {
                     resolvePromise(true);
@@ -141,8 +136,8 @@ describe('Group Membership Real-Time Sync Tests', () => {
         // Set up listener for group-changes collection
         const changeRecords: any[] = [];
         const changesRef = db.collection('group-changes')
-            .where('groupId', '==', groupId)
-            .where('userId', '==', user1.uid);
+            .where('id', '==', groupId)
+            .where('users', 'array-contains', user1.uid);
 
         const unsubscribeChanges = changesRef.onSnapshot((snapshot) => {
             snapshot.docChanges().forEach(change => {
@@ -163,11 +158,6 @@ describe('Group Membership Real-Time Sync Tests', () => {
 
         // Wait a bit for change records to be created
         await new Promise(resolve => setTimeout(resolve, 2000));
-
-        console.log('Change records detected:', changeRecords.map(r => ({
-            changeType: r.changeType,
-            timestamp: r.timestamp
-        })));
 
         // We should have at least one change record for the membership update
         expect(changeRecords.length).toBeGreaterThan(0);
