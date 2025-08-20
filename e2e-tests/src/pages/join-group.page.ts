@@ -237,8 +237,24 @@ export class JoinGroupPage extends BasePage {
             }
         }
 
-        // All retries failed
-        throw new Error(`Failed to join group after ${maxRetries} attempts. Last error: ${lastError?.message}`);
+        // All retries failed - gather rich diagnostic information
+        const pageState = await this.getPageState();
+        
+        throw new Error(`Failed to join group after ${maxRetries} attempts.
+        
+Last error: ${lastError?.message}
+
+Page state at failure:
+  - URL: ${pageState.url}
+  - Title: ${pageState.title}
+  - User logged in: ${pageState.isLoggedIn}
+  - Already member: ${pageState.isAlreadyMember}
+  - Error page: ${pageState.isErrorPage}
+  - Join page visible: ${pageState.isJoinPageVisible}
+  - Join button visible: ${pageState.joinButtonVisible}
+  - Join button enabled: ${pageState.joinButtonEnabled}
+
+This rich error information should help diagnose why the join operation failed.`);
     }
 
     /**
