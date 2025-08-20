@@ -73,7 +73,6 @@ const fetchUserData = async (userId: string): Promise<User> => {
     const userDoc = await getUsersCollection().doc(userId).get();
 
     if (!userDoc.exists) {
-        logger.warn('User document not found in settlements', { userId });
         // Return minimal user object for missing profiles instead of throwing
         return {
             uid: userId,
@@ -128,9 +127,7 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
             settlement.note = settlementData.note;
         }
 
-        logger.info(`Attempting to write settlement ${settlementId} to Firestore. Data: ${JSON.stringify(settlement)}`);
         await getSettlementsCollection().doc(settlementId).set(settlement);
-        logger.info(`Settlement ${settlementId} successfully written to Firestore.`);
 
         const responseData: Settlement = {
             ...settlement,
@@ -139,14 +136,17 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
             updatedAt: timestampToISO(now),
         };
 
-        logger.info(`Settlement created: ${settlementId} by user: ${userId}`);
+        logger.info('settlement-created', { id: settlementId });
 
         res.status(HTTP_STATUS.CREATED).json({
             success: true,
             data: responseData,
         });
     } catch (error) {
-        logger.error('Error creating settlement:', error instanceof Error ? error : new Error('Unknown error'));
+        logger.error('Error creating settlement', error, { 
+            userId: req.user?.uid, 
+            groupId: req.body?.groupId 
+        });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
                 success: false,
@@ -244,14 +244,17 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
             updatedAt: timestampToISO(updatedSettlement!.updatedAt),
         } as Settlement;
 
-        logger.info(`Settlement updated: ${settlementId} by user: ${userId}`);
+        logger.info('settlement-updated', { id: settlementId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
             data: responseData,
         });
     } catch (error) {
-        logger.error('Error updating settlement:', error instanceof Error ? error : new Error('Unknown error'));
+        logger.error('Error updating settlement', error, { 
+            settlementId: req.params?.id, 
+            userId: req.user?.uid 
+        });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
                 success: false,
@@ -309,11 +312,6 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
             // Step 2: Check for concurrent updates inline (no additional reads needed)
             const currentTimestamp = freshDoc.data()?.updatedAt;
             if (!currentTimestamp || !currentTimestamp.isEqual(originalUpdatedAt)) {
-                logger.warn('Concurrent update detected', {
-                    settlementId: settlementRef.id,
-                    originalTimestamp: originalUpdatedAt.toDate().toISOString(),
-                    currentTimestamp: currentTimestamp?.toDate().toISOString(),
-                });
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
             }
 
@@ -322,14 +320,17 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
             transaction.delete(settlementRef);
         });
 
-        logger.info(`Settlement deleted: ${settlementId} by user: ${userId}`);
+        logger.info('settlement-deleted', { id: settlementId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: 'Settlement deleted successfully',
         });
     } catch (error) {
-        logger.error('Error deleting settlement:', error instanceof Error ? error : new Error('Unknown error'));
+        logger.error('Error deleting settlement', error, { 
+            settlementId: req.params?.id, 
+            userId: req.user?.uid 
+        });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
                 success: false,
@@ -388,7 +389,10 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
             data: responseData,
         });
     } catch (error) {
-        logger.error('Error fetching settlement:', error instanceof Error ? error : new Error('Unknown error'));
+        logger.error('Error fetching settlement', error, { 
+            settlementId: req.params?.id, 
+            userId: req.user?.uid 
+        });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
                 success: false,
@@ -523,7 +527,10 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
             data: result,
         });
     } catch (error) {
-        logger.error('Error listing settlements:', error instanceof Error ? error : new Error('Unknown error'));
+        logger.error('Error listing settlements', error, { 
+            groupId: req.params?.groupId, 
+            userId: req.user?.uid 
+        });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
                 success: false,

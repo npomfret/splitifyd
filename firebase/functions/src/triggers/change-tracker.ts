@@ -24,12 +24,6 @@ export const trackGroupChanges = onDocumentWritten(
         const before = event.data?.before;
         const after = event.data?.after;
 
-        logger.info('🔥 GROUP TRIGGER FIRED', {
-            groupId,
-            beforeExists: before?.exists,
-            afterExists: after?.exists,
-            eventId: event.id || 'unknown',
-        });
 
         // Determine change type
         let changeType: ChangeType;
@@ -41,36 +35,21 @@ export const trackGroupChanges = onDocumentWritten(
             changeType = 'updated';
         }
 
-        logger.info('🔥 GROUP CHANGE TYPE DETERMINED', { groupId, changeType });
 
-        logger.info('🔥 GROUP TRIGGER EXECUTING', { groupId, changeType });
         try {
             // Get changed fields (groups have nested structure)
             const changedFields = getGroupChangedFields(before, after);
 
-            logger.info('🔥 GROUP CHANGED FIELDS', { groupId, changedFields });
 
-            // Calculate priority
-            const priority = calculatePriority(changeType, changedFields, 'group');
+            // Calculate priority (not currently used)
+            calculatePriority(changeType, changedFields, 'group');
 
             // Get affected users from the group (nested in data field)
             const afterData = after?.data();
             const beforeData = before?.data();
             const affectedUsers = afterData?.data?.memberIds || beforeData?.data?.memberIds || [];
 
-            logger.info('🔥 GROUP DATA EXTRACTED', {
-                groupId,
-                afterData: afterData ? 'present' : 'missing',
-                beforeData: beforeData ? 'present' : 'missing',
-                affectedUsers,
-            });
 
-            logger.info('🔥 Creating group change document', {
-                groupId,
-                changeType,
-                priority,
-                affectedUsers: affectedUsers.length,
-            });
 
             // Create minimal change document for client notifications
             const changeDoc = createMinimalChangeDocument(
@@ -80,22 +59,13 @@ export const trackGroupChanges = onDocumentWritten(
                 affectedUsers
             );
 
-            logger.info('🔥 GROUP CHANGE DOC CREATED', { 
-                groupId, 
-                docStructure: Object.keys(changeDoc) 
-            });
 
             // Write to group-changes collection
-            const docRef = await db.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
+            await db.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
 
-            logger.info('🔥 Group change tracked SUCCESS', {
-                groupId,
-                changeType,
-                priority,
-                changeDocId: docRef.id,
-            });
+            logger.info('group-changed', { id: groupId });
         } catch (error) {
-            logger.errorWithContext('🔥 Failed to track group change', error as Error, { groupId });
+            logger.error('Failed to track group change', error as Error, { groupId });
         }
     },
 );
@@ -113,12 +83,6 @@ export const trackExpenseChanges = onDocumentWritten(
         const before = event.data?.before;
         const after = event.data?.after;
 
-        logger.info('🔥 EXPENSE TRIGGER FIRED', {
-            expenseId,
-            beforeExists: before?.exists,
-            afterExists: after?.exists,
-            eventId: event.id || 'unknown',
-        });
 
         // Determine change type
         let changeType: ChangeType;
@@ -132,7 +96,6 @@ export const trackExpenseChanges = onDocumentWritten(
             changeType = 'updated';
         }
 
-        logger.info('🔥 EXPENSE CHANGE TYPE DETERMINED', { expenseId, changeType });
 
         // Process expense changes immediately
         try {
@@ -142,15 +105,14 @@ export const trackExpenseChanges = onDocumentWritten(
             // Get groupId from expense data
             const groupId = afterData?.groupId || beforeData?.groupId;
             if (!groupId) {
-                logger.warn('Expense has no groupId', { expenseId });
                 return;
             }
 
             // Get changed fields
             const changedFields = getChangedFields(before, after);
 
-            // Calculate priority
-            const priority = calculatePriority(changeType, changedFields, 'expense');
+            // Calculate priority (not currently used)
+            calculatePriority(changeType, changedFields, 'expense');
 
             // Get affected users (paidBy and participants)
             const affectedUsers = new Set<string>();
@@ -167,13 +129,6 @@ export const trackExpenseChanges = onDocumentWritten(
                 participants.forEach((userId: string) => affectedUsers.add(userId));
             }
 
-            logger.info('Creating expense change document', {
-                expenseId,
-                groupId,
-                changeType,
-                priority,
-                affectedUsers: affectedUsers.size,
-            });
 
             // Create minimal change document for expense
             const changeDoc = createMinimalChangeDocument(
@@ -195,14 +150,9 @@ export const trackExpenseChanges = onDocumentWritten(
 
             await db.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
 
-            logger.info('Expense change tracked', {
-                expenseId,
-                groupId,
-                changeType,
-                priority,
-            });
+            logger.info('expense-changed', { id: expenseId, groupId });
         } catch (error) {
-            logger.errorWithContext('Failed to track expense change', error as Error, { expenseId });
+            logger.error('Failed to track expense change', error as Error, { expenseId });
         }
     },
 );
@@ -240,15 +190,15 @@ export const trackSettlementChanges = onDocumentWritten(
             // Get groupId from settlement data
             const groupId = afterData?.groupId || beforeData?.groupId;
             if (!groupId) {
-                logger.warn('Settlement has no groupId', { settlementId });
+                // Settlement has no groupId
                 return;
             }
 
             // Get changed fields
             const changedFields = getChangedFields(before, after);
 
-            // Calculate priority
-            const priority = calculatePriority(changeType, changedFields, 'settlement');
+            // Calculate priority (not currently used)
+            calculatePriority(changeType, changedFields, 'settlement');
 
             // Get affected users (payerId and payeeId for API settlements, or from/to for legacy)
             const affectedUsers = new Set<string>();
@@ -268,13 +218,6 @@ export const trackSettlementChanges = onDocumentWritten(
                 if (payee) affectedUsers.add(payee);
             }
 
-            logger.info('Creating settlement change document', {
-                settlementId,
-                groupId,
-                changeType,
-                priority,
-                affectedUsers: affectedUsers.size,
-            });
 
             // Create minimal change document for settlement
             const changeDoc = createMinimalChangeDocument(
@@ -296,14 +239,9 @@ export const trackSettlementChanges = onDocumentWritten(
 
             await db.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
 
-            logger.info('Settlement change tracked', {
-                settlementId,
-                groupId,
-                changeType,
-                priority,
-            });
+            logger.info('settlement-changed', { id: settlementId, groupId });
         } catch (error) {
-            logger.errorWithContext('Failed to track settlement change', error as Error, { settlementId });
+            logger.error('Failed to track settlement change', error, { settlementId });
         }
     },
 );

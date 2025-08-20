@@ -61,7 +61,7 @@ export const sendError = (res: Response, error: ApiError | Error, correlationId?
         } as ErrorResponse);
     } else {
         // Log the full error and propagate it
-        logger.error('Unexpected error:', error);
+        logger.error('Unexpected error', error);
         throw error;
     }
 };

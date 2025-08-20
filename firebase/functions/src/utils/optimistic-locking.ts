@@ -50,12 +50,6 @@ export const checkAndUpdateWithTimestamp = async (transaction: admin.firestore.T
     // Step 2: VALIDATE timestamp
     const currentTimestamp = freshDoc.data()?.updatedAt;
     if (!currentTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
-        logger.warn('Concurrent update detected', {
-            docId: docRef.id,
-            collection: docRef.parent.id,
-            originalTimestamp: originalTimestamp.toDate().toISOString(),
-            currentTimestamp: currentTimestamp?.toDate().toISOString(),
-        });
         throw Errors.CONCURRENT_UPDATE();
     }
 
@@ -65,11 +59,7 @@ export const checkAndUpdateWithTimestamp = async (transaction: admin.firestore.T
         updatedAt: createOptimisticTimestamp(),
     });
 
-    logger.info('Document updated with optimistic lock (correct order)', {
-        docId: docRef.id,
-        collection: docRef.parent.id,
-        updateFields: Object.keys(updates),
-    });
+    // Document updated with optimistic lock
 };
 
 /**
@@ -100,21 +90,11 @@ export const getUpdatedAtTimestamp = (data: any, docId?: string): Timestamp => {
     const dayInMs = 24 * hourInMs;
 
     if (timestampMs > now + hourInMs) {
-        logger.warn('updatedAt timestamp is in the future', {
-            docId,
-            timestamp: updatedAt.toDate().toISOString(),
-            futureMs: timestampMs - now,
-        });
         throw Errors.INVALID_INPUT({ field: 'updatedAt', reason: 'future_timestamp' });
     }
 
     if (timestampMs < now - 30 * dayInMs) {
-        logger.warn('updatedAt timestamp is very old', {
-            docId,
-            timestamp: updatedAt.toDate().toISOString(),
-            ageMs: now - timestampMs,
-        });
-        // Don't throw error for old timestamps, just warn
+        // Don't throw error for old timestamps
     }
 
     return updatedAt;
