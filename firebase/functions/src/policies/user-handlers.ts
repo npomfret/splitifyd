@@ -61,7 +61,8 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
             updatedAt: createServerTimestamp(),
         });
 
-        logger.info('policy-accepted', { id: policyId, userId });
+        // userId is automatically included from context
+        logger.info('policy-accepted', { id: policyId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,

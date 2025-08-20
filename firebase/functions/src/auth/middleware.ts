@@ -6,6 +6,7 @@ import { getConfig } from '../config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { FirestoreCollections, UserRoles } from '../shared/shared-types';
+import { LoggerContext } from '../logger';
 
 /**
  * Extended Express Request with user information
@@ -139,6 +140,10 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
             displayName: userRecord.displayName,
             role: userRole,
         };
+        
+        // Add user context to logging context
+        LoggerContext.setUser(userRecord.uid, userRecord.email, userRole);
+        
         // Check rate limit
         const isAllowed = getRateLimiter().isAllowed(decodedToken.uid);
         if (!isAllowed) {

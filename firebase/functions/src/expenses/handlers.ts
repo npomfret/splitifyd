@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
 import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { logger } from '../logger';
+import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calculateSplits, Expense } from './validation';
 import { GroupData } from '../types/group-types';
@@ -177,7 +177,9 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
             transaction.set(docRef, expense);
         });
 
-        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId, userId });
+        // Set business context
+        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: docRef.id });
+        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId });
 
         // Convert Firestore Timestamps to ISO strings for the response
         const responseExpense = {
@@ -367,7 +369,8 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
             });
         }
 
-        logger.info('expense-updated', { id: expenseId, userId });
+        LoggerContext.setBusinessContext({ expenseId });
+        logger.info('expense-updated', { id: expenseId });
 
         // Fetch the updated expense to return the full object
         const updatedExpenseDoc = await docRef.get();
@@ -462,7 +465,8 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
             // Note: Group metadata will be updated by the balance aggregation trigger
         });
 
-        logger.info('expense-deleted', { id: expenseId, userId });
+        LoggerContext.setBusinessContext({ expenseId });
+        logger.info('expense-deleted', { id: expenseId });
 
         res.json({
             message: 'Expense deleted successfully',

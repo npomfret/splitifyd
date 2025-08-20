@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { randomBytes } from 'crypto';
 import { db } from '../firebase';
 import { ApiError } from '../utils/errors';
-import { logger } from '../logger';
+import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { FirestoreCollections } from '../shared/shared-types';
@@ -92,7 +92,8 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         // Server only returns the path, webapp will construct the full URL
         const shareablePath = `/join?linkId=${shareToken}`;
 
-        logger.info('share-link-created', { id: shareToken, groupId, userId });
+        LoggerContext.setBusinessContext({ groupId });
+        logger.info('share-link-created', { id: shareToken, groupId });
 
         res.status(HTTP_STATUS.OK).json({
             shareablePath,

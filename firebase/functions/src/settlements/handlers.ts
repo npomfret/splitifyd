@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { logger } from '../logger';
+import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { createSettlementSchema, updateSettlementSchema, settlementIdSchema, listSettlementsQuerySchema } from './validation';
 import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, User, FirestoreCollections } from '../shared/shared-types';
@@ -136,7 +136,8 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
             updatedAt: timestampToISO(now),
         };
 
-        logger.info('settlement-created', { id: settlementId, userId });
+        LoggerContext.setBusinessContext({ settlementId });
+        logger.info('settlement-created', { id: settlementId });
 
         res.status(HTTP_STATUS.CREATED).json({
             success: true,
@@ -244,7 +245,8 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
             updatedAt: timestampToISO(updatedSettlement!.updatedAt),
         } as Settlement;
 
-        logger.info('settlement-updated', { id: settlementId, userId });
+        LoggerContext.setBusinessContext({ settlementId });
+        logger.info('settlement-updated', { id: settlementId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
@@ -320,7 +322,8 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
             transaction.delete(settlementRef);
         });
 
-        logger.info('settlement-deleted', { id: settlementId, userId });
+        LoggerContext.setBusinessContext({ settlementId });
+        logger.info('settlement-deleted', { id: settlementId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,

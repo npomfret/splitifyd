@@ -6,7 +6,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { userService } from '../services/userService';
 import { validateGroupId } from './validation';
-import { logger } from '../logger';
+import { logger, LoggerContext } from '../logger';
 import { User, GroupMembersResponse, FirestoreCollections } from '../shared/shared-types';
 import { Group } from '../shared/shared-types';
 import { calculateGroupBalances } from '../services/balanceCalculator';
@@ -204,6 +204,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
             updatedAt: FieldValue.serverTimestamp(),
         });
 
+        LoggerContext.setBusinessContext({ groupId });
         logger.info('member-left', { id: userId, groupId });
 
         res.json({
@@ -297,7 +298,8 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info('member-removed', { id: memberId, groupId, userId });
+        LoggerContext.setBusinessContext({ groupId });
+        logger.info('member-removed', { id: memberId, groupId });
 
         res.json({
             success: true,
