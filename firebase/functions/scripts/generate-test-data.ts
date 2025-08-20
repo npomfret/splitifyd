@@ -3,7 +3,12 @@
 import type { User } from '../src/__tests__/support/ApiDriver';
 import { ApiDriver } from '../src/__tests__/support/ApiDriver';
 import { ExpenseBuilder } from '../src/__tests__/support/builders';
-import { logger } from '../src/logger';
+// import { logger } from '../src/logger';
+const logger = {
+    info: (msg: string, data?: any) => console.log(msg, data || ''),
+    error: (msg: string, err: any, data?: any) => console.error(msg, err, data || ''),
+    warn: (msg: string, data?: any) => console.warn(msg, data || '')
+};
 import type { Group } from '../src/shared/shared-types';
 
 // Initialize ApiDriver which handles all configuration

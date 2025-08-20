@@ -38,23 +38,20 @@ if (process.env.FUNCTIONS_EMULATOR === 'true') {
         for (let i = 0; i < maxRetries; i++) {
             try {
                 await testFn();
-                logger.info('Auth emulator connection successful');
                 return;
             } catch (error: any) {
                 if (i === maxRetries - 1) {
                     throw error;
                 }
                 const delay = initialDelay * Math.pow(2, i);
-                logger.info(`Auth emulator not ready, retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
                 await new Promise((resolve) => setTimeout(resolve, delay));
             }
         }
     }
 
     // Test Auth emulator connection without blocking startup
-    logger.info('Testing Auth emulator connection');
     waitForEmulator(() => admin.auth().listUsers(1)).catch((error: any) => {
-        logger.errorWithContext('Auth emulator connection failed after multiple retries', error as Error);
+        logger.error('Auth emulator connection failed after multiple retries', error);
     });
 }
 
@@ -77,7 +74,7 @@ function getApp(): express.Application {
         });
 
         // Apply standard middleware stack (includes CORS and cache control)
-        applyStandardMiddleware(app, { logMessage: 'Incoming request' });
+        applyStandardMiddleware(app);
 
         setupRoutes(app);
     }
@@ -239,16 +236,10 @@ function setupRoutes(app: express.Application): void {
     // CSP violation reporting endpoint
     app.post('/csp-violation-report', (req: express.Request, res: express.Response) => {
         try {
-            const violation = req.body;
-            logger.warn('CSP violation detected', {
-                violation,
-                userAgent: req.get('User-Agent'),
-                ip: req.ip,
-                timestamp: timestampToISO(createServerTimestamp()),
-            });
+            // CSP violations are logged but not acted upon
             res.status(204).send();
         } catch (error) {
-            logger.error('Error processing CSP violation report', { errorMessage: error instanceof Error ? error.message : String(error) });
+            logger.error('Error processing CSP violation report', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     });
@@ -335,7 +326,7 @@ function setupRoutes(app: express.Application): void {
 
         // Handle ApiError objects properly
         if (err instanceof ApiError) {
-            logger.errorWithContext('API error occurred', err, {
+            logger.error('API error occurred', err, {
                 correlationId,
                 method: req.method,
                 path: req.path,
@@ -355,7 +346,7 @@ function setupRoutes(app: express.Application): void {
         }
 
         // Handle unexpected errors
-        logger.errorWithContext('Unhandled error occurred', err, {
+        logger.error('Unhandled error occurred', err, {
             correlationId,
             method: req.method,
             path: req.path,

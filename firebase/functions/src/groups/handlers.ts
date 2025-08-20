@@ -133,16 +133,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
         }
 
         // Validate request body
-        let groupData;
-        try {
-            groupData = validateCreateGroup(req.body);
-        } catch (error) {
-            logger.error('Validation failed', {
-                error: error instanceof Error ? error : new Error(String(error)),
-                body: req.body,
-            });
-            throw error;
-        }
+        const groupData = validateCreateGroup(req.body);
 
         // Sanitize group data
         const sanitizedData = sanitizeGroupData(groupData);
@@ -172,11 +163,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
             updatedAt: serverTimestamp, // True server timestamp
         });
 
-        logger.info('Group created successfully', {
-            groupId: docRef.id,
-            userId,
-            name: sanitizedData.name,
-        });
+        logger.info('group-created', { id: docRef.id });
 
         const createdDoc = await docRef.get();
         const group = transformGroupDocument(createdDoc);
@@ -184,9 +171,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
         res.status(HTTP_STATUS.CREATED).json(groupWithComputed);
     } catch (error) {
-        logger.error('Error in createGroup', {
-            error: error instanceof Error ? error : new Error(String(error)),
-        });
+        logger.error('Error in createGroup', error, { userId: req.user?.uid });
         throw error;
     }
 };
@@ -297,11 +282,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
         );
     });
 
-    logger.info('Group updated successfully', {
-        groupId,
-        userId,
-        updates: Object.keys(sanitizedUpdates),
-    });
+    logger.info('group-updated', { id: groupId });
 
     res.json({ message: 'Group updated successfully' });
 };
@@ -329,10 +310,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     // Delete the group
     await docRef.delete();
 
-    logger.info('Group deleted successfully', {
-        groupId,
-        userId,
-    });
+    logger.info('group-deleted', { id: groupId });
 
     res.json({ message: 'Group deleted successfully' });
 };
@@ -531,8 +509,7 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
 
         res.json(response);
     } catch (error) {
-        logger.error('Error in getGroupFullDetails', {
-            error: error instanceof Error ? error : new Error(String(error)),
+        logger.error('Error in getGroupFullDetails', error, {
             groupId,
             userId,
         });

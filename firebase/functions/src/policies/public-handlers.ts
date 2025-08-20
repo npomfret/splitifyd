@@ -18,7 +18,6 @@ export const getCurrentPolicies = async (req: Request, res: Response): Promise<v
         policiesSnapshot.forEach((doc) => {
             const data = doc.data();
             if (!data.policyName || !data.currentVersionHash) {
-                logger.warn('Policy document missing required fields', { policyId: doc.id });
                 return;
             }
 
@@ -28,14 +27,14 @@ export const getCurrentPolicies = async (req: Request, res: Response): Promise<v
             };
         });
 
-        logger.info('Current policies retrieved', { count: Object.keys(currentPolicies).length });
+        logger.info('policies-retrieved', { count: Object.keys(currentPolicies).length });
 
         res.json({
             policies: currentPolicies,
             count: Object.keys(currentPolicies).length,
         });
     } catch (error) {
-        logger.errorWithContext('Failed to get current policies', error as Error);
+        logger.error('Failed to get current policies', error as Error);
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICIES_GET_FAILED', 'Failed to retrieve current policies');
     }
 };
@@ -68,7 +67,7 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_NOT_FOUND', 'Current policy version not found in versions map');
         }
 
-        logger.info('Current policy version retrieved', { policyId: id });
+        logger.info('policy-retrieved', { id });
 
         res.json({
             id,
@@ -81,7 +80,7 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to get current policy', error as Error, { policyId: id });
+        logger.error('Failed to get current policy', error as Error, { policyId: id });
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_GET_FAILED', 'Failed to retrieve current policy');
     }
 };

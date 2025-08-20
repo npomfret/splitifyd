@@ -92,11 +92,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         // Server only returns the path, webapp will construct the full URL
         const shareablePath = `/join?linkId=${shareToken}`;
 
-        logger.info('Shareable link generated', {
-            groupId,
-            userId,
-            shareToken: shareToken.substring(0, 4) + '...',
-        });
+        logger.info('share-link-created', { id: shareToken, groupId });
 
         res.status(HTTP_STATUS.OK).json({
             shareablePath,
@@ -105,7 +101,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     } catch (error) {
         if (error instanceof ApiError) throw error;
 
-        logger.errorWithContext('Error generating shareable link', error as Error, {
+        logger.error('Error generating shareable link', error, {
             groupId,
             userId,
         });
@@ -156,7 +152,7 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
     } catch (error) {
         if (error instanceof ApiError) throw error;
 
-        logger.errorWithContext('Error previewing group by link', error as Error, {
+        logger.error('Error previewing group by link', error, {
             linkId: linkId.substring(0, 4) + '...',
             userId,
         });
@@ -254,7 +250,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     } catch (error) {
         if (error instanceof ApiError) throw error;
 
-        logger.errorWithContext('Error joining group by link', error as Error, {
+        logger.error('Error joining group by link', error, {
             linkId: linkId.substring(0, 4) + '...',
             userId,
         });

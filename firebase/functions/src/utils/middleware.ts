@@ -1,20 +1,18 @@
 import express from 'express';
 import { getConfig } from '../config';
-import { addCorrelationId, logger } from '../logger';
+import { randomUUID } from 'crypto';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
 
 export interface MiddlewareOptions {
     functionName?: string;
-    logMessage?: string;
 }
 
 /**
  * Apply standard middleware stack to Express app
  */
 export const applyStandardMiddleware = (app: express.Application, options: MiddlewareOptions = {}) => {
-    const { functionName, logMessage = 'Request' } = options;
 
     // Apply security headers first
     app.use(applySecurityHeaders);
@@ -23,7 +21,12 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     app.use(applyCacheControl);
 
     // Add correlation ID to all requests for tracing
-    app.use(addCorrelationId);
+    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const correlationId = (req.headers['x-correlation-id'] as string) ?? randomUUID();
+        req.headers['x-correlation-id'] = correlationId;
+        res.setHeader('x-correlation-id', correlationId);
+        next();
+    });
 
     // Apply IP-based rate limiting for all requests
     app.use(rateLimitByIP);
@@ -37,31 +40,6 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     // Validate request structure and prevent malicious payloads
     app.use(validateRequestStructure);
 
-    // Request logging middleware with structured logging
-    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const startTime = Date.now();
-
-        // Log incoming request
-        logger.request(req, logMessage, {
-            ...(functionName && { functionName }),
-            userAgent: req.headers['user-agent'],
-            contentLength: req.headers['content-length'],
-        });
-
-        // Log response when request finishes
-        res.on('finish', () => {
-            const duration = Date.now() - startTime;
-
-            logger.info('Request completed', {
-                correlationId: req.headers['x-correlation-id'] as string,
-                ...(functionName && { functionName }),
-                method: req.method,
-                path: req.path,
-                statusCode: res.statusCode,
-                duration,
-            });
-        });
-
-        next();
-    });
+    // Request logging is minimal - only log when something changes
+    // Errors are logged by error handlers
 };

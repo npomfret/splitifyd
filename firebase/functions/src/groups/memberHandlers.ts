@@ -62,7 +62,6 @@ export const _getGroupMembersData = async (groupId: string, memberIds: string[])
     const members: User[] = memberIds.map((memberId: string) => {
         const profile = memberProfiles.get(memberId);
         if (!profile) {
-            logger.warn('Member profile not found', { memberId, groupId });
             // Return minimal user object for missing profiles
             return {
                 uid: memberId,
@@ -124,8 +123,7 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
 
         res.json(response);
     } catch (error) {
-        logger.error('Error in getGroupMembers', {
-            error: error instanceof Error ? error : new Error(String(error)),
+        logger.error('Error in getGroupMembers', error, {
             groupId,
             userId,
         });
@@ -194,12 +192,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
                 throw balanceError;
             }
 
-            // Log other errors but allow leaving if balance calculation fails
-            logger.warn('Failed to calculate balances when leaving group', {
-                error: balanceError instanceof Error ? balanceError : new Error(String(balanceError)),
-                groupId,
-                userId,
-            });
+            // Allow leaving if balance calculation fails (non-critical)
         }
 
         // Remove user from members list
@@ -211,15 +204,14 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info('User left group', { userId, groupId });
+        logger.info('member-left', { id: userId, groupId });
 
         res.json({
             success: true,
             message: 'Successfully left the group',
         });
     } catch (error) {
-        logger.error('Error in leaveGroup', {
-            error: error instanceof Error ? error : new Error(String(error)),
+        logger.error('Error in leaveGroup', error, {
             groupId,
             userId,
         });
@@ -293,12 +285,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
                 throw balanceError;
             }
 
-            // Log other errors but allow removal if balance calculation fails
-            logger.warn('Failed to calculate balances when removing member', {
-                error: balanceError instanceof Error ? balanceError : new Error(String(balanceError)),
-                groupId,
-                memberId,
-            });
+            // Allow removal if balance calculation fails (non-critical)
         }
 
         // Remove member from group
@@ -310,15 +297,14 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        logger.info('Member removed from group', { userId, groupId, memberId });
+        logger.info('member-removed', { id: memberId, groupId });
 
         res.json({
             success: true,
             message: 'Member removed successfully',
         });
     } catch (error) {
-        logger.error('Error in removeGroupMember', {
-            error: error instanceof Error ? error : new Error(String(error)),
+        logger.error('Error in removeGroupMember', error, {
             groupId,
             userId,
             memberId,

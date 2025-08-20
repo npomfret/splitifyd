@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-import { logger } from '../logger';
 
 /**
  * User profile interface for consistent user data across the application
@@ -68,9 +67,6 @@ export class UserService {
 
         // Handle not found users - log warning but don't throw error
         // Let calling code handle missing users gracefully
-        if (getUsersResult.notFound.length > 0) {
-            logger.warn(`some users were not found`, { count: getUsersResult.notFound.length, notFoundUids: getUsersResult.notFound });
-        }
     }
 }
 
