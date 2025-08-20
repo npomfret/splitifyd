@@ -98,15 +98,10 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
             // Verify we're on the dashboard
             await expect(page).toHaveURL(/\/dashboard/);
 
-            // Wait for dashboard to load
+            // Wait for dashboard to load and real-time updates to propagate
             await page.waitForLoadState('domcontentloaded');
             
-            // NOTE: Real-time updates are not fully implemented yet (see docs/guides/end-to-end_testing.md:438)
-            // We need to reload to see the group removed from the dashboard
-            await page.reload();
-            await page.waitForLoadState('domcontentloaded');
-            
-            // Verify the group is no longer in the list
+            // Verify the group is no longer in the list (relying on real-time updates)
             const groupCard = page.getByText('Group to Delete');
             await expect(groupCard).not.toBeVisible();
         },
