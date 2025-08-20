@@ -1,6 +1,7 @@
 import { useComputed } from '@preact/signals';
 import { useAuth } from '@/app/hooks/useAuth.ts';
 import { lazy, Suspense } from 'preact/compat';
+import { RealTimeIndicator } from '@/components/ui/RealTimeIndicator';
 
 // Lazy load UserMenu to avoid SSG issues
 const UserMenu = lazy(() => import('./UserMenu').then((m) => ({ default: m.UserMenu })));
@@ -29,9 +30,12 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         if (isAuthenticated.value && user.value) {
             return (
-                <Suspense fallback={<div>...</div>}>
-                    <UserMenu user={user.value} />
-                </Suspense>
+                <div class="flex items-center gap-4">
+                    <RealTimeIndicator />
+                    <Suspense fallback={<div>...</div>}>
+                        <UserMenu user={user.value} />
+                    </Suspense>
+                </div>
             );
         }
 
