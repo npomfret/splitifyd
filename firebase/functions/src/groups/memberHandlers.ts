@@ -1,27 +1,14 @@
-import { Response } from 'express';
+import {Response} from 'express';
 import * as admin from 'firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
-import { db } from '../firebase';
-import { AuthenticatedRequest } from '../auth/middleware';
-import { Errors } from '../utils/errors';
-import { userService } from '../services/userService';
-import { validateGroupId } from './validation';
-import { logger, LoggerContext } from '../logger';
-import { User, GroupMembersResponse, FirestoreCollections } from '../shared/shared-types';
-import { Group } from '../shared/shared-types';
-import { calculateGroupBalances } from '../services/balanceCalculator';
-
-// Helper functions
-const getMemberIds = (group: Group): string[] => {
-    return group.members ? Object.keys(group.members) : group.memberIds || [];
-};
-
-const isMember = (group: Group, userId: string): boolean => {
-    if (group.members) {
-        return userId in group.members;
-    }
-    return group.memberIds?.includes(userId) || false;
-};
+import {FieldValue} from 'firebase-admin/firestore';
+import {db} from '../firebase';
+import {AuthenticatedRequest} from '../auth/middleware';
+import {Errors} from '../utils/errors';
+import {userService} from '../services/userService';
+import {validateGroupId} from './validation';
+import {logger, LoggerContext} from '../logger';
+import {FirestoreCollections, Group, GroupMembersResponse, User} from '../shared/shared-types';
+import {calculateGroupBalances} from '../services/balanceCalculator';
 
 /**
  * Transform a Firestore document to a Group
@@ -133,7 +120,7 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
         const group = transformGroupDocument(doc);
 
         // Check if user is a member
-        if (!isMember(group, userId)) {
+        if (!(userId in group.members)) {
             throw Errors.FORBIDDEN();
         }
 
@@ -173,7 +160,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
         const group = transformGroupDocument(doc);
 
         // Check if user is a member
-        if (!isMember(group, userId)) {
+        if (!(userId in group.members)) {
             throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
         }
 
@@ -183,7 +170,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
         }
 
         // Can't leave if you're the only member
-        const memberIds = getMemberIds(group);
+        const memberIds = Object.keys(group.members);
         if (memberIds.length === 1) {
             throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
         }
@@ -274,7 +261,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
         }
 
         // Check if member exists in group
-        if (!isMember(group, memberId)) {
+        if (!(memberId in group.members)) {
             throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
         }
 
