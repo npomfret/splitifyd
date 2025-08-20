@@ -48,7 +48,6 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
                 },
             },
         },
-        memberIds: ['test-user'],
         createdBy: 'test-user',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

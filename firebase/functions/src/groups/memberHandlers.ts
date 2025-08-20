@@ -31,7 +31,6 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
         members: groupData.members,
-        memberIds: Object.keys(groupData.members), // Computed from members
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
     } as Group;

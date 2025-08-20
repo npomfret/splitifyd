@@ -2,7 +2,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
-import type { Group } from '@shared/shared-types.ts';
+import {Group, groupSize} from '@shared/shared-types.ts';
 
 interface GroupHeaderProps {
     group: Group;
@@ -33,7 +33,7 @@ export function GroupHeader({ group, onSettings, isGroupOwner }: GroupHeaderProp
 
             <div className="flex gap-6 text-sm text-gray-600">
                 <div>
-                    <span className="font-medium">{group.memberIds.length}</span> members
+                    <span className="font-medium">{groupSize(group)}</span> members
                 </div>
                 <div>
                     <span className="font-medium">Recent</span> expenses

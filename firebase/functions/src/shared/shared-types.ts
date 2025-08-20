@@ -250,18 +250,16 @@ export interface GroupMember {
     theme: UserThemeColor;
 }
 
+export function groupSize(group: Group) {
+    return group.members ? Object.keys(group.members).length : 0;
+}
+
 export interface Group {
     // Always present
     id: string;
     name: string;
     description?: string;
     members: Record<string, GroupMember>; // Map of userId -> member info with theme
-
-    /**
-     * deprecated Derived from Object.keys(members) - use members map instead
-     */
-    memberIds: string[];
-
     createdBy: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string

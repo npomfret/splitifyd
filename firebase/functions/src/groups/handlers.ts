@@ -60,7 +60,6 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
         members: transformedMembers,
-        memberIds: Object.keys(groupData.members), // Computed from members
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
     } as Group;
@@ -191,7 +190,6 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
             description: sanitizedData.description ?? '',
             createdBy: userId,
             members: members,
-            memberIds: Object.keys(members), // DEPRECATED: Computed from members for backward compatibility
             createdAt: timestampToISO(now),
             updatedAt: timestampToISO(now),
         };
@@ -384,7 +382,9 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const includeMetadata = req.query.includeMetadata === 'true';
 
     // Build base query - groups where user is a member
-    const baseQuery = getGroupsCollection().where('data.memberIds', 'array-contains', userId).select('data', 'createdAt', 'updatedAt', 'userId');
+    const baseQuery = getGroupsCollection()
+        .where(`data.members.${userId}`, '!=', null)
+        .select('data', 'createdAt', 'updatedAt', 'userId');
 
     // Build paginated query
     const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);

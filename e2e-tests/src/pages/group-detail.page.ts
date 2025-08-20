@@ -297,7 +297,7 @@ export class GroupDetailPage extends BasePage {
         // Primary approach: verify all users are visible in the group (more reliable than member count)
         for (const userName of allUserNames) {
             try {
-                await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 15000 });
+                await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 2000 });
             } catch (e) {
                 const visibleMembers = await this.page.locator('[data-testid="member-item"]').allInnerTexts();
                 throw new Error(`Failed to find user "${userName}" in member list during synchronization. Expected users: [${allUserNames.join(', ')}]. Visible members: [${visibleMembers.join(', ')}]`);
@@ -306,7 +306,7 @@ export class GroupDetailPage extends BasePage {
 
         // Secondary verification: wait for correct member count
         try {
-            await this.waitForMemberCount(totalUsers, 5000);
+            await this.waitForMemberCount(totalUsers, 3000);
         } catch (e) {
             const actualCount = await this.page.getByText(/\d+ member/i).textContent();
             throw new Error(`Member count synchronization failed. Expected: ${totalUsers} members, Found: ${actualCount}`);

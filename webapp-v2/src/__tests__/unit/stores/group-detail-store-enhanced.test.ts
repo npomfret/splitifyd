@@ -56,7 +56,6 @@ describe('EnhancedGroupDetailStore', () => {
                 },
             },
         },
-        memberIds: ['user1', 'user2', 'user3'],
         balance: {
             balancesByCurrency: {
                 USD: {

@@ -5,14 +5,14 @@
  * (Members are now fetched separately via /groups/:id/members endpoint)
  */
 
-import type { Group } from '@shared/shared-types.ts';
+import {Group, groupSize} from '@shared/shared-types.ts';
 
 interface MembersPreviewProps {
     group: Group;
 }
 
 export function MembersPreview({ group }: MembersPreviewProps) {
-    if (!group.memberIds || group.memberIds.length === 0) {
+    if (groupSize(group) === 0) {
         return null;
     }
 
@@ -21,7 +21,7 @@ export function MembersPreview({ group }: MembersPreviewProps) {
             <h3 className="text-sm font-medium text-gray-900 mb-3">Group Size</h3>
 
             <div className="text-sm text-gray-700">
-                {group.memberIds.length} {group.memberIds.length === 1 ? 'member' : 'members'}
+                {groupSize(group)} {groupSize(group) === 1 ? 'member' : 'members'}
             </div>
         </div>
     );
