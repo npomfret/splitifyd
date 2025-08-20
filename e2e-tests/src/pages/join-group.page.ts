@@ -240,9 +240,12 @@ export class JoinGroupPage extends BasePage {
         // All retries failed - gather rich diagnostic information
         const pageState = await this.getPageState();
         
+        // Strip ANSI escape sequences from error message for clean output
+        const cleanErrorMessage = lastError?.message?.replace(/\u001b\[[0-9;]*m/g, '') || 'Unknown error';
+        
         throw new Error(`Failed to join group after ${maxRetries} attempts.
         
-Last error: ${lastError?.message}
+Last error: ${cleanErrorMessage}
 
 Page state at failure:
   - URL: ${pageState.url}
