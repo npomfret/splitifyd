@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { GroupBuilder } from '../../support/builders';
+import { CreateGroupRequestBuilder } from '../../support/builders';
 import { beforeAll } from '@jest/globals';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
@@ -24,7 +24,7 @@ describe('Group Members Integration Tests', () => {
 
     // Helper function to create a group with multiple members
     const createGroupWithMembers = async (driver: ApiDriver, users: User[]): Promise<string> => {
-        const groupData = new GroupBuilder().withName(`Test Group ${uuidv4()}`).withDescription('Test group for member operations').build();
+        const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withDescription('Test group for member operations').build();
 
         const group = await driver.createGroup(groupData, users[0].token);
 

@@ -28,7 +28,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
                 const loginPage = new LoginPage(page);
                 await page.goto('/login');
                 await loginPage.login(user.email, 'TestPassword123!');
-                await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+                await page.waitForURL(/\/dashboard/, { timeout: 5000 });
 
                 contexts.push(context);
                 pages.push(page);
@@ -69,7 +69,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
 
             for (const page of pages) {
                 const groupDetailPage = new GroupDetailPage(page);
-                await groupDetailPage.waitForMemberCount(totalUsers, 15000);
+                await groupDetailPage.waitForMemberCount(totalUsers, 5000);
 
                 // Check all names visible
                 for (const user of users) {
@@ -85,7 +85,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
     });
 
     test('should handle race conditions during parallel joins', async ({ browser }) => {
-        test.setTimeout(90000);
+        test.setTimeout(60000);
 
         const userPool = getUserPool();
         const totalUsers = 6;
@@ -103,7 +103,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
                 const loginPage = new LoginPage(page);
                 await page.goto('/login');
                 await loginPage.login(user.email, 'TestPassword123!');
-                await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+                await page.waitForURL(/\/dashboard/, { timeout: 5000 });
 
                 contexts.push(context);
                 pages.push(page);

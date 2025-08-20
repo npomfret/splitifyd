@@ -1,7 +1,6 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import { ChangeDetector } from '@/utils/change-detector';
 import type { CreateGroupRequest, Group, ListGroupsResponse } from '@shared/shared-types';
 
 // Mock the API client
@@ -35,7 +34,20 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
     return {
         id: `group-${Math.random().toString(36).substr(2, 9)}`,
         name: 'Test Group',
-        memberIds: ['test-user'],
+        members: {
+            'test-user': {
+                joinedAt: new Date().toISOString(),
+                role: 'owner' as const,
+                theme: {
+                    light: '#ff0000',
+                    dark: '#cc0000',
+                    name: 'red',
+                    pattern: 'solid' as const,
+                    assignedAt: new Date().toISOString(),
+                    colorIndex: 0,
+                },
+            },
+        },
         createdBy: 'test-user',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -203,7 +215,7 @@ describe('EnhancedGroupsStore', () => {
 
             // Mock the change callback being called
             let changeCallback: (() => void) | undefined;
-            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((_: string, callback: () => void) => {
                 changeCallback = callback;
                 return vi.fn(); // Return unsubscribe function
             });
@@ -462,7 +474,7 @@ describe('EnhancedGroupsStore', () => {
 
             // Setup change subscription
             let changeCallback: (() => void) | undefined;
-            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((_: string, callback: () => void) => {
                 changeCallback = callback;
                 return vi.fn();
             });
@@ -493,7 +505,7 @@ describe('EnhancedGroupsStore', () => {
             const userId = 'test-user-123';
             
             let changeCallback: (() => void) | undefined;
-            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((_: string, callback: () => void) => {
                 changeCallback = callback;
                 return vi.fn();
             });
@@ -518,7 +530,7 @@ describe('EnhancedGroupsStore', () => {
         });
 
         it('applies optimistic updates and refreshes after server update', async () => {
-            const userId = 'test-user-123';
+            // const userId = 'test-user-123';
             const groupId = 'group-1';
             const originalGroup = createTestGroup({ id: groupId, name: 'Original' });
             
@@ -555,7 +567,7 @@ describe('EnhancedGroupsStore', () => {
             await enhancedGroupsStore.fetchGroups();
             
             let changeCallback: (() => void) | undefined;
-            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((uid: string, callback: () => void) => {
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((_: string, callback: () => void) => {
                 changeCallback = callback;
                 return vi.fn();
             });

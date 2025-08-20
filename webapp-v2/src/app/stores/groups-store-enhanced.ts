@@ -12,6 +12,8 @@ export interface EnhancedGroupsStore {
     initialized: boolean;
     isRefreshing: boolean;
     lastRefresh: number;
+    updatingGroupIds: Set<string>;
+    isCreatingGroup: boolean;
 
     fetchGroups(): Promise<void>;
     createGroup(data: CreateGroupRequest): Promise<Group>;
@@ -30,6 +32,8 @@ const errorSignal = signal<string | null>(null);
 const initializedSignal = signal<boolean>(false);
 const isRefreshingSignal = signal<boolean>(false);
 const lastRefreshSignal = signal<number>(0);
+const updatingGroupIdsSignal = signal<Set<string>>(new Set());
+const isCreatingGroupSignal = signal<boolean>(false);
 
 class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     private changeDetector = new ChangeDetector();
@@ -53,6 +57,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
     get lastRefresh() {
         return lastRefreshSignal.value;
+    }
+    get updatingGroupIds() {
+        return updatingGroupIdsSignal.value;
+    }
+    get isCreatingGroup() {
+        return isCreatingGroupSignal.value;
     }
 
     async fetchGroups(): Promise<void> {
@@ -105,42 +115,35 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async createGroup(data: CreateGroupRequest): Promise<Group> {
-        loadingSignal.value = true;
+        isCreatingGroupSignal.value = true;
         errorSignal.value = null;
 
         try {
             const newGroup = await apiClient.createGroup(data);
 
-            // Add to list
-            groupsSignal.value = [newGroup, ...groupsSignal.value];
-            lastRefreshSignal.value = Date.now();
+            // Fetch fresh data from server to ensure consistency
+            await this.fetchGroups();
 
             return newGroup;
         } catch (error) {
             errorSignal.value = this.getErrorMessage(error);
             throw error;
         } finally {
-            loadingSignal.value = false;
+            isCreatingGroupSignal.value = false;
         }
     }
 
     async updateGroup(id: string, updates: Partial<Group>): Promise<void> {
-        // Store original state for rollback
-        const originalGroups = groupsSignal.value;
-        const groupIndex = originalGroups.findIndex(g => g.id === id);
+        const groupIndex = groupsSignal.value.findIndex(g => g.id === id);
         
         if (groupIndex === -1) {
             throw new Error(`Group with id ${id} not found`);
         }
 
-        // Apply optimistic update immediately
-        const optimisticGroups = [...originalGroups];
-        optimisticGroups[groupIndex] = {
-            ...optimisticGroups[groupIndex],
-            ...updates,
-            updatedAt: new Date().toISOString(), // Update timestamp
-        };
-        groupsSignal.value = optimisticGroups;
+        // Mark this group as updating
+        const newUpdatingIds = new Set(updatingGroupIdsSignal.value);
+        newUpdatingIds.add(id);
+        updatingGroupIdsSignal.value = newUpdatingIds;
 
         try {
             // Send update to server (only name and description are supported by API)
@@ -156,10 +159,13 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             // This also ensures we get any server-side computed fields
             await this.fetchGroups();
         } catch (error) {
-            // Rollback on failure
-            groupsSignal.value = originalGroups;
             errorSignal.value = this.getErrorMessage(error);
             throw error;
+        } finally {
+            // Remove from updating set
+            const newUpdatingIds = new Set(updatingGroupIdsSignal.value);
+            newUpdatingIds.delete(id);
+            updatingGroupIdsSignal.value = newUpdatingIds;
         }
     }
 
@@ -212,6 +218,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             initializedSignal.value = false;
             isRefreshingSignal.value = false;
             lastRefreshSignal.value = 0;
+            updatingGroupIdsSignal.value = new Set();
+            isCreatingGroupSignal.value = false;
         });
 
         this.dispose();

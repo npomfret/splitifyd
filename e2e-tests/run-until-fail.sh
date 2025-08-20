@@ -10,8 +10,8 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="e2e-tests/src/tests/normal-flow/member-management.e2e.test.ts"
-TEST_FILTER=""
+TEST_FILE="e2e-tests/src/tests/normal-flow/balance-visualization-multi-user.e2e.test.ts"
+TEST_FILTER="should show specific debt when only one person pays"
 
 # Make max runs configurable, default to 25
 MAX_SUCCESSES=${1:-25}

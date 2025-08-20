@@ -215,7 +215,7 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
         // This is a simplified check - in production you'd want more thorough validation
         const groupsSnapshot = await db
             .collection(FirestoreCollections.GROUPS)
-            .where('data.memberIds', 'array-contains', userId)
+            .where(`data.members.${userId}`, '!=', null)
             .get();
 
         if (!groupsSnapshot.empty) {

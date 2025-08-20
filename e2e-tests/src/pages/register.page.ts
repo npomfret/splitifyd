@@ -1,9 +1,13 @@
-import { expect, Locator } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
 import { createErrorContext } from '../utils/error-formatting';
+import type { User as BaseUser } from '@shared/shared-types';
 
 export class RegisterPage extends BasePage {
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
+    }
     // Selectors
     readonly url = '/register';
     readonly fullNameInput = 'input[placeholder="Enter your full name"]';

@@ -7,7 +7,7 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { joinGroupStore } from '../app/stores/join-group-store';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
+// import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { Button } from '@/components/ui';
@@ -22,7 +22,7 @@ interface JoinGroupPageProps {
 }
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
-    const authStore = useAuthRequired();
+    // const authStore = useAuthRequired();
     // Note: Since this route is now protected by ProtectedRoute, user is guaranteed to be authenticated
     const { group, loadingPreview, joining, joinSuccess, error } = joinGroupStore;
 

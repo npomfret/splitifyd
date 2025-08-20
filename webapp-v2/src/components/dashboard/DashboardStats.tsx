@@ -1,6 +1,7 @@
 import { useComputed } from '@preact/signals';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { SidebarCard } from '@/components/ui';
+import {groupSize} from "@shared/shared-types.ts";
 
 export function DashboardStats() {
     const groups = useComputed(() => enhancedGroupsStore.groups);
@@ -9,7 +10,7 @@ export function DashboardStats() {
     const stats = useComputed(() => {
         const groupsList = groups.value;
         const activeGroups = groupsList.length; // All groups are considered active
-        const totalMembers = groupsList.reduce((sum, g) => sum + (g.memberIds?.length || 0), 0);
+        const totalMembers = groupsList.reduce((sum, g) => sum + groupSize(g), 0);
 
         return {
             totalGroups: groupsList.length,

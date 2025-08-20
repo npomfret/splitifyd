@@ -468,6 +468,14 @@ export class ApiClient {
                             const path = issue.path.join('.');
                             const expected = 'expected' in issue ? issue.expected : issue.code;
                             const received = 'received' in issue ? JSON.stringify(issue.received) : 'unknown';
+                            
+                            // Provide more helpful error messages for common issues
+                            if (path.includes('joinedAt')) {
+                                const actualValue = path.split('.').reduce((obj, key) => obj?.[key], data as any);
+                                const actualType = typeof actualValue;
+                                return `  - ${path}: Expected ISO date string, got ${actualType} (value: ${JSON.stringify(actualValue)})`;
+                            }
+                            
                             return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
                         })
                         .join('\n');
@@ -827,6 +835,7 @@ export class ApiClient {
             id: response.groupId,
             name: response.groupName,
             description: '',
+            members: {}, // Will be populated from server after join
             memberIds: [], // Will be populated after join
             createdBy: '', // Will be populated from server
             createdAt: new Date().toISOString(),

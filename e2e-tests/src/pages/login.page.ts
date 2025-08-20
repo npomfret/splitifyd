@@ -1,8 +1,12 @@
-import { expect, Locator } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
+import type { User as BaseUser } from '@shared/shared-types';
 
 export class LoginPage extends BasePage {
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
+    }
     // Selectors
     readonly url = '/login';
     readonly signInButton = 'Sign In';

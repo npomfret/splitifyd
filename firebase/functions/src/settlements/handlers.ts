@@ -43,7 +43,7 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
 
     const groupDataTyped = groupData.data as GroupData;
 
-    if (groupDataTyped.memberIds?.includes(userId)) {
+    if (userId in groupDataTyped.members) {
         return;
     }
 
@@ -60,7 +60,7 @@ const verifyUsersInGroup = async (groupId: string, userIds: string[]): Promise<v
     const groupData = groupDoc.data();
     const groupDataTyped = groupData?.data as GroupData;
 
-    const allMemberIds = [groupData?.userId, ...(groupDataTyped.memberIds || [])].filter(Boolean);
+    const allMemberIds = [groupData?.userId, ...Object.keys(groupDataTyped.members || {})].filter(Boolean);
 
     for (const userId of userIds) {
         if (!allMemberIds.includes(userId)) {

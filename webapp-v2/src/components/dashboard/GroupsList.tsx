@@ -54,16 +54,28 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     return (
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {enhancedGroupsStore.isCreatingGroup && (
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center">
+                    <LoadingSpinner />
+                    <span class="ml-3 text-gray-600">Creating group...</span>
+                </div>
+            )}
             {enhancedGroupsStore.groups.map((group) => (
-                <GroupCard
-                    key={group.id}
-                    group={group}
-                    onClick={() => {
-                        route(`/groups/${group.id}`);
-                    }}
-                    onInvite={onInvite}
-                    onAddExpense={onAddExpense}
-                />
+                <div key={group.id} class="relative">
+                    {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
+                        <div class="absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10">
+                            <LoadingSpinner />
+                        </div>
+                    )}
+                    <GroupCard
+                        group={group}
+                        onClick={() => {
+                            route(`/groups/${group.id}`);
+                        }}
+                        onInvite={onInvite}
+                        onAddExpense={onAddExpense}
+                    />
+                </div>
             ))}
         </div>
     );

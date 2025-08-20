@@ -1,13 +1,17 @@
-import { Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import { JoinGroupError, AuthenticationError, NavigationError } from '../errors/test-errors';
+import type { User as BaseUser } from '@shared/shared-types';
 
 /**
  * Page object for join group functionality via share links.
  * Handles different authentication states and provides robust join operations.
  */
 export class JoinGroupPage extends BasePage {
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
+    }
     // Core selectors with retry logic
     getJoinGroupHeading(): Locator {
         return this.page.getByRole('heading', { name: /join group/i });
@@ -233,8 +237,27 @@ export class JoinGroupPage extends BasePage {
             }
         }
 
-        // All retries failed
-        throw new Error(`Failed to join group after ${maxRetries} attempts. Last error: ${lastError?.message}`);
+        // All retries failed - gather rich diagnostic information
+        const pageState = await this.getPageState();
+        
+        // Strip ANSI escape sequences from error message for clean output
+        const cleanErrorMessage = lastError?.message?.replace(/\u001b\[[0-9;]*m/g, '') || 'Unknown error';
+        
+        throw new Error(`Failed to join group after ${maxRetries} attempts.
+        
+Last error: ${cleanErrorMessage}
+
+Page state at failure:
+  - URL: ${pageState.url}
+  - Title: ${pageState.title}
+  - User logged in: ${pageState.isLoggedIn}
+  - Already member: ${pageState.isAlreadyMember}
+  - Error page: ${pageState.isErrorPage}
+  - Join page visible: ${pageState.isJoinPageVisible}
+  - Join button visible: ${pageState.joinButtonVisible}
+  - Join button enabled: ${pageState.joinButtonEnabled}
+
+This rich error information should help diagnose why the join operation failed.`);
     }
 
     /**

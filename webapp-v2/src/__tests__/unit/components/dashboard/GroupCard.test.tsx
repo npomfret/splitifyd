@@ -3,12 +3,30 @@ import { vi } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import type { Group, User } from '@shared/shared-types';
 
+// Helper to create a test group member
+function createTestGroupMember(role: 'owner' | 'member' = 'member', colorIndex = 0) {
+    return {
+        joinedAt: new Date().toISOString(),
+        role,
+        theme: {
+            light: '#ff0000',
+            dark: '#cc0000',
+            name: 'red',
+            pattern: 'solid' as const,
+            assignedAt: new Date().toISOString(),
+            colorIndex,
+        },
+    };
+}
+
 // Helper to create test groups
 function createTestGroup(overrides: Partial<Group> = {}): Group {
     return {
-        id: `group-${Math.random().toString(36).substr(2, 9)}`,
+        id: `group-${Math.random().toString(36).substring(2, 11)}`,
         name: 'Test Group',
-        memberIds: ['test-user'],
+        members: {
+            'test-user': createTestGroupMember('owner'),
+        },
         createdBy: 'test-user',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -23,7 +41,7 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
 
 // Helper to create test users
 function createTestUser(overrides: Partial<User> = {}): User {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = Math.random().toString(36).substring(2, 11);
     return {
         uid: `user-${id}`,
         email: `test-${id}@example.com`,
@@ -41,13 +59,17 @@ describe('GroupCard', () => {
 
     it('displays group name and basic info', () => {
         const group = createTestGroup({
-            name: 'Trip to Paris',
-            memberIds: ['user1', 'user2', 'user3'],
+            name: 'trip to paris',
+            members: {
+                'user1': createTestGroupMember('member', 0),
+                'user2': createTestGroupMember('member', 1), 
+                'user3': createTestGroupMember('member', 2),
+            }
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
-        expect(screen.getByText('Trip to Paris')).toBeInTheDocument();
+        expect(screen.getByText('trip to paris')).toBeInTheDocument();
         expect(screen.getByText('3 members')).toBeInTheDocument();
         expect(screen.getByText('Just created')).toBeInTheDocument();
     });
@@ -123,11 +145,16 @@ describe('GroupCard', () => {
     });
 
     it('shows member avatars when members are provided', () => {
-        const members: User[] = [createTestUser({ displayName: 'Alice Anderson' }), createTestUser({ displayName: 'Bob Brown' }), createTestUser({ displayName: 'Charlie Chen' })];
+        const users: User[] = [createTestUser({ displayName: 'Alice Anderson' }), createTestUser({ displayName: 'Bob Brown' }), createTestUser({ displayName: 'Charlie Chen' })];
+
+        const members: Record<string, any> = {};
+        users.forEach((user, index) => {
+            members[user.uid] = createTestGroupMember('member', index);
+        });
 
         const group = createTestGroup({
             name: 'Large Group',
-            memberIds: members.map((m) => m.uid),
+            members,
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -137,9 +164,9 @@ describe('GroupCard', () => {
     });
 
     it('limits member avatars to 5 and shows count for rest', () => {
-        const members: User[] = [];
+        const users: User[] = [];
         for (let i = 0; i < 8; i++) {
-            members.push(
+            users.push(
                 createTestUser({
                     displayName: `User ${String.fromCharCode(65 + i)}`, // User A, User B, etc.
                     uid: `user-${i}`,
@@ -147,9 +174,14 @@ describe('GroupCard', () => {
             );
         }
 
+        const members: Record<string, any> = {};
+        users.forEach((user, index) => {
+            members[user.uid] = createTestGroupMember('member', index);
+        });
+
         const group = createTestGroup({
             name: 'Large Group',
-            memberIds: members.map((m) => m.uid),
+            members,
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -172,7 +204,9 @@ describe('GroupCard', () => {
     it('handles groups with single member correctly', () => {
         const group = createTestGroup({
             name: 'Solo Trip',
-            memberIds: ['test-user'],
+            members: {
+                'test-user': createTestGroupMember('owner', 0)
+            },
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -190,10 +224,10 @@ describe('GroupCard', () => {
         expect(screen.getByText('Just created')).toBeInTheDocument();
     });
 
-    it('handles groups without members array', () => {
+    it('handles groups without members object', () => {
         const group = createTestGroup({
-            name: 'No Members Array',
-            memberIds: undefined as any,
+            name: 'No Members Object',
+            members: undefined as any,
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -202,10 +236,10 @@ describe('GroupCard', () => {
         expect(screen.getByText('0 members')).toBeInTheDocument();
     });
 
-    it('handles empty members array', () => {
+    it('handles empty members object', () => {
         const group = createTestGroup({
             name: 'Empty Members',
-            memberIds: [],
+            members: {},
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);

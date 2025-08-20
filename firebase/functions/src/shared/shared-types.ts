@@ -244,12 +244,22 @@ export interface GroupBalance {
 // Group Types - Single unified interface for both storage and API
 // ========================================================================
 
+export interface GroupMember {
+    joinedAt: string; // ISO string
+    role: 'owner' | 'member';
+    theme: UserThemeColor;
+}
+
+export function groupSize(group: Group) {
+    return group.members ? Object.keys(group.members).length : 0;
+}
+
 export interface Group {
     // Always present
     id: string;
     name: string;
     description?: string;
-    memberIds: string[]; // Array of user IDs - use memberIds.length for count
+    members: Record<string, GroupMember>; // Map of userId -> member info with theme
     createdBy: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string

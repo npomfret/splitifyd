@@ -181,12 +181,12 @@ describe('ApiClient Interceptors', () => {
         it('applies response interceptors in order', async () => {
             const mockResponse = { data: 'original' };
 
-            const interceptor1 = vi.fn(async (response, config) => ({
+            const interceptor1 = vi.fn(async (response, _) => ({
                 ...response,
                 interceptor1: 'applied',
             }));
 
-            const interceptor2 = vi.fn(async (response, config) => ({
+            const interceptor2 = vi.fn(async (response, _) => ({
                 ...response,
                 interceptor2: 'applied',
             }));

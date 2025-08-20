@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import { ChangeDetector } from '@/utils/change-detector';
 import type { Group, User, ExpenseData, GroupBalances, SettlementListItem } from '@shared/shared-types';
 
 // Mock dependencies
@@ -19,7 +18,44 @@ describe('EnhancedGroupDetailStore', () => {
         id: 'group1',
         name: 'Test Group',
         description: 'Test Description',
-        memberIds: ['user1', 'user2', 'user3'],
+        members: {
+            'user1': {
+                joinedAt: new Date().toISOString(),
+                role: 'owner' as const,
+                theme: {
+                    light: '#ff0000',
+                    dark: '#cc0000',
+                    name: 'red',
+                    pattern: 'solid' as const,
+                    assignedAt: new Date().toISOString(),
+                    colorIndex: 0,
+                },
+            },
+            'user2': {
+                joinedAt: new Date().toISOString(),
+                role: 'member' as const,
+                theme: {
+                    light: '#00ff00',
+                    dark: '#00cc00',
+                    name: 'green',
+                    pattern: 'solid' as const,
+                    assignedAt: new Date().toISOString(),
+                    colorIndex: 1,
+                },
+            },
+            'user3': {
+                joinedAt: new Date().toISOString(),
+                role: 'member' as const,
+                theme: {
+                    light: '#0000ff',
+                    dark: '#0000cc',
+                    name: 'blue',
+                    pattern: 'solid' as const,
+                    assignedAt: new Date().toISOString(),
+                    colorIndex: 2,
+                },
+            },
+        },
         balance: {
             balancesByCurrency: {
                 USD: {
@@ -192,7 +228,7 @@ describe('EnhancedGroupDetailStore', () => {
 
         it('should trigger refresh when expense change is detected', async () => {
             let expenseCallback: (() => void) | undefined;
-            const mockSubscribeExpense = vi.fn((groupId, callback) => {
+            const mockSubscribeExpense = vi.fn((_, callback) => {
                 expenseCallback = callback;
                 return vi.fn();
             });
@@ -237,7 +273,7 @@ describe('EnhancedGroupDetailStore', () => {
         it('should trigger refresh when balance change is detected', async () => {
             let balanceCallback: (() => void) | undefined;
             const mockSubscribeExpense = vi.fn().mockReturnValue(vi.fn());
-            const mockSubscribeBalance = vi.fn((groupId, callback) => {
+            const mockSubscribeBalance = vi.fn((_, callback) => {
                 balanceCallback = callback;
                 return vi.fn();
             });
@@ -441,7 +477,7 @@ describe('EnhancedGroupDetailStore', () => {
     describe('Auto-refresh behavior', () => {
         it('should handle background refresh errors silently', async () => {
             let expenseCallback: (() => void) | undefined;
-            const mockSubscribeExpense = vi.fn((groupId, callback) => {
+            const mockSubscribeExpense = vi.fn((_, callback) => {
                 expenseCallback = callback;
                 return vi.fn();
             });
@@ -477,11 +513,11 @@ describe('EnhancedGroupDetailStore', () => {
             let expenseCallback: (() => void) | undefined;
             let balanceCallback: (() => void) | undefined;
             
-            const mockSubscribeExpense = vi.fn((groupId, callback) => {
+            const mockSubscribeExpense = vi.fn((_, callback) => {
                 expenseCallback = callback;
                 return vi.fn();
             });
-            const mockSubscribeBalance = vi.fn((groupId, callback) => {
+            const mockSubscribeBalance = vi.fn((_, callback) => {
                 balanceCallback = callback;
                 return vi.fn();
             });

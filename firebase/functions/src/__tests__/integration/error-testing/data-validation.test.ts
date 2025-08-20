@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
-import { GroupBuilder } from '../../support/builders';
+import { CreateGroupRequestBuilder } from '../../support/builders';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '../../../shared/shared-types';
 
 describe('Enhanced Data Validation Tests', () => {
@@ -276,7 +276,7 @@ describe('Enhanced Data Validation Tests', () => {
         test('should reject group names that exceed maximum length', async () => {
             const longGroupName = 'A'.repeat(101); // Testing 101 chars (API limit is 100)
 
-            const groupData = new GroupBuilder().withName(longGroupName).build();
+            const groupData = new CreateGroupRequestBuilder().withName(longGroupName).build();
 
             // API enforces a 100 character limit on group names
             await expect(driver.createGroup(groupData, users[0].token)).rejects.toThrow(/name.*less than 100|TOO_LONG|length.*exceeded/i);
@@ -285,7 +285,7 @@ describe('Enhanced Data Validation Tests', () => {
         test('should accept group names at the maximum length limit', async () => {
             const validGroupName = 'A'.repeat(99); // At the limit (100 chars max)
 
-            const groupData = new GroupBuilder().withName(validGroupName).build();
+            const groupData = new CreateGroupRequestBuilder().withName(validGroupName).build();
 
             const response = await driver.createGroup(groupData, users[0].token);
             expect(response.id).toBeDefined();
@@ -298,7 +298,7 @@ describe('Enhanced Data Validation Tests', () => {
         test('should reject Unicode characters in group names (security feature)', async () => {
             const unicodeGroupName = '🏠 Family Group - Français 中文 العربية';
 
-            const groupData = new GroupBuilder().withName(unicodeGroupName).build();
+            const groupData = new CreateGroupRequestBuilder().withName(unicodeGroupName).build();
 
             // NOTE: API currently rejects Unicode as "potentially dangerous content"
             await expect(driver.createGroup(groupData, users[0].token)).rejects.toThrow(/dangerous.*content|INVALID_INPUT/i);

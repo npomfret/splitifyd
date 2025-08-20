@@ -51,7 +51,7 @@ class JoinGroupStore {
                 id: preview.groupId,
                 name: preview.groupName,
                 description: preview.groupDescription,
-                memberIds: [], // Preview doesn't provide member IDs
+                members: {}, // Preview doesn't provide member details
                 createdBy: '', // Will be populated from server
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),

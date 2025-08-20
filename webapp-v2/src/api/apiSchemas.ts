@@ -28,6 +28,14 @@ export const MemberSchema = z.object({
     themeColor: UserThemeColorSchema.optional(),
 });
 
+export const GroupMemberSchema = z.object({
+    joinedAt: z.string(), // ISO string, following pattern of createdAt/updatedAt
+    isCreator: z.boolean().optional(), // New field from backend
+    themeIndex: z.number().optional(), // New field from backend
+    role: z.enum(['owner', 'member']).optional(), // Made optional for backward compatibility
+    theme: UserThemeColorSchema.optional(), // Made optional for backward compatibility
+});
+
 export const FirebaseConfigSchema = z.object({
     apiKey: z.string(),
     authDomain: z.string(),
@@ -74,7 +82,7 @@ export const GroupSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     description: z.string().optional(),
-    memberIds: z.array(z.string()),
+    members: z.record(z.string(), GroupMemberSchema), // Map of userId -> GroupMember (required now)
     balance: z.object({
         balancesByCurrency: z.record(
             z.string(),
@@ -97,7 +105,6 @@ export const GroupSchema = z.object({
         .optional(),
 
     // Optional fields for detail view
-    members: z.array(MemberSchema).optional(),
     createdBy: z.string().optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),

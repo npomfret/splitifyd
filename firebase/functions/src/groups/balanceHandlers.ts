@@ -3,7 +3,7 @@ import { calculateGroupBalances } from '../services/balanceCalculator';
 import { db } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { timestampToISO } from '../utils/dateHelpers';
-import { FirestoreCollections } from '../shared/shared-types';
+import {FirestoreCollections, groupSize} from '../shared/shared-types';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.uid;
@@ -25,21 +25,11 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
 
     const groupData = groupDoc.data()!;
 
-    // Handle group structure variations (old vs new format)
-    let memberIds: string[];
-    if (groupData.data?.memberIds) {
-        memberIds = groupData.data.memberIds;
-    } else if (groupData.memberIds) {
-        memberIds = groupData.memberIds;
-    } else {
-        throw new ApiError(400, 'INVALID_GROUP_STATE', 'Group has invalid member structure');
-    }
-
-    if (!memberIds || memberIds.length === 0) {
+    if (groupSize(groupData.data) === 0) {
         throw new ApiError(400, 'INVALID_GROUP_STATE', `Group ${groupId} has no members`);
     }
 
-    if (!memberIds.includes(userId)) {
+    if (!(userId in groupData.data.members)) {
         throw new ApiError(403, 'FORBIDDEN', 'User is not a member of this group');
     }
 

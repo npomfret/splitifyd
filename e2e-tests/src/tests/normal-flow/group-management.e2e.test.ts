@@ -43,15 +43,10 @@ authenticatedPageTest.describe('Group Management', () => {
             // Save changes (this will wait for modal to close)
             await editModal.saveChanges();
             
-            // Wait for save to complete
+            // Wait for save to complete and real-time updates to propagate
             await page.waitForLoadState('domcontentloaded');
             
-            // NOTE: Real-time updates are not fully implemented yet (see docs/guides/end-to-end_testing.md:438)
-            // We need to reload to see the updated group name
-            await page.reload();
-            await page.waitForLoadState('domcontentloaded');
-            
-            // Verify the group name was updated
+            // Verify the group name was updated (relying on real-time updates)
             await expect(groupDetailPage.getGroupTitle()).toHaveText('Updated Group Name');
             await expect(groupDetailPage.getGroupDescription()).toBeVisible();
         },

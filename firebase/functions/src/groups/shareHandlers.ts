@@ -7,11 +7,32 @@ import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { FirestoreCollections } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
+import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
+import type { UserThemeColor } from '../shared/shared-types';
 
 const generateShareToken = (): string => {
     const bytes = randomBytes(12);
     const base64url = bytes.toString('base64url');
     return base64url.substring(0, 16);
+};
+
+/**
+ * Get theme color for a member based on their index
+ */
+const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
+    const colorIndex = memberIndex % USER_COLORS.length;
+    const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
+    const color = USER_COLORS[colorIndex];
+    const pattern = COLOR_PATTERNS[patternIndex];
+    
+    return {
+        light: color.light,
+        dark: color.dark,
+        name: color.name,
+        pattern,
+        assignedAt: new Date().toISOString(),
+        colorIndex,
+    };
 };
 
 interface ValidationResult {
@@ -60,8 +81,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         const groupData = groupDoc.data()!;
 
         if (groupData.userId !== userId) {
-            const memberIds = groupData.data!.memberIds!;
-            const isMember = memberIds.includes(userId);
+            const isMember = userId in groupData.data.members;
 
             if (!isMember) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
@@ -139,15 +159,14 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
         }
 
         // Check if user is already a member
-        const memberIds = groupData.data.memberIds || [];
-        const isAlreadyMember = memberIds.includes(userId) || groupData.userId === userId;
+        const isAlreadyMember = userId in groupData.data.members || groupData.userId === userId;
 
         // Return group preview data
         res.status(HTTP_STATUS.OK).json({
             groupId: groupDoc.id,
             groupName: groupData.data.name,
             groupDescription: groupData.data.description || '',
-            memberCount: memberIds.length,
+            memberCount: Object.keys(groupData.data.members).length,
             isAlreadyMember,
         });
     } catch (error) {
@@ -198,34 +217,38 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             const groupData = groupSnapshot.data()!;
             const originalUpdatedAt = getUpdatedAtTimestamp(groupData);
 
-            if (!groupData.data?.memberIds) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP', 'Group missing memberIds');
-            }
-            const currentMemberIds = groupData.data.memberIds;
-
-            // 🎯 FIXED: Use Set for atomic deduplication to prevent race conditions
-            const allMemberIds = new Set([...currentMemberIds]);
-
-            // Ensure group owner is in memberIds
-            allMemberIds.add(groupData.userId);
-
-            // Check if user is already a member BEFORE attempting to add
-            if (allMemberIds.has(userId)) {
+            // Check if user is already a member using the members map
+            if (userId in groupData.data.members) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
             }
-
-            // Add user to memberIds (Set prevents duplicates)
-            allMemberIds.add(userId);
-
-            // Convert back to array for Firestore
-            const newMemberIds = Array.from(allMemberIds);
+            
+            // Check if user is the group owner
+            if (groupData.userId === userId) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
+            }
+            
+            // Calculate next theme index based on current member count
+            const memberIndex = Object.keys(groupData.data.members).length;
+            
+            // Create new member with theme assignment
+            const newMember = {
+                role: 'member' as const,
+                theme: getThemeColorForMember(memberIndex),
+                joinedAt: new Date().toISOString(), // Use ISO string to match createdAt/updatedAt pattern
+            };
+            
+            // Add new member to members map
+            const updatedMembers = {
+                ...groupData.data.members,
+                [userId]: newMember,
+            };
 
             // 🎯 FIXED: Use the proper transaction function with correct read/write order
             await checkAndUpdateWithTimestamp(
                 transaction,
                 groupRef,
                 {
-                    'data.memberIds': newMemberIds,
+                    'data.members': updatedMembers,
                 },
                 originalUpdatedAt,
             );

@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
-import { GroupBuilder } from '../../support/builders';
+import { CreateGroupRequestBuilder } from '../../support/builders';
 
 describe('User Management Tests', () => {
     let driver: ApiDriver;
@@ -418,7 +418,7 @@ describe('User Management Tests', () => {
     describe('User Profile Management', () => {
         test('should allow users to update their own groups', async () => {
             // Test user can update groups they created
-            const groupData = new GroupBuilder().withName(`User Profile Group ${testUser.displayName}`).withMembers([testUser]).build();
+            const groupData = new CreateGroupRequestBuilder().withName(`User Profile Group ${testUser.displayName}`).withMembers([testUser]).build();
 
             const userGroup = await driver.createGroup(groupData, testUser.token);
 
@@ -436,7 +436,7 @@ describe('User Management Tests', () => {
         test('should prevent users from updating other users groups', async () => {
             const otherUser = await driver.createUser(new UserBuilder().build());
 
-            const otherGroupData = new GroupBuilder().withName(`Other User Group ${otherUser.displayName}`).withMembers([otherUser]).build();
+            const otherGroupData = new CreateGroupRequestBuilder().withName(`Other User Group ${otherUser.displayName}`).withMembers([otherUser]).build();
 
             const otherUserGroup = await driver.createGroup(otherGroupData, otherUser.token);
 
@@ -455,7 +455,7 @@ describe('User Management Tests', () => {
 
     describe('Data Validation and Security', () => {
         test('should handle concurrent user operations safely', async () => {
-            const concurrentGroupData = new GroupBuilder().withName(`Concurrent Test Group ${testUser.displayName}`).withMembers([testUser]).build();
+            const concurrentGroupData = new CreateGroupRequestBuilder().withName(`Concurrent Test Group ${testUser.displayName}`).withMembers([testUser]).build();
 
             const userGroup = await driver.createGroup(concurrentGroupData, testUser.token);
 

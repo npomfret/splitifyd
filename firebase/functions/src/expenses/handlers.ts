@@ -52,8 +52,8 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
     // Check if user is a member of the group
     const groupDataTyped = groupData.data as GroupData;
 
-    // Check memberIds array
-    if (groupDataTyped.memberIds!.includes(userId)) {
+    // Check if user is in members map
+    if (userId in groupDataTyped.members) {
         return;
     }
 
@@ -111,10 +111,10 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
 
     const groupDoc = await getGroupsCollection().doc(expenseData.groupId).get();
     const groupData = groupDoc.data();
-    if (!groupData?.data?.memberIds) {
+    if (!groupData?.data?.members) {
         throw new Error(`Group ${expenseData.groupId} not found or missing member data`);
     }
-    const memberIds = groupData.data.memberIds;
+    const memberIds = Object.keys(groupData.data.members);
 
     // Validate that paidBy is a group member
     if (!memberIds.includes(expenseData.paidBy)) {
@@ -146,7 +146,6 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
         splitType: expenseData.splitType,
         participants: expenseData.participants,
         splits,
-        memberIds,
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
@@ -244,10 +243,10 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
     if (updateData.paidBy || updateData.participants) {
         const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
         const groupData = groupDoc.data();
-        if (!groupData?.data?.memberIds) {
+        if (!groupData?.data?.members) {
             throw new Error(`Group ${expense.groupId} not found or missing member data`);
         }
-        const memberIds = groupData.data.memberIds;
+        const memberIds = Object.keys(groupData.data.members);
 
         // Validate paidBy if it's being updated
         if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
@@ -518,7 +517,6 @@ export const _getGroupExpensesData = async (
             'receiptUrl',
             'createdAt',
             'updatedAt',
-            'memberIds',
             'deletedAt',
             'deletedBy',
         )
@@ -621,7 +619,7 @@ export const listUserExpenses = async (req: AuthenticatedRequest, res: Response)
     const includeDeleted = req.query.includeDeleted === 'true';
 
     let query = getExpensesCollection()
-        .where('memberIds', 'array-contains', userId)
+        .where('participants', 'array-contains', userId)
         .select(
             'groupId',
             'createdBy',
@@ -637,7 +635,6 @@ export const listUserExpenses = async (req: AuthenticatedRequest, res: Response)
             'receiptUrl',
             'createdAt',
             'updatedAt',
-            'memberIds',
             'deletedAt',
             'deletedBy',
         )
@@ -769,13 +766,13 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
             name: groupData.data.name,
             description: groupData.data.description || '',
             createdBy: groupData.data.createdBy,
-            memberIds: groupData.data.memberIds || [],
+            members: groupData.data.members,
             createdAt: groupData.createdAt.toDate().toISOString(),
             updatedAt: groupData.updatedAt.toDate().toISOString(),
         };
         
         // Use extracted internal functions to eliminate duplication
-        const membersData = await _getGroupMembersData(expense.groupId, group.memberIds);
+        const membersData = await _getGroupMembersData(expense.groupId, groupData.data.members!);
 
         // Format expense response using existing patterns
         const expenseResponse = {

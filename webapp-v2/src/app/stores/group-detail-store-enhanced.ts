@@ -325,7 +325,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
 
-        await Promise.all([this.fetchExpenses(), this.fetchBalances(), this.fetchMembers(), this.fetchSettlements()]);
+        // Use the consolidated full-details endpoint to ensure atomic data consistency
+        // This prevents race conditions where balances might not be calculated yet
+        await this.loadGroup(this.currentGroupId);
     }
 
     dispose(): void {

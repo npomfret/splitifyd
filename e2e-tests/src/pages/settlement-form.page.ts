@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
+import type { User as BaseUser } from '@shared/shared-types';
 
 interface SettlementData {
     payerName: string; // Display name of who paid
@@ -9,8 +10,8 @@ interface SettlementData {
 }
 
 export class SettlementFormPage extends BasePage {
-    constructor(page: Page) {
-        super(page);
+    constructor(page: Page, userInfo?: BaseUser) {
+        super(page, userInfo);
     }
 
     // Element accessors

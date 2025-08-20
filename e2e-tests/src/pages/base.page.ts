@@ -1,8 +1,13 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
+import type { User as BaseUser } from '@shared/shared-types';
 
 export abstract class BasePage {
-    constructor(protected _page: Page) {}
+    protected userInfo?: BaseUser;
+    
+    constructor(protected _page: Page, userInfo?: BaseUser) {
+        this.userInfo = userInfo;
+    }
 
     /**
      * Public getter for the page property

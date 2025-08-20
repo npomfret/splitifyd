@@ -1,6 +1,6 @@
 import { ApiDriver } from '../../support/ApiDriver';
 import { UserBuilder } from '../../support/builders';
-import { GroupBuilder } from '../../support/builders';
+import { CreateGroupRequestBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('User Profile Management API Tests', () => {
@@ -320,7 +320,7 @@ describe('User Profile Management API Tests', () => {
         it('should prevent deletion when user is member of groups', async () => {
             // Create a group with the test user - use unique name to avoid conflicts
             const uniqueGroupName = `Delete-Test-Group-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const group = new GroupBuilder()
+            const group = new CreateGroupRequestBuilder()
                 .withName(uniqueGroupName)
                 .withMembers([testUser])
                 .build();
@@ -349,7 +349,7 @@ describe('User Profile Management API Tests', () => {
         it('should reflect display name changes in group members', async () => {
             // Use unique group name to avoid conflicts
             const uniqueGroupName = `Test-Group-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const group = new GroupBuilder()
+            const group = new CreateGroupRequestBuilder()
                 .withName(uniqueGroupName)
                 .withMembers([testUser, secondUser])
                 .build();

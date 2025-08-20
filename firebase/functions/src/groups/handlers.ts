@@ -16,6 +16,27 @@ import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-
 import { _getGroupMembersData } from './memberHandlers';
 import { _getGroupExpensesData } from '../expenses/handlers';
 import { _getGroupSettlementsData } from '../settlements/handlers';
+import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
+import type { UserThemeColor } from '../shared/shared-types';
+
+/**
+ * Get theme color for a member based on their index
+ */
+const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
+    const colorIndex = memberIndex % USER_COLORS.length;
+    const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
+    const color = USER_COLORS[colorIndex];
+    const pattern = COLOR_PATTERNS[patternIndex];
+    
+    return {
+        light: color.light,
+        dark: color.dark,
+        name: color.name,
+        pattern,
+        assignedAt: new Date().toISOString(),
+        colorIndex,
+    };
+};
 
 /**
  * Get the groups collection reference
@@ -39,15 +60,30 @@ const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group =>
     }
     const groupData = data.data;
 
+    // Transform members to ensure joinedAt follows the same pattern as createdAt/updatedAt
+    const transformedMembers: Record<string, any> = {};
+    for (const [userId, member] of Object.entries(groupData.members)) {
+        const memberData = member as any;
+        transformedMembers[userId] = {
+            ...memberData,
+            // Convert Firestore Timestamp to ISO string if it exists, matching pattern of createdAt/updatedAt
+            joinedAt: memberData.joinedAt?.toDate 
+                ? memberData.joinedAt.toDate().toISOString()
+                : (memberData.joinedAt?._seconds 
+                    ? new Date(memberData.joinedAt._seconds * 1000).toISOString()
+                    : memberData.joinedAt)
+        };
+    }
+
     return {
         id: doc.id,
         name: groupData.name!,
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
-        memberIds: groupData.memberIds!,
+        members: transformedMembers,
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
-    };
+    } as Group;
 };
 
 /**
@@ -111,7 +147,7 @@ const fetchGroupWithAccess = async (groupId: string, userId: string, requireWrit
     }
 
     // For read operations, check if user is a member
-    if (group.memberIds.includes(userId)) {
+    if (userId in group.members) {
         const groupWithComputed = await addComputedFields(group, userId);
         return { docRef, group: groupWithComputed };
     }
@@ -144,13 +180,37 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
         // For the data field, we need actual timestamps for the response
         const now = createOptimisticTimestamp();
+        
+        // Create member list with theme assignments
+        const initialMemberIds = sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId];
+        const members: Record<string, any> = {};
+        
+        // Ensure creator is always first with theme index 0
+        members[userId] = {
+            role: 'owner' as const,
+            theme: getThemeColorForMember(0),
+            joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
+        };
+        
+        // Add other members with incrementing theme indices
+        let memberIndex = 1;
+        for (const memberId of initialMemberIds) {
+            if (memberId !== userId) {
+                members[memberId] = {
+                    role: 'member' as const,
+                    theme: getThemeColorForMember(memberIndex),
+                    joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
+                };
+                memberIndex++;
+            }
+        }
 
         const newGroup: Group = {
             id: docRef.id,
             name: sanitizedData.name,
             description: sanitizedData.description ?? '',
             createdBy: userId,
-            memberIds: sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId],
+            members: members,
             createdAt: timestampToISO(now),
             updatedAt: timestampToISO(now),
         };
@@ -343,7 +403,9 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const includeMetadata = req.query.includeMetadata === 'true';
 
     // Build base query - groups where user is a member
-    const baseQuery = getGroupsCollection().where('data.memberIds', 'array-contains', userId).select('data', 'createdAt', 'updatedAt', 'userId');
+    const baseQuery = getGroupsCollection()
+        .where(`data.members.${userId}`, '!=', null)
+        .select('data', 'createdAt', 'updatedAt', 'userId');
 
     // Build paginated query
     const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
@@ -491,8 +553,8 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
         
         // Use extracted internal functions to eliminate duplication
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
-            // Get members using extracted function
-            _getGroupMembersData(groupId, group.memberIds),
+            // Get members using extracted function with theme information
+            _getGroupMembersData(groupId, group.members),
             
             // Get expenses using extracted function with pagination
             _getGroupExpensesData(groupId, { 

@@ -14,29 +14,6 @@ export function getInitials(displayName: string): string {
         .slice(0, 2);
 }
 
-// Generate a consistent color based on user ID
-export function getUserColor(userId: string): { bg: string; text: string } {
-    const colors = [
-        { bg: 'bg-purple-100', text: 'text-purple-700' },
-        { bg: 'bg-blue-100', text: 'text-blue-700' },
-        { bg: 'bg-green-100', text: 'text-green-700' },
-        { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-        { bg: 'bg-red-100', text: 'text-red-700' },
-        { bg: 'bg-indigo-100', text: 'text-indigo-700' },
-        { bg: 'bg-pink-100', text: 'text-pink-700' },
-        { bg: 'bg-teal-100', text: 'text-teal-700' },
-    ];
-
-    // Generate a hash from the userId to ensure consistent colors
-    let hash = 0;
-    for (let i = 0; i < userId.length; i++) {
-        hash = (hash << 5) - hash + userId.charCodeAt(i);
-        hash = hash & hash; // Convert to 32-bit integer
-    }
-
-    return colors[Math.abs(hash) % colors.length];
-}
-
 // Get size classes for avatars
 export function getAvatarSize(size: AvatarProps['size'] = 'md'): { container: string; text: string } {
     switch (size) {
