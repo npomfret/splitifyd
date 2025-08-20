@@ -686,65 +686,13 @@ class GroupsStore {
 
 #### Objectives
 
-- Optimize notification performance
 - Add monitoring and metrics
-- Polish user experience
-- Implement error recovery
+- Polish user experience with connection indicators
+- Track costs and performance
 
 #### Technical Implementation
 
-##### 3.1 Notification Optimization
-
-```typescript
-// webapp-v2/src/utils/notification-manager.ts
-export class NotificationManager {
-    private listeners = new Map<string, () => void>();
-    private retryCount = new Map<string, number>();
-    
-    subscribeToNotifications(collection: string, userId: string, callback: () => void) {
-        // Minimal query - just timestamps, no data
-        const query = query(
-            collection(db, collection),
-            where('affectedUsers', 'array-contains', userId),
-            where('timestamp', '>', Date.now() - 60000),
-            orderBy('timestamp', 'desc'),
-            limit(1)
-        );
-        
-        const unsubscribe = onSnapshot(
-            query,
-            { includeMetadataChanges: false },
-            (snapshot) => {
-                if (!snapshot.empty && !snapshot.metadata.fromCache) {
-                    callback();
-                }
-            },
-            (error) => {
-                this.handleError(collection, error);
-            }
-        );
-        
-        this.listeners.set(collection, unsubscribe);
-    }
-    
-    private handleError(collection: string, error: any) {
-        const retries = this.retryCount.get(collection) || 0;
-        
-        if (retries < 3) {
-            // Exponential backoff retry
-            setTimeout(() => {
-                this.retryCount.set(collection, retries + 1);
-                // Resubscribe logic here
-            }, Math.pow(2, retries) * 1000);
-        } else {
-            // Fall back to polling
-            console.warn(`Notifications failed for ${collection}, using polling`);
-        }
-    }
-}
-```
-
-##### 3.2 Simple Monitoring
+##### 3.1 Performance Monitoring
 
 ```typescript
 // webapp-v2/src/utils/metrics.ts
@@ -752,7 +700,6 @@ export class MetricsCollector {
     private metrics = {
         notificationCount: 0,
         restRefreshCount: 0,
-        pollingFallbackCount: 0,
         averageRefreshLatency: 0,
         firestoreReadsPerHour: 0
     };
@@ -767,10 +714,6 @@ export class MetricsCollector {
         this.metrics.averageRefreshLatency = 
             (this.metrics.averageRefreshLatency * (this.metrics.restRefreshCount - 1) + latency) 
             / this.metrics.restRefreshCount;
-    }
-    
-    trackPollingFallback() {
-        this.metrics.pollingFallbackCount++;
     }
     
     getMetrics() {
@@ -789,52 +732,7 @@ export class MetricsCollector {
 }
 ```
 
-##### 3.3 Error Recovery
-
-```typescript
-// webapp-v2/src/utils/error-handler.ts
-export class NotificationErrorHandler {
-    private pollingFallback: NodeJS.Timer | null = null;
-    
-    handleNotificationError(error: any) {
-        console.warn('Notification listener failed:', error);
-        
-        // Fall back to simple polling
-        if (!this.pollingFallback) {
-            this.startPolling();
-        }
-    }
-    
-    handleRestError(error: any) {
-        // REST errors are handled normally
-        if (error.status === 401) {
-            // Re-authenticate
-            window.location.href = '/login';
-        } else if (error.status >= 500) {
-            // Server error - retry with backoff
-            setTimeout(() => this.retry(), 2000);
-        }
-    }
-    
-    private startPolling() {
-        // Simple 30-second polling as fallback
-        this.pollingFallback = setInterval(() => {
-            if (navigator.onLine) {
-                // Trigger REST refresh
-                store.refreshData();
-            }
-        }, 30000);
-    }
-    
-    dispose() {
-        if (this.pollingFallback) {
-            clearInterval(this.pollingFallback);
-        }
-    }
-}
-```
-
-##### 3.4 User Experience
+##### 3.2 User Experience
 
 ```typescript
 // webapp-v2/src/components/ui/RealTimeIndicator.tsx
@@ -861,7 +759,6 @@ export function RealTimeIndicator() {
 #### Success Criteria
 
 - Notifications trigger REST refreshes within 500ms
-- Polling fallback activates when notifications fail
 - Simple metrics show cost and performance
 - Connection indicator shows online/offline status
 - No memory leaks from listeners
@@ -869,7 +766,6 @@ export function RealTimeIndicator() {
 #### Testing Requirements
 
 - Test notification listeners with mock data
-- Test polling fallback activation
 - Test optimistic updates and rollback
 - Test connection state changes
 - Test metric collection accuracy
@@ -912,7 +808,7 @@ export function RealTimeIndicator() {
 
 - **User Experience**: Near real-time updates (< 1 second)
 - **Cost Efficiency**: < $10/month for notifications (10K users)
-- **Reliability**: Automatic fallback to polling
+- **Reliability**: Robust real-time synchronization
 - **Simplicity**: < 500 lines of new code
 - **Compatibility**: Works on all browsers
 
@@ -920,7 +816,6 @@ export function RealTimeIndicator() {
 
 - Notification count per hour
 - REST refresh frequency
-- Polling fallback activation rate
 - Average update latency
 - Estimated monthly cost
 
@@ -928,18 +823,17 @@ export function RealTimeIndicator() {
 
 ### Identified Risks
 
-1. **Notification failures**: Automatic polling fallback
-2. **Cost increase**: Monitoring with alerts at thresholds
-3. **Browser issues**: REST continues to work normally
-4. **User confusion**: Subtle updates, no UI disruption
+1. **Cost increase**: Monitoring with alerts at thresholds
+2. **Browser compatibility**: REST continues to work normally
+3. **User confusion**: Subtle updates, no UI disruption
 
 ### Rollback Strategy
 
 Simple and safe:
 
-- **Disable notifications**: Just turn off listeners
-- **Keep REST**: Everything continues working
-- **No data migration**: No data stored in notifications
+- **Disable notifications**: Just turn off listeners via feature flag
+- **Keep REST**: Everything continues working as before
+- **No data migration**: No persistent data stored in notifications
 - **Feature flag**: Single toggle to enable/disable
 
 ### Feature Flags
@@ -947,12 +841,13 @@ Simple and safe:
 ```typescript
 const FEATURE_FLAGS = {
     notifications: {
-        enabled: process.env.ENABLE_NOTIFICATIONS === 'true',
-        pollingFallback: true,
-        pollingInterval: 30000
+        enabled: process.env.ENABLE_NOTIFICATIONS === 'true'
     },
     optimisticUpdates: {
         enabled: true
+    },
+    metrics: {
+        enabled: process.env.ENABLE_METRICS === 'true'
     }
 };
 ```
@@ -974,10 +869,10 @@ const FEATURE_FLAGS = {
 - Integration tests for stores (✅ Complete - 1,583+ lines of tests)
 
 ### Phase 3: Optimization & Production Polish (Not Started)
-- Error handling and fallbacks
 - Production monitoring and metrics
-- Performance optimization
+- Performance optimization  
 - UI polish and indicators
+- Cost tracking and optimization
 
 ## Future Enhancements
 
