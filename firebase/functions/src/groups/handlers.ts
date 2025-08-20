@@ -163,7 +163,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
             updatedAt: serverTimestamp, // True server timestamp
         });
 
-        logger.info('group-created', { id: docRef.id });
+        logger.info('group-created', { id: docRef.id, userId });
 
         const createdDoc = await docRef.get();
         const group = transformGroupDocument(createdDoc);
@@ -282,7 +282,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
         );
     });
 
-    logger.info('group-updated', { id: groupId });
+    logger.info('group-updated', { id: groupId, userId });
 
     res.json({ message: 'Group updated successfully' });
 };
@@ -310,7 +310,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     // Delete the group
     await docRef.delete();
 
-    logger.info('group-deleted', { id: groupId });
+    logger.info('group-deleted', { id: groupId, userId });
 
     res.json({ message: 'Group deleted successfully' });
 };

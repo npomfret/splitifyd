@@ -92,7 +92,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         // Server only returns the path, webapp will construct the full URL
         const shareablePath = `/join?linkId=${shareToken}`;
 
-        logger.info('share-link-created', { id: shareToken, groupId });
+        logger.info('share-link-created', { id: shareToken, groupId, userId });
 
         res.status(HTTP_STATUS.OK).json({
             shareablePath,

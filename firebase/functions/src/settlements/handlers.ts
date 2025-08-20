@@ -136,7 +136,7 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
             updatedAt: timestampToISO(now),
         };
 
-        logger.info('settlement-created', { id: settlementId });
+        logger.info('settlement-created', { id: settlementId, userId });
 
         res.status(HTTP_STATUS.CREATED).json({
             success: true,
@@ -244,7 +244,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
             updatedAt: timestampToISO(updatedSettlement!.updatedAt),
         } as Settlement;
 
-        logger.info('settlement-updated', { id: settlementId });
+        logger.info('settlement-updated', { id: settlementId, userId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
@@ -320,7 +320,7 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
             transaction.delete(settlementRef);
         });
 
-        logger.info('settlement-deleted', { id: settlementId });
+        logger.info('settlement-deleted', { id: settlementId, userId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,

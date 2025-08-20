@@ -177,7 +177,7 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
             transaction.set(docRef, expense);
         });
 
-        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId });
+        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId, userId });
 
         // Convert Firestore Timestamps to ISO strings for the response
         const responseExpense = {
@@ -367,7 +367,7 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
             });
         }
 
-        logger.info('expense-updated', { id: expenseId });
+        logger.info('expense-updated', { id: expenseId, userId });
 
         // Fetch the updated expense to return the full object
         const updatedExpenseDoc = await docRef.get();
@@ -462,7 +462,7 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
             // Note: Group metadata will be updated by the balance aggregation trigger
         });
 
-        logger.info('expense-deleted', { id: expenseId });
+        logger.info('expense-deleted', { id: expenseId, userId });
 
         res.json({
             message: 'Expense deleted successfully',
