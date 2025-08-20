@@ -28,11 +28,7 @@ export const updateWithTimestamp = async (transaction: admin.firestore.Transacti
         updatedAt: createOptimisticTimestamp(),
     });
 
-    logger.info('Document updated with optimistic lock', {
-        docId: docRef.id,
-        collection: docRef.parent.id,
-        updateFields: Object.keys(updates),
-    });
+    // Document updated with optimistic lock
 };
 
 /**

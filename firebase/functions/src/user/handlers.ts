@@ -172,7 +172,7 @@ export const sendPasswordResetEmail = async (req: any, res: Response): Promise<v
 
             // In production, you would send this link via email
             // For now, we'll return a success message
-            logger.info('Password reset link generated', { email: validatedData.email, resetLink });
+            logger.info('password-reset-requested', { email: validatedData.email });
 
             res.status(HTTP_STATUS.OK).json({
                 message: 'Password reset email sent successfully',
