@@ -47,6 +47,10 @@ This project uses Playwright for end-to-end testing with a robust architecture d
 
 In general, the end-to-end test suite is quite slow. During development, ONLY run selected tests (relevant to the stuff you are working on). Only at the end run the entire suite.
 
+Don't ever run tests that require manual debugging.
+
+Don't ever serve the Playwright html report, it takes over the users default browser.  Always use `PLAYWRIGHT_HTML_OPEN=never` or ideally use `e2e-tests/run-until-fail.sh`. 
+
 ## Core Principles: The Foundation of a Stable Test Suite
 
 Our E2E tests are the ultimate guarantee of quality. They must be fast, reliable, and deterministic. Adherence to these principles is not optional.
