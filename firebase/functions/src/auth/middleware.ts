@@ -6,7 +6,7 @@ import { getConfig } from '../config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { FirestoreCollections, UserRoles } from '../shared/shared-types';
-import { LoggerContext } from '../utils/logger-context';
+import { LoggerContext } from '../logger';
 
 /**
  * Extended Express Request with user information

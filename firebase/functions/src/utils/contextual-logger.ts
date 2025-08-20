@@ -107,13 +107,12 @@ class ContextualLoggerImpl implements ContextualLogger {
 }
 
 /**
- * Main contextual logger instance
+ * Main logger instance
  * Automatically includes context from AsyncLocalStorage
  */
-export const contextualLogger: ContextualLogger = new ContextualLoggerImpl();
+export const logger: ContextualLogger = new ContextualLoggerImpl();
 
 /**
- * Backward compatibility: Export logger with old name
- * This allows gradual migration from old logger to new one
+ * Also export as contextualLogger for clarity
  */
-export const logger = contextualLogger;
+export const contextualLogger = logger;

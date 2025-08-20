@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
-import { LoggerContext } from './logger-context';
+import { LoggerContext } from '../logger';
 
 export interface MiddlewareOptions {
     functionName?: string;

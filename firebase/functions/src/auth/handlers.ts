@@ -48,6 +48,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         }
 
         await firestore.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
+        // User context will be set when they authenticate
         logger.info('user-registered', { id: userRecord.uid });
 
         res.status(HTTP_STATUS.CREATED).json({

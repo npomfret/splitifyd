@@ -9,8 +9,7 @@ import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGrou
 import { Group, GroupWithBalance } from '../types/group-types';
 import { FirestoreCollections } from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
-import { contextualLogger as logger } from '../utils/contextual-logger';
-import { LoggerContext } from '../utils/logger-context';
+import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
