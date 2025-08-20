@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
+import { LoggerContext } from '../logger';
 
 export interface MiddlewareOptions {
     functionName?: string;
@@ -20,12 +21,20 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     // Apply cache control headers to prevent stale data issues
     app.use(applyCacheControl);
 
-    // Add correlation ID to all requests for tracing
+    // Add correlation ID and initialize logging context for all requests
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
         const correlationId = (req.headers['x-correlation-id'] as string) ?? randomUUID();
         req.headers['x-correlation-id'] = correlationId;
         res.setHeader('x-correlation-id', correlationId);
-        next();
+        
+        // Initialize logging context for this request
+        LoggerContext.run({
+            correlationId,
+            requestPath: req.path,
+            requestMethod: req.method,
+        }, () => {
+            next();
+        });
     });
 
     // Apply IP-based rate limiting for all requests

@@ -9,7 +9,7 @@ import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGrou
 import { Group, GroupWithBalance } from '../types/group-types';
 import { FirestoreCollections } from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
-import { logger } from '../logger';
+import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
@@ -163,6 +163,10 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
             updatedAt: serverTimestamp, // True server timestamp
         });
 
+        // Add group context to logger
+        LoggerContext.setBusinessContext({ groupId: docRef.id });
+        
+        // Log without explicitly passing userId - it will be automatically included
         logger.info('group-created', { id: docRef.id });
 
         const createdDoc = await docRef.get();
@@ -282,6 +286,10 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
         );
     });
 
+    // Set group context
+    LoggerContext.setBusinessContext({ groupId });
+    
+    // Log without explicitly passing userId - it will be automatically included
     logger.info('group-updated', { id: groupId });
 
     res.json({ message: 'Group updated successfully' });
@@ -310,6 +318,10 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     // Delete the group
     await docRef.delete();
 
+    // Set group context
+    LoggerContext.setBusinessContext({ groupId });
+    
+    // Log without explicitly passing userId - it will be automatically included
     logger.info('group-deleted', { id: groupId });
 
     res.json({ message: 'Group deleted successfully' });
