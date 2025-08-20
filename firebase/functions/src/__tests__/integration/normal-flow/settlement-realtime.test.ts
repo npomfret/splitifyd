@@ -59,14 +59,15 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
 
         const settlementRef = await db.collection('settlements').add(settlementData);
 
-        // Poll for the change notification
+        // Poll for the change notification with proper timeout for trigger to fire
+        // Following the testing guide: use 5-10 seconds for triggers
         const changeNotification = await pollForChange(
             FirestoreCollections.TRANSACTION_CHANGES,
             (doc: any) => doc.groupId === groupId && 
                          doc.id === settlementRef.id && 
                          doc.type === 'settlement' &&
                          doc.action === 'created',
-            { timeout: 5000, groupId }
+            { timeout: 10000, groupId }  // Increased timeout per testing guidelines
         );
 
         // Verify the change notification was created
@@ -77,7 +78,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification.action).toBe('created');
         expect(changeNotification.users).toContain(userId1);
         expect(changeNotification.users).toContain(userId2);
-    }, 10000);
+    }, 15000);  // Increased test timeout
 
     it('should generate balance-change notification when settlement is created', async () => {
         // Create a settlement
@@ -94,13 +95,14 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
 
         await db.collection('settlements').add(settlementData);
 
-        // Poll for the balance change notification
+        // Poll for the balance change notification with proper timeout for trigger to fire
+        // Following the testing guide: use 5-10 seconds for triggers
         const changeNotification = await pollForChange(
             FirestoreCollections.BALANCE_CHANGES,
             (doc: any) => doc.groupId === groupId && 
                          doc.type === 'balance' &&
                          doc.action === 'recalculated',
-            { timeout: 5000, groupId }
+            { timeout: 10000, groupId }  // Increased timeout per testing guidelines
         );
 
         // Verify the balance change notification was created
@@ -110,7 +112,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification.action).toBe('recalculated');
         expect(changeNotification.users).toContain(userId1);
         expect(changeNotification.users).toContain(userId2);
-    }, 10000);
+    }, 15000);  // Increased test timeout
 
     it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
         /**

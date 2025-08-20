@@ -64,7 +64,7 @@ function getEnv(): z.infer<typeof envSchema> {
         return cachedEnv;
     } catch (error) {
         const errorObj = error instanceof Error ? error : new Error(String(error));
-        logger.error('Invalid environment variables:', { error: errorObj });
+        logger.error('Invalid environment variables', errorObj);
 
         if (error instanceof z.ZodError) {
             const errorMessages = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
@@ -198,11 +198,11 @@ function buildAppConfiguration(): AppConfiguration {
 
     // Validate required fields in production
     if (config.isProduction && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {
-        logger.error('Firebase config is incomplete in production. Environment variables:', {
-            CLIENT_API_KEY: env.CLIENT_API_KEY,
-            CLIENT_AUTH_DOMAIN: env.CLIENT_AUTH_DOMAIN,
-            NODE_ENV: process.env.NODE_ENV,
-            FUNCTIONS_EMULATOR: env.FUNCTIONS_EMULATOR,
+        logger.error('Firebase config is incomplete in production', new Error('Missing required Firebase config'), {
+            hasApiKey: !!env.CLIENT_API_KEY,
+            hasAuthDomain: !!env.CLIENT_AUTH_DOMAIN,
+            nodeEnv: process.env.NODE_ENV,
+            emulator: env.FUNCTIONS_EMULATOR,
         });
         throw new Error('Firebase configuration is incomplete in production');
     }
@@ -235,9 +235,9 @@ export function getAppConfig(): AppConfiguration {
                 cachedAppConfig = validateAppConfiguration(builtConfig);
             }
 
-            logger.info('App configuration built and validated successfully');
+            // App configuration built and validated successfully
         } catch (error) {
-            logger.error('Failed to build or validate app configuration:', error instanceof Error ? error : new Error(String(error)));
+            logger.error('Failed to build or validate app configuration', error);
 
             // Fail fast - don't let the app start with invalid configuration
             throw new Error(`Configuration error: ${error instanceof Error ? error.message : String(error)}`);

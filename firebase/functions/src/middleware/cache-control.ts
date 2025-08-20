@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { getConfig } from '../config';
-import { logger } from '../logger';
 
 /**
  * Middleware to control caching behavior for all responses
@@ -30,11 +29,7 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
         const maxAge = config.isDevelopment ? staticPageConfig.dev : staticPageConfig.prod;
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
 
-        logger.debug('Applied caching for cacheable endpoint', {
-            path: req.path,
-            maxAge,
-            environment: config.isDevelopment ? 'development' : 'production',
-        });
+        // Applied caching for cacheable endpoint
     } else {
         // API endpoints and all other paths: NO caching
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -57,5 +52,5 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
  */
 export function disableETags(app: any): void {
     app.set('etag', false);
-    logger.info('ETags disabled for Express application');
+    // ETags disabled for Express application
 }

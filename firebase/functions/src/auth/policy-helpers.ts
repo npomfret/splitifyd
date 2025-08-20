@@ -19,19 +19,12 @@ export async function getCurrentPolicyVersions(): Promise<Record<string, string>
             const data = doc.data();
             if (data.currentVersionHash) {
                 acceptedPolicies[doc.id] = data.currentVersionHash;
-            } else {
-                logger.warn('Policy document missing currentVersionHash', { policyId: doc.id });
             }
-        });
-
-        logger.info('Retrieved current policy versions for registration', {
-            policyCount: Object.keys(acceptedPolicies).length,
-            policies: Object.keys(acceptedPolicies),
         });
 
         return acceptedPolicies;
     } catch (error) {
-        logger.errorWithContext('Failed to get current policy versions', error as Error);
+        logger.error('Failed to get current policy versions', error);
         // Registration must fail if policies cannot be retrieved - compliance requirement
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_SERVICE_UNAVAILABLE', 'Registration temporarily unavailable - unable to retrieve policy versions');
     }

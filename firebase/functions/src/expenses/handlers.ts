@@ -105,11 +105,7 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
 export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
 
-    logger.info('Creating expense', { userId, body: req.body });
-
     const expenseData = validateCreateExpense(req.body);
-
-    logger.info('Expense data validated', { userId, expenseData });
 
     await verifyGroupMembership(expenseData.groupId, userId);
 
@@ -179,19 +175,9 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
 
             // Create the expense
             transaction.set(docRef, expense);
-
-            logger.info('Transaction: Creating expense', {
-                expenseId: docRef.id,
-                groupId: expenseData.groupId,
-            });
         });
 
-        logger.info('Expense created', {
-            expenseId: docRef.id,
-            groupId: expenseData.groupId,
-            amount: expenseData.amount,
-            userId,
-        });
+        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId });
 
         // Convert Firestore Timestamps to ISO strings for the response
         const responseExpense = {
@@ -203,10 +189,9 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
 
         res.status(HTTP_STATUS.CREATED).json(responseExpense);
     } catch (error) {
-        logger.error('Failed to create expense', {
+        logger.error('Failed to create expense', error, {
             userId,
-            error: error instanceof Error ? error : new Error('Unknown error'),
-            expenseData,
+            groupId: expenseData.groupId,
         });
         throw error;
     }
@@ -342,11 +327,6 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
                 // We already have the document data, just verify the timestamp
                 const currentTimestamp = expenseDoc.data()?.updatedAt;
                 if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
-                    logger.warn('Concurrent update detected', {
-                        expenseId: docRef.id,
-                        originalTimestamp: originalExpenseTimestamp.toDate().toISOString(),
-                        currentTimestamp: currentTimestamp?.toDate().toISOString(),
-                    });
                     throw Errors.CONCURRENT_UPDATE();
                 }
 
@@ -358,12 +338,6 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
                 await updateWithTimestamp(transaction, docRef, updates, originalExpenseTimestamp);
 
                 // Note: Group metadata will be updated by the balance aggregation trigger
-
-                logger.info('Transaction: Updating expense with history', {
-                    expenseId,
-                    groupId: expense.groupId,
-                    historyId: historyRef.id,
-                });
             });
         } else {
             // No date change, update expense with history in transaction
@@ -381,11 +355,6 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
                 // We already have the document data, just verify the timestamp
                 const currentTimestamp = expenseDoc.data()?.updatedAt;
                 if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
-                    logger.warn('Concurrent update detected', {
-                        expenseId: docRef.id,
-                        originalTimestamp: originalExpenseTimestamp.toDate().toISOString(),
-                        currentTimestamp: currentTimestamp?.toDate().toISOString(),
-                    });
                     throw Errors.CONCURRENT_UPDATE();
                 }
 
@@ -395,19 +364,10 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
 
                 // Update the expense (updateWithTimestamp no longer does reads)
                 await updateWithTimestamp(transaction, docRef, updates, originalExpenseTimestamp);
-
-                logger.info('Transaction: Updating expense with history', {
-                    expenseId,
-                    historyId: historyRef.id,
-                });
             });
         }
 
-        logger.info('Expense updated with history', {
-            expenseId,
-            userId,
-            updates: Object.keys(updateData),
-        });
+        logger.info('expense-updated', { id: expenseId });
 
         // Fetch the updated expense to return the full object
         const updatedExpenseDoc = await docRef.get();
@@ -479,11 +439,6 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
             // Step 2: Check for concurrent updates inline (no additional reads needed)
             const currentTimestamp = expenseDoc.data()?.updatedAt;
             if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
-                logger.warn('Concurrent update detected', {
-                    expenseId: docRef.id,
-                    originalTimestamp: originalExpenseTimestamp.toDate().toISOString(),
-                    currentTimestamp: currentTimestamp?.toDate().toISOString(),
-                });
                 throw Errors.CONCURRENT_UPDATE();
             }
 
@@ -505,29 +460,17 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
             }
 
             // Note: Group metadata will be updated by the balance aggregation trigger
-
-            logger.info('Transaction: Soft deleting expense', {
-                expenseId,
-                groupId: expense.groupId,
-                deletedBy: userId,
-            });
         });
 
-        logger.info('Expense soft deleted', {
-            expenseId,
-            groupId: expense.groupId,
-            userId,
-            deletedBy: userId,
-        });
+        logger.info('expense-deleted', { id: expenseId });
 
         res.json({
             message: 'Expense deleted successfully',
         });
     } catch (error) {
-        logger.error('Failed to delete expense', {
+        logger.error('Failed to delete expense', error, {
             expenseId,
             userId,
-            error: error instanceof Error ? error : new Error('Unknown error'),
         });
         throw error;
     }
@@ -858,8 +801,7 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
 
         res.json(response);
     } catch (error) {
-        logger.error('Error in getExpenseFullDetails', {
-            error: error instanceof Error ? error : new Error(String(error)),
+        logger.error('Error in getExpenseFullDetails', error, {
             expenseId,
             userId,
         });

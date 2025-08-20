@@ -61,12 +61,7 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
             updatedAt: createServerTimestamp(),
         });
 
-        logger.info('Policy accepted by user', {
-            userId,
-            policyId,
-            versionHash,
-            policyName: policyData.policyName,
-        });
+        logger.info('policy-accepted', { id: policyId, userId });
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
@@ -86,7 +81,7 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
                 },
             });
         } else {
-            logger.errorWithContext('Failed to accept policy', error as Error, {
+            logger.error('Failed to accept policy', error, {
                 userId: req.user?.uid,
             });
             throw error;
@@ -143,12 +138,9 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
         batch.update(userDocRef, updateData);
         await batch.commit();
 
-        logger.info('Multiple policies accepted by user', {
-            userId,
-            acceptedPolicies: acceptances.map((a) => ({
-                policyId: a.policyId,
-                versionHash: a.versionHash,
-            })),
+        logger.info('policies-accepted', { 
+            ids: acceptances.map((a) => a.policyId).join(','), 
+            userId 
         });
 
         res.status(HTTP_STATUS.OK).json({
@@ -169,7 +161,7 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
                 },
             });
         } else {
-            logger.errorWithContext('Failed to accept multiple policies', error as Error, {
+            logger.error('Failed to accept multiple policies', error, {
                 userId: req.user?.uid,
             });
             throw error;
@@ -227,11 +219,7 @@ export const getUserPolicyStatus = async (req: AuthenticatedRequest, res: Respon
 
         const needsAcceptance = totalPending > 0;
 
-        logger.info('Retrieved user policy status', {
-            userId,
-            totalPolicies: policies.length,
-            totalPending,
-        });
+        // Return user policy status
 
         const response: UserPolicyStatusResponse = {
             needsAcceptance,
@@ -249,7 +237,7 @@ export const getUserPolicyStatus = async (req: AuthenticatedRequest, res: Respon
                 },
             });
         } else {
-            logger.errorWithContext('Failed to get user policy status', error as Error, {
+            logger.error('Failed to get user policy status', error, {
                 userId: req.user?.uid,
             });
             throw error;

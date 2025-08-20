@@ -53,7 +53,7 @@ export const listPolicies = async (req: AuthenticatedRequest, res: Response): Pr
             count: policies.length,
         });
     } catch (error) {
-        logger.errorWithContext('Failed to list policies', error as Error, {
+        logger.error('Failed to list policies', error as Error, {
             userId: req.user?.uid,
         });
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_LIST_FAILED', 'Failed to retrieve policies');
@@ -103,7 +103,7 @@ export const getPolicy = async (req: AuthenticatedRequest, res: Response): Promi
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to get policy', error as Error, {
+        logger.error('Failed to get policy', error as Error, {
             userId: req.user?.uid,
             policyId: id,
         });
@@ -155,7 +155,7 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to get policy version', error as Error, {
+        logger.error('Failed to get policy version', error as Error, {
             userId: req.user?.uid,
             policyId: id,
             versionHash: hash,
@@ -234,7 +234,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to update policy', error as Error, {
+        logger.error('Failed to update policy', error as Error, {
             userId: req.user?.uid,
             policyId: id,
         });
@@ -291,7 +291,7 @@ export const publishPolicyInternal = async (id: string, versionHash: string): Pr
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to publish policy', error as Error, { policyId: id, versionHash });
+        logger.error('Failed to publish policy', error as Error, { policyId: id, versionHash });
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_PUBLISH_FAILED', 'Failed to publish policy');
     }
 };
@@ -351,7 +351,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to publish policy', error as Error, {
+        logger.error('Failed to publish policy', error as Error, {
             userId: req.user?.uid,
             policyId: id,
             versionHash,
@@ -417,7 +417,7 @@ export const createPolicyInternal = async (policyName: string, text: string, cus
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to create policy', error as Error, { policyName });
+        logger.error('Failed to create policy', error as Error, { policyName });
         throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_CREATE_FAILED', 'Failed to create policy');
     }
 };
@@ -483,7 +483,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to create policy', error as Error, {
+        logger.error('Failed to create policy', error as Error, {
             userId: req.user?.uid,
             policyName,
         });
@@ -554,7 +554,7 @@ export const deletePolicyVersion = async (req: AuthenticatedRequest, res: Respon
         if (error instanceof ApiError) {
             throw error;
         }
-        logger.errorWithContext('Failed to delete policy version', error as Error, {
+        logger.error('Failed to delete policy version', error as Error, {
             userId: req.user?.uid,
             policyId: id,
             versionHash: hash,

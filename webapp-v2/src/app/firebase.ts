@@ -26,7 +26,7 @@ class FirebaseService {
         if (isEmulator) {
             const firestoreUrl = new URL(firebaseFirestoreUrl!);
             const firestorePort = parseInt(firestoreUrl.port);
-            console.log('emulator detected', { firebaseAuthUrl, firebaseFirestoreUrl, firestorePort });
+            // Emulator connection configured
 
             connectAuthEmulator(this.auth, firebaseAuthUrl!, { disableWarnings: true });
             connectFirestoreEmulator(this.firestore, firestoreUrl.hostname, firestorePort);

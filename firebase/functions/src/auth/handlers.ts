@@ -48,10 +48,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         }
 
         await firestore.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
-        logger.info('User registration completed', {
-            email,
-            userId: userRecord.uid,
-        });
+        logger.info('user-registered', { id: userRecord.uid });
 
         res.status(HTTP_STATUS.CREATED).json({
             success: true,
@@ -65,19 +62,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     } catch (error: unknown) {
         // If user was created but firestore failed, clean up the orphaned auth record
         if (userRecord) {
-            logger.error('Registration failed after auth user created, cleaning up', {
-                userId: userRecord.uid,
-                error: error instanceof Error ? error : new Error(String(error)),
-            });
-
             try {
                 await admin.auth().deleteUser(userRecord.uid);
-                logger.info('Successfully cleaned up orphaned auth user', { userId: userRecord.uid });
             } catch (cleanupError) {
-                // Log the cleanup failure but throw the original error
-                logger.error('Failed to cleanup orphaned auth user', {
+                // Add cleanup failure context to the error
+                logger.error('Failed to cleanup orphaned auth user', cleanupError, {
                     userId: userRecord.uid,
-                    cleanupError: cleanupError,
                 });
             }
         }

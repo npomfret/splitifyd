@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@/test-utils';
-import { App } from '../../App';
+import { App } from '../../../App';
 
 // Integration tests for App routing - test real route navigation behavior
 describe('App Integration', () => {

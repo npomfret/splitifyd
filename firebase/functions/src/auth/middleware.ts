@@ -69,9 +69,7 @@ class InMemoryRateLimiter {
             }
         }
 
-        if (cleaned > 0) {
-            logger.debug(`Cleaned up ${cleaned} rate limit entries`);
-        }
+        // Rate limit cleanup is routine, no need to log
     }
 
     destroy(): void {
@@ -150,7 +148,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
         next();
     } catch (error) {
-        logger.errorWithContext('Token verification failed', error as Error, { correlationId });
+        logger.error('Token verification failed', error, { correlationId });
         sendError(res, Errors.INVALID_TOKEN(), correlationId);
     }
 };
@@ -170,18 +168,14 @@ export const requireAdmin = async (req: AuthenticatedRequest, res: Response, nex
 
     // Check if user is authenticated (should be set by authenticate middleware)
     if (!req.user) {
-        logger.warn('Admin access attempted without authentication', { correlationId });
+        // Admin access attempted without authentication
         sendError(res, Errors.UNAUTHORIZED(), correlationId);
         return;
     }
 
     // Check if user has admin role
     if (req.user.role !== UserRoles.ADMIN) {
-        logger.warn('Admin access denied - insufficient permissions', {
-            userId: req.user.uid,
-            role: req.user.role,
-            correlationId,
-        });
+        // Admin access denied - insufficient permissions
         sendError(res, Errors.FORBIDDEN(), correlationId);
         return;
     }

@@ -3,7 +3,7 @@ import { getAuthStore, createAuthStore } from '@/app/stores/auth-store.ts';
 import type { AuthStore } from '@/types/auth.ts';
 
 // Mock Firebase service with proper hoisting
-vi.mock('../../app/firebase', () => ({
+vi.mock('../../../app/firebase', () => ({
     firebaseService: {
         initialize: vi.fn().mockResolvedValue(undefined),
         onAuthStateChanged: vi.fn().mockImplementation((callback) => {
@@ -24,7 +24,7 @@ vi.mock('../../app/firebase', () => ({
 }));
 
 // Mock API client
-vi.mock('../../app/apiClient', () => ({
+vi.mock('../../../app/apiClient', () => ({
     apiClient: {
         register: vi.fn().mockResolvedValue(undefined),
         setAuthToken: vi.fn(),
@@ -32,13 +32,13 @@ vi.mock('../../app/apiClient', () => ({
 }));
 
 // Mock error logger
-vi.mock('../../utils/error-logger', () => ({
+vi.mock('../../../utils/error-logger', () => ({
     logError: vi.fn(),
 }));
 
 // Mock mapFirebaseUser
-vi.mock('../../types/auth', async () => {
-    const actual = await vi.importActual('../../types/auth');
+vi.mock('../../../types/auth', async () => {
+    const actual = await vi.importActual('../../../types/auth');
     return {
         ...actual,
         mapFirebaseUser: vi.fn().mockImplementation((user) => ({
@@ -101,7 +101,7 @@ describe('AuthStore Factory Pattern', () => {
             const password = 'wrong-password';
 
             const mockError = { code: 'auth/wrong-password' };
-            const { firebaseService } = await import('../../app/firebase');
+            const { firebaseService } = await import('../../../app/firebase');
             vi.mocked(firebaseService.signInWithEmailAndPassword).mockRejectedValue(mockError);
 
             await expect(authStore.login(email, password)).rejects.toThrow();
@@ -138,7 +138,7 @@ describe('AuthStore Factory Pattern', () => {
 
             for (const testCase of testCases) {
                 const mockError = { code: testCase.code };
-                const { firebaseService } = await import('../../app/firebase');
+                const { firebaseService } = await import('../../../app/firebase');
                 vi.mocked(firebaseService.signInWithEmailAndPassword).mockRejectedValue(mockError);
 
                 await expect(authStore.login('test@example.com', 'password')).rejects.toThrow();

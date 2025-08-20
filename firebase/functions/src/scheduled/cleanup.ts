@@ -24,7 +24,7 @@ export const cleanupChanges = onSchedule(
 
         for (const collectionName of collections) {
             try {
-                logger.info(`Cleaning up ${collectionName}`, { cutoffDate: cutoffDate.toISOString() });
+                logger.info('cleanup-started', { collection: collectionName });
 
                 // Query for old documents
                 const snapshot = await db
@@ -34,7 +34,6 @@ export const cleanupChanges = onSchedule(
                     .get();
 
                 if (snapshot.empty) {
-                    logger.info(`No old documents in ${collectionName}`);
                     continue;
                 }
 
@@ -49,7 +48,7 @@ export const cleanupChanges = onSchedule(
 
                 await batch.commit();
 
-                logger.info(`Cleaned up ${deleteCount} documents from ${collectionName}`);
+                logger.info('cleanup-completed', { collection: collectionName, count: deleteCount });
                 
                 // Log metrics for monitoring
                 await logCleanupMetrics({
@@ -58,7 +57,7 @@ export const cleanupChanges = onSchedule(
                     timestamp: new Date().toISOString()
                 });
             } catch (error) {
-                logger.errorWithContext(`Failed to cleanup ${collectionName}`, error as Error);
+                logger.error(`Failed to cleanup ${collectionName}`, error as Error, { collection: collectionName });
             }
         }
     },
@@ -80,7 +79,6 @@ async function logCleanupMetrics(metrics: {
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
     } catch (error) {
-        // Don't fail cleanup if metrics logging fails
-        logger.warn('Failed to log cleanup metrics', { error: error as Error, metrics });
+        // Don't fail cleanup if metrics logging fails - silently ignore
     }
 }
