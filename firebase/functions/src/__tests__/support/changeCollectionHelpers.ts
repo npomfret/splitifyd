@@ -44,6 +44,7 @@ export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
 
 /**
  * Poll for a change document matching the specified criteria
+ * Enhanced with diagnostic logging and better timing strategies
  */
 export async function pollForChange<T extends DocumentData>(
     collection: ChangeCollectionName,
@@ -52,12 +53,29 @@ export async function pollForChange<T extends DocumentData>(
         timeout?: number;
         interval?: number;
         groupId?: string;
+        initialDelay?: number; // Delay before first poll
+        debug?: boolean; // Enable diagnostic logging
     } = {}
 ): Promise<T | null> {
-    const { timeout = 3000, interval = 100, groupId } = options;
+    const { 
+        timeout = 10000,  // Increased default timeout for trigger tests
+        interval = 250,   // Increased interval to reduce database load
+        groupId, 
+        initialDelay = 500,  // Wait for triggers to initialize
+        debug = false 
+    } = options;
+    
     const startTime = Date.now();
-
+    let attempts = 0;
+    let allDocsSeen: T[] = [];
+    
+    // Initial delay to let triggers fire
+    if (initialDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, initialDelay));
+    }
+    
     while (Date.now() - startTime < timeout) {
+        attempts++;
         let query = db.collection(collection) as unknown as admin.firestore.Query<T>;
         
         // Add groupId filter if provided
@@ -68,71 +86,46 @@ export async function pollForChange<T extends DocumentData>(
         }
         
         // Order by timestamp descending to get most recent first
-        query = query.orderBy('timestamp', 'desc').limit(10);
+        query = query.orderBy('timestamp', 'desc').limit(20); // Increased limit
         
         const snapshot = await query.get();
         
+        if (debug && snapshot.size > 0) {
+            console.log(`[pollForChange] Attempt ${attempts}: Found ${snapshot.size} documents in ${collection}`);
+        }
+        
         for (const doc of snapshot.docs) {
             const data = doc.data();
+            allDocsSeen.push(data);
+            
+            if (debug) {
+                console.log(`[pollForChange] Checking document:`, {
+                    id: data.id,
+                    type: data.type,
+                    action: data.action,
+                    groupId: data.groupId,
+                    timestamp: data.timestamp?.toMillis()
+                });
+            }
+            
             if (matcher(data)) {
+                if (debug) {
+                    console.log(`[pollForChange] Match found after ${attempts} attempts, ${Date.now() - startTime}ms`);
+                }
                 return data;
             }
         }
         
-        await new Promise(resolve => setTimeout(resolve, interval));
+        // Use exponential backoff for retries (up to 1 second)
+        const nextInterval = Math.min(interval * Math.pow(1.5, Math.floor(attempts / 3)), 1000);
+        await new Promise(resolve => setTimeout(resolve, nextInterval));
+    }
+    
+    if (debug) {
+        console.log(`[pollForChange] Timeout after ${attempts} attempts. Documents seen:`, allDocsSeen);
     }
     
     return null;
-}
-
-/**
- * Get all change documents for a specific group
- */
-export async function getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
-    const snapshot = await db.collection(FirestoreCollections.GROUP_CHANGES)
-        .where('id', '==', groupId)
-        .orderBy('timestamp', 'desc')
-        .get();
-    
-    return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
-}
-
-/**
- * Get all expense change documents for a specific group
- */
-export async function getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
-    const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
-        .where('groupId', '==', groupId)
-        .where('type', '==', 'expense')
-        .orderBy('timestamp', 'desc')
-        .get();
-    
-    return snapshot.docs.map(doc => doc.data() as ExpenseChangeDocument);
-}
-
-/**
- * Get all settlement change documents for a specific group
- */
-export async function getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
-    const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
-        .where('groupId', '==', groupId)
-        .where('type', '==', 'settlement')
-        .orderBy('timestamp', 'desc')
-        .get();
-    
-    return snapshot.docs.map(doc => doc.data() as SettlementChangeDocument);
-}
-
-/**
- * Get all balance change documents for a specific group
- */
-export async function getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
-    const snapshot = await db.collection(FirestoreCollections.BALANCE_CHANGES)
-        .where('groupId', '==', groupId)
-        .orderBy('timestamp', 'desc')
-        .get();
-    
-    return snapshot.docs.map(doc => doc.data() as BalanceChangeDocument);
 }
 
 /**
@@ -159,6 +152,7 @@ export async function clearGroupChangeDocuments(groupId: string): Promise<void> 
 
 /**
  * Wait for triggers to complete processing (waits for async operations)
+ * @deprecated this is bullshit
  */
 export async function waitForTriggerProcessing(type: 'group' | 'expense' | 'settlement' = 'group'): Promise<void> {
     // Allow time for triggers to process and create change documents
@@ -184,4 +178,81 @@ export async function countRecentChanges(
         .get();
     
     return snapshot.size;
+}
+
+/**
+ * Create a matcher that checks for an exact settlement change document
+ * This ensures we're finding the specific document created by our test
+ */
+export function createExactSettlementChangeMatcher(
+    settlementId: string,
+    groupId: string,
+    expectedAction: 'created' | 'updated' | 'deleted',
+    expectedUsers: string[]
+): (doc: any) => boolean {
+    return (doc: any) => {
+        // Check all required fields match exactly
+        if (doc.id !== settlementId) return false;
+        if (doc.groupId !== groupId) return false;
+        if (doc.type !== 'settlement') return false;
+        if (doc.action !== expectedAction) return false;
+        
+        // Check users array contains all expected users (order doesn't matter)
+        if (!doc.users || !Array.isArray(doc.users)) return false;
+        
+        // Sort both arrays to compare regardless of order
+        const sortedExpected = [...expectedUsers].sort();
+        const sortedActual = [...doc.users].sort();
+        
+        if (sortedActual.length !== sortedExpected.length) return false;
+        
+        for (let i = 0; i < sortedExpected.length; i++) {
+            if (sortedActual[i] !== sortedExpected[i]) return false;
+        }
+        
+        // Ensure timestamp is recent (within last 30 seconds)
+        if (!doc.timestamp) return false;
+        const timestampMs = doc.timestamp.toMillis();
+        const thirtySecondsAgo = Date.now() - 30000;
+        if (timestampMs < thirtySecondsAgo) return false;
+        
+        return true;
+    };
+}
+
+/**
+ * Create a matcher that checks for an exact balance change document
+ * This ensures we're finding the specific document created by our test
+ */
+export function createExactBalanceChangeMatcher(
+    groupId: string,
+    expectedUsers: string[]
+): (doc: any) => boolean {
+    return (doc: any) => {
+        // Check all required fields match exactly
+        if (doc.groupId !== groupId) return false;
+        if (doc.type !== 'balance') return false;
+        if (doc.action !== 'recalculated') return false;
+        
+        // Check users array contains all expected users (order doesn't matter)
+        if (!doc.users || !Array.isArray(doc.users)) return false;
+        
+        // Sort both arrays to compare regardless of order
+        const sortedExpected = [...expectedUsers].sort();
+        const sortedActual = [...doc.users].sort();
+        
+        if (sortedActual.length !== sortedExpected.length) return false;
+        
+        for (let i = 0; i < sortedExpected.length; i++) {
+            if (sortedActual[i] !== sortedExpected[i]) return false;
+        }
+        
+        // Ensure timestamp is recent (within last 30 seconds)
+        if (!doc.timestamp) return false;
+        const timestampMs = doc.timestamp.toMillis();
+        const thirtySecondsAgo = Date.now() - 30000;
+        if (timestampMs < thirtySecondsAgo) return false;
+        
+        return true;
+    };
 }

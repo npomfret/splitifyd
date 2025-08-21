@@ -441,6 +441,219 @@ export class SomePage extends BasePage {
 
 Note: as the site does not yet automatically update when new data is available, it is often necessary to refresh the browser to see changes.
 
+## Automatic Error Handling with Proxy
+
+All page objects automatically benefit from enhanced error handling through a JavaScript Proxy mechanism. This ensures that every test failure includes rich contextual information without developers needing to add error handling code.
+
+### How It Works
+
+When a page object is instantiated, it's automatically wrapped in a proxy that:
+
+1. **Intercepts all method calls** on the page object
+2. **Detects async methods** by checking if they return Promises
+3. **Wraps Promise-returning methods** with automatic error handling
+4. **Enriches errors** with context when failures occur
+5. **Preserves synchronous methods** as-is (e.g., Locator getters)
+
+### What Gets Captured on Error
+
+When an async method fails, the proxy automatically captures:
+
+- **Method context**: Class name and method name that failed
+- **Current URL**: The page URL at time of error
+- **Method arguments**: Sanitized arguments passed to the method
+- **User information**: If available, the test user's email and display name
+- **Page state**: Including:
+  - Visible buttons and their enabled/disabled state
+  - Visible headings
+  - Visible error messages
+  - Form input states
+  - Dialog presence
+  - Loading indicators
+- **Stack trace**: Full error stack for debugging
+
+### What You SHOULD Do
+
+✅ **Write methods normally** - The proxy handles errors automatically:
+
+```typescript
+// Good - Simple, clean async method
+async submitForm() {
+    const button = this.getSubmitButton();
+    await this.clickButton(button);
+    // No try-catch needed! Proxy adds context if this fails
+}
+```
+
+✅ **Keep Locator getters synchronous** - Return Locators directly:
+
+```typescript
+// Good - Synchronous getter
+getSubmitButton() {
+    return this.page.getByRole('button', { name: 'Submit' });
+}
+```
+
+✅ **Use async for methods that perform actions**:
+
+```typescript
+// Good - Async method gets automatic error handling
+async fillAndSubmit(data: FormData) {
+    await this.fillPreactInput('#name', data.name);
+    await this.submitForm();
+}
+```
+
+✅ **Let errors bubble up naturally**:
+
+```typescript
+// Good - Natural error flow
+async validateAndSubmit() {
+    await this.validate(); // If this fails, proxy adds context
+    await this.submit();   // Clean, readable code
+}
+```
+
+### What You SHOULD NOT Do
+
+❌ **Don't add try-catch blocks** - The proxy handles this:
+
+```typescript
+// Bad - Unnecessary and loses proxy context
+async login() {
+    try {
+        await this.fillForm();
+    } catch (error) {
+        throw new Error('Login failed'); // Loses rich context!
+    }
+}
+
+// Good - Let proxy handle it
+async login() {
+    await this.fillForm(); // Proxy adds context automatically
+}
+```
+
+❌ **Don't make getters async unnecessarily**:
+
+```typescript
+// Bad - Creates unnecessary Promise
+async getSubmitButton() {
+    return this.page.getByRole('button');
+}
+
+// Good - Keep it synchronous
+getSubmitButton() {
+    return this.page.getByRole('button');
+}
+```
+
+❌ **Don't create your own error wrappers**:
+
+```typescript
+// Bad - Double wrapping
+async submit() {
+    throw new ProxiedMethodError(...); // Don't do this!
+}
+
+// Good - Throw simple errors
+async submit() {
+    if (!valid) {
+        throw new Error('Form is invalid'); // Proxy will wrap this
+    }
+}
+```
+
+### Configuration
+
+The proxy is configured in `BasePage` constructor with these options:
+
+```typescript
+{
+    captureScreenshot: false,  // Can be enabled for debugging
+    collectState: true,        // Always collect page state
+    excludeMethods: [          // Methods to exclude from proxying
+        'page',                // Property getter
+        'waitForFocus',        // Private helper
+        'getFieldIdentifier',  // Private helper
+        // Add other methods as needed
+    ]
+}
+```
+
+### Excluded Methods
+
+By default, these method patterns are excluded from proxying:
+- Methods starting with `get*`, `is*`, `has*` (typically synchronous getters)
+- Private methods starting with underscore
+- Standard object methods (`constructor`, `toString`, `valueOf`, `toJSON`)
+- Methods explicitly listed in `excludeMethods` config
+
+### Example Error Output
+
+When a test fails, you'll see rich error messages like:
+
+```
+ExpenseFormPage.submitExpense failed: Button "Save Expense" is disabled.
+
+Context:
+- URL: http://localhost:9099/groups/abc123/expenses/new
+- User: test@example.com (Test User)
+- Method: submitExpense
+- Arguments: { amount: "50.00", description: "Lunch" }
+
+Page State:
+- Visible errors: ["Amount is required", "Please select a payer"]
+- Visible buttons: ["Cancel", "Save Expense (disabled)"]
+- Form inputs: { description: "", amount: "", payer: "(not selected)" }
+- Loading indicators: none
+
+Stack trace:
+  at ExpenseFormPage.submitExpense (expense-form.page.ts:45:10)
+  at Context.<anonymous> (expense.test.ts:23:5)
+```
+
+### Special Cases
+
+#### Custom Error Handling
+
+If you need special error handling (e.g., retry logic), you can still use try-catch:
+
+```typescript
+async tryLogin(maxAttempts = 3) {
+    for (let i = 0; i < maxAttempts; i++) {
+        try {
+            await this.login();
+            return; // Success
+        } catch (error) {
+            if (i === maxAttempts - 1) throw error;
+            await this.page.waitForTimeout(1000);
+        }
+    }
+}
+```
+
+#### Excluding Methods from Proxy
+
+To exclude a method from automatic error handling, add it to the `excludeMethods` array in `base.page.ts`:
+
+```typescript
+excludeMethods: [
+    'mySpecialMethod',  // Won't be proxied
+    'anotherMethod',    // Handle errors manually here
+]
+```
+
+### Benefits
+
+1. **Consistent error reporting** - Every async method failure includes context
+2. **Zero developer overhead** - No need to remember error handling patterns
+3. **Rich debugging information** - See exactly what the page looked like when it failed
+4. **Prevents common mistakes** - Can't forget to add error context
+5. **Maintains clean code** - Page objects remain simple and readable
+
+The proxy ensures that when tests fail, you have all the information needed to debug quickly, without cluttering your page objects with repetitive error handling code.
+
 ## Writing Tests
 
 ### Test Structure

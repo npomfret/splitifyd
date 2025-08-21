@@ -40,6 +40,7 @@ export class LoginPage extends BasePage {
     }
 
     async login(email: string, password: string, rememberMe = false) {
+        await this.expectUrl(/\/login/);
         await this.fillLoginForm(email, password, rememberMe);
         await this.submitForm();
 

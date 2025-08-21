@@ -44,11 +44,14 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(groupAfterJoin.members).toHaveProperty(alice.uid);
         expect(groupAfterJoin.members).toHaveProperty(bob.uid);
 
+        const currency = "USD";
+
         // Alice adds beach house expense ($800) - paid by Alice, split equally among all
         const expense1Data = new ExpenseBuilder()
             .withGroupId(group.id)
             .withDescription('Beach House Rental')
             .withAmount(80000) // $800.00 in cents
+            .withCurrency(currency)
             .withPaidBy(alice.uid)
             .withSplitType('equal')
             .withParticipants([alice.uid, bob.uid]) // Both participants
@@ -61,6 +64,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
             .withGroupId(group.id)
             .withDescription('Restaurant Dinner')
             .withAmount(12000) // $120.00 in cents
+            .withCurrency(currency)
             .withPaidBy(bob.uid)
             .withSplitType('equal')
             .withParticipants([alice.uid, bob.uid]) // Both participants
@@ -97,10 +101,10 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
 
         // The group balance should show that there are unsettled amounts
         expect(groupWithBalance.balance).toBeDefined();
-        expect(groupWithBalance.balance.userBalance).toBeDefined();
-        expect(groupWithBalance.balance.userBalance!.netBalance).toBe(34000); // Alice is owed $340
-        expect(groupWithBalance.balance.userBalance!.totalOwed).toBe(34000); // Total Alice is owed
-        expect(groupWithBalance.balance.userBalance!.totalOwing).toBe(0); // Alice owes nothing
+        expect(groupWithBalance.balance!.balancesByCurrency).toBeDefined();
+        expect(groupWithBalance.balance!.balancesByCurrency[currency].netBalance).toBe(34000); // Alice is owed $340
+        expect(groupWithBalance.balance!.balancesByCurrency[currency].totalOwed).toBe(34000); // Total Alice is owed
+        expect(groupWithBalance.balance!.balancesByCurrency[currency].totalOwing).toBe(0); // Alice owes nothing
     });
 
     test('should replicate settlement balance bug from failing E2E test', async () => {
@@ -200,7 +204,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
 
         // This is what the UI uses to show "All settled up!"
         const groupWithFinalBalance = await driver.getGroup(group.id, alice.token);
-        expect(groupWithFinalBalance.balance.userBalance.netBalance).toBe(0);
+        expect(Object.keys(groupWithFinalBalance.balance!.balancesByCurrency).length).toBe(0);
     });
 
     test('should handle the specific case where expense splits might be calculated incorrectly', async () => {

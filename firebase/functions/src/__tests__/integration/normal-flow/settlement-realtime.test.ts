@@ -9,7 +9,12 @@ import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
-import { pollForChange } from '../../support/changeCollectionHelpers';
+import { 
+    pollForChange, 
+    createExactSettlementChangeMatcher,
+    createExactBalanceChangeMatcher 
+} from '../../support/changeCollectionHelpers';
+import { randomUUID } from 'crypto';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     beforeAll(async () => {
@@ -20,10 +25,11 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     let userId2: string;
 
     beforeEach(() => {
-        // Generate test IDs
-        groupId = 'test-group-' + Date.now();
-        userId1 = 'test-user-1-' + Date.now();
-        userId2 = 'test-user-2-' + Date.now();
+        // Generate test IDs using UUID for better uniqueness
+        const testId = randomUUID().substring(0, 8); // Use short UUID for readability
+        groupId = `test-group-${testId}`;
+        userId1 = `test-user-1-${testId}`;
+        userId2 = `test-user-2-${testId}`;
     });
 
     afterEach(async () => {
@@ -59,15 +65,24 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
 
         const settlementRef = await db.collection('settlements').add(settlementData);
 
+        // Use exact matcher to ensure we find the right document
+        const exactMatcher = createExactSettlementChangeMatcher(
+            settlementRef.id,
+            groupId,
+            'created',
+            [userId1, userId2]
+        );
+
         // Poll for the change notification with proper timeout for trigger to fire
-        // Following the testing guide: use 5-10 seconds for triggers
         const changeNotification = await pollForChange(
             FirestoreCollections.TRANSACTION_CHANGES,
-            (doc: any) => doc.groupId === groupId && 
-                         doc.id === settlementRef.id && 
-                         doc.type === 'settlement' &&
-                         doc.action === 'created',
-            { timeout: 10000, groupId }  // Increased timeout per testing guidelines
+            exactMatcher,
+            { 
+                timeout: 15000,      // Increased timeout for reliability
+                groupId,
+                initialDelay: 500,   // Wait for trigger to initialize
+                debug: false         // Set to true for debugging
+            }
         );
 
         // Verify the change notification was created
@@ -78,7 +93,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification.action).toBe('created');
         expect(changeNotification.users).toContain(userId1);
         expect(changeNotification.users).toContain(userId2);
-    }, 15000);  // Increased test timeout
+    }, 20000);  // Increased test timeout for reliability
 
     it('should generate balance-change notification when settlement is created', async () => {
         // Create a settlement
@@ -95,14 +110,22 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
 
         await db.collection('settlements').add(settlementData);
 
+        // Use exact matcher to ensure we find the right document
+        const exactMatcher = createExactBalanceChangeMatcher(
+            groupId,
+            [userId1, userId2]
+        );
+
         // Poll for the balance change notification with proper timeout for trigger to fire
-        // Following the testing guide: use 5-10 seconds for triggers
         const changeNotification = await pollForChange(
             FirestoreCollections.BALANCE_CHANGES,
-            (doc: any) => doc.groupId === groupId && 
-                         doc.type === 'balance' &&
-                         doc.action === 'recalculated',
-            { timeout: 10000, groupId }  // Increased timeout per testing guidelines
+            exactMatcher,
+            { 
+                timeout: 15000,      // Increased timeout for reliability
+                groupId,
+                initialDelay: 500,   // Wait for trigger to initialize
+                debug: false         // Set to true for debugging
+            }
         );
 
         // Verify the balance change notification was created
@@ -112,7 +135,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification.action).toBe('recalculated');
         expect(changeNotification.users).toContain(userId1);
         expect(changeNotification.users).toContain(userId2);
-    }, 15000);  // Increased test timeout
+    }, 20000);  // Increased test timeout for reliability
 
     it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
         /**

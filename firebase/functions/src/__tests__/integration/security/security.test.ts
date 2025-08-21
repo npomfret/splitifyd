@@ -8,26 +8,22 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Comprehensive Security Test Suite', () => {
-    let driver: ApiDriver;
+    const driver = new ApiDriver();
     let users: User[] = [];
 
     // Set a longer timeout for these integration tests
-    jest.setTimeout(10000);
+    jest.setTimeout(15 * 1000);// takes about 8s
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
-
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
+        users = await Promise.all([
+            driver.createUser(new UserBuilder().build()),
+            driver.createUser(new UserBuilder().build())
+        ]);
     });
 
     afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
     });
 
     describe('Authentication Security', () => {

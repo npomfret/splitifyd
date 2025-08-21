@@ -757,10 +757,12 @@ describe('Comprehensive API Test Suite', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.map((u) => u.uid))
                 .build();
-            await driver.createExpense(expenseData, users[0].token);
+            const expense = await driver.createExpense(expenseData, users[0].token);
 
-            // Wait a moment for potential async updates
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Wait for the expense change to be processed 
+            await driver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
+                return changes.some(change => change.id === expense.id);
+            });
 
             // Check after creating expense
             const updatedListResponse = await driver.listGroups(users[0].token);
@@ -786,10 +788,12 @@ describe('Comprehensive API Test Suite', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants(users.map((u) => u.uid))
                 .build();
-            await driver.createExpense(secondExpenseData, users[1].token);
+            const secondExpense = await driver.createExpense(secondExpenseData, users[1].token);
 
-            // Wait a moment for potential async updates
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Wait for the second expense change to be processed
+            await driver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
+                return changes.some(change => change.id === secondExpense.id);
+            });
 
             // Check after second expense
             const finalListResponse = await driver.listGroups(users[0].token);

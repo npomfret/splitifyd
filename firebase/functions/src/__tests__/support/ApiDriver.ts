@@ -1,5 +1,6 @@
-import type {ExpenseData, Group, User as BaseUser} from '../../shared/shared-types';
-import {API_BASE_URL, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
+import {type CreateExpenseRequest, ExpenseData, FirestoreCollections, Group, type Settlement, User as BaseUser} from '../../shared/shared-types';
+import {API_BASE_URL, db, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
+import {BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, SettlementChangeDocument} from "./changeCollectionHelpers";
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -94,12 +95,9 @@ export class ApiDriver {
         };
     }
 
-    async createExpense(expenseData: Partial<ExpenseData>, token: string): Promise<ExpenseData> {
+    async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
         const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
-        return {
-            id: response.id,
-            ...expenseData,
-        } as ExpenseData;
+        return response as ExpenseData;
     }
 
     async updateExpense(expenseId: string, updateData: Partial<ExpenseData>, token: string): Promise<void> {
@@ -114,9 +112,9 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'GET', null, token);
     }
 
-    async createSettlement(settlementData: any, token: string): Promise<any> {
+    async createSettlement(settlementData: any, token: string): Promise<Settlement> {
         const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
-        return response.data;
+        return response.data as Settlement;
     }
 
     async getSettlement(settlementId: string, token: string): Promise<any> {
@@ -242,31 +240,30 @@ export class ApiDriver {
             description: `Test group created at ${new Date().toISOString()}`,
         };
 
-        const group = (await this.apiRequest('/groups', 'POST', groupData, creatorToken)) as Group;
+        const group = await this.createGroup(groupData, creatorToken);
 
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         if (otherMembers.length > 0) {
-            const shareResponse = await this.apiRequest('/groups/share', 'POST', {groupId: group.id}, creatorToken);
+            const shareResponse = await this.generateShareLink(group.id, creatorToken);
             const {linkId} = shareResponse;
 
             // Step 3: Have other members join using the share link
             for (const member of otherMembers) {
-                await this.apiRequest('/groups/join', 'POST', {linkId}, member.token);
+                await this.joinGroupViaShareLink(linkId, member.token);
             }
         }
 
         // Step 4: Fetch the updated group to get all members
-        const updatedGroup = await this.apiRequest(`/groups/${group.id}`, 'GET', null, creatorToken);
-        return updatedGroup as Group;
+        return await this.getGroup(group.id, creatorToken);
     }
 
-    async createGroup(groupData: any, token: string): Promise<any> {
-        return await this.apiRequest('/groups', 'POST', groupData, token);
+    async createGroup(groupData: any, token: string): Promise<Group> {
+        return (await this.apiRequest('/groups', 'POST', groupData, token)) as Group;
     }
 
-    async getGroup(groupId: string, token: string): Promise<any> {
-        return await this.apiRequest(`/groups/${groupId}`, 'GET', null, token);
+    async getGroup(groupId: string, token: string): Promise<Group> {
+        return (await this.apiRequest(`/groups/${groupId}`, 'GET', null, token)) as Group;
     }
 
     async getGroupMembers(groupId: string, token: string): Promise<any> {
@@ -447,5 +444,83 @@ export class ApiDriver {
             }
             throw error;
         }
+    }
+
+    async waitForGroupChanges(groupId: string, matcher: Matcher<GroupChangeDocument[]>, timeout = 2000) {
+        const endTime = Date.now() + timeout;
+        while(Date.now() < endTime) {
+            const changes = await this.getGroupChanges(groupId);
+            if(matcher(changes))
+                return;
+        }
+        throw Error(`timeout waiting for group changes`);
+    }
+
+    async waitForExpenseChanges(groupId: string, matcher: Matcher<ExpenseChangeDocument[]>, timeout = 2000) {
+        const endTime = Date.now() + timeout;
+        while(Date.now() < endTime) {
+            const changes = await this.getExpenseChanges(groupId);
+            if(matcher(changes))
+                return;
+        }
+        throw Error(`timeout waiting for expense changes`);
+    }
+
+    async waitForSettlementChanges(groupId: string, matcher: Matcher<SettlementChangeDocument[]>, timeout = 2000) {
+        const endTime = Date.now() + timeout;
+        while(Date.now() < endTime) {
+            const changes = await this.getSettlementChanges(groupId);
+            if(matcher(changes))
+                return;
+        }
+        throw Error(`timeout waiting for expense changes`);
+    }
+
+    async waitForBalanceChanges(groupId: string, matcher: Matcher<BalanceChangeDocument[]>, timeout = 2000) {
+        const endTime = Date.now() + timeout;
+        while(Date.now() < endTime) {
+            const changes = await this.getBalanceChanges(groupId);
+            if(matcher(changes))
+                return;
+        }
+        throw Error(`timeout waiting for balance changes`);
+    }
+
+    async getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
+        const snapshot = await db.collection(FirestoreCollections.BALANCE_CHANGES)
+            .where('groupId', '==', groupId)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as BalanceChangeDocument);
+    }
+
+    async getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
+        const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
+            .where('groupId', '==', groupId)
+            .where('type', '==', 'expense')
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as ExpenseChangeDocument);
+    }
+
+    async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
+        const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
+            .where('groupId', '==', groupId)
+            .where('type', '==', 'settlement')
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as SettlementChangeDocument);
+    }
+
+    async getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
+        const snapshot = await db.collection(FirestoreCollections.GROUP_CHANGES)
+            .where('id', '==', groupId)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
     }
 }

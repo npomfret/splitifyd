@@ -1,12 +1,38 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 import type { User as BaseUser } from '@shared/shared-types';
+import { createErrorHandlingProxy } from '../utils/error-proxy';
 
 export abstract class BasePage {
     protected userInfo?: BaseUser;
     
     constructor(protected _page: Page, userInfo?: BaseUser) {
         this.userInfo = userInfo;
+        
+        // Apply automatic error handling proxy to all derived classes
+        // This wraps all async methods to automatically capture context on errors
+        const className = this.constructor.name;
+        return createErrorHandlingProxy(
+            this,
+            className,
+            _page,
+            userInfo,
+            {
+                // Configuration options
+                captureScreenshot: false, // Can be enabled for debugging
+                collectState: true, // Always collect page state on errors
+                excludeMethods: [
+                    // Specific non-async methods
+                    'page', // Getter for page property
+                    // Private methods that shouldn't be proxied
+                    'waitForFocus',
+                    'getFieldIdentifier',
+                    'validateInputValue',
+                    'waitForMembersInExpenseForm',
+                    // Note: get*, is*, has*, constructor, toString, etc. are handled by DEFAULT_EXCLUDED_METHODS
+                ]
+            }
+        ) as this;
     }
 
     /**
@@ -53,9 +79,9 @@ export abstract class BasePage {
      * Helper method to get field identifier for error reporting.
      */
     private async getFieldIdentifier(input: Locator): Promise<string> {
-        const fieldName = await input.getAttribute('name').catch(() => null);
-        const fieldId = await input.getAttribute('id').catch(() => null);
-        const placeholder = await input.getAttribute('placeholder').catch(() => null);
+        const fieldName = await input.getAttribute('name') || null;
+        const fieldId = await input.getAttribute('id') || null;
+        const placeholder = await input.getAttribute('placeholder') || null;
 
         return fieldName || fieldId || placeholder || 'unknown field';
     }
@@ -97,6 +123,9 @@ export abstract class BasePage {
      */
     async fillPreactInput(selector: string | Locator, value: string, maxRetries = 3) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
+
+        await expect(input).toBeVisible();
+        await expect(input).toBeEnabled();
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -252,15 +281,7 @@ export abstract class BasePage {
         }
 
         // Click the button
-        try {
-            await button.click();
-        } catch (error: any) {
-            // Provide context for click failures
-            if (error.message?.includes('intercept')) {
-                throw new Error(`Cannot click button "${buttonText}" - it may be covered by another element.`);
-            }
-            throw new Error(`Failed to click button "${buttonText}": ${error.message}`);
-        }
+        await button.click();
     }
 
     /**
