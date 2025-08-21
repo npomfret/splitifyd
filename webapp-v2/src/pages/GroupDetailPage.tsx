@@ -248,7 +248,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 <Button variant="secondary" size="sm" className="w-full" onClick={() => (showSettlementHistory.value = !showSettlementHistory.value)}>
                                     {showSettlementHistory.value ? 'Hide History' : 'Show History'}
                                 </Button>
-                                {showSettlementHistory.value && <SettlementHistory groupId={groupId!} limit={5} onEditSettlement={handleEditSettlement} />}
+                                {showSettlementHistory.value && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
                             </div>
                         </SidebarCard>
                     </>

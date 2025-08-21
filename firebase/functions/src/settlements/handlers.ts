@@ -73,19 +73,38 @@ const fetchUserData = async (userId: string): Promise<User> => {
     const userDoc = await getUsersCollection().doc(userId).get();
 
     if (!userDoc.exists) {
-        // Return minimal user object for missing profiles instead of throwing
-        return {
-            uid: userId,
-            email: '',
-            displayName: 'Unknown User',
-        };
+        // Users are never deleted, so missing user doc indicates invalid data
+        throw new ApiError(
+            404,
+            'USER_NOT_FOUND',
+            `User ${userId} not found`
+        );
     }
 
-    const userData = userDoc.data();
+    const userData = userDoc.data()!;
+
+    if (!userData.email) {
+        // User exists but missing required email field
+        throw new ApiError(
+            500,
+            'INVALID_USER_DATA',
+            `User ${userId} has invalid data: missing email`
+        );
+    }
+
+    if (!userData.displayName) {
+        // User exists but missing required email field
+        throw new ApiError(
+            500,
+            'INVALID_USER_DATA',
+            `User ${userId} has invalid data: missing email`
+        );
+    }
+
     return {
         uid: userId,
-        email: userData?.email || '',
-        displayName: userData?.displayName || userData?.email || 'Unknown User',
+        email: userData.email,
+        displayName: userData.displayName ,
     };
 };
 
@@ -238,12 +257,23 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
         const updatedDoc = await settlementRef.get();
         const updatedSettlement = updatedDoc.data();
 
-        const responseData: Settlement = {
-            ...updatedSettlement,
+        // Fetch user data for payer and payee to return complete response
+        const [payerData, payeeData] = await Promise.all([
+            fetchUserData(updatedSettlement!.payerId),
+            fetchUserData(updatedSettlement!.payeeId)
+        ]);
+
+        const responseData: SettlementListItem = {
+            id: settlementId,
+            groupId: updatedSettlement!.groupId,
+            payer: payerData,
+            payee: payeeData,
+            amount: updatedSettlement!.amount,
+            currency: updatedSettlement!.currency,
             date: timestampToISO(updatedSettlement!.date),
+            note: updatedSettlement!.note,
             createdAt: timestampToISO(updatedSettlement!.createdAt),
-            updatedAt: timestampToISO(updatedSettlement!.updatedAt),
-        } as Settlement;
+        };
 
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-updated', { id: settlementId });

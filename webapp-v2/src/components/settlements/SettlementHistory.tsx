@@ -9,11 +9,10 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 interface SettlementHistoryProps {
     groupId: string;
     userId?: string;
-    limit?: number;
     onEditSettlement?: (settlement: SettlementListItem) => void;
 }
 
-export function SettlementHistory({ groupId, userId, limit = 10, onEditSettlement }: SettlementHistoryProps) {
+export function SettlementHistory({ groupId, userId, onEditSettlement }: SettlementHistoryProps) {
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
     const [settlementToDelete, setSettlementToDelete] = useState<SettlementListItem | null>(null);

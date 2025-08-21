@@ -134,21 +134,26 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         setValidationError(null);
 
         try {
-            const settlementData: CreateSettlementRequest = {
-                groupId,
-                payerId: payerIdSignal.value,
-                payeeId: payeeIdSignal.value,
-                amount: parseFloat(amountSignal.value),
-                currency: currencySignal.value,
-                date: getUTCMidnight(dateSignal.value), // Always send UTC to server
-                note: noteSignal.value.trim() || undefined,
-            };
-
             if (editMode && settlementToEdit) {
-                // Update existing settlement
-                await apiClient.updateSettlement(settlementToEdit.id, settlementData);
+                // Update existing settlement - only send fields that can be updated
+                const updateData = {
+                    amount: parseFloat(amountSignal.value),
+                    currency: currencySignal.value,
+                    date: getUTCMidnight(dateSignal.value), // Always send UTC to server
+                    note: noteSignal.value.trim() || undefined,
+                };
+                await apiClient.updateSettlement(settlementToEdit.id, updateData);
             } else {
-                // Create new settlement
+                // Create new settlement - send all fields
+                const settlementData: CreateSettlementRequest = {
+                    groupId,
+                    payerId: payerIdSignal.value,
+                    payeeId: payeeIdSignal.value,
+                    amount: parseFloat(amountSignal.value),
+                    currency: currencySignal.value,
+                    date: getUTCMidnight(dateSignal.value), // Always send UTC to server
+                    note: noteSignal.value.trim() || undefined,
+                };
                 await apiClient.createSettlement(settlementData);
             }
             

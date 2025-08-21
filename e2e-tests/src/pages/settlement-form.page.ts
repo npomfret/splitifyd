@@ -44,6 +44,14 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().getByRole('button', { name: /update payment/i });
     }
 
+    getCancelButton(): Locator {
+        return this.getModal().getByRole('button', { name: /cancel/i });
+    }
+
+    getCloseButton(): Locator {
+        return this.getModal().locator('button[aria-label="Close"]');
+    }
+
     // Helper methods
     async waitForDropdownOptions(dropdown: Locator, expectedCount?: number): Promise<void> {
         await expect(async () => {
@@ -129,9 +137,10 @@ export class SettlementFormPage extends BasePage {
      * Note: The form should already be open and ready (use openSettlementForm() and waitForFormReady() first)
      */
     async submitSettlement(settlement: SettlementData, expectedMemberCount: number): Promise<void> {
-        // Verify the form is open
+        // Verify the form is open and in create mode
         const modal = this.getModal();
         await expect(modal).toBeVisible({ timeout: 1000 });
+        await expect(modal.getByRole('heading', { name: /Record Payment|Settle Up/i })).toBeVisible();
 
         // Verify payer dropdown has all members
         const payerSelect = this.getPayerSelect();
@@ -219,5 +228,97 @@ export class SettlementFormPage extends BasePage {
         // Wait for modal to close
         const modal = this.getModal();
         await expect(modal).not.toBeVisible({ timeout: 5000 });
+    }
+
+    /**
+     * Verify the form is in update mode
+     */
+    async verifyUpdateMode(): Promise<void> {
+        const modal = this.getModal();
+        await expect(modal).toBeVisible();
+        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
+    }
+
+    /**
+     * Verify form values match expected
+     */
+    async verifyFormValues(expected: { amount: string; note: string }): Promise<void> {
+        const amountInput = this.getAmountInput();
+        const noteInput = this.getNoteInput();
+        
+        await expect(amountInput).toHaveValue(expected.amount);
+        await expect(noteInput).toHaveValue(expected.note);
+    }
+
+    /**
+     * Update a settlement (form should already be in edit mode)
+     */
+    async updateSettlement(data: { amount: string; note: string }): Promise<void> {
+        // Assert form is in update mode before updating
+        const modal = this.getModal();
+        await expect(modal).toBeVisible();
+        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
+        
+        const amountInput = this.getAmountInput();
+        const noteInput = this.getNoteInput();
+        
+        // Update amount
+        await this.fillPreactInput(amountInput, data.amount);
+        
+        // Update note
+        await this.fillPreactInput(noteInput, data.note);
+        
+        // Submit update
+        const updateButton = this.getUpdatePaymentButton();
+        await expect(updateButton).toBeEnabled();
+        await this.clickButton(updateButton, { buttonName: 'Update Payment' });
+    }
+
+    /**
+     * Wait for modal to close
+     */
+    async waitForModalClosed(): Promise<void> {
+        const modal = this.getModal();
+        await expect(modal).not.toBeVisible({ timeout: 3000 });
+    }
+
+    /**
+     * Clear and fill amount field
+     */
+    async clearAndFillAmount(amount: string): Promise<void> {
+        const amountInput = this.getAmountInput();
+        await amountInput.clear();
+        await this.fillPreactInput(amountInput, amount);
+    }
+
+    /**
+     * Verify update button is disabled
+     */
+    async verifyUpdateButtonDisabled(): Promise<void> {
+        const updateButton = this.getUpdatePaymentButton();
+        await expect(updateButton).toBeDisabled();
+    }
+
+    /**
+     * Verify update button is enabled
+     */
+    async verifyUpdateButtonEnabled(): Promise<void> {
+        const updateButton = this.getUpdatePaymentButton();
+        await expect(updateButton).toBeEnabled();
+    }
+
+    /**
+     * Close the modal
+     */
+    async closeModal(): Promise<void> {
+        const closeButton = this.getCloseButton();
+        const cancelButton = this.getCancelButton();
+        
+        // Try close button first, then cancel
+        if (await closeButton.isVisible()) {
+            await closeButton.click();
+        } else if (await cancelButton.isVisible()) {
+            await cancelButton.click();
+        }
     }
 }
