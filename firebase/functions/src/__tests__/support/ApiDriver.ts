@@ -1,6 +1,6 @@
 import {type CreateExpenseRequest, ExpenseData, FirestoreCollections, Group, type Settlement, User as BaseUser} from '../../shared/shared-types';
 import {API_BASE_URL, db, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
-import {BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, SettlementChangeDocument} from "./changeCollectionHelpers";
+import {BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./changeCollectionHelpers";
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -486,6 +486,24 @@ export class ApiDriver {
         throw Error(`timeout waiting for balance changes`);
     }
 
+    async getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
+        return (await this.getTransactionChanges(groupId, 'expense')).map(doc => doc.data() as ExpenseChangeDocument);
+    }
+
+    async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
+        return (await this.getTransactionChanges(groupId, 'settlement')).map(doc => doc.data() as SettlementChangeDocument);
+    }
+
+    async getTransactionChanges(groupId: string, type: string) {
+        const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
+            .where('groupId', '==', groupId)
+            .where('type', '==', type)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as MinimalChangeDocument);
+    }
+
     async getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
         const snapshot = await db.collection(FirestoreCollections.BALANCE_CHANGES)
             .where('groupId', '==', groupId)
@@ -493,26 +511,6 @@ export class ApiDriver {
             .get();
 
         return snapshot.docs.map(doc => doc.data() as BalanceChangeDocument);
-    }
-
-    async getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
-        const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
-            .where('groupId', '==', groupId)
-            .where('type', '==', 'expense')
-            .orderBy('timestamp', 'desc')
-            .get();
-
-        return snapshot.docs.map(doc => doc.data() as ExpenseChangeDocument);
-    }
-
-    async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
-        const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
-            .where('groupId', '==', groupId)
-            .where('type', '==', 'settlement')
-            .orderBy('timestamp', 'desc')
-            .get();
-
-        return snapshot.docs.map(doc => doc.data() as SettlementChangeDocument);
     }
 
     async getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
