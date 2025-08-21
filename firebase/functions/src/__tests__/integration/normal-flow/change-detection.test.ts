@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import {
     pollForChange,
     getGroupChanges,
@@ -15,32 +14,26 @@ import {
     BalanceChangeDocument,
 } from '../../support/changeCollectionHelpers';
 import { FirestoreCollections } from '../../../shared/shared-types';
+import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
 
 describe('Change Detection Integration Tests', () => {
-    let apiDriver: ApiDriver;
+    const apiDriver = new ApiDriver();
     let user1: User;
     let user2: User;
     let groupId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver();
-        
         // Create test users
-        user1 = await apiDriver.createUser({
-            email: `test.user1.${Date.now()}@example.com`,
-            password: 'Test123!',
-            displayName: 'Test User 1',
-        });
-
-        user2 = await apiDriver.createUser({
-            email: `test.user2.${Date.now()}@example.com`,
-            password: 'Test123!',
-            displayName: 'Test User 2',
-        });
+        const [u1, u2] = await Promise.all([
+            apiDriver.createUser(generateNewUserDetails()),
+            apiDriver.createUser(generateNewUserDetails())
+        ])
+        user1 = u1;
+        user2 = u2;
     });
 
     afterAll(async () => {
-        await clearAllTestData();
+        // await clearAllTestData();
     });
 
     beforeEach(async () => {
