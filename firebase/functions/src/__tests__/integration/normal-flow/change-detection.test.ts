@@ -1,6 +1,6 @@
 import {beforeAll, describe, expect, it} from '@jest/globals';
 import {ApiDriver, User} from '../../support/ApiDriver';
-import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
+import {BalanceChangeDocument, clearGroupChangeDocuments, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
 import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from "../../support/builders";
@@ -122,59 +122,87 @@ describe('Change Detection Integration Tests', () => {
 
     describe('Expense Change Tracking', () => {
         it('should create change documents for new expenses', async () => {
-            const groupId = await createSharedGroup();
-
-            const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
-                    .withGroupId(groupId)
-                    .withPaidBy(user1.uid)
-                    .withParticipants([user1.uid, user2.uid])
-                    .build(),
+            const group = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
 
-            const expenseChange = await pollForChange<ExpenseChangeDocument>(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.id === expense.id && doc.action === 'created',
-                {timeout: 2000, groupId}
-            );
-
-            expect(expenseChange).toBeTruthy();
-            expect(expenseChange?.groupId).toBe(groupId);
-            expect(expenseChange?.action).toBe('created');
-            expect(expenseChange?.type).toBe('expense');
-            expect(expenseChange?.users).toContain(user1.uid);
-            expect(expenseChange?.users).toContain(user2.uid);
-
-            const balanceChange = await pollForChange<BalanceChangeDocument>(
-                FirestoreCollections.BALANCE_CHANGES,
-                (doc) => doc.groupId === groupId && doc.type === 'balance',
-                {timeout: 2000, groupId}
-            );
-
-            expect(balanceChange).toBeTruthy();
-            expect(balanceChange?.action).toBe('recalculated');
-            expect(balanceChange?.type).toBe('balance');
-        });
-
-        it('should track expense updates with correct priority', async () => {
-            const groupId = await createSharedGroup();
-
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
                     .build(),
                 user1.token
             );
 
-            await apiDriver.waitForExpenseChanges(groupId, (changes) =>
-                changes.some(c => c.id === expense.id)
-            );
-            await clearGroupChangeDocuments(groupId);
+            // step 1 - find the expected events
+            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1]);
 
-            // Update expense amount (high priority) - still need full object for update
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countExpenseChanges(group.id)).toBe(1);
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+
+            // step 3 - check the details of the most recent change
+            const lastExpenseChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            expect(lastExpenseChange).toBeTruthy();
+            expect(lastExpenseChange?.groupId).toBe(group.id);
+            expect(lastExpenseChange?.action).toBe('created');
+            expect(lastExpenseChange?.type).toBe('expense');
+            expect(lastExpenseChange?.users).toContain(user1.uid);
+        });
+
+        it('should track multi-user expenses with correct participants', async () => {
+            const group = await apiDriver.createGroupWithMembers(
+                'Multi-user Expense Group',
+                [user1, user2],
+                user1.token
+            );
+
+            // Wait for group creation events to settle
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+
+            const expense = await apiDriver.createExpense(
+                new ExpenseBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
+                    .build(),
+                user1.token
+            );
+
+            // step 1 - find the expected events
+            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1, user2]);
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
+
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countExpenseChanges(group.id)).toBe(1);
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+
+            // step 3 - check the details include both users
+            const lastExpenseChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            expect(lastExpenseChange).toBeTruthy();
+            expect(lastExpenseChange?.users).toContain(user1.uid);
+            expect(lastExpenseChange?.users).toContain(user2.uid);
+        });
+
+        it('should track expense updates', async () => {
+            const group = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().build(),
+                user1.token
+            );
+
+            const expense = await apiDriver.createExpense(
+                new ExpenseBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
+                    .build(),
+                user1.token
+            );
+
+            // Update expense amount
             await apiDriver.updateExpense(
                 expense.id,
                 {
@@ -189,33 +217,36 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            const change = await pollForChange<ExpenseChangeDocument>(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.id === expense.id && doc.action === 'updated',
-                {timeout: 2000, groupId}
-            );
+            // step 1 - find the expected events
+            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await apiDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1]);
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1], 2); // one for create, one for update
 
-            expect(change).toBeTruthy();
-            expect(change?.action).toBe('updated');
-            expect(change?.type).toBe('expense');
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countExpenseChanges(group.id)).toBe(2); // created + updated
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(2);
+
+            // step 3 - check the most recent change is the update
+            const lastChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            expect(lastChange).toBeTruthy();
+            expect(lastChange?.action).toBe('updated');
+            expect(lastChange?.type).toBe('expense');
         });
 
         it('should immediately process rapid expense updates', async () => {
-            const groupId = await createSharedGroup();
+            const group = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().build(),
+                user1.token
+            );
 
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
                     .build(),
                 user1.token
             );
-
-            await apiDriver.waitForExpenseChanges(groupId, (changes) =>
-                changes.some(c => c.id === expense.id)
-            );
-            await clearGroupChangeDocuments(groupId);
 
             await apiDriver.updateExpense(
                 expense.id,
@@ -257,44 +288,47 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await apiDriver.waitForExpenseChanges(groupId, (changes) => {
-                const recentChanges = changes.filter(c =>
-                    c.id === expense.id && c.action === 'updated'
-                );
-                return recentChanges.length >= 3;
-            });
+            // step 1 - find the expected events
+            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await apiDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1], 3);
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1], 4); // 1 create + 3 updates
 
-            const changeCount = await countRecentChanges(FirestoreCollections.TRANSACTION_CHANGES, groupId, 3000);
-            expect(changeCount).toBe(3);
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countExpenseChanges(group.id)).toBe(4); // 1 created + 3 updated
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(4);
         });
 
         it('should track expense deletion (soft delete) immediately', async () => {
-            const groupId = await createSharedGroup();
+            const group = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().build(),
+                user1.token
+            );
 
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
                     .build(),
                 user1.token
             );
 
-            await apiDriver.waitForExpenseChanges(groupId, (changes) =>
-                changes.some(c => c.id === expense.id)
-            );
-            await clearGroupChangeDocuments(groupId);
-
             await apiDriver.deleteExpense(expense.id, user1.token);
-            const change = await pollForChange<ExpenseChangeDocument>(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.id === expense.id && doc.action === 'updated',
-                {timeout: 1000, groupId}
-            );
 
-            expect(change).toBeTruthy();
-            expect(change?.action).toBe('updated');
-            expect(change?.type).toBe('expense');
+            // step 1 - find the expected events
+            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await apiDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1]); // soft delete is an update
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1], 2); // create + delete
+
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countExpenseChanges(group.id)).toBe(2); // created + updated (soft delete)
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(2);
+
+            // step 3 - verify the last change is the soft delete
+            const lastChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            expect(lastChange).toBeTruthy();
+            expect(lastChange?.action).toBe('updated'); // soft delete shows as update
+            expect(lastChange?.type).toBe('expense');
         });
     });
 

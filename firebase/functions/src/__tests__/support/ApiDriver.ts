@@ -459,12 +459,70 @@ export class ApiDriver {
         return (await this.getGroupChanges(groupId)).length;
     }
 
+    async countExpenseChanges(groupId: string) {
+        return (await this.getExpenseChanges(groupId)).length;
+    }
+
+    async countBalanceChanges(groupId: string) {
+        return (await this.getBalanceChanges(groupId)).length;
+    }
+
+    async mostRecentExpenseChangeEvent(groupId: string) {
+        const changes = await this.getExpenseChanges(groupId);
+        return changes[0]; // they are most recent first
+    }
+
     async waitForGroupCreationEvent(groupId: string, creator: User) {
         await this.waitForGroupEvent('created', groupId, creator, 1);
     }
 
     async waitForGroupUpdatedEvent(groupId: string, creator: User, expectedCount = 1) {
         await this.waitForGroupEvent('updated', groupId, creator, expectedCount);
+    }
+
+    async waitForExpenseCreationEvent(groupId: string, expenseId: string, participants: User[]) {
+        await this.waitForExpenseEvent('created', groupId, expenseId, participants, 1);
+    }
+
+    async waitForExpenseUpdatedEvent(groupId: string, expenseId: string, participants: User[], expectedCount = 1) {
+        await this.waitForExpenseEvent('updated', groupId, expenseId, participants, expectedCount);
+    }
+
+    async waitForExpenseEvent(action: string, groupId: string, expenseId: string, participants: User[], expectedCount: number) {
+        await this.waitForExpenseChanges(groupId, (changes) => {
+            const found = changes.filter(doc => {
+                if (doc.type !== 'expense')
+                    throw Error("should not get here");
+
+                if (doc.id !== expenseId)
+                    return false;
+
+                if (doc.action !== action)
+                    return false;
+
+                // Check all participants are in the users array
+                return participants.every(p => doc.users.includes(p.uid));
+            });
+
+            return found.length === expectedCount;
+        });
+    }
+
+    async waitForBalanceRecalculationEvent(groupId: string, participants: User[], expectedCount = 1) {
+        await this.waitForBalanceChanges(groupId, (changes) => {
+            const found = changes.filter(doc => {
+                if (doc.type !== 'balance')
+                    throw Error("should not get here");
+
+                if (doc.action !== 'recalculated')
+                    return false;
+
+                // Check all participants are in the users array
+                return participants.every(p => doc.users.includes(p.uid));
+            });
+
+            return found.length >= expectedCount;
+        });
     }
 
     async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number) {
