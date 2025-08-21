@@ -1,6 +1,6 @@
 import {beforeAll, describe, expect, it} from '@jest/globals';
 import {ApiDriver, User} from '../../support/ApiDriver';
-import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, GroupChangeDocument, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
+import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
 import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from "../../support/builders";
@@ -70,6 +70,22 @@ describe('Change Detection Integration Tests', () => {
             expect(await _countGroupChanges(group.id)).toBe(1);
         });
 
+        it('should create a "update" change document when a share link is created', async () => {
+            // Create a group using builder with minimal fields
+            const group = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().build(),
+                user1.token
+            );
+            await apiDriver.generateShareLink(group.id, user1.token);
+
+            // step 1 - find the expected events
+            await _waitForGroupCreationEvent(group.id, user1);
+            await _waitForGroupUpdatedEvent(group.id, user1);
+
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await _countGroupChanges(group.id)).toBe(2);
+        });
+
         it('should create an "updated" change document when a group is modified', async () => {
             const group = await apiDriver.createGroup(
                 new CreateGroupRequestBuilder().build(),
@@ -113,7 +129,7 @@ describe('Change Detection Integration Tests', () => {
 
             // step 1 - find the expected events
             await _waitForGroupCreationEvent(group.id, user1);
-            await _waitForGroupUpdatedEvent(group.id, user1, 2);
+            await _waitForGroupUpdatedEvent(group.id, user1, 2);// share link generation + user joining
 
             // step 2 - make sure there are no extra / unplanned events
             expect(await _countGroupChanges(group.id)).toBe(3);
@@ -127,31 +143,6 @@ describe('Change Detection Integration Tests', () => {
             expect(Object.keys(lastUpdate!.users).length).toBe(2);
         });
 
-        it('should calculate correct priority for different field changes', async () => {
-            const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().build(),
-                user1.token
-            );
-
-            await apiDriver.waitForGroupChanges(group.id, (changes) => changes.length > 0);
-            await clearGroupChangeDocuments(group.id);
-
-            await apiDriver.updateGroup(
-                group.id,
-                {description: 'New Description'},
-                user1.token
-            );
-
-            const change = await pollForChange<GroupChangeDocument>(
-                FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.id === group.id && doc.action === 'updated',
-                {timeout: 2000, groupId: group.id}
-            );
-
-            expect(change).toBeTruthy();
-            expect(change?.type).toBe('group');
-            expect(change?.action).toBe('updated');
-        });
     });
 
     describe('Expense Change Tracking', () => {
