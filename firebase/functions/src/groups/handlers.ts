@@ -7,7 +7,13 @@ import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { createOptimisticTimestamp, createTrueServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
 import { Group, GroupWithBalance } from '../types/group-types';
-import { FirestoreCollections } from '../shared/shared-types';
+import { 
+    FirestoreCollections,
+    UserThemeColor,
+    GroupFullDetails,
+    ListGroupsResponse,
+    MessageResponse,
+} from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances } from '../services/balanceCalculator';
@@ -17,7 +23,6 @@ import { _getGroupMembersData } from './memberHandlers';
 import { _getGroupExpensesData } from '../expenses/handlers';
 import { _getGroupSettlementsData } from '../settlements/handlers';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
-import type { UserThemeColor } from '../shared/shared-types';
 
 /**
  * Get theme color for a member based on their index
@@ -352,7 +357,8 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
     // Log without explicitly passing userId - it will be automatically included
     logger.info('group-updated', { id: groupId });
 
-    res.json({ message: 'Group updated successfully' });
+    const response: MessageResponse = { message: 'Group updated successfully' };
+    res.json(response);
 };
 
 /**
@@ -384,7 +390,8 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     // Log without explicitly passing userId - it will be automatically included
     logger.info('group-deleted', { id: groupId });
 
-    res.json({ message: 'Group deleted successfully' });
+    const response: MessageResponse = { message: 'Group deleted successfully' };
+    res.json(response);
 };
 
 /**
@@ -504,7 +511,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
         });
     }
 
-    const response: any = {
+    const response: ListGroupsResponse = {
         groups,
         count: groups.length,
         hasMore,
@@ -573,11 +580,11 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
         ]);
 
         // Construct response using existing patterns
-        const response = {
+        const response: GroupFullDetails = {
             group,
             members: membersData,
             expenses: expensesData,
-            balances: balancesData,
+            balances: balancesData as any, // Type conversion - GroupBalance from models matches GroupBalances structure
             settlements: settlementsData
         };
 

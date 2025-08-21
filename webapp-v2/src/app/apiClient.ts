@@ -20,42 +20,31 @@ import type {
     CreateSettlementRequest,
     Settlement,
     SettlementListItem,
-    User,
+    GroupFullDetails,
+    ExpenseFullDetails,
+    ListExpensesResponse,
+    ListSettlementsResponse,
+    MessageResponse,
+    LeaveGroupResponse,
+    RemoveGroupMemberResponse,
+    ShareLinkResponse,
+    PreviewGroupResponse,
+    JoinGroupResponse,
+    RegisterResponse,
+    HealthCheckResponse,
+    UserPoliciesResponse,
+    CurrentPolicyResponse,
+    UserProfileResponse,
+    AcceptPolicyResponse,
+    AcceptMultiplePoliciesResponse,
+    PolicyAcceptanceStatus,
+    UserPolicyStatusResponse,
+    AcceptPolicyRequest,
+    CreateSettlementResponse,
+    ListSettlementsApiResponse,
 } from '@shared/shared-types';
 
-// Define HealthCheckResponse locally since it's not in shared types
-interface HealthCheckResponse {
-    checks: {
-        firestore: {
-            status: 'healthy' | 'unhealthy';
-            responseTime?: number;
-        };
-        auth: {
-            status: 'healthy' | 'unhealthy';
-            responseTime?: number;
-        };
-    };
-}
-
-// Policy acceptance types for user endpoints
-interface AcceptPolicyRequest {
-    policyId: string;
-    versionHash: string;
-}
-
-interface PolicyAcceptanceStatus {
-    policyId: string;
-    currentVersionHash: string;
-    userAcceptedHash?: string;
-    needsAcceptance: boolean;
-    policyName: string;
-}
-
-interface UserPolicyStatusResponse {
-    needsAcceptance: boolean;
-    policies: PolicyAcceptanceStatus[];
-    totalPending: number;
-}
+// All types are now imported from shared-types
 
 // API configuration - use window.API_BASE_URL injected during build
 const getApiBaseUrl = () => {
@@ -599,13 +588,7 @@ export class ApiClient {
         expenseCursor?: string;
         settlementLimit?: number;
         settlementCursor?: string;
-    }): Promise<{
-        group: Group;
-        members: { members: User[] };
-        expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
-        balances: GroupBalances;
-        settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
-    }> {
+    }): Promise<GroupFullDetails> {
         const queryParams: Record<string, string> = {};
         
         if (options?.expenseLimit) {
@@ -638,14 +621,14 @@ export class ApiClient {
         });
     }
 
-    async leaveGroup(groupId: string): Promise<{ success: boolean; message: string }> {
+    async leaveGroup(groupId: string): Promise<LeaveGroupResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/leave`,
             method: 'POST',
         });
     }
 
-    async removeGroupMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }> {
+    async removeGroupMember(groupId: string, memberId: string): Promise<RemoveGroupMemberResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}`,
             method: 'DELETE',
@@ -660,7 +643,7 @@ export class ApiClient {
         });
     }
 
-    async updateGroup(id: string, data: { name?: string; description?: string }): Promise<{ message: string }> {
+    async updateGroup(id: string, data: { name?: string; description?: string }): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${id}`,
             method: 'PUT',
@@ -668,7 +651,7 @@ export class ApiClient {
         });
     }
 
-    async deleteGroup(id: string): Promise<{ message: string }> {
+    async deleteGroup(id: string): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${id}`,
             method: 'DELETE',
@@ -683,7 +666,7 @@ export class ApiClient {
         });
     }
 
-    async getExpenses(groupId: string, limit?: number, cursor?: string, includeDeleted?: boolean): Promise<{ expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string }> {
+    async getExpenses(groupId: string, limit?: number, cursor?: string, includeDeleted?: boolean): Promise<ListExpensesResponse> {
         const query: Record<string, string> = { groupId };
         if (limit !== undefined) {
             query.limit = limit.toString();
@@ -718,7 +701,7 @@ export class ApiClient {
         });
     }
 
-    async deleteExpense(expenseId: string): Promise<{ message: string }> {
+    async deleteExpense(expenseId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: '/expenses',
             method: 'DELETE',
@@ -726,11 +709,7 @@ export class ApiClient {
         });
     }
 
-    async getExpenseFullDetails(expenseId: string): Promise<{
-        expense: ExpenseData;
-        group: Group;
-        members: { members: User[] };
-    }> {
+    async getExpenseFullDetails(expenseId: string): Promise<ExpenseFullDetails> {
         return this.request({
             endpoint: `/expenses/${expenseId}/full-details`,
             method: 'GET',
@@ -738,7 +717,7 @@ export class ApiClient {
     }
 
     async createSettlement(data: CreateSettlementRequest): Promise<Settlement> {
-        const response = await this.request<{ success: boolean; data: Settlement }>({
+        const response = await this.request<CreateSettlementResponse>({
             endpoint: '/settlements',
             method: 'POST',
             body: data,
@@ -761,12 +740,7 @@ export class ApiClient {
         userId?: string,
         startDate?: string,
         endDate?: string,
-    ): Promise<{
-        settlements: SettlementListItem[];
-        count: number;
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
+    ): Promise<ListSettlementsResponse> {
         const query: Record<string, string> = { groupId };
         if (limit !== undefined) query.limit = limit.toString();
         if (cursor !== undefined) query.cursor = cursor;
@@ -774,7 +748,7 @@ export class ApiClient {
         if (startDate !== undefined) query.startDate = startDate;
         if (endDate !== undefined) query.endDate = endDate;
 
-        const response = await this.request<{ success: boolean; data: { settlements: SettlementListItem[]; count: number; hasMore: boolean; nextCursor?: string } }>({
+        const response = await this.request<ListSettlementsApiResponse>({
             endpoint: '/settlements',
             method: 'GET',
             query,
@@ -791,7 +765,7 @@ export class ApiClient {
         });
     }
 
-    async deleteSettlement(settlementId: string): Promise<{ message: string }> {
+    async deleteSettlement(settlementId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'DELETE',
@@ -799,7 +773,7 @@ export class ApiClient {
         });
     }
 
-    async generateShareLink(groupId: string): Promise<{ linkId: string; shareablePath: string }> {
+    async generateShareLink(groupId: string): Promise<ShareLinkResponse> {
         return this.request({
             endpoint: '/groups/share',
             method: 'POST',
@@ -807,13 +781,7 @@ export class ApiClient {
         });
     }
 
-    async previewGroupByLink(linkId: string): Promise<{
-        groupId: string;
-        groupName: string;
-        groupDescription: string;
-        memberCount: number; // Still returned by preview endpoint for display
-        isAlreadyMember: boolean;
-    }> {
+    async previewGroupByLink(linkId: string): Promise<PreviewGroupResponse> {
         return this.request({
             endpoint: '/groups/preview',
             method: 'POST',
@@ -822,7 +790,7 @@ export class ApiClient {
     }
 
     async joinGroupByLink(linkId: string): Promise<Group> {
-        const response = await this.request({
+        const response = await this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
             body: { linkId },
@@ -836,7 +804,6 @@ export class ApiClient {
             name: response.groupName,
             description: '',
             members: {}, // Will be populated from server after join
-            memberIds: [], // Will be populated after join
             createdBy: '', // Will be populated from server
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -854,7 +821,7 @@ export class ApiClient {
         displayName: string,
         termsAccepted: boolean,
         cookiePolicyAccepted: boolean,
-    ): Promise<{ success: boolean; message: string; user: { uid: string; email: string; displayName: string } }> {
+    ): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',
@@ -870,7 +837,7 @@ export class ApiClient {
     }
 
     // User policy acceptance methods
-    async acceptPolicy(policyId: string, versionHash: string): Promise<{ success: boolean; message: string; acceptedPolicy: { policyId: string; versionHash: string; acceptedAt: string } }> {
+    async acceptPolicy(policyId: string, versionHash: string): Promise<AcceptPolicyResponse> {
         return this.request({
             endpoint: '/user/policies/accept',
             method: 'POST',
@@ -880,7 +847,7 @@ export class ApiClient {
 
     async acceptMultiplePolicies(
         acceptances: AcceptPolicyRequest[],
-    ): Promise<{ success: boolean; message: string; acceptedPolicies: Array<{ policyId: string; versionHash: string; acceptedAt: string }> }> {
+    ): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
             endpoint: '/user/policies/accept-multiple',
             method: 'POST',
@@ -895,7 +862,7 @@ export class ApiClient {
         });
     }
 
-    async getCurrentPolicies(): Promise<{ policies: Record<string, { policyName: string; currentVersionHash: string }>; count: number }> {
+    async getCurrentPolicies(): Promise<UserPoliciesResponse> {
         return this.request({
             endpoint: '/policies/current',
             method: 'GET',
@@ -903,7 +870,7 @@ export class ApiClient {
         });
     }
 
-    async getCurrentPolicy(policyId: string): Promise<{ id: string; policyName: string; currentVersionHash: string; text: string; createdAt: string }> {
+    async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
         return this.request({
             endpoint: '/policies/:id/current',
             method: 'GET',
@@ -913,14 +880,14 @@ export class ApiClient {
     }
 
     // User profile management methods
-    async getUserProfile(): Promise<{ uid: string; email: string; displayName: string }> {
+    async getUserProfile(): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
             method: 'GET',
         });
     }
 
-    async updateUserProfile(data: { displayName?: string }): Promise<{ uid: string; email: string; displayName: string }> {
+    async updateUserProfile(data: { displayName?: string }): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
             method: 'PUT',
@@ -928,7 +895,7 @@ export class ApiClient {
         });
     }
 
-    async changePassword(data: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    async changePassword(data: { currentPassword: string; newPassword: string }): Promise<MessageResponse> {
         return this.request({
             endpoint: '/user/change-password',
             method: 'POST',
@@ -936,7 +903,7 @@ export class ApiClient {
         });
     }
 
-    async sendPasswordResetEmail(email: string): Promise<{ message: string }> {
+    async sendPasswordResetEmail(email: string): Promise<MessageResponse> {
         return this.request({
             endpoint: '/user/reset-password',
             method: 'POST',
@@ -945,7 +912,7 @@ export class ApiClient {
         });
     }
 
-    async deleteUserAccount(): Promise<{ message: string }> {
+    async deleteUserAccount(): Promise<MessageResponse> {
         return this.request({
             endpoint: '/user/account',
             method: 'DELETE',

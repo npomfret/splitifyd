@@ -8,7 +8,19 @@ import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { createSettlementSchema, updateSettlementSchema, settlementIdSchema, listSettlementsQuerySchema } from './validation';
-import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, User, FirestoreCollections } from '../shared/shared-types';
+import { 
+    Settlement, 
+    CreateSettlementRequest, 
+    UpdateSettlementRequest, 
+    SettlementListItem, 
+    User, 
+    FirestoreCollections,
+    CreateSettlementResponse,
+    UpdateSettlementResponse,
+    DeleteSettlementResponse,
+    GetSettlementResponse,
+    ListSettlementsApiResponse,
+} from '../shared/shared-types';
 import { GroupData } from '../types/group-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 
@@ -158,10 +170,11 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-created', { id: settlementId });
 
-        res.status(HTTP_STATUS.CREATED).json({
+        const response: CreateSettlementResponse = {
             success: true,
             data: responseData,
-        });
+        };
+        res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
         logger.error('Error creating settlement', error, { 
             userId: req.user?.uid, 
@@ -278,10 +291,11 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-updated', { id: settlementId });
 
-        res.status(HTTP_STATUS.OK).json({
+        const response: UpdateSettlementResponse = {
             success: true,
             data: responseData,
-        });
+        };
+        res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
         logger.error('Error updating settlement', error, { 
             settlementId: req.params?.id, 
@@ -355,10 +369,11 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-deleted', { id: settlementId });
 
-        res.status(HTTP_STATUS.OK).json({
+        const response: DeleteSettlementResponse = {
             success: true,
             message: 'Settlement deleted successfully',
-        });
+        };
+        res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
         logger.error('Error deleting settlement', error, { 
             settlementId: req.params?.id, 
@@ -417,10 +432,11 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
             createdAt: timestampToISO(settlement.createdAt),
         };
 
-        res.status(HTTP_STATUS.OK).json({
+        const response: GetSettlementResponse = {
             success: true,
             data: responseData,
-        });
+        };
+        res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
         logger.error('Error fetching settlement', error, { 
             settlementId: req.params?.id, 
@@ -555,10 +571,11 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
             endDate
         });
 
-        res.status(HTTP_STATUS.OK).json({
+        const response: ListSettlementsApiResponse = {
             success: true,
             data: result,
-        });
+        };
+        res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
         logger.error('Error listing settlements', error, { 
             groupId: req.params?.groupId, 

@@ -1,4 +1,29 @@
-import {type CreateExpenseRequest, ExpenseData, FirestoreCollections, Group, type Settlement, User as BaseUser} from '../../shared/shared-types';
+import {
+    type CreateExpenseRequest,
+    ExpenseData,
+    FirestoreCollections,
+    Group,
+    type Settlement,
+    User as BaseUser,
+    GroupFullDetails,
+    ExpenseFullDetails,
+    ListExpensesResponse,
+    ListSettlementsResponse,
+    MessageResponse,
+    LeaveGroupResponse,
+    RemoveGroupMemberResponse,
+    ShareLinkResponse,
+    JoinGroupResponse,
+    RegisterResponse,
+    GroupBalances,
+    GroupMembersResponse,
+    ListGroupsResponse,
+    SettlementListItem,
+    ExpenseHistoryResponse,
+    UserPoliciesResponse,
+    CurrentPolicyResponse,
+    UserProfileResponse,
+} from '../../shared/shared-types';
 import {API_BASE_URL, db, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
 import {BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./changeCollectionHelpers";
 
@@ -19,15 +44,6 @@ interface PollOptions {
 // Generic matcher type
 type Matcher<T> = (value: T) => boolean | Promise<boolean>;
 
-// Response types for type safety
-interface ApiResponse {
-    [key: string]: any;
-}
-
-interface BalanceResponse extends ApiResponse {
-    userBalances: Record<string, any>;
-    lastUpdated?: string;
-}
 
 export class ApiDriver {
     private readonly baseUrl: string;
@@ -35,7 +51,7 @@ export class ApiDriver {
     private readonly firebaseApiKey: string;
 
     static readonly matchers = {
-        balanceHasUpdate: () => (balances: BalanceResponse) => balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated,
+        balanceHasUpdate: () => (balances: GroupBalances) => balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated,
     };
 
     constructor() {
@@ -104,8 +120,8 @@ export class ApiDriver {
         await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
     }
 
-    async deleteExpense(expenseId: string, token: string): Promise<void> {
-        await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
+    async deleteExpense(expenseId: string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
     }
 
     async getExpense(expenseId: string, token: string): Promise<ExpenseData> {
@@ -117,18 +133,18 @@ export class ApiDriver {
         return response.data as Settlement;
     }
 
-    async getSettlement(settlementId: string, token: string): Promise<any> {
+    async getSettlement(settlementId: string, token: string): Promise<SettlementListItem> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'GET', null, token);
         return response.data;
     }
 
-    async updateSettlement(settlementId: string, updateData: any, token: string): Promise<any> {
+    async updateSettlement(settlementId: string, updateData: any, token: string): Promise<SettlementListItem> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
         return response.data;
     }
 
-    async deleteSettlement(settlementId: string, token: string): Promise<void> {
-        await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
+    async deleteSettlement(settlementId: string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
     async listSettlements(
@@ -141,7 +157,7 @@ export class ApiDriver {
             startDate?: string;
             endDate?: string;
         },
-    ): Promise<any> {
+    ): Promise<ListSettlementsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.groupId) queryParams.append('groupId', params.groupId);
         if (params?.limit) queryParams.append('limit', params.limit.toString());
@@ -167,7 +183,7 @@ export class ApiDriver {
         };
     }
 
-    async listUserExpenses(token: string, params?: Record<string, any>): Promise<{ expenses: ExpenseData[] }> {
+    async listUserExpenses(token: string, params?: Record<string, any>): Promise<ListExpensesResponse> {
         let endpoint = '/expenses/user';
         if (params) {
             const queryParams = new URLSearchParams();
@@ -183,7 +199,7 @@ export class ApiDriver {
         return await this.apiRequest(endpoint, 'GET', null, token);
     }
 
-    async getGroupExpenses(groupId: string, token: string, limit?: number): Promise<{ expenses: ExpenseData[] }> {
+    async getGroupExpenses(groupId: string, token: string, limit?: number): Promise<ListExpensesResponse> {
         const limitParam = limit ? `&limit=${limit}` : '';
         return await this.apiRequest(`/expenses/group?groupId=${groupId}${limitParam}`, 'GET', null, token);
     }
@@ -191,45 +207,31 @@ export class ApiDriver {
     async getExpenseHistory(
         expenseId: string,
         token: string,
-    ): Promise<{
-        history: Array<{
-            id: string;
-            modifiedAt: string;
-            modifiedBy: string;
-            changeType: string;
-            changes: string[];
-            previousAmount?: number;
-            previousDescription?: string;
-            previousCategory?: string;
-            previousDate?: string;
-            previousParticipants?: string[];
-        }>;
-        count: number;
-    }> {
+    ): Promise<ExpenseHistoryResponse> {
         return await this.apiRequest(`/expenses/history?id=${expenseId}`, 'GET', null, token);
     }
 
-    async getGroupBalances(groupId: string, token: string): Promise<any> {
+    async getGroupBalances(groupId: string, token: string): Promise<GroupBalances> {
         return await this.apiRequest(`/groups/balances?groupId=${groupId}`, 'GET', null, token);
     }
 
-    async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<BalanceResponse>, options?: PollOptions): Promise<BalanceResponse> {
+    async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
         return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
-    async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<any> {
+    async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<GroupBalances> {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
     }
 
-    async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<any>, options?: PollOptions): Promise<any> {
+    async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<Group>, options?: PollOptions): Promise<Group> {
         return this.pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
-    async generateShareLink(groupId: string, token: string): Promise<{ shareablePath: string; linkId: string }> {
+    async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
         return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
     }
 
-    async joinGroupViaShareLink(linkId: string, token: string): Promise<any> {
+    async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {
         return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
     }
 
@@ -270,7 +272,7 @@ export class ApiDriver {
         return (await this.apiRequest(`/groups/${groupId}`, 'GET', null, token)) as Group;
     }
 
-    async getGroupMembers(groupId: string, token: string): Promise<any> {
+    async getGroupMembers(groupId: string, token: string): Promise<GroupMembersResponse> {
         return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
     }
 
@@ -279,13 +281,7 @@ export class ApiDriver {
         expenseCursor?: string;
         settlementLimit?: number;
         settlementCursor?: string;
-    }): Promise<{
-        group: any;
-        members: { members: any[] };
-        expenses: { expenses: any[]; hasMore: boolean; nextCursor?: string };
-        balances: any;
-        settlements: { settlements: any[]; hasMore: boolean; nextCursor?: string };
-    }> {
+    }): Promise<GroupFullDetails> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
         
@@ -309,23 +305,19 @@ export class ApiDriver {
         return await this.apiRequest(url, 'GET', null, token);
     }
 
-    async getExpenseFullDetails(expenseId: string, token: string): Promise<{
-        expense: any;
-        group: any;
-        members: { members: any[] };
-    }> {
+    async getExpenseFullDetails(expenseId: string, token: string): Promise<ExpenseFullDetails> {
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 
-    async updateGroup(groupId: string, data: any, token: string): Promise<void> {
+    async updateGroup(groupId: string, data: any, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
     }
 
-    async deleteGroup(groupId: string, token: string): Promise<void> {
+    async deleteGroup(groupId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
-    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc' }): Promise<any> {
+    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc' }): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);
@@ -334,7 +326,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean }): Promise<any> {
+    async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean }): Promise<RegisterResponse> {
         // Ensure required policy acceptance fields are provided with defaults
         const registrationData = {
             ...userData,
@@ -348,39 +340,39 @@ export class ApiDriver {
         return await this.apiRequest(endpoint, method, body, token);
     }
 
-    async leaveGroup(groupId: string, token: string): Promise<{ success: boolean; message: string }> {
+    async leaveGroup(groupId: string, token: string): Promise<LeaveGroupResponse> {
         return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: string, memberId: string, token: string): Promise<{ success: boolean; message: string }> {
+    async removeGroupMember(groupId: string, memberId: string, token: string): Promise<RemoveGroupMemberResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
-    async getAllPolicies(): Promise<{ policies: Record<string, { policyName: string; currentVersionHash: string }>; count: number }> {
+    async getAllPolicies(): Promise<UserPoliciesResponse> {
         return await this.apiRequest('/policies/current', 'GET', null, null);
     }
 
-    async getPolicy(policyId: string): Promise<{ id: string; policyName: string; currentVersionHash: string; text: string; createdAt: string }> {
+    async getPolicy(policyId: string): Promise<CurrentPolicyResponse> {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
-    async getUserProfile(token: string | null): Promise<any> {
+    async getUserProfile(token: string | null): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'GET', null, token);
     }
 
-    async updateUserProfile(token: string | null, updates: { displayName?: string; photoURL?: string | null }): Promise<any> {
+    async updateUserProfile(token: string | null, updates: { displayName?: string; photoURL?: string | null }): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'PUT', updates, token);
     }
 
-    async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<any> {
+    async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
-    async sendPasswordResetEmail(email: string): Promise<any> {
+    async sendPasswordResetEmail(email: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/reset-password', 'POST', { email }, null);
     }
 
-    async deleteUserAccount(token: string | null, confirmDelete: boolean): Promise<any> {
+    async deleteUserAccount(token: string | null, confirmDelete: boolean): Promise<MessageResponse> {
         return await this.apiRequest('/user/account', 'DELETE', { confirmDelete }, token);
     }
 

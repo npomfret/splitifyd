@@ -411,6 +411,208 @@ export interface SettlementListItem {
 }
 
 // ========================================================================
+// Full Details Response Types
+// ========================================================================
+
+export interface GroupFullDetails {
+    group: Group;
+    members: { members: User[] };
+    expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
+    balances: GroupBalances;
+    settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
+}
+
+export interface ExpenseFullDetails {
+    expense: ExpenseData;
+    group: Group;
+    members: { members: User[] };
+}
+
+// ========================================================================
+// List Response Types  
+// ========================================================================
+
+export interface ListExpensesResponse {
+    expenses: ExpenseData[];
+    hasMore: boolean;
+    nextCursor?: string;
+    count?: number;
+}
+
+export interface ListSettlementsResponse {
+    settlements: SettlementListItem[];
+    count: number;
+    hasMore: boolean;
+    nextCursor?: string;
+}
+
+// ========================================================================
+// API Response Types
+// ========================================================================
+
+export interface MessageResponse {
+    message: string;
+}
+
+export interface SuccessResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface LeaveGroupResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface RemoveGroupMemberResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface ShareLinkResponse {
+    linkId: string;
+    shareablePath: string;
+}
+
+export interface PreviewGroupResponse {
+    groupId: string;
+    groupName: string;
+    groupDescription: string;
+    memberCount: number;
+    isAlreadyMember: boolean;
+}
+
+export interface JoinGroupResponse {
+    groupId: string;
+    groupName: string;
+    success: boolean;
+}
+
+export interface RegisterResponse {
+    success: boolean;
+    message: string;
+    user: {
+        uid: string;
+        email: string;
+        displayName: string;
+    };
+}
+
+export interface HealthCheckResponse {
+    checks: {
+        firestore: {
+            status: 'healthy' | 'unhealthy';
+            responseTime?: number;
+        };
+        auth: {
+            status: 'healthy' | 'unhealthy';
+            responseTime?: number;
+        };
+    };
+}
+
+export interface UserPoliciesResponse {
+    policies: Record<string, { policyName: string; currentVersionHash: string }>;
+    count: number;
+}
+
+export interface CurrentPolicyResponse {
+    id: string;
+    policyName: string;
+    currentVersionHash: string;
+    text: string;
+    createdAt: string;
+}
+
+export interface UserProfileResponse {
+    uid: string;
+    email: string;
+    displayName: string;
+}
+
+export interface AcceptPolicyResponse {
+    success: boolean;
+    message: string;
+    acceptedPolicy: {
+        policyId: string;
+        versionHash: string;
+        acceptedAt: string;
+    };
+}
+
+export interface AcceptMultiplePoliciesResponse {
+    success: boolean;
+    message: string;
+    acceptedPolicies: Array<{
+        policyId: string;
+        versionHash: string;
+        acceptedAt: string;
+    }>;
+}
+
+export interface PolicyAcceptanceStatus {
+    policyId: string;
+    currentVersionHash: string;
+    userAcceptedHash?: string;
+    needsAcceptance: boolean;
+    policyName: string;
+}
+
+export interface UserPolicyStatusResponse {
+    needsAcceptance: boolean;
+    policies: PolicyAcceptanceStatus[];
+    totalPending: number;
+}
+
+export interface AcceptPolicyRequest {
+    policyId: string;
+    versionHash: string;
+}
+
+export interface CreateSettlementResponse {
+    success: boolean;
+    data: Settlement;
+}
+
+export interface UpdateSettlementResponse {
+    success: boolean;
+    data: SettlementListItem;
+}
+
+export interface GetSettlementResponse {
+    success: boolean;
+    data: SettlementListItem;
+}
+
+export interface DeleteSettlementResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface ListSettlementsApiResponse {
+    success: boolean;
+    data: ListSettlementsResponse;
+}
+
+export interface ExpenseHistoryItem {
+    id: string;
+    modifiedAt: string;
+    modifiedBy: string;
+    changeType: string;
+    changes: string[];
+    previousAmount?: number;
+    previousDescription?: string;
+    previousCategory?: string;
+    previousDate?: string;
+    previousParticipants?: string[];
+}
+
+export interface ExpenseHistoryResponse {
+    history: ExpenseHistoryItem[];
+    count: number;
+}
+
+// ========================================================================
 // Balance calculation types
 // ========================================================================
 
