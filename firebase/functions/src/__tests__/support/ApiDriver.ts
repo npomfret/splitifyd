@@ -242,31 +242,30 @@ export class ApiDriver {
             description: `Test group created at ${new Date().toISOString()}`,
         };
 
-        const group = (await this.apiRequest('/groups', 'POST', groupData, creatorToken)) as Group;
+        const group = await this.createGroup(groupData, creatorToken);
 
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         if (otherMembers.length > 0) {
-            const shareResponse = await this.apiRequest('/groups/share', 'POST', {groupId: group.id}, creatorToken);
+            const shareResponse = await this.generateShareLink(group.id, creatorToken);
             const {linkId} = shareResponse;
 
             // Step 3: Have other members join using the share link
             for (const member of otherMembers) {
-                await this.apiRequest('/groups/join', 'POST', {linkId}, member.token);
+                await this.joinGroupViaShareLink(linkId, member.token);
             }
         }
 
         // Step 4: Fetch the updated group to get all members
-        const updatedGroup = await this.apiRequest(`/groups/${group.id}`, 'GET', null, creatorToken);
-        return updatedGroup as Group;
+        return await this.getGroup(group.id, creatorToken);
     }
 
-    async createGroup(groupData: any, token: string): Promise<any> {
-        return await this.apiRequest('/groups', 'POST', groupData, token);
+    async createGroup(groupData: any, token: string): Promise<Group> {
+        return (await this.apiRequest('/groups', 'POST', groupData, token)) as Group;
     }
 
-    async getGroup(groupId: string, token: string): Promise<any> {
-        return await this.apiRequest(`/groups/${groupId}`, 'GET', null, token);
+    async getGroup(groupId: string, token: string): Promise<Group> {
+        return (await this.apiRequest(`/groups/${groupId}`, 'GET', null, token)) as Group;
     }
 
     async getGroupMembers(groupId: string, token: string): Promise<any> {
