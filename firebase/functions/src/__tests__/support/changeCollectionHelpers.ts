@@ -128,7 +128,7 @@ export async function pollForChange<T extends DocumentData>(
 }
 
 /**
- * Clear all change documents for a specific group
+ * @deprecated should not be needed - tests should be isolated from each other and all test driven events are predictable
  */
 export async function clearGroupChangeDocuments(groupId: string): Promise<void> {
     const collections = [FirestoreCollections.GROUP_CHANGES, FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];

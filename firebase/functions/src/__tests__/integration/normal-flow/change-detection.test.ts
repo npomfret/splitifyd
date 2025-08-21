@@ -39,17 +39,23 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            // Poll for the change document
-            const change = await pollForChange<GroupChangeDocument>(
-                FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.id === group.id && doc.action === 'created',
-                {timeout: 2000, groupId: group.id}
-            );
+            // step 1 - find the expected events
+            await apiDriver.waitForGroupChanges(group.id, (changes) => {
+                const found = changes.find(doc => {
+                    if(doc.action !== 'created')
+                        return  false;
 
-            expect(change).toBeTruthy();
-            expect(change?.action).toBe('created');
-            expect(change?.type).toBe('group');
-            expect(change?.users).toContain(user1.uid);
+                    if(doc.type !== 'group')
+                        return  false;
+
+                    return doc.users.includes(user1.uid);
+                });
+
+                return found !== undefined;
+            });
+
+            // step 2 - make sure there are no extra / unplanned events
+            expect((await apiDriver.getGroupChanges(group.id)).length).toBe(1);
         });
 
         it('should create an "updated" change document when a group is modified', async () => {
