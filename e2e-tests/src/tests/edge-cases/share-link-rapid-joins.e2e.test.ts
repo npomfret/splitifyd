@@ -26,10 +26,7 @@ test.describe('Share Link - Edge Cases', () => {
             const { JoinGroupPage } = await import('../../pages');
             const joinPromises = users.slice(1).map(async (userFixture) => {
                 const joinGroupPage = new JoinGroupPage(userFixture.page);
-                await joinGroupPage.attemptJoinWithStateDetection(shareLink, { 
-                    displayName: userFixture.user.displayName, 
-                    email: userFixture.user.email 
-                });
+                await joinGroupPage.attemptJoinWithStateDetection(shareLink);
             });
 
             // Wait for all joins to complete

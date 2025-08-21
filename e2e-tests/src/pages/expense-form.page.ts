@@ -1,7 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { createErrorContext } from '../utils/error-formatting';
-import {createButtonClickError} from "../utils/error-factory.ts";
 import type { User as BaseUser } from '@shared/shared-types';
 
 // Match the ExpenseData interface from GroupDetailPage
@@ -34,17 +32,7 @@ export class ExpenseFormPage extends BasePage {
         
         // Enhanced URL check with better error reporting
         if (!currentUrl.match(expectedUrlPattern)) {
-            const errorContext = createErrorContext(
-                'Expense form URL validation failed - navigation to expense form likely failed',
-                currentUrl,
-                userInfo,
-                {
-                    expectedUrlPattern: '/groups/[id]/add-expense',
-                    expectedMemberCount
-                }
-            );
-            
-            throw new Error(`waitForFormReady failed\n${JSON.stringify(errorContext, null, 2)}`);
+            throw new Error(`Expense form URL validation failed - navigation to expense form likely failed. Expected pattern: /groups/[id]/add-expense, got: ${currentUrl}`);
         }
 
         // Step 1: Wait for basic page layout elements to be visible
@@ -182,29 +170,19 @@ export class ExpenseFormPage extends BasePage {
      * This properly handles the async save operation.
      */
     async clickSaveExpenseButton(): Promise<void> {
-        try {
-            const saveButton = this.getSaveExpenseButton();
+        const saveButton = this.getSaveExpenseButton();
 
-            // Wait for button to be enabled
-            await expect(saveButton).toBeEnabled({timeout: 500});
+        // Wait for button to be enabled
+        await expect(saveButton).toBeEnabled({timeout: 500});
 
-            // Click the button
-            await this.clickButton(saveButton, {buttonName: 'Save Expense'});
+        // Click the button
+        await this.clickButton(saveButton, {buttonName: 'Save Expense'});
 
-            // First wait for saving state to begin - button text changes to "Saving..."
-            await expect(this.page.getByRole('button', {name: 'Saving...'})).toBeVisible({timeout: 250});
+        // First wait for saving state to begin - button text changes to "Saving..."
+        await expect(this.page.getByRole('button', {name: 'Saving...'})).toBeVisible({timeout: 250});
 
-            // Then wait for saving state to complete - button text changes back to "Save Expense"
-            await expect(this.page.getByRole('button', {name: 'Saving...'})).not.toBeVisible({timeout: 3000});
-        } catch (e: any) {
-            throw createButtonClickError('clickSaveExpenseButton', {
-                success: false,
-                reason: e.message,
-                buttonName: 'Save Expense',
-                error: e.stack,
-                currentUrl: this.page.url()
-            })
-        }
+        // Then wait for saving state to complete - button text changes back to "Save Expense"
+        await expect(this.page.getByRole('button', {name: 'Saving...'})).not.toBeVisible({timeout: 3000});
     }
 
     /**

@@ -1,9 +1,9 @@
-import { expect, test } from '@playwright/test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { multiUserTest } from '../../fixtures';
-import { singleMixedAuthTest } from '../../fixtures/mixed-auth-test';
-import { GroupWorkflow, MultiUserWorkflow } from '../../workflows';
-import { GroupDetailPage, JoinGroupPage } from '../../pages';
+import {expect, test} from '@playwright/test';
+import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../helpers';
+import {multiUserTest} from '../../fixtures';
+import {singleMixedAuthTest} from '../../fixtures/mixed-auth-test';
+import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
+import {GroupDetailPage, JoinGroupPage} from '../../pages';
 import {generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
@@ -28,10 +28,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // User2 (already logged in) joins via share link
             const joinGroupPage2 = new JoinGroupPage(page2);
-            await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
-                displayName: user2.displayName, 
-                email: user2.email 
-            });
+            await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
 
             // Verify user2 is now in the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -56,10 +53,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // User2 joins first time
             const joinGroupPage2 = new JoinGroupPage(page2);
-            await joinGroupPage2.attemptJoinWithStateDetection(shareLink, { 
-                displayName: user2.displayName, 
-                email: user2.email 
-            });
+            await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
 
             // User2 tries to join again - should show already member message
             await multiUserWorkflow.testShareLinkAlreadyMember(page2, shareLink);
@@ -92,9 +86,8 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Navigate to share link with unauthenticated user
             // Should throw AuthenticationError since user is not logged in
-            await expect(async () => {
-                await joinGroupPage.attemptJoinWithStateDetection(shareLink);
-            }).rejects.toThrow('User redirected to login');
+            await joinGroupPage.navigateToShareLink(shareLink);
+            expect(page2.url()).toContain('/login');
         });
 
         singleMixedAuthTest('should allow unregistered user to register and join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
@@ -139,10 +132,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
-            await joinPage.attemptJoinWithStateDetection(shareLink, {
-                displayName: newUserName,
-                email: newUserEmail
-            });
+            await joinPage.attemptJoinWithStateDetection(shareLink);
             
             // Should be redirected to the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
@@ -196,10 +186,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
-            await joinPage.attemptJoinWithStateDetection(shareLink, {
-                displayName: user2.displayName,
-                email: user2.email
-            });
+            await joinPage.attemptJoinWithStateDetection(shareLink);
             
             // Should be redirected to the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });

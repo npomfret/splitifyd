@@ -232,3 +232,93 @@ export class ValidationError extends E2ETestError {
         this.actual = actual;
     }
 }
+
+/**
+ * Error thrown by the automatic error handling proxy.
+ * Wraps the original error with rich context automatically collected.
+ */
+export class ProxiedMethodError extends E2ETestError {
+    public readonly originalError: Error;
+    public readonly className: string;
+    public readonly methodName: string;
+    public readonly pageState?: any;
+    
+    constructor(
+        message: string,
+        operation: string,
+        context: Record<string, any>,
+        originalError: Error
+    ) {
+        // Create detailed message with page state summary
+        let detailedMessage = `${operation} failed: ${message}`;
+        
+        if (context.pageState) {
+            const { visibleErrors, dialogOpen, loadingIndicators, url } = context.pageState;
+            
+            if (visibleErrors?.length > 0) {
+                detailedMessage += `\nPage errors: ${visibleErrors.join(', ')}`;
+            }
+            if (dialogOpen) {
+                detailedMessage += '\nDialog/Modal is open';
+            }
+            if (loadingIndicators) {
+                detailedMessage += '\nLoading indicators visible';
+            }
+        }
+        
+        super(detailedMessage, operation, context);
+        this.name = 'ProxiedMethodError';
+        this.originalError = originalError;
+        this.className = context.className || 'Unknown';
+        this.methodName = context.methodName || 'unknown';
+        this.pageState = context.pageState;
+        
+        // Preserve the original stack trace but prepend our context
+        if (originalError.stack) {
+            const contextInfo = `\n    at ${this.className}.${this.methodName} (proxied)\n    URL: ${context.currentUrl}`;
+            this.stack = this.stack?.split('\n')[0] + contextInfo + '\nOriginal stack:\n' + originalError.stack;
+        }
+    }
+    
+    /**
+     * Get a formatted string representation of the error for logging
+     */
+    toDetailedString(): string {
+        const parts: string[] = [
+            `=== ${this.name} ===`,
+            `Operation: ${this.operation}`,
+            `Class: ${this.className}`,
+            `Method: ${this.methodName}`,
+            `Message: ${this.originalError.message}`,
+            `URL: ${this.context.currentUrl}`,
+        ];
+        
+        if (this.context.userInfo) {
+            parts.push(`User: ${this.context.userInfo.email || this.context.userInfo.displayName || 'Unknown'}`);
+        }
+        
+        if (this.pageState) {
+            if (this.pageState.visibleErrors?.length > 0) {
+                parts.push(`Page Errors: ${this.pageState.visibleErrors.join(', ')}`);
+            }
+            if (this.pageState.visibleButtons?.length > 0) {
+                parts.push(`Visible Buttons: ${this.pageState.visibleButtons.slice(0, 5).join(', ')}`);
+            }
+            if (this.pageState.formInputs?.length > 0) {
+                const inputSummary = this.pageState.formInputs
+                    .slice(0, 3)
+                    .map((i: any) => `${i.name || i.id || i.placeholder || 'unnamed'}=${i.value}`)
+                    .join(', ');
+                parts.push(`Form Inputs: ${inputSummary}`);
+            }
+        }
+        
+        if (this.context.screenshot) {
+            parts.push(`Screenshot: ${this.context.screenshot}`);
+        }
+        
+        parts.push('=================');
+        
+        return parts.join('\n');
+    }
+}

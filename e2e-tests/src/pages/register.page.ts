@@ -1,7 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
-import { createErrorContext } from '../utils/error-formatting';
 import type { User as BaseUser } from '@shared/shared-types';
 
 export class RegisterPage extends BasePage {
@@ -308,39 +307,13 @@ export class RegisterPage extends BasePage {
         
         // Enhanced URL check with better error reporting
         if (!currentUrl.match(expectedUrlPattern)) {
-            const errorContext = createErrorContext(
-                'Register form URL validation failed - navigation to register page likely failed',
-                currentUrl,
-                userInfo,
-                {
-                    expectedUrlPattern: '/register',
-                    actualUrl: currentUrl
-                }
-            );
-            
-            throw new Error(`waitForFormReady failed\n${JSON.stringify(errorContext, null, 2)}`);
+            throw new Error(`Register form URL validation failed - expected /register, got ${currentUrl}`);
         }
 
         await this.page.waitForLoadState('domcontentloaded');
         
-        try {
-            await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
-            await expect(this.getFullNameInput()).toBeVisible({ timeout: 5000 });
-            await expect(this.getEmailInput()).toBeVisible({ timeout: 5000 });
-        } catch (error) {
-            const errorContext = createErrorContext(
-                'Register form elements not visible - page may not have loaded correctly',
-                currentUrl,
-                userInfo,
-                {
-                    submitButtonVisible: await this.getSubmitButton().isVisible().catch(() => false),
-                    nameInputVisible: await this.getFullNameInput().isVisible().catch(() => false),
-                    emailInputVisible: await this.getEmailInput().isVisible().catch(() => false),
-                    originalError: error instanceof Error ? error.message : String(error)
-                }
-            );
-            
-            throw new Error(`waitForFormReady failed\n${JSON.stringify(errorContext, null, 2)}`);
-        }
+        await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
+        await expect(this.getFullNameInput()).toBeVisible({ timeout: 5000 });
+        await expect(this.getEmailInput()).toBeVisible({ timeout: 5000 });
     }
 }

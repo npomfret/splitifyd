@@ -5,8 +5,6 @@ import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
-import { ButtonClickError } from '../errors/test-errors';
-import { createValidationError } from '../utils/error-factory';
 import type { User as BaseUser } from '@shared/shared-types';
 
 interface ExpenseData {
@@ -87,10 +85,8 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Navigates to add expense form with comprehensive state detection.
-     * Throws ButtonClickError with all context if navigation fails.
      */
     private async attemptAddExpenseNavigation(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
-        const startUrl = this.page.url();
         const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
         const addButton = this.getAddExpenseButton();
 
@@ -102,20 +98,10 @@ export class GroupDetailPage extends BasePage {
         await this.page.waitForURL(expectedUrlPattern, { timeout: 5000 });
         await this.page.waitForLoadState('domcontentloaded');
 
-        // sanity check!
-        let currentUrl = this.page.url();
+        // Verify we're on the correct page
+        const currentUrl = this.page.url();
         if (!currentUrl.match(expectedUrlPattern)) {
-            const result = {
-                success: false,
-                reason: 'Navigation failed - wrong URL pattern',
-                startUrl,
-                currentUrl:  this.page.url(),
-                expectedPattern: expectedUrlPattern.toString(),
-                userInfo
-            };
-            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
-            error.context.expectedPattern = expectedUrlPattern.toString();
-            throw error;
+            throw new Error(`Navigation failed - expected URL pattern ${expectedUrlPattern}, got ${currentUrl}`);
         }
 
         // Wait for any loading spinner to disappear
@@ -123,61 +109,21 @@ export class GroupDetailPage extends BasePage {
         const loadingText = this.page.getByText('Loading expense form...');
 
         if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-            try {
-                await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
-                await expect(loadingText).not.toBeVisible({ timeout: 5000 });
-            } catch (timeoutError) {
-                const result = {
-                    success: false,
-                    reason: 'Loading spinner or text did not disappear within timeout',
-                    startUrl,
-                    currentUrl:  this.page.url(),
-                    userInfo,
-                    loadingSpinnerVisible: await loadingSpinner.isVisible().catch(() => false),
-                    loadingTextVisible: await loadingText.isVisible().catch(() => false),
-                    timeout: 5000
-                };
-                const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
-                error.context.originalError = timeoutError;
-                throw error;
-            }
+            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
+            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
         }
 
-        // sanity check - verify we're still on the correct page
+        // Verify we're still on the correct page
         if (!this.page.url().match(expectedUrlPattern)) {
-            const result = {
-                success: false,
-                reason: 'Navigation failed after loading - wrong URL pattern',
-                startUrl,
-                currentUrl:  this.page.url(),
-                expectedPattern: expectedUrlPattern.toString(),
-                userInfo
-            };
-            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
-            error.context.expectedPattern = expectedUrlPattern.toString();
-            throw error;
+            throw new Error(`Navigation failed after loading - expected URL pattern ${expectedUrlPattern}, got ${this.page.url()}`);
         }
 
         // Create and validate the expense form page
         const expenseFormPage = new ExpenseFormPage(this.page);
 
-        // Try to wait for form to be ready
-        try {
-            await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
-            return expenseFormPage;
-        } catch (formError) {
-            const result = {
-                success: false,
-                reason: 'Expense form failed to load properly',
-                startUrl,
-                currentUrl:  this.page.url(),
-                userInfo,
-                error: String(formError)
-            };
-            const error = ButtonClickError.fromResult('Navigate to Add Expense form', result);
-            error.context.originalError = formError;
-            throw error;
-        }
+        // Wait for form to be ready
+        await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
+        return expenseFormPage;
     }
 
     getNoExpensesMessage() {
@@ -357,13 +303,6 @@ export class GroupDetailPage extends BasePage {
                     memberCount,
                     timestamp: new Date().toISOString()
                 };
-                
-                throw createValidationError(
-                    `User synchronization in ${browserUser}'s browser`,
-                    expected,
-                    actual,
-                    context
-                );
             }
         }
 
@@ -910,23 +849,7 @@ export class GroupDetailPage extends BasePage {
                 await saveButton.click();
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
-                try {
                     await expect(modal).not.toBeVisible({ timeout: 10000 });
-                } catch (timeoutError) {
-                    const currentUrl = this.page.url();
-                    const result = {
-                        success: false,
-                        reason: 'Edit group modal did not close after saving',
-                        currentUrl,
-                        buttonName: 'Save Changes',
-                        modalVisible: await modal.isVisible().catch(() => false),
-                        saveButtonEnabled: await saveButton.isEnabled().catch(() => false),
-                        timeout: 10000
-                    };
-                    const error = ButtonClickError.fromResult('Save group changes', result);
-                    error.context.originalError = timeoutError;
-                    throw error;
-                }
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });
@@ -1082,81 +1005,9 @@ export class GroupDetailPage extends BasePage {
         
         // Get current page URL and user identifier from the page object
         const currentUrl = this.page.url();
-        const userIdentifier = this.userInfo ? `${this.userInfo.displayName}'s screen` : `User viewing ${currentUrl}`;
-        
-        // Check if the expected text exists
-        try {
-            await expect(balancesSection.getByText(expectedText)).toBeVisible({ timeout: 2000 });
-        } catch (error) {
-            // Extract actual debt relationships from the content
-            const arrowMatches = actualContent?.match(/[\w\s]+ → [\w\s]+/g) || [];
-            
-            // Capture screenshot for debugging
-            const screenshotFileName = `debt-verification-failed-${Date.now()}.png`;
-            const screenshotPath = `tmp/${screenshotFileName}`;
-            let screenshotUrl: string | undefined;
-            
-            try {
-                await this.page.screenshot({ 
-                    path: screenshotPath,
-                    fullPage: true 
-                });
-                // Convert to absolute path and file URL
-                const absolutePath = path.resolve(screenshotPath);
-                screenshotUrl = `file://${absolutePath}`;
-            } catch (err) {
-                // Screenshot failed, continue without it
-            }
-            
-            throw createValidationError(
-                `Verify debt relationship in Balances section (${userIdentifier})`,
-                {
-                    debtRelationship: expectedText,
-                    description: `Expected ${userIdentifier} to see "${debtorName}" owes "${creditorName}" in the Balances section`
-                },
-                {
-                    debtRelationshipsFound: arrowMatches.length > 0 ? arrowMatches : ['none'],
-                    sectionContent: actualContent?.substring(0, 500) || '(empty)',
-                    isSettledUp: actualContent?.includes('All settled up') || false,
-                    userScreen: userIdentifier
-                },
-                {
-                    debtorName,
-                    creditorName,
-                    screenshot: screenshotUrl,
-                    userContext: userIdentifier,
-                    pageUrl: currentUrl,
-                    tip: arrowMatches.length === 0 && actualContent?.includes('All settled up') 
-                        ? `${userIdentifier} shows as settled when it should show a debt. Check the balance calculation/synchronization.`
-                        : `The expected debt relationship was not found on ${userIdentifier}. Check if the users are displayed correctly.`
-                }
-            );
-        }
-        
-        // Verify amount with better error message
-        try {
-            await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible({ timeout: 2000 });
-        } catch (error) {
-            const amounts = await balancesSection.locator('.text-red-600').allTextContents();
-            
-            throw createValidationError(
-                `Verify debt amount in Balances section (${userIdentifier})`,
-                {
-                    amount: amount,
-                    description: `Expected to see amount "${amount}" in red text`
-                },
-                {
-                    amountsFound: amounts.length > 0 ? amounts : ['none'],
-                    sectionContent: actualContent?.substring(0, 200) || '(empty)'
-                },
-                {
-                    expectedRelationship: expectedText,
-                    tip: amounts.length === 0 
-                        ? 'No debt amounts found - the balance might be showing as settled'
-                        : `Found amounts ${amounts.join(', ')} but not ${amount}`
-                }
-            );
-        }
+
+        await expect(balancesSection.getByText(expectedText)).toBeVisible({ timeout: 2000 });
+        await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible({ timeout: 2000 });
     }
 
     /**
