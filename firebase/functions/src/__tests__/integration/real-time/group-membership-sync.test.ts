@@ -79,7 +79,20 @@ describe('Group Membership Real-Time Sync Tests', () => {
         activeListeners.push(unsubscribe);
 
         // Initial state should have only User 1
-        await new Promise(resolve => setTimeout(resolve, 500)); // Give listener time to initialize
+        // Poll for initial membership state
+        const initialStateReceived = await Promise.race([
+            new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (membershipChanges.length > 0) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                    }
+                }, 100);
+            }),
+            new Promise(resolve => setTimeout(() => resolve(false), 2000))
+        ]);
+        
+        expect(initialStateReceived).toBe(true);
         expect(membershipChanges.length).toBeGreaterThan(0);
         expect(membershipChanges[0].memberCount).toBe(1);
         expect(membershipChanges[0].memberIds).toContain(user1.uid);
@@ -156,10 +169,21 @@ describe('Group Membership Real-Time Sync Tests', () => {
         const shareResponse = await driver.generateShareLink(groupId, user1.token);
         await driver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
-        // Wait a bit for change records to be created
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Poll for change records to be created
+        const changesReceived = await Promise.race([
+            new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (changeRecords.length > 0) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                    }
+                }, 100);
+            }),
+            new Promise(resolve => setTimeout(() => resolve(false), 3000))
+        ]);
 
         // We should have at least one change record for the membership update
+        expect(changesReceived).toBe(true);
         expect(changeRecords.length).toBeGreaterThan(0);
     });
 });

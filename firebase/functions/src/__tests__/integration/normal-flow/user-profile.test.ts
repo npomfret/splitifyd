@@ -169,12 +169,10 @@ describe('User Profile Management API Tests', () => {
             const beforeResponse = await driver.getUserProfile(testUser.token);
             const beforeUpdate = beforeResponse.updatedAt;
 
-            // Wait a bit to ensure timestamp difference
-            await new Promise(resolve => setTimeout(resolve, 100));
-
             const response = await driver.updateUserProfile(testUser.token, { displayName: 'Updated Name' });
 
             expect(response.updatedAt).toBeDefined();
+            // Timestamps are server-generated, so they should always be different for updates
             expect(response.updatedAt).not.toBe(beforeUpdate);
         });
     });
@@ -364,11 +362,9 @@ describe('User Profile Management API Tests', () => {
             // Verify the update was successful
             expect(updateResponse.displayName).toBe(newDisplayName);
 
-            // Wait longer for Firebase Auth propagation in emulator
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
             // Check if the display name is reflected in group members
             // Note: Firebase Auth updates may not be immediately reflected in the emulator
+            // This is a known limitation of the Firebase emulator
             const membersResponse = await driver.getGroupMembers(groupId, testUser.token);
 
             // The API returns a GroupMembersResponse object with a 'members' array

@@ -237,11 +237,8 @@ describe('Change Detection Integration Tests', () => {
 
             // Wait for trigger processing
             await waitForTriggerProcessing('expense');
-            
-            // Add extra wait for trigger to fire
-            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Check expense change document
+            // Check expense change document (pollForChange will wait for it)
             const expenseChange = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === expense.id && doc.action === 'created',
