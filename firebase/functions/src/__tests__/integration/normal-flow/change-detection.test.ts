@@ -21,38 +21,13 @@ describe('Change Detection Integration Tests', () => {
         user2 = u2;
     });
 
+    /**
+     * @deprecated use apiDriver.createGroupWithMembers
+     */
     async function createSharedGroup(): Promise<string> {
         const group = await apiDriver.createGroupWithMembers(uuidv4(), [user1, user2], user1.token);
         await clearGroupChangeDocuments(group.id);
         return group.id;
-    }
-
-    async function _waitForGroupCreationEvent(groupId: string, creator: User) {
-        await _waitForGroupEvent('created', groupId, creator, 1);
-    }
-
-    async function _waitForGroupUpdatedEvent(groupId: string, creator: User, expectedCount = 1) {
-        await _waitForGroupEvent('updated', groupId, creator, expectedCount);
-    }
-
-    async function _waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number) {
-        await apiDriver.waitForGroupChanges(groupId, (changes) => {
-            const found = changes.filter(doc => {
-                if (doc.type !== 'group')
-                    throw Error("should not get here")
-
-                if (doc.action !== action)
-                    return false;
-
-                return doc.users.includes(creator.uid);
-            });
-
-            return found.length === expectedCount;
-        });
-    }
-
-    async function _countGroupChanges(groupId: string) {
-        return (await apiDriver.getGroupChanges(groupId)).length;
     }
 
     describe('Group Change Tracking', () => {
@@ -64,10 +39,10 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // step 1 - find the expected events
-            await _waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await _countGroupChanges(group.id)).toBe(1);
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(1);
         });
 
         it('should create a "update" change document when a share link is created', async () => {
@@ -79,11 +54,11 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.generateShareLink(group.id, user1.token);
 
             // step 1 - find the expected events
-            await _waitForGroupCreationEvent(group.id, user1);
-            await _waitForGroupUpdatedEvent(group.id, user1);
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await _countGroupChanges(group.id)).toBe(2);
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(2);
         });
 
         it('should create an "updated" change document when a group is modified', async () => {
@@ -95,11 +70,11 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, user1.token);
 
             // step 1 - find the expected events
-            await _waitForGroupCreationEvent(group.id, user1);
-            await _waitForGroupUpdatedEvent(group.id, user1);
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await _countGroupChanges(group.id)).toBe(2);
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(2);
         });
 
         it('should immediately process multiple rapid group updates', async () => {
@@ -113,11 +88,11 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateGroup(group.id, {name: 'Update 3'}, user1.token);
 
             // step 1 - find the expected events
-            await _waitForGroupCreationEvent(group.id, user1);
-            await _waitForGroupUpdatedEvent(group.id, user1, 3);
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 3);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await _countGroupChanges(group.id)).toBe(4);
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(4);
         });
 
         it('should track affected users when members are added', async () => {
@@ -128,14 +103,14 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // step 1 - find the expected events
-            await _waitForGroupCreationEvent(group.id, user1);
-            await _waitForGroupUpdatedEvent(group.id, user1, 2);// share link generation + user joining
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 2);// share link generation + user joining
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await _countGroupChanges(group.id)).toBe(3);
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(3);
 
             // step 3 - check the affected users
-            const lastUpdate = (await apiDriver.getGroupChanges(group.id))[0];// most recent first
+            const lastUpdate = await apiDriver.mostRecentGroupChangeEvent(group);
 
             expect(lastUpdate).toBeTruthy();
             expect(lastUpdate!.users).toContain(user1.uid);

@@ -450,6 +450,39 @@ export class ApiDriver {
         }
     }
 
+    async mostRecentGroupChangeEvent(group: Group) {
+        const changes = await this.getGroupChanges(group.id);
+        return changes[0];// they are most recent first
+    }
+
+    async countGroupChanges(groupId: string) {
+        return (await this.getGroupChanges(groupId)).length;
+    }
+
+    async waitForGroupCreationEvent(groupId: string, creator: User) {
+        await this.waitForGroupEvent('created', groupId, creator, 1);
+    }
+
+    async waitForGroupUpdatedEvent(groupId: string, creator: User, expectedCount = 1) {
+        await this.waitForGroupEvent('updated', groupId, creator, expectedCount);
+    }
+
+    async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number) {
+        await this.waitForGroupChanges(groupId, (changes) => {
+            const found = changes.filter(doc => {
+                if (doc.type !== 'group')
+                    throw Error("should not get here")
+
+                if (doc.action !== action)
+                    return false;
+
+                return doc.users.includes(creator.uid);
+            });
+
+            return found.length === expectedCount;
+        });
+    }
+
     async waitForGroupChanges(groupId: string, matcher: Matcher<GroupChangeDocument[]>, timeout = 2000) {
         const endTime = Date.now() + timeout;
         while(Date.now() < endTime) {
