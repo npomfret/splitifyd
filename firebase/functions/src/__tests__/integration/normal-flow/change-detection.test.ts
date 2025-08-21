@@ -1,10 +1,10 @@
-import {afterAll, beforeAll, describe, expect, it} from '@jest/globals';
+import {beforeAll, describe, expect, it} from '@jest/globals';
 import {ApiDriver, User} from '../../support/ApiDriver';
 import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, GroupChangeDocument, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
 import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from "../../support/builders";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -21,14 +21,38 @@ describe('Change Detection Integration Tests', () => {
         user2 = u2;
     });
 
-    afterAll(async () => {
-        // Cleanup handled by individual tests
-    });
-
     async function createSharedGroup(): Promise<string> {
         const group = await apiDriver.createGroupWithMembers(uuidv4(), [user1, user2], user1.token);
         await clearGroupChangeDocuments(group.id);
         return group.id;
+    }
+
+    async function _waitForGroupCreationEvent(groupId: string, creator: User) {
+        await _waitForGroupEvent('created', groupId, creator, 1);
+    }
+
+    async function _waitForGroupUpdatedEvent(groupId: string, creator: User, expectedCount = 1) {
+        await _waitForGroupEvent('updated', groupId, creator, expectedCount);
+    }
+
+    async function _waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number) {
+        await apiDriver.waitForGroupChanges(groupId, (changes) => {
+            const found = changes.filter(doc => {
+                if (doc.type !== 'group')
+                    throw Error("should not get here")
+
+                if (doc.action !== action)
+                    return false;
+
+                return doc.users.includes(creator.uid);
+            });
+
+            return found.length === expectedCount;
+        });
+    }
+
+    async function _countGroupChanges(groupId: string) {
+        return (await apiDriver.getGroupChanges(groupId)).length;
     }
 
     describe('Group Change Tracking', () => {
@@ -40,22 +64,10 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // step 1 - find the expected events
-            await apiDriver.waitForGroupChanges(group.id, (changes) => {
-                const found = changes.find(doc => {
-                    if(doc.action !== 'created')
-                        return  false;
-
-                    if(doc.type !== 'group')
-                        return  false;
-
-                    return doc.users.includes(user1.uid);
-                });
-
-                return found !== undefined;
-            });
+            await _waitForGroupCreationEvent(group.id, user1);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect((await apiDriver.getGroupChanges(group.id)).length).toBe(1);
+            expect(await _countGroupChanges(group.id)).toBe(1);
         });
 
         it('should create an "updated" change document when a group is modified', async () => {
@@ -64,24 +76,14 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await apiDriver.waitForGroupChanges(group.id, (changes) => changes.length > 0);
-            await clearGroupChangeDocuments(group.id);
+            await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, user1.token);
 
-            await apiDriver.updateGroup(
-                group.id,
-                { name: 'Updated Name' },
-                user1.token
-            );
+            // step 1 - find the expected events
+            await _waitForGroupCreationEvent(group.id, user1);
+            await _waitForGroupUpdatedEvent(group.id, user1);
 
-            const change = await pollForChange<GroupChangeDocument>(
-                FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.id === group.id && doc.action === 'updated',
-                {timeout: 2000, groupId: group.id}
-            );
-
-            expect(change).toBeTruthy();
-            expect(change?.action).toBe('updated');
-            expect(change?.type).toBe('group');
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await _countGroupChanges(group.id)).toBe(2);
         });
 
         it('should immediately process multiple rapid group updates', async () => {
@@ -90,25 +92,16 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await apiDriver.waitForGroupChanges(group.id, (changes) => changes.length > 0);
-            await clearGroupChangeDocuments(group.id);
-
             await apiDriver.updateGroup(group.id, {name: 'Update 1'}, user1.token);
             await apiDriver.updateGroup(group.id, {name: 'Update 2'}, user1.token);
             await apiDriver.updateGroup(group.id, {name: 'Update 3'}, user1.token);
 
-            await apiDriver.waitForGroupChanges(group.id, (changes) => {
-                const updateChanges = changes.filter(c => c.action === 'updated');
-                return updateChanges.length >= 3;
-            });
+            // step 1 - find the expected events
+            await _waitForGroupCreationEvent(group.id, user1);
+            await _waitForGroupUpdatedEvent(group.id, user1, 3);
 
-            const changes = await apiDriver.getGroupChanges(group.id);
-            const recentChanges = changes.filter(
-                (c) => c.timestamp.toMillis() > Date.now() - 5000 && c.action === 'updated'
-            );
-
-            expect(recentChanges.length).toBeGreaterThanOrEqual(3);
-            expect(recentChanges.every(c => c.action === 'updated')).toBe(true);
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await _countGroupChanges(group.id)).toBe(4);
         });
 
         it('should track affected users when members are added', async () => {
@@ -118,17 +111,20 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            const foundChange = await pollForChange<GroupChangeDocument>(
-                FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.id === group.id &&
-                    doc.users.includes(user1.uid) &&
-                    doc.users.includes(user2.uid),
-                {timeout: 5000, groupId: group.id}
-            );
+            // step 1 - find the expected events
+            await _waitForGroupCreationEvent(group.id, user1);
+            await _waitForGroupUpdatedEvent(group.id, user1, 2);
 
-            expect(foundChange).toBeTruthy();
-            expect(foundChange!.users).toContain(user1.uid);
-            expect(foundChange!.users).toContain(user2.uid);
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await _countGroupChanges(group.id)).toBe(3);
+
+            // step 3 - check the affected users
+            const lastUpdate = (await apiDriver.getGroupChanges(group.id))[0];// most recent first
+
+            expect(lastUpdate).toBeTruthy();
+            expect(lastUpdate!.users).toContain(user1.uid);
+            expect(lastUpdate!.users).toContain(user2.uid);
+            expect(Object.keys(lastUpdate!.users).length).toBe(2);
         });
 
         it('should calculate correct priority for different field changes', async () => {

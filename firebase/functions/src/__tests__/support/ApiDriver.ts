@@ -235,10 +235,7 @@ export class ApiDriver {
 
     async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
-        const groupData = {
-            name,
-            description: `Test group created at ${new Date().toISOString()}`,
-        };
+        const groupData = {name, description: `Test group created at ${new Date().toISOString()}`,};
 
         const group = await this.createGroup(groupData, creatorToken);
 
@@ -255,7 +252,14 @@ export class ApiDriver {
         }
 
         // Step 4: Fetch the updated group to get all members
-        return await this.getGroup(group.id, creatorToken);
+        const updatedGroup = await this.getGroup(group.id, creatorToken);
+
+        for (const member of members) {// sanity check
+            if(!(member.uid in updatedGroup.members))
+                throw Error(`member ${JSON.stringify(member)} has been added to group, but does not appear in the members collection: ${JSON.stringify(Object.keys(group.members))}`)
+        }
+
+        return updatedGroup;
     }
 
     async createGroup(groupData: any, token: string): Promise<Group> {
@@ -453,6 +457,13 @@ export class ApiDriver {
             if(matcher(changes))
                 return;
         }
+
+        const changes = await this.getGroupChanges(groupId);
+        console.error(`${changes.length} observed`);
+        for (const change of changes) {
+            console.error(` * ${JSON.stringify(change)}`)
+        }
+
         throw Error(`timeout waiting for group changes`);
     }
 
