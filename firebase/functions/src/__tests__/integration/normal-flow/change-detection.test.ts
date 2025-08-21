@@ -9,7 +9,6 @@ describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let user1: User;
     let user2: User;
-    let groupId: string;
 
     beforeAll(async () => {
         // Create test users
@@ -22,15 +21,27 @@ describe('Change Detection Integration Tests', () => {
     });
 
     afterAll(async () => {
-        // await clearAllTestData();
     });
 
     beforeEach(async () => {
-        // Clear any existing change documents
-        if (groupId) {
-            await clearGroupChangeDocuments(groupId);
-        }
     });
+
+    async function creatSharedGroup() {
+        // Create a fresh group for expense tests using builder
+        const group = await apiDriver.createGroup(
+            new CreateGroupRequestBuilder().build(),
+            user1.token
+        );
+
+        // Add second user to group
+        const shareResponse = await apiDriver.generateShareLink(group.id, user1.token);
+        await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+
+        // Wait for group setup to complete
+        await apiDriver.waitForGroupChanges(group.id, (changes) => changes.length > 0);
+        await clearGroupChangeDocuments(group.id);
+        return group.id
+    }
 
     describe('Group Change Tracking', () => {
         it('should create a "created" change document when a group is created', async () => {
@@ -39,13 +50,12 @@ describe('Change Detection Integration Tests', () => {
                 new CreateGroupRequestBuilder().build(),
                 user1.token
             );
-            groupId = group.id;
 
             // Poll for the change document
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.id === groupId && doc.action === 'created',
-                { timeout: 2000, groupId }
+                (doc) => doc.id === group.id && doc.action === 'created',
+                {timeout: 2000, groupId: group.id}
             );
 
             expect(change).toBeTruthy();
@@ -60,7 +70,7 @@ describe('Change Detection Integration Tests', () => {
                 new CreateGroupRequestBuilder().build(),
                 user1.token
             );
-            groupId = group.id;
+            const groupId = group.id;
 
             // Wait for initial change then clear
             await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
@@ -79,7 +89,7 @@ describe('Change Detection Integration Tests', () => {
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
                 (doc) => doc.id === groupId && doc.action === 'updated',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(change).toBeTruthy();
@@ -93,23 +103,23 @@ describe('Change Detection Integration Tests', () => {
                 new CreateGroupRequestBuilder().build(),
                 user1.token
             );
-            groupId = group.id;
+            const groupId = group.id;
 
             // Wait for initial change
             await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
             await clearGroupChangeDocuments(groupId);
 
             // Make multiple sequential updates (more realistic than concurrent)
-            await apiDriver.updateGroup(groupId, { name: 'Update 1' }, user1.token);
-            await apiDriver.updateGroup(groupId, { name: 'Update 2' }, user1.token);
-            await apiDriver.updateGroup(groupId, { name: 'Update 3' }, user1.token);
+            await apiDriver.updateGroup(groupId, {name: 'Update 1'}, user1.token);
+            await apiDriver.updateGroup(groupId, {name: 'Update 2'}, user1.token);
+            await apiDriver.updateGroup(groupId, {name: 'Update 3'}, user1.token);
 
             // Wait for all updates to be processed
             await apiDriver.waitForGroupChanges(groupId, (changes) => {
                 const updateChanges = changes.filter(c => c.action === 'updated');
                 return updateChanges.length >= 3;
             });
-            
+
             // Should have multiple change documents (one for each update)
             const changes = await apiDriver.getGroupChanges(groupId);
             const recentChanges = changes.filter(
@@ -127,19 +137,19 @@ describe('Change Detection Integration Tests', () => {
                 [user1, user2],
                 user1.token
             );
-            groupId = group.id;
+            const groupId = group.id;
 
             // Poll for change document that includes both users
             // createGroupWithMembers: 1) creates group (user1), 2) user2 joins via share link
             // We need the final change document after user2 joins
             const foundChange = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
-                (doc) => doc.id === groupId && 
-                         doc.users.includes(user1.uid) && 
-                         doc.users.includes(user2.uid),
-                { timeout: 5000, groupId }
+                (doc) => doc.id === groupId &&
+                    doc.users.includes(user1.uid) &&
+                    doc.users.includes(user2.uid),
+                {timeout: 5000, groupId}
             );
-            
+
             expect(foundChange).toBeTruthy();
             expect(foundChange!.users).toContain(user1.uid);
             expect(foundChange!.users).toContain(user2.uid);
@@ -151,7 +161,7 @@ describe('Change Detection Integration Tests', () => {
                 new CreateGroupRequestBuilder().build(),
                 user1.token
             );
-            groupId = group.id;
+            const groupId = group.id;
 
             // Wait and clear initial change
             await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
@@ -160,14 +170,14 @@ describe('Change Detection Integration Tests', () => {
             // Update description (medium priority field)
             await apiDriver.updateGroup(
                 groupId,
-                { description: 'New Description' },
+                {description: 'New Description'},
                 user1.token
             );
 
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
                 (doc) => doc.id === groupId && doc.action === 'updated',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(change).toBeTruthy();
@@ -177,24 +187,10 @@ describe('Change Detection Integration Tests', () => {
     });
 
     describe('Expense Change Tracking', () => {
-        beforeEach(async () => {
-            // Create a fresh group for expense tests using builder
-            const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().build(),
-                user1.token
-            );
-            groupId = group.id;
-
-            // Add second user to group
-            const shareResponse = await apiDriver.generateShareLink(groupId, user1.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
-
-            // Wait for group setup to complete
-            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
-            await clearGroupChangeDocuments(groupId);
-        });
 
         it('should create change documents for new expenses', async () => {
+            const groupId = await creatSharedGroup();
+
             // Create an expense using builder with minimal fields
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
@@ -209,7 +205,7 @@ describe('Change Detection Integration Tests', () => {
             const expenseChange = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === expense.id && doc.action === 'created',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(expenseChange).toBeTruthy();
@@ -223,7 +219,7 @@ describe('Change Detection Integration Tests', () => {
             const balanceChange = await pollForChange<BalanceChangeDocument>(
                 FirestoreCollections.BALANCE_CHANGES,
                 (doc) => doc.groupId === groupId && doc.type === 'balance',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(balanceChange).toBeTruthy();
@@ -232,6 +228,8 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should track expense updates with correct priority', async () => {
+            const groupId = await creatSharedGroup();
+
             // Create an expense using builder
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
@@ -243,7 +241,7 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait and clear initial changes
-            await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+            await apiDriver.waitForExpenseChanges(groupId, (changes) =>
                 changes.some(c => c.id === expense.id)
             );
             await clearGroupChangeDocuments(groupId);
@@ -259,7 +257,7 @@ describe('Change Detection Integration Tests', () => {
                     participants: [user1.uid],
                     splitType: 'equal',
                     splits: [
-                        { userId: user1.uid, amount: 200 },
+                        {userId: user1.uid, amount: 200},
                     ],
                 },
                 user1.token
@@ -268,7 +266,7 @@ describe('Change Detection Integration Tests', () => {
             const change = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === expense.id && doc.action === 'updated',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(change).toBeTruthy();
@@ -277,6 +275,8 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should immediately process rapid expense updates', async () => {
+            const groupId = await creatSharedGroup();
+
             // Create an expense using builder
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
@@ -288,7 +288,7 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait and clear initial changes
-            await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+            await apiDriver.waitForExpenseChanges(groupId, (changes) =>
                 changes.some(c => c.id === expense.id)
             );
             await clearGroupChangeDocuments(groupId);
@@ -304,7 +304,7 @@ describe('Change Detection Integration Tests', () => {
                     participants: [user1.uid],
                     splitType: 'equal',
                     splits: [
-                        { userId: user1.uid, amount: 100 },
+                        {userId: user1.uid, amount: 100},
                     ],
                 },
                 user1.token
@@ -319,7 +319,7 @@ describe('Change Detection Integration Tests', () => {
                     participants: [user1.uid],
                     splitType: 'equal',
                     splits: [
-                        { userId: user1.uid, amount: 100 },
+                        {userId: user1.uid, amount: 100},
                     ],
                 },
                 user1.token
@@ -334,7 +334,7 @@ describe('Change Detection Integration Tests', () => {
                     participants: [user1.uid],
                     splitType: 'equal',
                     splits: [
-                        { userId: user1.uid, amount: 100 },
+                        {userId: user1.uid, amount: 100},
                     ],
                 },
                 user1.token
@@ -342,7 +342,7 @@ describe('Change Detection Integration Tests', () => {
 
             // Wait for all changes to be processed
             await apiDriver.waitForExpenseChanges(groupId, (changes) => {
-                const recentChanges = changes.filter(c => 
+                const recentChanges = changes.filter(c =>
                     c.id === expense.id && c.action === 'updated'
                 );
                 return recentChanges.length >= 3;
@@ -350,12 +350,14 @@ describe('Change Detection Integration Tests', () => {
 
             // Count recent changes
             const changeCount = await countRecentChanges(FirestoreCollections.TRANSACTION_CHANGES, groupId, 3000);
-            
+
             // Should have multiple change documents (one for each sequential update)
             expect(changeCount).toBe(3);
         });
 
         it('should track expense deletion (soft delete) immediately', async () => {
+            const groupId = await creatSharedGroup();
+
             // Create an expense using builder
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
@@ -367,7 +369,7 @@ describe('Change Detection Integration Tests', () => {
             );
 
             // Wait and clear initial changes
-            await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+            await apiDriver.waitForExpenseChanges(groupId, (changes) =>
                 changes.some(c => c.id === expense.id)
             );
             await clearGroupChangeDocuments(groupId);
@@ -379,7 +381,7 @@ describe('Change Detection Integration Tests', () => {
             const change = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === expense.id && doc.action === 'updated',
-                { timeout: 1000, groupId }
+                {timeout: 1000, groupId}
             );
 
             expect(change).toBeTruthy();
@@ -395,7 +397,7 @@ describe('Change Detection Integration Tests', () => {
                 new CreateGroupRequestBuilder().build(),
                 user1.token
             );
-            groupId = group.id;
+            const groupId = group.id;
 
             // Add second user to group
             const shareResponse = await apiDriver.generateShareLink(groupId, user1.token);
@@ -407,6 +409,8 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should track settlement creation with balance changes', async () => {
+            const groupId = await creatSharedGroup();
+
             // Create a settlement using builder with minimal fields
             const settlement = await apiDriver.createSettlement(
                 new SettlementBuilder()
@@ -421,7 +425,7 @@ describe('Change Detection Integration Tests', () => {
             const settlementChange = await pollForChange<SettlementChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === settlement.id && doc.action === 'created' && doc.type === 'settlement',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(settlementChange).toBeTruthy();
@@ -434,7 +438,7 @@ describe('Change Detection Integration Tests', () => {
             const balanceChange = await pollForChange<BalanceChangeDocument>(
                 FirestoreCollections.BALANCE_CHANGES,
                 (doc) => doc.groupId === groupId && doc.type === 'balance',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(balanceChange).toBeTruthy();
@@ -443,6 +447,8 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should handle both API format (payerId/payeeId) and legacy format (from/to)', async () => {
+            const groupId = await creatSharedGroup();
+
             // The API uses payerId/payeeId format - use builder
             const settlement = await apiDriver.createSettlement(
                 new SettlementBuilder()
@@ -457,7 +463,7 @@ describe('Change Detection Integration Tests', () => {
             const change = await pollForChange<SettlementChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === settlement.id && doc.type === 'settlement',
-                { timeout: 2000, groupId }
+                {timeout: 2000, groupId}
             );
 
             expect(change).toBeTruthy();
@@ -473,13 +479,12 @@ describe('Change Detection Integration Tests', () => {
                 new CreateGroupRequestBuilder().build(),
                 user1.token
             );
-            groupId = group.id;
 
-            const shareResponse = await apiDriver.generateShareLink(groupId, user1.token);
+            const shareResponse = await apiDriver.generateShareLink(group.id, user1.token);
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             const expense = await apiDriver.createExpense(new ExpenseBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
                     .build(),
@@ -489,28 +494,28 @@ describe('Change Detection Integration Tests', () => {
             // Create a settlement
             const settlement = await apiDriver.createSettlement(
                 new SettlementBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPayer(user2.uid)
                     .withPayee(user1.uid)
                     .build(),
                 user2.token
             );
 
-            await apiDriver.waitForGroupChanges(groupId, (changes) => {
+            await apiDriver.waitForGroupChanges(group.id, (changes) => {
                 return changes.length > 0;
             });
 
-            await apiDriver.waitForSettlementChanges(groupId, (changes) => {
+            await apiDriver.waitForSettlementChanges(group.id, (changes) => {
                 const changesOfInterest = changes.filter(item => item.id === settlement.id);
                 return changesOfInterest.length > 0;
             });
 
-            await apiDriver.waitForExpenseChanges(groupId, (changes) => {
+            await apiDriver.waitForExpenseChanges(group.id, (changes) => {
                 const changesOfInterest = changes.filter(item => item.id === expense.id);
                 return changesOfInterest.length > 0;
             });
 
-            await apiDriver.waitForBalanceChanges(groupId, (changes) => {
+            await apiDriver.waitForBalanceChanges(group.id, (changes) => {
                 const changesOfInterest = changes.filter(item => item.users.length === 2 && item.users.includes(user1.uid) && item.users.includes(user2.uid));
                 return changesOfInterest.length >= 2
             });
