@@ -9,7 +9,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { UserBuilder, CreateGroupRequestBuilder } from '../../support/builders';
+import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('RESTful Group Endpoints', () => {
@@ -129,17 +129,13 @@ describe('RESTful Group Endpoints', () => {
 
         test('should include balance information', async () => {
             // Create an expense to generate balance
-            const expenseData = {
-                groupId: testGroup.id,
-                description: 'Test expense',
-                amount: 100,
-                currency: 'USD',
-                paidBy: users[0].uid,
-                participants: [users[0].uid],
-                splitType: 'equal' as const,
-                date: new Date().toISOString(),
-                category: 'food',
-            };
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Test expense')
+                .withAmount(100)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .build();
             await driver.createExpense(expenseData, users[0].token);
 
             // Poll until the balance is updated
@@ -247,17 +243,13 @@ describe('RESTful Group Endpoints', () => {
             const testGroup = await driver.createGroup(groupData, users[0].token);
 
             // Add an expense
-            const expenseData = {
-                groupId: testGroup.id,
-                description: 'Test expense',
-                amount: 50,
-                currency: 'USD',
-                paidBy: users[0].uid,
-                participants: [users[0].uid],
-                splitType: 'equal' as const,
-                date: new Date().toISOString(),
-                category: 'food',
-            };
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Test expense')
+                .withAmount(50)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .build();
             await driver.createExpense(expenseData, users[0].token);
 
             // Try to delete - should fail
@@ -392,17 +384,13 @@ describe('RESTful Group Endpoints', () => {
             await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
 
             // Create an expense where user 0 pays for everyone
-            const expenseData = {
-                groupId: testGroup.id,
-                description: 'Dinner for everyone',
-                amount: 150, // $1.50
-                currency: 'USD',
-                paidBy: users[0].uid,
-                participants: [users[0].uid, users[1].uid, users[2].uid],
-                splitType: 'equal' as const,
-                date: new Date().toISOString(),
-                category: 'food',
-            };
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Dinner for everyone')
+                .withAmount(150) // $1.50
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                .build();
             await driver.createExpense(expenseData, users[0].token);
 
             // Wait for balance calculation
@@ -428,34 +416,24 @@ describe('RESTful Group Endpoints', () => {
             await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // Create multiple expenses with different payers
-            const expenses = [
-                {
-                    groupId: testGroup.id,
-                    description: 'Lunch',
-                    amount: 60, // $0.60
-                    currency: 'USD',
-                    paidBy: users[0].uid,
-                    participants: [users[0].uid, users[1].uid],
-                    splitType: 'equal' as const,
-                    date: new Date().toISOString(),
-                    category: 'food',
-                },
-                {
-                    groupId: testGroup.id,
-                    description: 'Coffee',
-                    amount: 20, // $0.20
-                    currency: 'USD',
-                    paidBy: users[1].uid,
-                    participants: [users[0].uid, users[1].uid],
-                    splitType: 'equal' as const,
-                    date: new Date().toISOString(),
-                    category: 'food',
-                },
-            ];
+            const expenseData1 = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Lunch')
+                .withAmount(60) // $0.60
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+            
+            const expenseData2 = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Coffee')
+                .withAmount(20) // $0.20
+                .withPaidBy(users[1].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
 
-            for (const expense of expenses) {
-                await driver.createExpense(expense, users[0].token);
-            }
+            await driver.createExpense(expenseData1, users[0].token);
+            await driver.createExpense(expenseData2, users[0].token);
 
             // Wait for balance calculation
             const balances = await driver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length >= 2, { timeout: 500 });
@@ -523,34 +501,25 @@ describe('RESTful Group Endpoints', () => {
             await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
 
             // Create expenses that would benefit from debt simplification
-            const expenses = [
-                {
-                    groupId: testGroup.id,
-                    description: 'User 0 pays for all',
-                    amount: 300, // $3.00
-                    currency: 'USD',
-                    paidBy: users[0].uid,
-                    participants: [users[0].uid, users[1].uid, users[2].uid],
-                    splitType: 'equal' as const,
-                    date: new Date().toISOString(),
-                    category: 'food',
-                },
-                {
-                    groupId: testGroup.id,
-                    description: 'User 1 pays for User 0 and 2',
-                    amount: 120, // $1.20
-                    currency: 'USD',
-                    paidBy: users[1].uid,
-                    participants: [users[0].uid, users[1].uid, users[2].uid],
-                    splitType: 'equal' as const,
-                    date: new Date().toISOString(),
-                    category: 'transport',
-                },
-            ];
+            const expenseData1 = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('User 0 pays for all')
+                .withAmount(300) // $3.00
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                .build();
+            
+            const expenseData2 = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('User 1 pays for User 0 and 2')
+                .withAmount(120) // $1.20
+                .withPaidBy(users[1].uid)
+                .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                .withCategory('transport')
+                .build();
 
-            for (const expense of expenses) {
-                await driver.createExpense(expense, users[0].token);
-            }
+            await driver.createExpense(expenseData1, users[0].token);
+            await driver.createExpense(expenseData2, users[0].token);
 
             // Wait for balance calculation
             const balances = await driver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length >= 3, { timeout: 500 });

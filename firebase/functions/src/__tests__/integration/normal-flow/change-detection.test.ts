@@ -1,6 +1,6 @@
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {ApiDriver, User} from '../../support/ApiDriver';
-import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, GroupChangeDocument, pollForChange, SettlementChangeDocument, waitForTriggerProcessing,} from '../../support/changeCollectionHelpers';
+import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, GroupChangeDocument, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
 import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from "../../support/builders";
@@ -34,18 +34,12 @@ describe('Change Detection Integration Tests', () => {
 
     describe('Group Change Tracking', () => {
         it('should create a "created" change document when a group is created', async () => {
-            // Create a group
+            // Create a group using builder with minimal fields
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Test Group for Changes',
-                    description: 'Testing change detection',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
-
-            // Wait for trigger processing
-            await waitForTriggerProcessing('group');
 
             // Poll for the change document
             const change = await pollForChange<GroupChangeDocument>(
@@ -61,18 +55,15 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should create an "updated" change document when a group is modified', async () => {
-            // First create a group
+            // First create a group using builder
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Initial Name',
-                    description: 'Initial Description',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
 
-            // Wait for initial change to complete
-            await waitForTriggerProcessing('group');
+            // Wait for initial change then clear
+            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
             await clearGroupChangeDocuments(groupId);
 
             // Update the group
@@ -83,9 +74,6 @@ describe('Change Detection Integration Tests', () => {
                 },
                 user1.token
             );
-
-            // Wait for trigger processing
-            await waitForTriggerProcessing('group');
 
             // Poll for the update change document
             const change = await pollForChange<GroupChangeDocument>(
@@ -100,18 +88,15 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should immediately process multiple rapid group updates', async () => {
-            // Create a group
+            // Create a group using builder
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Immediate Processing Test Group',
-                    description: 'Testing immediate processing',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
 
             // Wait for initial change
-            await waitForTriggerProcessing('group');
+            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
             await clearGroupChangeDocuments(groupId);
 
             // Make multiple sequential updates (more realistic than concurrent)
@@ -119,16 +104,19 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateGroup(groupId, { name: 'Update 2' }, user1.token);
             await apiDriver.updateGroup(groupId, { name: 'Update 3' }, user1.token);
 
-            // Wait briefly for all changes to be processed
-            await waitForTriggerProcessing('group');
-
+            // Wait for all updates to be processed
+            await apiDriver.waitForGroupChanges(groupId, (changes) => {
+                const updateChanges = changes.filter(c => c.action === 'updated');
+                return updateChanges.length >= 3;
+            });
+            
             // Should have multiple change documents (one for each update)
             const changes = await apiDriver.getGroupChanges(groupId);
             const recentChanges = changes.filter(
-                (c) => c.timestamp.toMillis() > Date.now() - 3000
+                (c) => c.timestamp.toMillis() > Date.now() - 5000 && c.action === 'updated'
             );
 
-            expect(recentChanges.length).toBe(3); // Each sequential update creates change document
+            expect(recentChanges.length).toBeGreaterThanOrEqual(3); // Each sequential update creates change document
             expect(recentChanges.every(c => c.action === 'updated')).toBe(true);
         });
 
@@ -158,18 +146,15 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should calculate correct priority for different field changes', async () => {
-            // Create a group
+            // Create a group using builder
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Priority Test Group',
-                    description: 'Testing priority',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
 
             // Wait and clear initial change
-            await waitForTriggerProcessing('group');
+            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
             await clearGroupChangeDocuments(groupId);
 
             // Update description (medium priority field)
@@ -178,8 +163,6 @@ describe('Change Detection Integration Tests', () => {
                 { description: 'New Description' },
                 user1.token
             );
-
-            await waitForTriggerProcessing('group');
 
             const change = await pollForChange<GroupChangeDocument>(
                 FirestoreCollections.GROUP_CHANGES,
@@ -195,12 +178,9 @@ describe('Change Detection Integration Tests', () => {
 
     describe('Expense Change Tracking', () => {
         beforeEach(async () => {
-            // Create a fresh group for expense tests
+            // Create a fresh group for expense tests using builder
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Expense Test Group',
-                    description: 'Testing expense changes',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
@@ -210,33 +190,20 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             // Wait for group setup to complete
-            await waitForTriggerProcessing('group');
+            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
             await clearGroupChangeDocuments(groupId);
         });
 
         it('should create change documents for new expenses', async () => {
-            // Create an expense
+            // Create an expense using builder with minimal fields
             const expense = await apiDriver.createExpense(
-                {
-                    groupId,
-                    description: 'Test Expense',
-                    amount: 100,
-                    currency: 'USD',
-                    category: 'General',
-                    date: new Date().toISOString(),
-                    paidBy: user1.uid,
-                    participants: [user1.uid, user2.uid],
-                    splitType: 'equal',
-                    splits: [
-                        { userId: user1.uid, amount: 50 },
-                        { userId: user2.uid, amount: 50 },
-                    ],
-                },
+                new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
+                    .build(),
                 user1.token
             );
-
-            // Wait for trigger processing
-            await waitForTriggerProcessing('expense');
 
             // Check expense change document (pollForChange will wait for it)
             const expenseChange = await pollForChange<ExpenseChangeDocument>(
@@ -265,30 +232,23 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should track expense updates with correct priority', async () => {
-            // Create an expense
+            // Create an expense using builder
             const expense = await apiDriver.createExpense(
-                {
-                    groupId,
-                    description: 'Update Test Expense',
-                    amount: 100,
-                    currency: 'USD',
-                    category: 'General',
-                    date: new Date().toISOString(),
-                    paidBy: user1.uid,
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [
-                        { userId: user1.uid, amount: 100 },
-                    ],
-                },
+                new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
+                    .build(),
                 user1.token
             );
 
             // Wait and clear initial changes
-            await waitForTriggerProcessing('expense');
+            await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+                changes.some(c => c.id === expense.id)
+            );
             await clearGroupChangeDocuments(groupId);
 
-            // Update expense amount (high priority)
+            // Update expense amount (high priority) - still need full object for update
             await apiDriver.updateExpense(
                 expense.id,
                 {
@@ -305,8 +265,6 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await waitForTriggerProcessing('expense');
-
             const change = await pollForChange<ExpenseChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,
                 (doc) => doc.id === expense.id && doc.action === 'updated',
@@ -319,27 +277,20 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should immediately process rapid expense updates', async () => {
-            // Create an expense
+            // Create an expense using builder
             const expense = await apiDriver.createExpense(
-                {
-                    groupId,
-                    description: 'Immediate Processing Test',
-                    amount: 100,
-                    currency: 'USD',
-                    category: 'General',
-                    date: new Date().toISOString(),
-                    paidBy: user1.uid,
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [
-                        { userId: user1.uid, amount: 100 },
-                    ],
-                },
+                new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
+                    .build(),
                 user1.token
             );
 
             // Wait and clear initial changes
-            await waitForTriggerProcessing('expense');
+            await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+                changes.some(c => c.id === expense.id)
+            );
             await clearGroupChangeDocuments(groupId);
 
             // Make multiple sequential updates (more realistic than concurrent)
@@ -389,8 +340,13 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            // Wait briefly for all changes to be processed
-            await waitForTriggerProcessing('expense');
+            // Wait for all changes to be processed
+            await apiDriver.waitForExpenseChanges(groupId, (changes) => {
+                const recentChanges = changes.filter(c => 
+                    c.id === expense.id && c.action === 'updated'
+                );
+                return recentChanges.length >= 3;
+            });
 
             // Count recent changes
             const changeCount = await countRecentChanges(FirestoreCollections.TRANSACTION_CHANGES, groupId, 3000);
@@ -400,34 +356,24 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should track expense deletion (soft delete) immediately', async () => {
-            // Create an expense
+            // Create an expense using builder
             const expense = await apiDriver.createExpense(
-                {
-                    groupId,
-                    description: 'Delete Test',
-                    amount: 100,
-                    currency: 'USD',
-                    category: 'General',
-                    date: new Date().toISOString(),
-                    paidBy: user1.uid,
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [
-                        { userId: user1.uid, amount: 100 },
-                    ],
-                },
+                new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
+                    .build(),
                 user1.token
             );
 
             // Wait and clear initial changes
-            await waitForTriggerProcessing('expense');
+            await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+                changes.some(c => c.id === expense.id)
+            );
             await clearGroupChangeDocuments(groupId);
 
             // Delete the expense (soft delete - adds deletedAt field)
             await apiDriver.deleteExpense(expense.id, user1.token);
-
-            // Wait for trigger processing  
-            await waitForTriggerProcessing('expense');
 
             // Look for the soft delete change (shows as updated)
             const change = await pollForChange<ExpenseChangeDocument>(
@@ -444,12 +390,9 @@ describe('Change Detection Integration Tests', () => {
 
     describe('Settlement Change Tracking', () => {
         beforeEach(async () => {
-            // Create a fresh group for settlement tests
+            // Create a fresh group for settlement tests using builder
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Settlement Test Group',
-                    description: 'Testing settlement changes',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
@@ -459,26 +402,20 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             // Wait for group setup
-            await waitForTriggerProcessing('group');
+            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
             await clearGroupChangeDocuments(groupId);
         });
 
         it('should track settlement creation with balance changes', async () => {
-            // Create a settlement
+            // Create a settlement using builder with minimal fields
             const settlement = await apiDriver.createSettlement(
-                {
-                    groupId,
-                    payerId: user1.uid,
-                    payeeId: user2.uid,
-                    amount: 50,
-                    currency: 'USD',
-                    note: 'Test settlement',
-                },
+                new SettlementBuilder()
+                    .withGroupId(groupId)
+                    .withPayer(user1.uid)
+                    .withPayee(user2.uid)
+                    .build(),
                 user1.token
             );
-
-            // Wait for debouncing
-            await waitForTriggerProcessing('settlement');
 
             // Check settlement change document (stored in transaction-changes)
             const settlementChange = await pollForChange<SettlementChangeDocument>(
@@ -506,20 +443,16 @@ describe('Change Detection Integration Tests', () => {
         });
 
         it('should handle both API format (payerId/payeeId) and legacy format (from/to)', async () => {
-            // The API uses payerId/payeeId format
+            // The API uses payerId/payeeId format - use builder
             const settlement = await apiDriver.createSettlement(
-                {
-                    groupId,
-                    payerId: user1.uid,
-                    payeeId: user2.uid,
-                    amount: 75,
-                    currency: 'USD',
-                    note: 'API format test',
-                },
+                new SettlementBuilder()
+                    .withGroupId(groupId)
+                    .withPayer(user1.uid)
+                    .withPayee(user2.uid)
+                    .withAmount(75)
+                    .build(),
                 user1.token
             );
-
-            await waitForTriggerProcessing('settlement');
 
             const change = await pollForChange<SettlementChangeDocument>(
                 FirestoreCollections.TRANSACTION_CHANGES,

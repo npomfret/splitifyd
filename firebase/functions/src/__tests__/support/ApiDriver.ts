@@ -487,11 +487,11 @@ export class ApiDriver {
     }
 
     async getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
-        return (await this.getTransactionChanges(groupId, 'expense')).map(doc => doc.data() as ExpenseChangeDocument);
+        return await this.getTransactionChanges(groupId, 'expense') as ExpenseChangeDocument[];
     }
 
     async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
-        return (await this.getTransactionChanges(groupId, 'settlement')).map(doc => doc.data() as SettlementChangeDocument);
+        return await this.getTransactionChanges(groupId, 'settlement') as SettlementChangeDocument[];
     }
 
     async getTransactionChanges(groupId: string, type: string) {

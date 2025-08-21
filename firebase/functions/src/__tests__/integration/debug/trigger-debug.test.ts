@@ -3,6 +3,7 @@ import { ApiDriver, User } from '../../support/ApiDriver';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import { db } from '../../../firebase';
 import { FirestoreCollections } from '../../../shared/shared-types';
+import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
 
 describe('Trigger Debug Tests', () => {
     let apiDriver: ApiDriver;
@@ -12,12 +13,10 @@ describe('Trigger Debug Tests', () => {
     beforeAll(async () => {
         apiDriver = new ApiDriver();
         
-        // Create test user
-        user1 = await apiDriver.createUser({
-            email: `debug.user.${Date.now()}@example.com`,
-            password: 'Test123!',
-            displayName: 'Debug User',
-        });
+        // Create test user using builder
+        user1 = await apiDriver.createUser(
+            new UserBuilder().build()
+        );
     });
 
     afterAll(async () => {
@@ -46,21 +45,17 @@ describe('Trigger Debug Tests', () => {
     it('should fire group trigger when creating a group', async () => {
         // Starting simple trigger test
         
-        // Create a group with minimal data
+        // Create a group using builder with minimal data
         const group = await apiDriver.createGroup(
-            {
-                name: 'Simple Debug Test Group',
-                description: 'Testing if triggers fire',
-            },
+            new CreateGroupRequestBuilder().build(),
             user1.token
         );
         groupId = group.id;
 
         // Created group
         
-        // Wait for trigger to potentially fire
-        // Wait for trigger to potentially fire
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Wait for trigger to fire using proper polling
+        await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
         
         // Check if any change documents were created
         const groupChanges = await db.collection(FirestoreCollections.GROUP_CHANGES).get();
@@ -81,35 +76,23 @@ describe('Trigger Debug Tests', () => {
         // First create a group
         if (!groupId) {
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Expense Debug Test Group', 
-                    description: 'Testing expense triggers',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
             // Created group for expense test
             
-            // Wait a bit for group trigger to settle
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Wait for group trigger to complete
+            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
         }
         
-        // Create an expense
+        // Create an expense using builder
         const expense = await apiDriver.createExpense(
-            {
-                groupId,
-                description: 'Debug Test Expense',
-                amount: 50,
-                currency: 'USD',
-                category: 'General',
-                date: new Date().toISOString(),
-                paidBy: user1.uid,
-                participants: [user1.uid],
-                splitType: 'equal',
-                splits: [
-                    { userId: user1.uid, amount: 50 },
-                ],
-            },
+            new ExpenseBuilder()
+                .withGroupId(groupId)
+                .withPaidBy(user1.uid)
+                .withParticipants([user1.uid])
+                .build(),
             user1.token
         );
         
@@ -117,8 +100,10 @@ describe('Trigger Debug Tests', () => {
         expect(expense).toBeDefined();
         expect(expense.id).toBeDefined();
         
-        // Wait for trigger to potentially fire
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Wait for trigger to fire using proper polling
+        await apiDriver.waitForExpenseChanges(groupId, (changes) => 
+            changes.some(c => c.id === expense.id)
+        );
         
         // Check transaction-changes collection for expense changes
         const expenseChanges = await db.collection(FirestoreCollections.TRANSACTION_CHANGES).get();
