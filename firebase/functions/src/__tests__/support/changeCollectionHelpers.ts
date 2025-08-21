@@ -43,8 +43,7 @@ export interface SettlementChangeDocument extends MinimalChangeDocument {
 export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
 
 /**
- * Poll for a change document matching the specified criteria
- * Enhanced with diagnostic logging and better timing strategies
+ * @deprecated use the ApiDriver instead
  */
 export async function pollForChange<T extends DocumentData>(
     collection: ChangeCollectionName,
