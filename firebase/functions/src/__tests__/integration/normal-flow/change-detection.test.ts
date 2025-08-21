@@ -1,20 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import {
-    pollForChange,
-    getGroupChanges,
-    getExpenseChanges,
-    getBalanceChanges,
-    clearGroupChangeDocuments,
-    waitForTriggerProcessing,
-    countRecentChanges,
-    GroupChangeDocument,
-    ExpenseChangeDocument,
-    SettlementChangeDocument,
-    BalanceChangeDocument,
-} from '../../support/changeCollectionHelpers';
-import { FirestoreCollections } from '../../../shared/shared-types';
+import {afterAll, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
+import {ApiDriver, User} from '../../support/ApiDriver';
+import {BalanceChangeDocument, clearGroupChangeDocuments, countRecentChanges, ExpenseChangeDocument, GroupChangeDocument, pollForChange, SettlementChangeDocument, waitForTriggerProcessing,} from '../../support/changeCollectionHelpers';
+import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
+import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from "../../support/builders";
 
 describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -134,7 +123,7 @@ describe('Change Detection Integration Tests', () => {
             await waitForTriggerProcessing('group');
 
             // Should have multiple change documents (one for each update)
-            const changes = await getGroupChanges(groupId);
+            const changes = await apiDriver.getGroupChanges(groupId);
             const recentChanges = changes.filter(
                 (c) => c.timestamp.toMillis() > Date.now() - 3000
             );
@@ -551,65 +540,50 @@ describe('Change Detection Integration Tests', () => {
         it('should track changes across multiple entity types', async () => {
             // Create a group
             const group = await apiDriver.createGroup(
-                {
-                    name: 'Cross-entity Test',
-                    description: 'Testing multiple entities',
-                },
+                new CreateGroupRequestBuilder().build(),
                 user1.token
             );
             groupId = group.id;
 
-            // Add second user
             const shareResponse = await apiDriver.generateShareLink(groupId, user1.token);
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
-            // Create an expense
-            await apiDriver.createExpense(
-                {
-                    groupId,
-                    description: 'Cross-entity expense',
-                    amount: 100,
-                    currency: 'USD',
-                    category: 'General',
-                    date: new Date().toISOString(),
-                    paidBy: user1.uid,
-                    participants: [user1.uid, user2.uid],
-                    splitType: 'equal',
-                    splits: [
-                        { userId: user1.uid, amount: 50 },
-                        { userId: user2.uid, amount: 50 },
-                    ],
-                },
+            const expense = await apiDriver.createExpense(new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
+                    .build(),
                 user1.token
             );
 
             // Create a settlement
-            await apiDriver.createSettlement(
-                {
-                    groupId,
-                    payerId: user2.uid,
-                    payeeId: user1.uid,
-                    amount: 50,
-                    currency: 'USD',
-                    note: 'Settling up',
-                },
+            const settlement = await apiDriver.createSettlement(
+                new SettlementBuilder()
+                    .withGroupId(groupId)
+                    .withPayer(user2.uid)
+                    .withPayee(user1.uid)
+                    .build(),
                 user2.token
             );
 
-            // Wait for all changes to complete
-            await waitForTriggerProcessing('settlement');
+            await apiDriver.waitForGroupChanges(groupId, (changes) => {
+                return changes.length > 0;
+            });
 
-            // Verify we have changes for all entity types
-            const groupChanges = await getGroupChanges(groupId);
-            const expenseChanges = await getExpenseChanges(groupId);
-            const balanceChanges = await getBalanceChanges(groupId);
+            await apiDriver.waitForSettlementChanges(groupId, (changes) => {
+                const changesOfInterest = changes.filter(item => item.id === settlement.id);
+                return changesOfInterest.length > 0;
+            });
 
-            expect(groupChanges.length).toBeGreaterThan(0);
-            expect(expenseChanges.length).toBeGreaterThan(0);
-            expect(balanceChanges.length).toBeGreaterThan(0);
+            await apiDriver.waitForExpenseChanges(groupId, (changes) => {
+                const changesOfInterest = changes.filter(item => item.id === expense.id);
+                return changesOfInterest.length > 0;
+            });
 
-            // Verify we have multiple balance changes (one for expense, one for settlement)
-            expect(balanceChanges.length).toBeGreaterThanOrEqual(2);
+            await apiDriver.waitForBalanceChanges(groupId, (changes) => {
+                const changesOfInterest = changes.filter(item => item.users.length === 2 && item.users.includes(user1.uid) && item.users.includes(user2.uid));
+                return changesOfInterest.length >= 2
+            });
         });
     });
 });

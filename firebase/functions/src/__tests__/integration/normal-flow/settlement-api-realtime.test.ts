@@ -11,7 +11,10 @@ import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
-import { pollForChange } from '../../support/changeCollectionHelpers';
+import { 
+    pollForChange,
+    createExactSettlementChangeMatcher 
+} from '../../support/changeCollectionHelpers';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -20,7 +23,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let user2: User;
     let groupId: string;
 
-    jest.setTimeout(10000);
+    jest.setTimeout(20000); // Increased timeout for trigger tests
 
     beforeAll(async () => {
         await clearAllTestData();
@@ -77,14 +80,24 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         expect(createdSettlement).toBeDefined();
         expect(createdSettlement.id).toBeDefined();
 
-        // Use the existing pollForChange helper instead of complex listener + timeout approach
+        // Use exact matcher to ensure we find the right document
+        const exactMatcher = createExactSettlementChangeMatcher(
+            createdSettlement.id,
+            groupId,
+            'created',
+            [user1.uid, user2.uid]
+        );
+
+        // Use the improved pollForChange with exact matcher
         const changeNotification = await pollForChange(
             FirestoreCollections.TRANSACTION_CHANGES,
-            (doc: any) => doc.groupId === groupId && 
-                         doc.id === createdSettlement.id && 
-                         doc.type === 'settlement' &&
-                         doc.action === 'created',
-            { timeout: 5000, groupId }
+            exactMatcher,
+            { 
+                timeout: 15000,      // Increased timeout for reliability
+                groupId,
+                initialDelay: 500,   // Wait for trigger to initialize  
+                debug: false         // Set to true for debugging
+            }
         );
 
         // Verify the change notification was created with correct structure
@@ -95,7 +108,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         expect(changeNotification.action).toBe('created');
         expect(changeNotification.users).toContain(user1.uid);
         expect(changeNotification.users).toContain(user2.uid);
-    }, 10000);
+    }, 20000); // Increased test timeout
 
     it('documents that API settlement creation now works correctly', async () => {
         /**

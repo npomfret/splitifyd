@@ -123,12 +123,8 @@ describe('RESTful Group Endpoints', () => {
             expect(response.description).toBe(testGroup.description);
             expect(Object.keys(response.members)).toHaveLength(1);
             expect(response.balance).toBeDefined();
-            // userBalance is null for groups without expenses
-            if (response.balance.userBalance) {
-                expect(response.balance.userBalance.netBalance).toBe(0);
-            } else {
-                expect(response.balance.userBalance).toBeNull();
-            }
+            expect(response.balance!.balancesByCurrency).toBeDefined();
+            expect(Object.keys(response.balance!.balancesByCurrency).length).toBe(0);
         });
 
         test('should include balance information', async () => {
