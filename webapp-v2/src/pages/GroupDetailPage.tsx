@@ -11,6 +11,7 @@ import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, Bal
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { logError } from '../utils/browser-logger';
+import type { SettlementListItem } from '@shared/shared-types.ts';
 
 interface GroupDetailPageProps {
     id?: string;
@@ -23,6 +24,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const showSettlementHistory = useSignal(false);
     const showDeletedExpenses = useSignal(false);
     const showEditModal = useSignal(false);
+    const settlementToEdit = useSignal<SettlementListItem | null>(null);
 
     // Computed values from store
     const group = useComputed(() => enhancedGroupDetailStore.group);
@@ -139,6 +141,12 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleSettleUp = () => {
+        settlementToEdit.value = null;
+        showSettlementForm.value = true;
+    };
+
+    const handleEditSettlement = (settlement: SettlementListItem) => {
+        settlementToEdit.value = settlement;
         showSettlementForm.value = true;
     };
 
@@ -240,7 +248,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 <Button variant="secondary" size="sm" className="w-full" onClick={() => (showSettlementHistory.value = !showSettlementHistory.value)}>
                                     {showSettlementHistory.value ? 'Hide History' : 'Show History'}
                                 </Button>
-                                {showSettlementHistory.value && <SettlementHistory groupId={groupId!} limit={5} />}
+                                {showSettlementHistory.value && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
                             </div>
                         </SidebarCard>
                     </>
@@ -264,11 +272,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             {/* Settlement Form Modal */}
             <SettlementForm
                 isOpen={showSettlementForm.value}
-                onClose={() => (showSettlementForm.value = false)}
+                onClose={() => {
+                    showSettlementForm.value = false;
+                    settlementToEdit.value = null;
+                }}
                 groupId={groupId!}
+                editMode={!!settlementToEdit.value}
+                settlementToEdit={settlementToEdit.value || undefined}
                 onSuccess={() => {
                     // Refresh balances after successful settlement
                     enhancedGroupDetailStore.fetchBalances();
+                    settlementToEdit.value = null;
                 }}
             />
         </BaseLayout>

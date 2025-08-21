@@ -49,8 +49,17 @@ export class GroupDetailPage extends BasePage {
     }
 
     async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
+        // Assert we're on the group detail page before action
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        
+        // Assert button is visible and enabled before clicking
         const settleButton = this.getSettleUpButton();
+        await expect(settleButton).toBeVisible();
+        await expect(settleButton).toBeEnabled();
+        
         await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
+        
+        // Verify modal opened
         const settlementFormPage = new SettlementFormPage(this.page);
         await expect(settlementFormPage.getModal()).toBeVisible();
         await settlementFormPage.waitForFormReady(expectedMemberCount);
@@ -964,6 +973,109 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Open settlement history if not already open
+     */
+    async openSettlementHistoryIfNeeded(): Promise<void> {
+        const showHistoryButton = this.getShowHistoryButton();
+        if (await showHistoryButton.isVisible()) {
+            await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
+        }
+    }
+
+    /**
+     * Get edit button for a specific settlement by identifying the settlement container
+     */
+    getSettlementEditButton(settlementNote: string): Locator {
+        return this.page
+            .locator('.p-4.bg-white.border.border-gray-200.rounded-lg')
+            .filter({ hasText: settlementNote })
+            .getByRole('button', { name: 'Edit payment' });
+    }
+
+    /**
+     * Get delete button for a specific settlement by identifying the settlement container
+     */
+    getSettlementDeleteButton(settlementNote: string): Locator {
+        return this.page
+            .locator('.p-4.bg-white.border.border-gray-200.rounded-lg')
+            .filter({ hasText: settlementNote })
+            .getByRole('button', { name: 'Delete payment' });
+    }
+
+    /**
+     * Click edit button for a settlement and wait for edit form to open
+     */
+    async clickEditSettlement(settlementNote: string): Promise<void> {
+        // Assert we're on the group detail page before action
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        
+        await this.openSettlementHistoryIfNeeded();
+        
+        // Assert the edit button exists and is enabled
+        const editButton = this.getSettlementEditButton(settlementNote);
+        await expect(editButton).toBeVisible({ timeout: 2000 });
+        await expect(editButton).toBeEnabled();
+        
+        await this.clickButton(editButton, { buttonName: 'Edit Settlement' });
+        
+        // Wait for settlement form modal to open in edit mode
+        const modal = this.page.getByRole('dialog');
+        await expect(modal).toBeVisible({ timeout: 3000 });
+        
+        // Verify we're in edit mode by checking for "Update Payment" title
+        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
+    }
+
+    /**
+     * Click delete button for a settlement and handle confirmation dialog
+     */
+    async clickDeleteSettlement(settlementNote: string, confirm: boolean = true): Promise<void> {
+        // Assert we're on the group detail page before action
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        
+        await this.openSettlementHistoryIfNeeded();
+        
+        // Assert the delete button exists and is enabled
+        const deleteButton = this.getSettlementDeleteButton(settlementNote);
+        await expect(deleteButton).toBeVisible({ timeout: 2000 });
+        await expect(deleteButton).toBeEnabled();
+        
+        await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
+        
+        // Wait for confirmation dialog - it uses data-testid, not role="dialog"
+        const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
+        await expect(confirmDialog).toBeVisible({ timeout: 3000 });
+        
+        // Verify it's the correct dialog
+        await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
+        
+        if (confirm) {
+            const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
+            await this.clickButton(deleteButton, { buttonName: 'Delete' });
+            
+            // Wait for dialog to close
+            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
+        } else {
+            const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
+            await this.clickButton(cancelButton, { buttonName: 'Cancel' });
+            
+            // Wait for dialog to close
+            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
+        }
+    }
+
+    /**
+     * Verify a settlement is no longer visible in history
+     */
+    async verifySettlementNotInHistory(settlementNote: string): Promise<void> {
+        await this.openSettlementHistoryIfNeeded();
+        
+        // Wait for real-time updates to complete by ensuring settlement is not visible
+        const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
+        await expect(settlementEntry).not.toBeVisible({ timeout: 2000 });
+    }
+
+    /**
      * Verify settlement is in history
      */
     async verifySettlementInHistoryVisible(note: string): Promise<void> {
@@ -979,6 +1091,107 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for settlement history modal content to be rendered and verify it's visible
         await expect(this.page.locator('div').filter({ hasText: settlementText }).first()).toBeVisible();
+    }
+
+    /**
+     * Open history if it's closed (idempotent)
+     */
+    async openHistoryIfClosed(): Promise<void> {
+        // Assert we're on the group detail page
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        
+        const showHistoryButton = this.page.getByRole('button', { name: 'Show History' });
+        const hideHistoryButton = this.page.getByRole('button', { name: 'Hide History' });
+        
+        // Check if history is already open
+        const isHistoryOpen = await hideHistoryButton.isVisible();
+        
+        if (!isHistoryOpen) {
+            // History is closed, open it
+            await expect(showHistoryButton).toBeVisible();
+            await showHistoryButton.click();
+            
+            // Wait for history section to be visible
+            await expect(hideHistoryButton).toBeVisible();
+            // More specific: wait for settlement list container
+            await expect(this.page.locator('.space-y-2').first()).toBeVisible();
+        }
+    }
+
+    /**
+     * Close history modal
+     */
+    async closeHistoryModal(): Promise<void> {
+        const closeButton = this.page.locator('button[aria-label="Close modal"]');
+        const isVisible = await closeButton.isVisible();
+        
+        if (isVisible) {
+            await closeButton.click();
+            await expect(closeButton).not.toBeVisible();
+        }
+    }
+
+
+    /**
+     * Verify settlement details in history
+     */
+    async verifySettlementDetails(details: {
+        note: string;
+        amount: string;
+        payerName: string;
+        payeeName: string;
+    }): Promise<void> {
+        // Assert we're in the right state
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        
+        // The Payment History is in a SidebarCard within the page, not in a modal with role="region"
+        // Look for the settlement card directly within the page
+        const settlementCard = this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: details.note });
+        
+        // Use first() to resolve ambiguity when multiple matches
+        await expect(settlementCard.first()).toBeVisible();
+        await expect(settlementCard.first().locator(`text=${details.amount}`)).toBeVisible();
+        await expect(settlementCard.first().locator(`text=${details.payerName}`)).toBeVisible();
+        await expect(settlementCard.first().locator(`text=${details.payeeName}`)).toBeVisible();
+    }
+
+    /**
+     * Verify settlement has edit button
+     */
+    async verifySettlementHasEditButton(note: string): Promise<void> {
+        const editButton = this.getSettlementEditButton(note);
+        await expect(editButton).toBeVisible();
+    }
+
+    /**
+     * Verify settlement has no edit button
+     */
+    async verifySettlementHasNoEditButton(note: string): Promise<void> {
+        const editButton = this.getSettlementEditButton(note);
+        await expect(editButton).not.toBeVisible();
+    }
+
+    /**
+     * Verify settlement has delete button
+     */
+    async verifySettlementHasDeleteButton(note: string): Promise<void> {
+        const deleteButton = this.getSettlementDeleteButton(note);
+        await expect(deleteButton).toBeVisible();
+    }
+
+    /**
+     * Verify settlement has no delete button
+     */
+    async verifySettlementHasNoDeleteButton(note: string): Promise<void> {
+        const deleteButton = this.getSettlementDeleteButton(note);
+        await expect(deleteButton).not.toBeVisible();
+    }
+
+    /**
+     * Delete a settlement
+     */
+    async deleteSettlement(note: string, confirm: boolean): Promise<void> {
+        await this.clickDeleteSettlement(note, confirm);
     }
 
     /**

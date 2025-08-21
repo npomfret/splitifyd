@@ -2,7 +2,7 @@ import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { Button, Form, CurrencyAmountInput } from '../ui';
 import { CurrencyService } from '@/app/services/currencyService.ts';
-import type { CreateSettlementRequest, User, SimplifiedDebt } from '@shared/shared-types.ts';
+import type { CreateSettlementRequest, User, SimplifiedDebt, SettlementListItem } from '@shared/shared-types.ts';
 import { apiClient } from '@/app/apiClient.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
@@ -21,9 +21,11 @@ interface SettlementFormProps {
     groupId: string;
     preselectedDebt?: SimplifiedDebt;
     onSuccess?: () => void;
+    editMode?: boolean;
+    settlementToEdit?: SettlementListItem;
 }
 
-export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess }: SettlementFormProps) {
+export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit }: SettlementFormProps) {
     const authStore = useAuthRequired();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
@@ -34,20 +36,29 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     useEffect(() => {
         if (isOpen) {
-            if (preselectedDebt && currentUser) {
+            if (editMode && settlementToEdit) {
+                // Pre-populate form with settlement data for editing
+                payerIdSignal.value = settlementToEdit.payer.uid;
+                payeeIdSignal.value = settlementToEdit.payee.uid;
+                amountSignal.value = settlementToEdit.amount.toFixed(2);
+                currencySignal.value = settlementToEdit.currency;
+                dateSignal.value = settlementToEdit.date.split('T')[0];
+                noteSignal.value = settlementToEdit.note || '';
+            } else if (preselectedDebt && currentUser) {
                 payerIdSignal.value = preselectedDebt.from.userId;
                 payeeIdSignal.value = preselectedDebt.to.userId;
                 amountSignal.value = preselectedDebt.amount.toFixed(2);
                 currencySignal.value = preselectedDebt.currency;
+                dateSignal.value = new Date().toISOString().split('T')[0];
+                noteSignal.value = '';
             } else if (currentUser) {
                 payerIdSignal.value = currentUser.uid;
                 payeeIdSignal.value = '';
                 amountSignal.value = '';
                 currencySignal.value = 'USD';
+                dateSignal.value = new Date().toISOString().split('T')[0];
+                noteSignal.value = '';
             }
-
-            dateSignal.value = new Date().toISOString().split('T')[0];
-            noteSignal.value = '';
             setValidationError(null);
         }
     }, [isOpen, preselectedDebt, currentUser]);
@@ -123,17 +134,29 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         setValidationError(null);
 
         try {
-            const settlementData: CreateSettlementRequest = {
-                groupId,
-                payerId: payerIdSignal.value,
-                payeeId: payeeIdSignal.value,
-                amount: parseFloat(amountSignal.value),
-                currency: currencySignal.value,
-                date: getUTCMidnight(dateSignal.value), // Always send UTC to server
-                note: noteSignal.value.trim() || undefined,
-            };
-
-            await apiClient.createSettlement(settlementData);
+            if (editMode && settlementToEdit) {
+                // Update existing settlement - only send fields that can be updated
+                const updateData = {
+                    amount: parseFloat(amountSignal.value),
+                    currency: currencySignal.value,
+                    date: getUTCMidnight(dateSignal.value), // Always send UTC to server
+                    note: noteSignal.value.trim() || undefined,
+                };
+                await apiClient.updateSettlement(settlementToEdit.id, updateData);
+            } else {
+                // Create new settlement - send all fields
+                const settlementData: CreateSettlementRequest = {
+                    groupId,
+                    payerId: payerIdSignal.value,
+                    payeeId: payeeIdSignal.value,
+                    amount: parseFloat(amountSignal.value),
+                    currency: currencySignal.value,
+                    date: getUTCMidnight(dateSignal.value), // Always send UTC to server
+                    note: noteSignal.value.trim() || undefined,
+                };
+                await apiClient.createSettlement(settlementData);
+            }
+            
             await enhancedGroupDetailStore.refreshAll();
 
             if (onSuccess) {
@@ -182,7 +205,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             >
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="settlement-form-title" class="text-xl font-semibold text-gray-900">
-                        Record Payment
+                        {editMode ? 'Update Payment' : 'Record Payment'}
                     </h2>
                     <button onClick={onClose} class="text-gray-400 hover:text-gray-500" aria-label="Close modal">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,7 +340,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 Cancel
                             </Button>
                             <Button type="submit" variant="primary" disabled={!isFormValid || isSubmitting} loading={isSubmitting} className="flex-1">
-                                {isSubmitting ? 'Recording...' : 'Record Payment'}
+                                {isSubmitting ? (editMode ? 'Updating...' : 'Recording...') : (editMode ? 'Update Payment' : 'Record Payment')}
                             </Button>
                         </div>
                     </div>

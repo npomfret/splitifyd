@@ -326,6 +326,18 @@ export const responseSchemas = {
         success: z.boolean(),
         data: SettlementSchema,
     }),
+    'PUT /settlements/:settlementId': z.object({
+        success: z.boolean(),
+        data: SettlementListItemSchema,
+    }),
+    'GET /settlements/:settlementId': z.object({
+        success: z.boolean(),
+        data: SettlementListItemSchema,
+    }),
+    'DELETE /settlements/:settlementId': z.object({
+        success: z.boolean(),
+        message: z.string(),
+    }),
     '/settlements': z.object({
         success: z.boolean(),
         data: ListSettlementsResponseSchema,
