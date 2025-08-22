@@ -248,6 +248,16 @@ export interface GroupMember {
     joinedAt: string; // ISO string
     role: 'owner' | 'member';
     theme: UserThemeColor;
+    invitedBy?: string; // UID of the user who created the share link that was used to join
+}
+
+export interface ShareLink {
+    id: string;
+    token: string; // The actual share token used in URLs
+    createdBy: string; // UID of the user who created this share link
+    createdAt: string; // ISO timestamp
+    expiresAt?: string; // Future: expiration support (ISO timestamp)
+    isActive: boolean; // For soft deletion/deactivation
 }
 
 export function groupSize(group: Group) {
