@@ -3,12 +3,13 @@ import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../constants/selectors';
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@shared/shared-types';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class CreateGroupModalPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
         super(page, userInfo);
     }
-    readonly modalTitle = 'Create New Group';
+    readonly modalTitle = translationEn.createGroupModal.title;
 
     async isOpen(): Promise<boolean> {
         // Modal either exists or it doesn't - no ambiguity
@@ -26,7 +27,7 @@ export class CreateGroupModalPage extends BasePage {
         
         // Get the input using a more specific selector - scoped to the modal
         // Use placeholder to be more specific and avoid conflicts
-        const nameInput = modal.getByPlaceholder('e.g., Apartment Expenses, Trip to Paris');
+        const nameInput = modal.getByPlaceholder(translationEn.createGroupModal.groupNamePlaceholder);
 
         // Wait for input to be visible and enabled
         await nameInput.waitFor({ state: 'visible' });
@@ -43,17 +44,16 @@ export class CreateGroupModalPage extends BasePage {
 
     async submitForm() {
         // Get the submit button
-        const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
+        const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
 
         // Use standardized button click with proper error handling
-        await this.clickButton(submitButton, { buttonName: 'Create Group' });
+        await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
     }
 
     async cancel() {
         // Modal MUST have a cancel/close button - this is basic UX
-        // Use a regex that matches either "Cancel" or "Close"
-        const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: /(Cancel|Close)/i });
-        await this.clickButton(cancelButton, { buttonName: 'Cancel' });
+        const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.cancelButton });
+        await this.clickButton(cancelButton, { buttonName: translationEn.createGroupModal.cancelButton });
     }
 
     async createGroup(name: string, description?: string) {
@@ -91,23 +91,23 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     getGroupNameInput() {
-        return this.page.getByLabel('Group Name*');
+        return this.page.getByLabel(translationEn.createGroupModal.groupNameLabel);
     }
 
     getDescriptionInput() {
-        return this.page.getByPlaceholder(/Add any details/i);
+        return this.page.getByPlaceholder(translationEn.createGroupModal.groupDescriptionPlaceholder);
     }
 
     getSubmitButton() {
         return this.page
             .locator(SELECTORS.MODAL_OVERLAY)
-            .filter({ has: this.page.getByText('Create New Group') })
-            .getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
+            .filter({ has: this.page.getByText(translationEn.createGroupModal.title) })
+            .getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
     }
 
     getCreateGroupFormButton() {
         // More direct selector for tests that need the Create Group button in the form
-        return this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: 'Create Group' });
+        return this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
     }
 
     /**

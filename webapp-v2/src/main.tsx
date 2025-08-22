@@ -1,4 +1,5 @@
 import { render } from 'preact';
+import './i18n';
 import { App } from './App';
 import { AuthProvider } from './app/providers/AuthProvider';
 import { logUserAction, logButtonClick } from './utils/browser-logger';

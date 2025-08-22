@@ -92,3 +92,23 @@ An alternative is to replace all text-based selectors with a stable, non-transla
 -   **Why We Should Avoid This:** This approach is not recommended because it pollutes the production code with test-specific attributes and moves away from the best practice of testing the application as a user sees it, a principle established in the project's `end-to-end_testing.md` guide.
 
 **Conclusion:** By ensuring our functional tests always run against a single language, we can proceed with internationalization without compromising the stability or maintainability of our test suite. Testing the translations themselves can be handled as a separate, future quality assurance task.
+
+---
+
+### Implementation Progress
+
+**Date:** 2025-08-22
+
+The initial, minimal implementation has been completed. This work serves as the foundation for all future i18n development.
+
+-   **Framework:** `react-i18next` and `i18next` have been installed and configured in the `webapp-v2` package.
+-   **Configuration:**
+    -   A configuration file has been created at `webapp-v2/src/i18n.ts`.
+    -   The framework has been initialized in the application entry point, `webapp-v2/src/main.tsx`.
+-   **Language Files:**
+    -   The directory structure for translations has been established at `webapp-v2/src/locales/`.
+    -   The first English translation file has been created at `webapp-v2/src/locales/en/translation.json`.
+-   **Proof of Concept:**
+    -   The `CreateGroupModal.tsx` component has been fully refactored to use the i18n system.
+    -   All hardcoded text, including labels, placeholders, help text, buttons, and validation messages, has been externalized into the `translation.json` file.
+    -   This component now serves as a template for how to refactor other components.
