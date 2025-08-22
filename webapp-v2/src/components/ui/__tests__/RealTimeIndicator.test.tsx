@@ -42,8 +42,8 @@ describe('RealTimeIndicator', () => {
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Should have two green dots
-        const greenDots = container.querySelectorAll('[class*="bg-green-500"]');
+        // Should have two green dots (on the inner div elements)
+        const greenDots = container.querySelectorAll('.bg-green-500');
         expect(greenDots).toHaveLength(2);
     });
 
@@ -53,13 +53,17 @@ describe('RealTimeIndicator', () => {
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Network dot should be red
-        const networkDot = container.querySelector('[title*="Network:"]');
-        expect(networkDot?.className).toContain('bg-red-500');
+        // Network dot wrapper should have title, inner dot should be red
+        const networkWrapper = container.querySelector('[title*="Network:"]');
+        expect(networkWrapper).toBeTruthy();
+        const networkDot = networkWrapper?.querySelector('.bg-red-500');
+        expect(networkDot).toBeTruthy();
         
-        // Server dot should be gray (unknown when offline)
-        const serverDot = container.querySelector('[title*="Server:"]');
-        expect(serverDot?.className).toContain('bg-gray-400');
+        // Server dot wrapper should have title, inner dot should be gray
+        const serverWrapper = container.querySelector('[title*="Server:"]');
+        expect(serverWrapper).toBeTruthy();
+        const serverDot = serverWrapper?.querySelector('.bg-gray-400');
+        expect(serverDot).toBeTruthy();
     });
 
     it('should show server unavailable with red server dot', () => {
@@ -68,13 +72,17 @@ describe('RealTimeIndicator', () => {
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Network dot should be green (online)
-        const networkDot = container.querySelector('[title*="Network:"]');
-        expect(networkDot?.className).toContain('bg-green-500');
+        // Network wrapper should have title, inner dot should be green
+        const networkWrapper = container.querySelector('[title*="Network:"]');
+        expect(networkWrapper).toBeTruthy();
+        const networkDot = networkWrapper?.querySelector('.bg-green-500');
+        expect(networkDot).toBeTruthy();
         
-        // Server dot should be red (unavailable)
-        const serverDot = container.querySelector('[title*="Server:"]');
-        expect(serverDot?.className).toContain('bg-red-500');
+        // Server wrapper should have title, inner dot should be red
+        const serverWrapper = container.querySelector('[title*="Server:"]');
+        expect(serverWrapper).toBeTruthy();
+        const serverDot = serverWrapper?.querySelector('.bg-red-500');
+        expect(serverDot).toBeTruthy();
     });
 
     it('should show poor server connection with yellow server dot', () => {
@@ -83,26 +91,30 @@ describe('RealTimeIndicator', () => {
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Network dot should be green (online)
-        const networkDot = container.querySelector('[title*="Network:"]');
-        expect(networkDot?.className).toContain('bg-green-500');
+        // Network wrapper should have title, inner dot should be green
+        const networkWrapper = container.querySelector('[title*="Network:"]');
+        expect(networkWrapper).toBeTruthy();
+        const networkDot = networkWrapper?.querySelector('.bg-green-500');
+        expect(networkDot).toBeTruthy();
         
-        // Server dot should be yellow (poor connection)
-        const serverDot = container.querySelector('[title*="Server:"]');
-        expect(serverDot?.className).toContain('bg-yellow-500');
+        // Server wrapper should have title, inner dot should be yellow
+        const serverWrapper = container.querySelector('[title*="Server:"]');
+        expect(serverWrapper).toBeTruthy();
+        const serverDot = serverWrapper?.querySelector('.bg-yellow-500');
+        expect(serverDot).toBeTruthy();
     });
 
     it('should display correct tooltips for network status', () => {
         // Test online
         connectionManager.isOnline.value = true;
         const { container: onlineContainer } = render(<RealTimeIndicator />);
-        const networkOnline = onlineContainer.querySelector('[title="Network: Connected"]');
+        const networkOnline = onlineContainer.querySelector('[title="Network: Connected (Green)"]');
         expect(networkOnline).toBeTruthy();
         
         // Test offline
         connectionManager.isOnline.value = false;
         const { container: offlineContainer } = render(<RealTimeIndicator />);
-        const networkOffline = offlineContainer.querySelector('[title="Network: Offline"]');
+        const networkOffline = offlineContainer.querySelector('[title="Network: Offline (Red)"]');
         expect(networkOffline).toBeTruthy();
     });
 
@@ -112,19 +124,19 @@ describe('RealTimeIndicator', () => {
         // Test good server connection
         connectionManager.connectionQuality.value = 'good';
         const { container: goodContainer } = render(<RealTimeIndicator />);
-        const serverGood = goodContainer.querySelector('[title="Server: Connected"]');
+        const serverGood = goodContainer.querySelector('[title="Server: Connected (Green)"]');
         expect(serverGood).toBeTruthy();
         
         // Test poor server connection
         connectionManager.connectionQuality.value = 'poor';
         const { container: poorContainer } = render(<RealTimeIndicator />);
-        const serverPoor = poorContainer.querySelector('[title="Server: Poor connection"]');
+        const serverPoor = poorContainer.querySelector('[title="Server: Poor connection (Yellow)"]');
         expect(serverPoor).toBeTruthy();
         
         // Test server unavailable
         connectionManager.connectionQuality.value = 'server-unavailable';
         const { container: unavailableContainer } = render(<RealTimeIndicator />);
-        const serverUnavailable = unavailableContainer.querySelector('[title="Server: Unavailable"]');
+        const serverUnavailable = unavailableContainer.querySelector('[title="Server: Unavailable (Red)"]');
         expect(serverUnavailable).toBeTruthy();
     });
 
@@ -134,8 +146,8 @@ describe('RealTimeIndicator', () => {
 
         const { container, rerender } = render(<RealTimeIndicator />);
         
-        // Initially both dots should be green
-        let greenDots = container.querySelectorAll('[class*="bg-green-500"]');
+        // Initially both inner dots should be green
+        let greenDots = container.querySelectorAll('.bg-green-500');
         expect(greenDots).toHaveLength(2);
         
         // Change to server unavailable
@@ -144,12 +156,17 @@ describe('RealTimeIndicator', () => {
         rerender(<RealTimeIndicator />);
         
         await waitFor(() => {
-            // Network should still be green, server should be red
-            const networkDot = container.querySelector('[title*="Network:"]');
-            expect(networkDot?.className).toContain('bg-green-500');
+            // Network wrapper should still have network title, inner dot should be green
+            const networkWrapper = container.querySelector('[title*="Network:"]');
+            expect(networkWrapper).toBeTruthy();
+            const networkDot = networkWrapper?.querySelector('.bg-green-500');
+            expect(networkDot).toBeTruthy();
             
-            const serverDot = container.querySelector('[title*="Server:"]');
-            expect(serverDot?.className).toContain('bg-red-500');
+            // Server wrapper should have server title, inner dot should be red
+            const serverWrapper = container.querySelector('[title*="Server:"]');
+            expect(serverWrapper).toBeTruthy();
+            const serverDot = serverWrapper?.querySelector('.bg-red-500');
+            expect(serverDot).toBeTruthy();
         });
     });
 

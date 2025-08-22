@@ -13,7 +13,7 @@ export const RealTimeIndicator: FunctionalComponent = () => {
     });
 
     const networkStatusText = useComputed(() => {
-        return isOnline.value ? 'Network: Connected' : 'Network: Offline';
+        return isOnline.value ? 'Network: Connected (Green)' : 'Network: Offline (Red)';
     });
 
     // Server connectivity status  
@@ -29,26 +29,30 @@ export const RealTimeIndicator: FunctionalComponent = () => {
     });
 
     const serverStatusText = useComputed(() => {
-        if (!isOnline.value) return 'Server: Unknown (offline)';
+        if (!isOnline.value) return 'Server: Unknown - offline (Gray)';
         switch (connectionQuality.value) {
-            case 'good': return 'Server: Connected';
-            case 'poor': return 'Server: Poor connection';
-            case 'server-unavailable': return 'Server: Unavailable';
-            case 'offline': return 'Server: Unknown';
-            default: return 'Server: Connected';
+            case 'good': return 'Server: Connected (Green)';
+            case 'poor': return 'Server: Poor connection (Yellow)';
+            case 'server-unavailable': return 'Server: Unavailable (Red)';
+            case 'offline': return 'Server: Unknown (Gray)';
+            default: return 'Server: Connected (Green)';
         }
     });
 
     return (
         <div className="flex flex-col gap-1">
             <div 
-                className={`h-2 w-2 rounded-full ${networkStatusColor.value}`}
+                className="p-2 cursor-help -m-2"
                 title={networkStatusText.value}
-            ></div>
+            >
+                <div className={`h-2 w-2 rounded-full ${networkStatusColor.value}`}></div>
+            </div>
             <div 
-                className={`h-2 w-2 rounded-full ${serverStatusColor.value}`}
+                className="p-2 cursor-help -m-2"
                 title={serverStatusText.value}
-            ></div>
+            >
+                <div className={`h-2 w-2 rounded-full ${serverStatusColor.value}`}></div>
+            </div>
         </div>
     );
 };
