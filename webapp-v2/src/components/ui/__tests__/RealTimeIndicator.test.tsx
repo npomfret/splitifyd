@@ -4,7 +4,7 @@ import { signal } from '@preact/signals';
 
 // Create mock signals outside of the mock factory
 const mockIsOnline = signal(true);
-const mockConnectionQuality = signal<'good' | 'poor' | 'offline'>('good');
+const mockConnectionQuality = signal<'good' | 'poor' | 'offline' | 'server-unavailable'>('good');
 const mockReconnectAttempts = signal(0);
 
 // Mock the ConnectionManager
@@ -20,11 +20,7 @@ vi.mock('@/utils/connection-manager', () => {
     };
 });
 
-// Mock heroicons
-vi.mock('@heroicons/react/24/outline', () => ({
-    WifiIcon: () => null,
-    NoSymbolIcon: () => null,
-}));
+// No heroicons needed anymore
 
 import { RealTimeIndicator } from '../RealTimeIndicator';
 import { ConnectionManager } from '@/utils/connection-manager';
@@ -40,49 +36,96 @@ describe('RealTimeIndicator', () => {
         vi.clearAllMocks();
     });
 
-    it('should show online indicator with good connection', () => {
+    it('should show two dots when online with good server connection', () => {
         connectionManager.isOnline.value = true;
         connectionManager.connectionQuality.value = 'good';
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Check for green status dot with pulse animation
-        const statusDot = container.querySelector('[class*="bg-green-500"]');
-        expect(statusDot).toBeTruthy();
-        
-        // Check for pulse animation
-        const pulseAnimation = container.querySelector('[class*="animate-ping"]');
-        expect(pulseAnimation).toBeTruthy();
+        // Should have two green dots
+        const greenDots = container.querySelectorAll('[class*="bg-green-500"]');
+        expect(greenDots).toHaveLength(2);
     });
 
-    it('should show online indicator with poor connection', () => {
-        connectionManager.isOnline.value = true;
-        connectionManager.connectionQuality.value = 'poor';
-
-        const { container } = render(<RealTimeIndicator />);
-        
-        // Check for yellow status dot
-        const statusDot = container.querySelector('[class*="bg-yellow-500"]');
-        expect(statusDot).toBeTruthy();
-        
-        // Should not have pulse animation for poor connection
-        const pulseAnimation = container.querySelector('[class*="animate-ping"]');
-        expect(pulseAnimation).toBeFalsy();
-    });
-
-    it('should show offline indicator', () => {
+    it('should show red network dot when offline', () => {
         connectionManager.isOnline.value = false;
         connectionManager.connectionQuality.value = 'offline';
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Check for red status dot
-        const statusDot = container.querySelector('[class*="bg-red-500"]');
-        expect(statusDot).toBeTruthy();
+        // Network dot should be red
+        const networkDot = container.querySelector('[title*="Network:"]');
+        expect(networkDot?.className).toContain('bg-red-500');
         
-        // Should not have pulse animation when offline
-        const pulseAnimation = container.querySelector('[class*="animate-ping"]');
-        expect(pulseAnimation).toBeFalsy();
+        // Server dot should be gray (unknown when offline)
+        const serverDot = container.querySelector('[title*="Server:"]');
+        expect(serverDot?.className).toContain('bg-gray-400');
+    });
+
+    it('should show server unavailable with red server dot', () => {
+        connectionManager.isOnline.value = true;
+        connectionManager.connectionQuality.value = 'server-unavailable';
+
+        const { container } = render(<RealTimeIndicator />);
+        
+        // Network dot should be green (online)
+        const networkDot = container.querySelector('[title*="Network:"]');
+        expect(networkDot?.className).toContain('bg-green-500');
+        
+        // Server dot should be red (unavailable)
+        const serverDot = container.querySelector('[title*="Server:"]');
+        expect(serverDot?.className).toContain('bg-red-500');
+    });
+
+    it('should show poor server connection with yellow server dot', () => {
+        connectionManager.isOnline.value = true;
+        connectionManager.connectionQuality.value = 'poor';
+
+        const { container } = render(<RealTimeIndicator />);
+        
+        // Network dot should be green (online)
+        const networkDot = container.querySelector('[title*="Network:"]');
+        expect(networkDot?.className).toContain('bg-green-500');
+        
+        // Server dot should be yellow (poor connection)
+        const serverDot = container.querySelector('[title*="Server:"]');
+        expect(serverDot?.className).toContain('bg-yellow-500');
+    });
+
+    it('should display correct tooltips for network status', () => {
+        // Test online
+        connectionManager.isOnline.value = true;
+        const { container: onlineContainer } = render(<RealTimeIndicator />);
+        const networkOnline = onlineContainer.querySelector('[title="Network: Connected"]');
+        expect(networkOnline).toBeTruthy();
+        
+        // Test offline
+        connectionManager.isOnline.value = false;
+        const { container: offlineContainer } = render(<RealTimeIndicator />);
+        const networkOffline = offlineContainer.querySelector('[title="Network: Offline"]');
+        expect(networkOffline).toBeTruthy();
+    });
+
+    it('should display correct tooltips for server status', () => {
+        connectionManager.isOnline.value = true;
+        
+        // Test good server connection
+        connectionManager.connectionQuality.value = 'good';
+        const { container: goodContainer } = render(<RealTimeIndicator />);
+        const serverGood = goodContainer.querySelector('[title="Server: Connected"]');
+        expect(serverGood).toBeTruthy();
+        
+        // Test poor server connection
+        connectionManager.connectionQuality.value = 'poor';
+        const { container: poorContainer } = render(<RealTimeIndicator />);
+        const serverPoor = poorContainer.querySelector('[title="Server: Poor connection"]');
+        expect(serverPoor).toBeTruthy();
+        
+        // Test server unavailable
+        connectionManager.connectionQuality.value = 'server-unavailable';
+        const { container: unavailableContainer } = render(<RealTimeIndicator />);
+        const serverUnavailable = unavailableContainer.querySelector('[title="Server: Unavailable"]');
+        expect(serverUnavailable).toBeTruthy();
     });
 
     it('should update when connection status changes', async () => {
@@ -91,47 +134,33 @@ describe('RealTimeIndicator', () => {
 
         const { container, rerender } = render(<RealTimeIndicator />);
         
-        // Initially online with good connection
-        let statusDot = container.querySelector('[class*="bg-green-500"]');
-        expect(statusDot).toBeTruthy();
+        // Initially both dots should be green
+        let greenDots = container.querySelectorAll('[class*="bg-green-500"]');
+        expect(greenDots).toHaveLength(2);
         
-        // Change to offline
-        connectionManager.isOnline.value = false;
-        connectionManager.connectionQuality.value = 'offline';
+        // Change to server unavailable
+        connectionManager.connectionQuality.value = 'server-unavailable';
         
-        // Re-render to trigger update
         rerender(<RealTimeIndicator />);
         
         await waitFor(() => {
-            // Now should show red status
-            statusDot = container.querySelector('[class*="bg-red-500"]');
-            expect(statusDot).toBeTruthy();
+            // Network should still be green, server should be red
+            const networkDot = container.querySelector('[title*="Network:"]');
+            expect(networkDot?.className).toContain('bg-green-500');
+            
+            const serverDot = container.querySelector('[title*="Server:"]');
+            expect(serverDot?.className).toContain('bg-red-500');
         });
     });
 
-    it('should have proper accessibility attributes', () => {
+    it('should stack dots vertically', () => {
         connectionManager.isOnline.value = true;
         connectionManager.connectionQuality.value = 'good';
 
         const { container } = render(<RealTimeIndicator />);
         
-        // Check for title attribute (tooltip)
-        const indicatorWithTitle = container.querySelector('[title="Connected"]');
-        expect(indicatorWithTitle).toBeTruthy();
-    });
-
-    it('should display correct title for different states', () => {
-        // Test offline state
-        connectionManager.isOnline.value = false;
-        const { container: offlineContainer } = render(<RealTimeIndicator />);
-        const offlineTitle = offlineContainer.querySelector('[title="Offline"]');
-        expect(offlineTitle).toBeTruthy();
-        
-        // Test poor connection state
-        connectionManager.isOnline.value = true;
-        connectionManager.connectionQuality.value = 'poor';
-        const { container: poorContainer } = render(<RealTimeIndicator />);
-        const poorTitle = poorContainer.querySelector('[title="Poor Connection"]');
-        expect(poorTitle).toBeTruthy();
+        // Should have flex-col class for vertical stacking
+        const wrapper = container.querySelector('.flex.flex-col');
+        expect(wrapper).toBeTruthy();
     });
 });

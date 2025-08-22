@@ -1,55 +1,54 @@
 import { FunctionalComponent } from 'preact';
 import { useComputed } from '@preact/signals';
 import { ConnectionManager } from '@/utils/connection-manager';
-import { WifiIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
 
 export const RealTimeIndicator: FunctionalComponent = () => {
     const connectionManager = ConnectionManager.getInstance();
     const isOnline = connectionManager.isOnline;
     const connectionQuality = connectionManager.connectionQuality;
     
-    // Computed signal for connection status text
-    const statusText = useComputed(() => {
-        if (!isOnline.value) return 'Offline';
-        switch (connectionQuality.value) {
-            case 'good': return 'Connected';
-            case 'poor': return 'Poor Connection';
-            case 'offline': return 'Offline';
-            default: return 'Connected';
-        }
+    // Network connectivity status
+    const networkStatusColor = useComputed(() => {
+        return isOnline.value ? 'bg-green-500' : 'bg-red-500';
     });
 
-    // Computed signal for status color classes
-    const statusColorClass = useComputed(() => {
-        if (!isOnline.value) return 'bg-red-500';
+    const networkStatusText = useComputed(() => {
+        return isOnline.value ? 'Network: Connected' : 'Network: Offline';
+    });
+
+    // Server connectivity status  
+    const serverStatusColor = useComputed(() => {
+        if (!isOnline.value) return 'bg-gray-400'; // Gray when offline
         switch (connectionQuality.value) {
             case 'good': return 'bg-green-500';
             case 'poor': return 'bg-yellow-500';
-            case 'offline': return 'bg-red-500';
+            case 'server-unavailable': return 'bg-red-500';
+            case 'offline': return 'bg-gray-400';
             default: return 'bg-green-500';
         }
     });
 
+    const serverStatusText = useComputed(() => {
+        if (!isOnline.value) return 'Server: Unknown (offline)';
+        switch (connectionQuality.value) {
+            case 'good': return 'Server: Connected';
+            case 'poor': return 'Server: Poor connection';
+            case 'server-unavailable': return 'Server: Unavailable';
+            case 'offline': return 'Server: Unknown';
+            default: return 'Server: Connected';
+        }
+    });
+
     return (
-        <div className="flex items-center gap-2">
-            {isOnline.value ? (
-                <div className="relative flex items-center" title={statusText.value}>
-                    <div className={`h-2 w-2 rounded-full ${statusColorClass.value}`}>
-                        {connectionQuality.value === 'good' && (
-                            <>
-                                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${statusColorClass.value} opacity-75`}></span>
-                                <span className={`relative inline-flex h-2 w-2 rounded-full ${statusColorClass.value}`}></span>
-                            </>
-                        )}
-                    </div>
-                    <WifiIcon className="h-4 w-4 text-gray-600 dark:text-gray-400 ml-1" />
-                </div>
-            ) : (
-                <div className="flex items-center" title={statusText.value}>
-                    <div className={`h-2 w-2 rounded-full ${statusColorClass.value} mr-1`}></div>
-                    <NoSymbolIcon className="h-4 w-4 text-red-500" />
-                </div>
-            )}
+        <div className="flex flex-col gap-1">
+            <div 
+                className={`h-2 w-2 rounded-full ${networkStatusColor.value}`}
+                title={networkStatusText.value}
+            ></div>
+            <div 
+                className={`h-2 w-2 rounded-full ${serverStatusColor.value}`}
+                title={serverStatusText.value}
+            ></div>
         </div>
     );
 };

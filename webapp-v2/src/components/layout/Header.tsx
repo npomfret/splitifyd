@@ -31,10 +31,10 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
         if (isAuthenticated.value && user.value) {
             return (
                 <div class="flex items-center gap-4">
-                    <RealTimeIndicator />
                     <Suspense fallback={<div>...</div>}>
                         <UserMenu user={user.value} />
                     </Suspense>
+                    <RealTimeIndicator />
                 </div>
             );
         }
