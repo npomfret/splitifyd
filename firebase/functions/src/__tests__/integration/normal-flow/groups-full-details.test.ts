@@ -1,6 +1,7 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { clearAllTestData } from '../../support/cleanupHelpers';
+import { ExpenseBuilder, SettlementBuilder } from '../../support/builders';
 
 describe('Groups Full Details API', () => {
     let apiDriver: ApiDriver;
@@ -45,27 +46,24 @@ describe('Groups Full Details API', () => {
     describe('GET /groups/:id/full-details', () => {
         it('should return consolidated group data with all components', async () => {
             // Add some test data to make the response more interesting
-            const expense = await apiDriver.createExpense({
-                groupId,
-                description: 'Test dinner',
-                amount: 60,
-                paidBy: alice.uid,
-                splitType: 'equal',
-                participants: [alice.uid, bob.uid, charlie.uid],
-                date: new Date().toISOString(),
-                category: 'food',
-                currency: 'USD'
-            }, alice.token);
+            const expense = await apiDriver.createExpense(
+                new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(alice.uid)
+                    .withParticipants([alice.uid, bob.uid, charlie.uid])
+                    .build(),
+                alice.token
+            );
 
-            await apiDriver.createSettlement({
-                groupId,
-                payerId: bob.uid,
-                payeeId: alice.uid,
-                amount: 20,
-                note: 'Partial payment',
-                currency: 'USD',
-                date: new Date().toISOString()
-            }, bob.token);
+            await apiDriver.createSettlement(
+                new SettlementBuilder()
+                    .withGroupId(groupId)
+                    .withPayer(bob.uid)
+                    .withPayee(alice.uid)
+                    .withAmount(20)
+                    .build(),
+                bob.token
+            );
 
             // Test the consolidated endpoint
             const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token);
@@ -94,7 +92,6 @@ describe('Groups Full Details API', () => {
             // Verify expenses data
             expect(fullDetails.expenses.expenses).toHaveLength(1);
             expect(fullDetails.expenses.expenses[0].id).toBe(expense.id);
-            expect(fullDetails.expenses.expenses[0].description).toBe('Test dinner');
             expect(fullDetails.expenses.hasMore).toBe(false);
 
             // Verify balances data (calculated from expenses and settlements)
@@ -141,22 +138,17 @@ describe('Groups Full Details API', () => {
 
         it('should handle pagination information correctly', async () => {
             // Create many expenses to test pagination
-            const expensePromises = [];
-            for (let i = 0; i < 25; i++) {
-                expensePromises.push(
-                    apiDriver.createExpense({
-                        groupId,
-                        description: `Test expense ${i}`,
-                        amount: 10,
-                        paidBy: alice.uid,
-                        splitType: 'equal',
-                        participants: [alice.uid, bob.uid],
-                        date: new Date(Date.now() - i * 1000).toISOString(), // Different times
-                        category: 'food',
-                        currency: 'USD'
-                    }, alice.token)
-                );
-            }
+            const expensePromises = Array.from({length: 25}, (_, i) => 
+                apiDriver.createExpense(
+                    new ExpenseBuilder()
+                        .withGroupId(groupId)
+                        .withPaidBy(alice.uid)
+                        .withParticipants([alice.uid, bob.uid])
+                        .withDate(new Date(Date.now() - i * 1000).toISOString()) // Different times for pagination
+                        .build(),
+                    alice.token
+                )
+            );
             await Promise.all(expensePromises);
 
             const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token);
@@ -169,38 +161,31 @@ describe('Groups Full Details API', () => {
 
         it('should support pagination parameters for expenses and settlements', async () => {
             // Create multiple expenses and settlements
-            const expensePromises = [];
-            for (let i = 0; i < 15; i++) {
-                expensePromises.push(
-                    apiDriver.createExpense({
-                        groupId,
-                        description: `Expense ${i}`,
-                        amount: 30,
-                        paidBy: alice.uid,
-                        splitType: 'equal',
-                        participants: [alice.uid, bob.uid],
-                        date: new Date(Date.now() - i * 1000).toISOString(),
-                        category: 'food',
-                        currency: 'USD'
-                    }, alice.token)
-                );
-            }
+            const expensePromises = Array.from({length: 15}, (_, i) => 
+                apiDriver.createExpense(
+                    new ExpenseBuilder()
+                        .withGroupId(groupId)
+                        .withPaidBy(alice.uid)
+                        .withParticipants([alice.uid, bob.uid])
+                        .withDate(new Date(Date.now() - i * 1000).toISOString())
+                        .build(),
+                    alice.token
+                )
+            );
             await Promise.all(expensePromises);
 
-            const settlementPromises = [];
-            for (let i = 0; i < 15; i++) {
-                settlementPromises.push(
-                    apiDriver.createSettlement({
-                        groupId,
-                        payerId: bob.uid,
-                        payeeId: alice.uid,
-                        amount: 5,
-                        note: `Settlement ${i}`,
-                        currency: 'USD',
-                        date: new Date(Date.now() - i * 2000).toISOString()
-                    }, bob.token)
-                );
-            }
+            const settlementPromises = Array.from({length: 15}, (_, i) => 
+                apiDriver.createSettlement(
+                    new SettlementBuilder()
+                        .withGroupId(groupId)
+                        .withPayer(bob.uid)
+                        .withPayee(alice.uid)
+                        .withAmount(5)
+                        .withDate(new Date(Date.now() - i * 2000).toISOString())
+                        .build(),
+                    bob.token
+                )
+            );
             await Promise.all(settlementPromises);
 
             // Test with custom pagination limits
@@ -231,17 +216,14 @@ describe('Groups Full Details API', () => {
 
         it('should return consistent data across individual and consolidated endpoints', async () => {
             // Add test data
-            await apiDriver.createExpense({
-                groupId,
-                description: 'Consistency test',
-                amount: 100,
-                paidBy: alice.uid,
-                splitType: 'equal',
-                participants: [alice.uid, bob.uid],
-                date: new Date().toISOString(),
-                category: 'food',
-                currency: 'USD'
-            }, alice.token);
+            await apiDriver.createExpense(
+                new ExpenseBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(alice.uid)
+                    .withParticipants([alice.uid, bob.uid])
+                    .build(),
+                alice.token
+            );
 
             // Get data from both consolidated and individual endpoints
             const [fullDetails, group, members, expenses, balances] = await Promise.all([

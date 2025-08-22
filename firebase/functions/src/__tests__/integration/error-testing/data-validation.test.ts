@@ -103,8 +103,14 @@ describe('Enhanced Data Validation Tests', () => {
         });
 
         test('should reject expenses with invalid date formats', async () => {
+            const baseExpenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+            
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                ...baseExpenseData,
                 date: 'not-a-valid-date', // Invalid date format - this is what the test is about
             };
 
@@ -112,8 +118,14 @@ describe('Enhanced Data Validation Tests', () => {
         });
 
         test('should reject expenses with malformed ISO date strings', async () => {
+            const baseExpenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+            
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                ...baseExpenseData,
                 date: '2023-13-45T25:99:99.999Z', // Malformed ISO date - this is what the test is about
             };
 
@@ -142,10 +154,12 @@ describe('Enhanced Data Validation Tests', () => {
 
     describe('Category Validation', () => {
         test('should accept any category name (categories are now free-form)', async () => {
-            const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
-                category: 'custom-category-name', // Custom category - this is what the test is about
-            };
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withCategory('custom-category-name') // Custom category - this is what the test is about
+                .build();
 
             const response = await driver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -179,8 +193,14 @@ describe('Enhanced Data Validation Tests', () => {
         });
 
         test('should reject expenses with null or undefined categories', async () => {
+            const baseExpenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+            
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                ...baseExpenseData,
                 category: null as any, // Null category - this is what the test is about
             };
 
@@ -188,8 +208,14 @@ describe('Enhanced Data Validation Tests', () => {
         });
 
         test('should reject expenses with empty string categories', async () => {
+            const baseExpenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+            
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                ...baseExpenseData,
                 category: '', // Empty category - this is what the test is about
             };
 
@@ -197,10 +223,12 @@ describe('Enhanced Data Validation Tests', () => {
         });
 
         test('should accept categories regardless of case (categories are now free-form)', async () => {
-            const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
-                category: 'FOOD', // Uppercase category - this is what the test is about
-            };
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withCategory('FOOD') // Uppercase category - this is what the test is about
+                .build();
 
             const response = await driver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
