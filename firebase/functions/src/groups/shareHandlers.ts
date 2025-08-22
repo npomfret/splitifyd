@@ -5,8 +5,8 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { FirestoreCollections } from '../shared/shared-types';
-import { getUpdatedAtTimestamp, updateWithTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
+import { FirestoreCollections, ShareLink } from '../shared/shared-types';
+import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import type { UserThemeColor } from '../shared/shared-types';
 
@@ -14,6 +14,31 @@ const generateShareToken = (): string => {
     const bytes = randomBytes(12);
     const base64url = bytes.toString('base64url');
     return base64url.substring(0, 16);
+};
+
+
+/**
+ * Find ShareLink by token in the shareLinks subcollection
+ */
+const findShareLinkByToken = async (token: string): Promise<{ groupId: string; shareLink: ShareLink }> => {
+    const groupsSnapshot = await db.collectionGroup('shareLinks')
+        .where('token', '==', token)
+        .where('isActive', '==', true)
+        .limit(1)
+        .get();
+    
+    if (groupsSnapshot.empty) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+    }
+    
+    const shareLinkDoc = groupsSnapshot.docs[0];
+    const groupId = shareLinkDoc.ref.parent.parent!.id;
+    const shareLink: ShareLink = {
+        id: shareLinkDoc.id,
+        ...shareLinkDoc.data() as Omit<ShareLink, 'id'>
+    };
+    
+    return { groupId, shareLink };
 };
 
 /**
@@ -90,30 +115,32 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
 
         const shareToken = generateShareToken();
 
-        // Use optimistic locking for generating share link
+        // Create ShareLink document in subcollection
         await db.runTransaction(async (transaction) => {
             const freshGroupDoc = await transaction.get(groupRef);
             if (!freshGroupDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const originalUpdatedAt = getUpdatedAtTimestamp(freshGroupDoc.data());
-
-            await updateWithTimestamp(
-                transaction,
-                groupRef,
-                {
-                    'data.shareableLink': shareToken,
-                },
-                originalUpdatedAt,
-            );
+            // Create ShareLink document in subcollection
+            const shareLinksRef = db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
+            const shareLinkDoc = shareLinksRef.doc();
+            
+            const shareLinkData: Omit<ShareLink, 'id'> = {
+                token: shareToken,
+                createdBy: userId,
+                createdAt: new Date().toISOString(),
+                isActive: true,
+            };
+            
+            transaction.set(shareLinkDoc, shareLinkData);
         });
 
         // Server only returns the path, webapp will construct the full URL
         const shareablePath = `/join?linkId=${shareToken}`;
 
         LoggerContext.setBusinessContext({ groupId });
-        logger.info('share-link-created', { id: shareToken, groupId });
+        logger.info('share-link-created', { id: shareToken, groupId, createdBy: userId });
 
         res.status(HTTP_STATUS.OK).json({
             shareablePath,
@@ -145,14 +172,14 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
     const userId = req.user!.uid;
 
     try {
-        const groupsQuery = await db.collection(FirestoreCollections.GROUPS).where('data.shareableLink', '==', linkId).limit(1).get();
-
-        if (groupsQuery.empty) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+        const { groupId } = await findShareLinkByToken(linkId);
+        
+        const groupDoc = await db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
+        if (!groupDoc.exists) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
-
-        const groupDoc = groupsQuery.docs[0];
-        const groupData = groupDoc.data();
+        
+        const groupData = groupDoc.data()!;
 
         if (!groupData.data) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP', 'Group data is invalid');
@@ -197,14 +224,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     const userName = userEmail.split('@')[0];
 
     try {
-        const groupsQuery = await db.collection(FirestoreCollections.GROUPS).where('data.shareableLink', '==', linkId).limit(1).get();
-
-        if (groupsQuery.empty) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
-        }
-
-        const groupDoc = groupsQuery.docs[0];
-        const groupId = groupDoc.id;
+        const { groupId, shareLink } = await findShareLinkByToken(linkId);
 
         const result = await db.runTransaction(async (transaction) => {
             const groupRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
@@ -230,11 +250,12 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             // Calculate next theme index based on current member count
             const memberIndex = Object.keys(groupData.data.members).length;
             
-            // Create new member with theme assignment
+            // Create new member with theme assignment and invite attribution
             const newMember = {
                 role: 'member' as const,
                 theme: getThemeColorForMember(memberIndex),
-                joinedAt: new Date().toISOString(), // Use ISO string to match createdAt/updatedAt pattern
+                joinedAt: new Date().toISOString(),
+                invitedBy: shareLink.createdBy,
             };
             
             // Add new member to members map
@@ -255,6 +276,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
 
             return {
                 groupName: groupData.data!.name!,
+                invitedBy: shareLink.createdBy,
             };
         });
 
@@ -263,6 +285,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             userId,
             userName,
             linkId: linkId.substring(0, 4) + '...',
+            invitedBy: result.invitedBy,
         });
 
         res.status(HTTP_STATUS.OK).json({

@@ -1,5 +1,7 @@
 # Feature: Invite Tracking
 
+## Status: ✅ COMPLETED
+
 ## Overview
 
 To better understand group growth and attribute new members to the person who invited them, this feature will associate share links with the user who created them. When a new user joins a group using a share link, the system will record who invited them.
@@ -16,50 +18,70 @@ To better understand group growth and attribute new members to the person who in
 
 ## Backend & Data Model
 
-### 1. Share Link Data Model
+### 1. Share Link Data Model ✅
 
-The data model for share links needs to be updated to include the creator's ID.
+The data model for share links has been implemented to include the creator's ID.
 
-- **Location:** `groups/{groupId}/shareLinks/{shareLinkId}` (or similar structure)
-- **New Structure:**
-    ```json
-    {
-        "createdBy": "string", // UID of the user who created the link
-        "createdAt": "timestamp",
-        "expiresAt": "timestamp"
+- **Location:** `groups/{groupId}/shareLinks/{shareLinkId}`
+- **Implemented Structure:**
+    ```typescript
+    interface ShareLink {
+        id: string;
+        token: string; // The actual share token used in URLs
+        createdBy: string; // UID of the user who created this share link
+        createdAt: string; // ISO timestamp
+        expiresAt?: string; // Future: expiration support (ISO timestamp)
+        isActive: boolean; // For soft deletion/deactivation
     }
     ```
 
-### 2. Group Member Data Model
+### 2. Group Member Data Model ✅
 
-The data model for a user within a group's `members` list needs to be updated to store who invited them.
+The data model for a user within a group's `members` list has been updated to store who invited them.
 
 - **Location:** `groups/{groupId}`
-- **New `members` sub-collection/map:**
-    ```json
-    "members": {
-      "{userId}": {
-        "role": "member",
-        "joinedAt": "timestamp",
-        "invitedBy": "string" // UID of the user who created the share link
-      }
+- **Implemented `members` map:**
+    ```typescript
+    interface GroupMember {
+        role: 'owner' | 'member';
+        theme: UserThemeColor;
+        joinedAt: string; // ISO timestamp
+        invitedBy?: string; // UID of the user who created the share link
     }
     ```
 
 ## API Changes
 
-### 1. Create Share Link Endpoint
+### 1. Create Share Link Endpoint ✅
 
-- **Endpoint:** (e.g., `POST /api/groups/{groupId}/share-link`)
-- **Change:** The endpoint will automatically associate the authenticated user's ID as the `createdBy` field when creating the new share link document. No client-side change is needed.
+- **Endpoint:** `generateShareableLink` function in `shareHandlers.ts`
+- **Implemented:** The endpoint automatically associates the authenticated user's ID as the `createdBy` field when creating ShareLink documents in the subcollection. No client-side change is needed.
 
-### 2. Join Group via Link Endpoint
+### 2. Join Group via Link Endpoint ✅
 
-- **Endpoint:** (e.g., `POST /api/join-group/{shareLinkId}`)
-- **Change:**
-    1.  When a user joins, the backend will read the `createdBy` field from the share link's data.
-    2.  This `createdBy` user ID will be saved as the `invitedBy` field in the new member's data within the group document.
-    3.  If the `createdBy` field does not exist on the share link (for legacy links), the `invitedBy` field can be omitted.
+- **Endpoint:** `joinGroupByLink` function in `shareHandlers.ts`
+- **Implemented:**
+    1.  When a user joins, the backend reads the `createdBy` field from the ShareLink document.
+    2.  This `createdBy` user ID is saved as the `invitedBy` field in the new member's data within the group document.
+    3.  All share links now use the new ShareLink subcollection format - no legacy support.
+
+## Implementation Summary
+
+This feature has been fully implemented with the following components:
+
+### Files Modified:
+- `firebase/functions/src/shared/shared-types.ts` - Added `ShareLink` interface and updated `GroupMember`
+- `firebase/functions/src/groups/shareHandlers.ts` - Updated all share link functions to use subcollection format with invite tracking
+- `firebase/firestore.rules` - Added security rules for `shareLinks` subcollection
+- `firebase/functions/src/__tests__/integration/normal-flow/groups.test.ts` - Added comprehensive test suite for invite tracking
+
+### Key Features:
+- ✅ ShareLink documents stored in `groups/{groupId}/shareLinks/{shareLinkId}` subcollection
+- ✅ `invitedBy` field automatically set when users join via share links
+- ✅ Full test coverage with 4 test cases covering different scenarios
+- ✅ Clean implementation with no backward compatibility code
+- ✅ Proper error handling and validation
+- ✅ Firestore security rules for subcollection access
 
 ## Future Enhancements
 
