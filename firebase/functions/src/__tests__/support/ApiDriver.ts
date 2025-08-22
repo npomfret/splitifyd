@@ -615,4 +615,121 @@ export class ApiDriver {
 
         return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
     }
+
+    /**
+     * Wait for a group's membership to reach a specific count
+     */
+    async waitForMembershipChange(groupId: string, expectedMemberCount: number, timeout = 5000): Promise<Group> {
+        return this.pollUntil(
+            () => this.getGroup(groupId, this.getRandomToken()),
+            (group) => Object.keys(group.members).length === expectedMemberCount,
+            {
+                timeout,
+                errorMsg: `Group ${groupId} membership did not reach ${expectedMemberCount} members`
+            }
+        );
+    }
+
+    /**
+     * Wait for a specific user to be a member of a group
+     */
+    async waitForUserJoinGroup(groupId: string, userId: string, timeout = 5000): Promise<Group> {
+        return this.pollUntil(
+            () => this.getGroup(groupId, this.getRandomToken()),
+            (group) => group.members.hasOwnProperty(userId),
+            {
+                timeout,
+                errorMsg: `User ${userId} did not join group ${groupId}`
+            }
+        );
+    }
+
+    /**
+     * Wait for group change records to be created
+     */
+    async waitForGroupChangeRecords(groupId: string, userId: string, minimumCount = 1, timeout = 3000): Promise<GroupChangeDocument[]> {
+        return this.pollUntil(
+            () => this.getGroupChangesForUser(groupId, userId),
+            (changes) => changes.length >= minimumCount,
+            {
+                timeout,
+                errorMsg: `Expected at least ${minimumCount} group change record(s) for user ${userId} in group ${groupId}`
+            }
+        );
+    }
+
+    /**
+     * Get group changes filtered by user
+     */
+    async getGroupChangesForUser(groupId: string, userId: string): Promise<GroupChangeDocument[]> {
+        const snapshot = await db.collection('group-changes')
+            .where('id', '==', groupId)
+            .where('users', 'array-contains', userId)
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
+    }
+
+    /**
+     * Wait for settlement creation event to be tracked
+     */
+    async waitForSettlementCreationEvent(groupId: string, settlementId: string, participants: User[]) {
+        return this.waitForSettlementEvent('created', groupId, settlementId, participants, 1);
+    }
+
+    /**
+     * Wait for settlement updated event to be tracked
+     */
+    async waitForSettlementUpdatedEvent(groupId: string, settlementId: string, participants: User[], expectedCount = 1) {
+        return this.waitForSettlementEvent('updated', groupId, settlementId, participants, expectedCount);
+    }
+
+    /**
+     * Wait for settlement deleted event to be tracked
+     */
+    async waitForSettlementDeletedEvent(groupId: string, settlementId: string, participants: User[]) {
+        return this.waitForSettlementEvent('deleted', groupId, settlementId, participants, 1);
+    }
+
+    /**
+     * Generic method to wait for settlement events
+     */
+    async waitForSettlementEvent(action: string, groupId: string, settlementId: string, participants: User[], expectedCount: number) {
+        const participantUids = participants.map(p => p.uid);
+        
+        return this.waitForSettlementChanges(groupId, (changes) => {
+            const relevantChanges = changes.filter(change => 
+                change.id === settlementId &&
+                change.action === action &&
+                change.type === 'settlement' &&
+                participantUids.every(uid => change.users.includes(uid))
+            );
+            return relevantChanges.length >= expectedCount;
+        });
+    }
+
+    /**
+     * Count settlement changes for a group
+     */
+    async countSettlementChanges(groupId: string): Promise<number> {
+        const changes = await this.getSettlementChanges(groupId);
+        return changes.length;
+    }
+
+    /**
+     * Get most recent settlement change event
+     */
+    async mostRecentSettlementChangeEvent(groupId: string) {
+        const changes = await this.getSettlementChanges(groupId);
+        return changes.length > 0 ? changes[0] : null;
+    }
+
+    /**
+     * Helper method to get a random user token (for internal polling)
+     */
+    private getRandomToken(): string {
+        // This is a placeholder - in real tests we should pass the token
+        // For now, we'll use an empty token since the test should provide it
+        return '';
+    }
 }

@@ -13,7 +13,7 @@ describe('Freeform Categories API Integration', () => {
     let users: User[] = [];
     let testGroup: any;
 
-    jest.setTimeout(15000);
+    jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
         // Clear any existing test data first

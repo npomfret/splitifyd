@@ -13,7 +13,7 @@ describe('Error Handling and Recovery Testing', () => {
     let mainUser: User;
     let testGroup: Group;
 
-    jest.setTimeout(20000); // Increased timeout for error handling tests with beforeEach
+    jest.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
         // Clear test data from any previous runs to ensure isolation

@@ -23,7 +23,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let user2: User;
     let groupId: string;
 
-    jest.setTimeout(20000); // Increased timeout for trigger tests
+    jest.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
         await clearAllTestData();

@@ -10,7 +10,7 @@ import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrati
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../../../shared/shared-types';
 
-jest.setTimeout(15000); // Real-time tests need more time
+jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
 describe('Group Membership Real-Time Sync Tests', () => {
     const driver = new ApiDriver();
@@ -78,21 +78,20 @@ describe('Group Membership Real-Time Sync Tests', () => {
         });
         activeListeners.push(unsubscribe);
 
-        // Initial state should have only User 1
-        // Poll for initial membership state
-        const initialStateReceived = await Promise.race([
-            new Promise(resolve => {
-                const checkInterval = setInterval(() => {
-                    if (membershipChanges.length > 0) {
-                        clearInterval(checkInterval);
-                        resolve(true);
-                    }
-                }, 100);
-            }),
-            new Promise(resolve => setTimeout(() => resolve(false), 2000))
-        ]);
+        // Wait for initial membership state to be detected by the listener
+        // Use ApiDriver to ensure group has user1 as member
+        await driver.waitForUserJoinGroup(groupId, user1.uid, 3000);
         
-        expect(initialStateReceived).toBe(true);
+        // Wait for listener to capture initial state
+        await new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+                if (membershipChanges.length > 0) {
+                    clearInterval(checkInterval);
+                    resolve(true);
+                }
+            }, 50);
+        });
+        
         expect(membershipChanges.length).toBeGreaterThan(0);
         expect(membershipChanges[0].memberCount).toBe(1);
         expect(membershipChanges[0].memberIds).toContain(user1.uid);
@@ -104,11 +103,11 @@ describe('Group Membership Real-Time Sync Tests', () => {
         // User 2 joins via the share link
         await driver.joinGroupViaShareLink(linkId, user2.token);
 
-        // Wait for the real-time update (with timeout)
-        const updateReceived = await Promise.race([
-            membershipChangePromise,
-            new Promise(resolve => setTimeout(() => resolve(false), 5000))
-        ]);
+        // Use ApiDriver to wait for user2 to join the group
+        await driver.waitForUserJoinGroup(groupId, user2.uid, 5000);
+        
+        // Wait for the real-time listener to detect the change
+        const updateReceived = await membershipChangePromise;
 
         // Verify User 1's listener received the update
         expect(updateReceived).toBe(true);
@@ -169,21 +168,20 @@ describe('Group Membership Real-Time Sync Tests', () => {
         const shareResponse = await driver.generateShareLink(groupId, user1.token);
         await driver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
-        // Poll for change records to be created
-        const changesReceived = await Promise.race([
-            new Promise(resolve => {
-                const checkInterval = setInterval(() => {
-                    if (changeRecords.length > 0) {
-                        clearInterval(checkInterval);
-                        resolve(true);
-                    }
-                }, 100);
-            }),
-            new Promise(resolve => setTimeout(() => resolve(false), 3000))
-        ]);
+        // Use ApiDriver to wait for change records to be created
+        await driver.waitForGroupChangeRecords(groupId, user1.uid, 1, 3000);
+
+        // Wait for listener to capture the changes
+        await new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+                if (changeRecords.length > 0) {
+                    clearInterval(checkInterval);
+                    resolve(true);
+                }
+            }, 50);
+        });
 
         // We should have at least one change record for the membership update
-        expect(changesReceived).toBe(true);
         expect(changeRecords.length).toBeGreaterThan(0);
     });
 });
