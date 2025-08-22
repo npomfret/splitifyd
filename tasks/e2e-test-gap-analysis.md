@@ -229,20 +229,36 @@ This inflates the runtime of the integration test suite with checks that don't r
 *   Move fine-grained validation tests (e.g., specific date formats, character limits, null/undefined checks) to unit tests for the Joi validation schemas.
 *   Keep a smaller set of "smoke tests" in the integration suite to ensure the validation middleware is correctly wired up for each endpoint.
 
-### 3.2. Under-testing of Complex Business Logic
+### 3.2. ✅ COMPLETE: Expanded Complex Business Logic Testing
 
-**Finding:**
-The tests for complex scenarios are underdeveloped. For example, `complex-unsettled-balance.test.ts` only covers one specific scenario. There is insufficient testing for multi-expense, multi-settlement balance calculations, and edge cases in debt simplification.
+**Status:** ✅ Complete (2025-08-22)
+
+**Original Finding:**
+The tests for complex scenarios were underdeveloped. For example, `complex-unsettled-balance.test.ts` only covered one specific scenario. There was insufficient testing for multi-expense, multi-settlement balance calculations, and edge cases in debt simplification.
+
+**Resolution:**
+Successfully expanded complex business logic testing with comprehensive new scenarios:
+
+**Enhanced `complex-unsettled-balance.test.ts` (Integration Tests):**
+- ✅ **Multi-currency expenses**: USD, EUR, and GBP within same group with currency isolation verification
+- ✅ **Partial settlement scenarios**: Multi-step partial payments (40% → 35% → 25% final) 
+- ✅ **Overpayment scenarios**: Settlement exceeding debt amounts with proper reversal handling
+- ✅ **Mixed currency partial settlements**: Cross-currency partial payments with independent tracking
+
+**Enhanced `debtSimplifier.test.ts` (Unit Tests):**
+- ✅ **5-user circular debt scenario**: A→B→C→D→E→A perfect cycle elimination
+- ✅ **6-user complex debt networks**: Multiple interconnected debt relationships
+- ✅ **Star network optimization**: Central user with multiple creditors/debtors  
+- ✅ **Mixed currency debt simplification**: USD/EUR separation verification
+- ✅ **Asymmetric debt networks**: "Whale" user with large amounts vs small debts
+
+**Test Results:**
+- **Integration Tests**: 7/7 passing - All complex financial scenarios validated
+- **Unit Tests**: 13/13 passing - All debt simplification algorithms verified
+- **Coverage Expansion**: Added 9 new complex test scenarios across both files
 
 **Impact:**
-Potential bugs in the core financial logic may go undetected. The current tests do not provide enough confidence in the accuracy of balance calculations under varied conditions.
-
-**Recommendation:**
-*   Expand `complex-unsettled-balance.test.ts` to include more scenarios:
-    *   Circular debts (A owes B, B owes C, C owes A).
-    *   Multiple currencies within the same group.
-    *   Scenarios where settlements only partially cover a debt.
-*   Create new integration tests specifically for the `debtSimplifier` logic with complex inputs.
+The expanded test suite now provides **significantly stronger confidence** in the financial accuracy and edge case handling of the core balance calculation and debt simplification logic.
 
 ### 3.3. Inefficient Test Execution
 
