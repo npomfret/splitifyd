@@ -1,6 +1,19 @@
 import { signal } from '@preact/signals';
 import { logWarning, logError, logInfo } from './browser-logger';
 
+// Firebase emulator configuration - matches the ports in firebase.json
+const FIREBASE_EMULATOR_CONFIG = {
+    auth: { port: 7002 },
+    functions: { port: 7003 },
+    firestore: { port: 7004 },
+    hosting: { port: 7005 },
+    ui: { port: 7001 }
+};
+
+// Health check configuration
+const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const SERVER_CHECK_TIMEOUT = 5000; // 5 seconds
+
 interface NetworkInformation extends EventTarget {
     effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
     rtt?: number;
@@ -12,12 +25,13 @@ interface NavigatorWithConnection extends Navigator {
     connection?: NetworkInformation;
 }
 
-export type ConnectionQuality = 'good' | 'poor' | 'offline';
+export type ConnectionQuality = 'good' | 'poor' | 'offline' | 'server-unavailable';
 
 export interface ConnectionState {
     isOnline: boolean;
     quality: ConnectionQuality;
     reconnectAttempts: number;
+    lastServerCheck?: number;
 }
 
 interface ReconnectOptions {
@@ -36,10 +50,13 @@ export class ConnectionManager {
     private reconnectTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
     private listeners = new Set<() => void>();
     private connectionChangeHandler: (() => void) | null = null;
+    private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
+    private lastServerCheck = 0;
 
     private constructor() {
         this.setupEventListeners();
         this.monitorConnectionQuality();
+        this.startServerHealthChecks();
     }
 
     static getInstance(): ConnectionManager {
@@ -113,6 +130,65 @@ export class ConnectionManager {
                 nav.connection.removeEventListener('change', this.connectionChangeHandler);
             }
         });
+    }
+
+    private startServerHealthChecks(): void {
+        // Initial check
+        this.checkServerHealth();
+        
+        // Set up periodic checks
+        this.healthCheckInterval = setInterval(() => {
+            this.checkServerHealth();
+        }, HEALTH_CHECK_INTERVAL);
+        
+        // Store for cleanup
+        this.listeners.add(() => {
+            if (this.healthCheckInterval) {
+                clearInterval(this.healthCheckInterval);
+                this.healthCheckInterval = null;
+            }
+        });
+    }
+
+    private async checkServerHealth(): Promise<void> {
+        if (!this.isOnline.value) {
+            return; // Don't check server if we're offline
+        }
+
+        this.lastServerCheck = Date.now();
+        
+        try {
+            // Try to reach the Firebase emulator UI endpoint (lightweight check)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), SERVER_CHECK_TIMEOUT);
+            
+            const response = await fetch(`http://localhost:${FIREBASE_EMULATOR_CONFIG.ui.port}/`, {
+                method: 'HEAD',
+                signal: controller.signal,
+                cache: 'no-cache'
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                // Server is responding, determine quality based on network conditions
+                if (this.connectionQuality.value === 'server-unavailable') {
+                    // Server came back online, reset to good quality
+                    this.connectionQuality.value = 'good';
+                    logInfo('Firebase emulator connection restored');
+                }
+            } else {
+                // Server responded but with error status
+                this.connectionQuality.value = 'server-unavailable';
+                logWarning('Firebase emulator returned error status', { status: response.status });
+            }
+        } catch (error) {
+            // Server is not reachable
+            if (this.connectionQuality.value !== 'server-unavailable') {
+                this.connectionQuality.value = 'server-unavailable';
+                logWarning('Firebase emulator not reachable', { error: error instanceof Error ? error.message : String(error) });
+            }
+        }
     }
 
     async reconnectWithBackoff(
@@ -190,7 +266,8 @@ export class ConnectionManager {
         return {
             isOnline: this.isOnline.value,
             quality: this.connectionQuality.value,
-            reconnectAttempts: this.reconnectAttempts.value
+            reconnectAttempts: this.reconnectAttempts.value,
+            lastServerCheck: this.lastServerCheck
         };
     }
 
