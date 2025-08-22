@@ -1,0 +1,18 @@
+{
+  "createGroupModal": {
+    "title": "Create a new group",
+    "groupNameLabel": "Group Name",
+    "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+    "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
+    "groupDescriptionLabel": "Description (optional)",
+    "groupDescriptionPlaceholder": "Add any details about this group...",
+    "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
+    "cancelButton": "Cancel",
+    "submitButton": "Create Group",
+    "validation": {
+      "nameRequired": "Group name is required.",
+      "nameTooShort": "Group name must be at least 2 characters long.",
+      "nameTooLong": "Group name must be less than 50 characters."
+    }
+  }
+}
