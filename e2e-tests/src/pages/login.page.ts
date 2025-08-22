@@ -1,7 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
+import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@shared/shared-types';
+import translation from '../../../webapp-v2/src/locales/en/translation.json';
 
 export class LoginPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
@@ -9,9 +10,9 @@ export class LoginPage extends BasePage {
     }
     // Selectors
     readonly url = '/login';
-    readonly signInButton = 'Sign In';
-    readonly signUpLink = 'Sign up';
-    readonly forgotPasswordLink = 'Forgot your password?';
+    readonly signInButton = BUTTON_TEXTS.SIGN_IN;
+    readonly signUpLink = translation.loginPage.signUp;
+    readonly forgotPasswordLink = translation.loginPage.forgotPassword;
 
     async navigate() {
         await this.navigateToLogin();
@@ -94,11 +95,11 @@ export class LoginPage extends BasePage {
     }
 
     getEmailLabel() {
-        return this.page.getByText('Email address *');
+        return this.page.getByLabel('Email');
     }
 
     getPasswordLabel() {
-        return this.page.getByText('Password *');
+        return this.page.getByLabel('Password');
     }
 
     // Security testing methods

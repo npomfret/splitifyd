@@ -1,3 +1,5 @@
+import translation from '../../../webapp-v2/src/locales/en/translation.json';
+
 /**
  * Centralized selector constants to avoid hardcoding in tests
  */
@@ -49,8 +51,8 @@ export const PLACEHOLDERS = {
 } as const;
 
 export const HEADINGS = {
-    SIGN_IN: 'Sign In',
-    CREATE_ACCOUNT: 'Create Account',
+    SIGN_IN: translation.loginPage.title,
+    CREATE_ACCOUNT: translation.registerPage.title,
     PRICING: 'Pricing',
     HOMEPAGE: 'Effortless Bill Splitting, Simplified & Smart.',
     YOUR_GROUPS: /Your Groups|My Groups/i,
@@ -73,11 +75,11 @@ export const BUTTON_TEXTS = {
     UPDATE_EXPENSE: /update expense/i,
     SHARE: /share/i,
     SIGN_OUT: /^Sign out$/i,
-    SIGN_IN: /Sign In|Login/i,
+    SIGN_IN: translation.loginPage.submitButton,
     EDIT: /edit/i,
     SETTINGS: /settings/i,
-    CREATE_ACCOUNT: 'Create Account',
-    CREATE_GROUP: 'Create Group',
+    CREATE_ACCOUNT: translation.registerPage.submitButton,
+    CREATE_GROUP: translation.createGroupModal.submitButton,
 } as const;
 
 export const MESSAGES = {

@@ -14,5 +14,43 @@
       "nameTooShort": "Group name must be at least 2 characters long.",
       "nameTooLong": "Group name must be less than 50 characters."
     }
+  },
+  "loginPage": {
+    "title": "Sign In",
+    "description": "Sign in to your Splitifyd account to manage your shared expenses",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot your password?",
+    "submitButton": "Sign In",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "validation": {
+        "emailRequired": "Email is required",
+        "passwordRequired": "Password is required"
+    }
+  },
+  "registerPage": {
+    "title": "Create Account",
+    "description": "Create your Splitifyd account to start managing shared expenses",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a strong password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "acceptTerms": "I accept the",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "submitButton": "Create Account",
+    "hasAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "validation": {
+        "nameRequired": "Name is required",
+        "emailRequired": "Email is required",
+        "passwordRequired": "Password is required",
+        "passwordTooShort": "Password must be at least 6 characters",
+        "passwordsNoMatch": "Passwords do not match",
+        "termsRequired": "You must accept the Terms of Service",
+        "cookiesRequired": "You must accept the Cookie Policy"
+    }
   }
 }

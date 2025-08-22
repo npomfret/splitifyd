@@ -1,7 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { SELECTORS, ARIA_ROLES, HEADINGS } from '../constants/selectors';
+import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@shared/shared-types';
+import translation from '../../../webapp-v2/src/locales/en/translation.json';
 
 export class RegisterPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
@@ -9,11 +10,11 @@ export class RegisterPage extends BasePage {
     }
     // Selectors
     readonly url = '/register';
-    readonly fullNameInput = 'input[placeholder="Enter your full name"]';
-    readonly emailInput = 'input[placeholder="Enter your email"]';
-    readonly passwordInput = 'input[placeholder="Create a strong password"]';
-    readonly confirmPasswordInput = 'input[placeholder="Confirm your password"]';
-    readonly createAccountButton = 'Create Account';
+    readonly fullNameInput = `input[placeholder="${translation.registerPage.fullNamePlaceholder}"]`;
+    readonly emailInput = `input[placeholder="${translation.loginPage.validation.emailRequired}"]`;
+    readonly passwordInput = `input[placeholder="${translation.registerPage.passwordPlaceholder}"]`;
+    readonly confirmPasswordInput = `input[placeholder="${translation.registerPage.confirmPasswordPlaceholder}"]`;
+    readonly createAccountButton = BUTTON_TEXTS.CREATE_ACCOUNT;
 
     async navigate() {
         await this.navigateToRegister();
@@ -78,11 +79,11 @@ export class RegisterPage extends BasePage {
     }
 
     getTermsCheckbox() {
-        return this.page.locator('label:has-text("I accept the Terms of Service") input[type="checkbox"]');
+        return this.page.locator(`label:has-text("${translation.registerPage.acceptTerms} ${translation.registerPage.termsOfService}") input[type="checkbox"]`);
     }
 
     getCookieCheckbox() {
-        return this.page.locator('label:has-text("I accept the Cookie Policy") input[type="checkbox"]');
+        return this.page.locator(`label:has-text("${translation.registerPage.acceptTerms} ${translation.registerPage.cookiePolicy}") input[type="checkbox"]`);
     }
 
     getSubmitButton() {
@@ -104,32 +105,32 @@ export class RegisterPage extends BasePage {
     }
 
     getFullNameLabel() {
-        return this.page.getByText('Full Name *');
+        return this.page.getByLabel('Full Name');
     }
 
     getEmailLabel() {
-        return this.page.getByText('Email address *');
+        return this.page.getByLabel('Email');
     }
 
     getPasswordLabel() {
-        return this.page.getByText('Password *', { exact: true });
+        return this.page.getByLabel('Password', { exact: true });
     }
 
     getConfirmPasswordLabel() {
-        return this.page.getByText('Confirm Password *');
+        return this.page.getByLabel('Confirm Password');
     }
 
     getSignInLink() {
-        return this.page.getByRole(ARIA_ROLES.LINK, { name: 'Sign in' });
+        return this.page.getByRole(ARIA_ROLES.LINK, { name: translation.registerPage.signIn });
     }
 
     // Terms and Cookie Policy specific accessors
     getTermsText() {
-        return this.page.locator('text=I accept the Terms of Service');
+        return this.page.locator(`text=${translation.registerPage.acceptTerms} ${translation.registerPage.termsOfService}`);
     }
 
     getCookieText() {
-        return this.page.locator('text=I accept the Cookie Policy');
+        return this.page.locator(`text=${translation.registerPage.acceptTerms} ${translation.registerPage.cookiePolicy}`);
     }
 
     getTermsLink() {
@@ -141,7 +142,7 @@ export class RegisterPage extends BasePage {
     }
 
     getCreateAccountButton() {
-        return this.page.locator('button:has-text("Create Account")');
+        return this.page.locator(`button:has-text("${translation.registerPage.submitButton}")`);
     }
 
     // Helper method to check terms checkbox

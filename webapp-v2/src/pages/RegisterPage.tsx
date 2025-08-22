@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
@@ -19,6 +20,7 @@ const agreeToCookiesSignal = signal(false);
 const localErrorSignal = signal<string | null>(null);
 
 export function RegisterPage() {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
     // Clear any previous errors when component mounts and load form defaults
     useEffect(() => {
@@ -60,25 +62,25 @@ export function RegisterPage() {
 
     const validateForm = (): string | null => {
         if (!nameSignal.value.trim()) {
-            return 'Name is required';
+            return t('registerPage.validation.nameRequired');
         }
         if (!emailSignal.value.trim()) {
-            return 'Email is required';
+            return t('registerPage.validation.emailRequired');
         }
         if (!passwordSignal.value) {
-            return 'Password is required';
+            return t('registerPage.validation.passwordRequired');
         }
         if (passwordSignal.value.length < 6) {
-            return 'Password must be at least 6 characters';
+            return t('registerPage.validation.passwordTooShort');
         }
         if (passwordSignal.value !== confirmPasswordSignal.value) {
-            return 'Passwords do not match';
+            return t('registerPage.validation.passwordsNoMatch');
         }
         if (!agreeToTermsSignal.value) {
-            return 'You must accept the Terms of Service';
+            return t('registerPage.validation.termsRequired');
         }
         if (!agreeToCookiesSignal.value) {
-            return 'You must accept the Cookie Policy';
+            return t('registerPage.validation.cookiesRequired');
         }
         return null;
     };
@@ -108,17 +110,17 @@ export function RegisterPage() {
     const displayError = authStore.error || localErrorSignal.value;
 
     return (
-        <AuthLayout title="Create Account" description="Create your Splitifyd account to start managing shared expenses">
+        <AuthLayout title={t('registerPage.title')} description={t('registerPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={displayError} disabled={isSubmitting}>
                 <div class="space-y-1">
                     <label class="block text-sm font-medium text-gray-700">
-                        Full Name <span class="text-red-500">*</span>
+                        {t('registerPage.fullNameLabel')} <span class="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         value={nameSignal.value}
                         onInput={(e) => (nameSignal.value = (e.target as HTMLInputElement).value)}
-                        placeholder="Enter your full name"
+                        placeholder={t('registerPage.fullNamePlaceholder')}
                         required
                         disabled={isSubmitting}
                         autoComplete="name"
@@ -131,8 +133,8 @@ export function RegisterPage() {
                 <PasswordInput
                     value={passwordSignal.value}
                     onInput={(value) => (passwordSignal.value = value)}
-                    label="Password"
-                    placeholder="Create a strong password"
+                    label={t('registerPage.passwordLabel')}
+                    placeholder={t('registerPage.passwordPlaceholder')}
                     disabled={isSubmitting}
                     showStrength
                     autoComplete="new-password"
@@ -141,8 +143,8 @@ export function RegisterPage() {
                 <PasswordInput
                     value={confirmPasswordSignal.value}
                     onInput={(value) => (confirmPasswordSignal.value = value)}
-                    label="Confirm Password"
-                    placeholder="Confirm your password"
+                    label={t('registerPage.confirmPasswordLabel')}
+                    placeholder={t('registerPage.confirmPasswordPlaceholder')}
                     disabled={isSubmitting}
                     autoComplete="new-password"
                 />
@@ -158,9 +160,9 @@ export function RegisterPage() {
                             required
                         />
                         <span class="ml-2 block text-sm text-gray-700">
-                            I accept the{' '}
+                            {t('registerPage.acceptTerms')}{' '}
                             <a href="/terms" target="_blank" class="text-blue-600 hover:text-blue-500 transition-colors">
-                                Terms of Service
+                                {t('registerPage.termsOfService')}
                             </a>
                         </span>
                     </label>
@@ -175,23 +177,23 @@ export function RegisterPage() {
                             required
                         />
                         <span class="ml-2 block text-sm text-gray-700">
-                            I accept the{' '}
+                            {t('registerPage.acceptTerms')}{' '}
                             <a href="/cookies" target="_blank" class="text-blue-600 hover:text-blue-500 transition-colors">
-                                Cookie Policy
+                                {t('registerPage.cookiePolicy')}
                             </a>
                         </span>
                     </label>
                 </div>
 
                 <SubmitButton loading={isSubmitting} disabled={!isFormValid}>
-                    Create Account
+                    {t('registerPage.submitButton')}
                 </SubmitButton>
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
-                        Already have an account?{' '}
+                        {t('registerPage.hasAccount')}{' '}
                         <a href="/login" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                            Sign in
+                            {t('registerPage.signIn')}
                         </a>
                     </p>
                 </div>

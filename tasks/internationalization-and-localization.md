@@ -112,3 +112,5 @@ The initial, minimal implementation has been completed. This work serves as the 
     -   The `CreateGroupModal.tsx` component has been fully refactored to use the i18n system.
     -   All hardcoded text, including labels, placeholders, help text, buttons, and validation messages, has been externalized into the `translation.json` file.
     -   This component now serves as a template for how to refactor other components.
+-   **Further Progress:**
+    -   The `LoginPage.tsx` and `RegisterPage.tsx` components have been fully refactored to use the i18n system.

@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { useTranslation } from 'react-i18next';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
@@ -15,6 +16,7 @@ const passwordSignal = signal('');
 const formDefaultsLoadedSignal = signal(false);
 
 export function LoginPage() {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
 
     // Clear any previous errors when component mounts and load form defaults
@@ -52,8 +54,8 @@ export function LoginPage() {
 
         if (!email || !password) {
             const errors = [];
-            if (!email) errors.push('Email is required');
-            if (!password) errors.push('Password is required');
+            if (!email) errors.push(t('loginPage.validation.emailRequired'));
+            if (!password) errors.push(t('loginPage.validation.passwordRequired'));
             // Validation errors are handled by the form UI
             return;
         }
@@ -70,7 +72,7 @@ export function LoginPage() {
     const isSubmitting = authStore.loading;
 
     return (
-        <AuthLayout title="Sign In" description="Sign in to your Splitifyd account to manage your shared expenses">
+        <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={authStore.error} disabled={isSubmitting}>
                 <EmailInput value={emailSignal.value} onInput={(value) => (emailSignal.value = value)} autoFocus disabled={isSubmitting} />
 
@@ -79,23 +81,23 @@ export function LoginPage() {
                 <div class="flex items-center justify-between">
                     <label class="flex items-center">
                         <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isSubmitting} />
-                        <span class="ml-2 block text-sm text-gray-700">Remember me</span>
+                        <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 
                     <a href="/reset-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors">
-                        Forgot your password?
+                        {t('loginPage.forgotPassword')}
                     </a>
                 </div>
 
                 <SubmitButton loading={isSubmitting} disabled={!isFormValid}>
-                    Sign In
+                    {t('loginPage.submitButton')}
                 </SubmitButton>
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
-                        Don't have an account?{' '}
+                        {t('loginPage.noAccount')}{' '}
                         <a href="/register" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                            Sign up
+                            {t('loginPage.signUp')}
                         </a>
                     </p>
                 </div>
