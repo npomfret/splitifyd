@@ -67,3 +67,28 @@ We need to audit the following areas across the entire project (both frontend an
     2.  Providing an explicit language switcher in the app's UI.
     3.  Saving the user's preference in their profile.
     - A combination of these is usually the best approach.
+
+---
+
+### Impact on Testing & Recommendations
+
+Introducing i18n will directly impact the E2E test suite, as tests currently rely on user-facing text for element selection (e.g., `getByText('Add Expense')`). When this text is translated, these tests will fail.
+
+#### Recommended Strategy
+
+The primary goal of the E2E suite is to test application **functionality**, not translation accuracy. Therefore, the most robust and maintainable strategy is to **force the test environment to always run in a single, default language (e.g., English).**
+
+-   **Implementation:** The i18n library will be configured in the Playwright test setup to always use the English language pack.
+-   **Advantages:**
+    -   **No Test Code Changes:** Existing and future tests can continue to use text-based selectors without modification.
+    -   **Stability:** The test suite is completely decoupled from the translation process. Adding or changing translations will not break functional tests.
+    -   **Speed:** Avoids the immense overhead of running the entire test suite for every supported language.
+
+#### Alternative (Not Recommended)
+
+An alternative is to replace all text-based selectors with a stable, non-translated attribute like `data-testid`.
+
+-   **Example:** Change `getByText('Add Expense')` to `getByTestId('add-expense-button')`.
+-   **Why We Should Avoid This:** This approach is not recommended because it pollutes the production code with test-specific attributes and moves away from the best practice of testing the application as a user sees it, a principle established in the project's `end-to-end_testing.md` guide.
+
+**Conclusion:** By ensuring our functional tests always run against a single language, we can proceed with internationalization without compromising the stability or maintainability of our test suite. Testing the translations themselves can be handled as a separate, future quality assurance task.

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { logError } from '@/utils/browser-logger.ts';
 
 interface UserMenuProps {
     user: {
@@ -83,7 +84,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             route('/login', true);
                         } catch (error) {
                             // Error is already handled in authStore
-                            console.error('Logout failed:', error);
+                            logError('Logout failed', error);
                         }
                     }}
                     class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"

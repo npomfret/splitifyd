@@ -1,4 +1,5 @@
 import { isValidCurrency } from '@/utils/currency';
+import { logError } from '@/utils/browser-logger.ts';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
 export class CurrencyService {
@@ -57,7 +58,7 @@ export class CurrencyService {
                     });
                 }
             } catch (error) {
-                console.error('Failed to load recent currencies:', error);
+                logError('Failed to load recent currencies', error);
             }
         }
     }
