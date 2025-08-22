@@ -80,7 +80,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
 
         // Wait for initial membership state to be detected by the listener
         // Use ApiDriver to ensure group has user1 as member
-        await driver.waitForUserJoinGroup(groupId, user1.uid, 3000);
+        await driver.waitForUserJoinGroup(groupId, user1.uid, user1.token, 3000);
         
         // Wait for listener to capture initial state
         await new Promise(resolve => {
@@ -104,7 +104,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
         await driver.joinGroupViaShareLink(linkId, user2.token);
 
         // Use ApiDriver to wait for user2 to join the group
-        await driver.waitForUserJoinGroup(groupId, user2.uid, 5000);
+        await driver.waitForUserJoinGroup(groupId, user2.uid, user1.token, 5000);
         
         // Wait for the real-time listener to detect the change
         const updateReceived = await membershipChangePromise;

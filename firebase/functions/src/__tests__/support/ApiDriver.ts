@@ -567,7 +567,7 @@ export class ApiDriver {
             if(matcher(changes))
                 return;
         }
-        throw Error(`timeout waiting for expense changes`);
+        throw Error(`timeout waiting for settlement changes`);
     }
 
     async waitForBalanceChanges(groupId: string, matcher: Matcher<BalanceChangeDocument[]>, timeout = 2000) {
@@ -619,9 +619,9 @@ export class ApiDriver {
     /**
      * Wait for a group's membership to reach a specific count
      */
-    async waitForMembershipChange(groupId: string, expectedMemberCount: number, timeout = 5000): Promise<Group> {
+    async waitForMembershipChange(groupId: string, expectedMemberCount: number, token: string, timeout = 5000): Promise<Group> {
         return this.pollUntil(
-            () => this.getGroup(groupId, this.getRandomToken()),
+            () => this.getGroup(groupId, token),
             (group) => Object.keys(group.members).length === expectedMemberCount,
             {
                 timeout,
@@ -633,9 +633,9 @@ export class ApiDriver {
     /**
      * Wait for a specific user to be a member of a group
      */
-    async waitForUserJoinGroup(groupId: string, userId: string, timeout = 5000): Promise<Group> {
+    async waitForUserJoinGroup(groupId: string, userId: string, token: string, timeout = 5000): Promise<Group> {
         return this.pollUntil(
-            () => this.getGroup(groupId, this.getRandomToken()),
+            () => this.getGroup(groupId, token),
             (group) => group.members.hasOwnProperty(userId),
             {
                 timeout,
@@ -724,12 +724,4 @@ export class ApiDriver {
         return changes.length > 0 ? changes[0] : null;
     }
 
-    /**
-     * Helper method to get a random user token (for internal polling)
-     */
-    private getRandomToken(): string {
-        // This is a placeholder - in real tests we should pass the token
-        // For now, we'll use an empty token since the test should provide it
-        return '';
-    }
 }

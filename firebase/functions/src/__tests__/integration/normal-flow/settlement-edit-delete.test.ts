@@ -255,7 +255,7 @@ describe('Settlement Edit and Delete Operations', () => {
             const createdSettlement = await driver.createSettlement(settlement, user1.token);
 
             // Wait for initial settlement creation change to be processed
-            await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
+            await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user2, user3]);
 
             // Delete the settlement
             await driver.deleteSettlement(createdSettlement.id, user1.token);

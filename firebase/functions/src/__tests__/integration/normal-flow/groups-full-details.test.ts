@@ -1,36 +1,34 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
+import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Groups Full Details API', () => {
     let apiDriver: ApiDriver;
+    let userPool: FirebaseIntegrationTestUserPool;
     let alice: User;
     let bob: User;
     let charlie: User;
     let groupId: string;
 
+    jest.setTimeout(10000);
+
     beforeAll(async () => {
+        await clearAllTestData();
+        
         apiDriver = new ApiDriver();
         
-        // Create test users with strong passwords
-        alice = await apiDriver.createUser({
-            email: 'alice.fulldetails@example.com',
-            password: 'Password123!',
-            displayName: 'Alice Full Details'
-        });
-        
-        bob = await apiDriver.createUser({
-            email: 'bob.fulldetails@example.com',
-            password: 'Password123!',
-            displayName: 'Bob Full Details'
-        });
-        
-        charlie = await apiDriver.createUser({
-            email: 'charlie.fulldetails@example.com',
-            password: 'Password123!',
-            displayName: 'Charlie Full Details'
-        });
+        // Create user pool with 3 users
+        userPool = new FirebaseIntegrationTestUserPool(apiDriver, 4); // Need 4 for the outsider test
+        await userPool.initialize();
     });
 
     beforeEach(async () => {
+        // Use users from pool
+        const users = userPool.getUsers(3);
+        alice = users[0];
+        bob = users[1];
+        charlie = users[2];
+
         // Create a fresh group for each test
         const group = await apiDriver.createGroupWithMembers(
             'Full Details Test Group',
@@ -38,6 +36,10 @@ describe('Groups Full Details API', () => {
             alice.token
         );
         groupId = group.id;
+    });
+
+    afterAll(async () => {
+        await clearAllTestData();
     });
 
     describe('GET /groups/:id/full-details', () => {
@@ -127,12 +129,9 @@ describe('Groups Full Details API', () => {
         });
 
         it('should respect user access permissions', async () => {
-            // Create a different user not in the group
-            const outsider = await apiDriver.createUser({
-                email: 'outsider.fulldetails@example.com',
-                password: 'Password123!',
-                displayName: 'Outsider User'
-            });
+            // Use the 4th user from the pool as an outsider
+            const users = userPool.getUsers(4);
+            const outsider = users[3];
 
             // Should throw an error when unauthorized user tries to access
             await expect(
