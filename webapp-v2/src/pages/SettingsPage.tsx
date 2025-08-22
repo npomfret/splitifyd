@@ -5,6 +5,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { Input } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { Alert } from '@/components/ui';
+import { logError } from '@/utils/browser-logger.ts';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -61,7 +62,7 @@ export function SettingsPage() {
             // No need for token refresh or page reload - UI updates automatically via signals
         } catch (error) {
             setErrorMessage('Failed to update profile. Please try again.');
-            console.error('Profile update error:', error);
+            logError('Profile update error', error);
         }
     };
 
@@ -112,7 +113,7 @@ export function SettingsPage() {
             } else {
                 setErrorMessage('Failed to change password. Please try again.');
             }
-            console.error('Password change error:', error);
+            logError('Password change error', error);
         } finally {
             setIsLoading(false);
         }

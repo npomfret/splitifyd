@@ -3,6 +3,7 @@ import { LoadingSpinner, ConfirmDialog } from '../ui';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { apiClient } from '@/app/apiClient.ts';
+import { logError } from '@/utils/browser-logger.ts';
 import type { SettlementListItem } from '@shared/shared-types.ts';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
@@ -71,7 +72,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
             await enhancedGroupDetailStore.fetchSettlements();
             setSettlementToDelete(null);
         } catch (error) {
-            console.error('Failed to delete settlement:', error);
+            logError('Failed to delete settlement', error);
         } finally {
             setIsDeleting(false);
         }
