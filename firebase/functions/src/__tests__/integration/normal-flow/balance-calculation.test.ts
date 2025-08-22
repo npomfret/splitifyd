@@ -1,5 +1,5 @@
-import {ApiDriver, User} from '../support/ApiDriver';
-import {CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder} from '../support/builders';
+import {ApiDriver, User} from '../../support/ApiDriver';
+import {CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder} from '../../support/builders';
 
 describe('Balance Calculation Integration Test', () => {
     let apiDriver: ApiDriver;

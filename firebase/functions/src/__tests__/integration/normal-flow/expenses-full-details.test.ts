@@ -1,4 +1,4 @@
-import { ApiDriver, User } from '../support/ApiDriver';
+import { ApiDriver, User } from '../../support/ApiDriver';
 
 describe('Expenses Full Details API', () => {
     let apiDriver: ApiDriver;

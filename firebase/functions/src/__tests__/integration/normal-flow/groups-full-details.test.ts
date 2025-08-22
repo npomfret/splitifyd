@@ -1,4 +1,4 @@
-import { ApiDriver, User } from '../support/ApiDriver';
+import { ApiDriver, User } from '../../support/ApiDriver';
 
 describe('Groups Full Details API', () => {
     let apiDriver: ApiDriver;
