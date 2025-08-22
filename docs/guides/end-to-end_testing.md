@@ -927,3 +927,110 @@ To debug navigation issues:
 2. Look for user identification in error messages
 3. Review console logs for API errors or unexpected redirects
 4. Consider whether real-time updates are causing navigation issues
+
+## Making Tests Resilient to Text Changes
+
+When implementing internationalization (i18n) or making text changes, e2e tests can break if they rely on hardcoded text selectors. Follow these patterns to make tests more resilient:
+
+### Import Translation Files in Page Objects
+
+Instead of hardcoding text in page objects, import and use the same translation files used by the application:
+
+```typescript
+// In page objects (e.g., create-group-modal.page.ts)
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+
+export class CreateGroupModalPage extends BasePage {
+    // Use translation keys instead of hardcoded text
+    readonly modalTitle = translationEn.createGroupModal.title;
+    
+    async isOpen(): Promise<boolean> {
+        return await this.page.getByRole('heading', { name: this.modalTitle }).isVisible();
+    }
+    
+    async submitForm() {
+        const submitButton = this.page
+            .getByRole('button', { name: translationEn.createGroupModal.submitButton });
+        await this.clickButton(submitButton, { 
+            buttonName: translationEn.createGroupModal.submitButton 
+        });
+    }
+}
+```
+
+### Update All Text-Based Selectors
+
+When refactoring page objects for i18n compatibility, update these common text-based selectors:
+
+- **Modal/Dialog titles**: `getByRole('heading', { name: translationKey })`
+- **Button text**: `getByRole('button', { name: translationKey })`
+- **Input placeholders**: `getByPlaceholder(translationKey)`
+- **Input labels**: `getByLabel(translationKey)`
+- **Link text**: `getByRole('link', { name: translationKey })`
+- **Error messages**: Use translation keys for validation messages
+
+### Example Refactor Pattern
+
+**Before (brittle to text changes):**
+```typescript
+async createGroup(name: string) {
+    await this.page.getByRole('heading', { name: 'Create New Group' }).waitFor();
+    await this.page.getByPlaceholder('e.g., Apartment Expenses').fill(name);
+    await this.page.getByRole('button', { name: 'Create Group' }).click();
+}
+```
+
+**After (resilient to text changes):**
+```typescript
+async createGroup(name: string) {
+    await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor();
+    await this.page.getByPlaceholder(translationEn.createGroupModal.groupNamePlaceholder).fill(name);
+    await this.page.getByRole('button', { name: translationEn.createGroupModal.submitButton }).click();
+}
+```
+
+### JSON Import Requirements
+
+When importing JSON translation files in TypeScript/ES modules, use the proper import syntax:
+
+```typescript
+// Correct ES module JSON import
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+```
+
+### Testing Text Changes
+
+When making text changes:
+
+1. **Update translation files first** - Make changes in `webapp-v2/src/locales/en/translation.json`
+2. **Run affected e2e tests** - Use `e2e-tests/run-until-fail.sh` to test specific components
+3. **Update page objects if needed** - Only if new translation keys are added
+4. **Avoid hardcoded text** - Never add new hardcoded strings in page objects
+
+### Benefits of This Approach
+
+- **Single source of truth** - Text changes only need to be made in translation files
+- **Automatic test updates** - Tests automatically use new text when translations change
+- **i18n compatibility** - Tests work with any language by importing different translation files
+- **Reduced maintenance** - No need to update tests for every text change
+- **Consistency** - Tests use exactly the same text as the application
+
+### Common Pitfalls to Avoid
+
+❌ **Don't hardcode text in tests:**
+```typescript
+// Bad - breaks when text changes
+await page.getByText('Create New Group').click();
+```
+
+❌ **Don't use regex when exact text is available:**
+```typescript
+// Bad - fragile and ambiguous
+await page.getByText(/Create.*Group/i).click();
+```
+
+✅ **Do use translation keys:**
+```typescript
+// Good - resilient to text changes
+await page.getByText(translationEn.createGroupModal.title).click();
+```
