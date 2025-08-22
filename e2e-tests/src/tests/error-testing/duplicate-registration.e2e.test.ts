@@ -1,7 +1,7 @@
 import { pageTest as test, expect } from '../../fixtures/page-fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestEmail, generateTestUserName } from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateTestEmail, generateTestUserName} from '../../utils/test-helpers';
 
 setupMCPDebugOnFailure();
 
@@ -10,7 +10,7 @@ test.describe('Duplicate User Registration E2E', () => {
         // This test expects a 409 error when trying to register duplicate email
         test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
         const email = generateTestEmail('duplicate');
-        const password = 'TestPassword123!';
+        const password = DEFAULT_PASSWORD;
         const displayName = generateTestUserName('Duplicate');
 
         // First registration - should succeed
@@ -76,7 +76,7 @@ test.describe('Duplicate User Registration E2E', () => {
         test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
 
         const email = generateTestEmail('persist');
-        const password = 'TestPassword123!';
+        const password = DEFAULT_PASSWORD;
         const displayName = generateTestUserName('Persist');
 
         // First registration using page object
@@ -140,7 +140,7 @@ test.describe('Duplicate User Registration E2E', () => {
 
         const email1 = generateTestEmail('first');
         const email2 = generateTestEmail('second');
-        const password = 'TestPassword123!';
+        const password = DEFAULT_PASSWORD;
         const displayName = generateTestUserName('Recovery');
 
         // First registration using page object

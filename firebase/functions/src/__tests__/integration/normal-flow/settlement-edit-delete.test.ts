@@ -97,8 +97,8 @@ describe('Settlement Edit and Delete Operations', () => {
             );
 
             // Verify the update (payer/payee cannot be changed)
-            expect(updatedSettlement.payerId).toBe(user1.uid); // Should remain unchanged
-            expect(updatedSettlement.payeeId).toBe(user2.uid); // Should remain unchanged
+            expect(updatedSettlement.payer.uid).toBe(user1.uid); // Should remain unchanged
+            expect(updatedSettlement.payee.uid).toBe(user2.uid); // Should remain unchanged
             expect(updatedSettlement.amount).toBe(150.0);
             expect(updatedSettlement.note).toBe('Updated payment');
         });

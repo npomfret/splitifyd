@@ -1,5 +1,6 @@
 import { pageTest, expect } from '../../fixtures';
 import { RegisterPage } from '../../pages';
+import {DEFAULT_PASSWORD} from "../../utils/test-helpers.ts";
 
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     pageTest.beforeEach(async ({ page }) => {
@@ -28,8 +29,8 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
         await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-terms-${Date.now()}@example.com`);
-        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
-        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
+        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
+        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
         // Check only cookie policy checkbox using page object method
         await registerPage.checkCookieCheckbox();
@@ -43,8 +44,8 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         // Fill form but leave cookie policy unchecked
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
         await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-cookie-${Date.now()}@example.com`);
-        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
-        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
+        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
+        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
         // Check only terms checkbox using page object method
         await registerPage.checkTermsCheckbox();
@@ -58,8 +59,8 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         // Fill form completely
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
         await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-both-${Date.now()}@example.com`);
-        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
-        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
+        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
+        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
         // Check both checkboxes using page object methods
         await registerPage.checkTermsCheckbox();
@@ -74,8 +75,8 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         // Fill form but don't check any boxes
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
         await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-validation-${Date.now()}@example.com`);
-        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
-        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
+        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
+        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
         // Try to submit (should show validation error before form submission)
         // Since the submit button is disabled, we'll test by checking the form validity

@@ -92,6 +92,16 @@ export class GroupDetailPage extends BasePage {
         return await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
     }
 
+    async waitForGroupTitle(text: string ) {
+        await this.page.waitForLoadState('domcontentloaded');
+        await expect(this.getGroupTitle()).toHaveText(text, { timeout: 1000});
+    }
+
+    async waitForGroupDescription(text: string ) {
+        await this.page.waitForLoadState('domcontentloaded');
+        await expect(this.getGroupDescription()).toHaveText(text, { timeout: 1000});
+    }
+
     /**
      * Navigates to add expense form with comprehensive state detection.
      */
@@ -858,7 +868,8 @@ export class GroupDetailPage extends BasePage {
                 await saveButton.click();
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
-                    await expect(modal).not.toBeVisible({ timeout: 10000 });
+                await expect(modal).not.toBeVisible({ timeout: 2000 });
+                await this._page.waitForLoadState('domcontentloaded');
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });

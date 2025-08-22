@@ -1,6 +1,7 @@
 import { pageTest, expect } from '../../fixtures';
 import { RegisterPage } from '../../pages';
 import { setupMCPDebugOnFailure } from '../../helpers';
+import {DEFAULT_PASSWORD} from "../../utils/test-helpers.ts";
 
 setupMCPDebugOnFailure();
 
@@ -16,8 +17,8 @@ pageTest.describe('Terms Acceptance Error Testing', () => {
         // Fill form completely
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
         await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-submit-${Date.now()}@example.com`);
-        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', 'TestPassword123!');
-        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', 'TestPassword123!');
+        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
+        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
         // Check both checkboxes using page object methods
         await registerPage.checkTermsCheckbox();

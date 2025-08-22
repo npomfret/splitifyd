@@ -47,8 +47,8 @@ authenticatedPageTest.describe('Group Management', () => {
             await page.waitForLoadState('domcontentloaded');
             
             // Verify the group name was updated (relying on real-time updates)
-            await expect(groupDetailPage.getGroupTitle()).toHaveText('Updated Group Name');
-            await expect(groupDetailPage.getGroupDescription()).toBeVisible();
+            await groupDetailPage.waitForGroupTitle('Updated Group Name');
+            await groupDetailPage.waitForGroupDescription('Updated description text');
         },
     );
 
@@ -135,8 +135,6 @@ authenticatedPageTest.describe('Group Management', () => {
         },
     );
 
-
-
     authenticatedPageTest(
         'should not show settings button for non-owner',
         async ({
@@ -179,7 +177,7 @@ authenticatedPageTest.describe('Group Management', () => {
             // Join the group via share link
             const joinGroupPage = new JoinGroupPage(page);
             await joinGroupPage.navigateToShareLink(shareLink);
-            await joinGroupPage.joinGroup();
+            await joinGroupPage.clickJoinGroup();
             
             // Should be on the group page now
             await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);

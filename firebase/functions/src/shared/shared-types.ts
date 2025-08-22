@@ -452,6 +452,7 @@ export interface ListSettlementsResponse {
 
 export interface MessageResponse {
     message: string;
+    resetLink?: string;
 }
 
 export interface SuccessResponse {
@@ -528,6 +529,10 @@ export interface UserProfileResponse {
     uid: string;
     email: string;
     displayName: string;
+    updatedAt?: string;
+    createdAt?: string;
+    photoURL?: string | null;
+    themeColor?: UserThemeColor;
 }
 
 export interface AcceptPolicyResponse {

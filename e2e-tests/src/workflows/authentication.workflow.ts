@@ -1,7 +1,7 @@
-import { Page } from '@playwright/test';
-import { LoginPage } from '../pages';
-import { DashboardPage } from '../pages';
-import type { User as BaseUser } from '@shared/shared-types';
+import {Page} from '@playwright/test';
+import {DashboardPage, LoginPage} from '../pages';
+import type {User as BaseUser} from '@shared/shared-types';
+import {DEFAULT_PASSWORD} from "../utils/test-helpers.ts";
 
 /**
  * Authentication workflow class that handles user creation and login flows.
@@ -19,8 +19,7 @@ export class AuthenticationWorkflow {
         await loginPage.navigate();
 
         // Extract password from user creation pattern - all pool users use same password
-        const password = 'TestPassword123!';
-        await loginPage.login(user.email, password);
+        await loginPage.login(user.email, DEFAULT_PASSWORD);
 
         // Wait for successful login and redirect to dashboard
         const dashboardPage = new DashboardPage(this.page);

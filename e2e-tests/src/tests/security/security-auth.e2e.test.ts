@@ -2,7 +2,7 @@ import { expect, multiUserTest as test } from '../../fixtures/multi-user-test';
 import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateTestGroupName} from '../../utils/test-helpers';
 import type { Request } from '@playwright/test';
 
 // Enable console error reporting and MCP debugging
@@ -95,7 +95,7 @@ test.describe('Security Authentication and Session Tests', () => {
 
             // Attempt authentication
             await page.fill('[data-testid="email-input"]', 'test@example.com');
-            await page.fill('[data-testid="password-input"]', 'TestPassword123!');
+            await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
             await page.waitForLoadState('domcontentloaded');
 

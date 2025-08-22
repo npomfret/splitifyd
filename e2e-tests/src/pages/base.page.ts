@@ -251,16 +251,17 @@ export abstract class BasePage {
         // Get button text for error messages if not provided
         const buttonText = buttonName || (await button.textContent()) || 'button';
 
+        await button.waitFor({state: 'attached', timeout: 1000});
+
+        const exists = (await button.count()) > 0;
+        if (!exists) {
+            throw new Error(`Button "${buttonText}" not found in the DOM. Check your selector.`);
+        }
+
         // Check visibility with clear error message
         try {
             await expect(button).toBeVisible({ timeout });
         } catch (error) {
-            // Check if button exists in DOM
-            const exists = (await button.count()) > 0;
-            if (!exists) {
-                throw new Error(`Button "${buttonText}" not found in the DOM. Check your selector.`);
-            }
-
             // Button exists but not visible
             const isHidden = await button.isHidden();
             if (isHidden) {

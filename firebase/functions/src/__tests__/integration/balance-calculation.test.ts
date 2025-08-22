@@ -170,7 +170,8 @@ describe('Balance Calculation Integration Test', () => {
         expect(totalBalance).toBe(0);
 
         // Additional verification: Check individual debts
-        if (finalBalances.debtMatrix) {
+        if (finalBalances.simplifiedDebts) {
+            // Verify debts are properly calculated
         }
 
         // Get full group details to verify everything is consistent

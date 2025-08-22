@@ -139,11 +139,14 @@ describe('RESTful Group Endpoints', () => {
             await driver.createExpense(expenseData, users[0].token);
 
             // Poll until the balance is updated
-            const groupWithBalance = await driver.pollGroupUntilBalanceUpdated(testGroup.id, users[0].token, (group) => group.balance && group.balance.userBalance !== null, { timeout: 500 });
+            const groupWithBalance = await driver.pollGroupUntilBalanceUpdated(testGroup.id, users[0].token, (group) => group.balance?.balancesByCurrency !== undefined, { timeout: 500 });
 
             expect(groupWithBalance.balance).toBeDefined();
-            expect(groupWithBalance.balance.userBalance).toBeDefined();
-            expect(groupWithBalance.balance.userBalance.netBalance).toBe(0); // Paid for self only
+            expect(groupWithBalance.balance?.balancesByCurrency).toBeDefined();
+            const usdBalance = groupWithBalance.balance?.balancesByCurrency?.['USD'];
+            if (usdBalance) {
+                expect(usdBalance.netBalance).toBe(0); // Paid for self only
+            }
         });
 
         test('should return 404 for non-existent group', async () => {

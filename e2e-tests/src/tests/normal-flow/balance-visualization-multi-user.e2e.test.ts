@@ -29,7 +29,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins using robust JoinGroupPage
         const joinGroupPage = new JoinGroupPage(page2, user2);
-        await joinGroupPage.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         // Try to wait for synchronization but don't fail the test
         try {
@@ -107,7 +107,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -153,7 +153,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -216,7 +216,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -284,7 +284,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -332,7 +332,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
         // User 2 joins
         const joinGroupPage = new JoinGroupPage(page2, user2);
-        await joinGroupPage.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         // Synchronize both users - no reloads needed with real-time updates
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
@@ -425,7 +425,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
         // User2 joins
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Wait for synchronization - no reloads needed
         await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);

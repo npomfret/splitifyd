@@ -722,20 +722,22 @@ describe('Comprehensive API Test Suite', () => {
 
             // Verify balance data structure is present
             expect(testGroupInList!.balance).toBeDefined();
-            expect(testGroupInList!.balance).toHaveProperty('userBalance');
             expect(testGroupInList!.balance).toHaveProperty('balancesByCurrency');
 
             // userBalance should contain the balance properties
-            if (testGroupInList!.balance.userBalance) {
-                expect(typeof testGroupInList!.balance.userBalance).toBe('object');
-                expect(testGroupInList!.balance.userBalance).toHaveProperty('netBalance');
-                expect(testGroupInList!.balance.userBalance).toHaveProperty('totalOwed');
-                expect(testGroupInList!.balance.userBalance).toHaveProperty('totalOwing');
+            if (testGroupInList!.balance?.balancesByCurrency) {
+                expect(typeof testGroupInList!.balance.balancesByCurrency).toBe('object');
+                // Check if we have USD balance
+                if (testGroupInList!.balance.balancesByCurrency['USD']) {
+                    expect(testGroupInList!.balance.balancesByCurrency['USD']).toHaveProperty('netBalance');
+                    expect(testGroupInList!.balance.balancesByCurrency['USD']).toHaveProperty('totalOwed');
+                    expect(testGroupInList!.balance.balancesByCurrency['USD']).toHaveProperty('totalOwing');
+                }
             }
 
             // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
             // But balance calculation might be async, so we accept 0 as well
-            const netBalance = testGroupInList!.balance.userBalance?.netBalance || 0;
+            const netBalance = testGroupInList!.balance?.balancesByCurrency?.['USD']?.netBalance || 0;
             expect([0, 50]).toContain(netBalance);
         });
 
@@ -748,7 +750,7 @@ describe('Comprehensive API Test Suite', () => {
             expect(initialGroupInList).toBeDefined();
             // lastActivity should default to group creation time
             expect(initialGroupInList!.lastActivityRaw).toBeDefined();
-            const initialActivityTime = new Date(initialGroupInList!.lastActivityRaw);
+            const initialActivityTime = new Date(initialGroupInList!.lastActivityRaw!);
 
             // Add an expense
             const expenseData = new ExpenseBuilder()
@@ -775,10 +777,10 @@ describe('Comprehensive API Test Suite', () => {
             expect(typeof updatedGroupInList!.lastActivityRaw).toBe('string');
 
             // Verify the lastActivityRaw is a valid ISO timestamp
-            expect(new Date(updatedGroupInList!.lastActivityRaw).getTime()).not.toBeNaN();
+            expect(new Date(updatedGroupInList!.lastActivityRaw!).getTime()).not.toBeNaN();
 
             // The activity time should be updated or the same (if on-demand calculation hasn't run yet)
-            const updatedActivityTime = new Date(updatedGroupInList!.lastActivityRaw);
+            const updatedActivityTime = new Date(updatedGroupInList!.lastActivityRaw!);
             expect(updatedActivityTime.getTime()).toBeGreaterThanOrEqual(initialActivityTime.getTime());
 
             // Add another expense to test activity update
@@ -802,7 +804,7 @@ describe('Comprehensive API Test Suite', () => {
             expect(finalGroupInList!.lastActivityRaw).toBeDefined();
 
             // The lastActivityRaw should reflect recent activity
-            const lastActivityTime = new Date(finalGroupInList!.lastActivityRaw);
+            const lastActivityTime = new Date(finalGroupInList!.lastActivityRaw!);
             expect(lastActivityTime.getTime()).toBeGreaterThanOrEqual(updatedActivityTime.getTime());
         });
     });

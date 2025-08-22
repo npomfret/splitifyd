@@ -1,4 +1,4 @@
-import {Locator, Page} from '@playwright/test';
+import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {TIMEOUT_CONTEXTS} from '../config/timeouts';
 import type {User as BaseUser} from '@shared/shared-types';
@@ -155,109 +155,43 @@ export class JoinGroupPage extends BasePage {
         }
     }
 
-    // Navigation and join operations
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this.page.goto(shareLink);
         await this.page.waitForLoadState('domcontentloaded');
-
-        // Wait for either login redirect or join page elements to appear
-        try {
-            await Promise.race([
-                this.page.waitForURL(/\/login/, {timeout: 2000}),
-                this.getJoinGroupHeading().waitFor({state: 'visible', timeout: 2000}),
-                this.getJoinGroupButton().waitFor({state: 'visible', timeout: 2000}),
-            ]);
-        } catch {
-            // If none of the expected elements appear, continue anyway
-        }
+        // will either go to login page or join group page
+        // will show either join button or "already a member" message
     }
 
     /**
      * Attempts to join group with comprehensive error handling and retry logic.
      * Handles different authentication states automatically.
      */
-    async joinGroup(
-        options: {
-            maxRetries?: number;
-            expectedRedirectPattern?: RegExp;
-            skipRedirectWait?: boolean;
-        } = {},
-    ): Promise<void> {
-        const {maxRetries = 3, expectedRedirectPattern = /\/groups\/[a-zA-Z0-9]+$/, skipRedirectWait = false} = options;
+    async clickJoinGroup(): Promise<void> {
+        // Wait for page to be ready
+        await this.page.waitForLoadState('domcontentloaded');
 
-        let lastError: Error | undefined;
-
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                // Wait for page to be ready
-                await this.page.waitForLoadState('domcontentloaded');
-
-                // Check if user is already a member
-                if (await this.isUserAlreadyMember()) {
-                    throw new Error('User is already a member of this group');
-                }
-
-                // Check if this is an error page
-                if (await this.isErrorPage()) {
-                    throw new Error('Share link is invalid or group not found');
-                }
-
-                // Check if user needs to log in first
-                if (!(await this.isUserLoggedIn())) {
-                    throw new Error('User must be logged in to join group');
-                }
-
-                // Wait for join button to be available
-                const joinButton = this.getJoinGroupButton();
-                await joinButton.waitFor({state: 'visible', timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY});
-                await joinButton.waitFor({state: 'attached', timeout: 1000});
-
-                // Click the join button using standardized method
-                await this.clickButton(joinButton, {buttonName: 'Join Group'});
-
-                // Wait for redirect unless skipped
-                if (!skipRedirectWait) {
-                    await this.page.waitForURL(expectedRedirectPattern, {
-                        timeout: TIMEOUT_CONTEXTS.GROUP_CREATION,
-                    });
-                }
-
-                // Success - exit retry loop
-                return;
-            } catch (error) {
-                lastError = error as Error;
-
-                if (attempt < maxRetries) {
-                    // Wait progressively longer between retries
-                    await this.page.waitForLoadState('domcontentloaded');
-
-                    // Wait for state synchronization instead of reload
-                    await this.waitForNetworkIdle();
-                }
-            }
+        // Check if user is already a member
+        if (await this.isUserAlreadyMember()) {
+            throw new Error('User is already a member of this group');
         }
 
-        // All retries failed - gather rich diagnostic information
-        const pageState = await this.getPageState();
+        // Check if this is an error page
+        if (await this.isErrorPage()) {
+            throw new Error('Share link is invalid or group not found');
+        }
 
-        // Strip ANSI escape sequences from error message for clean output
-        const cleanErrorMessage = lastError?.message?.replace(/\u001b\[[0-9;]*m/g, '') || 'Unknown error';
+        if(!this._page.url().includes('/join?linkId=')) {
+            throw Error(`${this._page.url()} is not the join group page`);
+        }
 
-        throw new Error(`Failed to join group after ${maxRetries} attempts.
-        
-Last error: ${cleanErrorMessage}
+        // Wait for join button to be available
+        const joinButton = this.getJoinGroupButton();
+        await joinButton.waitFor({state: 'visible', timeout: 2000});
+        await this.clickButton(joinButton, {buttonName: 'Join Group'});
 
-Page state at failure:
-  - URL: ${pageState.url}
-  - Title: ${pageState.title}
-  - User logged in: ${pageState.isLoggedIn}
-  - Already member: ${pageState.isAlreadyMember}
-  - Error page: ${pageState.isErrorPage}
-  - Join page visible: ${pageState.isJoinPageVisible}
-  - Join button visible: ${pageState.joinButtonVisible}
-  - Join button enabled: ${pageState.joinButtonEnabled}
-
-This rich error information should help diagnose why the join operation failed.`);
+        await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, {
+            timeout: TIMEOUT_CONTEXTS.GROUP_CREATION,
+        });
     }
 
     /**
@@ -265,21 +199,10 @@ This rich error information should help diagnose why the join operation failed.`
      * Throws specific error types based on the failure reason.
      * @param shareLink - The share link to join
      */
-    async attemptJoinWithStateDetection(shareLink: string,): Promise<void> {
-        // Log the attempt for debugging
+    async joinGroupUsingShareLink(shareLink: string,): Promise<void> {
         await this.navigateToShareLink(shareLink);
 
-        // Wait for any redirects to complete
-        await this.page.waitForLoadState('domcontentloaded');
-
         // Check if we've been redirected to login page
-        const currentUrl = this.page.url();
-        if (currentUrl.includes('/login')) {
-            throw Error("redirected to login page")
-        }
-
-        // Check various states
-
         const error = await this.isErrorPage();
         if (error) {
             throw Error("on error page")
@@ -293,20 +216,11 @@ This rich error information should help diagnose why the join operation failed.`
         // If join page is visible, user is definitely logged in - proceed to join
         const joinPageVisible = await this.isJoinPageVisible();
         if (joinPageVisible) {
-            await this.joinGroup({skipRedirectWait: false});
-            return;
+            await this.clickJoinGroup();
+        } else {
+            const currentUrl = this.page.url();
+            throw Error(`join group button not visible on ${currentUrl}`);
         }
-
-        // Only check login status if join page is NOT visible
-        // This prevents false negatives when the user is actually logged in
-        const needsLogin = !(await this.isUserLoggedIn());
-
-        if (needsLogin) {
-            throw Error("needs login")
-        }
-
-        // If we get here, something unexpected happened
-        throw Error("shold not get here")
     }
 
     // Helper for debugging failed joins

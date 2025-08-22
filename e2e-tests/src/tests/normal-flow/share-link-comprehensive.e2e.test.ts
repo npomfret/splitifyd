@@ -4,7 +4,7 @@ import {multiUserTest} from '../../fixtures';
 import {singleMixedAuthTest} from '../../fixtures/mixed-auth-test';
 import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -28,7 +28,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // User2 (already logged in) joins via share link
             const joinGroupPage2 = new JoinGroupPage(page2);
-            await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+            await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
             // Verify user2 is now in the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
@@ -53,7 +53,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // User2 joins first time
             const joinGroupPage2 = new JoinGroupPage(page2);
-            await joinGroupPage2.attemptJoinWithStateDetection(shareLink);
+            await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
             // User2 tries to join again - should show already member message
             await multiUserWorkflow.testShareLinkAlreadyMember(page2, shareLink);
@@ -77,9 +77,9 @@ test.describe('Comprehensive Share Link Testing', () => {
             expect(isLoggedIn).toBe(false); // Confirm user is not logged in
 
             // Create group with authenticated user
-            const uniqueId = generateShortId();
             const groupWorkflow = new GroupWorkflow(page1);
-            const groupId = await groupWorkflow.createGroupAndNavigate(`Login Required Test ${uniqueId}`, 'Testing login requirement');
+            const groupId = await groupWorkflow.createGroupAndNavigate(
+                `Login Required Test ${(generateShortId())}`, 'Testing login requirement');
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -87,6 +87,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Navigate to share link with unauthenticated user
             // Should throw AuthenticationError since user is not logged in
             await joinGroupPage.navigateToShareLink(shareLink);
+            await page2.waitForURL(/\/login/, {timeout: 2000});
             expect(page2.url()).toContain('/login');
         });
 
@@ -132,7 +133,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
-            await joinPage.attemptJoinWithStateDetection(shareLink);
+            await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
@@ -174,7 +175,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             expect(loginUrl).toContain('linkId');
 
             // Login as the second user
-            await loginPage.fillLoginForm(user2.email, 'TestPassword123!');
+            await loginPage.fillLoginForm(user2.email, DEFAULT_PASSWORD);
             await loginPage.submitForm();
 
             // After login, user goes to dashboard (returnUrl is not preserved through login)
@@ -186,7 +187,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
-            await joinPage.attemptJoinWithStateDetection(shareLink);
+            await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
             await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
