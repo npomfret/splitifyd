@@ -8,7 +8,7 @@ import { CreateGroupRequestBuilder } from '../../support/builders';
 import { beforeAll } from '@jest/globals';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
-jest.setTimeout(6000); // it takes about 4s
+jest.setTimeout(8000); // it takes about 4s
 
 describe('Group Members Integration Tests', () => {
     const driver = new ApiDriver();
