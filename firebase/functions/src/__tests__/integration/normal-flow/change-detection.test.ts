@@ -45,21 +45,6 @@ describe('Change Detection Integration Tests', () => {
             expect(await apiDriver.countGroupChanges(group.id)).toBe(1);
         });
 
-        it('should create a "update" change document when a share link is created', async () => {
-            // Create a group using builder with minimal fields
-            const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().build(),
-                user1.token
-            );
-            await apiDriver.generateShareLink(group.id, user1.token);
-
-            // step 1 - find the expected events
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1);
-
-            // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(2);
-        });
 
         it('should create an "updated" change document when a group is modified', async () => {
             const group = await apiDriver.createGroup(
@@ -104,10 +89,10 @@ describe('Change Detection Integration Tests', () => {
 
             // step 1 - find the expected events
             await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 2);// share link generation + user joining
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 1);// user joining (share link creation no longer triggers group update)
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(3);
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(2);
 
             // step 3 - check the affected users
             const lastUpdate = await apiDriver.mostRecentGroupChangeEvent(group);
