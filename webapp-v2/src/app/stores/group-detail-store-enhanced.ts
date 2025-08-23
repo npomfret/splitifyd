@@ -157,6 +157,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.expenseChangeListener = this.changeDetector.subscribeToExpenseChanges(this.currentGroupId, () => {
             // Defensive check: ignore changes if currentGroupId is null (component disposed)
             if (!this.currentGroupId) {
+                logInfo('Ignoring expense change - currentGroupId is null (component disposed)');
                 return;
             }
             // Any change = refresh everything
@@ -171,6 +172,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.groupChangeListener = this.changeDetector.subscribeToGroupChanges(userId, () => {
             // Defensive check: ignore changes if currentGroupId is null (component disposed)
             if (!this.currentGroupId) {
+                logInfo('Ignoring group change - currentGroupId is null (component disposed)');
                 return;
             }
             // Group change = refresh group data and members

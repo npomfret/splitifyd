@@ -6,11 +6,10 @@
 
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { SettlementBuilder } from '../../support/builders';
+import { SettlementBuilder, SettlementUpdateBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { db } from '../../support/firebase-emulator';
 import { FirestoreCollections } from '../../../shared/shared-types';
-import { pollForChange } from '../../support/changeCollectionHelpers';
 
 describe('Settlement Edit and Delete Operations', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -82,13 +81,13 @@ describe('Settlement Edit and Delete Operations', () => {
             const createdSettlement = await driver.createSettlement(initialSettlement, user1.token);
             expect(createdSettlement.id).toBeDefined();
 
-            // Update the settlement (only amount, currency, date, note can be updated)
-            const updateData = {
-                amount: 150.0,        // Change amount
-                currency: 'USD',
-                date: new Date().toISOString(),
-                note: 'Updated payment'
-            };
+            // Update the settlement using builder
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(150.0)
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .withNote('Updated payment')
+                .build();
 
             const updatedSettlement = await driver.updateSettlement(
                 createdSettlement.id, 
@@ -115,36 +114,30 @@ describe('Settlement Edit and Delete Operations', () => {
 
             const createdSettlement = await driver.createSettlement(initialSettlement, user1.token);
 
-            // Wait briefly for initial change to be processed
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait for initial settlement creation change to be processed
+            await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
 
-            // Update the settlement
-            const updateData = {
-                amount: 125.0,
-                currency: 'USD',
-                date: new Date().toISOString()
-            };
+            // Update the settlement using builder
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(125.0)
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .build();
 
             await driver.updateSettlement(createdSettlement.id, updateData, user1.token);
 
-            // Poll for the update change notification
-            const changeNotification = await pollForChange(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc: any) => doc.groupId === groupId && 
-                             doc.id === createdSettlement.id && 
-                             doc.type === 'settlement' &&
-                             doc.action === 'updated',
-                { timeout: 5000, groupId }
-            );
+            // Wait for the settlement update event
+            await driver.waitForSettlementUpdatedEvent(groupId, createdSettlement.id, [user1, user2]);
 
-            // Verify the change notification
+            // Verify the change notification exists
+            const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
             expect(changeNotification).toBeTruthy();
-            expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.id).toBe(createdSettlement.id);
-            expect(changeNotification.type).toBe('settlement');
-            expect(changeNotification.action).toBe('updated');
-            expect(changeNotification.users).toContain(user1.uid);
-            expect(changeNotification.users).toContain(user2.uid);
+            expect(changeNotification!.groupId).toBe(groupId);
+            expect(changeNotification!.id).toBe(createdSettlement.id);
+            expect(changeNotification!.type).toBe('settlement');
+            expect(changeNotification!.action).toBe('updated');
+            expect(changeNotification!.users).toContain(user1.uid);
+            expect(changeNotification!.users).toContain(user2.uid);
         });
 
         it('should only allow the creator to update a settlement', async () => {
@@ -160,12 +153,12 @@ describe('Settlement Edit and Delete Operations', () => {
             const createdSettlement = await driver.createSettlement(initialSettlement, user1.token);
 
             // Try to update as user2 (not the creator) - should fail
-            const updateData = {
-                amount: 60.0,
-                currency: 'USD',
-                date: new Date().toISOString(),
-                note: 'Updated by different user'
-            };
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(60.0)
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .withNote('Updated by different user')
+                .build();
 
             await expect(
                 driver.updateSettlement(
@@ -202,12 +195,12 @@ describe('Settlement Edit and Delete Operations', () => {
             const initialBalances = await driver.getGroupBalances(groupId, user1.token);
             expect(initialBalances).toBeDefined();
             
-            // Update settlement with different amount
-            const updateData = {
-                amount: 200.0,  // Double the amount
-                currency: 'USD',
-                date: new Date().toISOString()
-            };
+            // Update settlement with different amount using builder
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(200.0)  // Double the amount
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .build();
 
             await driver.updateSettlement(createdSettlement.id, updateData, user1.token);
 
@@ -261,28 +254,22 @@ describe('Settlement Edit and Delete Operations', () => {
 
             const createdSettlement = await driver.createSettlement(settlement, user1.token);
 
-            // Wait briefly for creation change to be processed
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait for initial settlement creation change to be processed
+            await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user2, user3]);
 
             // Delete the settlement
             await driver.deleteSettlement(createdSettlement.id, user1.token);
 
-            // Poll for the delete change notification
-            const changeNotification = await pollForChange(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc: any) => doc.groupId === groupId && 
-                             doc.id === createdSettlement.id && 
-                             doc.type === 'settlement' &&
-                             doc.action === 'deleted',
-                { timeout: 5000, groupId }
-            );
+            // Wait for the settlement deletion event
+            await driver.waitForSettlementDeletedEvent(groupId, createdSettlement.id, [user2, user3]);
 
-            // Verify the change notification
+            // Verify the change notification exists
+            const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
             expect(changeNotification).toBeTruthy();
-            expect(changeNotification.groupId).toBe(groupId);
-            expect(changeNotification.id).toBe(createdSettlement.id);
-            expect(changeNotification.type).toBe('settlement');
-            expect(changeNotification.action).toBe('deleted');
+            expect(changeNotification!.groupId).toBe(groupId);
+            expect(changeNotification!.id).toBe(createdSettlement.id);
+            expect(changeNotification!.type).toBe('settlement');
+            expect(changeNotification!.action).toBe('deleted');
         });
 
         it('should only allow the creator to delete a settlement', async () => {
@@ -357,11 +344,11 @@ describe('Settlement Edit and Delete Operations', () => {
     describe('Error Cases', () => {
         it('should return 404 when updating non-existent settlement', async () => {
             const fakeSettlementId = 'non-existent-settlement-id';
-            const updateData = {
-                amount: 100.0,
-                currency: 'USD',
-                date: new Date().toISOString()
-            };
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(100.0)
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .build();
 
             await expect(
                 driver.updateSettlement(fakeSettlementId, updateData, user1.token)
@@ -396,11 +383,11 @@ describe('Settlement Edit and Delete Operations', () => {
             const createdSettlement = await driver.createSettlement(settlement, user1.token);
 
             // Try to update as user3 (not a member)
-            const updateData = {
-                amount: 200.0,
-                currency: 'USD',
-                date: new Date().toISOString()
-            };
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(200.0)
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .build();
 
             await expect(
                 driver.updateSettlement(createdSettlement.id, updateData, user3.token)
@@ -444,12 +431,12 @@ describe('Settlement Edit and Delete Operations', () => {
 
             const createdSettlement = await driver.createSettlement(settlement, user1.token);
 
-            // Try to update with invalid amount
-            const invalidUpdateData = {
-                amount: -50.0,  // Negative amount
-                currency: 'USD',
-                date: new Date().toISOString()
-            };
+            // Try to update with invalid amount using builder
+            const invalidUpdateData = new SettlementUpdateBuilder()
+                .withAmount(-50.0)  // Negative amount
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .build();
 
             await expect(
                 driver.updateSettlement(createdSettlement.id, invalidUpdateData, user1.token)
@@ -468,11 +455,11 @@ describe('Settlement Edit and Delete Operations', () => {
 
             const createdSettlement = await driver.createSettlement(settlement, user1.token);
 
-            // Try to update with invalid currency length
-            const invalidUpdateData = {
-                currency: 'INVALID',  // More than 3 characters
-                amount: 100.0
-            };
+            // Try to update with invalid currency length using builder
+            const invalidUpdateData = new SettlementUpdateBuilder()
+                .withCurrency('INVALID')  // More than 3 characters
+                .withAmount(100.0)
+                .build();
 
             await expect(
                 driver.updateSettlement(createdSettlement.id, invalidUpdateData, user1.token)

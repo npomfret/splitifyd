@@ -10,7 +10,7 @@
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder } from '../../support/builders';
+import { ExpenseBuilder, ExpenseUpdateBuilder, UserBuilder } from '../../support/builders';
 
 describe('Edit Expense Integration Tests', () => {
     let driver: ApiDriver;
@@ -110,7 +110,13 @@ describe('Edit Expense Integration Tests', () => {
             const createdExpense = await driver.createExpense(expenseData, users[0].token);
 
             // User 1 (not creator, not owner) should not be able to edit
-            await expect(driver.updateExpense(createdExpense.id, { amount: 200 }, users[1].token)).rejects.toThrow();
+            await expect(
+                driver.updateExpense(
+                    createdExpense.id, 
+                    new ExpenseUpdateBuilder().withAmount(200).build(), 
+                    users[1].token
+                )
+            ).rejects.toThrow();
         });
 
         test('should track edit history when expense is updated', async () => {
@@ -259,13 +265,31 @@ describe('Edit Expense Integration Tests', () => {
             const createdExpense = await driver.createExpense(expenseData, users[0].token);
 
             // Test invalid amount
-            await expect(driver.updateExpense(createdExpense.id, { amount: -50 }, users[0].token)).rejects.toThrow();
+            await expect(
+                driver.updateExpense(
+                    createdExpense.id, 
+                    new ExpenseUpdateBuilder().withAmount(-50).build(), 
+                    users[0].token
+                )
+            ).rejects.toThrow();
 
             // Test invalid date
-            await expect(driver.updateExpense(createdExpense.id, { date: 'invalid-date' }, users[0].token)).rejects.toThrow();
+            await expect(
+                driver.updateExpense(
+                    createdExpense.id, 
+                    new ExpenseUpdateBuilder().withDate('invalid-date').build(), 
+                    users[0].token
+                )
+            ).rejects.toThrow();
 
             // Test empty description
-            await expect(driver.updateExpense(createdExpense.id, { description: '' }, users[0].token)).rejects.toThrow();
+            await expect(
+                driver.updateExpense(
+                    createdExpense.id, 
+                    new ExpenseUpdateBuilder().withDescription('').build(), 
+                    users[0].token
+                )
+            ).rejects.toThrow();
         });
 
         test('should handle partial updates correctly', async () => {

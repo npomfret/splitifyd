@@ -24,8 +24,8 @@ describe('Comprehensive API Test Suite', () => {
         return userPool.getUsers(count);
     };
 
-    // Set a longer timeout for these integration tests
-    jest.setTimeout(30000);
+    // Reduced timeout to meet guideline maximum
+    jest.setTimeout(10000);
 
     beforeAll(async () => {
         // Clear any existing test data first

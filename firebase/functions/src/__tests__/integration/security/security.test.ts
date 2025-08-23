@@ -13,8 +13,8 @@ describe('Comprehensive Security Test Suite', () => {
     const driver = new ApiDriver();
     let users: User[] = [];
 
-    // Set a longer timeout for these integration tests
-    jest.setTimeout(15 * 1000);// takes about 8s
+    // Reduced timeout to meet guideline maximum
+    jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
         users = await Promise.all([

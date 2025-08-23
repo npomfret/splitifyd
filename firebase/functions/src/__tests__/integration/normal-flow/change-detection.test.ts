@@ -3,7 +3,7 @@ import {ApiDriver, User} from '../../support/ApiDriver';
 import {BalanceChangeDocument, clearGroupChangeDocuments, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
 import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
-import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from "../../support/builders";
+import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder} from "../../support/builders";
 import {v4 as uuidv4} from 'uuid';
 
 describe('Change Detection Integration Tests', () => {
@@ -67,7 +67,7 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, user1.token);
+            await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Updated Name').build(), user1.token);
 
             // step 1 - find the expected events
             await apiDriver.waitForGroupCreationEvent(group.id, user1);
@@ -83,9 +83,9 @@ describe('Change Detection Integration Tests', () => {
                 user1.token
             );
 
-            await apiDriver.updateGroup(group.id, {name: 'Update 1'}, user1.token);
-            await apiDriver.updateGroup(group.id, {name: 'Update 2'}, user1.token);
-            await apiDriver.updateGroup(group.id, {name: 'Update 3'}, user1.token);
+            await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 1').build(), user1.token);
+            await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 2').build(), user1.token);
+            await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 3').build(), user1.token);
 
             // step 1 - find the expected events
             await apiDriver.waitForGroupCreationEvent(group.id, user1);
@@ -205,15 +205,9 @@ describe('Change Detection Integration Tests', () => {
             // Update expense amount
             await apiDriver.updateExpense(
                 expense.id,
-                {
-                    amount: 200,
-                    currency: 'USD',
-                    category: 'General',
-                    date: new Date().toISOString(),
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [{userId: user1.uid, amount: 200}],
-                },
+                new ExpenseUpdateBuilder()
+                    .withAmount(200)
+                    .build(),
                 user1.token
             );
 
@@ -250,41 +244,23 @@ describe('Change Detection Integration Tests', () => {
 
             await apiDriver.updateExpense(
                 expense.id,
-                {
-                    description: 'Update 1',
-                    amount: 100,
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [{userId: user1.uid, amount: 100}],
-                },
+                new ExpenseUpdateBuilder()
+                    .withDescription('Update 1')
+                    .build(),
                 user1.token
             );
             await apiDriver.updateExpense(
                 expense.id,
-                {
-                    description: 'Update 2',
-                    amount: 100,
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [{userId: user1.uid, amount: 100}],
-                },
+                new ExpenseUpdateBuilder()
+                    .withDescription('Update 2')
+                    .build(),
                 user1.token
             );
             await apiDriver.updateExpense(
                 expense.id,
-                {
-                    description: 'Update 3',
-                    amount: 100,
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                    participants: [user1.uid],
-                    splitType: 'equal',
-                    splits: [{userId: user1.uid, amount: 100}],
-                },
+                new ExpenseUpdateBuilder()
+                    .withDescription('Update 3')
+                    .build(),
                 user1.token
             );
 

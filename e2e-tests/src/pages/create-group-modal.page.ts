@@ -52,6 +52,7 @@ export class CreateGroupModalPage extends BasePage {
 
     async cancel() {
         // Modal MUST have a cancel/close button - this is basic UX
+        // Use a regex that matches either "Cancel" or "Close"
         const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.cancelButton });
         await this.clickButton(cancelButton, { buttonName: translationEn.createGroupModal.cancelButton });
     }

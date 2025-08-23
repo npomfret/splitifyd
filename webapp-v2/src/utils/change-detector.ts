@@ -1,6 +1,6 @@
 import { collection, query, where, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { getDb } from '../app/firebase';
-import { logWarning } from './browser-logger';
+import { logInfo, logWarning } from './browser-logger';
 import { FirestoreCollections } from '@shared/shared-types';
 import { streamingMetrics } from './streaming-metrics';
 
@@ -47,6 +47,7 @@ export class ChangeDetector {
 
     private subscribe(collectionName: string, filters: Record<string, string>, callback: ChangeCallback, config?: SubscriptionConfig): () => void {
         const key = `${collectionName}-${Object.values(filters).join('-')}`;
+        logInfo('ChangeDetector: subscribe', { key, collectionName, filters });
 
         // Store config for this subscription
         if (config) {
@@ -55,21 +56,25 @@ export class ChangeDetector {
 
         // Add callback
         if (!this.callbacks.has(key)) {
+            logInfo('ChangeDetector: creating new callback set', { key });
             this.callbacks.set(key, new Set());
         }
         this.callbacks.get(key)!.add(callback);
 
         // Start listener if not already running
         if (!this.listeners.has(key)) {
+            logInfo('ChangeDetector: starting new listener', { key });
             this.startListener(collectionName, filters, key);
         }
 
         // Return unsubscribe function
         return () => {
+            logInfo('ChangeDetector: unsubscribe', { key });
             const callbacks = this.callbacks.get(key);
             if (callbacks) {
                 callbacks.delete(callback);
                 if (callbacks.size === 0) {
+                    logInfo('ChangeDetector: stopping listener', { key });
                     this.stopListener(key);
                 }
             }
@@ -91,13 +96,32 @@ export class ChangeDetector {
             q = query(collectionRef);
         }
 
+        logInfo('ChangeDetector: Starting change listener', {
+            collection: collectionName,
+            filters,
+            key,
+        });
+
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
+                logInfo('ChangeDetector: Snapshot received', {
+                    collection: collectionName,
+                    empty: snapshot.empty,
+                    size: snapshot.size,
+                    docs: snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() })),
+                });
+
                 // We are only interested in 'added' changes, as the change documents are never updated.
                 const addedChanges = snapshot.docChanges().filter((change) => change.type === 'added');
 
                 if (addedChanges.length > 0) {
+                    logInfo('ChangeDetector: Change detected, triggering refresh', {
+                        collection: collectionName,
+                        changeCount: addedChanges.length,
+                        firstChange: addedChanges[0].doc.data(),
+                    });
+                    
                     // Track notification metrics
                     streamingMetrics.trackNotification();
                     
@@ -110,6 +134,11 @@ export class ChangeDetector {
         );
 
         this.listeners.set(key, unsubscribe);
+        logInfo('ChangeDetector: Change listener setup complete', {
+            collection: collectionName,
+            key,
+            listenersCount: this.listeners.size,
+        });
     }
 
     private triggerCallbacks(key: string) {
@@ -152,6 +181,13 @@ export class ChangeDetector {
         const currentRetries = this.retryCount.get(key) ?? 0;
 
         if (currentRetries < maxRetries) {
+            logInfo('ChangeDetector: Scheduling retry', {
+                key,
+                attempt: currentRetries + 1,
+                maxRetries,
+                delay: retryDelay,
+            });
+
             // Clear any existing timer
             const existingTimer = this.retryTimers.get(key);
             if (existingTimer) {

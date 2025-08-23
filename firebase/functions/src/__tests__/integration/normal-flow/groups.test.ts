@@ -9,7 +9,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
+import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder, GroupUpdateBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('RESTful Group Endpoints', () => {
@@ -171,43 +171,39 @@ describe('RESTful Group Endpoints', () => {
         });
 
         test('should update group name', async () => {
-            const updates = {
-                name: 'Updated Group Name',
-            };
+            const updates = new GroupUpdateBuilder().withName('Updated Group Name').build();
 
             await driver.updateGroup(testGroup.id, updates, users[0].token);
 
             // Verify update
             const updated = await driver.getGroup(testGroup.id, users[0].token);
-            expect(updated.name).toBe(updates.name);
+            expect(updated.name).toBe('Updated Group Name');
             expect(updated.description).toBe(testGroup.description); // Unchanged
         });
 
         test('should update group description', async () => {
-            const updates = {
-                description: 'Updated description',
-            };
+            const updates = new GroupUpdateBuilder().withDescription('Updated description').build();
 
             await driver.updateGroup(testGroup.id, updates, users[0].token);
 
             // Verify update
             const updated = await driver.getGroup(testGroup.id, users[0].token);
-            expect(updated.description).toBe(updates.description);
+            expect(updated.description).toBe('Updated description');
             expect(updated.name).toBe(testGroup.name); // Unchanged
         });
 
         test('should update multiple fields', async () => {
-            const updates = {
-                name: 'New Name',
-                description: 'New description',
-            };
+            const updates = new GroupUpdateBuilder()
+                .withName('New Name')
+                .withDescription('New description')
+                .build();
 
             await driver.updateGroup(testGroup.id, updates, users[0].token);
 
             // Verify updates
             const updated = await driver.getGroup(testGroup.id, users[0].token);
-            expect(updated.name).toBe(updates.name);
-            expect(updated.description).toBe(updates.description);
+            expect(updated.name).toBe('New Name');
+            expect(updated.description).toBe('New description');
         });
 
         test('should validate update fields', async () => {

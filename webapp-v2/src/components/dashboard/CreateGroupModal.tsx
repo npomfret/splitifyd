@@ -1,6 +1,5 @@
 import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Input, Button, Form } from '../ui';
 import type { CreateGroupRequest } from '@shared/shared-types.ts';
@@ -15,7 +14,6 @@ interface CreateGroupModalProps {
 }
 
 export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModalProps) {
-    const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
@@ -54,15 +52,15 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         const name = groupNameSignal.value.trim();
 
         if (!name) {
-            return t('createGroupModal.validation.nameRequired');
+            return 'Group name is required.';
         }
 
         if (name.length < 2) {
-            return t('createGroupModal.validation.nameTooShort');
+            return 'Group name must be at least 2 characters long.';
         }
 
         if (name.length > 50) {
-            return t('createGroupModal.validation.nameTooLong');
+            return 'Group name must be less than 50 characters.';
         }
 
         return null;
@@ -106,7 +104,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                 {/* Modal Header */}
                 <div class="flex items-center justify-between mb-6">
                     <h3 id="create-group-modal-title" class="text-lg font-semibold text-gray-900">
-                        {t('createGroupModal.title')}
+                        Create New Group
                     </h3>
                     <button onClick={onClose} class="text-gray-400 hover:text-gray-600 transition-colors" disabled={isSubmitting}>
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,9 +119,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         {/* Group Name */}
                         <div>
                             <Input
-                                label={t('createGroupModal.groupNameLabel')}
+                                label="Group Name"
                                 type="text"
-                                placeholder={t('createGroupModal.groupNamePlaceholder')}
+                                placeholder="e.g., Apartment Expenses, Trip to Paris"
                                 value={groupNameSignal.value}
                                 onChange={(value) => {
                                     groupNameSignal.value = value;
@@ -133,16 +131,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={validationError || undefined}
                             />
-                            <p class="mt-1 text-sm text-gray-500">{t('createGroupModal.groupNameHelpText')}</p>
+                            <p class="mt-1 text-sm text-gray-500">Choose a name that describes what you'll be splitting expenses for.</p>
                         </div>
 
                         {/* Group Description (Optional) */}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{t('createGroupModal.groupDescriptionLabel')}</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
                             <textarea
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                                 rows={3}
-                                placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
+                                placeholder="Add any details about this group..."
                                 value={groupDescriptionSignal.value}
                                 onInput={(e) => {
                                     groupDescriptionSignal.value = (e.target as HTMLTextAreaElement).value;
@@ -150,7 +148,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 maxLength={200}
                             />
-                            <p class="mt-1 text-sm text-gray-500">{t('createGroupModal.groupDescriptionHelpText')}</p>
+                            <p class="mt-1 text-sm text-gray-500">Optional description to help members understand the group's purpose.</p>
                         </div>
 
                         {/* Error Display */}
@@ -177,10 +175,10 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     {/* Modal Footer */}
                     <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
                         <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
-                            {t('createGroupModal.cancelButton')}
+                            Cancel
                         </Button>
                         <Button type="submit" loading={isSubmitting} disabled={!isFormValid}>
-                            {t('createGroupModal.submitButton')}
+                            Create Group
                         </Button>
                     </div>
                 </Form>

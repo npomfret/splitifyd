@@ -517,7 +517,7 @@ export class ApiDriver {
         });
     }
 
-    async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number) {
+    async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number, timeout: number = 2000) {
         await this.waitForGroupChanges(groupId, (changes) => {
             const found = changes.filter(doc => {
                 if (doc.type !== 'group')
@@ -530,7 +530,7 @@ export class ApiDriver {
             });
 
             return found.length === expectedCount;
-        });
+        }, timeout);
     }
 
     async waitForGroupChanges(groupId: string, matcher: Matcher<GroupChangeDocument[]>, timeout = 2000) {
@@ -567,7 +567,7 @@ export class ApiDriver {
             if(matcher(changes))
                 return;
         }
-        throw Error(`timeout waiting for expense changes`);
+        throw Error(`timeout waiting for settlement changes`);
     }
 
     async waitForBalanceChanges(groupId: string, matcher: Matcher<BalanceChangeDocument[]>, timeout = 2000) {
@@ -615,4 +615,113 @@ export class ApiDriver {
 
         return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
     }
+
+    /**
+     * Wait for a group's membership to reach a specific count
+     */
+    async waitForMembershipChange(groupId: string, expectedMemberCount: number, token: string, timeout = 5000): Promise<Group> {
+        return this.pollUntil(
+            () => this.getGroup(groupId, token),
+            (group) => Object.keys(group.members).length === expectedMemberCount,
+            {
+                timeout,
+                errorMsg: `Group ${groupId} membership did not reach ${expectedMemberCount} members`
+            }
+        );
+    }
+
+    /**
+     * Wait for a specific user to be a member of a group
+     */
+    async waitForUserJoinGroup(groupId: string, userId: string, token: string, timeout = 5000): Promise<Group> {
+        return this.pollUntil(
+            () => this.getGroup(groupId, token),
+            (group) => group.members.hasOwnProperty(userId),
+            {
+                timeout,
+                errorMsg: `User ${userId} did not join group ${groupId}`
+            }
+        );
+    }
+
+    /**
+     * Wait for group change records to be created
+     */
+    async waitForGroupChangeRecords(groupId: string, userId: string, minimumCount = 1, timeout = 3000): Promise<GroupChangeDocument[]> {
+        return this.pollUntil(
+            () => this.getGroupChangesForUser(groupId, userId),
+            (changes) => changes.length >= minimumCount,
+            {
+                timeout,
+                errorMsg: `Expected at least ${minimumCount} group change record(s) for user ${userId} in group ${groupId}`
+            }
+        );
+    }
+
+    /**
+     * Get group changes filtered by user
+     */
+    async getGroupChangesForUser(groupId: string, userId: string): Promise<GroupChangeDocument[]> {
+        const snapshot = await db.collection('group-changes')
+            .where('id', '==', groupId)
+            .where('users', 'array-contains', userId)
+            .get();
+
+        return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
+    }
+
+    /**
+     * Wait for settlement creation event to be tracked
+     */
+    async waitForSettlementCreationEvent(groupId: string, settlementId: string, participants: User[]) {
+        return this.waitForSettlementEvent('created', groupId, settlementId, participants, 1);
+    }
+
+    /**
+     * Wait for settlement updated event to be tracked
+     */
+    async waitForSettlementUpdatedEvent(groupId: string, settlementId: string, participants: User[], expectedCount = 1) {
+        return this.waitForSettlementEvent('updated', groupId, settlementId, participants, expectedCount);
+    }
+
+    /**
+     * Wait for settlement deleted event to be tracked
+     */
+    async waitForSettlementDeletedEvent(groupId: string, settlementId: string, participants: User[]) {
+        return this.waitForSettlementEvent('deleted', groupId, settlementId, participants, 1);
+    }
+
+    /**
+     * Generic method to wait for settlement events
+     */
+    async waitForSettlementEvent(action: string, groupId: string, settlementId: string, participants: User[], expectedCount: number) {
+        const participantUids = participants.map(p => p.uid);
+        
+        return this.waitForSettlementChanges(groupId, (changes) => {
+            const relevantChanges = changes.filter(change => 
+                change.id === settlementId &&
+                change.action === action &&
+                change.type === 'settlement' &&
+                participantUids.every(uid => change.users.includes(uid))
+            );
+            return relevantChanges.length >= expectedCount;
+        });
+    }
+
+    /**
+     * Count settlement changes for a group
+     */
+    async countSettlementChanges(groupId: string): Promise<number> {
+        const changes = await this.getSettlementChanges(groupId);
+        return changes.length;
+    }
+
+    /**
+     * Get most recent settlement change event
+     */
+    async mostRecentSettlementChangeEvent(groupId: string) {
+        const changes = await this.getSettlementChanges(groupId);
+        return changes.length > 0 ? changes[0] : null;
+    }
+
 }

@@ -1,7 +1,6 @@
 import { Component, ComponentChildren } from 'preact';
 import { ErrorInfo } from 'preact/compat';
 import { ErrorState } from './ui';
-import { logError } from '@/utils/browser-logger.ts';
 
 interface ErrorBoundaryState {
     hasError: boolean;
@@ -29,7 +28,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        logError('ErrorBoundary caught an error', error, { errorInfo });
+        console.error('ErrorBoundary caught an error:', error, errorInfo);
 
         this.setState({
             error,
