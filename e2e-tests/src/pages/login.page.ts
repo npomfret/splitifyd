@@ -95,11 +95,12 @@ export class LoginPage extends BasePage {
     }
 
     getEmailLabel() {
-        return this.page.getByLabel('Email');
+        return this.page.getByLabel('Email address');
     }
 
     getPasswordLabel() {
-        return this.page.getByLabel('Password');
+        // Use a more specific selector that targets only the input, not the button
+        return this.page.getByLabel('Password', { exact: false }).and(this.page.locator('input'));
     }
 
     // Security testing methods

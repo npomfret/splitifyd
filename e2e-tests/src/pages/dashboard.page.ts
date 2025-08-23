@@ -3,6 +3,7 @@ import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 import { TIMEOUT_CONTEXTS } from '../config/timeouts';
 import type { User as BaseUser } from '@shared/shared-types';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class DashboardPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
@@ -86,6 +87,12 @@ export class DashboardPage extends BasePage {
             .filter({ hasText: /Create.*Group/i })
             .first();
         await this.clickButton(createButton, { buttonName: 'Create Group' });
+        
+        // Wait for the modal to actually open
+        await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor({
+            state: 'visible',
+            timeout: 5000 
+        });
     }
 
     async waitForDashboard() {

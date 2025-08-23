@@ -52,5 +52,48 @@
         "termsRequired": "You must accept the Terms of Service",
         "cookiesRequired": "You must accept the Cookie Policy"
     }
+  },
+  "expenseForm": {
+    "description": "Description",
+    "amount": "Amount*",
+    "whoPaid": "Who paid?",
+    "splitBetween": "Split between",
+    "exactAmounts": "Exact amounts",
+    "percentage": "Percentage",
+    "equal": "Equal",
+    "exactAmountsInstruction": "Enter exact amounts for each person:",
+    "percentageInstruction": "Enter percentage for each person:",
+    "selectAll": "Select all",
+    "saveExpense": "Save Expense",
+    "updateExpense": "Update Expense",
+    "cancel": "Cancel"
+  },
+  "settlementForm": {
+    "updatePayment": "Update Payment",
+    "recordPayment": "Record Payment"
+  },
+  "common": {
+    "loading": "Loading...",
+    "loadingExpenseForm": "Loading expense form...",
+    "loadingBalances": "Loading balances...",
+    "allSettledUp": "All settled up!",
+    "members": "Members",
+    "checkingAuth": "Checking authentication...",
+    "invalidLink": "Invalid Link",
+    "settleUp": "Settle Up",
+    "addExpense": "Add Expense",
+    "share": "Share",
+    "edit": "Edit",
+    "settings": "Settings",
+    "showHistory": "Show History",
+    "joinGroup": "Join Group"
+  },
+  "errors": {
+    "displayNameEmpty": "Display name cannot be empty",
+    "displayNameTooLong": "Display name must be 100 characters or less",
+    "passwordTooShort": "New password must be at least 6 characters long",
+    "passwordsNoMatch": "Passwords do not match",
+    "passwordSameAsCurrent": "New password must be different from current password",
+    "passwordAndNewRequired": "Current password and new password are required"
   }
 }

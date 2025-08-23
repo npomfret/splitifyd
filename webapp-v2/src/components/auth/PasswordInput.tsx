@@ -11,6 +11,7 @@ interface PasswordInputProps {
     disabled?: boolean;
     showStrength?: boolean;
     autoComplete?: string;
+    id?: string;
 }
 
 type PasswordStrength = 'weak' | 'medium' | 'strong';
@@ -25,6 +26,7 @@ export function PasswordInput({
     disabled = false,
     showStrength = false,
     autoComplete = 'current-password',
+    id = 'password-input',
 }: PasswordInputProps) {
     const [showPassword, setShowPassword] = useState(false);
     const localError = signal<string | null>(null);
@@ -97,12 +99,12 @@ export function PasswordInput({
 
     return (
         <div class="space-y-1">
-            <label for="password-input" class="block text-sm font-medium text-gray-700">
+            <label for={id} class="block text-sm font-medium text-gray-700">
                 {label} {required && <span class="text-red-500">*</span>}
             </label>
             <div class="relative">
                 <input
-                    id="password-input"
+                    id={id}
                     type={showPassword ? 'text' : 'password'}
                     value={value}
                     onInput={handleInput}
@@ -114,7 +116,7 @@ export function PasswordInput({
                     aria-label={label}
                     aria-required={required}
                     aria-invalid={hasError}
-                    aria-describedby={hasError ? 'password-error' : undefined}
+                    aria-describedby={hasError ? `${id}-error` : undefined}
                     class={`
             block w-full px-3 py-2 pr-10 border rounded-md shadow-sm 
             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -170,7 +172,7 @@ export function PasswordInput({
             )}
 
             {displayError && (
-                <p id="password-error" class="text-sm text-red-600" role="alert">
+                <p id={`${id}-error`} class="text-sm text-red-600" role="alert">
                     {displayError}
                 </p>
             )}

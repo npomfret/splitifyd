@@ -10,7 +10,7 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="e2e-tests/src/tests/normal-flow/settlements.e2e.test.ts"
+TEST_FILE="e2e-tests/src/tests/normal-flow/auth-navigation.e2e.test.ts"
 TEST_FILTER=""
 
 # Make max runs configurable, default to 25
@@ -21,7 +21,7 @@ SUCCESS_COUNT=0
 START_TIME=$(date +%s)
 
 # Determine if we should run headed or headless
-HEADED_FLAG=""
+HEADED_FLAG="--headed"
 if [[ " $* " == *" --headed "* ]] || [[ " $* " == *" headed "* ]]; then
     HEADED_FLAG="--headed"
     echo "🖥️ Browser mode: HEADED (visible browser window)"

@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
+import { FORM_LABELS, SPLIT_TYPES, SPLIT_INSTRUCTIONS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@shared/shared-types';
 
 // Match the ExpenseData interface from GroupDetailPage
@@ -65,10 +66,10 @@ export class ExpenseFormPage extends BasePage {
      * Wait for all main form sections to be visible
      */
     async waitForExpenseFormSections(): Promise<void> {
-        await expect(this.page.getByText('Description')).toBeVisible();
-        await expect(this.page.getByText('Amount*')).toBeVisible();
-        await expect(this.page.getByText('Who paid?')).toBeVisible();
-        await expect(this.page.getByText('Split between')).toBeVisible();
+        await expect(this.page.getByText(FORM_LABELS.DESCRIPTION)).toBeVisible();
+        await expect(this.page.getByText(FORM_LABELS.AMOUNT)).toBeVisible();
+        await expect(this.page.getByText(FORM_LABELS.WHO_PAID)).toBeVisible();
+        await expect(this.page.getByText(FORM_LABELS.SPLIT_BETWEEN)).toBeVisible();
     }
 
     /**

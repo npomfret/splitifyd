@@ -113,10 +113,11 @@ export function RegisterPage() {
         <AuthLayout title={t('registerPage.title')} description={t('registerPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={displayError} disabled={isSubmitting}>
                 <div class="space-y-1">
-                    <label class="block text-sm font-medium text-gray-700">
+                    <label for="fullname-input" class="block text-sm font-medium text-gray-700">
                         {t('registerPage.fullNameLabel')} <span class="text-red-500">*</span>
                     </label>
                     <input
+                        id="fullname-input"
                         type="text"
                         value={nameSignal.value}
                         onInput={(e) => (nameSignal.value = (e.target as HTMLInputElement).value)}
@@ -124,6 +125,7 @@ export function RegisterPage() {
                         required
                         disabled={isSubmitting}
                         autoComplete="name"
+                        aria-label={t('registerPage.fullNameLabel')}
                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                     />
                 </div>
@@ -131,6 +133,7 @@ export function RegisterPage() {
                 <EmailInput value={emailSignal.value} onInput={(value) => (emailSignal.value = value)} disabled={isSubmitting} />
 
                 <PasswordInput
+                    id="password-input"
                     value={passwordSignal.value}
                     onInput={(value) => (passwordSignal.value = value)}
                     label={t('registerPage.passwordLabel')}
@@ -141,6 +144,7 @@ export function RegisterPage() {
                 />
 
                 <PasswordInput
+                    id="confirm-password-input"
                     value={confirmPasswordSignal.value}
                     onInput={(value) => (confirmPasswordSignal.value = value)}
                     label={t('registerPage.confirmPasswordLabel')}

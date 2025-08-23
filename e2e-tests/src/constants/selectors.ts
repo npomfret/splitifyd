@@ -47,7 +47,7 @@ export const ARIA_ROLES = {
 export const PLACEHOLDERS = {
     EXPENSE_DESCRIPTION: 'What was this expense for?',
     EXPENSE_AMOUNT: '0.00',
-    GROUP_DESCRIPTION: 'Add any details about this group...',
+    GROUP_DESCRIPTION: translation.createGroupModal.groupDescriptionPlaceholder,
 } as const;
 
 export const HEADINGS = {
@@ -58,40 +58,66 @@ export const HEADINGS = {
     YOUR_GROUPS: /Your Groups|My Groups/i,
     BALANCES: 'Balances',
     EXPENSES: 'Expenses',
-    JOIN_GROUP: 'Join Group',
+    JOIN_GROUP: translation.common.joinGroup,
     EXPENSE_DETAILS: 'Expense Details',
-    WHO_PAID: /Who paid/,
-    SPLIT_BETWEEN: /Split between/,
+    WHO_PAID: new RegExp(translation.expenseForm.whoPaid),
+    SPLIT_BETWEEN: new RegExp(translation.expenseForm.splitBetween),
 } as const;
 
 export const BUTTON_TEXTS = {
-    SETTLE_UP: /settle up/i,
-    JOIN_GROUP: /join group/i,
-    RECORD_PAYMENT: /record payment/i,
-    SELECT_ALL: 'Select all',
-    SHOW_HISTORY: 'Show History',
-    ADD_EXPENSE: /add expense/i,
-    SAVE_EXPENSE: /save expense/i,
-    UPDATE_EXPENSE: /update expense/i,
-    SHARE: /share/i,
+    SETTLE_UP: new RegExp(translation.common.settleUp, 'i'),
+    JOIN_GROUP: new RegExp(translation.common.joinGroup, 'i'),
+    RECORD_PAYMENT: new RegExp(translation.settlementForm.recordPayment, 'i'),
+    SELECT_ALL: translation.expenseForm.selectAll,
+    SHOW_HISTORY: translation.common.showHistory,
+    ADD_EXPENSE: new RegExp(translation.common.addExpense, 'i'),
+    SAVE_EXPENSE: new RegExp(translation.expenseForm.saveExpense, 'i'),
+    UPDATE_EXPENSE: new RegExp(translation.expenseForm.updateExpense, 'i'),
+    SHARE: new RegExp(translation.common.share, 'i'),
     SIGN_OUT: /^Sign out$/i,
     SIGN_IN: translation.loginPage.submitButton,
-    EDIT: /edit/i,
-    SETTINGS: /settings/i,
+    EDIT: new RegExp(translation.common.edit, 'i'),
+    SETTINGS: new RegExp(translation.common.settings, 'i'),
     CREATE_ACCOUNT: translation.registerPage.submitButton,
     CREATE_GROUP: translation.createGroupModal.submitButton,
+    CANCEL: translation.expenseForm.cancel,
 } as const;
 
 export const MESSAGES = {
-    ALL_SETTLED_UP: 'All settled up!',
+    ALL_SETTLED_UP: translation.common.allSettledUp,
     NO_EXPENSES_YET: /no expenses yet/i,
     WELCOME_BACK: /Welcome (back|to Splitifyd)/i,
-    LOADING_BALANCES: 'Loading balances...',
+    LOADING_BALANCES: translation.common.loadingBalances,
+    LOADING_EXPENSE_FORM: translation.common.loadingExpenseForm,
+    CHECKING_AUTH: translation.common.checkingAuth,
+    INVALID_LINK: translation.common.invalidLink,
 } as const;
 
 export const FORM_LABELS = {
-    WHO_PAID: /who paid/i,
+    DESCRIPTION: translation.expenseForm.description,
+    AMOUNT: translation.expenseForm.amount,
+    WHO_PAID: new RegExp(translation.expenseForm.whoPaid, 'i'),
     WHO_RECEIVED_PAYMENT: /who received the payment/i,
-    AMOUNT: /amount/i,
+    SPLIT_BETWEEN: translation.expenseForm.splitBetween,
     NOTE: /note/i,
+} as const;
+
+export const SPLIT_TYPES = {
+    EQUAL: translation.expenseForm.equal,
+    PERCENTAGE: translation.expenseForm.percentage,
+    EXACT_AMOUNTS: translation.expenseForm.exactAmounts,
+} as const;
+
+export const SPLIT_INSTRUCTIONS = {
+    EXACT_AMOUNTS: translation.expenseForm.exactAmountsInstruction,
+    PERCENTAGE: translation.expenseForm.percentageInstruction,
+} as const;
+
+export const ERROR_MESSAGES = {
+    DISPLAY_NAME_EMPTY: translation.errors.displayNameEmpty,
+    DISPLAY_NAME_TOO_LONG: translation.errors.displayNameTooLong,
+    PASSWORD_TOO_SHORT: translation.errors.passwordTooShort,
+    PASSWORDS_NO_MATCH: translation.errors.passwordsNoMatch,
+    PASSWORD_SAME_AS_CURRENT: translation.errors.passwordSameAsCurrent,
+    PASSWORD_AND_NEW_REQUIRED: translation.errors.passwordAndNewRequired,
 } as const;

@@ -11,7 +11,7 @@ export class RegisterPage extends BasePage {
     // Selectors
     readonly url = '/register';
     readonly fullNameInput = `input[placeholder="${translation.registerPage.fullNamePlaceholder}"]`;
-    readonly emailInput = `input[placeholder="${translation.loginPage.validation.emailRequired}"]`;
+    readonly emailInput = `input[placeholder="Enter your email"]`;
     readonly passwordInput = `input[placeholder="${translation.registerPage.passwordPlaceholder}"]`;
     readonly confirmPasswordInput = `input[placeholder="${translation.registerPage.confirmPasswordPlaceholder}"]`;
     readonly createAccountButton = BUTTON_TEXTS.CREATE_ACCOUNT;
@@ -109,11 +109,12 @@ export class RegisterPage extends BasePage {
     }
 
     getEmailLabel() {
-        return this.page.getByLabel('Email');
+        return this.page.getByLabel('Email address');
     }
 
     getPasswordLabel() {
-        return this.page.getByLabel('Password', { exact: true });
+        // Use more specific selector to avoid conflict with show/hide password button
+        return this.page.getByLabel('Password', { exact: false }).and(this.page.locator('input')).first();
     }
 
     getConfirmPasswordLabel() {
