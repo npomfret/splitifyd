@@ -1,10 +1,7 @@
 import {beforeAll, describe, expect, it} from '@jest/globals';
 import {ApiDriver, User} from '../../support/ApiDriver';
-import {BalanceChangeDocument, clearGroupChangeDocuments, pollForChange, SettlementChangeDocument} from '../../support/changeCollectionHelpers';
-import {FirestoreCollections} from '../../../shared/shared-types';
 import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder} from "../../support/builders";
-import {v4 as uuidv4} from 'uuid';
 
 describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -21,14 +18,6 @@ describe('Change Detection Integration Tests', () => {
         user2 = u2;
     });
 
-    /**
-     * @deprecated use apiDriver.createGroupWithMembers
-     */
-    async function createSharedGroup(): Promise<string> {
-        const group = await apiDriver.createGroupWithMembers(uuidv4(), [user1, user2], user1.token);
-        await clearGroupChangeDocuments(group.id);
-        return group.id;
-    }
 
     describe('Group Change Tracking', () => {
         it('should create a "created" change document when a group is created', async () => {
@@ -296,59 +285,75 @@ describe('Change Detection Integration Tests', () => {
     describe('Settlement Change Tracking', () => {
 
         it('should track settlement creation with balance changes', async () => {
-            const groupId = await createSharedGroup();
+            const group = await apiDriver.createGroupWithMembers(
+                'Settlement Group',
+                [user1, user2],
+                user1.token
+            );
+
+            // Wait for group creation and member addition events to settle
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 1);
 
             const settlement = await apiDriver.createSettlement(
                 new SettlementBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPayer(user1.uid)
                     .withPayee(user2.uid)
                     .build(),
                 user1.token
             );
 
-            const settlementChange = await pollForChange<SettlementChangeDocument>(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.id === settlement.id && doc.action === 'created' && doc.type === 'settlement',
-                {timeout: 2000, groupId}
-            );
+            // step 1 - find the expected events
+            await apiDriver.waitForSettlementCreationEvent(group.id, settlement.id, [user1, user2]);
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
 
-            expect(settlementChange).toBeTruthy();
-            expect(settlementChange?.groupId).toBe(groupId);
-            expect(settlementChange?.type).toBe('settlement');
-            expect(settlementChange?.users).toContain(user1.uid);
-            expect(settlementChange?.users).toContain(user2.uid);
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(2); // created + member added
+            expect(await apiDriver.countSettlementChanges(group.id)).toBe(1);
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
 
-            const balanceChange = await pollForChange<BalanceChangeDocument>(
-                FirestoreCollections.BALANCE_CHANGES,
-                (doc) => doc.groupId === groupId && doc.type === 'balance',
-                {timeout: 2000, groupId}
-            );
-
-            expect(balanceChange).toBeTruthy();
-            expect(balanceChange?.action).toBe('recalculated');
-            expect(balanceChange?.type).toBe('balance');
+            // step 3 - check the details of the most recent settlement change
+            const lastSettlementChange = await apiDriver.mostRecentSettlementChangeEvent(group.id);
+            expect(lastSettlementChange).toBeTruthy();
+            expect(lastSettlementChange?.groupId).toBe(group.id);
+            expect(lastSettlementChange?.action).toBe('created');
+            expect(lastSettlementChange?.type).toBe('settlement');
+            expect(lastSettlementChange?.users).toContain(user1.uid);
+            expect(lastSettlementChange?.users).toContain(user2.uid);
         });
 
         it('should handle both API format (payerId/payeeId) and legacy format (from/to)', async () => {
-            const groupId = await createSharedGroup();
+            const group = await apiDriver.createGroupWithMembers(
+                'Legacy Format Group',
+                [user1, user2],
+                user1.token
+            );
+
+            // Wait for group creation and member addition events to settle
+            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 1);
 
             const settlement = await apiDriver.createSettlement(
                 new SettlementBuilder()
-                    .withGroupId(groupId)
+                    .withGroupId(group.id)
                     .withPayer(user1.uid)
                     .withPayee(user2.uid)
-                    .withAmount(75)
                     .build(),
                 user1.token
             );
 
-            const change = await pollForChange<SettlementChangeDocument>(
-                FirestoreCollections.TRANSACTION_CHANGES,
-                (doc) => doc.id === settlement.id && doc.type === 'settlement',
-                {timeout: 2000, groupId}
-            );
+            // step 1 - find the expected events
+            await apiDriver.waitForSettlementCreationEvent(group.id, settlement.id, [user1, user2]);
+            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
 
+            // step 2 - make sure there are no extra / unplanned events
+            expect(await apiDriver.countGroupChanges(group.id)).toBe(2); // created + member added
+            expect(await apiDriver.countSettlementChanges(group.id)).toBe(1);
+            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+
+            // step 3 - verify the settlement change includes both users
+            const change = await apiDriver.mostRecentSettlementChangeEvent(group.id);
             expect(change).toBeTruthy();
             expect(change?.users).toContain(user1.uid);
             expect(change?.users).toContain(user2.uid);
