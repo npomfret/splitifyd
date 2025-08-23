@@ -12,11 +12,12 @@ import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import { CreateGroupRequestBuilder } from '../../support/builders';
+import {Group} from "../../../shared/shared-types";
 
 describe('API Validation Smoke Tests', () => {
     let driver: ApiDriver;
     let users: User[] = [];
-    let testGroup: any;
+    let testGroup: Group;
 
     jest.setTimeout(10000);
 
