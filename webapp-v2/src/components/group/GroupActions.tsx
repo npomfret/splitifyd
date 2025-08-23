@@ -36,14 +36,15 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, is
         </>
     );
 
-    const settingsButton = isGroupOwner && onSettings ? (
-        <Button variant="primary" onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''}>
-            <>
-                <CogIcon className="h-4 w-4 mr-2" />
-                Group Settings
-            </>
-        </Button>
-    ) : null;
+    const settingsButton =
+        isGroupOwner && onSettings ? (
+            <Button variant="primary" onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''}>
+                <>
+                    <CogIcon className="h-4 w-4 mr-2" />
+                    Group Settings
+                </>
+            </Button>
+        ) : null;
 
     if (variant === 'vertical') {
         return (

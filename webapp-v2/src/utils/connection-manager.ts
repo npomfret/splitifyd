@@ -2,12 +2,12 @@ import { signal } from '@preact/signals';
 import { logWarning, logError, logInfo } from './browser-logger';
 
 // Firebase emulator configuration - matches the ports in firebase.json
-const FIREBASE_EMULATOR_CONFIG = {
+const FIREBASE_EMULATOR_CONFIG = {// this is bullshit
     auth: { port: 7002 },
     functions: { port: 7003 },
     firestore: { port: 7004 },
     hosting: { port: 7005 },
-    ui: { port: 7001 }
+    ui: { port: 7001 },
 };
 
 // Health check configuration
@@ -46,7 +46,7 @@ export class ConnectionManager {
     public readonly isOnline = signal<boolean>(navigator.onLine);
     public readonly connectionQuality = signal<ConnectionQuality>('good');
     public readonly reconnectAttempts = signal<number>(0);
-    
+
     private reconnectTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
     private listeners = new Set<() => void>();
     private connectionChangeHandler: (() => void) | null = null;
@@ -93,7 +93,7 @@ export class ConnectionManager {
 
     private monitorConnectionQuality(): void {
         const nav = navigator as NavigatorWithConnection;
-        
+
         if (!nav.connection) {
             return; // Network Information API not supported
         }
@@ -120,7 +120,7 @@ export class ConnectionManager {
 
         this.connectionChangeHandler = updateQuality;
         nav.connection.addEventListener('change', updateQuality);
-        
+
         // Initial quality check
         updateQuality();
 
@@ -135,12 +135,12 @@ export class ConnectionManager {
     private startServerHealthChecks(): void {
         // Initial check
         this.checkServerHealth();
-        
+
         // Set up periodic checks
         this.healthCheckInterval = setInterval(() => {
             this.checkServerHealth();
         }, HEALTH_CHECK_INTERVAL);
-        
+
         // Store for cleanup
         this.listeners.add(() => {
             if (this.healthCheckInterval) {
@@ -156,20 +156,20 @@ export class ConnectionManager {
         }
 
         this.lastServerCheck = Date.now();
-        
+
         try {
             // Try to reach the Firebase emulator UI endpoint (lightweight check)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), SERVER_CHECK_TIMEOUT);
-            
+
             const response = await fetch(`http://localhost:${FIREBASE_EMULATOR_CONFIG.ui.port}/`, {
                 method: 'HEAD',
                 signal: controller.signal,
-                cache: 'no-cache'
+                cache: 'no-cache',
             });
-            
+
             clearTimeout(timeoutId);
-            
+
             if (response.ok) {
                 // Server is responding, determine quality based on network conditions
                 if (this.connectionQuality.value === 'server-unavailable') {
@@ -191,16 +191,8 @@ export class ConnectionManager {
         }
     }
 
-    async reconnectWithBackoff(
-        key: string,
-        callback: () => Promise<void>,
-        options: ReconnectOptions = {}
-    ): Promise<void> {
-        const {
-            maxAttempts = 5,
-            baseDelay = 1000,
-            maxDelay = 30000
-        } = options;
+    async reconnectWithBackoff(key: string, callback: () => Promise<void>, options: ReconnectOptions = {}): Promise<void> {
+        const { maxAttempts = 5, baseDelay = 1000, maxDelay = 30000 } = options;
 
         // Clear any existing timeout for this key
         this.clearReconnectTimeout(key);
@@ -223,11 +215,11 @@ export class ConnectionManager {
             } catch (error) {
                 // Failure - increment attempts and retry
                 this.reconnectAttempts.value++;
-                logInfo(`Reconnect attempt failed for ${key}`, { 
-                    attempt: this.reconnectAttempts.value, 
-                    error: error instanceof Error ? error.message : String(error) 
+                logInfo(`Reconnect attempt failed for ${key}`, {
+                    attempt: this.reconnectAttempts.value,
+                    error: error instanceof Error ? error.message : String(error),
                 });
-                
+
                 // Retry if we haven't hit the limit
                 if (this.reconnectAttempts.value < maxAttempts) {
                     await this.reconnectWithBackoff(key, callback, options);
@@ -253,7 +245,7 @@ export class ConnectionManager {
 
     private notifyListeners(): void {
         // Notify any registered state change listeners
-        this.listeners.forEach(listener => {
+        this.listeners.forEach((listener) => {
             try {
                 listener();
             } catch (error) {
@@ -267,13 +259,13 @@ export class ConnectionManager {
             isOnline: this.isOnline.value,
             quality: this.connectionQuality.value,
             reconnectAttempts: this.reconnectAttempts.value,
-            lastServerCheck: this.lastServerCheck
+            lastServerCheck: this.lastServerCheck,
         };
     }
 
     dispose(): void {
         this.clearAllReconnectTimeouts();
-        this.listeners.forEach(cleanup => cleanup());
+        this.listeners.forEach((cleanup) => cleanup());
         this.listeners.clear();
     }
 }

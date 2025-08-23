@@ -457,14 +457,14 @@ export class ApiClient {
                             const path = issue.path.join('.');
                             const expected = 'expected' in issue ? issue.expected : issue.code;
                             const received = 'received' in issue ? JSON.stringify(issue.received) : 'unknown';
-                            
+
                             // Provide more helpful error messages for common issues
                             if (path.includes('joinedAt')) {
                                 const actualValue = path.split('.').reduce((obj, key) => obj?.[key], data as any);
                                 const actualType = typeof actualValue;
                                 return `  - ${path}: Expected ISO date string, got ${actualType} (value: ${JSON.stringify(actualValue)})`;
                             }
-                            
+
                             return `  - ${path}: ${issue.message} (expected ${expected}, got ${received})`;
                         })
                         .join('\n');
@@ -554,20 +554,14 @@ export class ApiClient {
         });
     }
 
-    async getGroups(options?: { 
-        includeMetadata?: boolean;
-        page?: number;
-        limit?: number;
-        order?: 'asc' | 'desc';
-        cursor?: string;
-    }): Promise<ListGroupsResponse> {
+    async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string }): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
         if (options?.page) query.page = options.page.toString();
         if (options?.limit) query.limit = options.limit.toString();
         if (options?.order) query.order = options.order;
         if (options?.cursor) query.cursor = options.cursor;
-        
+
         return this.request({
             endpoint: '/groups',
             method: 'GET',
@@ -583,14 +577,17 @@ export class ApiClient {
         });
     }
 
-    async getGroupFullDetails(id: string, options?: {
-        expenseLimit?: number;
-        expenseCursor?: string;
-        settlementLimit?: number;
-        settlementCursor?: string;
-    }): Promise<GroupFullDetails> {
+    async getGroupFullDetails(
+        id: string,
+        options?: {
+            expenseLimit?: number;
+            expenseCursor?: string;
+            settlementLimit?: number;
+            settlementCursor?: string;
+        },
+    ): Promise<GroupFullDetails> {
         const queryParams: Record<string, string> = {};
-        
+
         if (options?.expenseLimit) {
             queryParams.expenseLimit = options.expenseLimit.toString();
         }
@@ -611,7 +608,6 @@ export class ApiClient {
             query: Object.keys(queryParams).length > 0 ? queryParams : undefined,
         });
     }
-
 
     async getGroupMembers(id: string): Promise<GroupMembersResponse> {
         return this.request({
@@ -733,14 +729,7 @@ export class ApiClient {
         });
     }
 
-    async listSettlements(
-        groupId: string,
-        limit?: number,
-        cursor?: string,
-        userId?: string,
-        startDate?: string,
-        endDate?: string,
-    ): Promise<ListSettlementsResponse> {
+    async listSettlements(groupId: string, limit?: number, cursor?: string, userId?: string, startDate?: string, endDate?: string): Promise<ListSettlementsResponse> {
         const query: Record<string, string> = { groupId };
         if (limit !== undefined) query.limit = limit.toString();
         if (cursor !== undefined) query.cursor = cursor;
@@ -815,13 +804,7 @@ export class ApiClient {
         } as Group;
     }
 
-    async register(
-        email: string,
-        password: string,
-        displayName: string,
-        termsAccepted: boolean,
-        cookiePolicyAccepted: boolean,
-    ): Promise<RegisterResponse> {
+    async register(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',
@@ -845,9 +828,7 @@ export class ApiClient {
         });
     }
 
-    async acceptMultiplePolicies(
-        acceptances: AcceptPolicyRequest[],
-    ): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
             endpoint: '/user/policies/accept-multiple',
             method: 'POST',

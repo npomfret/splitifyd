@@ -22,7 +22,7 @@ vi.mock('../../utils/change-detector', () => {
         subscribeToBalanceChanges: vi.fn(() => vi.fn()),
         dispose: vi.fn(),
     };
-    
+
     return {
         ChangeDetector: vi.fn(() => mockInstance),
         mockChangeDetectorInstance: mockInstance, // Export for test access
@@ -68,7 +68,7 @@ function createTestResponseWithMetadata(
         changeCount?: number;
         serverTime?: number;
         hasRecentChanges?: boolean;
-    }
+    },
 ): ListGroupsResponse {
     return {
         groups,
@@ -78,13 +78,15 @@ function createTestResponseWithMetadata(
             limit: 100,
             order: 'desc',
         },
-        metadata: metadata ? {
-            lastChangeTimestamp: Date.now() - 1000,
-            changeCount: 1,
-            serverTime: Date.now(),
-            hasRecentChanges: true,
-            ...metadata,
-        } : undefined,
+        metadata: metadata
+            ? {
+                  lastChangeTimestamp: Date.now() - 1000,
+                  changeCount: 1,
+                  serverTime: Date.now(),
+                  hasRecentChanges: true,
+                  ...metadata,
+              }
+            : undefined,
     };
 }
 
@@ -230,7 +232,7 @@ describe('EnhancedGroupsStore', () => {
                     maxRetries: 3,
                     retryDelay: 2000,
                     onError: expect.any(Function),
-                })
+                }),
             );
 
             // Simulate a change notification
@@ -239,7 +241,7 @@ describe('EnhancedGroupsStore', () => {
                 changeCallback();
 
                 // Wait for async refresh to complete
-                await new Promise(resolve => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 0));
 
                 expect(mockApiClient.getGroups).toHaveBeenCalled();
             }
@@ -250,9 +252,7 @@ describe('EnhancedGroupsStore', () => {
             const firstUnsubscribe = vi.fn();
             const secondUnsubscribe = vi.fn();
 
-            mockChangeDetectorInstance.subscribeToGroupChanges
-                .mockReturnValueOnce(firstUnsubscribe)
-                .mockReturnValueOnce(secondUnsubscribe);
+            mockChangeDetectorInstance.subscribeToGroupChanges.mockReturnValueOnce(firstUnsubscribe).mockReturnValueOnce(secondUnsubscribe);
 
             // First subscription
             enhancedGroupsStore.subscribeToChanges(userId);
@@ -266,7 +266,7 @@ describe('EnhancedGroupsStore', () => {
 
         it('handles change subscription errors gracefully', async () => {
             const userId = 'test-user-123';
-            
+
             // Mock subscription that throws
             mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation(() => {
                 throw new Error('Subscription failed');
@@ -365,11 +365,11 @@ describe('EnhancedGroupsStore', () => {
         it('refreshes groups after update', async () => {
             const testGroups = [createTestGroup({ id: 'group-1', name: 'Original Name' })];
             const mockResponse = createTestResponseWithMetadata(testGroups);
-            
+
             // Setup initial state with the group
             mockApiClient.getGroups.mockResolvedValue(mockResponse);
             await enhancedGroupsStore.fetchGroups();
-            
+
             // Update the group
             mockApiClient.updateGroup.mockResolvedValue({ message: 'Group updated successfully' });
             await enhancedGroupsStore.updateGroup('group-1', { name: 'Updated Name' });
@@ -446,15 +446,15 @@ describe('EnhancedGroupsStore', () => {
             // Set error via a failed API call first
             const error = new Error('Test error');
             mockApiClient.getGroups.mockRejectedValueOnce(error);
-            
+
             try {
                 await enhancedGroupsStore.fetchGroups();
             } catch (e) {
                 // Expected to throw
             }
-            
+
             expect(enhancedGroupsStore.error).toBe('Test error');
-            
+
             enhancedGroupsStore.clearError();
 
             expect(enhancedGroupsStore.error).toBeNull();
@@ -482,18 +482,20 @@ describe('EnhancedGroupsStore', () => {
             enhancedGroupsStore.subscribeToChanges(userId);
 
             // Mock the refresh response
-            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(updatedGroups, {
-                lastChangeTimestamp: Date.now() + 1000,
-                serverTime: Date.now() + 1000,
-            }));
+            mockApiClient.getGroups.mockResolvedValueOnce(
+                createTestResponseWithMetadata(updatedGroups, {
+                    lastChangeTimestamp: Date.now() + 1000,
+                    serverTime: Date.now() + 1000,
+                }),
+            );
 
             // Trigger change notification
             expect(changeCallback).toBeDefined();
             if (changeCallback) {
                 changeCallback();
-                
+
                 // Wait for async refresh
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
             }
 
             // Verify data was refreshed
@@ -503,7 +505,7 @@ describe('EnhancedGroupsStore', () => {
 
         it('handles rapid change notifications by triggering multiple refreshes', async () => {
             const userId = 'test-user-123';
-            
+
             let changeCallback: (() => void) | undefined;
             mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((_: string, callback: () => void) => {
                 changeCallback = callback;
@@ -511,18 +513,18 @@ describe('EnhancedGroupsStore', () => {
             });
 
             enhancedGroupsStore.subscribeToChanges(userId);
-            
+
             const mockResponse = createTestResponseWithMetadata([createTestGroup()]);
             mockApiClient.getGroups.mockResolvedValue(mockResponse);
 
             // Trigger multiple rapid changes
             if (changeCallback) {
                 changeCallback();
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
                 changeCallback();
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
                 changeCallback();
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
             }
 
             // Each change triggers a refresh (no debouncing implemented)
@@ -533,7 +535,7 @@ describe('EnhancedGroupsStore', () => {
             // const userId = 'test-user-123';
             const groupId = 'group-1';
             const originalGroup = createTestGroup({ id: groupId, name: 'Original' });
-            
+
             // Setup initial state
             mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([originalGroup]));
             await enhancedGroupsStore.fetchGroups();
@@ -542,17 +544,17 @@ describe('EnhancedGroupsStore', () => {
             // Mock successful update and subsequent refresh
             const optimisticName = 'Optimistic Update';
             mockApiClient.updateGroup.mockResolvedValue({ message: 'Updated' });
-            
+
             // Mock the refresh that happens after updateGroup
             const updatedGroup = createTestGroup({ id: groupId, name: optimisticName });
             mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([updatedGroup]));
-            
+
             // Perform the update
             await enhancedGroupsStore.updateGroup(groupId, { name: optimisticName });
-            
+
             // After update completes, data should be refreshed from server
             expect(enhancedGroupsStore.groups[0].name).toBe(optimisticName);
-            
+
             // Verify both the update and refresh were called
             expect(mockApiClient.updateGroup).toHaveBeenCalledWith(groupId, { name: optimisticName });
             expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2); // Initial + after update
@@ -560,12 +562,12 @@ describe('EnhancedGroupsStore', () => {
 
         it('recovers from failed auto-refresh attempts', async () => {
             const userId = 'test-user-123';
-            
+
             // Set initial state first
             const initialGroups = [createTestGroup({ id: 'initial' })];
             mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
             await enhancedGroupsStore.fetchGroups();
-            
+
             let changeCallback: (() => void) | undefined;
             mockChangeDetectorInstance.subscribeToGroupChanges.mockImplementation((_: string, callback: () => void) => {
                 changeCallback = callback;
@@ -576,15 +578,15 @@ describe('EnhancedGroupsStore', () => {
 
             // First refresh fails - error is set by fetchGroups
             mockApiClient.getGroups.mockRejectedValueOnce(new Error('Network error'));
-            
+
             if (changeCallback) {
                 changeCallback();
-                await new Promise(resolve => setTimeout(resolve, 20));
+                await new Promise((resolve) => setTimeout(resolve, 20));
             }
 
             // Error is set from fetchGroups failure (not suppressed in background refresh)
             expect(enhancedGroupsStore.error).toBe('Network error');
-            
+
             // Clear the error
             enhancedGroupsStore.clearError();
 
@@ -592,10 +594,10 @@ describe('EnhancedGroupsStore', () => {
             const newGroups = [createTestGroup({ id: 'new' })];
             const successResponse = createTestResponseWithMetadata(newGroups);
             mockApiClient.getGroups.mockResolvedValueOnce(successResponse);
-            
+
             if (changeCallback) {
                 changeCallback();
-                await new Promise(resolve => setTimeout(resolve, 20));
+                await new Promise((resolve) => setTimeout(resolve, 20));
             }
 
             // Should recover and load new data

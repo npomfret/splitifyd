@@ -41,7 +41,7 @@ describe('RealTimeIndicator', () => {
         connectionManager.connectionQuality.value = 'good';
 
         const { container } = render(<RealTimeIndicator />);
-        
+
         // Should have two green dots (on the inner div elements)
         const greenDots = container.querySelectorAll('.bg-green-500');
         expect(greenDots).toHaveLength(2);
@@ -52,13 +52,13 @@ describe('RealTimeIndicator', () => {
         connectionManager.connectionQuality.value = 'offline';
 
         const { container } = render(<RealTimeIndicator />);
-        
+
         // Network dot wrapper should have title, inner dot should be red
         const networkWrapper = container.querySelector('[title*="Network:"]');
         expect(networkWrapper).toBeTruthy();
         const networkDot = networkWrapper?.querySelector('.bg-red-500');
         expect(networkDot).toBeTruthy();
-        
+
         // Server dot wrapper should have title, inner dot should be gray
         const serverWrapper = container.querySelector('[title*="Server:"]');
         expect(serverWrapper).toBeTruthy();
@@ -71,13 +71,13 @@ describe('RealTimeIndicator', () => {
         connectionManager.connectionQuality.value = 'server-unavailable';
 
         const { container } = render(<RealTimeIndicator />);
-        
+
         // Network wrapper should have title, inner dot should be green
         const networkWrapper = container.querySelector('[title*="Network:"]');
         expect(networkWrapper).toBeTruthy();
         const networkDot = networkWrapper?.querySelector('.bg-green-500');
         expect(networkDot).toBeTruthy();
-        
+
         // Server wrapper should have title, inner dot should be red
         const serverWrapper = container.querySelector('[title*="Server:"]');
         expect(serverWrapper).toBeTruthy();
@@ -90,13 +90,13 @@ describe('RealTimeIndicator', () => {
         connectionManager.connectionQuality.value = 'poor';
 
         const { container } = render(<RealTimeIndicator />);
-        
+
         // Network wrapper should have title, inner dot should be green
         const networkWrapper = container.querySelector('[title*="Network:"]');
         expect(networkWrapper).toBeTruthy();
         const networkDot = networkWrapper?.querySelector('.bg-green-500');
         expect(networkDot).toBeTruthy();
-        
+
         // Server wrapper should have title, inner dot should be yellow
         const serverWrapper = container.querySelector('[title*="Server:"]');
         expect(serverWrapper).toBeTruthy();
@@ -110,7 +110,7 @@ describe('RealTimeIndicator', () => {
         const { container: onlineContainer } = render(<RealTimeIndicator />);
         const networkOnline = onlineContainer.querySelector('[title="Network: Connected (Green)"]');
         expect(networkOnline).toBeTruthy();
-        
+
         // Test offline
         connectionManager.isOnline.value = false;
         const { container: offlineContainer } = render(<RealTimeIndicator />);
@@ -120,19 +120,19 @@ describe('RealTimeIndicator', () => {
 
     it('should display correct tooltips for server status', () => {
         connectionManager.isOnline.value = true;
-        
+
         // Test good server connection
         connectionManager.connectionQuality.value = 'good';
         const { container: goodContainer } = render(<RealTimeIndicator />);
         const serverGood = goodContainer.querySelector('[title="Server: Connected (Green)"]');
         expect(serverGood).toBeTruthy();
-        
+
         // Test poor server connection
         connectionManager.connectionQuality.value = 'poor';
         const { container: poorContainer } = render(<RealTimeIndicator />);
         const serverPoor = poorContainer.querySelector('[title="Server: Poor connection (Yellow)"]');
         expect(serverPoor).toBeTruthy();
-        
+
         // Test server unavailable
         connectionManager.connectionQuality.value = 'server-unavailable';
         const { container: unavailableContainer } = render(<RealTimeIndicator />);
@@ -145,23 +145,23 @@ describe('RealTimeIndicator', () => {
         connectionManager.connectionQuality.value = 'good';
 
         const { container, rerender } = render(<RealTimeIndicator />);
-        
+
         // Initially both inner dots should be green
         let greenDots = container.querySelectorAll('.bg-green-500');
         expect(greenDots).toHaveLength(2);
-        
+
         // Change to server unavailable
         connectionManager.connectionQuality.value = 'server-unavailable';
-        
+
         rerender(<RealTimeIndicator />);
-        
+
         await waitFor(() => {
             // Network wrapper should still have network title, inner dot should be green
             const networkWrapper = container.querySelector('[title*="Network:"]');
             expect(networkWrapper).toBeTruthy();
             const networkDot = networkWrapper?.querySelector('.bg-green-500');
             expect(networkDot).toBeTruthy();
-            
+
             // Server wrapper should have server title, inner dot should be red
             const serverWrapper = container.querySelector('[title*="Server:"]');
             expect(serverWrapper).toBeTruthy();
@@ -175,7 +175,7 @@ describe('RealTimeIndicator', () => {
         connectionManager.connectionQuality.value = 'good';
 
         const { container } = render(<RealTimeIndicator />);
-        
+
         // Should have flex-col class for vertical stacking
         const wrapper = container.querySelector('.flex.flex-col');
         expect(wrapper).toBeTruthy();

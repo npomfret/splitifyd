@@ -67,7 +67,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                 // Use consolidated endpoint to get expense + group + members atomically
                 const fullDetails = await apiClient.getExpenseFullDetails(expenseId);
-                
+
                 // Update all local state atomically using batch to prevent race conditions
                 batch(() => {
                     expense.value = fullDetails.expense;

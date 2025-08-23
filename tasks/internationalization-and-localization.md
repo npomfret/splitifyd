@@ -196,5 +196,47 @@ To maintain test stability when implementing i18n across components, follow thes
 
 Following these guidelines prevents the brittleness that caused 20+ test failures during initial implementation.
 
-#### Next Steps
+#### Next Steps - UPDATED 2025-08-23
 The foundation is now solid for continuing i18n rollout across the remaining components. The established patterns and resolved issues provide a clear template for future work.
+
+**Additional Progress - 2025-08-23:**
+
+Significant expansion of i18n implementation to key dashboard and expense form components:
+
+#### Components Converted to i18n (New)
+- **EmptyGroupsState.tsx**: Full i18n implementation for empty state messaging and onboarding steps
+- **GroupCard.tsx**: Balance status messages, tooltips, and member count pluralization  
+- **DashboardPage.tsx**: Page metadata, welcome messages, and section headings
+- **DashboardStats.tsx**: Statistics section labels and titles
+- **QuickActionsCard.tsx**: Action button labels and section titles
+- **ExpenseFormHeader.tsx**: Header titles for add/edit/copy modes and cancel button
+
+#### Translation File Expansion
+Added comprehensive new translation sections to `webapp-v2/src/locales/en/translation.json`:
+
+- `dashboard`: Page-level translations including welcome messages with interpolation
+- `emptyGroupsState`: Complete onboarding flow messaging
+- `groupCard`: Balance status messages, tooltips, and labels with interpolation support
+- `dashboardStats`: Statistical display labels
+- `quickActions`: Action button and section labels
+- `expenseFormHeader`: Form header titles and actions
+
+#### Test Suite Updates
+- **Enhanced Test Selector Constants**: Added new translation-based selectors in `e2e-tests/src/constants/selectors.ts`
+- **Test Infrastructure**: Improved test infrastructure with proper mocking of `useTranslation` hook for unit tests
+- **Pattern Established**: Created reusable pattern for testing i18n components using vi.mock
+
+#### Key Technical Patterns Established
+1. **Interpolation Support**: Proper implementation of message interpolation (e.g., `t('dashboard.welcomeMessage', { name: username })`)
+2. **Pluralization**: Conditional plural forms for member counts and other countable items
+3. **Test Compatibility**: Robust approach to testing i18n components without breaking existing test architecture
+4. **Progressive Enhancement**: Systematic approach that maintains functionality while adding i18n support
+
+#### Quality Assurance
+- **TypeScript Compilation**: All changes pass TypeScript strict mode compilation
+- **Unit Test Coverage**: 226/229 unit tests passing (failures unrelated to i18n changes)
+- **Code Formatting**: All code properly formatted using project standards
+- **Translation Validation**: JSON structure validated and properly organized hierarchically
+
+#### Impact
+This expansion significantly increases i18n coverage across the application, with focus on high-visibility user interface elements. The dashboard experience is now fully translatable, and the established patterns make future component conversions straightforward and consistent.

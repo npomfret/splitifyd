@@ -156,7 +156,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 };
                 await apiClient.createSettlement(settlementData);
             }
-            
+
             await enhancedGroupDetailStore.refreshAll();
 
             if (onSuccess) {
@@ -340,7 +340,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 Cancel
                             </Button>
                             <Button type="submit" variant="primary" disabled={!isFormValid || isSubmitting} loading={isSubmitting} className="flex-1">
-                                {isSubmitting ? (editMode ? 'Updating...' : 'Recording...') : (editMode ? 'Update Payment' : 'Record Payment')}
+                                {isSubmitting ? (editMode ? 'Updating...' : 'Recording...') : editMode ? 'Update Payment' : 'Record Payment'}
                             </Button>
                         </div>
                     </div>

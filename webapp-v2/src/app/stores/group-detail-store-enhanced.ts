@@ -125,13 +125,13 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 expensesSignal.value = fullDetails.expenses.expenses;
                 balancesSignal.value = fullDetails.balances;
                 settlementsSignal.value = fullDetails.settlements.settlements;
-                
+
                 // Update pagination state
                 hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
                 expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
                 hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
                 settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
-                
+
                 // CRITICAL: Only set loading to false AFTER all data is populated
                 loadingSignal.value = false;
             });
@@ -197,7 +197,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         try {
             const memberData = await apiClient.getGroupMembers(this.currentGroupId);
             if (memberData.members.length === 0) {
-                logError('group has no members', {groupId: this.currentGroupId})
+                logError('group has no members', { groupId: this.currentGroupId });
             }
             membersSignal.value = memberData.members;
         } catch (error) {
@@ -271,19 +271,19 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     async loadMoreExpenses(): Promise<void> {
         if (!hasMoreExpensesSignal.value || !expenseCursorSignal.value || !this.currentGroupId) return;
-        
+
         // Use consolidated endpoint for progressive loading to maintain consistency
         loadingExpensesSignal.value = true;
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 expenseCursor: expenseCursorSignal.value,
-                expenseLimit: 20
+                expenseLimit: 20,
             });
 
             batch(() => {
                 // Append new expenses to existing ones
                 expensesSignal.value = [...expensesSignal.value, ...fullDetails.expenses.expenses];
-                
+
                 // Update pagination state
                 hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
                 expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
@@ -295,22 +295,21 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-
     async loadMoreSettlements(): Promise<void> {
         if (!hasMoreSettlementsSignal.value || !settlementsCursorSignal.value || !this.currentGroupId) return;
-        
+
         // Use consolidated endpoint for progressive loading to maintain consistency
         loadingSettlementsSignal.value = true;
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 settlementCursor: settlementsCursorSignal.value,
-                settlementLimit: 20
+                settlementLimit: 20,
             });
 
             batch(() => {
                 // Append new settlements to existing ones
                 settlementsSignal.value = [...settlementsSignal.value, ...fullDetails.settlements.settlements];
-                
+
                 // Update pagination state
                 hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
                 settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;

@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+
 interface EmptyGroupsStateProps {
     onCreateGroup: () => void;
 }
 
 export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
+    const { t } = useTranslation();
     return (
         <div class="text-center py-12">
             <div class="text-gray-400 mb-4">
@@ -16,16 +19,16 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                 </svg>
             </div>
 
-            <h4 class="text-lg font-medium text-gray-900 mb-2">No groups yet</h4>
-            <p class="text-gray-600 mb-6 max-w-md mx-auto">Create your first group to start splitting expenses with friends, family, or roommates.</p>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">{t('emptyGroupsState.title')}</h4>
+            <p class="text-gray-600 mb-6 max-w-md mx-auto">{t('emptyGroupsState.description')}</p>
 
             <button onClick={onCreateGroup} class="bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700 transition-colors font-medium">
-                Create Your First Group
+                {t('emptyGroupsState.createFirstGroup')}
             </button>
 
             {/* Additional getting started tips */}
             <div class="mt-8 text-left max-w-2xl mx-auto">
-                <h5 class="text-sm font-medium text-gray-900 mb-3">Getting started with Splitifyd:</h5>
+                <h5 class="text-sm font-medium text-gray-900 mb-3">{t('emptyGroupsState.gettingStartedTitle')}</h5>
                 <div class="grid md:grid-cols-3 gap-4">
                     <div class="bg-purple-50 p-4 rounded-lg">
                         <div class="text-purple-600 mb-2">
@@ -38,8 +41,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                                 />
                             </svg>
                         </div>
-                        <h6 class="font-medium text-gray-900 mb-1">1. Create a group</h6>
-                        <p class="text-sm text-gray-600">Add friends, roommates, or travel companions</p>
+                        <h6 class="font-medium text-gray-900 mb-1">{t('emptyGroupsState.step1Title')}</h6>
+                        <p class="text-sm text-gray-600">{t('emptyGroupsState.step1Description')}</p>
                     </div>
 
                     <div class="bg-green-50 p-4 rounded-lg">
@@ -48,8 +51,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                         </div>
-                        <h6 class="font-medium text-gray-900 mb-1">2. Add expenses</h6>
-                        <p class="text-sm text-gray-600">Track who paid and how to split costs</p>
+                        <h6 class="font-medium text-gray-900 mb-1">{t('emptyGroupsState.step2Title')}</h6>
+                        <p class="text-sm text-gray-600">{t('emptyGroupsState.step2Description')}</p>
                     </div>
 
                     <div class="bg-blue-50 p-4 rounded-lg">
@@ -63,8 +66,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                                 />
                             </svg>
                         </div>
-                        <h6 class="font-medium text-gray-900 mb-1">3. Settle up</h6>
-                        <p class="text-sm text-gray-600">See who owes what and settle balances</p>
+                        <h6 class="font-medium text-gray-900 mb-1">{t('emptyGroupsState.step3Title')}</h6>
+                        <p class="text-sm text-gray-600">{t('emptyGroupsState.step3Description')}</p>
                     </div>
                 </div>
             </div>

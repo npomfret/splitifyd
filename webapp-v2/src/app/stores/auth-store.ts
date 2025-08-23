@@ -78,8 +78,10 @@ class AuthStoreImpl implements AuthStore {
 
             // Set up API client auth callbacks to avoid circular dependencies
             apiClient.setAuthCallbacks(
-                async () => { await this.refreshAuthToken(); },
-                () => this.logout()
+                async () => {
+                    await this.refreshAuthToken();
+                },
+                () => this.logout(),
             );
 
             // Set up auth state listener
@@ -224,7 +226,7 @@ class AuthStoreImpl implements AuthStore {
         try {
             // Call API to update user profile
             const updatedUser = await apiClient.updateUserProfile(updates);
-            
+
             // Update the user signal with the new data from server
             if (userSignal.value) {
                 userSignal.value = {

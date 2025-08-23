@@ -1,99 +1,147 @@
 {
-  "createGroupModal": {
-    "title": "Create a new group",
-    "groupNameLabel": "Group Name",
-    "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
-    "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
-    "groupDescriptionLabel": "Description (optional)",
-    "groupDescriptionPlaceholder": "Add any details about this group...",
-    "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
-    "cancelButton": "Cancel",
-    "submitButton": "Create Group",
-    "validation": {
-      "nameRequired": "Group name is required.",
-      "nameTooShort": "Group name must be at least 2 characters long.",
-      "nameTooLong": "Group name must be less than 50 characters."
-    }
-  },
-  "loginPage": {
-    "title": "Sign In",
-    "description": "Sign in to your Splitifyd account to manage your shared expenses",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot your password?",
-    "submitButton": "Sign In",
-    "noAccount": "Don't have an account?",
-    "signUp": "Sign up",
-    "validation": {
-        "emailRequired": "Email is required",
-        "passwordRequired": "Password is required"
-    }
-  },
-  "registerPage": {
-    "title": "Create Account",
-    "description": "Create your Splitifyd account to start managing shared expenses",
-    "fullNameLabel": "Full Name",
-    "fullNamePlaceholder": "Enter your full name",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Create a strong password",
-    "confirmPasswordLabel": "Confirm Password",
-    "confirmPasswordPlaceholder": "Confirm your password",
-    "acceptTerms": "I accept the",
-    "termsOfService": "Terms of Service",
-    "cookiePolicy": "Cookie Policy",
-    "submitButton": "Create Account",
-    "hasAccount": "Already have an account?",
-    "signIn": "Sign in",
-    "validation": {
-        "nameRequired": "Name is required",
-        "emailRequired": "Email is required",
-        "passwordRequired": "Password is required",
-        "passwordTooShort": "Password must be at least 6 characters",
+    "createGroupModal": {
+        "title": "Create a new group",
+        "groupNameLabel": "Group Name",
+        "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+        "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
+        "groupDescriptionLabel": "Description (optional)",
+        "groupDescriptionPlaceholder": "Add any details about this group...",
+        "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
+        "cancelButton": "Cancel",
+        "submitButton": "Create Group",
+        "validation": {
+            "nameRequired": "Group name is required.",
+            "nameTooShort": "Group name must be at least 2 characters long.",
+            "nameTooLong": "Group name must be less than 50 characters."
+        }
+    },
+    "loginPage": {
+        "title": "Sign In",
+        "description": "Sign in to your Splitifyd account to manage your shared expenses",
+        "rememberMe": "Remember me",
+        "forgotPassword": "Forgot your password?",
+        "submitButton": "Sign In",
+        "noAccount": "Don't have an account?",
+        "signUp": "Sign up",
+        "validation": {
+            "emailRequired": "Email is required",
+            "passwordRequired": "Password is required"
+        }
+    },
+    "registerPage": {
+        "title": "Create Account",
+        "description": "Create your Splitifyd account to start managing shared expenses",
+        "fullNameLabel": "Full Name",
+        "fullNamePlaceholder": "Enter your full name",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a strong password",
+        "confirmPasswordLabel": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your password",
+        "acceptTerms": "I accept the",
+        "termsOfService": "Terms of Service",
+        "cookiePolicy": "Cookie Policy",
+        "submitButton": "Create Account",
+        "hasAccount": "Already have an account?",
+        "signIn": "Sign in",
+        "validation": {
+            "nameRequired": "Name is required",
+            "emailRequired": "Email is required",
+            "passwordRequired": "Password is required",
+            "passwordTooShort": "Password must be at least 6 characters",
+            "passwordsNoMatch": "Passwords do not match",
+            "termsRequired": "You must accept the Terms of Service",
+            "cookiesRequired": "You must accept the Cookie Policy"
+        }
+    },
+    "expenseForm": {
+        "description": "Description",
+        "amount": "Amount*",
+        "whoPaid": "Who paid?",
+        "splitBetween": "Split between",
+        "exactAmounts": "Exact amounts",
+        "percentage": "Percentage",
+        "equal": "Equal",
+        "exactAmountsInstruction": "Enter exact amounts for each person:",
+        "percentageInstruction": "Enter percentage for each person:",
+        "selectAll": "Select all",
+        "saveExpense": "Save Expense",
+        "updateExpense": "Update Expense",
+        "cancel": "Cancel"
+    },
+    "settlementForm": {
+        "updatePayment": "Update Payment",
+        "recordPayment": "Record Payment"
+    },
+    "common": {
+        "loading": "Loading...",
+        "loadingExpenseForm": "Loading expense form...",
+        "loadingBalances": "Loading balances...",
+        "allSettledUp": "All settled up!",
+        "members": "Members",
+        "checkingAuth": "Checking authentication...",
+        "invalidLink": "Invalid Link",
+        "settleUp": "Settle Up",
+        "addExpense": "Add Expense",
+        "share": "Share",
+        "edit": "Edit",
+        "settings": "Settings",
+        "showHistory": "Show History",
+        "joinGroup": "Join Group"
+    },
+    "errors": {
+        "displayNameEmpty": "Display name cannot be empty",
+        "displayNameTooLong": "Display name must be 100 characters or less",
+        "passwordTooShort": "New password must be at least 6 characters long",
         "passwordsNoMatch": "Passwords do not match",
-        "termsRequired": "You must accept the Terms of Service",
-        "cookiesRequired": "You must accept the Cookie Policy"
+        "passwordSameAsCurrent": "New password must be different from current password",
+        "passwordAndNewRequired": "Current password and new password are required"
+    },
+    "dashboard": {
+        "title": "Dashboard - Splitifyd",
+        "description": "Manage your groups and expenses with Splitifyd",
+        "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
+        "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
+        "yourGroups": "Your Groups",
+        "createGroup": "Create Group"
+    },
+    "emptyGroupsState": {
+        "title": "No groups yet",
+        "description": "Create your first group to start splitting expenses with friends, family, or roommates.",
+        "createFirstGroup": "Create Your First Group",
+        "gettingStartedTitle": "Getting started with Splitifyd:",
+        "step1Title": "1. Create a group",
+        "step1Description": "Add friends, roommates, or travel companions",
+        "step2Title": "2. Add expenses",
+        "step2Description": "Track who paid and how to split costs",
+        "step3Title": "3. Settle up",
+        "step3Description": "See who owes what and settle balances"
+    },
+    "groupCard": {
+        "settledUp": "Settled up",
+        "youreOwed": "You're owed {{amount}}",
+        "youOwe": "You owe {{amount}}",
+        "addExpenseTooltip": "Add expense to {{groupName}}",
+        "inviteTooltip": "Invite to {{groupName}}",
+        "member": "member",
+        "members": "members",
+        "noRecentActivity": "No recent activity"
+    },
+    "dashboardStats": {
+        "title": "Statistics",
+        "totalGroups": "Total Groups",
+        "activeGroups": "Active Groups",
+        "totalMembers": "Total Members",
+        "avgMembersPerGroup": "Avg. Members/Group"
+    },
+    "quickActions": {
+        "title": "Quick Actions",
+        "createNewGroup": "Create New Group",
+        "viewAllExpenses": "View All Expenses"
+    },
+    "expenseFormHeader": {
+        "addExpense": "Add Expense",
+        "editExpense": "Edit Expense",
+        "copyExpense": "Copy Expense",
+        "cancel": "Cancel"
     }
-  },
-  "expenseForm": {
-    "description": "Description",
-    "amount": "Amount*",
-    "whoPaid": "Who paid?",
-    "splitBetween": "Split between",
-    "exactAmounts": "Exact amounts",
-    "percentage": "Percentage",
-    "equal": "Equal",
-    "exactAmountsInstruction": "Enter exact amounts for each person:",
-    "percentageInstruction": "Enter percentage for each person:",
-    "selectAll": "Select all",
-    "saveExpense": "Save Expense",
-    "updateExpense": "Update Expense",
-    "cancel": "Cancel"
-  },
-  "settlementForm": {
-    "updatePayment": "Update Payment",
-    "recordPayment": "Record Payment"
-  },
-  "common": {
-    "loading": "Loading...",
-    "loadingExpenseForm": "Loading expense form...",
-    "loadingBalances": "Loading balances...",
-    "allSettledUp": "All settled up!",
-    "members": "Members",
-    "checkingAuth": "Checking authentication...",
-    "invalidLink": "Invalid Link",
-    "settleUp": "Settle Up",
-    "addExpense": "Add Expense",
-    "share": "Share",
-    "edit": "Edit",
-    "settings": "Settings",
-    "showHistory": "Show History",
-    "joinGroup": "Join Group"
-  },
-  "errors": {
-    "displayNameEmpty": "Display name cannot be empty",
-    "displayNameTooLong": "Display name must be 100 characters or less",
-    "passwordTooShort": "New password must be at least 6 characters long",
-    "passwordsNoMatch": "Passwords do not match",
-    "passwordSameAsCurrent": "New password must be different from current password",
-    "passwordAndNewRequired": "Current password and new password are required"
-  }
 }

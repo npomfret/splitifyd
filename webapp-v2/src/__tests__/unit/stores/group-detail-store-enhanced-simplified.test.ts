@@ -172,7 +172,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
     describe('Individual fetch methods', () => {
         it('should fetch expenses separately', async () => {
             (enhancedGroupDetailStore as any).currentGroupId = 'group1';
-            
+
             const mockExpenseResponse = {
                 expenses: mockFullDetails.expenses.expenses,
                 hasMore: false,
@@ -188,7 +188,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
 
         it('should fetch balances separately', async () => {
             (enhancedGroupDetailStore as any).currentGroupId = 'group1';
-            
+
             vi.mocked(apiClient.getGroupBalances).mockResolvedValue(mockFullDetails.balances);
             await enhancedGroupDetailStore.fetchBalances();
 
@@ -198,7 +198,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
 
         it('should fetch members separately', async () => {
             (enhancedGroupDetailStore as any).currentGroupId = 'group1';
-            
+
             vi.mocked(apiClient.getGroupMembers).mockResolvedValue(mockFullDetails.members);
             await enhancedGroupDetailStore.fetchMembers();
 
@@ -208,7 +208,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
 
         it('should fetch settlements separately', async () => {
             (enhancedGroupDetailStore as any).currentGroupId = 'group1';
-            
+
             const mockSettlementResponse = {
                 settlements: [],
                 count: 0,
@@ -272,7 +272,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
             if (expenseCallback) {
                 await expenseCallback();
                 // Wait for async operations
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
             }
 
             expect(apiClient.getExpenses).toHaveBeenCalled();

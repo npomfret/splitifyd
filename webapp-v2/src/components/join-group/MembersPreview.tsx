@@ -5,7 +5,7 @@
  * (Members are now fetched separately via /groups/:id/members endpoint)
  */
 
-import {Group, groupSize} from '@shared/shared-types.ts';
+import { Group, groupSize } from '@shared/shared-types.ts';
 
 interface MembersPreviewProps {
     group: Group;

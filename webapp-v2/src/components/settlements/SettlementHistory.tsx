@@ -135,22 +135,14 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
                                         {formatAmount(settlement.amount)}
                                     </p>
                                 </div>
-                                
+
                                 <div class="flex gap-1">
                                     {onEditSettlement && (
-                                        <button
-                                            onClick={() => onEditSettlement(settlement)}
-                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                            title="Edit payment"
-                                        >
+                                        <button onClick={() => onEditSettlement(settlement)} class="p-1 text-gray-400 hover:text-blue-600 transition-colors" title="Edit payment">
                                             <PencilIcon class="h-4 w-4" />
                                         </button>
                                     )}
-                                    <button
-                                        onClick={() => handleDeleteClick(settlement)}
-                                        class="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                        title="Delete payment"
-                                    >
+                                    <button onClick={() => handleDeleteClick(settlement)} class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Delete payment">
                                         <TrashIcon class="h-4 w-4" />
                                     </button>
                                 </div>

@@ -15,7 +15,7 @@ interface EditGroupModalProps {
 export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: EditGroupModalProps) {
     const [groupName, setGroupName] = useState(group.name);
     const [groupDescription, setGroupDescription] = useState(group.description || '');
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
@@ -23,8 +23,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
-    const hasChanges = groupName !== group.name || 
-                       groupDescription !== (group.description || '');
+    const hasChanges = groupName !== group.name || groupDescription !== (group.description || '');
 
     // Reset form when modal opens/closes or group changes
     useEffect(() => {
@@ -222,23 +221,14 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
 
                         {/* Modal Footer */}
                         <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                            <Button 
-                                type="button" 
-                                variant="danger" 
-                                onClick={handleDeleteClick} 
-                                disabled={isSubmitting}
-                            >
+                            <Button type="button" variant="danger" onClick={handleDeleteClick} disabled={isSubmitting}>
                                 Delete Group
                             </Button>
                             <div class="flex items-center space-x-3">
                                 <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
                                     Cancel
                                 </Button>
-                                <Button 
-                                    type="submit" 
-                                    loading={isSubmitting} 
-                                    disabled={!isFormValid || !hasChanges}
-                                >
+                                <Button type="submit" loading={isSubmitting} disabled={!isFormValid || !hasChanges}>
                                     Save Changes
                                 </Button>
                             </div>

@@ -29,7 +29,7 @@ describe('ChangeDetector', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        
+
         // Set up mocks
         mockCollectionRef = { id: 'mock-collection' };
         mockQueryRef = { id: 'mock-query' };
@@ -39,7 +39,7 @@ describe('ChangeDetector', () => {
         mockCollection.mockReturnValue(mockCollectionRef);
         mockQuery.mockReturnValue(mockQueryRef);
         mockWhere.mockReturnValue({} as any);
-        
+
         // Default mock implementation that can be overridden in individual tests
         mockOnSnapshot.mockImplementation((_, _callback, _errorCallback) => {
             return mockUnsubscribe;
@@ -80,9 +80,7 @@ describe('ChangeDetector', () => {
                 empty: false,
                 size: 1,
                 docs: [{ id: 'change-1', data: () => ({ timestamp: Date.now() }) }],
-                docChanges: () => [
-                    { type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }
-                ],
+                docChanges: () => [{ type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }],
             };
 
             if (capturedCallback) {
@@ -110,9 +108,7 @@ describe('ChangeDetector', () => {
                 empty: false,
                 size: 1,
                 docs: [{ id: 'change-1', data: () => ({ timestamp: Date.now() }) }],
-                docChanges: () => [
-                    { type: 'modified', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }
-                ],
+                docChanges: () => [{ type: 'modified', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }],
             };
 
             if (capturedCallback) {
@@ -191,9 +187,7 @@ describe('ChangeDetector', () => {
                 empty: false,
                 size: 1,
                 docs: [{ id: 'change-1', data: () => ({ timestamp: Date.now() }) }],
-                docChanges: () => [
-                    { type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }
-                ],
+                docChanges: () => [{ type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }],
             };
 
             if (capturedCallback) {
@@ -223,7 +217,9 @@ describe('ChangeDetector', () => {
 
         it('handles callback errors without breaking other callbacks', () => {
             const userId = 'test-user-123';
-            const callback1 = vi.fn(() => { throw new Error('Callback error'); });
+            const callback1 = vi.fn(() => {
+                throw new Error('Callback error');
+            });
             const callback2 = vi.fn();
 
             // Mock onSnapshot to capture the success callback
@@ -240,9 +236,7 @@ describe('ChangeDetector', () => {
                 empty: false,
                 size: 1,
                 docs: [{ id: 'change-1', data: () => ({ timestamp: Date.now() }) }],
-                docChanges: () => [
-                    { type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }
-                ],
+                docChanges: () => [{ type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }],
             };
 
             // Should not throw even if callback1 throws
@@ -292,7 +286,7 @@ describe('ChangeDetector', () => {
             const callback = vi.fn();
 
             changeDetector.subscribeToGroupChanges(userId, callback);
-            
+
             changeDetector.dispose();
             changeDetector.dispose(); // Second call should not throw
 
@@ -319,9 +313,7 @@ describe('ChangeDetector', () => {
                 empty: false,
                 size: 1,
                 docs: [{ id: 'change-1', data: () => ({ timestamp: Date.now() }) }],
-                docChanges: () => [
-                    { type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }
-                ],
+                docChanges: () => [{ type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }],
             };
 
             if (capturedCallback) {
@@ -388,7 +380,7 @@ describe('ChangeDetector', () => {
 
         it('retries subscription on failure with exponential backoff', async () => {
             vi.useFakeTimers();
-            
+
             const userId = 'test-user';
             const callback = vi.fn();
             let attemptCount = 0;
@@ -425,7 +417,7 @@ describe('ChangeDetector', () => {
 
         it('gives up after max retries exceeded', async () => {
             vi.useFakeTimers();
-            
+
             const userId = 'test-user';
             const callback = vi.fn();
             const errorCallback = vi.fn();
@@ -449,17 +441,17 @@ describe('ChangeDetector', () => {
 
             // Initial attempt fails immediately
             expect(errorCallback).toHaveBeenCalledTimes(1);
-            
+
             // Wait for first retry (100ms * 2^0 = 100ms)
             await vi.advanceTimersByTimeAsync(100);
             expect(errorCallback).toHaveBeenCalledTimes(2);
-            
+
             // Wait for second retry (100ms * 2^1 = 200ms)
             await vi.advanceTimersByTimeAsync(200);
-            
+
             // Clean up pending timers
             vi.clearAllTimers();
-            
+
             // Verify final state - initial attempt + retries
             // The implementation appears to do initial + maxRetries attempts
             expect(failureCount).toBeLessThanOrEqual(4); // May have additional cleanup attempts
@@ -501,7 +493,7 @@ describe('ChangeDetector', () => {
             expect(mockOnSnapshot).toHaveBeenCalledTimes(10);
 
             // Unsubscribe half of them
-            unsubscribes.slice(0, 5).forEach(unsub => unsub());
+            unsubscribes.slice(0, 5).forEach((unsub) => unsub());
             expect(mockUnsubscribe).toHaveBeenCalledTimes(5);
 
             // Dispose should clean up remaining 5

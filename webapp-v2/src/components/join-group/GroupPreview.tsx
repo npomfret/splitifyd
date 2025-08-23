@@ -6,7 +6,7 @@
 
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import {Group, groupSize} from '@shared/shared-types.ts';
+import { Group, groupSize } from '@shared/shared-types.ts';
 
 interface GroupPreviewProps {
     group: Group;
@@ -28,7 +28,7 @@ export function GroupPreview({ group }: GroupPreviewProps) {
                         <div className="grid grid-cols-2 gap-4 text-center">
                             <div>
                                 <div className="text-2xl font-semibold text-primary-600">{groupSize(group)}</div>
-                                <div className="text-sm text-gray-600">{(groupSize(group)) === 1 ? 'Member' : 'Members'}</div>
+                                <div className="text-sm text-gray-600">{groupSize(group) === 1 ? 'Member' : 'Members'}</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-semibold text-primary-600">Active</div>

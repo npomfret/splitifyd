@@ -83,9 +83,9 @@ describe('Enhanced Stores UI Integration', () => {
 
             // Simulate component mount behavior
             expect(enhancedGroupsStore.initialized).toBe(false);
-            
+
             await enhancedGroupsStore.fetchGroups();
-            
+
             expect(enhancedGroupsStore.initialized).toBe(true);
             expect(enhancedGroupsStore.groups).toEqual(mockGroups);
             expect(enhancedGroupsStore.groups).toHaveLength(2);
@@ -147,12 +147,12 @@ describe('Enhanced Stores UI Integration', () => {
             await enhancedGroupsStore.fetchGroups();
 
             // Verify balance data is accessible for UI
-            const familyGroup = enhancedGroupsStore.groups.find(g => g.id === 'group1');
+            const familyGroup = enhancedGroupsStore.groups.find((g) => g.id === 'group1');
             expect(familyGroup?.balance?.balancesByCurrency.USD).toBeDefined();
             expect(familyGroup?.balance?.balancesByCurrency.USD?.netBalance).toBe(150);
             expect(familyGroup?.balance?.balancesByCurrency.USD?.totalOwed).toBe(150);
 
-            const tripGroup = enhancedGroupsStore.groups.find(g => g.id === 'group2');
+            const tripGroup = enhancedGroupsStore.groups.find((g) => g.id === 'group2');
             expect(tripGroup?.balance?.balancesByCurrency.EUR).toBeDefined();
             expect(tripGroup?.balance?.balancesByCurrency.EUR?.netBalance).toBe(-75);
             expect(tripGroup?.balance?.balancesByCurrency.EUR?.totalOwing).toBe(75);
@@ -242,7 +242,7 @@ describe('Enhanced Stores UI Integration', () => {
             expect(enhancedGroupDetailStore.members).toEqual(mockMembers);
             expect(enhancedGroupDetailStore.expenses).toEqual(mockExpenses);
             expect(enhancedGroupDetailStore.balances).toEqual(mockBalances);
-            
+
             // Verify UI can access simplified debts for display
             expect(enhancedGroupDetailStore.balances?.simplifiedDebts).toHaveLength(1);
             expect(enhancedGroupDetailStore.balances?.simplifiedDebts[0].amount).toBe(50);
@@ -409,7 +409,7 @@ describe('Enhanced Stores UI Integration', () => {
             await enhancedGroupDetailStore.loadGroup('group1');
 
             // Verify both stores have consistent data
-            const dashboardGroup = enhancedGroupsStore.groups.find(g => g.id === 'group1');
+            const dashboardGroup = enhancedGroupsStore.groups.find((g) => g.id === 'group1');
             const detailGroup = enhancedGroupDetailStore.group;
 
             expect(dashboardGroup!.id).toBe(detailGroup!.id);
@@ -433,7 +433,7 @@ describe('Enhanced Stores UI Integration', () => {
         it('should recover from errors on retry', async () => {
             // First attempt fails
             vi.mocked(apiClient.getGroups).mockRejectedValueOnce(new Error('Network error'));
-            
+
             await expect(enhancedGroupsStore.fetchGroups()).rejects.toThrow();
             expect(enhancedGroupsStore.error).toBe('Network error');
 
@@ -452,7 +452,7 @@ describe('Enhanced Stores UI Integration', () => {
             });
 
             await enhancedGroupsStore.fetchGroups();
-            
+
             expect(enhancedGroupsStore.error).toBeNull();
             expect(enhancedGroupsStore.groups).toEqual(mockGroups);
         });

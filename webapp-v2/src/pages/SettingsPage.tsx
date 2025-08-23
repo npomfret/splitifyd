@@ -98,7 +98,7 @@ export function SettingsPage() {
                 currentPassword: passwordData.currentPassword,
                 newPassword: passwordData.newPassword,
             });
-            
+
             setSuccessMessage('Password changed successfully');
             setShowPasswordForm(false);
             setPasswordData({
@@ -147,17 +147,13 @@ export function SettingsPage() {
 
                     <div class="p-6 space-y-6">
                         {/* Success/Error Messages */}
-                        {successMessage && (
-                            <Alert type="success" message={successMessage} />
-                        )}
-                        {errorMessage && (
-                            <Alert type="error" message={errorMessage} />
-                        )}
+                        {successMessage && <Alert type="success" message={successMessage} />}
+                        {errorMessage && <Alert type="error" message={errorMessage} />}
 
                         {/* Profile Information Section */}
                         <div class="space-y-4">
                             <h2 class="text-lg font-medium text-gray-900">Profile Information</h2>
-                            
+
                             {/* Display Name Display */}
                             <div class="text-sm">
                                 <span class="text-gray-600">Current display name: </span>
@@ -181,13 +177,7 @@ export function SettingsPage() {
                                 onChange={setDisplayName}
                                 placeholder="Enter your display name"
                                 disabled={authStore.isUpdatingProfile}
-                                error={
-                                    isDisplayNameEmpty 
-                                        ? 'Display name cannot be empty' 
-                                        : isDisplayNameTooLong 
-                                        ? 'Display name must be 100 characters or less' 
-                                        : undefined
-                                }
+                                error={isDisplayNameEmpty ? 'Display name cannot be empty' : isDisplayNameTooLong ? 'Display name must be 100 characters or less' : undefined}
                             />
 
                             <Button
@@ -202,12 +192,9 @@ export function SettingsPage() {
                         {/* Password Section */}
                         <div class="border-t border-gray-200 pt-6 space-y-4">
                             <h2 class="text-lg font-medium text-gray-900">Password</h2>
-                            
+
                             {!showPasswordForm ? (
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => setShowPasswordForm(true)}
-                                >
+                                <Button variant="secondary" onClick={() => setShowPasswordForm(true)}>
                                     Change Password
                                 </Button>
                             ) : (
@@ -217,7 +204,7 @@ export function SettingsPage() {
                                         type="password"
                                         name="currentPassword"
                                         value={passwordData.currentPassword}
-                                        onChange={(value) => setPasswordData(prev => ({ ...prev, currentPassword: value }))}
+                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
                                         disabled={isLoading}
                                         autoComplete="current-password"
                                         id="current-password-input"
@@ -228,7 +215,7 @@ export function SettingsPage() {
                                         type="password"
                                         name="newPassword"
                                         value={passwordData.newPassword}
-                                        onChange={(value) => setPasswordData(prev => ({ ...prev, newPassword: value }))}
+                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
                                         disabled={isLoading}
                                         autoComplete="new-password"
                                         id="new-password-input"
@@ -239,25 +226,17 @@ export function SettingsPage() {
                                         type="password"
                                         name="confirmNewPassword"
                                         value={passwordData.confirmNewPassword}
-                                        onChange={(value) => setPasswordData(prev => ({ ...prev, confirmNewPassword: value }))}
+                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
                                         disabled={isLoading}
                                         autoComplete="new-password"
                                         id="confirm-password-input"
                                     />
 
                                     <div class="flex space-x-3">
-                                        <Button
-                                            onClick={handlePasswordChange}
-                                            disabled={isLoading}
-                                            loading={isLoading}
-                                        >
+                                        <Button onClick={handlePasswordChange} disabled={isLoading} loading={isLoading}>
                                             Update Password
                                         </Button>
-                                        <Button
-                                            variant="secondary"
-                                            onClick={handleCancelPasswordChange}
-                                            disabled={isLoading}
-                                        >
+                                        <Button variant="secondary" onClick={handleCancelPasswordChange} disabled={isLoading}>
                                             Cancel
                                         </Button>
                                     </div>

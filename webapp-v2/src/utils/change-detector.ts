@@ -121,10 +121,10 @@ export class ChangeDetector {
                         changeCount: addedChanges.length,
                         firstChange: addedChanges[0].doc.data(),
                     });
-                    
+
                     // Track notification metrics
                     streamingMetrics.trackNotification();
-                    
+
                     this.triggerCallbacks(key);
                 }
             },
@@ -246,11 +246,11 @@ export class ChangeDetector {
         this.listeners.forEach((unsubscribe) => unsubscribe());
         this.listeners.clear();
         this.callbacks.clear();
-        
+
         // Clear retry timers
         this.retryTimers.forEach((timer) => clearTimeout(timer));
         this.retryTimers.clear();
-        
+
         // Clear retry state
         this.retryCount.clear();
         this.subscriptionConfigs.clear();

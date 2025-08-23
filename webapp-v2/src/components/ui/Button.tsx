@@ -16,7 +16,20 @@ interface ButtonProps {
     'data-testid'?: string;
 }
 
-export function Button({ variant = 'primary', size = 'md', loading = false, disabled = false, fullWidth = false, onClick, type = 'button', children, className = '', id, ariaLabel, 'data-testid': dataTestId }: ButtonProps) {
+export function Button({
+    variant = 'primary',
+    size = 'md',
+    loading = false,
+    disabled = false,
+    fullWidth = false,
+    onClick,
+    type = 'button',
+    children,
+    className = '',
+    id,
+    ariaLabel,
+    'data-testid': dataTestId,
+}: ButtonProps) {
     const isDisabled = disabled || loading;
 
     // Extract text content from children for logging

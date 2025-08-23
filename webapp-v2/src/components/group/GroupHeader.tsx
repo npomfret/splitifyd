@@ -2,7 +2,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
-import {Group, groupSize} from '@shared/shared-types.ts';
+import { Group, groupSize } from '@shared/shared-types.ts';
 
 interface GroupHeaderProps {
     group: Group;
@@ -19,13 +19,7 @@ export function GroupHeader({ group, onSettings, isGroupOwner }: GroupHeaderProp
                     {group.description && <p className="text-gray-600">{group.description}</p>}
                 </div>
                 {isGroupOwner && onSettings && (
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={onSettings}
-                        className="p-2"
-                        ariaLabel="Group Settings"
-                    >
+                    <Button variant="ghost" size="sm" onClick={onSettings} className="p-2" ariaLabel="Group Settings">
                         <CogIcon className="h-5 w-5" />
                     </Button>
                 )}

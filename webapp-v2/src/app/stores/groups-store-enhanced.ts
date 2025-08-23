@@ -134,8 +134,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async updateGroup(id: string, updates: Partial<Group>): Promise<void> {
-        const groupIndex = groupsSignal.value.findIndex(g => g.id === id);
-        
+        const groupIndex = groupsSignal.value.findIndex((g) => g.id === id);
+
         if (groupIndex === -1) {
             throw new Error(`Group with id ${id} not found`);
         }
@@ -150,11 +150,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             const updateData: { name?: string; description?: string } = {};
             if (updates.name !== undefined) updateData.name = updates.name;
             if (updates.description !== undefined) updateData.description = updates.description;
-            
+
             if (Object.keys(updateData).length > 0) {
                 await apiClient.updateGroup(id, updateData);
             }
-            
+
             // Fetch fresh data from server to ensure consistency
             // This also ensures we get any server-side computed fields
             await this.fetchGroups();
@@ -197,12 +197,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 maxRetries: 3,
                 retryDelay: 2000,
                 onError: (error) => {
-                    logWarning('Change subscription error, notifications may be delayed', { 
+                    logWarning('Change subscription error, notifications may be delayed', {
                         error: error.message,
-                        userId 
+                        userId,
                     });
-                }
-            }
+                },
+            },
         );
     }
 

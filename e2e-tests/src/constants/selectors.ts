@@ -62,6 +62,7 @@ export const HEADINGS = {
     EXPENSE_DETAILS: 'Expense Details',
     WHO_PAID: new RegExp(translation.expenseForm.whoPaid),
     SPLIT_BETWEEN: new RegExp(translation.expenseForm.splitBetween),
+    STATISTICS: translation.dashboardStats.title,
 } as const;
 
 export const BUTTON_TEXTS = {
@@ -81,6 +82,8 @@ export const BUTTON_TEXTS = {
     CREATE_ACCOUNT: translation.registerPage.submitButton,
     CREATE_GROUP: translation.createGroupModal.submitButton,
     CANCEL: translation.expenseForm.cancel,
+    CREATE_FIRST_GROUP: translation.emptyGroupsState.createFirstGroup,
+    CREATE_NEW_GROUP: translation.quickActions.createNewGroup,
 } as const;
 
 export const MESSAGES = {
@@ -91,6 +94,9 @@ export const MESSAGES = {
     LOADING_EXPENSE_FORM: translation.common.loadingExpenseForm,
     CHECKING_AUTH: translation.common.checkingAuth,
     INVALID_LINK: translation.common.invalidLink,
+    NO_GROUPS_YET: translation.emptyGroupsState.title,
+    SETTLED_UP: translation.groupCard.settledUp,
+    NO_RECENT_ACTIVITY: translation.groupCard.noRecentActivity,
 } as const;
 
 export const FORM_LABELS = {

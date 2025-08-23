@@ -1,6 +1,21 @@
 import { render, screen, fireEvent } from '../../../test-utils';
 import { vi } from 'vitest';
 import { ExpenseFormHeader } from '../ExpenseFormHeader';
+import translation from '../../../locales/en/translation.json' with { type: 'json' };
+
+// Mock useTranslation hook
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const keys = key.split('.');
+            let result: any = translation;
+            for (const k of keys) {
+                result = result[k];
+            }
+            return result || key;
+        },
+    }),
+}));
 
 describe('ExpenseFormHeader', () => {
     const mockOnCancel = vi.fn();
@@ -12,22 +27,22 @@ describe('ExpenseFormHeader', () => {
     it('displays add mode header correctly', () => {
         render(<ExpenseFormHeader isEditMode={false} groupName="Trip to Paris" onCancel={mockOnCancel} />);
 
-        expect(screen.getByText('Add Expense')).toBeInTheDocument();
+        expect(screen.getByText(translation.expenseFormHeader.addExpense)).toBeInTheDocument();
         expect(screen.getByText('Trip to Paris')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: translation.expenseFormHeader.cancel })).toBeInTheDocument();
     });
 
     it('displays edit mode header correctly', () => {
         render(<ExpenseFormHeader isEditMode={true} groupName="Weekend Getaway" onCancel={mockOnCancel} />);
 
-        expect(screen.getByText('Edit Expense')).toBeInTheDocument();
+        expect(screen.getByText(translation.expenseFormHeader.editExpense)).toBeInTheDocument();
         expect(screen.getByText('Weekend Getaway')).toBeInTheDocument();
     });
 
     it('calls onCancel when cancel button is clicked', () => {
         render(<ExpenseFormHeader isEditMode={false} groupName="Test Group" onCancel={mockOnCancel} />);
 
-        const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+        const cancelButton = screen.getByRole('button', { name: translation.expenseFormHeader.cancel });
         fireEvent.click(cancelButton);
 
         expect(mockOnCancel).toHaveBeenCalledTimes(1);
@@ -47,7 +62,7 @@ describe('ExpenseFormHeader', () => {
         const headerContainer = container.querySelector('.bg-white');
         expect(headerContainer).toBeInTheDocument();
 
-        const title = screen.getByText('Add Expense');
+        const title = screen.getByText(translation.expenseFormHeader.addExpense);
         expect(title).toHaveClass('text-2xl', 'font-bold');
 
         const groupName = screen.getByText('Test Group');

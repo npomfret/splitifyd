@@ -61,10 +61,10 @@ describe('GroupCard', () => {
         const group = createTestGroup({
             name: 'trip to paris',
             members: {
-                'user1': createTestGroupMember('member', 0),
-                'user2': createTestGroupMember('member', 1), 
-                'user3': createTestGroupMember('member', 2),
-            }
+                user1: createTestGroupMember('member', 0),
+                user2: createTestGroupMember('member', 1),
+                user3: createTestGroupMember('member', 2),
+            },
         });
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
@@ -205,7 +205,7 @@ describe('GroupCard', () => {
         const group = createTestGroup({
             name: 'Solo Trip',
             members: {
-                'test-user': createTestGroupMember('owner', 0)
+                'test-user': createTestGroupMember('owner', 0),
             },
         });
 

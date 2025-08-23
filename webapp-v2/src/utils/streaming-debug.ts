@@ -10,7 +10,7 @@ import { logInfo } from './browser-logger';
  */
 export function debugStreamingMetrics(): void {
     const debug = streamingMetrics.getDebugInfo();
-    
+
     console.group('📊 Streaming Implementation Metrics');
     console.log('📈 Performance:', debug.performance);
     console.log('💰 Cost Estimates:', debug.cost);
@@ -37,7 +37,7 @@ export function enableStreamingDebug(): void {
             getDebugInfo: () => streamingMetrics.getDebugInfo(),
             resetMetrics: () => streamingMetrics.reset(),
         };
-        
+
         console.log('🔧 Streaming debug enabled. Use window.streamingDebug to access utilities.');
         console.log('Available methods:', Object.keys((window as any).streamingDebug));
     }

@@ -14,7 +14,18 @@ interface ConfirmDialogProps {
     'data-testid'?: string;
 }
 
-export function ConfirmDialog({ isOpen, title, message, confirmText = 'Confirm', cancelText = 'Cancel', onConfirm, onCancel, variant = 'info', loading = false, 'data-testid': dataTestId }: ConfirmDialogProps) {
+export function ConfirmDialog({
+    isOpen,
+    title,
+    message,
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+    onConfirm,
+    onCancel,
+    variant = 'info',
+    loading = false,
+    'data-testid': dataTestId,
+}: ConfirmDialogProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Handle escape key to close modal
@@ -93,10 +104,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText = 'Confirm',
                 {/* Content */}
                 <div className="text-center">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{title}</h3>
-                    <p 
-                        className="text-sm text-gray-500 dark:text-gray-400 mb-6" 
-                        data-testid={message.includes('outstanding balance') ? 'balance-error-message' : undefined}
-                    >
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6" data-testid={message.includes('outstanding balance') ? 'balance-error-message' : undefined}>
                         {message}
                     </p>
                 </div>

@@ -166,7 +166,6 @@ describe('useExpenseForm', () => {
 
     describe('Form Interactions', () => {
         it('calls store methods when form functions are invoked', () => {
-
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -177,7 +176,6 @@ describe('useExpenseForm', () => {
         });
 
         it('calls split amount update method', () => {
-
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -188,7 +186,6 @@ describe('useExpenseForm', () => {
         });
 
         it('calls split percentage update method', () => {
-
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -199,7 +196,6 @@ describe('useExpenseForm', () => {
         });
 
         it('calls participant toggle method', () => {
-
             const { result } = renderHook(() => useExpenseForm(defaultOptions));
 
             act(() => {
@@ -221,8 +217,6 @@ describe('useExpenseForm', () => {
 
     describe('Navigation', () => {
         it('redirects to dashboard when no groupId provided', () => {
-            
-
             renderHook(() =>
                 useExpenseForm({
                     ...defaultOptions,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -11,6 +12,7 @@ import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 import { ShareGroupModal } from '@/components/group';
 
 export function DashboardPage() {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: string; groupName: string }>({
@@ -58,7 +60,7 @@ export function DashboardPage() {
     };
 
     return (
-        <BaseLayout title="Dashboard - Splitifyd" description="Manage your groups and expenses with Splitifyd" headerVariant="dashboard">
+        <BaseLayout title={t('dashboard.title')} description={t('dashboard.description')} headerVariant="dashboard">
             <DashboardGrid
                 mainContent={
                     <>
@@ -70,20 +72,20 @@ export function DashboardPage() {
                         {/* Welcome Section - Only show for first-time users (no groups) */}
                         {enhancedGroupsStore.groups.length === 0 && (
                             <div class="mb-6">
-                                <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome to Splitifyd, {user.displayName || user.email.split('@')[0]}!</h2>
-                                <p class="text-gray-600">Get started by creating your first group to track and split expenses with friends.</p>
+                                <h2 class="text-2xl font-bold text-gray-900 mb-2">{t('dashboard.welcomeMessage', { name: user.displayName || user.email.split('@')[0] })}</h2>
+                                <p class="text-gray-600">{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
 
                         {/* Groups Section */}
                         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                             <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-lg font-semibold text-gray-900">Your Groups</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">{t('dashboard.yourGroups')}</h3>
                                 <button
                                     class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block"
                                     onClick={() => setIsCreateModalOpen(true)}
                                 >
-                                    Create Group
+                                    {t('dashboard.createGroup')}
                                 </button>
                             </div>
 

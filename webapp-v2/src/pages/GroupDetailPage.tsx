@@ -178,19 +178,26 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <GroupDetailGrid
                 leftSidebar={
                     <>
-                        <MembersListWithManagement 
-                            members={members.value} 
-                            createdBy={group.value!.createdBy || ''} 
+                        <MembersListWithManagement
+                            members={members.value}
+                            createdBy={group.value!.createdBy || ''}
                             currentUserId={currentUser.value.uid}
                             groupId={groupId!}
                             balances={balances.value}
-                            loading={loadingMembers.value} 
-                            variant="sidebar" 
+                            loading={loadingMembers.value}
+                            variant="sidebar"
                             onInviteClick={handleShare}
                             onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
                         />
 
-                        <GroupActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} variant="vertical" />
+                        <GroupActions
+                            onAddExpense={handleAddExpense}
+                            onSettleUp={handleSettleUp}
+                            onShare={handleShare}
+                            onSettings={handleSettings}
+                            isGroupOwner={isGroupOwner.value ?? false}
+                            variant="vertical"
+                        />
                     </>
                 }
                 mainContent={
@@ -220,13 +227,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only members list */}
                         <div className="lg:hidden">
-                            <MembersListWithManagement 
-                                members={members.value} 
-                                createdBy={group.value!.createdBy || ''} 
+                            <MembersListWithManagement
+                                members={members.value}
+                                createdBy={group.value!.createdBy || ''}
                                 currentUserId={currentUser.value.uid}
                                 groupId={groupId!}
                                 balances={balances.value}
-                                loading={loadingMembers.value} 
+                                loading={loadingMembers.value}
                                 onInviteClick={handleShare}
                                 onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
                             />
@@ -260,13 +267,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
             {/* Edit Group Modal */}
             {isGroupOwner.value && (
-                <EditGroupModal
-                    isOpen={showEditModal.value}
-                    group={group.value!}
-                    onClose={() => (showEditModal.value = false)}
-                    onSuccess={handleGroupUpdateSuccess}
-                    onDelete={handleGroupDelete}
-                />
+                <EditGroupModal isOpen={showEditModal.value} group={group.value!} onClose={() => (showEditModal.value = false)} onSuccess={handleGroupUpdateSuccess} onDelete={handleGroupDelete} />
             )}
 
             {/* Settlement Form Modal */}

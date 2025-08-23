@@ -22,52 +22,52 @@ interface MembersListWithManagementProps {
     onMemberChange?: () => void;
 }
 
-export function MembersListWithManagement({ 
-    members, 
-    createdBy, 
+export function MembersListWithManagement({
+    members,
+    createdBy,
     currentUserId,
     groupId,
     balances,
-    loading = false, 
-    variant = 'default', 
+    loading = false,
+    variant = 'default',
     onInviteClick,
-    onMemberChange 
+    onMemberChange,
 }: MembersListWithManagementProps) {
     const showLeaveConfirm = useSignal(false);
     const showRemoveConfirm = useSignal(false);
     const memberToRemove = useSignal<User | null>(null);
     const isProcessing = useSignal(false);
-    
+
     const isOwner = currentUserId === createdBy;
     const isLastMember = members.length === 1;
-    
+
     // Helper function to get user balance from Group.balance structure
     // Structure: balancesByCurrency: Record<currency, Record<userId, UserBalance>>
     const getUserBalance = (userId: string): number => {
         if (!balances?.balancesByCurrency) {
             return 0;
         }
-        
+
         // Check each currency for this user's balance
         for (const currency in balances.balancesByCurrency) {
             const currencyBalances = balances.balancesByCurrency[currency];
             const userBalance = currencyBalances?.[userId];
-            
+
             if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
                 return Math.abs(userBalance.netBalance);
             }
         }
-        
+
         return 0;
     };
-    
+
     // Check if current user has outstanding balance
     // Important: This must be reactive to both currentUserId and balances changes
     const hasOutstandingBalance = useComputed(() => {
         // Force reactivity by accessing balances directly
         const currentBalances = balances;
         if (!currentBalances) return false;
-        
+
         return getUserBalance(currentUserId) > 0;
     });
 
@@ -78,18 +78,18 @@ export function MembersListWithManagement({
 
     const handleLeaveGroup = async () => {
         if (isProcessing.value) return;
-        
+
         // Check if user has outstanding balance and prevent leaving if so
         if (hasOutstandingBalance.value) {
             // Don't leave - the dialog should show error message and user can cancel
             return;
         }
-        
+
         try {
             isProcessing.value = true;
             await apiClient.leaveGroup(groupId);
             // Successfully left - navigation will handle the redirect
-            
+
             // Navigate to dashboard after leaving
             route('/dashboard');
         } catch (error: any) {
@@ -102,18 +102,18 @@ export function MembersListWithManagement({
 
     const handleRemoveMember = async () => {
         if (!memberToRemove.value || isProcessing.value) return;
-        
+
         // Check if member has outstanding balance and prevent removal if so
         if (memberHasOutstandingBalance(memberToRemove.value.uid)) {
             // Don't remove - the dialog should show error message and user can cancel
             return;
         }
-        
+
         try {
             isProcessing.value = true;
             await apiClient.removeGroupMember(groupId, memberToRemove.value.uid);
             // Member removed successfully
-            
+
             // Trigger refresh of members list
             if (onMemberChange) {
                 onMemberChange();
@@ -139,17 +139,16 @@ export function MembersListWithManagement({
     ) : variant === 'sidebar' ? (
         <div className="space-y-3">
             {members.map((member) => (
-                <div key={member.uid} className="flex items-center gap-3 group" data-testid="member-item" data-member-id={member.uid} data-member-name={member.displayName || member.email || 'Unknown User'}>
-                    <Avatar 
-                        displayName={member.displayName || member.email || 'Unknown User'} 
-                        userId={member.uid} 
-                        size="sm" 
-                        themeColor={member.themeColor} 
-                    />
+                <div
+                    key={member.uid}
+                    className="flex items-center gap-3 group"
+                    data-testid="member-item"
+                    data-member-id={member.uid}
+                    data-member-name={member.displayName || member.email || 'Unknown User'}
+                >
+                    <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="sm" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                            {member.displayName || member.email || 'Unknown User'}
-                        </p>
+                        <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
                         {member.uid === createdBy && <p className="text-xs text-gray-500">Admin</p>}
                     </div>
                     {isOwner && member.uid !== currentUserId && (
@@ -171,17 +170,16 @@ export function MembersListWithManagement({
     ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {members.map((member) => (
-                <div key={member.uid} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 group" data-testid="member-item" data-member-id={member.uid} data-member-name={member.displayName || member.email || 'Unknown User'}>
-                    <Avatar 
-                        displayName={member.displayName || member.email || 'Unknown User'} 
-                        userId={member.uid} 
-                        size="md" 
-                        themeColor={member.themeColor} 
-                    />
+                <div
+                    key={member.uid}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 group"
+                    data-testid="member-item"
+                    data-member-id={member.uid}
+                    data-member-name={member.displayName || member.email || 'Unknown User'}
+                >
+                    <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="md" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                            {member.displayName || member.email || 'Unknown User'}
-                        </p>
+                        <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
                         {member.uid === createdBy && <p className="text-xs text-gray-500">Admin</p>}
                     </div>
                     {isOwner && member.uid !== currentUserId && (
@@ -210,25 +208,12 @@ export function MembersListWithManagement({
                         <h3 className="text-base font-semibold text-gray-900">Members</h3>
                         <div className="flex items-center gap-1">
                             {onInviteClick && (
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={onInviteClick}
-                                    className="p-1 h-auto"
-                                    ariaLabel="Invite Others"
-                                >
+                                <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-1 h-auto" ariaLabel="Invite Others">
                                     <UserPlusIcon className="h-4 w-4" />
                                 </Button>
                             )}
                             {!isOwner && !isLastMember && (
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => showLeaveConfirm.value = true}
-                                    className="p-1 h-auto"
-                                    ariaLabel="Leave Group"
-                                    data-testid="leave-group-button"
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="p-1 h-auto" ariaLabel="Leave Group" data-testid="leave-group-button">
                                     <ArrowRightOnRectangleIcon className="h-4 w-4 text-gray-500" />
                                 </Button>
                             )}
@@ -243,14 +228,14 @@ export function MembersListWithManagement({
                     title="Leave Group?"
                     message={
                         getUserBalance(currentUserId) > 0
-                            ? "You have an outstanding balance in this group. Please settle up before leaving."
+                            ? 'You have an outstanding balance in this group. Please settle up before leaving.'
                             : "Are you sure you want to leave this group? You'll need an invitation to rejoin."
                     }
                     confirmText="Leave Group"
                     cancelText="Cancel"
                     variant="warning"
                     onConfirm={handleLeaveGroup}
-                    onCancel={() => showLeaveConfirm.value = false}
+                    onCancel={() => (showLeaveConfirm.value = false)}
                     loading={isProcessing.value}
                     data-testid="leave-group-dialog"
                 />
@@ -285,24 +270,12 @@ export function MembersListWithManagement({
                     <h2 className="text-lg font-semibold">Members</h2>
                     <div className="flex items-center gap-2">
                         {onInviteClick && (
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={onInviteClick}
-                                className="p-2"
-                                ariaLabel="Invite Others"
-                            >
+                            <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-2" ariaLabel="Invite Others">
                                 <UserPlusIcon className="h-5 w-5" />
                             </Button>
                         )}
                         {!isOwner && !isLastMember && (
-                            <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                onClick={() => showLeaveConfirm.value = true}
-                                className="flex items-center gap-2"
-                                data-testid="leave-group-button"
-                            >
+                            <Button variant="secondary" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="flex items-center gap-2" data-testid="leave-group-button">
                                 <>
                                     <ArrowRightOnRectangleIcon className="h-4 w-4" />
                                     Leave Group
@@ -320,14 +293,14 @@ export function MembersListWithManagement({
                 title="Leave Group?"
                 message={
                     getUserBalance(currentUserId) > 0
-                        ? "You have an outstanding balance in this group. Please settle up before leaving."
+                        ? 'You have an outstanding balance in this group. Please settle up before leaving.'
                         : "Are you sure you want to leave this group? You'll need an invitation to rejoin."
                 }
                 confirmText="Leave Group"
                 cancelText="Cancel"
                 variant="warning"
                 onConfirm={handleLeaveGroup}
-                onCancel={() => showLeaveConfirm.value = false}
+                onCancel={() => (showLeaveConfirm.value = false)}
                 loading={isProcessing.value}
                 data-testid="leave-group-dialog"
             />

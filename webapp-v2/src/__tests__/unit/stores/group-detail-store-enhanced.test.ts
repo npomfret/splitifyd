@@ -19,7 +19,7 @@ describe('EnhancedGroupDetailStore', () => {
         name: 'Test Group',
         description: 'Test Description',
         members: {
-            'user1': {
+            user1: {
                 joinedAt: new Date().toISOString(),
                 role: 'owner' as const,
                 theme: {
@@ -31,7 +31,7 @@ describe('EnhancedGroupDetailStore', () => {
                     colorIndex: 0,
                 },
             },
-            'user2': {
+            user2: {
                 joinedAt: new Date().toISOString(),
                 role: 'member' as const,
                 theme: {
@@ -43,7 +43,7 @@ describe('EnhancedGroupDetailStore', () => {
                     colorIndex: 1,
                 },
             },
-            'user3': {
+            user3: {
                 joinedAt: new Date().toISOString(),
                 role: 'member' as const,
                 theme: {
@@ -105,8 +105,8 @@ describe('EnhancedGroupDetailStore', () => {
             createdBy: 'user1',
             createdAt: '2024-01-01T00:00:00Z',
             updatedAt: '2024-01-01T00:00:00Z',
-                    deletedAt: null,
-                    deletedBy: null,
+            deletedAt: null,
+            deletedBy: null,
         },
     ];
 
@@ -245,11 +245,14 @@ describe('EnhancedGroupDetailStore', () => {
 
             // Mock refresh responses
             vi.mocked(apiClient.getExpenses).mockResolvedValue({
-                expenses: [...mockExpenses, {
-                    ...mockExpenses[0],
-                    id: 'expense2',
-                    description: 'Lunch',
-                }],
+                expenses: [
+                    ...mockExpenses,
+                    {
+                        ...mockExpenses[0],
+                        id: 'expense2',
+                        description: 'Lunch',
+                    },
+                ],
                 hasMore: false,
             });
             vi.mocked(apiClient.listSettlements).mockResolvedValue({
@@ -463,7 +466,7 @@ describe('EnhancedGroupDetailStore', () => {
         it('should dispose subscriptions properly', () => {
             const mockUnsubscribeExpense = vi.fn();
             const mockUnsubscribeBalance = vi.fn();
-            
+
             (enhancedGroupDetailStore as any).expenseUnsubscribe = mockUnsubscribeExpense;
             (enhancedGroupDetailStore as any).balanceUnsubscribe = mockUnsubscribeBalance;
 
@@ -512,7 +515,7 @@ describe('EnhancedGroupDetailStore', () => {
         it('should refresh data when changes are detected in real-time', async () => {
             let expenseCallback: (() => void) | undefined;
             let balanceCallback: (() => void) | undefined;
-            
+
             const mockSubscribeExpense = vi.fn((_, callback) => {
                 expenseCallback = callback;
                 return vi.fn();
@@ -532,11 +535,14 @@ describe('EnhancedGroupDetailStore', () => {
             (enhancedGroupDetailStore as any).groupSignal.value = mockGroup;
 
             // Mock updated data
-            const updatedExpenses = [...mockExpenses, {
-                ...mockExpenses[0],
-                id: 'expense3',
-                description: 'Coffee',
-            }];
+            const updatedExpenses = [
+                ...mockExpenses,
+                {
+                    ...mockExpenses[0],
+                    id: 'expense3',
+                    description: 'Coffee',
+                },
+            ];
             const updatedBalances = {
                 ...mockBalances,
                 lastUpdated: '2024-01-03T00:00:00Z',
