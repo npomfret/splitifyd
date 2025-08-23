@@ -114,3 +114,87 @@ The initial, minimal implementation has been completed. This work serves as the 
     -   This component now serves as a template for how to refactor other components.
 -   **Further Progress:**
     -   The `LoginPage.tsx` and `RegisterPage.tsx` components have been fully refactored to use the i18n system.
+
+**Date:** 2025-08-23
+
+Significant progress has been made on test suite i18n integration and component accessibility improvements:
+
+#### Test Suite i18n Integration
+-   **Strategy Validation:** The recommended approach of forcing tests to run in a single language (English) has been successfully implemented and validated.
+-   **E2E Test Framework Updates:**
+    -   Created comprehensive translation constants in `e2e-tests/src/constants/selectors.ts` that import from the main translation file.
+    -   Updated test page objects to use translation keys instead of hardcoded strings.
+    -   Fixed selector conflicts and ambiguous element matching issues.
+-   **Translation File Expansion:**
+    -   Added comprehensive translation keys for expense forms, settlement forms, common UI elements, and error messages.
+    -   Organized translations into logical sections: `loginPage`, `registerPage`, `createGroupModal`, `expenseForm`, `settlementForm`, `common`, and `errors`.
+
+#### Component Accessibility & Quality Improvements
+-   **Form Input Components:**
+    -   Enhanced `PasswordInput` component with configurable `id` prop to prevent duplicate HTML IDs.
+    -   Fixed accessibility issues with proper `for`/`id` label associations.
+    -   Improved `aria-label` and `aria-describedby` attribute usage.
+-   **RegisterPage Refactoring:**
+    -   Added proper accessibility attributes to name input field.
+    -   Fixed duplicate password input IDs using unique identifiers.
+    -   Ensured all form elements have proper label associations.
+
+#### Critical Issues Resolved
+-   **i18n Initialization Bug:** Fixed missing i18n import in `main.tsx` that was causing translation keys to display instead of translated text.
+-   **Test Selector Brittleness:** Resolved numerous test failures caused by hardcoded text selectors that didn't match the actual UI.
+-   **HTML Validation Issues:** Fixed duplicate IDs and improved semantic HTML structure.
+
+#### Test Suite Stability
+-   **Consistent Test Passes:** Both expense creation and authentication navigation test suites now pass consistently (20+ consecutive successful runs).
+-   **Robust Selectors:** Tests now use translation-based selectors that are resilient to UI text changes.
+-   **Better Error Messages:** Improved test debugging with more specific element selection strategies.
+
+#### Key Learnings
+1. **i18n Integration is Critical for Test Stability:** The disconnect between translated UI and hardcoded test selectors was a major source of test brittleness.
+2. **Accessibility and i18n Go Hand-in-Hand:** Proper form labeling and element identification are essential for both screen readers and test automation.
+3. **Component API Design Matters:** Components need flexible APIs (like configurable IDs) to work well in different contexts and avoid HTML validation issues.
+4. **Test-First Approach Works:** Using translation keys in tests from the beginning would prevent many of these issues.
+
+#### Preventing E2E Test Breakage During i18n Implementation
+
+To maintain test stability when implementing i18n across components, follow these critical prevention guidelines:
+
+**1. Translation-Based Test Selectors**
+- Import translation file in test constants: `import translation from '../../../webapp-v2/src/locales/en/translation.json'`
+- Use translation keys in selectors: `translation.createGroupModal.title` instead of hardcoded `"Create New Group"`
+- Update `e2e-tests/src/constants/selectors.ts` to reference translation keys
+
+**2. Component i18n Implementation Pattern**
+- Add `useTranslation()` hook: `const { t } = useTranslation();`
+- Replace hardcoded strings: `"Create New Group"` → `{t('createGroupModal.title')}`
+- Ensure translation keys match exactly between component and test selectors
+- Test manually after each component conversion to verify text displays correctly
+
+**3. Accessibility and DOM Validation**
+- Use unique IDs for form elements to prevent duplicate ID warnings
+- Add configurable `id` props to reusable components like `PasswordInput`
+- Ensure proper `for`/`id` label associations for form accessibility
+- Use specific selectors to avoid ambiguity (e.g., `getByLabel('Password').and(locator('input'))`)
+
+**4. Translation File Organization**
+- Structure keys hierarchically: `registerPage.fullNameLabel`, `common.loading`
+- Keep translation keys descriptive and component-specific
+- Add comprehensive keys for forms, validation messages, and common UI elements
+- Validate JSON structure after updates
+
+**5. Test Update Sequence**
+- Update translation file with new keys first
+- Update component to use translation keys
+- Update test selectors to use translation-based constants
+- Run tests to verify no breakage before proceeding to next component
+
+**6. Debugging Failed Tests**
+- Check for selector ambiguity (multiple elements matching the same text)
+- Verify translation keys exist in translation file
+- Ensure i18n is properly initialized in `main.tsx`
+- Use browser dev tools to inspect actual rendered text vs expected selectors
+
+Following these guidelines prevents the brittleness that caused 20+ test failures during initial implementation.
+
+#### Next Steps
+The foundation is now solid for continuing i18n rollout across the remaining components. The established patterns and resolved issues provide a clear template for future work.
