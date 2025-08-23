@@ -3,6 +3,7 @@ import { App } from './App';
 import { AuthProvider } from './app/providers/AuthProvider';
 import { logUserAction, logButtonClick } from './utils/browser-logger';
 import './styles/global.css';
+import './i18n';
 
 // Global click interceptor for audit trail
 document.addEventListener(
