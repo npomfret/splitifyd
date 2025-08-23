@@ -1,4 +1,4 @@
-import translation from '../../../webapp-v2/src/locales/en/translation.json';
+import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: "json" };
 
 /**
  * Centralized selector constants to avoid hardcoding in tests
