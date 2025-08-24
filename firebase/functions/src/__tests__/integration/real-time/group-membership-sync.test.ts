@@ -25,6 +25,11 @@ describe('Group Membership Real-Time Sync Tests', () => {
         await userPool.initialize();
     });
 
+    afterAll(() => {
+        // Clean up all listeners
+        activeListeners.forEach(unsubscribe => unsubscribe());
+        activeListeners.length = 0;
+    })
 
     /**
      * This test replicates the issue where User 1 doesn't receive real-time updates
