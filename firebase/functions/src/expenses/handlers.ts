@@ -12,6 +12,7 @@ import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/sh
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
 import { isGroupOwner as checkIsGroupOwner } from '../utils/groupHelpers';
+import { transformGroupDocument } from '../groups/handlers';
 
 const getExpensesCollection = () => {
     return db.collection(FirestoreCollections.EXPENSES);
@@ -26,8 +27,12 @@ const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> =
     if (!groupDoc.exists) {
         return false;
     }
-    const groupData = groupDoc.data();
-    return groupData?.userId === userId;
+    
+    // Use the proper group document transformation from groups/handlers
+    const group = transformGroupDocument(groupDoc);
+    
+    // Use the proper group ownership logic from utils/groupHelpers
+    return checkIsGroupOwner(group, userId);
 };
 
 const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {

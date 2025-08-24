@@ -54,7 +54,7 @@ const getGroupsCollection = () => {
 /**
  * Transform Firestore document to Group format
  */
-const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group => {
+export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group => {
     const data = doc.data();
     if (!data) {
         throw new Error('Invalid group document');

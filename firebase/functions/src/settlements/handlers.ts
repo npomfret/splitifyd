@@ -66,7 +66,7 @@ const verifyUsersInGroup = async (groupId: string, userIds: string[]): Promise<v
     const groupData = groupDoc.data();
     const groupDataTyped = groupData?.data as GroupData;
 
-    const allMemberIds = [groupData?.userId, ...Object.keys(groupDataTyped.members || {})].filter(Boolean);
+    const allMemberIds = Object.keys(groupDataTyped.members || {});
 
     for (const userId of userIds) {
         if (!allMemberIds.includes(userId)) {
