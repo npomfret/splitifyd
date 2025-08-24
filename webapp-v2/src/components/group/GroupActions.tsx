@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -13,24 +14,25 @@ interface GroupActionsProps {
 }
 
 export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, isGroupOwner, variant = 'horizontal' }: GroupActionsProps) {
+    const { t } = useTranslation();
     const commonButtons = (
         <>
-            <Button variant="primary" onClick={onAddExpense} className={variant === 'vertical' ? 'w-full' : ''}>
+            <Button variant="primary" onClick={onAddExpense} className={variant === 'vertical' ? 'w-full' : ''} data-testid="add-expense-button">
                 <>
                     <PlusIcon className="h-4 w-4 mr-2" />
-                    Add Expense
+                    {t('groupActions.addExpense')}
                 </>
             </Button>
-            <Button variant="primary" onClick={onSettleUp} className={variant === 'vertical' ? 'w-full' : ''}>
+            <Button variant="primary" onClick={onSettleUp} className={variant === 'vertical' ? 'w-full' : ''} data-testid="settle-up-button">
                 <>
                     <CreditCardIcon className="h-4 w-4 mr-2" />
-                    Settle Up
+                    {t('groupActions.settleUp')}
                 </>
             </Button>
-            <Button variant="primary" onClick={onShare} className={variant === 'vertical' ? 'w-full' : ''}>
+            <Button variant="primary" onClick={onShare} className={variant === 'vertical' ? 'w-full' : ''} data-testid="invite-others-button">
                 <>
                     <UserPlusIcon className="h-4 w-4 mr-2" />
-                    Invite Others
+                    {t('groupActions.inviteOthers')}
                 </>
             </Button>
         </>
@@ -38,17 +40,17 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, is
 
     const settingsButton =
         isGroupOwner && onSettings ? (
-            <Button variant="primary" onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''}>
+            <Button variant="primary" onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''} data-testid="group-settings-button">
                 <>
                     <CogIcon className="h-4 w-4 mr-2" />
-                    Group Settings
+                    {t('groupActions.groupSettings')}
                 </>
             </Button>
         ) : null;
 
     if (variant === 'vertical') {
         return (
-            <SidebarCard title="Group Actions">
+            <SidebarCard title={t('groupActions.title')}>
                 <Stack spacing="sm">
                     {commonButtons}
                     {settingsButton}

@@ -98,6 +98,13 @@ export const BUTTON_TEXTS = {
     CREATE_FIRST_GROUP: translation.emptyGroupsState.createFirstGroup,
     CREATE_NEW_GROUP: translation.quickActions.createNewGroup,
     TODAY: translation.expenseBasicFields.today,
+    // Group Actions
+    ADD_EXPENSE_GROUP: translation.groupActions.addExpense,
+    SETTLE_UP_GROUP: translation.groupActions.settleUp,
+    INVITE_OTHERS_GROUP: translation.groupActions.inviteOthers,
+    GROUP_SETTINGS: translation.groupActions.groupSettings,
+    // Member Management
+    LEAVE_GROUP: translation.membersList.leaveGroup,
     YESTERDAY: translation.expenseBasicFields.yesterday,
     THIS_MORNING: translation.expenseBasicFields.thisMorning,
     LAST_NIGHT: translation.expenseBasicFields.lastNight,
@@ -236,6 +243,55 @@ export const SETTINGS_ERROR_MESSAGES = {
     PASSWORD_CHANGE_FAILED: translation.settingsPage.errorMessages.passwordChangeFailed,
     DISPLAY_NAME_EMPTY: translation.settingsPage.errorMessages.displayNameEmpty,
     DISPLAY_NAME_TOO_LONG: translation.settingsPage.errorMessages.displayNameTooLong,
+} as const;
+
+export const GROUP_MANAGEMENT_SELECTORS = {
+    // Group Actions
+    ADD_EXPENSE_BUTTON: '[data-testid="add-expense-button"]',
+    SETTLE_UP_BUTTON: '[data-testid="settle-up-button"]',
+    INVITE_OTHERS_BUTTON: '[data-testid="invite-others-button"]',
+    GROUP_SETTINGS_BUTTON: '[data-testid="group-settings-button"]',
+    
+    // Member Management
+    MEMBER_ITEM: '[data-testid="member-item"]',
+    REMOVE_MEMBER_BUTTON: '[data-testid="remove-member-button"]',
+    LEAVE_GROUP_BUTTON: '[data-testid="leave-group-button"]',
+    LEAVE_GROUP_DIALOG: '[data-testid="leave-group-dialog"]',
+    REMOVE_MEMBER_DIALOG: '[data-testid="remove-member-dialog"]',
+    
+    // Share Group Modal
+    SHARE_LINK_INPUT: '[data-testid="share-link-input"]',
+    COPY_LINK_BUTTON: '[data-testid="copy-link-button"]',
+    CLOSE_SHARE_MODAL_BUTTON: '[data-testid="close-share-modal-button"]',
+    GENERATE_NEW_LINK_BUTTON: '[data-testid="generate-new-link-button"]',
+} as const;
+
+export const GROUP_MANAGEMENT_TEXTS = {
+    // Group Actions
+    GROUP_ACTIONS_TITLE: translation.groupActions.title,
+    ADD_EXPENSE: translation.groupActions.addExpense,
+    SETTLE_UP: translation.groupActions.settleUp,
+    INVITE_OTHERS: translation.groupActions.inviteOthers,
+    GROUP_SETTINGS: translation.groupActions.groupSettings,
+    
+    // Member Management
+    MEMBERS_TITLE: translation.membersList.title,
+    ADMIN: translation.membersList.admin,
+    LEAVE_GROUP: translation.membersList.leaveGroup,
+    LEAVE_GROUP_DIALOG_TITLE: translation.membersList.leaveGroupDialog.title,
+    LEAVE_GROUP_CONFIRM_TEXT: translation.membersList.leaveGroupDialog.confirmText,
+    LEAVE_GROUP_CANCEL_TEXT: translation.membersList.leaveGroupDialog.cancelText,
+    REMOVE_MEMBER_DIALOG_TITLE: translation.membersList.removeMemberDialog.title,
+    REMOVE_MEMBER_CONFIRM_TEXT: translation.membersList.removeMemberDialog.confirmText,
+    REMOVE_MEMBER_CANCEL_TEXT: translation.membersList.removeMemberDialog.cancelText,
+    
+    // Share Group Modal
+    SHARE_GROUP_TITLE: translation.shareGroupModal.title,
+    SHARE_GROUP_DESCRIPTION: translation.shareGroupModal.description,
+    QR_CODE_DESCRIPTION: translation.shareGroupModal.qrCodeDescription,
+    EXPIRATION: translation.shareGroupModal.expiration,
+    GENERATE_NEW: translation.shareGroupModal.generateNew,
+    LINK_COPIED: translation.shareGroupModal.linkCopied,
 } as const;
 
 export const NAVIGATION_TEXTS = {

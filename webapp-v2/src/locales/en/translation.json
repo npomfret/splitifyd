@@ -279,5 +279,48 @@
             "displayNameEmpty": "Display name cannot be empty",
             "displayNameTooLong": "Display name must be 100 characters or less"
         }
+    },
+    "groupActions": {
+        "title": "Group Actions",
+        "addExpense": "Add Expense",
+        "settleUp": "Settle Up",
+        "inviteOthers": "Invite Others",
+        "groupSettings": "Group Settings"
+    },
+    "membersList": {
+        "title": "Members",
+        "admin": "Admin",
+        "member": "member",
+        "thisMember": "This member",
+        "leaveGroup": "Leave Group",
+        "inviteOthersAriaLabel": "Invite Others",
+        "leaveGroupAriaLabel": "Leave Group",
+        "removeMemberAriaLabel": "Remove {{name}}",
+        "leaveGroupDialog": {
+            "title": "Leave Group?",
+            "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",
+            "messageConfirm": "Are you sure you want to leave this group? You'll need an invitation to rejoin.",
+            "confirmText": "Leave Group",
+            "cancelText": "Cancel"
+        },
+        "removeMemberDialog": {
+            "title": "Remove Member?",
+            "messageWithBalance": "{{name}} has an outstanding balance in this group. Please settle up before removing.",
+            "messageConfirm": "Are you sure you want to remove {{name}} from the group?",
+            "confirmText": "Remove",
+            "cancelText": "Cancel"
+        }
+    },
+    "shareGroupModal": {
+        "title": "Invite Others",
+        "description": "Share this link with anyone you want to join this group.",
+        "copyLinkTitle": "Copy link",
+        "qrCodeDescription": "Or scan this code",
+        "expiration": "Expiration: 1 day",
+        "generateNew": "Generate New",
+        "linkCopied": "Link copied to clipboard",
+        "errors": {
+            "generateLinkFailed": "Failed to generate share link. Please try again."
+        }
     }
 }

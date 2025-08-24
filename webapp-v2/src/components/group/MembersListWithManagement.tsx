@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useSignal, useComputed } from '@preact/signals';
 import { route } from 'preact-router';
 import { Card } from '../ui/Card';
@@ -33,6 +34,7 @@ export function MembersListWithManagement({
     onInviteClick,
     onMemberChange,
 }: MembersListWithManagementProps) {
+    const { t } = useTranslation();
     const showLeaveConfirm = useSignal(false);
     const showRemoveConfirm = useSignal(false);
     const memberToRemove = useSignal<User | null>(null);
@@ -149,7 +151,7 @@ export function MembersListWithManagement({
                     <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="sm" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-                        {member.uid === createdBy && <p className="text-xs text-gray-500">Admin</p>}
+                        {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
                     </div>
                     {isOwner && member.uid !== currentUserId && (
                         <Button
@@ -157,7 +159,7 @@ export function MembersListWithManagement({
                             size="sm"
                             onClick={() => confirmRemoveMember(member)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                            ariaLabel={`Remove ${member.displayName || 'member'}`}
+                            ariaLabel={t('membersList.removeMemberAriaLabel', { name: member.displayName || t('membersList.member') })}
                             disabled={memberHasOutstandingBalance(member.uid)}
                             data-testid="remove-member-button"
                         >
@@ -180,7 +182,7 @@ export function MembersListWithManagement({
                     <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="md" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-                        {member.uid === createdBy && <p className="text-xs text-gray-500">Admin</p>}
+                        {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
                     </div>
                     {isOwner && member.uid !== currentUserId && (
                         <Button
@@ -188,7 +190,7 @@ export function MembersListWithManagement({
                             size="sm"
                             onClick={() => confirmRemoveMember(member)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                            ariaLabel={`Remove ${member.displayName || 'member'}`}
+                            ariaLabel={t('membersList.removeMemberAriaLabel', { name: member.displayName || t('membersList.member') })}
                             disabled={memberHasOutstandingBalance(member.uid)}
                             data-testid="remove-member-button"
                         >
@@ -205,15 +207,15 @@ export function MembersListWithManagement({
             <>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-base font-semibold text-gray-900">Members</h3>
+                        <h3 className="text-base font-semibold text-gray-900">{t('membersList.title')}</h3>
                         <div className="flex items-center gap-1">
                             {onInviteClick && (
-                                <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-1 h-auto" ariaLabel="Invite Others">
+                                <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-1 h-auto" ariaLabel={t('membersList.inviteOthersAriaLabel')} data-testid="invite-others-button">
                                     <UserPlusIcon className="h-4 w-4" />
                                 </Button>
                             )}
                             {!isOwner && !isLastMember && (
-                                <Button variant="ghost" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="p-1 h-auto" ariaLabel="Leave Group" data-testid="leave-group-button">
+                                <Button variant="ghost" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="p-1 h-auto" ariaLabel={t('membersList.leaveGroupAriaLabel')} data-testid="leave-group-button">
                                     <ArrowRightOnRectangleIcon className="h-4 w-4 text-gray-500" />
                                 </Button>
                             )}
@@ -225,14 +227,14 @@ export function MembersListWithManagement({
                 {/* Confirmation Dialogs */}
                 <ConfirmDialog
                     isOpen={showLeaveConfirm.value}
-                    title="Leave Group?"
+                    title={t('membersList.leaveGroupDialog.title')}
                     message={
                         getUserBalance(currentUserId) > 0
-                            ? 'You have an outstanding balance in this group. Please settle up before leaving.'
-                            : "Are you sure you want to leave this group? You'll need an invitation to rejoin."
+                            ? t('membersList.leaveGroupDialog.messageWithBalance')
+                            : t('membersList.leaveGroupDialog.messageConfirm')
                     }
-                    confirmText="Leave Group"
-                    cancelText="Cancel"
+                    confirmText={t('membersList.leaveGroupDialog.confirmText')}
+                    cancelText={t('membersList.leaveGroupDialog.cancelText')}
                     variant="warning"
                     onConfirm={handleLeaveGroup}
                     onCancel={() => (showLeaveConfirm.value = false)}
@@ -242,14 +244,18 @@ export function MembersListWithManagement({
 
                 <ConfirmDialog
                     isOpen={showRemoveConfirm.value}
-                    title="Remove Member?"
+                    title={t('membersList.removeMemberDialog.title')}
                     message={
                         memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
-                            ? `${memberToRemove.value.displayName || 'This member'} has an outstanding balance in this group. Please settle up before removing.`
-                            : `Are you sure you want to remove ${memberToRemove.value?.displayName || 'this member'} from the group?`
+                            ? t('membersList.removeMemberDialog.messageWithBalance', { 
+                                name: memberToRemove.value.displayName || t('membersList.thisMember') 
+                              })
+                            : t('membersList.removeMemberDialog.messageConfirm', { 
+                                name: memberToRemove.value?.displayName || t('membersList.thisMember') 
+                              })
                     }
-                    confirmText="Remove"
-                    cancelText="Cancel"
+                    confirmText={t('membersList.removeMemberDialog.confirmText')}
+                    cancelText={t('membersList.removeMemberDialog.cancelText')}
                     variant="danger"
                     onConfirm={handleRemoveMember}
                     onCancel={() => {
@@ -267,10 +273,10 @@ export function MembersListWithManagement({
         <>
             <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">Members</h2>
+                    <h2 className="text-lg font-semibold">{t('membersList.title')}</h2>
                     <div className="flex items-center gap-2">
                         {onInviteClick && (
-                            <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-2" ariaLabel="Invite Others">
+                            <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-2" ariaLabel={t('membersList.inviteOthersAriaLabel')} data-testid="invite-others-button">
                                 <UserPlusIcon className="h-5 w-5" />
                             </Button>
                         )}
@@ -278,7 +284,7 @@ export function MembersListWithManagement({
                             <Button variant="secondary" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="flex items-center gap-2" data-testid="leave-group-button">
                                 <>
                                     <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                                    Leave Group
+                                    {t('membersList.leaveGroup')}
                                 </>
                             </Button>
                         )}
@@ -290,14 +296,14 @@ export function MembersListWithManagement({
             {/* Confirmation Dialogs */}
             <ConfirmDialog
                 isOpen={showLeaveConfirm.value}
-                title="Leave Group?"
+                title={t('membersList.leaveGroupDialog.title')}
                 message={
                     getUserBalance(currentUserId) > 0
-                        ? 'You have an outstanding balance in this group. Please settle up before leaving.'
-                        : "Are you sure you want to leave this group? You'll need an invitation to rejoin."
+                        ? t('membersList.leaveGroupDialog.messageWithBalance')
+                        : t('membersList.leaveGroupDialog.messageConfirm')
                 }
-                confirmText="Leave Group"
-                cancelText="Cancel"
+                confirmText={t('membersList.leaveGroupDialog.confirmText')}
+                cancelText={t('membersList.leaveGroupDialog.cancelText')}
                 variant="warning"
                 onConfirm={handleLeaveGroup}
                 onCancel={() => (showLeaveConfirm.value = false)}
@@ -307,14 +313,18 @@ export function MembersListWithManagement({
 
             <ConfirmDialog
                 isOpen={showRemoveConfirm.value}
-                title="Remove Member?"
+                title={t('membersList.removeMemberDialog.title')}
                 message={
                     memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
-                        ? `${memberToRemove.value.displayName || 'This member'} has an outstanding balance in this group. Please settle up before removing.`
-                        : `Are you sure you want to remove ${memberToRemove.value?.displayName || 'this member'} from the group?`
+                        ? t('membersList.removeMemberDialog.messageWithBalance', { 
+                            name: memberToRemove.value.displayName || t('membersList.thisMember') 
+                          })
+                        : t('membersList.removeMemberDialog.messageConfirm', { 
+                            name: memberToRemove.value?.displayName || t('membersList.thisMember') 
+                          })
                 }
-                confirmText="Remove"
-                cancelText="Cancel"
+                confirmText={t('membersList.removeMemberDialog.confirmText')}
+                cancelText={t('membersList.removeMemberDialog.cancelText')}
                 variant="danger"
                 onConfirm={handleRemoveMember}
                 onCancel={() => {

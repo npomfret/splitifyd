@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
 import { logError } from '@/utils/browser-logger.ts';
@@ -11,6 +12,7 @@ interface ShareGroupModalProps {
 }
 
 export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalProps) {
+    const { t } = useTranslation();
     const [shareLink, setShareLink] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,7 +54,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
             setShareLink(fullUrl);
         } catch (err) {
             logError('Failed to generate share link', err);
-            setError('Failed to generate share link. Please try again.');
+            setError(t('shareGroupModal.errors.generateLinkFailed'));
         } finally {
             setLoading(false);
         }
@@ -107,10 +109,10 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                 </svg>
                                 <h3 id="share-modal-title" class="text-lg font-semibold text-gray-900">
-                                    Invite Others
+                                    {t('shareGroupModal.title')}
                                 </h3>
                             </div>
-                            <button onClick={onClose} class="text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100">
+                            <button onClick={onClose} class="text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100" data-testid="close-share-modal-button">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -120,7 +122,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
 
                     {/* Modal Content */}
                     <div class="p-6">
-                        <p class="text-sm text-gray-600 mb-4">Share this link with anyone you want to join this group.</p>
+                        <p class="text-sm text-gray-600 mb-4">{t('shareGroupModal.description')}</p>
 
                         {loading && (
                             <div class="flex justify-center py-8">
@@ -145,11 +147,13 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                                         readOnly={true}
                                         class="w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                         onClick={(e) => (e.target as HTMLInputElement).select()}
+                                        data-testid="share-link-input"
                                     />
                                     <button
                                         onClick={copyToClipboard}
                                         class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-all duration-200"
-                                        title="Copy link"
+                                        title={t('shareGroupModal.copyLinkTitle')}
+                                        data-testid="copy-link-button"
                                     >
                                         {copied ? (
                                             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,13 +177,13 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                                     <div class="p-4 bg-white rounded-lg border border-gray-200">
                                         <QRCodeCanvas value={shareLink} size={150} />
                                     </div>
-                                    <p class="text-sm text-gray-500 mt-2">Or scan this code</p>
+                                    <p class="text-sm text-gray-500 mt-2">{t('shareGroupModal.qrCodeDescription')}</p>
                                 </div>
 
                                 {/* Link expiration options */}
                                 <div class="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
-                                    <span>Expiration: 1 day</span>
-                                    <button class="text-purple-600 hover:text-purple-700 font-medium">Generate New</button>
+                                    <span>{t('shareGroupModal.expiration')}</span>
+                                    <button class="text-purple-600 hover:text-purple-700 font-medium" data-testid="generate-new-link-button">{t('shareGroupModal.generateNew')}</button>
                                 </div>
                             </div>
                         )}
@@ -194,7 +198,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                         <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="text-sm font-medium">Link copied to clipboard</span>
+                        <span class="text-sm font-medium">{t('shareGroupModal.linkCopied')}</span>
                     </div>
                 </div>
             )}
