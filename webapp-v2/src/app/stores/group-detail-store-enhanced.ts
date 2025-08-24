@@ -61,6 +61,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private groupChangeListener: (() => void) | null = null;
     private changeDetector = new ChangeDetector();
     private currentGroupId: string | null = null;
+    private refreshDebounceTimer: NodeJS.Timeout | null = null;
 
     // State getters
     get group() {
@@ -165,7 +166,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
-            this.refreshAll().catch((error) => logError('Failed to refresh after expense change', error));
+            this.debouncedRefreshAll();
         });
 
         // Subscribe to group changes (member additions/removals, group updates)
@@ -175,12 +176,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 logInfo('Ignoring group change - currentGroupId is null (component disposed)');
                 return;
             }
-            // Group change = refresh group data and members
+            // Group change = refresh everything (same as expense changes for consistency)
             logApiResponse('CHANGE', 'group_change', 200, {
-                action: 'REFRESHING_GROUP_AND_MEMBERS',
+                action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
-            Promise.all([this.loadGroup(this.currentGroupId!), this.fetchMembers()]).catch((error) => logError('Failed to refresh after group change', error));
+            this.debouncedRefreshAll();
         });
 
         logInfo('Change subscriptions setup complete', {
@@ -321,12 +322,37 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
+    private debouncedRefreshAll(): void {
+        // Clear existing timer
+        if (this.refreshDebounceTimer) {
+            clearTimeout(this.refreshDebounceTimer);
+        }
+        
+        // Debounce multiple rapid changes to prevent race conditions
+        this.refreshDebounceTimer = setTimeout(() => {
+            this.refreshAll().catch((error) => 
+                logError('Debounced refresh failed', { error, groupId: this.currentGroupId })
+            );
+            this.refreshDebounceTimer = null;
+        }, 100); // 100ms debounce
+    }
+
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
-
-        // Use the consolidated full-details endpoint to ensure atomic data consistency
-        // This prevents race conditions where balances might not be calculated yet
-        await this.loadGroup(this.currentGroupId);
+        
+        logInfo('RefreshAll: Starting complete data refresh', { groupId: this.currentGroupId });
+        
+        try {
+            // Use the consolidated full-details endpoint to ensure atomic data consistency
+            // This prevents race conditions where balances might not be calculated yet
+            // loadGroup() already calls getGroupFullDetails() which includes ALL data
+            await this.loadGroup(this.currentGroupId);
+            
+            logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
+        } catch (error) {
+            logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
+            throw error;
+        }
     }
 
     dispose(): void {
@@ -339,6 +365,14 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.groupChangeListener();
             this.groupChangeListener = null;
         }
+
+        // Clean up debounce timer
+        if (this.refreshDebounceTimer) {
+            clearTimeout(this.refreshDebounceTimer);
+            this.refreshDebounceTimer = null;
+        }
+
+        this.changeDetector.dispose();
     }
 
     reset(): void {

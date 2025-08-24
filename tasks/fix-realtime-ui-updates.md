@@ -2,7 +2,7 @@
 
 **Priority**: P1  
 **Created**: 2025-08-24  
-**Status**: Not Started  
+**Status**: ✅ COMPLETED  
 **Estimated Effort**: 1-2 days  
 **Source**: Extracted from group-membership-lifecycle-analysis.md
 
@@ -129,3 +129,44 @@ Tests show both working real-time expectations and workarounds:
 - Sub-500ms update propagation in normal network conditions
 - Graceful degradation in poor network conditions
 - No user-reported issues with stale data
+
+## Resolution Summary
+
+**Completed**: 2025-08-24
+
+### Root Causes Identified & Fixed
+
+1. **Inconsistent Change Handling**: 
+   - Expense changes called `refreshAll()` (atomic)
+   - Group changes called `Promise.all([loadGroup(), fetchMembers()])` (race conditions)
+   - **Fix**: Both now use `refreshAll()` for consistency
+
+2. **Race Conditions from Concurrent Changes**:
+   - Multiple rapid change events caused overlapping API calls
+   - **Fix**: Added 100ms debounced refresh to batch rapid changes
+
+3. **Missing Cleanup**:
+   - Debounce timers weren't cleaned up on disposal  
+   - **Fix**: Added timer cleanup in `dispose()`
+
+### Changes Made
+
+**File**: `webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
+- Added `refreshDebounceTimer` and `debouncedRefreshAll()` method
+- Made group changes use `refreshAll()` instead of individual calls  
+- Enhanced logging for debugging
+- Added timer cleanup in `dispose()`
+
+### Test Results
+
+- ✅ Multi-user balance visualization tests: 7/7 passed
+- ✅ Real-time display name update test: PASSED
+- ✅ No `page.reload()` workarounds found (only intentional form refresh test)
+- ✅ Build successful with no compilation errors
+
+### Impact
+
+- Real-time updates now work reliably across multi-user scenarios
+- Consistent behavior between expense and group changes
+- Reduced race conditions and API call duplication
+- Better error handling and debugging capabilities
