@@ -47,8 +47,11 @@ export const ARIA_ROLES = {
 export const PLACEHOLDERS = {
     EXPENSE_DESCRIPTION: translation.expenseBasicFields.descriptionPlaceholder,
     EXPENSE_AMOUNT: '0.00',
+    SETTLEMENT_AMOUNT: translation.settlementForm.amountPlaceholder,
     GROUP_DESCRIPTION: translation.createGroupModal.groupDescriptionPlaceholder,
     CATEGORY_INPUT: translation.expenseBasicFields.categoryPlaceholder,
+    SELECT_PERSON: translation.settlementForm.selectPersonPlaceholder,
+    SETTLEMENT_NOTE: translation.settlementForm.notePlaceholder,
 } as const;
 
 export const HEADINGS = {
@@ -57,19 +60,23 @@ export const HEADINGS = {
     PRICING: 'Pricing',
     HOMEPAGE: 'Effortless Bill Splitting, Simplified & Smart.',
     YOUR_GROUPS: /Your Groups|My Groups/i,
-    BALANCES: 'Balances',
+    BALANCES: translation.balanceSummary.title,
     EXPENSES: translation.expensesList.title,
     JOIN_GROUP: translation.common.joinGroup,
     EXPENSE_DETAILS: translation.expenseBasicFields.title,
     WHO_PAID: new RegExp(translation.expenseForm.whoPaid),
     SPLIT_BETWEEN: new RegExp(translation.expenseForm.splitBetween),
     STATISTICS: translation.dashboardStats.title,
+    UPDATE_PAYMENT: translation.settlementForm.updatePayment,
+    RECORD_PAYMENT: translation.settlementForm.recordPayment,
+    DELETE_PAYMENT: translation.settlementHistory.deletePaymentTitle,
 } as const;
 
 export const BUTTON_TEXTS = {
     SETTLE_UP: new RegExp(translation.common.settleUp, 'i'),
     JOIN_GROUP: new RegExp(translation.common.joinGroup, 'i'),
     RECORD_PAYMENT: new RegExp(translation.settlementForm.recordPayment, 'i'),
+    UPDATE_PAYMENT: new RegExp(translation.settlementForm.updatePayment, 'i'),
     SELECT_ALL: translation.expenseForm.selectAll,
     SHOW_HISTORY: translation.common.showHistory,
     ADD_EXPENSE: new RegExp(translation.common.addExpense, 'i'),
@@ -83,6 +90,8 @@ export const BUTTON_TEXTS = {
     CREATE_ACCOUNT: translation.registerPage.submitButton,
     CREATE_GROUP: translation.createGroupModal.submitButton,
     CANCEL: translation.expenseForm.cancel,
+    CANCEL_SETTLEMENT: translation.settlementForm.cancelButton,
+    DELETE_SETTLEMENT: translation.settlementHistory.deleteButton,
     CREATE_FIRST_GROUP: translation.emptyGroupsState.createFirstGroup,
     CREATE_NEW_GROUP: translation.quickActions.createNewGroup,
     TODAY: translation.expenseBasicFields.today,
@@ -90,13 +99,16 @@ export const BUTTON_TEXTS = {
     THIS_MORNING: translation.expenseBasicFields.thisMorning,
     LAST_NIGHT: translation.expenseBasicFields.lastNight,
     LOAD_MORE: translation.expensesList.loadMore,
+    LOAD_MORE_SETTLEMENTS: translation.settlementHistory.loadMore,
 } as const;
 
 export const MESSAGES = {
     ALL_SETTLED_UP: translation.common.allSettledUp,
+    ALL_SETTLED_UP_BALANCE: translation.balanceSummary.allSettledUp,
     NO_EXPENSES_YET: translation.expensesList.noExpensesYet,
+    NO_PAYMENTS_YET: translation.settlementHistory.noPaymentsYet,
     WELCOME_BACK: /Welcome (back|to Splitifyd)/i,
-    LOADING_BALANCES: translation.common.loadingBalances,
+    LOADING_BALANCES: translation.balanceSummary.loadingBalances,
     LOADING_EXPENSE_FORM: translation.common.loadingExpenseForm,
     CHECKING_AUTH: translation.common.checkingAuth,
     INVALID_LINK: translation.common.invalidLink,
@@ -109,13 +121,17 @@ export const MESSAGES = {
 export const FORM_LABELS = {
     DESCRIPTION: translation.expenseBasicFields.descriptionLabel,
     AMOUNT: translation.expenseBasicFields.amountLabel,
+    SETTLEMENT_AMOUNT: translation.settlementForm.amountLabel,
     CATEGORY: translation.expenseBasicFields.categoryLabel,
     DATE: translation.expenseBasicFields.dateLabel,
+    SETTLEMENT_DATE: translation.settlementForm.dateLabel,
     TIME: translation.expenseBasicFields.timeLabel,
     WHO_PAID: new RegExp(translation.expenseForm.whoPaid, 'i'),
-    WHO_RECEIVED_PAYMENT: /who received the payment/i,
+    WHO_PAID_SETTLEMENT: translation.settlementForm.whoPaidLabel,
+    WHO_RECEIVED_PAYMENT: translation.settlementForm.whoReceivedPaymentLabel,
     SPLIT_BETWEEN: translation.expenseForm.splitBetween,
     NOTE: /note/i,
+    SETTLEMENT_NOTE: translation.settlementForm.noteLabel,
 } as const;
 
 export const SPLIT_TYPES = {
@@ -136,4 +152,18 @@ export const ERROR_MESSAGES = {
     PASSWORDS_NO_MATCH: translation.errors.passwordsNoMatch,
     PASSWORD_SAME_AS_CURRENT: translation.errors.passwordSameAsCurrent,
     PASSWORD_AND_NEW_REQUIRED: translation.errors.passwordAndNewRequired,
+} as const;
+
+export const SETTLEMENT_SELECTORS = {
+    MODAL: '[data-testid="settlement-form-modal"]',
+    PAYER_SELECT: '[data-testid="settlement-payer-select"]',
+    PAYEE_SELECT: '[data-testid="settlement-payee-select"]',
+    AMOUNT_INPUT: '[data-testid="settlement-amount-input"]',
+    DATE_INPUT: '[data-testid="settlement-date-input"]',
+    NOTE_INPUT: '[data-testid="settlement-note-input"]',
+    SAVE_BUTTON: '[data-testid="save-settlement-button"]',
+    CANCEL_BUTTON: '[data-testid="cancel-settlement-button"]',
+    SETTLEMENT_ITEM: '[data-testid="settlement-item"]',
+    EDIT_BUTTON: '[data-testid="edit-settlement-button"]',
+    DELETE_BUTTON: '[data-testid="delete-settlement-button"]',
 } as const;

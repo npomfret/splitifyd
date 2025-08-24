@@ -3,6 +3,7 @@ import { Card } from '../ui/Card';
 import { SidebarCard } from '@/components/ui';
 import { formatCurrency } from '@/utils/currency';
 import type { GroupBalances, User, SimplifiedDebt } from '@shared/shared-types.ts';
+import { useTranslation } from 'react-i18next';
 
 interface BalanceSummaryProps {
     balances: GroupBalances | null;
@@ -11,6 +12,7 @@ interface BalanceSummaryProps {
 }
 
 export function BalanceSummary({ balances, members = [], variant = 'default' }: BalanceSummaryProps) {
+    const { t } = useTranslation();
     // Helper to get user display name
     const getUserName = (userId: string) => {
         const member = members.find((m) => m.uid === userId);
@@ -47,9 +49,9 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
     }, [balances?.simplifiedDebts]);
 
     const content = !balances ? (
-        <p className="text-gray-600 text-sm">Loading balances...</p>
+        <p className="text-gray-600 text-sm">{t('balanceSummary.loadingBalances')}</p>
     ) : balances.simplifiedDebts.length === 0 ? (
-        <p className="text-gray-600 text-sm">All settled up!</p>
+        <p className="text-gray-600 text-sm">{t('balanceSummary.allSettledUp')}</p>
     ) : (
         <div className={variant === 'sidebar' ? 'space-y-4' : 'space-y-6'}>
             {groupedDebts.map(({ currency, debts }, groupIndex) => (
@@ -71,7 +73,7 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
                             >
                                 <div className={variant === 'sidebar' ? 'flex flex-col gap-1' : 'flex justify-between items-center w-full'}>
                                     <span className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}>
-                                        {getUserName(debt.from.userId)} → {getUserName(debt.to.userId)}
+                                        {getUserName(debt.from.userId)}{t('balanceSummary.debtArrow')}{getUserName(debt.to.userId)}
                                     </span>
                                     <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'}>{formatCurrency(debt.amount, debt.currency)}</span>
                                 </div>
@@ -84,12 +86,12 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
     );
 
     if (variant === 'sidebar') {
-        return <SidebarCard title="Balances">{content}</SidebarCard>;
+        return <SidebarCard title={t('balanceSummary.title')}>{content}</SidebarCard>;
     }
 
     return (
         <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Balances</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('balanceSummary.title')}</h2>
             {content}
         </Card>
     );

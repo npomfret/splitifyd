@@ -5,6 +5,7 @@ import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanc
 import { apiClient } from '@/app/apiClient.ts';
 import type { SettlementListItem } from '@shared/shared-types.ts';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 
 interface SettlementHistoryProps {
     groupId: string;
@@ -13,6 +14,7 @@ interface SettlementHistoryProps {
 }
 
 export function SettlementHistory({ groupId, userId, onEditSettlement }: SettlementHistoryProps) {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
     const [settlementToDelete, setSettlementToDelete] = useState<SettlementListItem | null>(null);
@@ -38,9 +40,9 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
         yesterday.setDate(yesterday.getDate() - 1);
 
         if (date.toDateString() === today.toDateString()) {
-            return 'Today';
+            return t('settlementHistory.today');
         } else if (date.toDateString() === yesterday.toDateString()) {
-            return 'Yesterday';
+            return t('settlementHistory.yesterday');
         } else {
             return date.toLocaleDateString('en-US', {
                 month: 'short',
@@ -102,7 +104,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                 </svg>
-                <p class="mt-2 text-sm text-gray-500">No payments recorded yet</p>
+                <p class="mt-2 text-sm text-gray-500">{t('settlementHistory.noPaymentsYet')}</p>
             </div>
         );
     }
@@ -114,7 +116,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
                 const isCurrentUserPayee = settlement.payee.uid === currentUser?.uid;
 
                 return (
-                    <div key={settlement.id} class="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                    <div key={settlement.id} class="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow" data-testid="settlement-item">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
                                 <p class="text-sm font-medium text-gray-900">
@@ -138,11 +140,11 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
 
                                 <div class="flex gap-1">
                                     {onEditSettlement && (
-                                        <button onClick={() => onEditSettlement(settlement)} class="p-1 text-gray-400 hover:text-blue-600 transition-colors" title="Edit payment">
+                                        <button onClick={() => onEditSettlement(settlement)} class="p-1 text-gray-400 hover:text-blue-600 transition-colors" title={t('settlementHistory.editPaymentTooltip')} data-testid="edit-settlement-button">
                                             <PencilIcon class="h-4 w-4" />
                                         </button>
                                     )}
-                                    <button onClick={() => handleDeleteClick(settlement)} class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="Delete payment">
+                                    <button onClick={() => handleDeleteClick(settlement)} class="p-1 text-gray-400 hover:text-red-600 transition-colors" title={t('settlementHistory.deletePaymentTooltip')} data-testid="delete-settlement-button">
                                         <TrashIcon class="h-4 w-4" />
                                     </button>
                                 </div>
@@ -159,7 +161,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
                         disabled={isLoading}
                         class="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
                     >
-                        {isLoading ? 'Loading...' : 'Load more'}
+                        {isLoading ? t('common.loading') : t('settlementHistory.loadMore')}
                     </button>
                 </div>
             )}
@@ -167,10 +169,14 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
             {settlementToDelete && (
                 <ConfirmDialog
                     isOpen={!!settlementToDelete}
-                    title="Delete Payment"
-                    message={`Are you sure you want to delete this payment of ${formatAmount(settlementToDelete.amount)} from ${settlementToDelete.payer.displayName} to ${settlementToDelete.payee.displayName}? This action cannot be undone.`}
-                    confirmText="Delete"
-                    cancelText="Cancel"
+                    title={t('settlementHistory.deletePaymentTitle')}
+                    message={t('settlementHistory.deletePaymentMessage', {
+                        amount: formatAmount(settlementToDelete.amount),
+                        payer: settlementToDelete.payer.displayName,
+                        payee: settlementToDelete.payee.displayName
+                    })}
+                    confirmText={t('settlementHistory.deleteButton')}
+                    cancelText={t('settlementHistory.cancelButton')}
                     onConfirm={handleConfirmDelete}
                     onCancel={handleCancelDelete}
                     loading={isDeleting}
