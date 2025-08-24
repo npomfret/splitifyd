@@ -33,7 +33,8 @@ if (isDev) {
 let scriptContent;
 if (isDev) {
     // In development, dynamically construct URL to match the hostname used to access the app
-    scriptContent = `window.API_BASE_URL = window.location.protocol + '//' + window.location.hostname + ':${firebaseConfig.emulators?.functions?.port}/${firebaseRc.projects?.default}/us-central1';`;
+    scriptContent = `window.API_BASE_URL = window.location.protocol + '//' + window.location.hostname + ':${firebaseConfig.emulators?.functions?.port}/${firebaseRc.projects?.default}/us-central1/api';`;
+    console.log(`injecting firebase emulator URL: ${scriptContent}`)
 } else {
     // In production, use empty string for relative URLs
     scriptContent = `window.API_BASE_URL = '';`;
@@ -50,8 +51,6 @@ const processHtmlFile = (filePath) => {
             html = html.replace('</head>', scriptTag + '</head>');
             fs.writeFileSync(filePath, html);
             console.log(`Post-build: Injected API_BASE_URL into ${path.relative(path.join(__dirname, '..'), filePath)}`);
-        } else {
-            console.log(`Post-build: API_BASE_URL already present in ${path.relative(path.join(__dirname, '..'), filePath)}`);
         }
     }
 };
