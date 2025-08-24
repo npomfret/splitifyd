@@ -10,7 +10,7 @@ import { Stack } from '@/components/ui';
 import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
-import { logError } from '../utils/browser-logger';
+import { logError, logInfo } from '../utils/browser-logger';
 import type { SettlementListItem } from '@shared/shared-types.ts';
 
 interface GroupDetailPageProps {
@@ -159,12 +159,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleGroupUpdateSuccess = async () => {
-        // Refresh group data after successful update
-        try {
-            await enhancedGroupDetailStore.loadGroup(groupId!);
-        } catch (error) {
-            logError('Failed to refresh group after update', error, { groupId });
-        }
+        // Real-time updates will handle the refresh automatically
+        // Immediate manual refresh causes race conditions with change detection
+        logInfo('Group update successful - letting real-time updates handle refresh', { groupId });
     };
 
     const handleGroupDelete = () => {

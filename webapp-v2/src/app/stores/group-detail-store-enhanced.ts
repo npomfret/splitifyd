@@ -61,7 +61,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private groupChangeListener: (() => void) | null = null;
     private changeDetector = new ChangeDetector();
     private currentGroupId: string | null = null;
-    private refreshDebounceTimer: NodeJS.Timeout | null = null;
 
     // State getters
     get group() {
@@ -121,6 +120,11 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
             // Update all signals atomically using batch to prevent race conditions
             batch(() => {
+                logInfo('LoadGroup: Updating group signal', { 
+                    groupId: this.currentGroupId,
+                    oldName: groupSignal.value?.name,
+                    newName: fullDetails.group.name
+                });
                 groupSignal.value = fullDetails.group;
                 membersSignal.value = fullDetails.members.members;
                 expensesSignal.value = fullDetails.expenses.expenses;
@@ -166,7 +170,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
-            this.debouncedRefreshAll();
+            this.refreshAll().catch((error) => logError('Failed to refresh after expense change', error));
         });
 
         // Subscribe to group changes (member additions/removals, group updates)
@@ -181,7 +185,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
-            this.debouncedRefreshAll();
+            this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
         });
 
         logInfo('Change subscriptions setup complete', {
@@ -322,20 +326,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-    private debouncedRefreshAll(): void {
-        // Clear existing timer
-        if (this.refreshDebounceTimer) {
-            clearTimeout(this.refreshDebounceTimer);
-        }
-        
-        // Debounce multiple rapid changes to prevent race conditions
-        this.refreshDebounceTimer = setTimeout(() => {
-            this.refreshAll().catch((error) => 
-                logError('Debounced refresh failed', { error, groupId: this.currentGroupId })
-            );
-            this.refreshDebounceTimer = null;
-        }, 100); // 100ms debounce
-    }
 
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
@@ -364,12 +354,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         if (this.groupChangeListener) {
             this.groupChangeListener();
             this.groupChangeListener = null;
-        }
-
-        // Clean up debounce timer
-        if (this.refreshDebounceTimer) {
-            clearTimeout(this.refreshDebounceTimer);
-            this.refreshDebounceTimer = null;
         }
 
         this.changeDetector.dispose();
