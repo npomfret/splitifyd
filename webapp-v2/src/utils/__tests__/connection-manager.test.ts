@@ -1,14 +1,32 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConnectionManager } from '../connection-manager';
 
+// No need to mock test-support module anymore
+
 describe('ConnectionManager', () => {
     let manager: ConnectionManager;
     let onlineHandler: (() => void) | null = null;
     let offlineHandler: (() => void) | null = null;
 
     beforeEach(() => {
+        // Use fake timers to control health checks
+        vi.useFakeTimers();
+        
         // Reset singleton
         (ConnectionManager as any).instance = undefined;
+
+        // Mock window.API_BASE_URL to provide API configuration
+        Object.defineProperty(window, 'API_BASE_URL', {
+            writable: true,
+            configurable: true,
+            value: 'http://localhost:7003/test-project/us-central1/api',
+        });
+
+        // Mock fetch for health checks - should be called with /health endpoint
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+        });
 
         // Mock navigator.onLine
         Object.defineProperty(navigator, 'onLine', {
@@ -26,12 +44,16 @@ describe('ConnectionManager', () => {
         vi.spyOn(window, 'removeEventListener').mockImplementation(() => {});
 
         manager = ConnectionManager.getInstance();
+        
+        // Advance timers to complete initial health check (but not the recurring interval)
+        vi.advanceTimersByTime(0);
     });
 
     afterEach(() => {
         manager.dispose();
         vi.clearAllMocks();
         vi.clearAllTimers();
+        vi.useRealTimers();
     });
 
     describe('initialization', () => {
@@ -82,13 +104,6 @@ describe('ConnectionManager', () => {
     });
 
     describe('reconnectWithBackoff', () => {
-        beforeEach(() => {
-            vi.useFakeTimers();
-        });
-
-        afterEach(() => {
-            vi.useRealTimers();
-        });
 
         it('should call callback after delay', async () => {
             const callback = vi.fn().mockResolvedValue(undefined);
@@ -170,6 +185,7 @@ describe('ConnectionManager', () => {
                 isOnline: true,
                 quality: 'good',
                 reconnectAttempts: 0,
+                lastServerCheck: expect.any(Number),
             });
         });
 
@@ -184,6 +200,7 @@ describe('ConnectionManager', () => {
                 isOnline: false,
                 quality: 'offline',
                 reconnectAttempts: 3,
+                lastServerCheck: expect.any(Number),
             });
         });
     });
@@ -219,9 +236,23 @@ describe('ConnectionManager', () => {
         });
     });
 
+    describe('health checks', () => {
+        it('should call the correct health endpoint', () => {
+            // Advance time to trigger health check
+            vi.advanceTimersByTime(100);
+
+            expect(global.fetch).toHaveBeenCalledWith(
+                'http://localhost:7003/test-project/us-central1/api/health',
+                expect.objectContaining({
+                    method: 'GET',
+                    cache: 'no-cache',
+                })
+            );
+        });
+    });
+
     describe('dispose', () => {
         it('should clean up all resources', () => {
-            vi.useFakeTimers();
 
             // Set up some reconnect timeouts
             const callback = vi.fn().mockRejectedValue(new Error('fail'));
@@ -236,8 +267,6 @@ describe('ConnectionManager', () => {
 
             // Event listeners should be removed
             expect(window.removeEventListener).toHaveBeenCalled();
-
-            vi.useRealTimers();
         });
     });
 });
