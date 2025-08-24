@@ -6,7 +6,6 @@
 // This test documents a bug where the frontend doesn't refresh settlements
 
 import * as admin from 'firebase-admin';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
 import { ApiDriver } from '../../support/ApiDriver';
@@ -17,7 +16,6 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     let driver: ApiDriver;
     
     beforeAll(async () => {
-        await clearAllTestData();
         driver = new ApiDriver();
     });
     let groupId: string;
@@ -46,9 +44,6 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         }
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     it('should generate transaction-change notification when settlement is created directly in Firestore', async () => {
         // Create a settlement directly in Firestore (simulating what the API does)

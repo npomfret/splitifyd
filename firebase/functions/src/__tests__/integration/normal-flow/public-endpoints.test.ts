@@ -5,7 +5,6 @@
 // Tests for public endpoints that don't require authentication
 
 import { ApiDriver } from '../../support/ApiDriver';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Public Endpoints Tests', () => {
     let driver: ApiDriver;
@@ -13,16 +12,10 @@ describe('Public Endpoints Tests', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
 
         driver = new ApiDriver();
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     describe('Health Check Endpoint', () => {
         test('should return health status without authentication', async () => {

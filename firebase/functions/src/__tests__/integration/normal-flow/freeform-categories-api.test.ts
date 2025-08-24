@@ -5,7 +5,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder, CreateGroupRequestBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '../../../shared/shared-types';
 
 describe('Freeform Categories API Integration', () => {
@@ -16,17 +15,10 @@ describe('Freeform Categories API Integration', () => {
     jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
-
         driver = new ApiDriver();
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     beforeEach(async () => {
         const groupData = new CreateGroupRequestBuilder().withName(`Freeform Categories Test Group ${uuidv4()}`).withMembers(users).build();

@@ -30,9 +30,6 @@ describe('Edit Expense Integration Tests', () => {
         testGroup = await driver.createGroupWithMembers(groupName, users, users[0].token);
     });
 
-    afterAll(async () => {
-        // Cleanup happens automatically
-    });
 
     describe('Expense Editing', () => {
         test('should allow expense creator to edit their expense', async () => {

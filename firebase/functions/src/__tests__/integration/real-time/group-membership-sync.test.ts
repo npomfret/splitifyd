@@ -5,7 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver } from '../../support/ApiDriver';
 import { CreateGroupRequestBuilder } from '../../support/builders';
-import { beforeAll, afterAll } from '@jest/globals';
+import { beforeAll } from '@jest/globals';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../../../shared/shared-types';
@@ -29,7 +29,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
         // Clean up all listeners
         activeListeners.forEach(unsubscribe => unsubscribe());
         activeListeners.length = 0;
-    });
+    })
 
     /**
      * This test replicates the issue where User 1 doesn't receive real-time updates

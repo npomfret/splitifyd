@@ -23,8 +23,6 @@ describe('Comprehensive Security Test Suite', () => {
         ]);
     });
 
-    afterAll(async () => {
-    });
 
     describe('Authentication Security', () => {
         describe('Invalid Token Handling', () => {

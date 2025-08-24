@@ -5,7 +5,6 @@
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
@@ -22,8 +21,6 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     jest.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
-        await clearAllTestData();
-        
         driver = new ApiDriver();
         
         // Create user pool with 2 users
@@ -52,9 +49,6 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         }
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     it('should generate transaction-change notification when settlement is created via API', async () => {
         // Create a group with both users as members using ApiDriver

@@ -10,7 +10,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { CreateGroupRequestBuilder } from '../../support/builders';
 import {Group} from "../../../shared/shared-types";
 
@@ -22,7 +21,6 @@ describe('API Validation Smoke Tests', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        await clearAllTestData();
         driver = new ApiDriver();
         users = await Promise.all([
             driver.createUser(new UserBuilder().build()),
@@ -30,9 +28,6 @@ describe('API Validation Smoke Tests', () => {
         ]);
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     beforeEach(async () => {
         testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);

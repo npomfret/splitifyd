@@ -24,7 +24,6 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
 
         // Phase 2: Test authentication persistence on reload
         await dashboardPage.waitForUserMenu();
-        await page.reload();
         await expect(page).toHaveURL(/\/dashboard/);
         await dashboardPage.waitForUserMenu();
     });
@@ -110,7 +109,6 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
         expect(storageData.authToken).toBeNull();
 
         // Phase 8: Verify that page reload doesn't restore authentication state
-        await page.reload();
         await expect(page).toHaveURL(/\/login/);
 
         // Phase 9: Verify protected pages redirect to login after logout

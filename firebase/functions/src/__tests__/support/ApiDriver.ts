@@ -1,31 +1,32 @@
 import {
     type CreateExpenseRequest,
+    CurrentPolicyResponse,
     ExpenseData,
+    ExpenseFullDetails,
+    ExpenseHistoryResponse,
     FirestoreCollections,
     Group,
-    type Settlement,
-    User as BaseUser,
+    GroupBalances,
     GroupFullDetails,
-    ExpenseFullDetails,
+    GroupMembersResponse,
+    JoinGroupResponse,
+    LeaveGroupResponse,
     ListExpensesResponse,
+    ListGroupsResponse,
     ListSettlementsResponse,
     MessageResponse,
-    LeaveGroupResponse,
-    RemoveGroupMemberResponse,
-    ShareLinkResponse,
-    JoinGroupResponse,
     RegisterResponse,
-    GroupBalances,
-    GroupMembersResponse,
-    ListGroupsResponse,
+    RemoveGroupMemberResponse,
+    type Settlement,
     SettlementListItem,
-    ExpenseHistoryResponse,
+    ShareLinkResponse,
+    User as BaseUser,
     UserPoliciesResponse,
-    CurrentPolicyResponse,
     UserProfileResponse,
 } from '../../shared/shared-types';
 import {API_BASE_URL, db, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
-import {BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./changeCollectionHelpers";
+import type {DocumentData} from "firebase-admin/firestore";
+import * as admin from "firebase-admin";
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -44,6 +45,46 @@ interface PollOptions {
 // Generic matcher type
 type Matcher<T> = (value: T) => boolean | Promise<boolean>;
 
+
+/**
+ * Helper functions for querying change collections in tests
+ */
+
+// New minimal change document structure
+export interface MinimalChangeDocument extends DocumentData {
+    id: string;
+    type: 'group' | 'expense' | 'settlement';
+    action: 'created' | 'updated' | 'deleted';
+    timestamp: admin.firestore.Timestamp;
+    users: string[];
+    groupId?: string; // Only for expense/settlement
+}
+
+export interface MinimalBalanceChangeDocument extends DocumentData {
+    groupId: string;
+    type: 'balance';
+    action: 'recalculated';
+    timestamp: admin.firestore.Timestamp;
+    users: string[];
+}
+
+// Type aliases for test compatibility
+export interface GroupChangeDocument extends MinimalChangeDocument {
+    type: 'group';
+}
+
+export interface ExpenseChangeDocument extends MinimalChangeDocument {
+    type: 'expense';
+    groupId: string;
+}
+
+export interface SettlementChangeDocument extends MinimalChangeDocument {
+    type: 'settlement';
+    groupId: string;
+}
+
+export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {
+}
 
 export class ApiDriver {
     private readonly baseUrl: string;
@@ -168,19 +209,6 @@ export class ApiDriver {
         const queryString = queryParams.toString();
         const response = await this.apiRequest(`/settlements${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
         return response.data;
-    }
-
-    createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<ExpenseData> {
-        return {
-            groupId,
-            description: 'Test Expense',
-            amount,
-            paidBy,
-            splitType: 'equal',
-            participants,
-            date: new Date().toISOString(),
-            category: 'food',
-        };
     }
 
     async listUserExpenses(token: string, params?: Record<string, any>): Promise<ListExpensesResponse> {
@@ -614,20 +642,6 @@ export class ApiDriver {
             .get();
 
         return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
-    }
-
-    /**
-     * Wait for a group's membership to reach a specific count
-     */
-    async waitForMembershipChange(groupId: string, expectedMemberCount: number, token: string, timeout = 5000): Promise<Group> {
-        return this.pollUntil(
-            () => this.getGroup(groupId, token),
-            (group) => Object.keys(group.members).length === expectedMemberCount,
-            {
-                timeout,
-                errorMsg: `Group ${groupId} membership did not reach ${expectedMemberCount} members`
-            }
-        );
     }
 
     /**

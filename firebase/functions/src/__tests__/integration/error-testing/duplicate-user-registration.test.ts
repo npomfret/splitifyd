@@ -6,7 +6,6 @@
 
 import { ApiDriver } from '../../support/ApiDriver';
 import { UserBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Duplicate User Registration Tests', () => {
     let driver: ApiDriver;
@@ -14,16 +13,10 @@ describe('Duplicate User Registration Tests', () => {
     jest.setTimeout(4000); // it takes about 2s
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
 
         driver = new ApiDriver();
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     describe('Sequential Registration', () => {
         test('should prevent duplicate email registration', async () => {

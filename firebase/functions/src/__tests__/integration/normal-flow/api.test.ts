@@ -11,7 +11,6 @@
 import {v4 as uuidv4} from 'uuid';
 import {ApiDriver, User} from '../../support/ApiDriver';
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '../../support/builders';
-import {clearAllTestData} from '../../support/cleanupHelpers';
 import {FirebaseIntegrationTestUserPool} from '../../support/FirebaseIntegrationTestUserPool';
 import {groupSize} from "../../../shared/shared-types";
 
@@ -28,9 +27,6 @@ describe('Comprehensive API Test Suite', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
-
         driver = new ApiDriver();
         
         // Create user pool with 6 users (covers all test needs)
@@ -38,10 +34,6 @@ describe('Comprehensive API Test Suite', () => {
         await userPool.initialize();
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     describe('User Authentication', () => {
         test('should allow users to register and log in', () => {
