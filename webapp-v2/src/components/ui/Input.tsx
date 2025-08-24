@@ -15,6 +15,7 @@ interface InputProps {
     autoFocus?: boolean;
     className?: string;
     autoComplete?: string;
+    'data-testid'?: string;
 }
 
 export function Input({
@@ -32,6 +33,7 @@ export function Input({
     autoFocus = false,
     className = '',
     autoComplete,
+    'data-testid': dataTestId,
 }: InputProps) {
     const inputId = id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -91,6 +93,7 @@ export function Input({
                     className={inputClasses}
                     aria-invalid={!!error}
                     aria-describedby={error ? `${inputId}-error` : undefined}
+                    data-testid={dataTestId}
                 />
             </div>
             {error && (

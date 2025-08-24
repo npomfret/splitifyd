@@ -5,6 +5,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { Input } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { Alert } from '@/components/ui';
+import { useTranslation } from 'react-i18next';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -13,6 +14,7 @@ interface PasswordChangeData {
 }
 
 export function SettingsPage() {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [displayName, setDisplayName] = useState('');
     const [originalDisplayName, setOriginalDisplayName] = useState('');
@@ -57,10 +59,10 @@ export function SettingsPage() {
             // Use the auth store's updateUserProfile method for real-time updates
             await authStore.updateUserProfile({ displayName: displayName.trim() });
             setOriginalDisplayName(displayName.trim());
-            setSuccessMessage('Profile updated successfully');
+            setSuccessMessage(t('settingsPage.successMessages.profileUpdated'));
             // No need for token refresh or page reload - UI updates automatically via signals
         } catch (error) {
-            setErrorMessage('Failed to update profile. Please try again.');
+            setErrorMessage(t('settingsPage.errorMessages.profileUpdateFailed'));
             console.error('Profile update error:', error);
         }
     };
@@ -70,22 +72,22 @@ export function SettingsPage() {
 
         // Validation
         if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
-            setErrorMessage('Current password and new password are required');
+            setErrorMessage(t('settingsPage.errorMessages.passwordAndNewRequired'));
             return;
         }
 
         if (passwordData.newPassword.length < 6) {
-            setErrorMessage('New password must be at least 6 characters long');
+            setErrorMessage(t('settingsPage.errorMessages.passwordTooShort'));
             return;
         }
 
         if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-            setErrorMessage('Passwords do not match');
+            setErrorMessage(t('settingsPage.errorMessages.passwordsNoMatch'));
             return;
         }
 
         if (passwordData.currentPassword === passwordData.newPassword) {
-            setErrorMessage('New password must be different from current password');
+            setErrorMessage(t('settingsPage.errorMessages.passwordSameAsCurrent'));
             return;
         }
 
@@ -99,7 +101,7 @@ export function SettingsPage() {
                 newPassword: passwordData.newPassword,
             });
 
-            setSuccessMessage('Password changed successfully');
+            setSuccessMessage(t('settingsPage.successMessages.passwordChanged'));
             setShowPasswordForm(false);
             setPasswordData({
                 currentPassword: '',
@@ -108,9 +110,9 @@ export function SettingsPage() {
             });
         } catch (error: any) {
             if (error.message.includes('Current password is incorrect')) {
-                setErrorMessage('Current password is incorrect');
+                setErrorMessage(t('settingsPage.errorMessages.currentPasswordIncorrect'));
             } else {
-                setErrorMessage('Failed to change password. Please try again.');
+                setErrorMessage(t('settingsPage.errorMessages.passwordChangeFailed'));
             }
             console.error('Password change error:', error);
         } finally {
@@ -137,12 +139,12 @@ export function SettingsPage() {
     const isDisplayNameTooLong = displayName.trim().length > 100;
 
     return (
-        <BaseLayout title="Settings - Splitifyd" description="Manage your account settings" headerVariant="dashboard">
+        <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant="dashboard">
             <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h1 class="text-xl font-semibold text-gray-900">Account Settings</h1>
-                        <p class="text-sm text-gray-600">Manage your profile information and password</p>
+                        <h1 class="text-xl font-semibold text-gray-900" data-testid="account-settings-header">{t('settingsPage.accountSettingsHeader')}</h1>
+                        <p class="text-sm text-gray-600">{t('settingsPage.accountSettingsSubheader')}</p>
                     </div>
 
                     <div class="p-6 space-y-6">
@@ -151,12 +153,12 @@ export function SettingsPage() {
                         {errorMessage && <Alert type="error" message={errorMessage} />}
 
                         {/* Profile Information Section */}
-                        <div class="space-y-4">
-                            <h2 class="text-lg font-medium text-gray-900">Profile Information</h2>
+                        <div class="space-y-4" data-testid="profile-information-section">
+                            <h2 class="text-lg font-medium text-gray-900">{t('settingsPage.profileInformationHeader')}</h2>
 
                             {/* Display Name Display */}
                             <div class="text-sm">
-                                <span class="text-gray-600">Current display name: </span>
+                                <span class="text-gray-600">{t('settingsPage.currentDisplayName')} </span>
                                 <span data-testid="profile-display-name" class="font-medium text-gray-900">
                                     {user.displayName || user.email.split('@')[0]}
                                 </span>
@@ -164,7 +166,7 @@ export function SettingsPage() {
 
                             {/* Email Display */}
                             <div class="text-sm">
-                                <span class="text-gray-600">Email: </span>
+                                <span class="text-gray-600">{t('settingsPage.email')} </span>
                                 <span data-testid="profile-email" class="font-medium text-gray-900">
                                     {user.email}
                                 </span>
@@ -172,35 +174,37 @@ export function SettingsPage() {
 
                             {/* Display Name Input */}
                             <Input
-                                label="Display Name"
+                                label={t('settingsPage.displayNameLabel')}
                                 value={displayName}
                                 onChange={setDisplayName}
-                                placeholder="Enter your display name"
+                                placeholder={t('settingsPage.displayNamePlaceholder')}
                                 disabled={authStore.isUpdatingProfile}
-                                error={isDisplayNameEmpty ? 'Display name cannot be empty' : isDisplayNameTooLong ? 'Display name must be 100 characters or less' : undefined}
+                                error={isDisplayNameEmpty ? t('settingsPage.errorMessages.displayNameEmpty') : isDisplayNameTooLong ? t('settingsPage.errorMessages.displayNameTooLong') : undefined}
+                                data-testid="display-name-input"
                             />
 
                             <Button
                                 onClick={handleDisplayNameUpdate}
                                 disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
                                 loading={authStore.isUpdatingProfile}
+                                data-testid="save-changes-button"
                             >
-                                Save Changes
+                                {t('settingsPage.saveChangesButton')}
                             </Button>
                         </div>
 
                         {/* Password Section */}
-                        <div class="border-t border-gray-200 pt-6 space-y-4">
-                            <h2 class="text-lg font-medium text-gray-900">Password</h2>
+                        <div class="border-t border-gray-200 pt-6 space-y-4" data-testid="password-section">
+                            <h2 class="text-lg font-medium text-gray-900">{t('settingsPage.passwordHeader')}</h2>
 
                             {!showPasswordForm ? (
-                                <Button variant="secondary" onClick={() => setShowPasswordForm(true)}>
-                                    Change Password
+                                <Button variant="secondary" onClick={() => setShowPasswordForm(true)} data-testid="change-password-button">
+                                    {t('settingsPage.changePasswordButton')}
                                 </Button>
                             ) : (
-                                <div class="space-y-4">
+                                <div class="space-y-4" data-testid="password-form">
                                     <Input
-                                        label="Current Password"
+                                        label={t('settingsPage.currentPasswordLabel')}
                                         type="password"
                                         name="currentPassword"
                                         value={passwordData.currentPassword}
@@ -208,10 +212,11 @@ export function SettingsPage() {
                                         disabled={isLoading}
                                         autoComplete="current-password"
                                         id="current-password-input"
+                                        data-testid="current-password-input"
                                     />
 
                                     <Input
-                                        label="New Password"
+                                        label={t('settingsPage.newPasswordLabel')}
                                         type="password"
                                         name="newPassword"
                                         value={passwordData.newPassword}
@@ -219,10 +224,11 @@ export function SettingsPage() {
                                         disabled={isLoading}
                                         autoComplete="new-password"
                                         id="new-password-input"
+                                        data-testid="new-password-input"
                                     />
 
                                     <Input
-                                        label="Confirm New Password"
+                                        label={t('settingsPage.confirmNewPasswordLabel')}
                                         type="password"
                                         name="confirmNewPassword"
                                         value={passwordData.confirmNewPassword}
@@ -230,14 +236,15 @@ export function SettingsPage() {
                                         disabled={isLoading}
                                         autoComplete="new-password"
                                         id="confirm-password-input"
+                                        data-testid="confirm-password-input"
                                     />
 
                                     <div class="flex space-x-3">
-                                        <Button onClick={handlePasswordChange} disabled={isLoading} loading={isLoading}>
-                                            Update Password
+                                        <Button onClick={handlePasswordChange} disabled={isLoading} loading={isLoading} data-testid="update-password-button">
+                                            {t('settingsPage.updatePasswordButton')}
                                         </Button>
-                                        <Button variant="secondary" onClick={handleCancelPasswordChange} disabled={isLoading}>
-                                            Cancel
+                                        <Button variant="secondary" onClick={handleCancelPasswordChange} disabled={isLoading} data-testid="cancel-password-button">
+                                            {t('settingsPage.cancelButton')}
                                         </Button>
                                     </div>
                                 </div>

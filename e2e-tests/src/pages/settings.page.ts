@@ -1,18 +1,18 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ARIA_ROLES } from '../constants/selectors';
+import { ARIA_ROLES, SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@shared/shared-types';
 
 export class SettingsPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
         super(page, userInfo);
     }
-    // URL and button texts
+    // URL and button texts (using translation-based constants)
     readonly url = '/settings';
-    readonly changePasswordButtonText = 'Change Password';
-    readonly saveChangesButtonText = 'Save Changes';
-    readonly updatePasswordButtonText = 'Update Password';
-    readonly cancelButtonText = 'Cancel';
+    readonly changePasswordButtonText = SETTINGS_TEXTS.CHANGE_PASSWORD_BUTTON;
+    readonly saveChangesButtonText = SETTINGS_TEXTS.SAVE_CHANGES_BUTTON;
+    readonly updatePasswordButtonText = SETTINGS_TEXTS.UPDATE_PASSWORD_BUTTON;
+    readonly cancelButtonText = SETTINGS_TEXTS.CANCEL_BUTTON;
 
     async navigate() {
         await this.navigateToStaticPath(this.url);
@@ -28,13 +28,13 @@ export class SettingsPage extends BasePage {
         await this.waitForFormReady();
     }
 
-    // Profile Information Elements
+    // Profile Information Elements (using strategic data-testid approach)
     getProfileDisplayName(): Locator {
-        return this.page.getByTestId('profile-display-name');
+        return this.page.locator(SETTINGS_SELECTORS.PROFILE_DISPLAY_NAME);
     }
 
     getProfileEmail(): Locator {
-        return this.page.getByTestId('profile-email');
+        return this.page.locator(SETTINGS_SELECTORS.PROFILE_EMAIL);
     }
 
     getUserMenuButton(): Locator {
@@ -46,36 +46,36 @@ export class SettingsPage extends BasePage {
     }
 
     getDisplayNameInput(): Locator {
-        return this.page.getByLabel('Display Name');
+        return this.page.locator(SETTINGS_SELECTORS.DISPLAY_NAME_INPUT);
     }
 
     getSaveChangesButton(): Locator {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.saveChangesButtonText });
+        return this.page.locator(SETTINGS_SELECTORS.SAVE_CHANGES_BUTTON);
     }
 
-    // Password Change Elements
+    // Password Change Elements (using strategic data-testid approach)
     getChangePasswordButton(): Locator {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.changePasswordButtonText });
+        return this.page.locator(SETTINGS_SELECTORS.CHANGE_PASSWORD_BUTTON);
     }
 
     getCurrentPasswordInput(): Locator {
-        return this.page.getByLabel('Current Password');
+        return this.page.locator(SETTINGS_SELECTORS.CURRENT_PASSWORD_INPUT);
     }
 
     getNewPasswordInput(): Locator {
-        return this.page.getByRole(ARIA_ROLES.TEXTBOX, { name: 'New Password', exact: true });
+        return this.page.locator(SETTINGS_SELECTORS.NEW_PASSWORD_INPUT);
     }
 
     getConfirmPasswordInput(): Locator {
-        return this.page.getByLabel('Confirm New Password');
+        return this.page.locator(SETTINGS_SELECTORS.CONFIRM_PASSWORD_INPUT);
     }
 
     getUpdatePasswordButton(): Locator {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.updatePasswordButtonText });
+        return this.page.locator(SETTINGS_SELECTORS.UPDATE_PASSWORD_BUTTON);
     }
 
     getCancelButton(): Locator {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.cancelButtonText });
+        return this.page.locator(SETTINGS_SELECTORS.CANCEL_PASSWORD_BUTTON);
     }
 
     // Success/Error Messages

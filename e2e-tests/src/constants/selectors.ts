@@ -189,6 +189,55 @@ export const FOOTER_SELECTORS = {
     COOKIES_LINK: '[data-testid="footer-cookies-link"]',
 } as const;
 
+export const SETTINGS_SELECTORS = {
+    ACCOUNT_SETTINGS_HEADER: '[data-testid="account-settings-header"]',
+    PROFILE_INFORMATION_SECTION: '[data-testid="profile-information-section"]',
+    PROFILE_DISPLAY_NAME: '[data-testid="profile-display-name"]',
+    PROFILE_EMAIL: '[data-testid="profile-email"]',
+    DISPLAY_NAME_INPUT: '[data-testid="display-name-input"]',
+    SAVE_CHANGES_BUTTON: '[data-testid="save-changes-button"]',
+    PASSWORD_SECTION: '[data-testid="password-section"]',
+    CHANGE_PASSWORD_BUTTON: '[data-testid="change-password-button"]',
+    PASSWORD_FORM: '[data-testid="password-form"]',
+    CURRENT_PASSWORD_INPUT: '[data-testid="current-password-input"]',
+    NEW_PASSWORD_INPUT: '[data-testid="new-password-input"]',
+    CONFIRM_PASSWORD_INPUT: '[data-testid="confirm-password-input"]',
+    UPDATE_PASSWORD_BUTTON: '[data-testid="update-password-button"]',
+    CANCEL_PASSWORD_BUTTON: '[data-testid="cancel-password-button"]',
+} as const;
+
+export const SETTINGS_TEXTS = {
+    ACCOUNT_SETTINGS_HEADER: translation.settingsPage.accountSettingsHeader,
+    ACCOUNT_SETTINGS_SUBHEADER: translation.settingsPage.accountSettingsSubheader,
+    PROFILE_INFORMATION_HEADER: translation.settingsPage.profileInformationHeader,
+    CURRENT_DISPLAY_NAME: translation.settingsPage.currentDisplayName,
+    EMAIL: translation.settingsPage.email,
+    DISPLAY_NAME_LABEL: translation.settingsPage.displayNameLabel,
+    DISPLAY_NAME_PLACEHOLDER: translation.settingsPage.displayNamePlaceholder,
+    SAVE_CHANGES_BUTTON: translation.settingsPage.saveChangesButton,
+    PASSWORD_HEADER: translation.settingsPage.passwordHeader,
+    CHANGE_PASSWORD_BUTTON: translation.settingsPage.changePasswordButton,
+    CURRENT_PASSWORD_LABEL: translation.settingsPage.currentPasswordLabel,
+    NEW_PASSWORD_LABEL: translation.settingsPage.newPasswordLabel,
+    CONFIRM_NEW_PASSWORD_LABEL: translation.settingsPage.confirmNewPasswordLabel,
+    UPDATE_PASSWORD_BUTTON: translation.settingsPage.updatePasswordButton,
+    CANCEL_BUTTON: translation.settingsPage.cancelButton,
+    SUCCESS_PROFILE_UPDATED: translation.settingsPage.successMessages.profileUpdated,
+    SUCCESS_PASSWORD_CHANGED: translation.settingsPage.successMessages.passwordChanged,
+} as const;
+
+export const SETTINGS_ERROR_MESSAGES = {
+    PROFILE_UPDATE_FAILED: translation.settingsPage.errorMessages.profileUpdateFailed,
+    PASSWORD_AND_NEW_REQUIRED: translation.settingsPage.errorMessages.passwordAndNewRequired,
+    PASSWORD_TOO_SHORT: translation.settingsPage.errorMessages.passwordTooShort,
+    PASSWORDS_NO_MATCH: translation.settingsPage.errorMessages.passwordsNoMatch,
+    PASSWORD_SAME_AS_CURRENT: translation.settingsPage.errorMessages.passwordSameAsCurrent,
+    CURRENT_PASSWORD_INCORRECT: translation.settingsPage.errorMessages.currentPasswordIncorrect,
+    PASSWORD_CHANGE_FAILED: translation.settingsPage.errorMessages.passwordChangeFailed,
+    DISPLAY_NAME_EMPTY: translation.settingsPage.errorMessages.displayNameEmpty,
+    DISPLAY_NAME_TOO_LONG: translation.settingsPage.errorMessages.displayNameTooLong,
+} as const;
+
 export const NAVIGATION_TEXTS = {
     COMPANY_NAME: translation.footer.companyName,
     COMPANY_DESCRIPTION: translation.footer.companyDescription,
