@@ -142,7 +142,7 @@ describe('API Validation Smoke Tests', () => {
             await expect(driver.createGroup(groupData, users[0].token)).rejects.toThrow();
         });
 
-        test('should sanitize XSS attempts', async () => {
+        test('should reject XSS attempts', async () => {
             const xssDescription = '<script>alert("xss")</script>Valid content';
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
@@ -151,12 +151,8 @@ describe('API Validation Smoke Tests', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
-            
-            // XSS content should be sanitized
-            expect(createdExpense.description).not.toContain('<script>');
-            expect(createdExpense.description).toContain('Valid content');
+            // API should reject dangerous content rather than sanitize it
+            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
         });
     });
 

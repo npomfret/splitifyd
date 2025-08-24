@@ -208,15 +208,12 @@ describe('Comprehensive Security Test Suite', () => {
                 }
             });
 
-            test('should sanitize XSS attempts in group names', async () => {
+            test('should reject XSS attempts in group names', async () => {
                 const xssPayload = '<script>alert("group-xss")</script>ValidGroupName';
 
-                // GOOD: API sanitizes dangerous content in group names
-                const group = await driver.createGroupWithMembers(xssPayload, [users[0]], users[0].token);
-                
-                // Script tags should be removed but valid content preserved
-                expect(group.name).not.toContain('<script>');
-                expect(group.name).toContain('ValidGroupName');
+                // GOOD: API rejects dangerous content in group names
+                await expect(driver.createGroupWithMembers(xssPayload, [users[0]], users[0].token))
+                    .rejects.toThrow(/400|invalid|dangerous/i);
             });
         });
 

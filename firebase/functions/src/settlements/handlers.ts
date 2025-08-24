@@ -49,13 +49,7 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
     }
 
-    if (groupData.userId === userId) {
-        return;
-    }
-
-    const groupDataTyped = groupData.data as GroupData;
-
-    if (userId in groupDataTyped.members) {
+    if (userId in groupData.data.members) {
         return;
     }
 

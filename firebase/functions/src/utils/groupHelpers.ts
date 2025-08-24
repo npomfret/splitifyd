@@ -1,6 +1,9 @@
 import { Group } from '../shared/shared-types';
 
-export const getGroupOwner = (group: Pick<Group, 'members'>): string | null => {
+/**
+ * Get the group owner's user ID from the members map
+ */
+export const getGroupOwner = (group: Group): string | null => {
     for (const [userId, member] of Object.entries(group.members)) {
         if (member.role === 'owner') {
             return userId;
@@ -9,11 +12,17 @@ export const getGroupOwner = (group: Pick<Group, 'members'>): string | null => {
     return null;
 };
 
-export const isGroupOwner = (group: Pick<Group, 'members'>, userId: string): boolean => {
+/**
+ * Check if a user is the owner of a group
+ */
+export const isGroupOwner = (group: Group, userId: string): boolean => {
     const member = group.members[userId];
     return member?.role === 'owner' || false;
 };
 
-export const isGroupMember = (group: Pick<Group, 'members'>, userId: string): boolean => {
+/**
+ * Check if a user is a member of a group (any role)
+ */
+export const isGroupMember = (group: Group, userId: string): boolean => {
     return userId in group.members;
 };

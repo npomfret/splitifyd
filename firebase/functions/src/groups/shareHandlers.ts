@@ -5,11 +5,11 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { FirestoreCollections, ShareLink, Group } from '../shared/shared-types';
+import { FirestoreCollections, ShareLink } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import type { UserThemeColor } from '../shared/shared-types';
-import { isGroupMember } from '../utils/groupHelpers';
+import { isGroupOwner as checkIsGroupOwner, isGroupMember } from '../utils/groupHelpers';
 
 const generateShareToken = (): string => {
     const bytes = randomBytes(12);
@@ -105,11 +105,10 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         }
 
         const groupData = groupDoc.data()!;
-        const group: Pick<Group, 'members'> = {
-            members: groupData.data.members
-        };
 
-        if (!isGroupMember(group, userId)) {
+        const group = { id: groupId, ...groupData.data };
+        
+        if (!checkIsGroupOwner(group, userId) && !isGroupMember(group, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
 
@@ -186,9 +185,7 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
         }
 
         // Check if user is already a member
-        const group: Pick<Group, 'members'> = {
-            members: groupData.data.members
-        };
+        const group = { id: groupId, ...groupData.data };
         const isAlreadyMember = isGroupMember(group, userId);
 
         // Return group preview data
@@ -241,12 +238,14 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             const originalUpdatedAt = getUpdatedAtTimestamp(groupData);
 
             // Check if user is already a member using the members map
-            const group: Pick<Group, 'members'> = {
-                members: groupData.data.members
-            };
-            
-            if (isGroupMember(group, userId)) {
+            if (userId in groupData.data.members) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
+            }
+            
+            // Check if user is the group owner  
+            const group = { id: groupId, ...groupData.data };
+            if (checkIsGroupOwner(group, userId)) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
             }
             
             // Calculate next theme index based on current member count

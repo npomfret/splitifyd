@@ -8,10 +8,10 @@ import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../u
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calculateSplits, Expense } from './validation';
-import { GroupData } from '../types/group-types';
 import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
+import { isGroupOwner as checkIsGroupOwner } from '../utils/groupHelpers';
 
 const getExpensesCollection = () => {
     return db.collection(FirestoreCollections.EXPENSES);
@@ -44,16 +44,8 @@ const verifyGroupMembership = async (groupId: string, userId: string): Promise<v
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
     }
 
-    // Check if user is the group owner (creator)
-    if (groupData.userId === userId) {
-        return;
-    }
-
-    // Check if user is a member of the group
-    const groupDataTyped = groupData.data as GroupData;
-
-    // Check if user is in members map
-    if (userId in groupDataTyped.members) {
+    // Check if user is a member (including owner)
+    if (userId in groupData.data.members) {
         return;
     }
 
@@ -90,7 +82,8 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
     }
 
     // Check if user is group owner (creator)
-    if (groupData.userId === userId) {
+    const group = { id: expense.groupId, ...groupData.data };
+    if (checkIsGroupOwner(group, userId)) {
         return { docRef, expense };
     }
 
