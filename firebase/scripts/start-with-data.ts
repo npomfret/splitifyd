@@ -1,12 +1,13 @@
 #!/usr/bin/env npx tsx
 
-import { spawn } from 'child_process';
+import {spawn} from 'child_process';
 import * as http from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
-import { logger } from './logger';
+import {logger} from './logger';
 import {FIRESTORE_URL} from "../functions/src/__tests__/support/firebase-emulator";
+import assert from "node:assert";
 
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
@@ -22,7 +23,8 @@ if (!fs.existsSync(firebaseRcPath)) {
 }
 
 const firebaseRc: any = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
-const PROJECT_ID = firebaseRc.projects.default;
+const PROJECT_ID = firebaseRc.projects.default!;
+assert(PROJECT_ID);
 
 const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
 const UI_PORT: string = firebaseConfig.emulators.ui.port!;
@@ -40,13 +42,6 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
 
-// Set emulator environment variables BEFORE any Firebase imports
-process.env.FIRESTORE_EMULATOR_HOST = `localhost:${FIRESTORE_PORT}`;
-process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${AUTH_PORT}`;
-
-const devFormEmail = process.env.DEV_FORM_EMAIL || '';
-const devFormPassword = process.env.DEV_FORM_PASSWORD || '';
-
 // NOW import the functions that use Firebase AFTER setting emulator env vars
 const { generateTestData } = require('../functions/scripts/generate-test-data');
 const { seedPolicies } = require('../functions/src/scripts/seed-policies');
@@ -55,8 +50,6 @@ logger.info('🚀 Starting Firebase emulator with test data generation...', {
     projectId: PROJECT_ID,
     uiPort: UI_PORT,
     functionsPort: FUNCTIONS_PORT,
-    devFormEmail: devFormEmail ? '✓' : '✗',
-    devFormPassword: devFormPassword ? '✓' : '✗',
 });
 
 // here we mimic the firebase runtime which injects env vars
@@ -64,9 +57,9 @@ const emulatorProcess = spawn('firebase', ['emulators:start'], {
     stdio: 'pipe',
     env: {
         ...process.env,
-        NODE_ENV: 'development',
-        DEV_FORM_EMAIL: devFormEmail,
-        DEV_FORM_PASSWORD: devFormPassword,
+        GCLOUD_PROJECT: PROJECT_ID,// mimic prod
+        FIRESTORE_EMULATOR_HOST: `localhost:${FIRESTORE_PORT}`,// todo: can we remove?
+        FIREBASE_AUTH_EMULATOR_HOST: `localhost:${AUTH_PORT}`,// todo: can we remove?
     },
 });
 

@@ -172,7 +172,7 @@ function getWarningBanner(config: Config): WarningBanner | undefined {
 function buildAppConfiguration(): AppConfiguration {
     const config = getConfig();
     const env = getEnv();
-    const projectId = config.isProduction ? env.GCLOUD_PROJECT! : 'splitifyd';
+    const projectId = env.GCLOUD_PROJECT!;
 
     // Build firebase config based on environment
     const firebase: FirebaseConfig = config.isProduction
