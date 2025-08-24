@@ -59,6 +59,7 @@ logger.info('🚀 Starting Firebase emulator with test data generation...', {
     devFormPassword: devFormPassword ? '✓' : '✗',
 });
 
+// here we mimic the firebase runtime which injects env vars
 const emulatorProcess = spawn('firebase', ['emulators:start'], {
     stdio: 'pipe',
     env: {
