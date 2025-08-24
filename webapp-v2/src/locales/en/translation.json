@@ -245,5 +245,39 @@
         "expenses": "expenses",
         "createdPrefix": "Created",
         "groupSettingsAriaLabel": "Group Settings"
+    },
+    "settingsPage": {
+        "title": "Settings - Splitifyd",
+        "description": "Manage your account settings",
+        "accountSettingsHeader": "Account Settings",
+        "accountSettingsSubheader": "Manage your profile information and password",
+        "profileInformationHeader": "Profile Information",
+        "currentDisplayName": "Current display name:",
+        "email": "Email:",
+        "displayNameLabel": "Display Name",
+        "displayNamePlaceholder": "Enter your display name",
+        "saveChangesButton": "Save Changes",
+        "passwordHeader": "Password",
+        "changePasswordButton": "Change Password",
+        "currentPasswordLabel": "Current Password",
+        "newPasswordLabel": "New Password",
+        "confirmNewPasswordLabel": "Confirm New Password",
+        "updatePasswordButton": "Update Password",
+        "cancelButton": "Cancel",
+        "successMessages": {
+            "profileUpdated": "Profile updated successfully",
+            "passwordChanged": "Password changed successfully"
+        },
+        "errorMessages": {
+            "profileUpdateFailed": "Failed to update profile. Please try again.",
+            "passwordAndNewRequired": "Current password and new password are required",
+            "passwordTooShort": "New password must be at least 6 characters long",
+            "passwordsNoMatch": "Passwords do not match",
+            "passwordSameAsCurrent": "New password must be different from current password",
+            "currentPasswordIncorrect": "Current password is incorrect",
+            "passwordChangeFailed": "Failed to change password. Please try again.",
+            "displayNameEmpty": "Display name cannot be empty",
+            "displayNameTooLong": "Display name must be 100 characters or less"
+        }
     }
 }
