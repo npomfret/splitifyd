@@ -1,15 +1,6 @@
 import { signal } from '@preact/signals';
 import { logWarning, logError, logInfo } from './browser-logger';
 
-// Firebase emulator configuration - matches the ports in firebase.json
-const FIREBASE_EMULATOR_CONFIG = {// this is bullshit
-    auth: { port: 7002 },
-    functions: { port: 7003 },
-    firestore: { port: 7004 },
-    hosting: { port: 7005 },
-    ui: { port: 7001 },
-};
-
 // Health check configuration
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 const SERVER_CHECK_TIMEOUT = 5000; // 5 seconds
@@ -155,15 +146,19 @@ export class ConnectionManager {
             return; // Don't check server if we're offline
         }
 
+        if (typeof window === 'undefined' || !(window as any).API_BASE_URL) {
+            throw new Error('window.API_BASE_URL is not available - cannot check server health');
+        }
+
         this.lastServerCheck = Date.now();
 
         try {
-            // Try to reach the Firebase emulator UI endpoint (lightweight check)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), SERVER_CHECK_TIMEOUT);
 
-            const response = await fetch(`http://localhost:${FIREBASE_EMULATOR_CONFIG.ui.port}/`, {
-                method: 'HEAD',
+            const apiBaseUrl = (window as any).API_BASE_URL as string;
+            const response = await fetch(`${apiBaseUrl}/health`, {
+                method: 'GET',
                 signal: controller.signal,
                 cache: 'no-cache',
             });
@@ -175,18 +170,18 @@ export class ConnectionManager {
                 if (this.connectionQuality.value === 'server-unavailable') {
                     // Server came back online, reset to good quality
                     this.connectionQuality.value = 'good';
-                    logInfo('Firebase emulator connection restored');
+                    logInfo('API server connection restored');
                 }
             } else {
                 // Server responded but with error status
                 this.connectionQuality.value = 'server-unavailable';
-                logWarning('Firebase emulator returned error status', { status: response.status });
+                logWarning('API server returned error status', { status: response.status });
             }
         } catch (error) {
             // Server is not reachable
             if (this.connectionQuality.value !== 'server-unavailable') {
                 this.connectionQuality.value = 'server-unavailable';
-                logWarning('Firebase emulator not reachable', { error: error instanceof Error ? error.message : String(error) });
+                logWarning('API server not reachable', { error: error instanceof Error ? error.message : String(error) });
             }
         }
     }

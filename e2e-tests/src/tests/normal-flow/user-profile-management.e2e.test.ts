@@ -160,19 +160,18 @@ authenticatedPageTest.describe('User Profile Management', () => {
         async ({ authenticatedPage }) => {
             const { page, user } = authenticatedPage;
             const settingsPage = new SettingsPage(page);
-            
-            const realTimeDisplayName = `RealTime ${Date.now()}`;
 
             // Navigate to settings page
             await settingsPage.navigate();
             
             // Get the actual current display name from the page
-            const profileDisplayNameElement = await settingsPage.getProfileDisplayName().textContent();
-            const initialDisplayName = profileDisplayNameElement || user.displayName || user.email.split('@')[0];
-            
+            const initialDisplayName = (await settingsPage.getProfileDisplayName().textContent())!;
+
             // Verify initial state shows current name (which we just read from the page)
             await expect(settingsPage.getProfileDisplayName()).toContainText(initialDisplayName);
             await expect(settingsPage.getUserMenuButton()).toContainText(initialDisplayName);
+
+            const realTimeDisplayName = `RealTime ${Date.now()}`;
 
             // Update display name
             await settingsPage.updateDisplayName(realTimeDisplayName);

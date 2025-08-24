@@ -70,7 +70,50 @@
     },
     "settlementForm": {
         "updatePayment": "Update Payment",
-        "recordPayment": "Record Payment"
+        "recordPayment": "Record Payment",
+        "closeModal": "Close modal",
+        "whoPaidLabel": "Who paid?",
+        "whoReceivedPaymentLabel": "Who received the payment?",
+        "amountLabel": "Amount",
+        "dateLabel": "Date",
+        "noteLabel": "Note (optional)",
+        "selectPersonPlaceholder": "Select person",
+        "amountPlaceholder": "0.00",
+        "notePlaceholder": "e.g., Venmo, cash, bank transfer",
+        "youSuffix": " (You)",
+        "cancelButton": "Cancel",
+        "updatingButton": "Updating...",
+        "recordingButton": "Recording...",
+        "paymentSummary": "{{payer}} paid {{payee}} {{amount}}",
+        "validation": {
+            "selectPayer": "Please select who paid",
+            "selectPayee": "Please select who received the payment",
+            "samePersonError": "Payer and recipient cannot be the same person",
+            "validAmountRequired": "Please enter a valid amount greater than 0",
+            "amountTooLarge": "Amount cannot exceed 999,999.99",
+            "validCurrencyRequired": "Please select a valid currency",
+            "dateRequired": "Please select a date",
+            "dateInFuture": "Date cannot be in the future",
+            "recordPaymentFailed": "Failed to record payment"
+        }
+    },
+    "settlementHistory": {
+        "noPaymentsYet": "No payments recorded yet",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "editPaymentTooltip": "Edit payment",
+        "deletePaymentTooltip": "Delete payment",
+        "loadMore": "Load more",
+        "deletePaymentTitle": "Delete Payment",
+        "deletePaymentMessage": "Are you sure you want to delete this payment of {{amount}} from {{payer}} to {{payee}}? This action cannot be undone.",
+        "deleteButton": "Delete",
+        "cancelButton": "Cancel"
+    },
+    "balanceSummary": {
+        "title": "Balances",
+        "loadingBalances": "Loading balances...",
+        "allSettledUp": "All settled up!",
+        "debtArrow": " → "
     },
     "common": {
         "loading": "Loading...",

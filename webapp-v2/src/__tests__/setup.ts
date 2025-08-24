@@ -1,11 +1,10 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
-import { getFirebaseEmulatorConfig, findProjectRoot } from '@splitifyd/test-support';
+import {vi} from 'vitest';
+import {findProjectRoot, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
 
 // Mock window.API_BASE_URL - use dynamic port from shared config
-const projectRoot = findProjectRoot(__dirname);
-const config = getFirebaseEmulatorConfig(projectRoot);
-(window as any).API_BASE_URL = `http://localhost:${config.functionsPort}/${config.projectId}/us-central1`;
+const config = getFirebaseEmulatorConfig(findProjectRoot(__dirname));
+(window as any).API_BASE_URL = config.baseUrl;
 
 // Mock fetch for API client tests
 global.fetch = vi.fn();
