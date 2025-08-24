@@ -143,5 +143,33 @@
         "editExpense": "Edit Expense",
         "copyExpense": "Copy Expense",
         "cancel": "Cancel"
+    },
+    "expenseBasicFields": {
+        "title": "Expense Details",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "What was this expense for?",
+        "amountLabel": "Amount",
+        "categoryLabel": "Category",
+        "categoryPlaceholder": "Enter or select a category...",
+        "dateLabel": "Date",
+        "timeLabel": "Time",
+        "recentAmounts": "Recent amounts:",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisMorning": "This Morning",
+        "lastNight": "Last Night",
+        "addSpecificTime": "Add specific time"
+    },
+    "expensesList": {
+        "title": "Expenses",
+        "showDeletedExpenses": "Show deleted expenses",
+        "noExpensesYet": "No expenses yet. Add one to get started!",
+        "loadMore": "Load More"
+    },
+    "expenseItem": {
+        "paidBy": "Paid by",
+        "deleted": "Deleted",
+        "deletedBy": "Deleted by",
+        "copyExpense": "Copy expense"
     }
 }

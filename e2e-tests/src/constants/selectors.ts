@@ -45,9 +45,10 @@ export const ARIA_ROLES = {
 } as const;
 
 export const PLACEHOLDERS = {
-    EXPENSE_DESCRIPTION: 'What was this expense for?',
+    EXPENSE_DESCRIPTION: translation.expenseBasicFields.descriptionPlaceholder,
     EXPENSE_AMOUNT: '0.00',
     GROUP_DESCRIPTION: translation.createGroupModal.groupDescriptionPlaceholder,
+    CATEGORY_INPUT: translation.expenseBasicFields.categoryPlaceholder,
 } as const;
 
 export const HEADINGS = {
@@ -57,9 +58,9 @@ export const HEADINGS = {
     HOMEPAGE: 'Effortless Bill Splitting, Simplified & Smart.',
     YOUR_GROUPS: /Your Groups|My Groups/i,
     BALANCES: 'Balances',
-    EXPENSES: 'Expenses',
+    EXPENSES: translation.expensesList.title,
     JOIN_GROUP: translation.common.joinGroup,
-    EXPENSE_DETAILS: 'Expense Details',
+    EXPENSE_DETAILS: translation.expenseBasicFields.title,
     WHO_PAID: new RegExp(translation.expenseForm.whoPaid),
     SPLIT_BETWEEN: new RegExp(translation.expenseForm.splitBetween),
     STATISTICS: translation.dashboardStats.title,
@@ -84,11 +85,16 @@ export const BUTTON_TEXTS = {
     CANCEL: translation.expenseForm.cancel,
     CREATE_FIRST_GROUP: translation.emptyGroupsState.createFirstGroup,
     CREATE_NEW_GROUP: translation.quickActions.createNewGroup,
+    TODAY: translation.expenseBasicFields.today,
+    YESTERDAY: translation.expenseBasicFields.yesterday,
+    THIS_MORNING: translation.expenseBasicFields.thisMorning,
+    LAST_NIGHT: translation.expenseBasicFields.lastNight,
+    LOAD_MORE: translation.expensesList.loadMore,
 } as const;
 
 export const MESSAGES = {
     ALL_SETTLED_UP: translation.common.allSettledUp,
-    NO_EXPENSES_YET: /no expenses yet/i,
+    NO_EXPENSES_YET: translation.expensesList.noExpensesYet,
     WELCOME_BACK: /Welcome (back|to Splitifyd)/i,
     LOADING_BALANCES: translation.common.loadingBalances,
     LOADING_EXPENSE_FORM: translation.common.loadingExpenseForm,
@@ -97,11 +103,15 @@ export const MESSAGES = {
     NO_GROUPS_YET: translation.emptyGroupsState.title,
     SETTLED_UP: translation.groupCard.settledUp,
     NO_RECENT_ACTIVITY: translation.groupCard.noRecentActivity,
+    RECENT_AMOUNTS: translation.expenseBasicFields.recentAmounts,
 } as const;
 
 export const FORM_LABELS = {
-    DESCRIPTION: translation.expenseForm.description,
-    AMOUNT: translation.expenseForm.amount,
+    DESCRIPTION: translation.expenseBasicFields.descriptionLabel,
+    AMOUNT: translation.expenseBasicFields.amountLabel,
+    CATEGORY: translation.expenseBasicFields.categoryLabel,
+    DATE: translation.expenseBasicFields.dateLabel,
+    TIME: translation.expenseBasicFields.timeLabel,
     WHO_PAID: new RegExp(translation.expenseForm.whoPaid, 'i'),
     WHO_RECEIVED_PAYMENT: /who received the payment/i,
     SPLIT_BETWEEN: translation.expenseForm.splitBetween,

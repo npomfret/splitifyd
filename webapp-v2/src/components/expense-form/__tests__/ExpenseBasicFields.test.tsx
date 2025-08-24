@@ -3,6 +3,31 @@ import { vi } from 'vitest';
 import { ExpenseBasicFields } from '../ExpenseBasicFields';
 import { ExpenseCategory } from '@shared/shared-types';
 
+// Mock the useTranslation hook
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'expenseBasicFields.title': 'Expense Details',
+                'expenseBasicFields.descriptionLabel': 'Description',
+                'expenseBasicFields.descriptionPlaceholder': 'What was this expense for?',
+                'expenseBasicFields.amountLabel': 'Amount',
+                'expenseBasicFields.categoryLabel': 'Category',
+                'expenseBasicFields.categoryPlaceholder': 'Enter or select a category...',
+                'expenseBasicFields.dateLabel': 'Date',
+                'expenseBasicFields.timeLabel': 'Time',
+                'expenseBasicFields.recentAmounts': 'Recent amounts:',
+                'expenseBasicFields.today': 'Today',
+                'expenseBasicFields.yesterday': 'Yesterday',
+                'expenseBasicFields.thisMorning': 'This Morning',
+                'expenseBasicFields.lastNight': 'Last Night',
+                'expenseBasicFields.addSpecificTime': 'Add specific time',
+            };
+            return translations[key] || key;
+        },
+    }),
+}));
+
 // Mock the CategorySuggestionInput component
 vi.mock('../../ui/CategorySuggestionInput', () => ({
     CategorySuggestionInput: ({ value, onChange, label, placeholder }: any) => (

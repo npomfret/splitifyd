@@ -74,24 +74,46 @@ We need to audit the following areas across the entire project (both frontend an
 
 Introducing i18n will directly impact the E2E test suite, as tests currently rely on user-facing text for element selection (e.g., `getByText('Add Expense')`). When this text is translated, these tests will fail.
 
-#### Recommended Strategy
+#### Recommended Strategy (Updated 2025-08-24)
 
-The primary goal of the E2E suite is to test application **functionality**, not translation accuracy. Therefore, the most robust and maintainable strategy is to **force the test environment to always run in a single, default language (e.g., English).**
+**The Hybrid Approach:** Based on real-world experience with test brittleness during i18n implementation, the most robust strategy combines multiple selector approaches rather than relying solely on text-based selectors.
 
--   **Implementation:** The i18n library will be configured in the Playwright test setup to always use the English language pack.
--   **Advantages:**
-    -   **No Test Code Changes:** Existing and future tests can continue to use text-based selectors without modification.
-    -   **Stability:** The test suite is completely decoupled from the translation process. Adding or changing translations will not break functional tests.
-    -   **Speed:** Avoids the immense overhead of running the entire test suite for every supported language.
+**Primary Strategy - Strategic Data-TestId Usage:**
+- Add `data-testid` attributes to **critical elements** prone to text conflicts
+- Focus on form inputs, action buttons, and complex sections
+- Use semantic, descriptive IDs: `expense-amount-input`, `save-expense-button`
 
-#### Alternative (Not Recommended)
+**Secondary Strategy - Enhanced Role-Based Selectors:**
+- Use specific role selectors with name patterns: `getByRole('spinbutton', { name: /Amount\*/i })`
+- Leverage accessibility attributes for stable element identification
+- Maintain user experience testing principles
 
-An alternative is to replace all text-based selectors with a stable, non-translated attribute like `data-testid`.
+**Tertiary Strategy - Hierarchical Context:**
+- Combine container selectors with element selectors for disambiguation
+- Example: `page.locator('[data-testid="expense-form"]').getByLabel('Amount')`
 
--   **Example:** Change `getByText('Add Expense')` to `getByTestId('add-expense-button')`.
--   **Why We Should Avoid This:** This approach is not recommended because it pollutes the production code with test-specific attributes and moves away from the best practice of testing the application as a user sees it, a principle established in the project's `end-to-end_testing.md` guide.
+**Translation Validation Strategy:**
+- Limit text-based selectors to translation verification scenarios
+- Use for confirming correct translations display, not primary functionality testing
+- Force test environment to use English for consistent baseline testing
 
-**Conclusion:** By ensuring our functional tests always run against a single language, we can proceed with internationalization without compromising the stability or maintainability of our test suite. Testing the translations themselves can be handled as a separate, future quality assurance task.
+**Advantages of Hybrid Approach:**
+-   **Eliminates Selector Conflicts:** Data-testid prevents "Amount" vs "Exact amounts" issues
+-   **Reduces Maintenance:** Less dependency on changing UI text
+-   **Maintains Accessibility Testing:** Role-based selectors validate user experience
+-   **Flexible Implementation:** Choose appropriate selector type for each use case
+-   **Future-Proof:** Stable foundation for continued i18n expansion
+
+#### Previous Alternative (Now Partially Adopted)
+
+The previously "not recommended" `data-testid` approach is now **strategically recommended** for critical elements, but with important caveats:
+
+-   **Limited Scope:** Only add data-testid to elements that frequently cause conflicts
+-   **Semantic IDs:** Use descriptive, meaningful test IDs that aid debugging
+-   **Hybrid Usage:** Combine with role-based selectors for comprehensive testing
+-   **Quality Assurance:** Ensures both functionality and accessibility validation
+
+**Conclusion:** Real-world i18n implementation revealed that text-based selectors alone create unsustainable brittleness. The hybrid approach provides the stability needed for international expansion while maintaining testing best practices.
 
 ---
 
@@ -240,3 +262,294 @@ Added comprehensive new translation sections to `webapp-v2/src/locales/en/transl
 
 #### Impact
 This expansion significantly increases i18n coverage across the application, with focus on high-visibility user interface elements. The dashboard experience is now fully translatable, and the established patterns make future component conversions straightforward and consistent.
+
+**Additional Progress - 2025-08-24:**
+
+Continued systematic expansion of i18n implementation to core expense management components:
+
+#### Expense Management Components Converted to i18n (New)
+- **ExpenseBasicFields.tsx**: Complete conversion of expense form input fields, labels, placeholders, and date convenience buttons
+- **ExpensesList.tsx**: Expense list headers, empty states, show deleted checkbox, and load more functionality  
+- **ExpenseItem.tsx**: Individual expense item display including paid by text, deleted states, and copy functionality
+
+#### Translation File Expansion
+Added comprehensive new translation sections to `webapp-v2/src/locales/en/translation.json`:
+
+- `expenseBasicFields`: Complete form field labels, placeholders, date buttons (Today, Yesterday, This Morning, Last Night), and help text
+- `expensesList`: List headers, empty states, and loading states
+- `expenseItem`: Individual item display text including "Paid by", "Deleted", "Deleted by", and "Copy expense"
+
+#### Test Suite Infrastructure Improvements
+- **Enhanced Test Selector Constants**: Updated `e2e-tests/src/constants/selectors.ts` with comprehensive expense-related translation keys
+- **Test Framework Pattern**: Established robust pattern for mocking `useTranslation` hook in unit tests
+- **Backward Compatibility**: Ensured all existing test selectors work with new translation-based approach
+- **Quality Assurance**: Fixed ExpenseBasicFields unit tests with proper i18n mocking patterns
+
+#### Key Technical Achievements
+1. **Systematic Conversion**: Applied established i18n patterns consistently across all expense components
+2. **Test Stability**: Maintained test coverage while converting components to use translation keys
+3. **Translation Organization**: Expanded hierarchical translation structure with logical component groupings
+4. **Backward Compatibility**: Updated test selectors without breaking existing functionality
+5. **Pattern Reuse**: Leveraged proven i18n implementation patterns from previously converted components
+
+#### Quality Assurance Results
+- **TypeScript Compilation**: All changes pass TypeScript strict mode compilation without errors
+- **Unit Test Coverage**: Fixed and verified ExpenseBasicFields test suite with proper i18n mocking
+- **Build Verification**: Successful production build confirms no integration issues
+- **Test Infrastructure**: Enhanced test selector constants maintain E2E test stability
+
+#### Current i18n Coverage Status
+The application now has comprehensive i18n coverage across:
+- Authentication flows (Login, Register)
+- Dashboard interface (Welcome, Groups, Stats, Quick Actions) 
+- Group management (Creation, Cards, Empty states)
+- **Expense management (Forms, Lists, Items, Basic Fields)** ← **NEW**
+- Common UI elements and error messages
+
+#### Expense Flow Implementation Benefits
+- **Complete User Journey**: The entire expense creation and management flow is now translatable
+- **Form Accessibility**: All form labels, placeholders, and help text can be localized
+- **Enhanced UX**: Date convenience buttons (Today, Yesterday, etc.) ready for regional adaptation
+- **Data Display**: Expense lists and individual items fully support localization
+- **Error Handling**: Validation and error states integrated with translation system
+
+#### Next Phase Recommendations
+With the expense management core completed and test brittleness issues resolved, the next logical targets are:
+
+**Priority 1: Core Components (Apply Hybrid Testing)**
+1. **Settlement Management**: SettlementForm, SettlementHistory components
+2. **Group Settings**: GroupSettings, MemberManagement components  
+3. **Navigation**: Header, sidebar, and navigation components
+4. **Remaining Forms**: Any specialized form components not yet converted
+
+**Priority 2: Test Infrastructure Enhancement**
+1. **Strategic Data-TestId Implementation**: Add test IDs to components being converted
+2. **Test Selector Migration**: Update existing brittle selectors using hybrid approach
+3. **Test Documentation**: Update E2E testing guide with selector best practices
+4. **Selector Constants Update**: Centralize and organize test selectors for maintainability
+
+**Priority 3: Quality Assurance**
+1. **Test Stability Validation**: Run comprehensive test suites after each component conversion
+2. **Selector Conflict Prevention**: Proactively identify and resolve potential conflicts
+3. **Translation Testing**: Implement separate translation accuracy validation
+4. **Performance Testing**: Ensure i18n doesn't impact application performance
+
+This phase significantly advances the i18n implementation by covering the primary user workflow (expense management) **and establishing a sustainable testing approach** that prevents the brittleness issues encountered during initial implementation.
+
+---
+
+## Test Selector Brittleness: Lessons Learned and Solutions
+
+### The Problem with Text-Based Selectors
+
+**Issue Encountered - 2025-08-24:**
+During the expense management i18n implementation, E2E tests became highly brittle due to text-based selector conflicts. The most significant example:
+
+```typescript
+// This caused strict mode violations:
+page.getByText('Amount') // Matched both:
+// 1. Form label: "Amount*" 
+// 2. Split type: "Exact amounts"
+```
+
+**Root Causes:**
+1. **Substring Matching**: Playwright's text selectors match partial strings, causing conflicts
+2. **Translation Dependencies**: Every UI text change requires test selector updates
+3. **Maintenance Overhead**: i18n expansion breaks existing tests unpredictably
+4. **Selector Ambiguity**: Multiple elements containing similar text create strict mode violations
+
+### Brittle Patterns That Failed
+
+❌ **Text-Based Matching**
+```typescript
+// Breaks when UI text changes or conflicts arise
+await expect(page.getByText('Amount')).toBeVisible();
+await expect(page.getByLabel('Amount')).toBeVisible();
+```
+
+❌ **Translation-Dependent Selectors**
+```typescript
+// Requires constant updates as translations change
+const FORM_LABELS = {
+    AMOUNT: translation.expenseBasicFields.amountLabel, // "Amount"
+};
+```
+
+❌ **Generic Text Searches**
+```typescript
+// Too broad, matches unintended elements
+page.getByText(/amount/i)
+```
+
+### Robust Solutions That Work
+
+✅ **Strategic Data-TestId Approach**
+```typescript
+// Stable across UI changes and translations
+<input data-testid="expense-amount-input" />
+await expect(page.getByTestId('expense-amount-input')).toBeVisible();
+```
+
+✅ **Hierarchical Selectors**
+```typescript
+// Combines container context with element selection
+page.locator('[data-testid="expense-form"]').getByLabel('Amount')
+page.locator('[data-testid="split-section"]').getByText('Exact amounts')
+```
+
+✅ **Role-Based with Specificity**
+```typescript
+// More specific than generic text matching
+page.getByRole('spinbutton', { name: /Amount\*/i })
+page.getByRole('radio', { name: /Exact amounts/i })
+```
+
+### Hybrid Testing Strategy (Recommended)
+
+**Tier 1 - Critical Elements (data-testid)**
+- Form inputs that frequently change
+- Primary action buttons
+- Complex form sections with multiple similar elements
+
+**Tier 2 - Semantic Elements (role-based)**  
+- Accessibility validation
+- User interaction testing
+- Elements with stable, unique roles
+
+**Tier 3 - Hierarchical Context (container + selector)**
+- Resolve conflicts between similar elements
+- Complex components with repeated patterns
+- Multi-section forms
+
+**Tier 4 - Translation Validation (text-based)**
+- Verify correct translations are displayed
+- Limited to specific translation testing scenarios
+- Not for primary functionality testing
+
+### Implementation Guidelines by Selector Type
+
+#### When to Use Data-TestId
+```typescript
+// ✅ Form inputs with potential text conflicts
+<input data-testid="expense-amount-input" />
+<input data-testid="expense-description-input" />
+
+// ✅ Primary action buttons
+<button data-testid="save-expense-button">Save Expense</button>
+<button data-testid="cancel-expense-button">Cancel</button>
+
+// ✅ Complex sections with multiple similar elements
+<div data-testid="expense-form">
+<div data-testid="split-options-section">
+```
+
+#### When to Use Role-Based Selectors
+```typescript
+// ✅ Unique interactive elements
+page.getByRole('spinbutton', { name: /Amount\*/i })
+page.getByRole('button', { name: /Save.*Expense/i })
+page.getByRole('heading', { name: 'Expense Details' })
+
+// ✅ Accessibility validation
+page.getByRole('textbox', { name: /Description/i })
+page.getByRole('combobox', { name: /Currency/i })
+```
+
+#### When to Use Hierarchical Selectors
+```typescript
+// ✅ Resolve conflicts between similar elements
+page.locator('[data-testid="expense-basic-fields"]').getByLabel('Amount')
+page.locator('[data-testid="split-section"]').getByText('Exact amounts')
+
+// ✅ Complex forms with repeated patterns
+page.locator('[data-testid="member-list"]').getByRole('checkbox')
+```
+
+#### When to Use Text-Based Selectors (Limited)
+```typescript
+// ✅ Translation verification only
+expect(page.getByText(translation.expenseForm.saveExpense)).toBeVisible()
+
+// ❌ Avoid for primary functionality testing
+// await page.getByText('Amount').click() // DON'T DO THIS
+```
+
+### Debugging E2E Test Failures - 2025-08-24 Experience
+
+**Common Failure Pattern:**
+```
+ProxiedMethodError: ExpenseFormPage.waitForExpenseFormSections failed: 
+expect.toBeVisible: Error: strict mode violation: getByText('Amount') resolved to 2 elements
+```
+
+**Debug Process:**
+1. **Identify Selector Conflict**: Multiple elements contain the searched text
+2. **Analyze Context**: Determine which element the test actually needs
+3. **Choose Appropriate Selector**: 
+   - Data-testid for stability
+   - Role-based for specificity  
+   - Hierarchical for disambiguation
+4. **Validate Fix**: Run multiple test iterations to ensure stability
+
+**Resolution Example:**
+```typescript
+// ❌ Brittle - matches multiple elements
+await expect(page.getByText('Amount')).toBeVisible();
+
+// ✅ Specific - matches exact element needed
+await expect(page.getByRole('spinbutton', { name: /Amount\*/i })).toBeVisible();
+```
+
+### Test Maintenance Best Practices
+
+**Preventing Future Brittleness:**
+1. **Add data-testid proactively** to components likely to change text
+2. **Use translation constants** only for translation verification
+3. **Test selectors independently** before implementing full functionality
+4. **Document selector reasoning** in test comments for complex cases
+5. **Run tests multiple times** during development to catch flakiness early
+
+**Selector Migration Priority:**
+1. **High Priority**: Form inputs, primary buttons causing frequent failures
+2. **Medium Priority**: Navigation elements, section headers
+3. **Low Priority**: Static text, decorative elements that rarely change
+
+---
+
+## Key Insights and Future Considerations
+
+### What We Learned from Real Implementation
+
+**Critical Success Factors:**
+1. **Test Stability is Essential**: Brittle tests block i18n progress and reduce confidence in changes
+2. **Hybrid Approaches Work Best**: No single selector strategy solves all problems
+3. **Proactive Planning Saves Time**: Anticipating text conflicts prevents debugging cycles
+4. **Documentation Prevents Repeating Mistakes**: Capturing lessons learned guides future work
+
+**Unexpected Challenges:**
+- Substring matching in Playwright caused more conflicts than anticipated
+- Translation key organization impacted test selector design
+- Component accessibility and testing needs often aligned
+- Test debugging provided insights into actual user experience issues
+
+**Sustainable Patterns Established:**
+- Strategic data-testid usage without over-polluting markup
+- Role-based selectors for accessibility validation
+- Hierarchical selectors for complex component disambiguation
+- Translation constants for verification scenarios only
+
+### Recommendations for Future i18n Expansion
+
+**Before Converting Each Component:**
+1. **Audit for Potential Conflicts**: Search for similar text that might create selector issues
+2. **Plan Test ID Placement**: Identify elements that need stable selectors
+3. **Update Tests Incrementally**: Add stable selectors before changing component text
+4. **Validate Thoroughly**: Test both functionality and accessibility
+
+**For Large-Scale i18n Projects:**
+- Start with a hybrid testing strategy from day one
+- Build component conversion templates that include test considerations
+- Establish clear guidelines for when to use each selector type
+- Create automated tools to detect potential selector conflicts
+
+This experience demonstrates that **internationalization is not just about translating text** - it requires rethinking the entire testing and development approach to create sustainable, maintainable solutions for global users.

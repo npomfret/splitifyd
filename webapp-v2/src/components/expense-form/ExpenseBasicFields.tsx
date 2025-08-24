@@ -5,6 +5,7 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { formatCurrency } from '@/utils/currency';
 import { getToday, getYesterday, getThisMorning, getLastNight } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 
 interface ExpenseBasicFieldsProps {
     description: string;
@@ -20,6 +21,7 @@ interface ExpenseBasicFieldsProps {
 }
 
 export function ExpenseBasicFields({ description, amount, currency, date, time, category, validationErrors, updateField, getRecentAmounts, PREDEFINED_EXPENSE_CATEGORIES }: ExpenseBasicFieldsProps) {
+    const { t } = useTranslation();
     const recentAmounts = getRecentAmounts();
     const currencyService = CurrencyService.getInstance();
     const recentCurrencies = currencyService.getRecentCurrencies();
@@ -27,12 +29,12 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
     return (
         <Card>
             <Stack spacing="md">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Expense Details</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('expenseBasicFields.title')}</h2>
 
                 {/* Description */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Description <span className="text-red-500">*</span>
+                        {t('expenseBasicFields.descriptionLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
@@ -41,7 +43,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
                             validationErrors.description ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}
-                        placeholder="What was this expense for?"
+                        placeholder={t('expenseBasicFields.descriptionPlaceholder')}
                         required
                     />
                     {validationErrors.description && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{validationErrors.description}</p>}
@@ -62,7 +64,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                 updateField('currency', value);
                                 currencyService.addToRecentCurrencies(value);
                             }}
-                            label="Amount"
+                            label={t('expenseBasicFields.amountLabel')}
                             required
                             placeholder="0.00"
                             error={validationErrors.amount || validationErrors.currency}
@@ -72,7 +74,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                         {/* Recent amounts buttons */}
                         {recentAmounts.length > 0 && (
                             <div className="mt-2">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Recent amounts:</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('expenseBasicFields.recentAmounts')}</p>
                                 <div className="flex flex-wrap gap-1">
                                     {recentAmounts.map((amt, index) => (
                                         <button
@@ -95,8 +97,8 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                             value={category}
                             onChange={(value) => updateField('category', value)}
                             suggestions={PREDEFINED_EXPENSE_CATEGORIES}
-                            label="Category"
-                            placeholder="Enter or select a category..."
+                            label={t('expenseBasicFields.categoryLabel')}
+                            placeholder={t('expenseBasicFields.categoryPlaceholder')}
                             className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
                         />
                     </div>
@@ -107,7 +109,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                     {/* Date */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Date <span className="text-red-500">*</span>
+                            {t('expenseBasicFields.dateLabel')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="date"
@@ -134,7 +136,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                 }}
                                 className="text-xs"
                             >
-                                Today
+                                {t('expenseBasicFields.today')}
                             </Button>
                             <Button
                                 variant="ghost"
@@ -148,7 +150,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                 }}
                                 className="text-xs"
                             >
-                                Yesterday
+                                {t('expenseBasicFields.yesterday')}
                             </Button>
                             <Button
                                 variant="ghost"
@@ -164,7 +166,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                 }}
                                 className="text-xs"
                             >
-                                This Morning
+                                {t('expenseBasicFields.thisMorning')}
                             </Button>
                             <Button
                                 variant="ghost"
@@ -180,7 +182,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                 }}
                                 className="text-xs"
                             >
-                                Last Night
+                                {t('expenseBasicFields.lastNight')}
                             </Button>
                         </div>
                     </div>
@@ -192,7 +194,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                             <TimeInput
                                 value={time}
                                 onChange={(newTime) => updateField('time', newTime)}
-                                label="Time"
+                                label={t('expenseBasicFields.timeLabel')}
                                 error={validationErrors.time}
                                 className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
                             />
@@ -210,8 +212,8 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                         updateField('time', `${hours}:${minutes}`);
                                     }}
                                     className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                    title="Add specific time"
-                                    aria-label="Add specific time"
+                                    title={t('expenseBasicFields.addSpecificTime')}
+                                    aria-label={t('expenseBasicFields.addSpecificTime')}
                                 >
                                     <ClockIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
                                 </button>

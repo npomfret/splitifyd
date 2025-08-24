@@ -67,7 +67,8 @@ export class ExpenseFormPage extends BasePage {
      */
     async waitForExpenseFormSections(): Promise<void> {
         await expect(this.page.getByText(FORM_LABELS.DESCRIPTION)).toBeVisible();
-        await expect(this.page.getByText(FORM_LABELS.AMOUNT)).toBeVisible();
+        // Use specific role-based selector for amount input to avoid conflict with "Exact amounts" radio
+        await expect(this.page.getByRole('spinbutton', { name: /Amount\*/i })).toBeVisible();
         await expect(this.page.getByText(FORM_LABELS.WHO_PAID)).toBeVisible();
         await expect(this.page.getByText(FORM_LABELS.SPLIT_BETWEEN)).toBeVisible();
     }

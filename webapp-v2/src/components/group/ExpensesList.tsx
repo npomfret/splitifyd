@@ -3,6 +3,7 @@ import { Stack } from '../ui/Stack';
 import { Button } from '../ui/Button';
 import { ExpenseItem } from './ExpenseItem';
 import type { ExpenseData, User } from '@shared/shared-types.ts';
+import { useTranslation } from 'react-i18next';
 
 interface ExpensesListProps {
     expenses: ExpenseData[];
@@ -29,19 +30,20 @@ export function ExpensesList({
     showDeletedExpenses = false,
     onShowDeletedChange,
 }: ExpensesListProps) {
+    const { t } = useTranslation();
     return (
         <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Expenses</h2>
+                <h2 className="text-lg font-semibold">{t('expensesList.title')}</h2>
                 {isGroupOwner && onShowDeletedChange && (
                     <label className="flex items-center space-x-2 text-sm">
                         <input type="checkbox" checked={showDeletedExpenses} onChange={(e) => onShowDeletedChange(e.currentTarget.checked)} className="rounded" />
-                        <span>Show deleted expenses</span>
+                        <span>{t('expensesList.showDeletedExpenses')}</span>
                     </label>
                 )}
             </div>
             {expenses.length === 0 ? (
-                <p className="text-gray-600">No expenses yet. Add one to get started!</p>
+                <p className="text-gray-600">{t('expensesList.noExpensesYet')}</p>
             ) : (
                 <Stack spacing="md">
                     {expenses.map((expense) => (
@@ -50,7 +52,7 @@ export function ExpensesList({
 
                     {hasMore && (
                         <Button variant="ghost" onClick={onLoadMore} disabled={loading} className="w-full">
-                            {loading ? 'Loading...' : 'Load More'}
+                            {loading ? t('common.loading') : t('expensesList.loadMore')}
                         </Button>
                     )}
                 </Stack>

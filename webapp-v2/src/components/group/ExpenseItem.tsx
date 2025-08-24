@@ -5,6 +5,7 @@ import { DELETED_AT_FIELD } from '@shared/shared-types.ts';
 import { formatCurrency } from '@/utils/currency';
 import { Avatar } from '../ui/Avatar';
 import { themeStore } from '@/app/stores/theme-store.ts';
+import { useTranslation } from 'react-i18next';
 
 interface ExpenseItemProps {
     expense: ExpenseData;
@@ -14,6 +15,7 @@ interface ExpenseItemProps {
 }
 
 export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemProps) {
+    const { t } = useTranslation();
     const paidByUser = members.find((m) => m.uid === expense.paidBy);
     const isDeleted = expense[DELETED_AT_FIELD] !== null && expense[DELETED_AT_FIELD] !== undefined;
     const deletedByUser = expense.deletedBy ? members.find((m) => m.uid === expense.deletedBy) : null;
@@ -50,17 +52,17 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
                                 <p className={`font-medium ${isDeleted ? 'line-through text-gray-500' : ''}`}>{expense.description}</p>
-                                {isDeleted && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Deleted</span>}
+                                {isDeleted && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">{t('expenseItem.deleted')}</span>}
                             </div>
                             <p className="text-sm text-gray-600">
-                                Paid by{' '}
+                                {t('expenseItem.paidBy')}{' '}
                                 <span className="font-medium" style={{ color: isDeleted ? '' : themeColor }}>
                                     {paidByUser?.displayName || 'Unknown'}
                                 </span>{' '}
                                 • {formatExpenseDateTime(expense.date)}
                                 {isDeleted && expense.deletedAt && (
                                     <span className="ml-2 text-red-600">
-                                        • Deleted by {deletedByUser?.displayName || 'Unknown'} {formatDistanceToNow(new Date(expense.deletedAt))}
+                                        • {t('expenseItem.deletedBy')} {deletedByUser?.displayName || 'Unknown'} {formatDistanceToNow(new Date(expense.deletedAt))}
                                     </span>
                                 )}
                             </p>
@@ -84,8 +86,8 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <button
                             onClick={handleCopyClick}
                             className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800"
-                            title="Copy expense"
-                            aria-label="Copy expense"
+                            title={t('expenseItem.copyExpense')}
+                            aria-label={t('expenseItem.copyExpense')}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
