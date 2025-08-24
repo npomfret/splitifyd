@@ -73,7 +73,9 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
                             >
                                 <div className={variant === 'sidebar' ? 'flex flex-col gap-1' : 'flex justify-between items-center w-full'}>
                                     <span className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}>
-                                        {getUserName(debt.from.userId)}{t('balanceSummary.debtArrow')}{getUserName(debt.to.userId)}
+                                        {getUserName(debt.from.userId)}
+                                        {t('balanceSummary.debtArrow')}
+                                        {getUserName(debt.to.userId)}
                                     </span>
                                     <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'}>{formatCurrency(debt.amount, debt.currency)}</span>
                                 </div>

@@ -1,21 +1,24 @@
+import { useTranslation } from 'react-i18next';
+
 export function Footer() {
+    const { t } = useTranslation();
     return (
         <footer class="bg-gray-100 border-t border-gray-200">
             <div class="max-w-7xl mx-auto px-4 py-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Company Info */}
                     <div>
-                        <h3 class="font-semibold text-gray-900 mb-3">Splitifyd</h3>
-                        <p class="text-sm text-gray-600">Split bills easily with friends and family.</p>
+                        <h3 class="font-semibold text-gray-900 mb-3">{t('footer.companyName')}</h3>
+                        <p class="text-sm text-gray-600">{t('footer.companyDescription')}</p>
                     </div>
 
                     {/* Product Links */}
                     <div>
-                        <h3 class="font-semibold text-gray-900 mb-3">Product</h3>
+                        <h3 class="font-semibold text-gray-900 mb-3">{t('footer.productSection')}</h3>
                         <ul class="space-y-2">
                             <li>
-                                <a href="/pricing" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
-                                    Pricing
+                                <a href="/pricing" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-pricing-link">
+                                    {t('footer.pricing')}
                                 </a>
                             </li>
                         </ul>
@@ -23,21 +26,21 @@ export function Footer() {
 
                     {/* Legal Links */}
                     <div>
-                        <h3 class="font-semibold text-gray-900 mb-3">Legal</h3>
+                        <h3 class="font-semibold text-gray-900 mb-3">{t('footer.legalSection')}</h3>
                         <ul class="space-y-2">
                             <li>
-                                <a href="/terms" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
-                                    Terms of Service
+                                <a href="/terms" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-terms-link">
+                                    {t('footer.termsOfService')}
                                 </a>
                             </li>
                             <li>
-                                <a href="/privacy" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
-                                    Privacy Policy
+                                <a href="/privacy" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-privacy-link">
+                                    {t('footer.privacyPolicy')}
                                 </a>
                             </li>
                             <li>
-                                <a href="/cookies" class="text-sm text-gray-600 hover:text-purple-600 transition-colors">
-                                    Cookie Policy
+                                <a href="/cookies" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-cookies-link">
+                                    {t('footer.cookiePolicy')}
                                 </a>
                             </li>
                         </ul>
@@ -45,7 +48,7 @@ export function Footer() {
                 </div>
 
                 <div class="mt-8 pt-8 border-t border-gray-200">
-                    <p class="text-center text-sm text-gray-500">&copy; 2025 Pomo Corp ltd. All rights reserved.</p>
+                    <p class="text-center text-sm text-gray-500">{t('footer.copyright')}</p>
                 </div>
             </div>
         </footer>

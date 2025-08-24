@@ -140,11 +140,21 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
 
                                 <div class="flex gap-1">
                                     {onEditSettlement && (
-                                        <button onClick={() => onEditSettlement(settlement)} class="p-1 text-gray-400 hover:text-blue-600 transition-colors" title={t('settlementHistory.editPaymentTooltip')} data-testid="edit-settlement-button">
+                                        <button
+                                            onClick={() => onEditSettlement(settlement)}
+                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                            title={t('settlementHistory.editPaymentTooltip')}
+                                            data-testid="edit-settlement-button"
+                                        >
                                             <PencilIcon class="h-4 w-4" />
                                         </button>
                                     )}
-                                    <button onClick={() => handleDeleteClick(settlement)} class="p-1 text-gray-400 hover:text-red-600 transition-colors" title={t('settlementHistory.deletePaymentTooltip')} data-testid="delete-settlement-button">
+                                    <button
+                                        onClick={() => handleDeleteClick(settlement)}
+                                        class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                        title={t('settlementHistory.deletePaymentTooltip')}
+                                        data-testid="delete-settlement-button"
+                                    >
                                         <TrashIcon class="h-4 w-4" />
                                     </button>
                                 </div>
@@ -173,7 +183,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
                     message={t('settlementHistory.deletePaymentMessage', {
                         amount: formatAmount(settlementToDelete.amount),
                         payer: settlementToDelete.payer.displayName,
-                        payee: settlementToDelete.payee.displayName
+                        payee: settlementToDelete.payee.displayName,
                     })}
                     confirmText={t('settlementHistory.deleteButton')}
                     cancelText={t('settlementHistory.cancelButton')}

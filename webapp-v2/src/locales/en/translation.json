@@ -214,5 +214,36 @@
         "deleted": "Deleted",
         "deletedBy": "Deleted by",
         "copyExpense": "Copy expense"
+    },
+    "header": {
+        "logoAlt": "Splitifyd",
+        "login": "Login",
+        "signUp": "Sign Up"
+    },
+    "userMenu": {
+        "dashboard": "Dashboard",
+        "settings": "Settings",
+        "signOut": "Sign out",
+        "signingOut": "Signing out..."
+    },
+    "footer": {
+        "companyName": "Splitifyd",
+        "companyDescription": "Split bills easily with friends and family.",
+        "productSection": "Product",
+        "pricing": "Pricing",
+        "legalSection": "Legal",
+        "termsOfService": "Terms of Service",
+        "privacyPolicy": "Privacy Policy",
+        "cookiePolicy": "Cookie Policy",
+        "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
+    },
+    "groupHeader": {
+        "membersCount": "{{count}} members",
+        "membersCount_one": "{{count}} member",
+        "membersCount_other": "{{count}} members",
+        "recent": "Recent",
+        "expenses": "expenses",
+        "createdPrefix": "Created",
+        "groupSettingsAriaLabel": "Group Settings"
     }
 }
