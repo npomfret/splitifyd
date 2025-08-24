@@ -211,19 +211,6 @@ export class ApiDriver {
         return response.data;
     }
 
-    createTestExpense(groupId: string, paidBy: string, participants: string[], amount: number = 100): Partial<ExpenseData> {
-        return {
-            groupId,
-            description: 'Test Expense',
-            amount,
-            paidBy,
-            splitType: 'equal',
-            participants,
-            date: new Date().toISOString(),
-            category: 'food',
-        };
-    }
-
     async listUserExpenses(token: string, params?: Record<string, any>): Promise<ListExpensesResponse> {
         let endpoint = '/expenses/user';
         if (params) {
@@ -655,20 +642,6 @@ export class ApiDriver {
             .get();
 
         return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
-    }
-
-    /**
-     * Wait for a group's membership to reach a specific count
-     */
-    async waitForMembershipChange(groupId: string, expectedMemberCount: number, token: string, timeout = 5000): Promise<Group> {
-        return this.pollUntil(
-            () => this.getGroup(groupId, token),
-            (group) => Object.keys(group.members).length === expectedMemberCount,
-            {
-                timeout,
-                errorMsg: `Group ${groupId} membership did not reach ${expectedMemberCount} members`
-            }
-        );
     }
 
     /**
