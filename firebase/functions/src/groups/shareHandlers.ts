@@ -9,6 +9,7 @@ import { FirestoreCollections, ShareLink } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import type { UserThemeColor } from '../shared/shared-types';
+import { isGroupOwner as checkIsGroupOwner, isGroupMember } from '../utils/groupHelpers';
 
 const generateShareToken = (): string => {
     const bytes = randomBytes(12);
@@ -105,12 +106,10 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
 
         const groupData = groupDoc.data()!;
 
-        if (groupData.userId !== userId) {
-            const isMember = userId in groupData.data.members;
-
-            if (!isMember) {
-                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
-            }
+        const group = { id: groupId, ...groupData.data };
+        
+        if (!checkIsGroupOwner(group, userId) && !isGroupMember(group, userId)) {
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
 
         const shareToken = generateShareToken();
@@ -186,7 +185,8 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
         }
 
         // Check if user is already a member
-        const isAlreadyMember = userId in groupData.data.members || groupData.userId === userId;
+        const group = { id: groupId, ...groupData.data };
+        const isAlreadyMember = isGroupMember(group, userId);
 
         // Return group preview data
         res.status(HTTP_STATUS.OK).json({
@@ -242,8 +242,9 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
             }
             
-            // Check if user is the group owner
-            if (groupData.userId === userId) {
+            // Check if user is the group owner  
+            const group = { id: groupId, ...groupData.data };
+            if (checkIsGroupOwner(group, userId)) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
             }
             
