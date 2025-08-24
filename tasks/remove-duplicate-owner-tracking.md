@@ -127,3 +127,40 @@ After implementation:
 ## Priority
 
 **Medium** - This is a data model cleanup that improves consistency and maintainability but doesn't add user-facing features.
+
+## Implementation Status
+
+**COMPLETED** ✅
+
+### Changes Made
+
+1. **Created Helper Functions** (`firebase/functions/src/utils/groupHelpers.ts`)
+   - `getGroupOwner(group: Group): string | null` - Find the owner from members map
+   - `isGroupOwner(group: Group, userId: string): boolean` - Check if user is owner
+   - `isGroupMember(group: Group, userId: string): boolean` - Check if user is member
+
+2. **Updated Group Creation** (`firebase/functions/src/groups/handlers.ts`)
+   - Removed `userId` field from document structure (line 225)
+   - Groups now only store ownership in `data.members[userId].role: 'owner'`
+   - `createdBy` field preserved for audit trail
+
+3. **Updated Access Control** (`firebase/functions/src/groups/handlers.ts`)
+   - `fetchGroupWithAccess()` now uses `isGroupOwner()` and `isGroupMember()` helpers
+   - Consistent role-based permission checking
+   - Removed `userId` field from query selects
+
+4. **Updated Share Handlers** (`firebase/functions/src/groups/shareHandlers.ts`)
+   - All ownership checks now use `isGroupMember()` helper
+   - Removed duplicate `groupData.userId === userId` checks
+   - Single source of truth for membership validation
+
+### Verification
+
+- All handlers now use single source of truth (members map)
+- No references to `groupData.userId` remain in business logic
+- Type safety maintained throughout
+- Tests verified to still check `createdBy` field correctly
+
+### Database Changes
+
+No migration needed - new groups are created without `userId` field, existing groups will work with both patterns during transition.

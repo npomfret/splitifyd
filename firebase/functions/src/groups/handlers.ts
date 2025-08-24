@@ -23,6 +23,7 @@ import { _getGroupMembersData } from './memberHandlers';
 import { _getGroupExpensesData } from '../expenses/handlers';
 import { _getGroupSettlementsData } from '../settlements/handlers';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
+import { isGroupOwner, isGroupMember } from '../utils/groupHelpers';
 
 /**
  * Get theme color for a member based on their index
@@ -141,7 +142,7 @@ const fetchGroupWithAccess = async (groupId: string, userId: string, requireWrit
     const group = transformGroupDocument(doc);
 
     // Check if user is the owner
-    if (group.createdBy === userId) {
+    if (isGroupOwner(group, userId)) {
         const groupWithComputed = await addComputedFields(group, userId);
         return { docRef, group: groupWithComputed };
     }
@@ -152,7 +153,7 @@ const fetchGroupWithAccess = async (groupId: string, userId: string, requireWrit
     }
 
     // For read operations, check if user is a member
-    if (userId in group.members) {
+    if (isGroupMember(group, userId)) {
         const groupWithComputed = await addComputedFields(group, userId);
         return { docRef, group: groupWithComputed };
     }
@@ -222,7 +223,6 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
         // Store in Firestore with true server timestamps for the document-level timestamps
         await docRef.set({
-            userId,
             data: newGroup,
             createdAt: serverTimestamp, // True server timestamp
             updatedAt: serverTimestamp, // True server timestamp
@@ -412,7 +412,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     // Build base query - groups where user is a member
     const baseQuery = getGroupsCollection()
         .where(`data.members.${userId}`, '!=', null)
-        .select('data', 'createdAt', 'updatedAt', 'userId');
+        .select('data', 'createdAt', 'updatedAt');
 
     // Build paginated query
     const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
