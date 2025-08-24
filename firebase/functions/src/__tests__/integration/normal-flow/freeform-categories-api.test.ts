@@ -257,7 +257,7 @@ describe('Freeform Categories API Integration', () => {
     });
 
     describe('Category Security and Sanitization', () => {
-        test('should sanitize categories with potential HTML content for security', async () => {
+        test('should reject categories with potential HTML content for security', async () => {
             const categoryWithHtml = '<script>alert("xss")</script>Office Supplies';
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
@@ -268,13 +268,9 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            // XSS content should be sanitized but allowed through
-            const response = await driver.createExpense(expenseData, users[0].token);
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
-            
-            // Script tags should be removed
-            expect(createdExpense.category).not.toContain('<script>');
-            expect(createdExpense.category).toContain('Office Supplies');
+            // XSS content should be rejected entirely
+            await expect(driver.createExpense(expenseData, users[0].token))
+                .rejects.toThrow(/400|invalid|dangerous/i);
         });
 
         test('should handle categories with special SQL-like characters', async () => {
