@@ -34,7 +34,7 @@ let scriptContent;
 if (isDev) {
     // In development, dynamically construct URL to match the hostname used to access the app
     scriptContent = `window.API_BASE_URL = window.location.protocol + '//' + window.location.hostname + ':${firebaseConfig.emulators?.functions?.port}/${firebaseRc.projects?.default}/us-central1/api';`;
-    console.log(`injecting firebase emulator URL: ${scriptContent}`)
+    console.log(`injecting firebase emulator URL: ${scriptContent}`);
 } else {
     // In production, use empty string for relative URLs
     scriptContent = `window.API_BASE_URL = '';`;

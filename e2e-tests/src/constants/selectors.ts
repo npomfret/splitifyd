@@ -83,7 +83,10 @@ export const BUTTON_TEXTS = {
     SAVE_EXPENSE: new RegExp(translation.expenseForm.saveExpense, 'i'),
     UPDATE_EXPENSE: new RegExp(translation.expenseForm.updateExpense, 'i'),
     SHARE: new RegExp(translation.common.share, 'i'),
-    SIGN_OUT: /^Sign out$/i,
+    SIGN_OUT: new RegExp(translation.userMenu.signOut, 'i'),
+    SIGNING_OUT: new RegExp(translation.userMenu.signingOut, 'i'),
+    HEADER_LOGIN: translation.header.login,
+    HEADER_SIGN_UP: translation.header.signUp,
     SIGN_IN: translation.loginPage.submitButton,
     EDIT: new RegExp(translation.common.edit, 'i'),
     SETTINGS: new RegExp(translation.common.settings, 'i'),
@@ -166,4 +169,38 @@ export const SETTLEMENT_SELECTORS = {
     SETTLEMENT_ITEM: '[data-testid="settlement-item"]',
     EDIT_BUTTON: '[data-testid="edit-settlement-button"]',
     DELETE_BUTTON: '[data-testid="delete-settlement-button"]',
+} as const;
+
+export const NAVIGATION_SELECTORS = {
+    HEADER_LOGIN_LINK: '[data-testid="header-login-link"]',
+    HEADER_SIGNUP_LINK: '[data-testid="header-signup-link"]',
+    USER_MENU_BUTTON: '[data-testid="user-menu-button"]',
+    USER_DROPDOWN_MENU: '[data-testid="user-dropdown-menu"]',
+    USER_MENU_DASHBOARD_LINK: '[data-testid="user-menu-dashboard-link"]',
+    USER_MENU_SETTINGS_LINK: '[data-testid="user-menu-settings-link"]',
+    SIGN_OUT_BUTTON: '[data-testid="sign-out-button"]',
+    GROUP_SETTINGS_BUTTON: '[data-testid="group-settings-button"]',
+} as const;
+
+export const FOOTER_SELECTORS = {
+    PRICING_LINK: '[data-testid="footer-pricing-link"]',
+    TERMS_LINK: '[data-testid="footer-terms-link"]',
+    PRIVACY_LINK: '[data-testid="footer-privacy-link"]',
+    COOKIES_LINK: '[data-testid="footer-cookies-link"]',
+} as const;
+
+export const NAVIGATION_TEXTS = {
+    COMPANY_NAME: translation.footer.companyName,
+    COMPANY_DESCRIPTION: translation.footer.companyDescription,
+    PRODUCT_SECTION: translation.footer.productSection,
+    PRICING: translation.footer.pricing,
+    LEGAL_SECTION: translation.footer.legalSection,
+    TERMS_OF_SERVICE: translation.footer.termsOfService,
+    PRIVACY_POLICY: translation.footer.privacyPolicy,
+    COOKIE_POLICY: translation.footer.cookiePolicy,
+    COPYRIGHT: translation.footer.copyright,
+    DASHBOARD: translation.userMenu.dashboard,
+    SETTINGS: translation.userMenu.settings,
+    LOGO_ALT: translation.header.logoAlt,
+    GROUP_SETTINGS_ARIA: translation.groupHeader.groupSettingsAriaLabel,
 } as const;

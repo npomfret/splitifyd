@@ -11,7 +11,7 @@ describe('ConnectionManager', () => {
     beforeEach(() => {
         // Use fake timers to control health checks
         vi.useFakeTimers();
-        
+
         // Reset singleton
         (ConnectionManager as any).instance = undefined;
 
@@ -44,7 +44,7 @@ describe('ConnectionManager', () => {
         vi.spyOn(window, 'removeEventListener').mockImplementation(() => {});
 
         manager = ConnectionManager.getInstance();
-        
+
         // Advance timers to complete initial health check (but not the recurring interval)
         vi.advanceTimersByTime(0);
     });
@@ -104,7 +104,6 @@ describe('ConnectionManager', () => {
     });
 
     describe('reconnectWithBackoff', () => {
-
         it('should call callback after delay', async () => {
             const callback = vi.fn().mockResolvedValue(undefined);
 
@@ -246,14 +245,13 @@ describe('ConnectionManager', () => {
                 expect.objectContaining({
                     method: 'GET',
                     cache: 'no-cache',
-                })
+                }),
             );
         });
     });
 
     describe('dispose', () => {
         it('should clean up all resources', () => {
-
             // Set up some reconnect timeouts
             const callback = vi.fn().mockRejectedValue(new Error('fail'));
             manager.reconnectWithBackoff('test1', callback);

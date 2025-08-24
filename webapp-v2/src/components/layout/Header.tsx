@@ -2,6 +2,7 @@ import { useComputed } from '@preact/signals';
 import { useAuth } from '@/app/hooks/useAuth.ts';
 import { lazy, Suspense } from 'preact/compat';
 import { RealTimeIndicator } from '@/components/ui/RealTimeIndicator';
+import { useTranslation } from 'react-i18next';
 
 // Lazy load UserMenu to avoid SSG issues
 const UserMenu = lazy(() => import('./UserMenu').then((m) => ({ default: m.UserMenu })));
@@ -12,6 +13,7 @@ interface HeaderProps {
 }
 
 export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
+    const { t } = useTranslation();
     const authStore = useAuth();
     const user = useComputed(() => authStore?.user || null);
     const isAuthenticated = useComputed(() => !!user.value);
@@ -41,11 +43,11 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class="flex items-center gap-4">
-                <a href="/login" class="text-gray-700 hover:text-purple-600 transition-colors">
-                    Login
+                <a href="/login" class="text-gray-700 hover:text-purple-600 transition-colors" data-testid="header-login-link">
+                    {t('header.login')}
                 </a>
-                <a href="/register" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                    Sign Up
+                <a href="/register" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors" data-testid="header-signup-link">
+                    {t('header.signUp')}
                 </a>
             </div>
         );
@@ -59,7 +61,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                 <nav class="flex items-center justify-between h-16">
                     <div class="flex items-center space-x-8">
                         <a href={isAuthenticated.value ? '/dashboard' : '/'} class="flex items-center">
-                            <img src="/images/logo.svg" alt="Splitifyd" class="h-8" />
+                            <img src="/images/logo.svg" alt={t('header.logoAlt')} class="h-8" />
                         </a>
                         {getNavLinks()}
                     </div>

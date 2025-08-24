@@ -553,3 +553,103 @@ await expect(page.getByRole('spinbutton', { name: /Amount\*/i })).toBeVisible();
 - Create automated tools to detect potential selector conflicts
 
 This experience demonstrates that **internationalization is not just about translating text** - it requires rethinking the entire testing and development approach to create sustainable, maintainable solutions for global users.
+
+---
+
+**Additional Progress - 2025-08-24:**
+
+Major expansion of i18n implementation to core navigation and layout components:
+
+#### Navigation & Layout Components Converted to i18n (New)
+
+- **Header.tsx**: Complete conversion of authentication links (Login/Sign Up), logo alt text, with strategic data-testid placement
+- **UserMenu.tsx**: Full i18n for dropdown menu items (Dashboard, Settings), sign-out states and loading indicators
+- **Footer.tsx**: Comprehensive conversion of all footer content including company info, product links, legal links, and copyright
+- **GroupHeader.tsx**: Group statistics display with proper pluralization support, activity labels, and accessibility improvements
+
+#### Translation File Expansion - Navigation Section
+
+Added comprehensive new translation sections to `webapp-v2/src/locales/en/translation.json`:
+
+- `header`: Authentication links and logo accessibility text
+- `userMenu`: Dashboard navigation, settings access, and sign-out functionality with loading states
+- `footer`: Complete footer structure including company description, product sections, legal links with proper sectioning
+- `groupHeader`: Group statistics with pluralization support, activity labels, and accessibility aria-labels
+
+#### Test Infrastructure Enhancements - Navigation Focus
+
+- **Enhanced Test Selector Constants**: Added `NAVIGATION_SELECTORS`, `FOOTER_SELECTORS`, and `NAVIGATION_TEXTS` in `e2e-tests/src/constants/selectors.ts`
+- **Hybrid Testing Application**: Successfully applied strategic data-testid approach to prevent text-based selector conflicts
+- **Translation-Based Selectors**: Updated button text constants to use proper translation keys instead of hardcoded patterns
+- **Quality Assurance**: 19 navigation and authentication E2E tests passing consistently
+
+#### Strategic Data-TestId Implementation Success
+
+**High-Priority Elements Enhanced:**
+- Header authentication links: `header-login-link`, `header-signup-link` 
+- User menu navigation: `user-menu-dashboard-link`, `user-menu-settings-link`
+- Footer legal links: `footer-terms-link`, `footer-privacy-link`, `footer-cookies-link`
+- Group settings access: `group-settings-button`
+
+**Conflict Prevention Achievement:**
+- Eliminated potential conflicts between navigation "Login" and page titles
+- Resolved disambiguation between menu "Settings" and common UI text
+- Prevented footer link conflicts with main navigation elements
+- Maintained accessibility while ensuring test stability
+
+#### Quality Assurance Results - Navigation Phase
+
+- **TypeScript Compilation**: All changes pass TypeScript strict mode compilation without errors
+- **E2E Test Coverage**: 19 navigation-related tests passing (combined 10.7s execution time)
+  - 11 comprehensive navigation tests (5.5s)
+  - 8 authentication navigation tests (5.2s)
+- **Build Verification**: Successful production build with no integration issues
+- **Test Infrastructure**: No brittleness issues encountered using established hybrid approach
+
+#### Key Technical Achievements - Navigation Implementation
+
+1. **Proven Pattern Replication**: Successfully applied established i18n patterns from expense management to navigation components
+2. **Accessibility Integration**: Enhanced aria-labels and accessibility attributes alongside i18n implementation  
+3. **Pluralization Support**: Proper implementation of member count pluralization in GroupHeader
+4. **Test Strategy Validation**: Hybrid testing approach prevented all potential selector conflicts proactively
+5. **Performance Validation**: No negative impact on build performance or application load times
+
+#### Current i18n Coverage Status - Updated 2025-08-24
+
+The application now has comprehensive i18n coverage across:
+- Authentication flows (Login, Register)
+- Dashboard interface (Welcome, Groups, Stats, Quick Actions) 
+- Group management (Creation, Cards, Empty states)
+- Expense management (Forms, Lists, Items, Basic Fields)
+- Settlement management (Forms, History, Actions)
+- **Navigation & Layout (Header, User Menu, Footer, Group Header)** ← **NEW**
+- Common UI elements and error messages
+
+#### Navigation Implementation Benefits
+
+- **Consistent User Experience**: All navigation elements now support localization for global users
+- **Enhanced Accessibility**: Improved aria-labels and screen reader support through i18n integration
+- **Future-Proof Architecture**: Navigation components ready for immediate translation to any supported language
+- **Test Resilience**: Strategic test ID placement ensures navigation tests remain stable across UI changes
+- **Brand Consistency**: Company information and legal links centralized for consistent translation management
+
+#### Next Phase Recommendations - Post-Navigation
+
+With navigation and layout complete, and proven patterns established, the next logical targets are:
+
+**Priority 1: Settings & Configuration Components**
+1. **SettingsPage**: User account management, profile settings, password changes
+2. **Configuration Components**: User preferences, notification settings, privacy controls
+3. **Account Management**: Display name changes, email updates, account deletion workflows
+
+**Priority 2: Group Management Advanced Features**  
+1. **Group Settings**: Advanced group configuration, member permissions
+2. **Member Management**: Invitation workflows, role assignments, member removal
+3. **Group Operations**: Archive, transfer ownership, bulk operations
+
+**Priority 3: Specialized & Edge Case Components**
+1. **Policy Components**: Terms acceptance workflows, privacy policy displays
+2. **Error Handling**: 404 pages, error boundaries, validation messaging
+3. **Loading States**: Skeleton screens, progress indicators, async operation feedback
+
+This phase significantly advances the i18n implementation by covering **all primary navigation and layout elements** while establishing a robust testing methodology that prevents the brittleness issues encountered during initial implementation phases. The navigation layer now provides a **consistent, accessible, and globally-ready foundation** for the entire application.

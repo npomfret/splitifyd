@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { useTranslation } from 'react-i18next';
 
 interface UserMenuProps {
     user: {
@@ -11,6 +12,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -63,12 +65,12 @@ export function UserMenu({ user }: UserMenuProps) {
                     <p class="text-xs text-gray-500">{user.email}</p>
                 </div>
 
-                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    Dashboard
+                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-dashboard-link">
+                    {t('userMenu.dashboard')}
                 </a>
 
-                <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    Settings
+                <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-settings-link">
+                    {t('userMenu.settings')}
                 </a>
 
                 <hr class="my-1 border-gray-100" />
@@ -89,7 +91,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     disabled={authStore.loading}
                 >
-                    {authStore.loading ? 'Signing out...' : 'Sign out'}
+                    {authStore.loading ? t('userMenu.signingOut') : t('userMenu.signOut')}
                 </button>
             </div>
         </div>

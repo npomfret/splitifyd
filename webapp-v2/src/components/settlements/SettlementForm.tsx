@@ -331,7 +331,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     {t('settlementForm.paymentSummary', {
                                         payer: getMemberName(payerIdSignal.value),
                                         payee: getMemberName(payeeIdSignal.value),
-                                        amount: `$${parseFloat(amountSignal.value).toFixed(2)}`
+                                        amount: `$${parseFloat(amountSignal.value).toFixed(2)}`,
                                     })}
                                 </p>
                             </div>
@@ -350,10 +350,13 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 {t('settlementForm.cancelButton')}
                             </Button>
                             <Button type="submit" variant="primary" disabled={!isFormValid || isSubmitting} loading={isSubmitting} className="flex-1" data-testid="save-settlement-button">
-                                {isSubmitting 
-                                    ? (editMode ? t('settlementForm.updatingButton') : t('settlementForm.recordingButton'))
-                                    : (editMode ? t('settlementForm.updatePayment') : t('settlementForm.recordPayment'))
-                                }
+                                {isSubmitting
+                                    ? editMode
+                                        ? t('settlementForm.updatingButton')
+                                        : t('settlementForm.recordingButton')
+                                    : editMode
+                                      ? t('settlementForm.updatePayment')
+                                      : t('settlementForm.recordPayment')}
                             </Button>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
-import {vi} from 'vitest';
-import {findProjectRoot, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import { vi } from 'vitest';
+import { findProjectRoot, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 
 // Mock window.API_BASE_URL - use dynamic port from shared config
 const config = getFirebaseEmulatorConfig(findProjectRoot(__dirname));
