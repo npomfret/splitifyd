@@ -9,16 +9,16 @@ import * as admin from 'firebase-admin';
 import { clearAllTestData } from '../../support/cleanupHelpers';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
-import { 
-    pollForChange, 
-    createExactSettlementChangeMatcher,
-    createExactBalanceChangeMatcher 
-} from '../../support/changeCollectionHelpers';
+import { ApiDriver } from '../../support/ApiDriver';
+import { SettlementBuilder } from '../../support/builders';
 import { randomUUID } from 'crypto';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
+    let driver: ApiDriver;
+    
     beforeAll(async () => {
         await clearAllTestData();
+        driver = new ApiDriver();
     });
     let groupId: string;
     let userId1: string;
@@ -53,89 +53,81 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     it('should generate transaction-change notification when settlement is created directly in Firestore', async () => {
         // Create a settlement directly in Firestore (simulating what the API does)
         const settlementData = {
-            groupId: groupId,
-            from: userId2,
-            to: userId1,
-            amount: 50.0,
-            currency: 'USD',
-            note: 'Test settlement for realtime',
+            ...new SettlementBuilder()
+                .withGroupId(groupId)
+                .withPayer(userId2)
+                .withPayee(userId1)
+                .build(),
             createdAt: admin.firestore.Timestamp.now(),
             createdBy: userId2,
         };
 
         const settlementRef = await db.collection('settlements').add(settlementData);
 
-        // Use exact matcher to ensure we find the right document
-        const exactMatcher = createExactSettlementChangeMatcher(
-            settlementRef.id,
-            groupId,
-            'created',
-            [userId1, userId2]
-        );
-
-        // Poll for the change notification with proper timeout for trigger to fire
-        const changeNotification = await pollForChange(
-            FirestoreCollections.TRANSACTION_CHANGES,
-            exactMatcher,
-            { 
-                timeout: 15000,      // Increased timeout for reliability
-                groupId,
-                initialDelay: 500,   // Wait for trigger to initialize
-                debug: false         // Set to true for debugging
-            }
-        );
+        // Wait for settlement change notification using ApiDriver
+        await driver.waitForSettlementChanges(groupId, (changes) => {
+            return changes.some(change => 
+                change.id === settlementRef.id &&
+                change.action === 'created' &&
+                change.type === 'settlement' &&
+                change.users.includes(userId1) &&
+                change.users.includes(userId2)
+            );
+        }, 5000);
+        
+        // Get the change notification for verification
+        const allChanges = await driver.getSettlementChanges(groupId);
+        const changeNotification = allChanges.find(change => change.id === settlementRef.id);
 
         // Verify the change notification was created
         expect(changeNotification).toBeTruthy();
-        expect(changeNotification.groupId).toBe(groupId);
-        expect(changeNotification.id).toBe(settlementRef.id);
-        expect(changeNotification.type).toBe('settlement');
-        expect(changeNotification.action).toBe('created');
-        expect(changeNotification.users).toContain(userId1);
-        expect(changeNotification.users).toContain(userId2);
-    }, 20000);  // Increased test timeout for reliability
+        expect(changeNotification!.groupId).toBe(groupId);
+        expect(changeNotification!.id).toBe(settlementRef.id);
+        expect(changeNotification!.type).toBe('settlement');
+        expect(changeNotification!.action).toBe('created');
+        expect(changeNotification!.users).toContain(userId1);
+        expect(changeNotification!.users).toContain(userId2);
+    }, 10000);  // Test timeout
 
     it('should generate balance-change notification when settlement is created', async () => {
         // Create a settlement
         const settlementData = {
-            groupId: groupId,
-            from: userId2,
-            to: userId1,
-            amount: 75.0,
-            currency: 'USD',
-            note: 'Test settlement for balance update',
+            ...new SettlementBuilder()
+                .withGroupId(groupId)
+                .withPayer(userId2)
+                .withPayee(userId1)
+                .build(),
             createdAt: admin.firestore.Timestamp.now(),
             createdBy: userId2,
         };
 
         await db.collection('settlements').add(settlementData);
 
-        // Use exact matcher to ensure we find the right document
-        const exactMatcher = createExactBalanceChangeMatcher(
-            groupId,
-            [userId1, userId2]
-        );
-
-        // Poll for the balance change notification with proper timeout for trigger to fire
-        const changeNotification = await pollForChange(
-            FirestoreCollections.BALANCE_CHANGES,
-            exactMatcher,
-            { 
-                timeout: 15000,      // Increased timeout for reliability
-                groupId,
-                initialDelay: 500,   // Wait for trigger to initialize
-                debug: false         // Set to true for debugging
-            }
+        // Wait for balance change notification using ApiDriver
+        await driver.waitForBalanceChanges(groupId, (changes) => {
+            return changes.some(change => 
+                change.groupId === groupId &&
+                change.action === 'recalculated' &&
+                change.type === 'balance' &&
+                change.users.includes(userId1) &&
+                change.users.includes(userId2)
+            );
+        }, 5000);
+        
+        // Get the change notification for verification
+        const allChanges = await driver.getBalanceChanges(groupId);
+        const changeNotification = allChanges.find(change => 
+            change.users.includes(userId1) && change.users.includes(userId2)
         );
 
         // Verify the balance change notification was created
         expect(changeNotification).toBeTruthy();
-        expect(changeNotification.groupId).toBe(groupId);
-        expect(changeNotification.type).toBe('balance');
-        expect(changeNotification.action).toBe('recalculated');
-        expect(changeNotification.users).toContain(userId1);
-        expect(changeNotification.users).toContain(userId2);
-    }, 20000);  // Increased test timeout for reliability
+        expect(changeNotification!.groupId).toBe(groupId);
+        expect(changeNotification!.type).toBe('balance');
+        expect(changeNotification!.action).toBe('recalculated');
+        expect(changeNotification!.users).toContain(userId1);
+        expect(changeNotification!.users).toContain(userId2);
+    }, 10000);  // Test timeout
 
     it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
         /**

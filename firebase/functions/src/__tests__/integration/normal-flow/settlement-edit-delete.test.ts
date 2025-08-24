@@ -8,8 +8,6 @@ import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder, SettlementUpdateBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import { db } from '../../support/firebase-emulator';
-import { FirestoreCollections } from '../../../shared/shared-types';
 
 describe('Settlement Edit and Delete Operations', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -49,20 +47,10 @@ describe('Settlement Edit and Delete Operations', () => {
 
     afterEach(async () => {
         // Clean up test data
-        if (groupId) {
-            const collections = ['settlements', 'groups', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
-            for (const collection of collections) {
-                const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
-
-                const batch = db.batch();
-                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-                await batch.commit();
-            }
-        }
     });
 
     afterAll(async () => {
-        await clearAllTestData();
+        // await clearAllTestData();
     });
 
     describe('Settlement Updates', () => {

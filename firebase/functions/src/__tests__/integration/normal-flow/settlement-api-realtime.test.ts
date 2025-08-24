@@ -11,10 +11,6 @@ import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
-import { 
-    pollForChange,
-    createExactSettlementChangeMatcher 
-} from '../../support/changeCollectionHelpers';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -70,44 +66,24 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
             .withGroupId(groupId)
             .withPayer(user2.uid)
             .withPayee(user1.uid)
-            .withAmount(50.0)
-            .withCurrency('USD')
-            .withNote('Test API settlement')
-            .withDate(new Date().toISOString())
             .build();
 
         const createdSettlement = await driver.createSettlement(settlementData, user1.token);
         expect(createdSettlement).toBeDefined();
         expect(createdSettlement.id).toBeDefined();
 
-        // Use exact matcher to ensure we find the right document
-        const exactMatcher = createExactSettlementChangeMatcher(
-            createdSettlement.id,
-            groupId,
-            'created',
-            [user1.uid, user2.uid]
-        );
-
-        // Use the improved pollForChange with exact matcher
-        const changeNotification = await pollForChange(
-            FirestoreCollections.TRANSACTION_CHANGES,
-            exactMatcher,
-            { 
-                timeout: 15000,      // Increased timeout for reliability
-                groupId,
-                initialDelay: 500,   // Wait for trigger to initialize  
-                debug: false         // Set to true for debugging
-            }
-        );
-
-        // Verify the change notification was created with correct structure
+        // Wait for settlement creation event
+        await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
+        
+        // Verify the change by getting the most recent settlement change event
+        const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
         expect(changeNotification).toBeTruthy();
-        expect(changeNotification.groupId).toBe(groupId);
-        expect(changeNotification.id).toBe(createdSettlement.id);
-        expect(changeNotification.type).toBe('settlement');
-        expect(changeNotification.action).toBe('created');
-        expect(changeNotification.users).toContain(user1.uid);
-        expect(changeNotification.users).toContain(user2.uid);
+        expect(changeNotification!.groupId).toBe(groupId);
+        expect(changeNotification!.id).toBe(createdSettlement.id);
+        expect(changeNotification!.type).toBe('settlement');
+        expect(changeNotification!.action).toBe('created');
+        expect(changeNotification!.users).toContain(user1.uid);
+        expect(changeNotification!.users).toContain(user2.uid);
     }, 20000); // Increased test timeout
 
     it('documents that API settlement creation now works correctly', async () => {
