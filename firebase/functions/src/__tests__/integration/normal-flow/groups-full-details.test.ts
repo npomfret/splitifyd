@@ -1,6 +1,5 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ExpenseBuilder, SettlementBuilder } from '../../support/builders';
 
 describe('Groups Full Details API', () => {
@@ -14,8 +13,6 @@ describe('Groups Full Details API', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        await clearAllTestData();
-        
         apiDriver = new ApiDriver();
         
         // Create user pool with 3 users
@@ -39,9 +36,6 @@ describe('Groups Full Details API', () => {
         groupId = group.id;
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     describe('GET /groups/:id/full-details', () => {
         it('should return consolidated group data with all components', async () => {

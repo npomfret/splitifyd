@@ -30,10 +30,6 @@ describe('Optimistic Locking Integration Tests', () => {
         }
     });
 
-    afterAll(async () => {
-        // Clean up groups and users
-        // Note: ApiDriver doesn't have deleteUser, so we'll skip cleanup for now
-    });
 
     describe('Group Optimistic Locking', () => {
         test('should detect concurrent updates when two users join group simultaneously', async () => {

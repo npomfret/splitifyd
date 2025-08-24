@@ -4,7 +4,6 @@
 
 // Integration tests for settlement editing and deletion functionality
 
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder, SettlementUpdateBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
@@ -20,8 +19,6 @@ describe('Settlement Edit and Delete Operations', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        await clearAllTestData();
-        
         driver = new ApiDriver();
         
         // Create user pool with 3 users
@@ -47,10 +44,6 @@ describe('Settlement Edit and Delete Operations', () => {
 
     afterEach(async () => {
         // Clean up test data
-    });
-
-    afterAll(async () => {
-        // await clearAllTestData();
     });
 
     describe('Settlement Updates', () => {

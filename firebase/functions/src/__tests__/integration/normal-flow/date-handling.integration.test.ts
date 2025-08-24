@@ -1,20 +1,13 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { Timestamp } from 'firebase-admin/firestore';
 import { parseISOToTimestamp, timestampToISO, createServerTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../../utils/dateHelpers';
 
 describe('Firebase Date Handling Integration Tests', () => {
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
 
         // Admin is already initialized in firebase-test-setup
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     describe('Date Utility Functions', () => {
         it('should correctly parse ISO strings to Timestamps', () => {

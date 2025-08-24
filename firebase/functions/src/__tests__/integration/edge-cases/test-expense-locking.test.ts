@@ -3,7 +3,6 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SplitTypes } from '../../../shared/shared-types';
 
@@ -14,8 +13,6 @@ describe('Expense Locking Debug Test', () => {
     let user: User;
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
 
         driver = new ApiDriver();
 
@@ -27,10 +24,6 @@ describe('Expense Locking Debug Test', () => {
         });
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     test('should handle concurrent expense updates', async () => {
         // Create group

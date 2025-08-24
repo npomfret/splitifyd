@@ -71,12 +71,6 @@ describe('Policies API Integration Tests', () => {
             });
     });
 
-    afterAll(async () => {
-        // Clean up test data
-        const firestore = db;
-        await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.TERMS_OF_SERVICE).delete();
-        await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.COOKIE_POLICY).delete();
-    });
 
     describe('GET /policies/current', () => {
         it('should return all current policy versions', async () => {

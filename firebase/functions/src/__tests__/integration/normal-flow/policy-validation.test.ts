@@ -4,21 +4,16 @@
 
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { UserBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('Policy Validation Tests', () => {
     let driver: ApiDriver;
     let testUser: User;
 
     beforeAll(async () => {
-        await clearAllTestData();
         driver = new ApiDriver();
         testUser = await driver.createUser(new UserBuilder().build());
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     describe('Accept Single Policy Validation', () => {
         test('should reject missing policyId', async () => {

@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { db } from '../../../firebase';
 import { FirestoreCollections } from '../../../shared/shared-types';
 import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
@@ -13,33 +12,12 @@ describe('Trigger Debug Tests', () => {
     beforeAll(async () => {
         apiDriver = new ApiDriver();
         
-        // Create test user using builder
         user1 = await apiDriver.createUser(
             new UserBuilder().build()
         );
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
-
     beforeEach(async () => {
-        // Clear any existing change documents
-        if (groupId) {
-            try {
-                const groupChanges = await db.collection(FirestoreCollections.GROUP_CHANGES)
-                    .where('groupId', '==', groupId)
-                    .get();
-                
-                const batch = db.batch();
-                groupChanges.docs.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                
-                // Cleared group change documents
-            } catch (error) {
-                // Error clearing group changes
-            }
-        }
     });
 
     it('should fire group trigger when creating a group', async () => {

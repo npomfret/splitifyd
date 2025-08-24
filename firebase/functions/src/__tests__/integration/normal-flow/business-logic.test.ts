@@ -5,7 +5,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
 describe('Business Logic Edge Cases', () => {
@@ -17,8 +16,6 @@ describe('Business Logic Edge Cases', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
 
         driver = new ApiDriver();
         
@@ -30,10 +27,6 @@ describe('Business Logic Edge Cases', () => {
         users = userPool.getUsers(3);
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     beforeEach(async () => {
         const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();

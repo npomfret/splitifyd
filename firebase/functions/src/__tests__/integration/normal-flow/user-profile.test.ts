@@ -1,7 +1,6 @@
 import { ApiDriver } from '../../support/ApiDriver';
 import { UserBuilder } from '../../support/builders';
 import { CreateGroupRequestBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 
 describe('User Profile Management API Tests', () => {
     let driver: ApiDriver;
@@ -9,13 +8,9 @@ describe('User Profile Management API Tests', () => {
     let secondUser: any;
 
     beforeAll(async () => {
-        await clearAllTestData();
         driver = new ApiDriver();
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     beforeEach(async () => {
         // Use unique emails with timestamp and random suffix to ensure isolation

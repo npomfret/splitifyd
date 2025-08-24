@@ -1,6 +1,5 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { ExpenseBuilder } from '../../support/builders';
 
 describe('Expenses Full Details API', () => {
@@ -15,8 +14,6 @@ describe('Expenses Full Details API', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        await clearAllTestData();
-        
         apiDriver = new ApiDriver();
         
         // Create user pool with 4 users (need extra for outsider test)
@@ -51,9 +48,6 @@ describe('Expenses Full Details API', () => {
         expenseId = expense.id;
     });
 
-    afterAll(async () => {
-        await clearAllTestData();
-    });
 
     describe('GET /expenses/:id/full-details', () => {
         it('should return consolidated expense data with group and members', async () => {

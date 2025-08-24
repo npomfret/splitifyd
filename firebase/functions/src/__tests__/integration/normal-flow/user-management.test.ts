@@ -7,7 +7,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import { CreateGroupRequestBuilder } from '../../support/builders';
 
 describe('User Management Tests', () => {
@@ -17,17 +16,10 @@ describe('User Management Tests', () => {
     jest.setTimeout(10000);
 
     beforeAll(async () => {
-        // Clear any existing test data first
-        await clearAllTestData();
-
         driver = new ApiDriver();
         testUser = await driver.createUser(new UserBuilder().build());
     });
 
-    afterAll(async () => {
-        // Clean up all test data
-        await clearAllTestData();
-    });
 
     describe('User Registration', () => {
         test('should register a new user successfully', async () => {
@@ -282,8 +274,6 @@ describe('User Management Tests', () => {
         // let userExpenses: any[] = []; // Not used currently
 
         beforeAll(async () => {
-            // Clear any existing test data first
-            await clearAllTestData();
 
             // Create a test group and some expenses for the user
             const secondUser = await driver.createUser(new UserBuilder().build());

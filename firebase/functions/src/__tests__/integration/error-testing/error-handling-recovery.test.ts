@@ -5,7 +5,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { clearAllTestData } from '../../support/cleanupHelpers';
 import {Group, groupSize} from '../../../shared/shared-types';
 
 describe('Error Handling and Recovery Testing', () => {
@@ -16,8 +15,6 @@ describe('Error Handling and Recovery Testing', () => {
     jest.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
-        // Clear test data from any previous runs to ensure isolation
-        await clearAllTestData();
         
         driver = new ApiDriver();
 
