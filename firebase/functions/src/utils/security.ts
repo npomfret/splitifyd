@@ -14,7 +14,7 @@ export const checkForDangerousPatterns = (requestString: string): boolean => {
         /__proto__/,
         /constructor/,
         /prototype/,
-        // Note: Removed /<script/i to allow XSS content to be sanitized at app level instead of blocked
+        /<script/i,
         /javascript:/i,
         /data:text\/html/i,
         /data:application\/javascript/i,
@@ -28,7 +28,7 @@ export const checkForDangerousPatterns = (requestString: string): boolean => {
         /Function\s*\(/i,
         /setTimeout\s*\(/i,
         /setInterval\s*\(/i,
-        // Note: Removed /alert\s*\(/i to allow XSS test content with alert() to be sanitized
+        /alert\s*\(/i,
         /confirm\s*\(/i,
         /prompt\s*\(/i,
         /document\./i,
