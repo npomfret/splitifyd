@@ -71,13 +71,7 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
     for (const [userId, member] of Object.entries(groupData.members)) {
         const memberData = member as any;
         transformedMembers[userId] = {
-            ...memberData,
-            // Convert Firestore Timestamp to ISO string if it exists, matching pattern of createdAt/updatedAt
-            joinedAt: memberData.joinedAt?.toDate 
-                ? memberData.joinedAt.toDate().toISOString()
-                : (memberData.joinedAt?._seconds 
-                    ? new Date(memberData.joinedAt._seconds * 1000).toISOString()
-                    : memberData.joinedAt)
+            ...memberData
         };
     }
 

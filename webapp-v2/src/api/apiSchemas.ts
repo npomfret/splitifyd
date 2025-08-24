@@ -18,15 +18,8 @@ export const UserThemeColorSchema = z.object({
     colorIndex: z.number().int().min(0),
 });
 
-export const MemberSchema = z.object({
-    uid: z.string().min(1),
-    name: z.string().min(1),
-    initials: z.string().min(1),
-    email: z.string().email().optional(),
-    displayName: z.string().min(1).optional(),
-    joinedAt: z.string().optional(),
-    themeColor: UserThemeColorSchema.optional(),
-});
+// Note: MemberSchema was removed as it was unused and had incorrect joinedAt typing
+// GroupMemberSchema below is the correct schema for group member data
 
 export const GroupMemberSchema = z.object({
     joinedAt: z.string(), // ISO string, following pattern of createdAt/updatedAt
