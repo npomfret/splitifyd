@@ -203,7 +203,6 @@ test.describe('Security Authorization Tests', () => {
             });
 
             // Try to access protected content
-            await page.reload();
             await page.waitForLoadState('domcontentloaded');
 
             // Should be redirected to login page

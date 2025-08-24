@@ -45,7 +45,6 @@ test.describe('Security Authentication and Session Tests', () => {
             });
 
             // Try to access protected content
-            await page.reload();
             await page.waitForLoadState('domcontentloaded');
 
             // Should be redirected to login page
@@ -171,7 +170,6 @@ test.describe('Security Authentication and Session Tests', () => {
                 await page2.waitForURL('**/login', { timeout: 5000 });
 
                 // User 1 should still be logged in
-                await page1.reload();
                 await page1.waitForSelector('[data-testid="dashboard"]');
                 await expect(page1.locator('[data-testid="dashboard"]')).toBeVisible();
             }

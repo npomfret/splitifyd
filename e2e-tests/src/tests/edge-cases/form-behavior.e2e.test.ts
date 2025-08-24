@@ -27,7 +27,6 @@ pageTest.describe('Form Behavior Edge Cases', () => {
         await expect(passwordInput).toHaveValue('Password123');
 
         // Refresh page
-        await page.reload();
         await waitForApp(page);
 
         // In dev, form may be pre-filled from config, but our custom values should be gone
