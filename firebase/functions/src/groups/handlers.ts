@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { createOptimisticTimestamp, createTrueServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
@@ -50,7 +50,7 @@ const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
  * Get the groups collection reference
  */
 const getGroupsCollection = () => {
-    return db.collection(FirestoreCollections.GROUPS); // Using existing collection during migration
+    return firestoreDb.collection(FirestoreCollections.GROUPS); // Using existing collection during migration
 };
 
 /**
@@ -318,7 +318,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const { docRef, group } = await fetchGroupWithAccess(groupId, userId, true);
 
     // Update with optimistic locking (timestamp is handled by optimistic locking system)
-    await db.runTransaction(async (transaction) => {
+    await firestoreDb.runTransaction(async (transaction) => {
         const freshDoc = await transaction.get(docRef);
         if (!freshDoc.exists) {
             throw Errors.NOT_FOUND('Group');
@@ -371,7 +371,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const { docRef } = await fetchGroupWithAccess(groupId, userId, true);
 
     // Check if group has expenses
-    const expensesSnapshot = await db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
+    const expensesSnapshot = await firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
 
     if (!expensesSnapshot.empty) {
         throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
@@ -414,13 +414,13 @@ const batchFetchGroupData = async (groupIds: string[]): Promise<{
 
     // Batch fetch all expenses and settlements for all groups
     const expenseQueries = chunks.map(chunk =>
-        db.collection(FirestoreCollections.EXPENSES)
+        firestoreDb.collection(FirestoreCollections.EXPENSES)
             .where('groupId', 'in', chunk)
             .get()
     );
 
     const settlementQueries = chunks.map(chunk =>
-        db.collection(FirestoreCollections.SETTLEMENTS)
+        firestoreDb.collection(FirestoreCollections.SETTLEMENTS)
             .where('groupId', 'in', chunk)
             .get()
     );

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
@@ -39,7 +39,7 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
         const { policyId, versionHash } = validateAcceptPolicy(req.body);
 
         // Validate that the policy exists and the version hash is current
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
         if (!policyDoc.exists) {
@@ -103,7 +103,7 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
         // Validate request body using Joi
         const { acceptances } = validateAcceptMultiplePolicies(req.body);
 
-        const firestore = db;
+        const firestore = firestoreDb;
         const batch = firestore.batch();
 
         // Validate all policies and version hashes first
@@ -180,7 +180,7 @@ export const getUserPolicyStatus = async (req: AuthenticatedRequest, res: Respon
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
         }
 
-        const firestore = db;
+        const firestore = firestoreDb;
 
         // Get all policies
         const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();

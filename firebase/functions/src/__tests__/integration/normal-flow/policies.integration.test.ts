@@ -1,7 +1,7 @@
 import { FirestoreCollections, PolicyIds } from '../../../shared/shared-types';
 import * as crypto from 'crypto';
 import { ApiDriver } from '../../support/ApiDriver';
-import {db} from "../../../firebase";
+import {firestoreDb} from "../../../firebase";
 
 describe('Policies API Integration Tests', () => {
     let apiDriver: ApiDriver;
@@ -10,7 +10,7 @@ describe('Policies API Integration Tests', () => {
         apiDriver = new ApiDriver();
         
         // Clean up any existing data first
-        const firestore = db;
+        const firestore = firestoreDb;
         try {
             await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.TERMS_OF_SERVICE).delete();
             await firestore.collection(FirestoreCollections.POLICIES).doc(PolicyIds.COOKIE_POLICY).delete();
@@ -119,7 +119,7 @@ describe('Policies API Integration Tests', () => {
 
     describe('Policy document structure validation', () => {
         it('should handle corrupted policy documents gracefully', async () => {
-            const firestore = db;
+            const firestore = firestoreDb;
 
             // Create a corrupted policy document (missing required fields)
             await firestore.collection(FirestoreCollections.POLICIES).doc('corrupted-policy').set({
@@ -136,7 +136,7 @@ describe('Policies API Integration Tests', () => {
         });
 
         it('should handle missing version data gracefully', async () => {
-            const firestore = db;
+            const firestore = firestoreDb;
 
             // Create a policy with invalid version reference
             await firestore.collection(FirestoreCollections.POLICIES).doc('invalid-version').set({

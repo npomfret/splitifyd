@@ -10,7 +10,7 @@ import { FirestoreCollections } from '../../../shared/shared-types';
 import { ApiDriver } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { randomUUID } from 'crypto';
-import {db} from "../../../firebase";
+import {firestoreDb} from "../../../firebase";
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     let driver: ApiDriver;
@@ -35,9 +35,9 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         if (groupId) {
             const collections = ['settlements', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
             for (const collection of collections) {
-                const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
+                const snapshot = await firestoreDb.collection(collection).where('groupId', '==', groupId).get();
 
-                const batch = db.batch();
+                const batch = firestoreDb.batch();
                 snapshot.docs.forEach((doc) => batch.delete(doc.ref));
                 await batch.commit();
             }
@@ -57,7 +57,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             createdBy: userId2,
         };
 
-        const settlementRef = await db.collection('settlements').add(settlementData);
+        const settlementRef = await firestoreDb.collection('settlements').add(settlementData);
 
         // Wait for settlement change notification using ApiDriver
         await driver.waitForSettlementChanges(groupId, (changes) => {
@@ -96,7 +96,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             createdBy: userId2,
         };
 
-        await db.collection('settlements').add(settlementData);
+        await firestoreDb.collection('settlements').add(settlementData);
 
         // Wait for balance change notification using ApiDriver
         await driver.waitForBalanceChanges(groupId, (changes) => {

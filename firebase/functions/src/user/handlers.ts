@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Response } from 'express';
 import { logger } from '../logger';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
@@ -24,7 +24,7 @@ export const getUserProfile = async (req: AuthenticatedRequest, res: Response): 
         const userRecord = await admin.auth().getUser(userId);
         
         // Get additional user data from Firestore
-        const userDoc = await db.collection(FirestoreCollections.USERS).doc(userId).get();
+        const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
         const userData = userDoc.data();
 
         res.status(HTTP_STATUS.OK).json({
@@ -83,11 +83,11 @@ export const updateUserProfile = async (req: AuthenticatedRequest & LocalizedReq
             firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
         }
 
-        await db.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
+        await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
 
         // Get updated user data
         const updatedUser = await admin.auth().getUser(userId);
-        const userDoc = await db.collection(FirestoreCollections.USERS).doc(userId).get();
+        const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
         const userData = userDoc.data();
 
         res.status(HTTP_STATUS.OK).json({
@@ -139,7 +139,7 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
         });
 
         // Update Firestore to track password change
-        await db.collection(FirestoreCollections.USERS).doc(userId).update({
+        await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update({
             updatedAt: createServerTimestamp(),
             passwordChangedAt: createServerTimestamp(),
         });
@@ -171,7 +171,7 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
 
         // Check if user has any groups or outstanding balances
         // This is a simplified check - in production you'd want more thorough validation
-        const groupsSnapshot = await db
+        const groupsSnapshot = await firestoreDb
             .collection(FirestoreCollections.GROUPS)
             .where(`data.members.${userId}`, '!=', null)
             .get();
@@ -181,7 +181,7 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
         }
 
         // Delete user data from Firestore
-        await db.collection(FirestoreCollections.USERS).doc(userId).delete();
+        await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).delete();
 
         // Delete user from Firebase Auth
         await admin.auth().deleteUser(userId);

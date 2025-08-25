@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { logger } from '../logger';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { FirestoreCollections } from '../shared/shared-types';
@@ -10,7 +10,7 @@ import { FirestoreCollections } from '../shared/shared-types';
  */
 export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
 
         const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
@@ -46,7 +46,7 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
     const { id } = req.params;
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {

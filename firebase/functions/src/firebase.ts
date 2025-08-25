@@ -35,9 +35,9 @@ if (!admin.apps || admin.apps.length === 0) {
     }
 }
 
-const db = admin.firestore();
+const firestoreDb = admin.firestore();
 
 export {
-    db,
+    firestoreDb,
     admin
 };

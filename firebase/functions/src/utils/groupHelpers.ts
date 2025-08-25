@@ -1,7 +1,7 @@
 import { Group, FirestoreCollections } from '../shared/shared-types';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 
 /**
  * Get the group owner's user ID from the members map
@@ -31,7 +31,7 @@ export const isGroupMember = (group: Group, userId: string): boolean => {
 };
 
 const getGroupsCollection = () => {
-    return db.collection(FirestoreCollections.GROUPS);
+    return firestoreDb.collection(FirestoreCollections.GROUPS);
 };
 
 /**

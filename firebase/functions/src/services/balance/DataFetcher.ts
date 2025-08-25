@@ -1,4 +1,4 @@
-import { db } from '../../firebase';
+import { firestoreDb } from '../../firebase';
 import { userService } from '../userService';
 import { FirestoreCollections, DELETED_AT_FIELD } from '../../shared/shared-types';
 import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
@@ -26,7 +26,7 @@ export class DataFetcher {
     }
 
     private async fetchExpenses(groupId: string): Promise<Expense[]> {
-        const expensesSnapshot = await db.collection(FirestoreCollections.EXPENSES)
+        const expensesSnapshot = await firestoreDb.collection(FirestoreCollections.EXPENSES)
             .where('groupId', '==', groupId)
             .get();
 
@@ -39,7 +39,7 @@ export class DataFetcher {
     }
 
     private async fetchSettlements(groupId: string): Promise<Settlement[]> {
-        const settlementsSnapshot = await db.collection(FirestoreCollections.SETTLEMENTS)
+        const settlementsSnapshot = await firestoreDb.collection(FirestoreCollections.SETTLEMENTS)
             .where('groupId', '==', groupId)
             .get();
 
@@ -50,7 +50,7 @@ export class DataFetcher {
     }
 
     private async fetchGroupData(groupId: string): Promise<GroupData> {
-        const groupDoc = await db.collection(FirestoreCollections.GROUPS)
+        const groupDoc = await firestoreDb.collection(FirestoreCollections.GROUPS)
             .doc(groupId)
             .get();
 

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import * as crypto from 'crypto';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -21,7 +21,7 @@ function calculatePolicyHash(text: string): string {
  */
 export const listPolicies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
 
         const policies: PolicyDocument[] = [];
@@ -67,7 +67,7 @@ export const getPolicy = async (req: AuthenticatedRequest, res: Response): Promi
     const { id } = req.params;
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {
@@ -118,7 +118,7 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
     const { id, hash } = req.params;
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {
@@ -174,7 +174,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
     const { text, publish = false } = validateUpdatePolicy(req.body);
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {
@@ -251,7 +251,7 @@ export const publishPolicyInternal = async (id: string, versionHash: string): Pr
     }
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {
@@ -306,7 +306,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
     const { versionHash } = validatePublishPolicy(req.body);
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {
@@ -369,7 +369,7 @@ export const createPolicyInternal = async (policyName: string, text: string, cus
     }
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
 
         // Use custom ID if provided, otherwise generate ID from policy name (kebab-case)
         const id =
@@ -430,7 +430,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
     const { policyName, text } = validateCreatePolicy(req.body);
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
 
         // Generate ID from policy name (kebab-case)
         const id = policyName
@@ -498,7 +498,7 @@ export const deletePolicyVersion = async (req: AuthenticatedRequest, res: Respon
     const { id, hash } = req.params;
 
     try {
-        const firestore = db;
+        const firestore = firestoreDb;
         const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(id).get();
 
         if (!policyDoc.exists) {
