@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin/firestore';
-import { removeUndefinedFields } from './firestore-helpers';
+import {removeUndefinedFields} from './firestore-helpers';
+import {DocumentData} from "firebase-admin/firestore";
 
 export type ChangeType = 'created' | 'updated' | 'deleted';
 export type ChangePriority = 'high' | 'medium' | 'low';
@@ -14,32 +15,14 @@ export interface ChangeMetadata {
 /**
  * Get list of changed fields between two documents
  */
-export function getChangedFields(
-    before: admin.DocumentSnapshot | undefined,
-    after: admin.DocumentSnapshot | undefined
-): string[] {
+export function getChangedFields(before: admin.DocumentSnapshot | undefined, after: admin.DocumentSnapshot | undefined): string[] {
     if (!before?.exists) return ['*']; // New document
     if (!after?.exists) return ['*']; // Deleted document
 
     const beforeData = before.data() || {};
     const afterData = after.data() || {};
-    const changedFields: string[] = [];
 
-    // Check all fields in afterData
-    Object.keys(afterData).forEach((key) => {
-        if (JSON.stringify(beforeData[key]) !== JSON.stringify(afterData[key])) {
-            changedFields.push(key);
-        }
-    });
-
-    // Check for deleted fields
-    Object.keys(beforeData).forEach((key) => {
-        if (!(key in afterData)) {
-            changedFields.push(key);
-        }
-    });
-
-    return changedFields;
+    return extractChangedFields(beforeData, afterData);
 }
 
 /**
@@ -85,18 +68,7 @@ export function calculatePriority(
     return 'low';
 }
 
-/**
- * Extract changed fields from nested group structure
- */
-export function getGroupChangedFields(
-    before: admin.DocumentSnapshot | undefined,
-    after: admin.DocumentSnapshot | undefined
-): string[] {
-    if (!before?.exists) return ['*'];
-    if (!after?.exists) return ['*'];
-
-    const beforeData = before.data()?.data || {};
-    const afterData = after.data()?.data || {};
+function extractChangedFields(afterData: DocumentData, beforeData: DocumentData) {
     const changedFields: string[] = [];
 
     // Compare nested data fields
@@ -113,6 +85,19 @@ export function getGroupChangedFields(
     });
 
     return changedFields;
+}
+
+/**
+ * Extract changed fields from nested group structure
+ */
+export function getGroupChangedFields(before: admin.DocumentSnapshot | undefined, after: admin.DocumentSnapshot | undefined): string[] {
+    if (!before?.exists) return ['*'];
+    if (!after?.exists) return ['*'];
+
+    const beforeData = before.data()?.data || {};
+    const afterData = after.data()?.data || {};
+
+    return extractChangedFields(afterData, beforeData);
 }
 
 /**
@@ -137,7 +122,7 @@ export function shouldNotifyUser(
     // For low priority changes, check if it's a field that affects the user
     const nonNotifiableFields = ['lastViewed', 'analytics', 'metadata', 'updatedAt'];
     const hasNotifiableChange = changedFields.some(field => !nonNotifiableFields.includes(field));
-    
+
     // Only notify for low priority if:
     // 1. Change was made by another user AND
     // 2. At least one changed field is notifiable
@@ -177,7 +162,7 @@ export function createChangeDocument(
 /**
  * Create a minimal change document optimized for trigger-based refresh
  * Contains only the essential information needed to trigger client refreshes
- * 
+ *
  * Structure:
  * {
  *   id: "abc123",           // Entity ID
@@ -217,7 +202,7 @@ export function createMinimalChangeDocument(
 /**
  * Create a minimal balance change document
  * Balances are always recalculated, never created/updated/deleted
- * 
+ *
  * Structure:
  * {
  *   groupId: "abc123",      // Group whose balances changed

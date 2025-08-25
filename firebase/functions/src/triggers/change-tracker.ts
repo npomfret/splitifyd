@@ -1,4 +1,4 @@
-import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
 import { db } from '../firebase';
 import { logger } from '../logger';
 import { 
@@ -10,6 +10,9 @@ import {
     ChangeType 
 } from '../utils/change-detection';
 import { FirestoreCollections } from '../shared/shared-types';
+import {firestore} from "firebase-admin";
+import DocumentSnapshot = firestore.DocumentSnapshot;
+import {ParamsOf} from "firebase-functions";
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -21,19 +24,7 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const before = event.data?.before;
-        const after = event.data?.after;
-
-
-        // Determine change type
-        let changeType: ChangeType;
-        if (!before?.exists && after?.exists) {
-            changeType = 'created';
-        } else if (before?.exists && !after?.exists) {
-            changeType = 'deleted';
-        } else {
-            changeType = 'updated';
-        }
+        const {before, after, changeType} = extractDataChange(event);
 
 
         try {
@@ -90,22 +81,7 @@ export const trackExpenseChanges = onDocumentWritten(
     },
     async (event) => {
         const expenseId = event.params.expenseId;
-        const before = event.data?.before;
-        const after = event.data?.after;
-
-
-        // Determine change type
-        let changeType: ChangeType;
-        if (!before?.exists && after?.exists) {
-            changeType = 'created';
-        } else if (before?.exists && !after?.exists) {
-            changeType = 'deleted';
-        } else {
-            // For document updates, always treat as 'updated' (including soft deletes)
-            // Soft deletes are updates that add deletedAt field, not true deletions
-            changeType = 'updated';
-        }
-
+        const {before, after, changeType} = extractDataChange(event);
 
         // Process expense changes immediately
         try {
@@ -177,20 +153,7 @@ export const trackSettlementChanges = onDocumentWritten(
     },
     async (event) => {
         const settlementId = event.params.settlementId;
-        const before = event.data?.before;
-        const after = event.data?.after;
-
-        // Determine change type
-        let changeType: ChangeType;
-        if (!before?.exists && after?.exists) {
-            changeType = 'created';
-        } else if (before?.exists && !after?.exists) {
-            changeType = 'deleted';
-        } else {
-            // For document updates, always treat as 'updated' (including soft deletes)
-            // Soft deletes are updates that add deletedAt field, not true deletions
-            changeType = 'updated';
-        }
+        const {before, after, changeType} = extractDataChange(event);
 
         // Process settlement changes immediately
         try {
@@ -255,3 +218,22 @@ export const trackSettlementChanges = onDocumentWritten(
         }
     },
 );
+
+function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
+    const before = event.data?.before;
+    const after = event.data?.after;
+
+    // Determine change type
+    let changeType: ChangeType;
+    if (!before?.exists && after?.exists) {
+        changeType = 'created';
+    } else if (before?.exists && !after?.exists) {
+        changeType = 'deleted';
+    } else {
+        // For document updates, always treat as 'updated' (including soft deletes)
+        // Soft deletes are updates that add deletedAt field, not true deletions
+        changeType = 'updated';
+    }
+
+    return {before, after, changeType};
+}

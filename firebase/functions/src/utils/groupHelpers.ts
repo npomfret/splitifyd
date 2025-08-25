@@ -1,4 +1,7 @@
-import { Group } from '../shared/shared-types';
+import { Group, FirestoreCollections } from '../shared/shared-types';
+import { ApiError } from './errors';
+import { HTTP_STATUS } from '../constants';
+import { db } from '../firebase';
 
 /**
  * Get the group owner's user ID from the members map
@@ -25,4 +28,33 @@ export const isGroupOwner = (group: Group, userId: string): boolean => {
  */
 export const isGroupMember = (group: Group, userId: string): boolean => {
     return userId in group.members;
+};
+
+const getGroupsCollection = () => {
+    return db.collection(FirestoreCollections.GROUPS);
+};
+
+/**
+ * Verify that a user is a member of a group, throwing an error if not
+ */
+export const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
+    const groupDoc = await getGroupsCollection().doc(groupId).get();
+
+    if (!groupDoc.exists) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+    }
+
+    const groupData = groupDoc.data();
+
+    // Check if this is a group document (has data.members)
+    if (!groupData || !groupData.data || !groupData.data.name) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+    }
+
+    // Check if user is a member (including owner)
+    if (userId in groupData.data.members) {
+        return;
+    }
+
+    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
 };
