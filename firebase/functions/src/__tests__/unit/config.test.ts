@@ -45,10 +45,7 @@ jest.mock('../../client-config', () => ({
             retryAttempts: 3,
         },
         environment: {
-            warningBanner: {
-                enabled: true,
-                message: '⚠️ this is a demo - your data will be deleted without notice',
-            },
+            warningBanner: '⚠️ this is a demo - your data will be deleted without notice',
         },
         formDefaults: {
             displayName: '',
@@ -90,10 +87,7 @@ describe('Configuration Response Functions', () => {
             });
 
             expect(config.environment).toMatchObject({
-                warningBanner: {
-                    enabled: true,
-                    message: '⚠️ this is a demo - your data will be deleted without notice',
-                },
+                warningBanner: '⚠️ this is a demo - your data will be deleted without notice',
             });
         });
 
@@ -107,10 +101,7 @@ describe('Configuration Response Functions', () => {
             const config = getEnhancedConfigResponse();
 
             // Warning banner is configured in the mock
-            expect(config.environment.warningBanner).toEqual({
-                enabled: true,
-                message: '⚠️ this is a demo - your data will be deleted without notice',
-            });
+            expect(config.environment.warningBanner).toBe('⚠️ this is a demo - your data will be deleted without notice');
         });
 
         it('should include form defaults as empty strings in production', () => {
@@ -136,10 +127,6 @@ describe('Configuration Response Functions', () => {
                     messagingSenderId: '123456',
                     appId: '1:123456:web:abc',
                 },
-                api: {
-                    timeout: 30000,
-                    retryAttempts: 3,
-                },
                 environment: {},
                 formDefaults: {
                     displayName: '',
@@ -160,10 +147,6 @@ describe('Configuration Response Functions', () => {
                     storageBucket: 'test.firebasestorage.app',
                     messagingSenderId: '123456',
                     appId: '1:123456:web:abc',
-                },
-                api: {
-                    timeout: -1, // Negative timeout should fail
-                    retryAttempts: 3,
                 },
                 environment: {},
                 formDefaults: {

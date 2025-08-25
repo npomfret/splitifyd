@@ -1,5 +1,3 @@
-import type { WarningBanner } from '@shared/shared-types';
-
 interface FirebaseConfig {
     apiKey: string;
     authDomain: string;
@@ -14,7 +12,7 @@ interface AppConfiguration {
     firebaseAuthUrl?: string;
     firebaseFirestoreUrl?: string;
     environment: {
-        warningBanner?: WarningBanner;
+        warningBanner?: string;
     };
     formDefaults: {
         displayName?: string;

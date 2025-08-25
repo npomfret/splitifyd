@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, RATE_LIMITS, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig, WarningBanner } from './shared/shared-types';
+import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from './shared/shared-types';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
 
@@ -167,13 +167,8 @@ function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSc
     return `http://${firestoreHost}`;
 }
 
-function getWarningBanner(config: ClientConfig): WarningBanner | undefined {
-    if (!config.warningBanner) return undefined;
-
-    return {
-        enabled: true,
-        message: config.warningBanner,
-    };
+function getWarningBanner(config: ClientConfig): string | undefined {
+    return config.warningBanner || undefined;
 }
 
 // Build the complete AppConfiguration lazily

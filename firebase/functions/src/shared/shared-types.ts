@@ -118,12 +118,7 @@ export interface FirebaseConfig {
 }
 
 export interface EnvironmentConfig {
-    warningBanner?: WarningBanner;
-}
-
-export interface WarningBanner {
-    enabled: boolean;
-    message: string;
+    warningBanner?: string;
 }
 
 export interface FormDefaults {

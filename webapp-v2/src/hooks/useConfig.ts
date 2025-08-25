@@ -1,7 +1,6 @@
 import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { firebaseConfigManager } from '../app/firebase-config';
-import type { WarningBanner } from '@shared/shared-types';
 
 interface AppConfiguration {
     firebase: {
@@ -14,7 +13,7 @@ interface AppConfiguration {
     };
     firebaseAuthUrl?: string;
     environment: {
-        warningBanner?: WarningBanner;
+        warningBanner?: string;
     };
     formDefaults: {
         displayName?: string;

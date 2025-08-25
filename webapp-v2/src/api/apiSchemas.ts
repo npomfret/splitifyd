@@ -44,13 +44,8 @@ export const ApiConfigSchema = z.object({
     retryAttempts: z.number(),
 });
 
-export const WarningBannerSchema = z.object({
-    enabled: z.boolean(),
-    message: z.string().min(1),
-});
-
 export const EnvironmentConfigSchema = z.object({
-    warningBanner: WarningBannerSchema.optional(),
+    warningBanner: z.string().optional(),
 });
 
 export const FormDefaultsSchema = z.object({

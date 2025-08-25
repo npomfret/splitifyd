@@ -11,18 +11,8 @@ const FirebaseConfigSchema = z.object({
     measurementId: z.string().optional(),
 });
 
-const ApiConfigSchema = z.object({
-    timeout: z.number().positive(),
-    retryAttempts: z.number().int().positive(),
-});
-
-const WarningBannerSchema = z.object({
-    enabled: z.boolean(),
-    message: z.string(),
-});
-
 const EnvironmentConfigSchema = z.object({
-    warningBanner: WarningBannerSchema.optional(),
+    warningBanner: z.string().optional(),
 });
 
 const FormDefaultsSchema = z.object({
@@ -33,10 +23,10 @@ const FormDefaultsSchema = z.object({
 
 const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
-    api: ApiConfigSchema,
     environment: EnvironmentConfigSchema,
     formDefaults: FormDefaultsSchema,
     firebaseAuthUrl: z.string().optional(),
+    firebaseFirestoreUrl: z.string().optional(),
 });
 
 export function validateAppConfiguration(config: unknown): AppConfiguration {
