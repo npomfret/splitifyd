@@ -1,31 +1,29 @@
 #!/usr/bin/env tsx
 
-import type { User } from '../src/__tests__/support/ApiDriver';
-import { ApiDriver } from '../src/__tests__/support/ApiDriver';
-import { ExpenseBuilder } from '../src/__tests__/support/builders';
-// import { logger } from '../src/logger';
-const logger = {
-    info: (msg: string, data?: any) => console.log(msg, data || ''),
-    error: (msg: string, err: any, data?: any) => console.error(msg, err, data || ''),
-    warn: (msg: string, data?: any) => console.warn(msg, data || '')
-};
-import type { Group } from '../src/shared/shared-types';
+import type { User } from '../functions/src/__tests__/support/ApiDriver';
+import { ApiDriver } from '../functions/src/__tests__/support/ApiDriver';
+import { ExpenseBuilder } from '../functions/src/__tests__/support/builders';
+import type { Group } from '../functions/src/shared/shared-types';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '../functions/src/shared/shared-types';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
 
-interface TestUser {
+// Test user registration data (extends base User with password for registration)
+interface TestUserRegistration {
     email: string;
     password: string;
     displayName: string;
 }
 
-interface TestExpense {
+// Simple expense template for test data generation
+interface TestExpenseTemplate {
     description: string;
     amount: number;
     category: string;
 }
 
+// Group with invite link for test setup
 interface GroupWithInvite extends Group {
     inviteLink: string;
 }
@@ -62,8 +60,8 @@ const getTestConfig = (): TestDataConfig => {
     return TEST_CONFIGS[mode];
 };
 
-const generateTestUsers = (config: TestDataConfig): TestUser[] => {
-    const users: TestUser[] = [];
+const generateTestUserRegistrations = (config: TestDataConfig): TestUserRegistration[] => {
+    const users: TestUserRegistration[] = [];
 
     // Keep test1@test.com as the first user for easy reference
     users.push({
@@ -108,153 +106,46 @@ const generateTestUsers = (config: TestDataConfig): TestUser[] => {
     return users;
 };
 
-// TEST_USERS will be generated based on config in generateTestData()
-
-const EXPENSE_CATEGORIES = ['food', 'transport', 'entertainment', 'accommodation', 'utilities', 'shopping', 'healthcare', 'other'];
+// Extract category names from the real predefined categories
+const EXPENSE_CATEGORIES = PREDEFINED_EXPENSE_CATEGORIES.map(cat => cat.name);
+// Diverse expense descriptions that work with various categories
 const EXPENSE_DESCRIPTIONS = [
-    // Food & Dining
-    'Dinner at restaurant',
-    'Grocery shopping',
-    'Coffee shop',
-    'Lunch',
-    'Breakfast',
-    'Snacks',
-    'Pizza delivery',
-    'Takeout dinner',
-    'Brunch',
-    'Food truck',
-    'Ice cream',
-    'Bakery treats',
-    'Wine tasting',
-    'Cooking class',
-    'Bar drinks',
-    'Happy hour',
-    'Cocktails',
-    'Beer garden',
-    'Food festival',
-    'Farmers market',
-
-    // Transport
-    'Gas for car',
-    'Taxi ride',
-    'Uber ride',
-    'Train ticket',
-    'Bus fare',
-    'Parking fee',
-    'Tolls',
-    'Rental car',
-    'Flight ticket',
-    'Airport shuttle',
-    'Metro pass',
-    'Car wash',
-    'Car maintenance',
-    'Bike repair',
-    'Scooter rental',
-    'Ferry ride',
-    'Subway card',
-    'Rideshare',
-    'Car insurance',
-    'Vehicle registration',
-
-    // Entertainment
-    'Movie tickets',
-    'Concert tickets',
-    'Theater show',
-    'Sports game',
-    'Museum entry',
-    'Zoo visit',
-    'Amusement park',
-    'Bowling',
-    'Mini golf',
-    'Arcade games',
-    'Escape room',
-    'Karaoke',
-    'Comedy show',
-    'Art gallery',
-    'Music festival',
-    'Dance class',
-    'Gaming tournament',
-    'Board game cafe',
-
-    // Accommodation
-    'Hotel booking',
-    'Airbnb stay',
-    'Room service',
-    'Minibar',
-    'Resort fees',
-    'Camping fees',
-    'Hostel bed',
-    'Vacation rental',
-    'Hotel breakfast',
-    'Room upgrade',
-    'Late checkout fee',
-
-    // Utilities & Services
-    'Laundry',
-    'Dry cleaning',
-    'Phone bill',
-    'Internet bill',
-    'Streaming service',
-    'Cloud storage',
-    'Software subscription',
-    'App purchase',
-    'Online course',
-    'Gym membership',
-    'Spa treatment',
-
-    // Shopping
-    'Clothes shopping',
-    'Electronics',
-    'Home supplies',
-    'Gifts',
-    'Books',
-    'Stationery',
-    'Hardware store',
-    'Furniture',
-    'Decorations',
-    'Kitchen supplies',
-    'Sporting goods',
-    'Toys',
-    'Jewelry',
-    'Cosmetics',
-    'Garden supplies',
-    'Pet supplies',
-    'Office supplies',
-
-    // Healthcare
-    'Medical checkup',
-    'Pharmacy',
-    'Dental visit',
-    'Eye exam',
-    'Prescription',
-    'Vitamins',
-    'Therapy session',
-    'Massage',
-    'Chiropractor',
-    'Lab tests',
-    'Emergency room',
-    'Urgent care',
-
-    // Other
-    'Home repair',
-    'Legal fees',
-    'Bank charges',
-    'Postage',
-    'Printing',
-    'Storage unit',
-    'Moving costs',
-    'Cleaning service',
-    'Pet grooming',
-    'Childcare',
-    'Tuition',
-    'Wedding gift',
-    'Baby shower gift',
-    'Birthday party',
-    'Holiday decorations',
-    'Charity donation',
+    'Dinner at restaurant', 'Grocery shopping', 'Coffee run', 'Lunch', 'Pizza delivery', 'Takeout',
+    'Uber ride', 'Gas for car', 'Train ticket', 'Parking fee', 'Taxi ride', 'Bus fare',
+    'Movie tickets', 'Concert', 'Theater show', 'Museum visit', 'Game night', 'Bowling',
+    'Hotel booking', 'Airbnb stay', 'Room service', 'Vacation rental', 'Camping fees',
+    'Electric bill', 'Internet bill', 'Phone bill', 'Water bill', 'Gym membership',
+    'Clothes shopping', 'Electronics', 'Books', 'Gifts', 'Home supplies', 'Furniture',
+    'Doctor visit', 'Pharmacy', 'Dental checkup', 'Prescription', 'Therapy session',
+    'Online course', 'Textbooks', 'School supplies', 'Tuition', 'Workshop',
+    'Pet food', 'Vet visit', 'Pet grooming', 'Pet toys', 'Pet supplies',
+    'Bar drinks', 'Wine', 'Beer', 'Cocktails', 'Happy hour', 'Brewery tour',
+    'Coffee beans', 'Espresso machine', 'Coffee shop visit', 'Latte', 'Cold brew',
+    'Laptop', 'Phone', 'Headphones', 'Software', 'App subscription', 'Cloud storage',
+    'Video games', 'Gaming console', 'Board games', 'Gaming accessories',
+    'Garden supplies', 'Home decor', 'Tools', 'Paint', 'Cleaning supplies',
+    'Netflix', 'Spotify', 'Disney+', 'YouTube Premium', 'News subscription',
+    'Birthday gift', 'Wedding gift', 'Holiday present', 'Thank you gift',
+    'Charity donation', 'Fundraiser', 'Volunteering expenses', 'Community support',
+    'Art supplies', 'Craft materials', 'Hobby equipment', 'Workshop materials',
+    'Personal trainer', 'Yoga class', 'Sports equipment', 'Marathon entry',
+    'Skincare', 'Haircut', 'Makeup', 'Spa day', 'Manicure',
+    'Date night', 'Anniversary dinner', 'Flowers', 'Romantic getaway',
+    'Counseling', 'Self-help book', 'Meditation app', 'Wellness retreat',
+    'Babysitting', 'Kids toys', 'School lunch', 'Playground visit',
+    'Night out', 'Club entry', 'Late night food', 'Dancing',
+    'Lottery ticket', 'Scratch card', 'Casino visit', 'Betting',
+    'Late night snacks', 'Junk food', 'Convenience store', 'Vending machine',
+    'Hangover cure', 'Recovery drinks', 'Aspirin', 'Comfort food',
+    'Impulse buy', 'Random purchase', 'Saw it and bought it', 'Why did I buy this',
+    'Business expense', 'Work supplies', 'Networking event', 'Professional development',
+    'Totally legal bribe', 'Favor payment', 'Smooth talking fee', 'Convenience fee',
+    'Legal consultation', 'Court fees', 'Bail money', 'Lawyer retainer',
+    'Weird Amazon find', 'Strange gadget', 'Quirky item', 'Internet rabbit hole purchase',
+    'Miscellaneous', 'Random expense', 'Other stuff', 'Unspecified purchase'
 ];
 
-const generateRandomExpense = (): TestExpense => {
+const generateRandomExpense = (): TestExpenseTemplate => {
     const description = EXPENSE_DESCRIPTIONS[Math.floor(Math.random() * EXPENSE_DESCRIPTIONS.length)];
     const category = EXPENSE_CATEGORIES[Math.floor(Math.random() * EXPENSE_CATEGORIES.length)];
     // More varied amounts with realistic distribution
@@ -280,7 +171,7 @@ const generateRandomExpense = (): TestExpense => {
     return { description, amount, category };
 };
 
-async function createTestUser(userInfo: TestUser): Promise<User> {
+async function createTestUserRegistration(userInfo: TestUserRegistration): Promise<User> {
     return await driver.createUser(userInfo);
 }
 
@@ -303,17 +194,17 @@ async function createGroups(createdBy: User, config: TestDataConfig): Promise<Gr
     // Create special "Empty Group" with NO expenses
     const emptyGroup = await createGroupWithInvite('Empty Group', 'This group has no expenses - testing empty state', createdBy);
     groups.push(emptyGroup);
-    logger.info(`Created special empty group: ${emptyGroup.name} with invite link: ${emptyGroup.inviteLink}`);
+    console.log(`Created special empty group: ${emptyGroup.name} with invite link: ${emptyGroup.inviteLink}`);
 
     // Create special "Settled Group" with multi-currency expenses and settlements
     const settledGroup = await createGroupWithInvite('Settled Group', 'Multi-currency group with many expenses and settlements - fully settled up', createdBy);
     groups.push(settledGroup);
-    logger.info(`Created special settled group: ${settledGroup.name} with invite link: ${settledGroup.inviteLink}`);
+    console.log(`Created special settled group: ${settledGroup.name} with invite link: ${settledGroup.inviteLink}`);
 
     // Create special "Large Group" with many users and expenses
     const largeGroup = await createGroupWithInvite('Large Group', 'Many users and expenses for testing pagination and performance', createdBy);
     groups.push(largeGroup);
-    logger.info(`Created special large group: ${largeGroup.name} with invite link: ${largeGroup.inviteLink}`);
+    console.log(`Created special large group: ${largeGroup.name} with invite link: ${largeGroup.inviteLink}`);
 
     // Create regular groups with various names
     const regularGroupCount = config.groupCount - 3;
@@ -336,7 +227,7 @@ async function createGroups(createdBy: User, config: TestDataConfig): Promise<Gr
         const groupName = groupNames[i % groupNames.length] + (i >= groupNames.length ? ` ${Math.floor(i / groupNames.length) + 1}` : '');
         const group = await createGroupWithInvite(groupName, 'Regular group with some expenses', createdBy);
         groups.push(group);
-        logger.info(`Created group: ${group.name} with invite link: ${group.inviteLink}`);
+        console.log(`Created group: ${group.name} with invite link: ${group.inviteLink}`);
     }
 
     return groups;
@@ -346,7 +237,7 @@ async function joinGroupsRandomly(users: User[], groups: GroupWithInvite[]): Pro
     // Each user (except test1 who created all groups) joins groups
     const otherUsers = users.slice(1); // Skip test1@test.com
 
-    logger.info(`Having ${otherUsers.length} users join groups`);
+    console.log(`Having ${otherUsers.length} users join groups`);
 
     // Process all users in parallel for better performance
     await Promise.all(
@@ -378,12 +269,12 @@ async function joinGroupsRandomly(users: User[], groups: GroupWithInvite[]): Pro
             }
 
             await Promise.all(joinPromises);
-            logger.info(`${user.email} joined ${joinedCount} out of ${groups.length} groups`);
+            console.log(`${user.email} joined ${joinedCount} out of ${groups.length} groups`);
         }),
     );
 }
 
-async function createTestExpense(groupId: string, expense: TestExpense, participants: User[], createdBy: User): Promise<any> {
+async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTemplate, participants: User[], createdBy: User): Promise<any> {
     const participantIds = participants.map((p) => p.uid);
 
     // Randomly choose between GBP and EUR
@@ -409,7 +300,7 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
     // Skip the special groups - only process regular groups
     const regularGroups = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group' && g.name !== 'Large Group');
 
-    logger.info(`Creating random expenses for ${regularGroups.length} regular groups`);
+    console.log(`Creating random expenses for ${regularGroups.length} regular groups`);
 
     // Process groups in batches of 3 to reduce contention
     const BATCH_SIZE = 3;
@@ -447,12 +338,12 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
                             participants[0] = user;
                         }
 
-                        expensePromises.push(createTestExpense(group.id, expense, participants, user));
+                        expensePromises.push(createTestExpenseTemplate(group.id, expense, participants, user));
                     }
                 }
 
                 await Promise.all(expensePromises);
-                logger.info(`Created ${expensePromises.length} random expenses for group: ${group.name}`);
+                console.log(`Created ${expensePromises.length} random expenses for group: ${group.name}`);
             }),
         );
     }
@@ -462,14 +353,14 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     const settledGroup = groups.find((g) => g.name === 'Settled Group');
     if (!settledGroup) return;
 
-    logger.info('Creating balanced expenses and settlements for "Settled Group" so no one owes anything');
+    console.log('Creating balanced expenses and settlements for "Settled Group" so no one owes anything');
 
     // Get all members of this group from the refreshed data
     const groupMembers = users.filter((user) => user.uid in settledGroup.members);
 
     if (groupMembers.length < 2) return;
 
-    logger.info(`Creating balanced expenses for ${groupMembers.length} members in Settled Group`, {
+    console.log(`Creating balanced expenses for ${groupMembers.length} members in Settled Group`, {
         groupId: settledGroup.id,
         memberIds: groupMembers.map((m) => m.uid),
         memberNames: groupMembers.map((m) => m.displayName),
@@ -524,7 +415,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
         expensePromises.push(
             driver.createExpense(expenseData, payer.token).then(() => {
-                logger.info(`Created expense: ${payer.displayName} paid ${scenario.currency} ${scenario.amount} for "${scenario.description}"`);
+                console.log(`Created expense: ${payer.displayName} paid ${scenario.currency} ${scenario.amount} for "${scenario.description}"`);
             }),
         );
     }
@@ -533,7 +424,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     await Promise.all(expensePromises);
 
     // Now fetch the actual balances from the API to see what needs settling
-    logger.info('Fetching current balances to calculate settlements...');
+    console.log('Fetching current balances to calculate settlements...');
 
     const balancesResponse = await driver.getGroupBalances(settledGroup.id, groupMembers[0].token);
     const balancesByCurrency = balancesResponse.balancesByCurrency || {};
@@ -593,15 +484,10 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
                         .createSettlement(settlementData, debtor.user.token)
                         .then(() => {
                             const symbol = currency === 'GBP' ? '£' : '€';
-                            logger.info(`Created settlement: ${debtor.user.displayName} → ${creditor.user.displayName} ${symbol}${settlementData.amount}`);
+                            console.log(`Created settlement: ${debtor.user.displayName} → ${creditor.user.displayName} ${symbol}${settlementData.amount}`);
                         })
                         .catch((err) => {
-                            logger.error(`Failed to create settlement: ${err.message}`, {
-                                from: debtor.user.displayName,
-                                to: creditor.user.displayName,
-                                amount: settlementData.amount,
-                                currency,
-                            });
+                            throw new Error(`Failed to create settlement: ${err.message}`);
                         }),
                 );
 
@@ -621,30 +507,30 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     // Verify final balances
     const finalBalances = await driver.getGroupBalances(settledGroup.id, groupMembers[0].token);
 
-    logger.info('Final balances in Settled Group (should all be ~0):');
+    console.log('Final balances in Settled Group (should all be ~0):');
     for (const currency of ['GBP', 'EUR']) {
         const currencyBalances = finalBalances.balancesByCurrency?.[currency];
         if (currencyBalances) {
-            logger.info(`  ${currency}:`);
+            console.log(`  ${currency}:`);
             for (const member of groupMembers) {
                 const balance = currencyBalances[member.uid];
                 if (balance) {
                     const netBalance = Math.round((balance.netBalance || 0) * 100) / 100;
                     const symbol = currency === 'GBP' ? '£' : '€';
-                    logger.info(`    ${member.displayName}: ${symbol}${netBalance}`);
+                    console.log(`    ${member.displayName}: ${symbol}${netBalance}`);
                 }
             }
         }
     }
 
-    logger.info(`✓ Successfully created balanced multi-currency expenses and settlements for "Settled Group"`);
+    console.log(`✓ Successfully created balanced multi-currency expenses and settlements for "Settled Group"`);
 }
 
 async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
     const largeGroup = groups.find((g) => g.name === 'Large Group');
     if (!largeGroup) return;
 
-    logger.info('Creating many expenses for "Large Group" to test pagination');
+    console.log('Creating many expenses for "Large Group" to test pagination');
 
     // Get all members of this group from the refreshed data
     const groupMembers = users.filter((user) => user.uid in largeGroup.members);
@@ -672,7 +558,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
                 participants[0] = payer;
             }
 
-            batchPromises.push(createTestExpense(largeGroup.id, expense, participants, payer));
+            batchPromises.push(createTestExpenseTemplate(largeGroup.id, expense, participants, payer));
         }
 
         await Promise.all(batchPromises);
@@ -683,14 +569,14 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
         }
     }
 
-    logger.info(`Created ${totalExpenses} expenses for "Large Group"`);
+    console.log(`Created ${totalExpenses} expenses for "Large Group"`);
 }
 
 async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
     // Skip empty group AND settled group (to preserve its settled state)
     const groupsWithPayments = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
 
-    logger.info(`Creating small payments/settlements for ${groupsWithPayments.length} groups`);
+    console.log(`Creating small payments/settlements for ${groupsWithPayments.length} groups`);
 
     // Process groups in batches to reduce contention
     const BATCH_SIZE = 2;
@@ -752,25 +638,25 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Us
                     settlementPromises.push(
                         driver.createSettlement(settlementData, payer.token).then(() => {
                             const currencySymbol = currency === 'GBP' ? '£' : '€';
-                            logger.info(`Created small payment: ${payer.displayName} → ${payee.displayName} ${currencySymbol}${paymentAmount} in ${group.name}`);
+                            console.log(`Created small payment: ${payer.displayName} → ${payee.displayName} ${currencySymbol}${paymentAmount} in ${group.name}`);
                         }),
                     );
                 }
 
                 await Promise.all(settlementPromises);
-                logger.info(`Created ${settlementCount} small payments for group: ${group.name}`);
+                console.log(`Created ${settlementCount} small payments for group: ${group.name}`);
             }),
         );
     }
 
-    logger.info(`✓ Finished creating small payments for all groups`);
+    console.log(`✓ Finished creating small payments for all groups`);
 }
 
 async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
     // Skip empty group and settled group (to preserve their states)
     const groupsWithExpenses = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
 
-    logger.info(`Deleting some expenses from ${groupsWithExpenses.length} groups to test deletion functionality`);
+    console.log(`Deleting some expenses from ${groupsWithExpenses.length} groups to test deletion functionality`);
 
     let totalDeleted = 0;
 
@@ -778,7 +664,7 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Us
         // Get a group member to perform the deletion (preferably the creator)
         const deleter = users.find((u) => u.uid === group.createdBy) || users.find((u) => u.uid in group.members);
         if (!deleter) {
-            logger.warn(`No valid user found to delete expenses from group: ${group.name}`);
+            console.warn(`No valid user found to delete expenses from group: ${group.name}`);
             continue;
         }
 
@@ -786,7 +672,7 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Us
         const { expenses } = await driver.getGroupExpenses(group.id, deleter.token);
 
         if (!expenses || expenses.length === 0) {
-            logger.info(`No expenses found in group: ${group.name}`);
+            console.log(`No expenses found in group: ${group.name}`);
             continue;
         }
 
@@ -805,55 +691,68 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Us
             await driver.deleteExpense(expense.id, deleter.token);
             totalDeleted++;
             const currencySymbol = expense.currency === 'GBP' ? '£' : expense.currency === 'EUR' ? '€' : '$';
-            logger.info(`Deleted expense: "${expense.description}" (${currencySymbol}${expense.amount}) from ${group.name}`);
+            console.log(`Deleted expense: "${expense.description}" (${currencySymbol}${expense.amount}) from ${group.name}`);
         }
 
-        logger.info(`Deleted ${deleteCount} expense(s) from group: ${group.name}`);
+        console.log(`Deleted ${deleteCount} expense(s) from group: ${group.name}`);
     }
 
-    logger.info(`✓ Finished deleting expenses. Total deleted: ${totalDeleted} expenses across all groups`);
+    console.log(`✓ Finished deleting expenses. Total deleted: ${totalDeleted} expenses across all groups`);
 }
 
-export async function generateTestData(): Promise<void> {
-    const config = getTestConfig();
+interface EmulatorConfig {
+    projectId: string;
+    functionsPort: string;
+    firestorePort: string;
+    authPort: string;
+}
+
+export async function generateTestData(emulatorConfig?: EmulatorConfig): Promise<void> {
+    // Set up environment variables if config is provided
+    if (emulatorConfig) {
+        process.env.GCLOUD_PROJECT = emulatorConfig.projectId;
+        process.env.FIRESTORE_EMULATOR_HOST = `localhost:${emulatorConfig.firestorePort}`;
+        process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${emulatorConfig.authPort}`;
+    }
+    const testConfig = getTestConfig();
     const startTime = Date.now();
     const timings: Record<string, number> = {};
 
     const logTiming = (phase: string, startMs: number) => {
         const duration = Date.now() - startMs;
         timings[phase] = duration;
-        logger.info(`⏱️  ${phase} completed in ${duration}ms`);
+        console.log(`⏱️  ${phase} completed in ${duration}ms`);
     };
 
-    logger.info(`🚀 Starting test data generation in ${config.mode} mode`);
+    console.log(`🚀 Starting test data generation in ${testConfig.mode} mode`);
 
     // Generate users based on config
-    const TEST_USERS = generateTestUsers(config);
+    const TEST_USERS = generateTestUserRegistrations(testConfig);
 
     // Create all test users in parallel
-    logger.info(`Creating ${config.userCount} test users...`);
+    console.log(`Creating ${testConfig.userCount} test users...`);
     const userCreationStart = Date.now();
-    const users = await Promise.all(TEST_USERS.map((userInfo) => createTestUser(userInfo)));
-    logger.info(`✓ Created ${users.length} users`);
+    const users = await Promise.all(TEST_USERS.map((userInfo) => createTestUserRegistration(userInfo)));
+    console.log(`✓ Created ${users.length} users`);
     logTiming('User creation', userCreationStart);
 
     // test1@test.com creates groups and collects invite links
-    logger.info(`Creating ${config.groupCount} groups with test1@test.com as creator...`);
+    console.log(`Creating ${testConfig.groupCount} groups with test1@test.com as creator...`);
     const groupCreationStart = Date.now();
     const test1User = users[0]; // test1@test.com
-    const groupsWithInvites = await createGroups(test1User, config);
-    logger.info(`✓ Created ${groupsWithInvites.length} groups with invite links`);
+    const groupsWithInvites = await createGroups(test1User, testConfig);
+    console.log(`✓ Created ${groupsWithInvites.length} groups with invite links`);
     logTiming('Group creation', groupCreationStart);
 
     // Other users randomly join ~70% of groups
-    logger.info('Having users randomly join groups...');
+    console.log('Having users randomly join groups...');
     const joinGroupsStart = Date.now();
     await joinGroupsRandomly(users, groupsWithInvites);
-    logger.info('✓ Users have joined groups randomly');
+    console.log('✓ Users have joined groups randomly');
     logTiming('Group joining', joinGroupsStart);
 
     // IMPORTANT: Refresh group data after joins to get updated member lists
-    logger.info('Refreshing group data to get updated member lists...');
+    console.log('Refreshing group data to get updated member lists...');
     const refreshStart = Date.now();
     const refreshedGroups = await Promise.all(
         groupsWithInvites.map(async (group) => {
@@ -864,64 +763,54 @@ export async function generateTestData(): Promise<void> {
             } as GroupWithInvite;
         }),
     );
-    logger.info('✓ Refreshed group data with updated members');
+    console.log('✓ Refreshed group data with updated members');
     logTiming('Group data refresh', refreshStart);
 
     // Create random expenses for regular groups (excluding special ones)
-    logger.info('Creating random expenses for regular groups...');
+    console.log('Creating random expenses for regular groups...');
     const regularExpensesStart = Date.now();
-    await createRandomExpensesForGroups(refreshedGroups, users, config);
-    logger.info('✓ Created random expenses for regular groups');
+    await createRandomExpensesForGroups(refreshedGroups, users, testConfig);
+    console.log('✓ Created random expenses for regular groups');
     logTiming('Regular expenses creation', regularExpensesStart);
 
     // Create special balanced expenses for "Settled Group"
-    logger.info('Creating balanced expenses for "Settled Group"...');
+    console.log('Creating balanced expenses for "Settled Group"...');
     const balancedExpensesStart = Date.now();
     await createBalancedExpensesForSettledGroup(refreshedGroups, users);
-    logger.info('✓ Created balanced expenses');
+    console.log('✓ Created balanced expenses');
     logTiming('Balanced expenses creation', balancedExpensesStart);
 
     // Create many expenses for "Large Group" for pagination testing
-    logger.info('Creating many expenses for "Large Group"...');
+    console.log('Creating many expenses for "Large Group"...');
     const largeGroupExpensesStart = Date.now();
-    await createManyExpensesForLargeGroup(refreshedGroups, users, config);
-    logger.info('✓ Created many expenses for pagination testing');
+    await createManyExpensesForLargeGroup(refreshedGroups, users, testConfig);
+    console.log('✓ Created many expenses for pagination testing');
     logTiming('Large group expenses creation', largeGroupExpensesStart);
 
     // Create small payments/settlements for groups to demonstrate payment functionality
-    logger.info('Creating small payments/settlements for groups...');
+    console.log('Creating small payments/settlements for groups...');
     const smallPaymentsStart = Date.now();
     await createSmallPaymentsForGroups(refreshedGroups, users);
-    logger.info('✓ Created small payments/settlements');
+    console.log('✓ Created small payments/settlements');
     logTiming('Small payments creation', smallPaymentsStart);
 
     // Delete some expenses to test deletion functionality and show deleted state
-    logger.info('Deleting some expenses to test deletion functionality...');
+    console.log('Deleting some expenses to test deletion functionality...');
     const deletionStart = Date.now();
     await deleteSomeExpensesFromGroups(refreshedGroups, users);
-    logger.info('✓ Deleted some expenses from groups');
+    console.log('✓ Deleted some expenses from groups');
     logTiming('Expense deletion', deletionStart);
 
     const totalTime = Date.now() - startTime;
-    logger.info('🎉 Test data generation completed', {
+    console.log('🎉 Test data generation completed', {
         users: users.length,
         groups: refreshedGroups.length,
         totalTimeMs: totalTime,
         totalTimeSeconds: (totalTime / 1000).toFixed(2),
-        mode: config.mode,
+        mode: testConfig.mode,
         timings,
         testCredentials: TEST_USERS.map((u) => ({ email: u.email, password: u.password })),
         inviteLinks: refreshedGroups.map((g) => ({ name: g.name, inviteLink: g.inviteLink })),
     });
 }
 
-// Run the script
-if (require.main === module) {
-    const config = getTestConfig();
-    logger.info(`Running generate-test-data script in ${config.mode} mode`);
-    logger.info('To use fast mode, run: TEST_DATA_MODE=fast npm run generate-test-data');
-
-    generateTestData().then(() => {
-        process.exit(0);
-    });
-}

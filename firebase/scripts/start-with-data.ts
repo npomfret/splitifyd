@@ -1,27 +1,108 @@
 #!/usr/bin/env npx tsx
 
-import {spawn} from 'child_process';
-import * as http from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
-import {logger} from './logger';
-import {FIRESTORE_URL} from "../functions/src/__tests__/support/firebase-emulator";
+import { ChildProcess } from 'child_process';
+import { logger } from './logger';
+import { FIRESTORE_URL } from "../functions/src/__tests__/support/firebase-emulator";
 import assert from "node:assert";
+import { startEmulator } from './start-emulator';
+import { seedPolicies } from './seed-policies';
+import { generateTestData } from './generate-test-data';
 
+interface PolicyConfig {
+    projectId: string;
+    firestoreUrl: string;
+    firestorePort: string;
+    authPort: string;
+}
+
+interface TestDataConfig {
+    projectId: string;
+    functionsPort: string;
+    firestorePort: string;
+    authPort: string;
+}
+
+async function runSeedPoliciesStep(config: PolicyConfig): Promise<void> {
+    try {
+        logger.info('');
+        logger.info('═══════════════════════════════════════════════════════');
+        logger.info(`📊 STARTING POLICY SEEDING (to ${config.firestoreUrl})...`);
+        logger.info('═══════════════════════════════════════════════════════');
+        logger.info('');
+
+        await seedPolicies({
+            projectId: config.projectId,
+            firestorePort: config.firestorePort,
+            authPort: config.authPort,
+        });
+        
+        logger.info('');
+        logger.info('✅ Policy seeding completed successfully!');
+        logger.info('📋 Privacy policy, terms, and cookie policy are now available');
+    } catch (error) {
+        logger.error('⚠️ Policy seeding failed (non-fatal)', { error });
+        logger.info('💡 You can manually seed policies later by running:');
+        logger.info('   cd firebase/functions && npx tsx src/scripts/seed-policies.ts');
+        logger.info('');
+        logger.info('🔧 Continuing with test data generation despite policy seeding failure...');
+        // Don't throw - continue with test data generation
+    }
+}
+
+async function runGenerateTestDataStep(config: TestDataConfig): Promise<void> {
+    try {
+        logger.info('');
+        logger.info('═══════════════════════════════════════════════════════');
+        logger.info('📊 STARTING TEST DATA GENERATION...');
+        logger.info('═══════════════════════════════════════════════════════');
+        logger.info('');
+
+        await generateTestData({
+            projectId: config.projectId,
+            functionsPort: config.functionsPort,
+            firestorePort: config.firestorePort,
+            authPort: config.authPort,
+        });
+        
+        logger.info('');
+        logger.info('✅ Test data generation completed successfully!');
+        logger.info('🎲 Groups now contain expenses and payments for testing');
+    } catch (error) {
+        logger.error('⚠️ Test data generation failed (non-fatal)', { error });
+        logger.info('💡 You can manually generate test data later by running:');
+        logger.info('   cd firebase/functions && npx tsx scripts/generate-test-data.ts');
+        logger.info('');
+        logger.info('🔧 The emulator is still running and functional despite test data generation failure');
+        // Don't throw - emulator is still functional
+    }
+}
+
+// Read and validate configuration files
 const firebaseConfigPath = path.join(__dirname, '../firebase.json');
 if (!fs.existsSync(firebaseConfigPath)) {
     logger.error('❌ firebase.json not found. Run the build process first to generate it.');
     process.exit(1);
 }
 
-// Read project ID from .firebaserc
 const firebaseRcPath = path.join(__dirname, '../.firebaserc');
 if (!fs.existsSync(firebaseRcPath)) {
     logger.error('❌ .firebaserc not found.');
     process.exit(1);
 }
 
+const envPath = path.join(__dirname, '../functions/.env');
+if (!fs.existsSync(envPath)) {
+    logger.error('❌ .env file not found. Run switch-instance script first to set up environment.');
+    process.exit(1);
+}
+
+// Load environment variables from .env file
+dotenv.config({ path: envPath });
+
+// Parse configuration
 const firebaseRc: any = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
 const PROJECT_ID = firebaseRc.projects.default!;
 assert(PROJECT_ID);
@@ -32,182 +113,58 @@ const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port!;
 const FIRESTORE_PORT: string = firebaseConfig.emulators.firestore.port!;
 const AUTH_PORT: string = firebaseConfig.emulators.auth.port!;
 
-// Load .env file to get dev form defaults
-const envPath = path.join(__dirname, '../functions/.env');
-if (!fs.existsSync(envPath)) {
-    logger.error('❌ .env file not found. Run switch-instance script first to set up environment.');
-    process.exit(1);
-}
-
-// Load environment variables from .env file
-dotenv.config({ path: envPath });
-
-// NOW import the functions that use Firebase AFTER setting emulator env vars
-const { generateTestData } = require('../functions/scripts/generate-test-data');
-const { seedPolicies } = require('../functions/src/scripts/seed-policies');
-
 logger.info('🚀 Starting Firebase emulator with test data generation...', {
     projectId: PROJECT_ID,
     uiPort: UI_PORT,
     functionsPort: FUNCTIONS_PORT,
 });
 
-// todo: export JAVA_TOOL_OPTIONS="-Xmx4g"
-// read this: https://firebase.google.com/docs/emulator-suite/install_and_configure
-// here we mimic the firebase runtime which injects env vars
-const emulatorProcess = spawn('firebase', ['emulators:start'], {
-    stdio: 'pipe',
-    env: {
-        ...process.env,
-        GCLOUD_PROJECT: PROJECT_ID,// mimic prod
-        FIRESTORE_EMULATOR_HOST: `localhost:${FIRESTORE_PORT}`,// todo: can we remove?
-        FIREBASE_AUTH_EMULATOR_HOST: `localhost:${AUTH_PORT}`,// todo: can we remove?
-    },
-});
+let emulatorProcess: ChildProcess | null = null;
 
-let emulatorsReady = false;
+const main = async () => {
+    try {
+        // Step 1: Start emulator
+        emulatorProcess = await startEmulator({
+            projectId: PROJECT_ID,
+            uiPort: UI_PORT,
+            functionsPort: FUNCTIONS_PORT,
+            firestorePort: FIRESTORE_PORT,
+            authPort: AUTH_PORT,
+        });
 
-emulatorProcess.stdout.on('data', (data: Buffer) => {
-    const output = data.toString();
-    process.stdout.write(output);
-
-    if (output.includes('All emulators ready!')) {
-        emulatorsReady = true;
-    }
-});
-
-emulatorProcess.stderr.on('data', (data: Buffer) => {
-    process.stderr.write(data);
-});
-
-function checkApiReady(): Promise<boolean> {
-    return new Promise((resolve) => {
-        const req = http.request(
-            {
-                hostname: 'localhost',
-                port: Number(FUNCTIONS_PORT),
-                path: `/${PROJECT_ID}/us-central1/api`,
-                method: 'GET',
-                timeout: 1000,
-            },
-            (res) => {
-                let data = '';
-
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-
-                res.on('end', () => {
-                    if (data.includes('Function us-central1-api does not exist')) {
-                        resolve(false);
-                    } else {
-                        resolve(true);
-                    }
-                });
-            },
-        );
-
-        req.on('error', () => resolve(false));
-        req.on('timeout', () => resolve(false));
-        req.end();
-    });
-}
-
-setTimeout(() => {
-    const startupProcess = async () => {
-        let attempts = 0;
-        const maxAttempts = 60;
-
-        while (attempts < maxAttempts && !emulatorsReady) {
-            attempts++;
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        if (!emulatorsReady) {
-            logger.error('❌ Firebase emulators failed to start within timeout', { attempts, maxAttempts });
-            return;
-        }
-
-        logger.info('🎯 All emulators are ready!');
-
-        let apiAttempts = 0;
-        const maxApiAttempts = 30;
-        let apiReady = false;
-
-        while (apiAttempts < maxApiAttempts && !apiReady) {
-            apiAttempts++;
-            apiReady = await checkApiReady();
-            if (!apiReady) {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-            }
-        }
-
-        if (!apiReady) {
-            logger.error('❌ API functions failed to become ready within timeout', {
-                apiAttempts,
-                maxApiAttempts,
-                apiPath: `/${PROJECT_ID}/us-central1/api`,
-                note: 'This may indicate an issue with function deployment or configuration',
-            });
-            return;
-        }
-
-        logger.info('🎯 API functions are ready!');
-
-        // Clear separation: App is now fully started and ready
-        logger.info('');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('🎉✅ APP STARTUP COMPLETE! 🎉✅');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('📍 The Splitifyd application is now fully operational');
-        logger.info('🌐 Firebase emulators are running and API functions are ready');
         logger.info('🚀 You can now use the webapp and all endpoints are available');
-        logger.info('');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info(`📊 STARTING POLICY SEEDING (to ${FIRESTORE_URL})...`);
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('');
 
-        try {
-            await seedPolicies();
-            logger.info('');
-            logger.info('✅ Policy seeding completed successfully!');
-            logger.info('📋 Privacy policy, terms, and cookie policy are now available');
-        } catch (error) {
-            logger.error('⚠️ Policy seeding failed (non-fatal)', { error });
-            logger.info('💡 You can manually seed policies later by running:');
-            logger.info('   cd firebase/functions && npx tsx src/scripts/seed-policies.ts');
-            logger.info('');
-            logger.info('🔧 Continuing with emulator startup...');
-        }
+        // Step 2: Seed policies
+        await runSeedPoliciesStep({
+            projectId: PROJECT_ID,
+            firestoreUrl: FIRESTORE_URL,
+            firestorePort: FIRESTORE_PORT,
+            authPort: AUTH_PORT,
+        });
 
-        logger.info('');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('📊 STARTING TEST DATA GENERATION...');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('');
-
-        try {
-            await generateTestData();
-            logger.info('');
-            logger.info('✅ Test data generation completed successfully!');
-            logger.info('🎲 Groups now contain expenses and payments for testing');
-        } catch (error) {
-            logger.error('⚠️ Test data generation failed (non-fatal)', { error });
-            logger.info('💡 You can manually generate test data later by running:');
-            logger.info('   cd firebase/functions && npx tsx scripts/generate-test-data.ts');
-            logger.info('');
-            logger.info('🔧 The emulator is still running and functional');
-        }
+        // Step 3: Generate test data
+        await runGenerateTestDataStep({
+            projectId: PROJECT_ID,
+            functionsPort: FUNCTIONS_PORT,
+            firestorePort: FIRESTORE_PORT,
+            authPort: AUTH_PORT,
+        });
         
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('✨ EMULATOR IS READY FOR USE ✨');
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
-    };
 
-    startupProcess().catch((error) => {
+    } catch (error) {
+        logger.error('❌ An unexpected error occurred during startup', { error });
+        process.exit(1);
+    }
+};
+
+// Start the main process with a delay to allow for proper setup
+setTimeout(() => {
+    main().catch((error) => {
         logger.error('❌ An unexpected error occurred during emulator startup', { error });
         process.exit(1);
     });
@@ -241,13 +198,6 @@ process.on('SIGTERM', () => {
     setTimeout(() => {
         process.exit(0);
     }, 1000);
-});
-
-emulatorProcess.on('exit', (code: number | null) => {
-    if (!isShuttingDown) {
-        logger.info(`🔥 Firebase emulator exited`, { code });
-        process.exit(code || 0);
-    }
 });
 
 process.on('uncaughtException', (error: any) => {

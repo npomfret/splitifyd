@@ -1,10 +1,10 @@
 #!/usr/bin/env npx tsx
 import * as path from 'path';
 import * as fs from 'fs';
-import { PolicyIds, FirestoreCollections } from '../shared/shared-types';
-import { createPolicyInternal, publishPolicyInternal } from '../policies/handlers';
-import { db } from '../firebase';
-import { ApiDriver } from '../__tests__/support/ApiDriver';
+import { PolicyIds, FirestoreCollections } from '../functions/src/shared/shared-types';
+import { createPolicyInternal, publishPolicyInternal } from '../functions/src/policies/handlers';
+import { db } from '../functions/src/firebase';
+import { ApiDriver } from '../functions/src/__tests__/support/ApiDriver';
 
 /*
  * this script only seeds policy files to the emulator
@@ -51,7 +51,6 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
 
         console.log(`✅ Published policy: ${policyId} (hash: ${publishResponse.currentVersionHash})`);
     } catch (error) {
-        console.error(`❌ Failed to seed policy ${policyId}:`, error);
         throw error;
     }
 }
@@ -87,22 +86,33 @@ async function verifyPoliciesViaApi(): Promise<void> {
                 console.log(`   - Hash: ${policy.currentVersionHash}`);
                 console.log(`   - Text length: ${policy.text.length} characters`);
             } catch (error) {
-                console.error(`❌ Failed to fetch policy ${policyId}:`, error);
+                throw new Error(`Failed to fetch policy ${policyId}: ${error instanceof Error ? error.message : error}`);
             }
         }
         
         console.log('\n✅ API VERIFICATION COMPLETE - All policies are accessible!');
         
     } catch (error) {
-        console.error('\n❌ API VERIFICATION FAILED:', error);
         throw error;
     }
+}
+
+interface EmulatorConfig {
+    projectId: string;
+    firestorePort: string;
+    authPort: string;
 }
 
 /**
  * Seed initial policies using admin API
  */
-export async function seedPolicies() {
+export async function seedPolicies(emulatorConfig?: EmulatorConfig) {
+    // Set up environment variables if config is provided
+    if (emulatorConfig) {
+        process.env.GCLOUD_PROJECT = emulatorConfig.projectId;
+        process.env.FIRESTORE_EMULATOR_HOST = `localhost:${emulatorConfig.firestorePort}`;
+        process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${emulatorConfig.authPort}`;
+    }
     console.log('Reading policy documents from docs/policies...');
 
     try {
@@ -112,9 +122,7 @@ export async function seedPolicies() {
         readPolicyFile('privacy-policy.md');
         console.log('✅ Successfully read all policy documents');
     } catch (error) {
-        console.error('❌ Failed to read policy documents:', error);
-        console.log('Make sure the policy files exist in docs/policies/');
-        process.exit(1);
+        throw new Error(`Failed to read policy documents: ${error instanceof Error ? error.message : error}`);
     }
 
     try {
@@ -142,20 +150,7 @@ export async function seedPolicies() {
         await verifyPoliciesViaApi();
         
     } catch (error) {
-        console.error('❌ Error seeding policies:', error);
-        process.exit(1);
+        throw error;
     }
 }
 
-// Only run seeding when executed directly (not when imported)
-if (require.main === module) {
-    seedPolicies()
-        .then(() => {
-            console.log('✅ Policy seeding completed');
-            process.exit(0);
-        })
-        .catch((error) => {
-            console.error('❌ Fatal error:', error);
-            process.exit(1);
-        });
-}
