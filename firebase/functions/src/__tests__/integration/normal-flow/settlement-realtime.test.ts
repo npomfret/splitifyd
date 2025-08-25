@@ -6,11 +6,11 @@
 // This test documents a bug where the frontend doesn't refresh settlements
 
 import * as admin from 'firebase-admin';
-import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
 import { ApiDriver } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { randomUUID } from 'crypto';
+import {db} from "../../../firebase";
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     let driver: ApiDriver;

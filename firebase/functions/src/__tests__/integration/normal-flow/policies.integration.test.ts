@@ -1,7 +1,7 @@
 import { FirestoreCollections, PolicyIds } from '../../../shared/shared-types';
 import * as crypto from 'crypto';
-import {db} from "../../support/firebase-emulator";
 import { ApiDriver } from '../../support/ApiDriver';
+import {db} from "../../../firebase";
 
 describe('Policies API Integration Tests', () => {
     let apiDriver: ApiDriver;

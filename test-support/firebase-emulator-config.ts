@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+if(!process.env.GCLOUD_PROJECT) {// hack for convenience when running the tests
+    process.env.GCLOUD_PROJECT = "splitifyd";
+}
+
 export interface FirebaseEmulatorConfig {
     projectId: string;
     functionsPort: number;
