@@ -113,7 +113,7 @@ describe('User Profile Management API Tests', () => {
                 await driver.updateUserProfile(testUser.token, { displayName: '' });
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
-                expect(error.message).toContain('Display name cannot be empty');
+                expect(error.message).toContain('This field is required');
             }
         });
 
@@ -123,7 +123,7 @@ describe('User Profile Management API Tests', () => {
                 await driver.updateUserProfile(testUser.token, { displayName: longName });
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
-                expect(error.message).toContain('Display name must be 100 characters or less');
+                expect(error.message).toContain('Display name cannot exceed 100 characters');
             }
         });
 
