@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { ParticipantSelector } from '../ParticipantSelector';
+import { ParticipantSelector } from '../../components/expense-form/ParticipantSelector';
 
 describe('ParticipantSelector', () => {
     const mockHandleParticipantToggle = vi.fn();

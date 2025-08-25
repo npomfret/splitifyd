@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ConnectionManager } from '../connection-manager';
+import { ConnectionManager } from '../../utils/connection-manager';
 
 // No need to mock test-support module anymore
 

@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { ExpenseBasicFields } from '../ExpenseBasicFields';
+import { ExpenseBasicFields } from '../../components/expense-form/ExpenseBasicFields';
 import { ExpenseCategory } from '@shared/shared-types';
 
 // Mock the useTranslation hook
@@ -29,7 +29,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 // Mock the CategorySuggestionInput component
-vi.mock('../../ui/CategorySuggestionInput', () => ({
+vi.mock('../../components/ui/CategorySuggestionInput', () => ({
     CategorySuggestionInput: ({ value, onChange, label, placeholder }: any) => (
         <div data-testid="category-input">
             <label>{label}</label>
@@ -39,7 +39,7 @@ vi.mock('../../ui/CategorySuggestionInput', () => ({
 }));
 
 // Mock the CurrencyAmountInput component
-vi.mock('../../ui/CurrencyAmountInput', () => ({
+vi.mock('../../components/ui/CurrencyAmountInput', () => ({
     CurrencyAmountInput: ({ amount, onAmountChange, label, placeholder, required, error }: any) => (
         <div data-testid="currency-amount-input">
             <label>

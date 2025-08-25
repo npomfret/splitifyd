@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@/test-utils';
-import { NotFoundPage } from '../NotFoundPage';
+import { NotFoundPage } from '../../pages/NotFoundPage';
 
 // Test 404 page behavior
 describe('NotFoundPage', () => {

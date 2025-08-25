@@ -22,7 +22,7 @@ vi.mock('@/utils/connection-manager', () => {
 
 // No heroicons needed anymore
 
-import { RealTimeIndicator } from '../RealTimeIndicator';
+import { RealTimeIndicator } from '../../components/ui/RealTimeIndicator';
 import { ConnectionManager } from '@/utils/connection-manager';
 
 describe('RealTimeIndicator', () => {

@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { SplitAmountInputs } from '../SplitAmountInputs';
+import { SplitAmountInputs } from '../../components/expense-form/SplitAmountInputs';
 
 describe('SplitAmountInputs', () => {
     const mockUpdateSplitAmount = vi.fn();

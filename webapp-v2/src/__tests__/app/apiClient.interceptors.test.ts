@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ApiClient } from '../apiClient';
+import { ApiClient } from '../../app/apiClient';
 
 // Mock browser-logger
 vi.mock('../../utils/browser-logger', () => ({

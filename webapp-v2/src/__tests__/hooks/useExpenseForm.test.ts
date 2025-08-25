@@ -1,11 +1,11 @@
 import { renderHook, act } from '@testing-library/preact';
 import { vi } from 'vitest';
-import { useExpenseForm } from '../useExpenseForm';
-import { expenseFormStore } from '../../stores/expense-form-store'; // Add this import
+import { useExpenseForm } from '../../app/hooks/useExpenseForm';
+import { expenseFormStore } from '../../app/stores/expense-form-store'; // Add this import
 import { route } from 'preact-router'; // Add this import
 
 // Mock dependencies
-vi.mock('../../../utils/browser-logger', () => ({
+vi.mock('../../utils/browser-logger', () => ({
     logError: vi.fn(),
 }));
 
@@ -13,13 +13,13 @@ vi.mock('preact-router', () => ({
     route: vi.fn(),
 }));
 
-vi.mock('../useAuth', () => ({
+vi.mock('../../app/hooks/useAuth', () => ({
     useAuth: vi.fn(() => ({
         user: { uid: 'test-user', email: 'test@example.com' },
     })),
 }));
 
-vi.mock('../../apiClient', () => ({
+vi.mock('../../app/apiClient', () => ({
     apiClient: {
         createExpense: vi.fn(),
         updateExpense: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('../../apiClient', () => ({
     },
 }));
 
-vi.mock('../../stores/expense-form-store', () => ({
+vi.mock('../../app/stores/expense-form-store', () => ({
     expenseFormStore: {
         description: 'Test Expense',
         amount: '25.50',
@@ -57,7 +57,7 @@ vi.mock('../../stores/expense-form-store', () => ({
     getRecentAmounts: vi.fn(() => [25.5, 45.0, 12.75]),
 }));
 
-vi.mock('../../stores/group-detail-store-enhanced', () => ({
+vi.mock('../../app/stores/group-detail-store-enhanced', () => ({
     enhancedGroupDetailStore: {
         group: {
             id: 'test-group',

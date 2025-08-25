@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { ExpenseFormActions } from '../ExpenseFormActions';
+import { ExpenseFormActions } from '../../components/expense-form/ExpenseFormActions';
 
 describe('ExpenseFormActions', () => {
     const mockOnCancel = vi.fn();

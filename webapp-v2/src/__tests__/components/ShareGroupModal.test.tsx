@@ -1,7 +1,26 @@
-import { render, screen, fireEvent, waitFor } from '../../../test-utils';
+import { render, screen, fireEvent, waitFor } from '../../test-utils';
 import { vi } from 'vitest';
-import { ShareGroupModal } from '../ShareGroupModal';
+import { ShareGroupModal } from '../../components/group/ShareGroupModal';
 import { apiClient } from '@/app/apiClient';
+
+// Mock the useTranslation hook
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'shareGroupModal.title': 'Invite Others',
+                'shareGroupModal.description': 'Share this link with anyone you want to join this group.',
+                'shareGroupModal.copyLinkTitle': 'Copy link',
+                'shareGroupModal.qrCodeDescription': 'Or scan this code',
+                'shareGroupModal.expiration': 'Expiration: 1 day',
+                'shareGroupModal.generateNew': 'Generate New',
+                'shareGroupModal.linkCopied': 'Link copied to clipboard',
+                'shareGroupModal.errors.generateLinkFailed': 'Failed to generate share link. Please try again.',
+            };
+            return translations[key] || key;
+        },
+    }),
+}));
 
 vi.mock('@/app/apiClient', () => ({
     apiClient: {

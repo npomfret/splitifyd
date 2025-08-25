@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@/test-utils';
-import { SEOHead } from '../SEOHead';
+import { SEOHead } from '../../components/SEOHead';
 
 // Test the SEO component behavior - focus on what it actually does
 describe('SEOHead', () => {

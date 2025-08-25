@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { ExpenseFormHeader } from '../ExpenseFormHeader';
-import translation from '../../../locales/en/translation.json' with { type: 'json' };
+import { ExpenseFormHeader } from '../../components/expense-form/ExpenseFormHeader';
+import translation from '../../locales/en/translation.json' with { type: 'json' };
 
 // Mock useTranslation hook
 vi.mock('react-i18next', () => ({

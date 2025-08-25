@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { PayerSelector } from '../PayerSelector';
+import { PayerSelector } from '../../components/expense-form/PayerSelector';
 
 describe('PayerSelector', () => {
     const mockUpdateField = vi.fn();

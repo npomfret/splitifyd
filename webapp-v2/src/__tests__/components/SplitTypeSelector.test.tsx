@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '../../../test-utils';
+import { render, screen, fireEvent } from '../../test-utils';
 import { vi } from 'vitest';
-import { SplitTypeSelector } from '../SplitTypeSelector';
+import { SplitTypeSelector } from '../../components/expense-form/SplitTypeSelector';
 
 describe('SplitTypeSelector', () => {
     const mockUpdateField = vi.fn();
