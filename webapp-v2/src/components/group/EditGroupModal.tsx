@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
 import { Input, Button, Form } from '../ui';
@@ -13,6 +14,7 @@ interface EditGroupModalProps {
 }
 
 export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: EditGroupModalProps) {
+    const { t } = useTranslation();
     const [groupName, setGroupName] = useState(group.name);
     const [groupDescription, setGroupDescription] = useState(group.description || '');
 
@@ -60,15 +62,15 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
         const name = groupName.trim();
 
         if (!name) {
-            return 'Group name is required.';
+            return t('editGroupModal.validation.nameRequired');
         }
 
         if (name.length < 2) {
-            return 'Group name must be at least 2 characters long.';
+            return t('editGroupModal.validation.nameTooShort');
         }
 
         if (name.length > 50) {
-            return 'Group name must be less than 50 characters.';
+            return t('editGroupModal.validation.nameTooLong');
         }
 
         return null;
@@ -102,7 +104,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
             }
             onClose();
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to update group';
+            const errorMessage = error instanceof Error ? error.message : t('editGroupModal.validation.updateFailed');
             setValidationError(errorMessage);
         } finally {
             setIsSubmitting(false);
@@ -126,11 +128,11 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
             }
             onClose();
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to delete group';
+            const errorMessage = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');
             setDeleteError(errorMessage);
             // Check if it's because group has expenses
             if (errorMessage.includes('expenses')) {
-                setDeleteError('Cannot delete group with expenses. Delete all expenses first.');
+                setDeleteError(t('editGroupModal.deleteConfirmDialog.messageWithExpenses'));
             }
         } finally {
             setIsDeleting(false);
@@ -152,8 +154,8 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                 <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="edit-group-modal-title">
                     {/* Modal Header */}
                     <div class="flex items-center justify-between mb-6">
-                        <h3 id="edit-group-modal-title" class="text-lg font-semibold text-gray-900">
-                            Edit Group
+                        <h3 id="edit-group-modal-title" class="text-lg font-semibold text-gray-900" data-testid="edit-group-modal-title">
+                            {t('editGroupModal.title')}
                         </h3>
                         <button onClick={onClose} class="text-gray-400 hover:text-gray-600 transition-colors" disabled={isSubmitting}>
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,9 +170,9 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                             {/* Group Name */}
                             <div>
                                 <Input
-                                    label="Group Name"
+                                    label={t('editGroupModal.groupNameLabel')}
                                     type="text"
-                                    placeholder="e.g., Apartment Expenses, Trip to Paris"
+                                    placeholder={t('editGroupModal.groupNamePlaceholder')}
                                     value={groupName}
                                     onChange={(value) => {
                                         setGroupName(value);
@@ -179,22 +181,24 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                                     required
                                     disabled={isSubmitting}
                                     error={validationError || undefined}
+                                    data-testid="group-name-input"
                                 />
                             </div>
 
                             {/* Group Description (Optional) */}
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">{t('editGroupModal.descriptionLabel')}</label>
                                 <textarea
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                                     rows={3}
-                                    placeholder="Add any details about this group..."
+                                    placeholder={t('editGroupModal.descriptionPlaceholder')}
                                     value={groupDescription}
                                     onInput={(e) => {
                                         setGroupDescription((e.target as HTMLTextAreaElement).value);
                                     }}
                                     disabled={isSubmitting}
                                     maxLength={200}
+                                    data-testid="group-description-input"
                                 />
                             </div>
 
@@ -221,15 +225,15 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
 
                         {/* Modal Footer */}
                         <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                            <Button type="button" variant="danger" onClick={handleDeleteClick} disabled={isSubmitting}>
-                                Delete Group
+                            <Button type="button" variant="danger" onClick={handleDeleteClick} disabled={isSubmitting} data-testid="delete-group-button">
+                                {t('editGroupModal.deleteGroupButton')}
                             </Button>
                             <div class="flex items-center space-x-3">
-                                <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
-                                    Cancel
+                                <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting} data-testid="cancel-edit-group-button">
+                                    {t('editGroupModal.cancelButton')}
                                 </Button>
-                                <Button type="submit" loading={isSubmitting} disabled={!isFormValid || !hasChanges}>
-                                    Save Changes
+                                <Button type="submit" loading={isSubmitting} disabled={!isFormValid || !hasChanges} data-testid="save-changes-button">
+                                    {t('editGroupModal.saveChangesButton')}
                                 </Button>
                             </div>
                         </div>
@@ -240,13 +244,15 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
             {/* Delete Confirmation Dialog */}
             <ConfirmDialog
                 isOpen={showDeleteConfirm}
-                title="Delete Group"
-                message={deleteError || `Are you sure you want to delete "${group.name}"? This action cannot be undone.`}
-                confirmText="Delete"
+                title={t('editGroupModal.deleteConfirmDialog.title')}
+                message={deleteError || t('editGroupModal.deleteConfirmDialog.message', { groupName: group.name })}
+                confirmText={t('editGroupModal.deleteConfirmDialog.confirmText')}
+                cancelText={t('editGroupModal.deleteConfirmDialog.cancelText')}
                 variant="danger"
                 onConfirm={handleDeleteConfirm}
                 onCancel={handleDeleteCancel}
                 loading={isDeleting}
+                data-testid="delete-group-dialog"
             />
         </>
     );

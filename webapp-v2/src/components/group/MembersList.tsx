@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
 import { LoadingSpinner } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
@@ -14,6 +15,7 @@ interface MembersListProps {
 }
 
 export function MembersList({ members, createdBy, loading = false, variant = 'default', onInviteClick }: MembersListProps) {
+    const { t } = useTranslation();
     const content = loading ? (
         <div className="flex justify-center py-8">
             <LoadingSpinner size="md" />
@@ -25,7 +27,7 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
                     <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="sm" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-                        {member.uid === createdBy && <p className="text-xs text-gray-500">Admin</p>}
+                        {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
                     </div>
                 </div>
             ))}
@@ -37,7 +39,7 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
                     <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="md" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-                        {member.uid === createdBy && <p className="text-xs text-gray-500">Admin</p>}
+                        {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
                     </div>
                 </div>
             ))}
@@ -48,9 +50,9 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-base font-semibold text-gray-900">Members</h3>
+                    <h3 className="text-base font-semibold text-gray-900">{t('membersList.title')}</h3>
                     {onInviteClick && (
-                        <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-1 h-auto" ariaLabel="Invite Others">
+                        <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-1 h-auto" ariaLabel={t('membersList.inviteOthersAriaLabel')} data-testid="invite-others-button">
                             <UserPlusIcon className="h-4 w-4" />
                         </Button>
                     )}
@@ -63,9 +65,9 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
     return (
         <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Members</h2>
+                <h2 className="text-lg font-semibold">{t('membersList.title')}</h2>
                 {onInviteClick && (
-                    <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-2" ariaLabel="Invite Others">
+                    <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-2" ariaLabel={t('membersList.inviteOthersAriaLabel')} data-testid="invite-others-button">
                         <UserPlusIcon className="h-5 w-5" />
                     </Button>
                 )}
