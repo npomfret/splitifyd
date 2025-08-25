@@ -14,7 +14,7 @@ import { ApiDriver } from '../functions/src/__tests__/support/ApiDriver';
  * Read policy file from docs/policies directory
  */
 function readPolicyFile(filename: string): string {
-    const policyPath = path.join(__dirname, '../../../../docs/policies', filename);
+    const policyPath = path.join(__dirname, '../docs/policies', filename);
     try {
         return fs.readFileSync(policyPath, 'utf8');
     } catch (error) {
