@@ -9,7 +9,7 @@ import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { FirestoreCollections } from '../../../shared/shared-types';
-import {db} from "../../../firebase";
+import {firestoreDb} from "../../../firebase";
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -40,9 +40,9 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         if (groupId) {
             const collections = ['settlements', 'groups', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
             for (const collection of collections) {
-                const snapshot = await db.collection(collection).where('groupId', '==', groupId).get();
+                const snapshot = await firestoreDb.collection(collection).where('groupId', '==', groupId).get();
 
-                const batch = db.batch();
+                const batch = firestoreDb.batch();
                 snapshot.docs.forEach((doc) => batch.delete(doc.ref));
                 await batch.commit();
             }

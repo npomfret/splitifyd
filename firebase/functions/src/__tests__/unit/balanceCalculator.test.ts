@@ -22,12 +22,12 @@ jest.mock('../../utils/debtSimplifier', () => ({
 }));
 
 // Import mocked dependencies
-import { db } from '../../firebase';
+import { firestoreDb } from '../../firebase';
 import { userService } from '../../services/userService';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
 // Type the mocked functions
-const mockDb = db as jest.Mocked<typeof db>;
+const mockDb = firestoreDb as jest.Mocked<typeof firestoreDb>;
 const mockUserService = userService as jest.Mocked<typeof userService>;
 const mockSimplifyDebts = simplifyDebts as jest.MockedFunction<typeof simplifyDebts>;
 

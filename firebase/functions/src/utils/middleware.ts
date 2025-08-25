@@ -1,5 +1,5 @@
 import express from 'express';
-import { getConfig } from '../config';
+import { getConfig } from '../client-config';
 import { randomUUID } from 'crypto';
 import { validateRequestStructure, validateContentType } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';

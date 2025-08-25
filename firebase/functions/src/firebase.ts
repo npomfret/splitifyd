@@ -26,7 +26,7 @@ if (!admin.apps || admin.apps.length === 0) {
         const firestorePort = firebaseConfig.emulators.firestore.port;
         assert(typeof firestorePort === 'number', "firestore port in firebase.json must be a number");
 
-        console.log(`connecting to local firestore emulator on port ${firestorePort}`);
+        // console.log(`connecting to local firestore emulator on port ${firestorePort}`);
         const firestore = app.firestore();
         firestore.settings({
             host: `localhost:${firestorePort}`,
@@ -35,9 +35,9 @@ if (!admin.apps || admin.apps.length === 0) {
     }
 }
 
-const db = admin.firestore();
+const firestoreDb = admin.firestore();
 
 export {
-    db,
+    firestoreDb,
     admin
 };

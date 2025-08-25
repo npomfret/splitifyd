@@ -27,7 +27,7 @@ import {
 import {API_BASE_URL, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
 import type {DocumentData} from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
-import {db} from "../../firebase";
+import {firestoreDb} from "../../firebase";
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
@@ -618,7 +618,7 @@ export class ApiDriver {
     }
 
     async getTransactionChanges(groupId: string, type: string) {
-        const snapshot = await db.collection(FirestoreCollections.TRANSACTION_CHANGES)
+        const snapshot = await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES)
             .where('groupId', '==', groupId)
             .where('type', '==', type)
             .orderBy('timestamp', 'desc')
@@ -628,7 +628,7 @@ export class ApiDriver {
     }
 
     async getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
-        const snapshot = await db.collection(FirestoreCollections.BALANCE_CHANGES)
+        const snapshot = await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES)
             .where('groupId', '==', groupId)
             .orderBy('timestamp', 'desc')
             .get();
@@ -637,7 +637,7 @@ export class ApiDriver {
     }
 
     async getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await db.collection(FirestoreCollections.GROUP_CHANGES)
+        const snapshot = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES)
             .where('id', '==', groupId)
             .orderBy('timestamp', 'desc')
             .get();
@@ -677,7 +677,7 @@ export class ApiDriver {
      * Get group changes filtered by user
      */
     async getGroupChangesForUser(groupId: string, userId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await db.collection('group-changes')
+        const snapshot = await firestoreDb.collection('group-changes')
             .where('id', '==', groupId)
             .where('users', 'array-contains', userId)
             .get();

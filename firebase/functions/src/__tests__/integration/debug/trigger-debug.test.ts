@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { db } from '../../../firebase';
+import { firestoreDb } from '../../../firebase';
 import { FirestoreCollections } from '../../../shared/shared-types';
 import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
 
@@ -36,10 +36,10 @@ describe('Trigger Debug Tests', () => {
         await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
         
         // Check if any change documents were created
-        const groupChanges = await db.collection(FirestoreCollections.GROUP_CHANGES).get();
+        const groupChanges = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).get();
         
         // Check for our specific group
-        const ourGroupChanges = await db.collection(FirestoreCollections.GROUP_CHANGES)
+        const ourGroupChanges = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES)
             .where('groupId', '==', groupId)
             .get();
 
@@ -84,10 +84,10 @@ describe('Trigger Debug Tests', () => {
         );
         
         // Check transaction-changes collection for expense changes
-        const expenseChanges = await db.collection(FirestoreCollections.TRANSACTION_CHANGES).get();
+        const expenseChanges = await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).get();
         
         // Check balance-changes collection
-        const balanceChanges = await db.collection(FirestoreCollections.BALANCE_CHANGES).get();
+        const balanceChanges = await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).get();
 
         // Verify collections exist and can be queried
         expect(expenseChanges.size).toBeGreaterThanOrEqual(0);
@@ -100,7 +100,7 @@ describe('Trigger Debug Tests', () => {
         // Try to access Firebase emulator info
         try {
             // This is a simple test to see if we can query collections
-            const testQuery = await db.collection('_test_trigger_check').limit(1).get();
+            const testQuery = await firestoreDb.collection('_test_trigger_check').limit(1).get();
             // Firebase connection working
             expect(testQuery).toBeDefined();
         } catch (error) {

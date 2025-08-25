@@ -1,4 +1,4 @@
-import { getAppConfig } from '../config';
+import { getAppConfig } from '../client-config';
 import { AppConfiguration } from '../shared/shared-types';
 
 export const getEnhancedConfigResponse = (): AppConfiguration => {

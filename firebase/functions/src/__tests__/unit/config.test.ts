@@ -2,7 +2,7 @@ import { getEnhancedConfigResponse } from '../../utils/config-response';
 import { validateAppConfiguration } from '../../middleware/config-validation';
 
 // Mock the getConfig and getAppConfig functions
-jest.mock('../../config', () => ({
+jest.mock('../../client-config', () => ({
     getConfig: () => ({
         isDevelopment: false,
         isProduction: true,

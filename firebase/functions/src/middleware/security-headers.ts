@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getConfig } from '../config';
+import { getConfig } from '../client-config';
 
 export function applySecurityHeaders(req: Request, res: Response, next: NextFunction): void {
     res.setHeader('X-Content-Type-Options', 'nosniff');

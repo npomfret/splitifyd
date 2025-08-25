@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { FirestoreCollections, UserRoles } from '../shared/shared-types';
@@ -52,7 +52,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         }
 
         // Fetch user role from Firestore
-        const userDocRef = db.collection(FirestoreCollections.USERS).doc(userRecord.uid);
+        const userDocRef = firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid);
         const userDoc = await userDocRef.get();
         const userData = userDoc.data();
 

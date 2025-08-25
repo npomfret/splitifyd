@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { calculateGroupBalances } from '../services/balanceCalculator';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { timestampToISO } from '../utils/dateHelpers';
 import {FirestoreCollections, groupSize} from '../shared/shared-types';
@@ -17,7 +17,7 @@ export async function getGroupBalances(req: Request, res: Response): Promise<voi
         throw new ApiError(400, 'VALIDATION_ERROR', 'Group ID is required');
     }
 
-    const groupDoc = await db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
+    const groupDoc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).get();
 
     if (!groupDoc.exists) {
         throw new ApiError(404, 'NOT_FOUND', 'Group not found');
