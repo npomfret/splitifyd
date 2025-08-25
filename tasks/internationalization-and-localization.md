@@ -765,3 +765,96 @@ With settings and configuration complete, and comprehensive patterns established
 3. **Specialized Inputs**: Date pickers, currency selectors, category management interfaces
 
 This phase successfully completes the **Settings & Configuration** component group while establishing the **Input component enhancement pattern** that will benefit all future i18n work. The settings interface now provides a **complete, accessible, and globally-ready user account management experience** with comprehensive validation and error handling support.
+
+---
+
+**Additional Progress - 2025-08-25:**
+
+Major implementation of **Phase 5: Specialized & Edge Case Components - Error Handling** focusing on error states and user feedback:
+
+#### Error Handling Components Converted to i18n (New)
+
+- **ErrorState.tsx**: Complete conversion of error display component
+  - Default error title and fallback error message with translation support
+  - "Try Again" button text internationalization
+  - Strategic data-testid placement: `error-title`, `error-message`, `error-retry-button`
+  - Enhanced prop interface allowing title override while defaulting to translation
+  
+- **ErrorBoundary.tsx**: Error boundary integration with i18n system
+  - Leverages ErrorState component's internal i18n support
+  - Proper error message handling with translation keys
+  - Maintains existing error recovery functionality
+  
+- **NotFoundPage.tsx**: Complete 404 page internationalization
+  - Conditional messaging for group-specific vs general page not found scenarios
+  - Navigation buttons with proper translation keys
+  - Strategic data-testid placement: `not-found-title`, `not-found-subtitle`, `not-found-description`, `go-to-dashboard-link`, `go-home-link`
+  - Enhanced user experience with context-aware error messages
+  
+- **LoadingState.tsx**: Loading indicator component with i18n support
+  - Default "Loading..." message translation with override capability
+  - Strategic data-testid: `loading-message`
+  - Flexible message prop while maintaining translation defaults
+
+#### Translation File Expansion - Error Handling Section
+
+Added comprehensive new translation sections to `webapp-v2/src/locales/en/translation.json`:
+
+- `errorState`: Error display component with title, unexpected error message, and retry button text
+- `errorBoundary`: Error boundary specific messages for critical application errors  
+- `notFoundPage`: 404 page with 7 translation keys covering both general and group-specific scenarios
+- `loadingState`: Loading indicator default message
+
+#### Test Infrastructure Enhancements - Error Handling Focus
+
+- **Enhanced Test Selector Constants**: Added comprehensive `ERROR_HANDLING_SELECTORS` and `ERROR_HANDLING_TEXTS` in `e2e-tests/src/constants/selectors.ts`
+  - 9 strategic data-testid selectors for error components
+  - 13 translation-based text constants for UI verification scenarios
+  - Comprehensive coverage for error states, not found pages, and loading indicators
+
+#### Strategic Data-TestId Implementation - Error Components
+
+**High-Priority Elements Enhanced:**
+- Error display: `error-title`, `error-message`, `error-retry-button`
+- 404 page navigation: `not-found-title`, `not-found-subtitle`, `not-found-description`
+- Navigation actions: `go-to-dashboard-link`, `go-home-link`
+- Loading feedback: `loading-message`
+
+#### Quality Assurance Results - Error Handling Phase
+
+- **TypeScript Compilation**: All changes pass TypeScript strict mode compilation without errors
+- **Build Verification**: Successful webapp-v2 TypeScript check and e2e-tests compilation
+- **Component Integration**: Error components properly integrate with existing application architecture
+- **Translation Validation**: JSON structure validated with proper hierarchical organization
+
+#### Key Technical Achievements - Error Handling Implementation
+
+1. **Consistent Error Experience**: All error states and fallbacks now support localization for global users
+2. **Enhanced User Feedback**: Loading states and error messages provide clear, translatable communication
+3. **Context-Aware Messaging**: 404 page provides specific messaging for group-related vs general navigation errors
+4. **Test Stability Foundation**: Strategic data-testid placement ensures error handling tests remain stable across translations
+5. **Flexible Component APIs**: Components support both translation defaults and custom message overrides
+
+#### Current i18n Coverage Status - Updated 2025-08-25
+
+The application now has comprehensive i18n coverage across:
+- Authentication flows (Login, Register)
+- Dashboard interface (Welcome, Groups, Stats, Quick Actions) 
+- Group management (Creation, Cards, Empty states)
+- Expense management (Forms, Lists, Items, Basic Fields)
+- Settlement management (Forms, History, Actions)
+- Navigation & Layout (Header, User Menu, Footer, Group Header)
+- Settings & Configuration (Account Settings, Profile Management)
+- Group Management Advanced Features (EditGroupModal, MembersList)
+- **Error Handling & Edge Cases (ErrorState, ErrorBoundary, NotFoundPage, LoadingState)** ← **NEW**
+
+#### Error Handling Implementation Benefits
+
+- **Global Error Support**: All error scenarios now ready for immediate translation to any supported language
+- **Enhanced User Experience**: Clear, consistent error messaging across all application failure scenarios
+- **Improved Accessibility**: Error components include proper semantic markup with translatable content
+- **Test Resilience**: Strategic data-testid approach ensures error handling tests work across UI text changes
+- **Comprehensive Coverage**: From network errors to 404 pages, all user-facing error scenarios are internationalized
+- **Future-Ready Architecture**: Error handling components prepared for immediate international deployment
+
+This phase establishes a **robust, accessible, and globally-ready error handling system** that maintains application quality and user experience across all supported languages and failure scenarios.

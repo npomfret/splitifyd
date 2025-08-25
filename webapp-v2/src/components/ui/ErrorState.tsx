@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface ErrorStateProps {
     error: string | Error | unknown;
     title?: string;
@@ -6,7 +8,9 @@ interface ErrorStateProps {
     className?: string;
 }
 
-export function ErrorState({ error, title = 'Something went wrong', onRetry, fullPage = false, className = '' }: ErrorStateProps) {
+export function ErrorState({ error, title, onRetry, fullPage = false, className = '' }: ErrorStateProps) {
+    const { t } = useTranslation();
+    const defaultTitle = title || t('errorState.defaultTitle');
     // Extract error message from various error types
     const getErrorMessage = (err: unknown): string => {
         if (typeof err === 'string') return err;
@@ -14,7 +18,7 @@ export function ErrorState({ error, title = 'Something went wrong', onRetry, ful
         if (err && typeof err === 'object' && 'message' in err) {
             return String(err.message);
         }
-        return 'An unexpected error occurred';
+        return t('errorState.unexpectedError');
     };
 
     const errorMessage = getErrorMessage(error);
@@ -34,10 +38,10 @@ export function ErrorState({ error, title = 'Something went wrong', onRetry, ful
             </div>
 
             {/* Error Title */}
-            <h3 className="mt-4 text-lg font-medium text-gray-900">{title}</h3>
+            <h3 className="mt-4 text-lg font-medium text-gray-900" data-testid="error-title">{defaultTitle}</h3>
 
             {/* Error Message */}
-            <p className="mt-2 text-sm text-gray-600">{errorMessage}</p>
+            <p className="mt-2 text-sm text-gray-600" data-testid="error-message">{errorMessage}</p>
 
             {/* Retry Button */}
             {onRetry && (
@@ -45,8 +49,9 @@ export function ErrorState({ error, title = 'Something went wrong', onRetry, ful
                     <button
                         onClick={onRetry}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                        data-testid="error-retry-button"
                     >
-                        Try Again
+                        {t('errorState.tryAgainButton')}
                     </button>
                 </div>
             )}

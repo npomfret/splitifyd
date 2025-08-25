@@ -50,7 +50,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 return this.props.fallback;
             }
 
-            return <ErrorState error={this.state.error || 'An unexpected error occurred'} title="Something went wrong" onRetry={this.handleRetry} fullPage />;
+            // Note: ErrorState component will use i18n internally
+            return <ErrorState error={this.state.error || 'errorBoundary.unexpectedError'} onRetry={this.handleRetry} fullPage />;
         }
 
         return this.props.children;
