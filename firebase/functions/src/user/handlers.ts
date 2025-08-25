@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { LocalizedRequest } from '../utils/i18n';
 import { Errors } from '../utils/errors';
 import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword } from './validation';
 
@@ -33,6 +34,7 @@ export const getUserProfile = async (req: AuthenticatedRequest, res: Response): 
             photoURL: userRecord.photoURL || null,
             emailVerified: userRecord.emailVerified,
             themeColor: userData?.themeColor,
+            preferredLanguage: userData?.preferredLanguage,
             createdAt: userData?.createdAt,
             updatedAt: userData?.updatedAt,
         });
@@ -45,15 +47,15 @@ export const getUserProfile = async (req: AuthenticatedRequest, res: Response): 
 /**
  * Update current user's profile
  */
-export const updateUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const updateUserProfile = async (req: AuthenticatedRequest & LocalizedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.uid;
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
 
-        // Validate request body using Joi
-        const validatedData = validateUpdateUserProfile(req.body);
+        // Validate request body using Joi with user's preferred language
+        const validatedData = validateUpdateUserProfile(req.body, req.language);
 
         // Build update object for Firebase Auth
         const updateData: admin.auth.UpdateRequest = {};
@@ -77,6 +79,9 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
         if (validatedData.photoURL !== undefined) {
             firestoreUpdate.photoURL = validatedData.photoURL;
         }
+        if (validatedData.preferredLanguage !== undefined) {
+            firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
+        }
 
         await db.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
 
@@ -92,6 +97,7 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
             photoURL: updatedUser.photoURL || null,
             emailVerified: updatedUser.emailVerified,
             themeColor: userData?.themeColor,
+            preferredLanguage: userData?.preferredLanguage,
             createdAt: userData?.createdAt,
             updatedAt: userData?.updatedAt,
         });

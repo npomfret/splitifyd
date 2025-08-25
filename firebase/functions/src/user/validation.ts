@@ -1,6 +1,7 @@
 import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
+import { translateJoiError } from '../utils/i18n-validation';
 
 /**
  * Schema for update user profile request
@@ -22,10 +23,17 @@ const updateUserProfileSchema = Joi.object({
         .messages({
             'string.uri': 'Invalid photo URL format',
         }),
+    preferredLanguage: Joi.string()
+        .trim()
+        .valid('en') // Add more languages as they become available
+        .optional()
+        .messages({
+            'any.only': 'Language must be one of: en',
+        }),
 })
     .min(1)
     .messages({
-        'object.min': 'At least one field (displayName or photoURL) must be provided',
+        'object.min': 'At least one field (displayName, photoURL, or preferredLanguage) must be provided',
     });
 
 /**
@@ -34,20 +42,21 @@ const updateUserProfileSchema = Joi.object({
 export interface UpdateUserProfileRequest {
     displayName?: string;
     photoURL?: string | null;
+    preferredLanguage?: string;
 }
 
 /**
  * Validate update user profile request
  */
-export const validateUpdateUserProfile = (body: unknown): UpdateUserProfileRequest => {
+export const validateUpdateUserProfile = (body: unknown, language: string = 'en'): UpdateUserProfileRequest => {
     const { error, value } = updateUserProfileSchema.validate(body, { 
         abortEarly: false,
         stripUnknown: true 
     });
 
     if (error) {
-        const firstError = error.details[0];
-        throw Errors.INVALID_INPUT(firstError.message);
+        const translatedMessage = translateJoiError(error, language);
+        throw Errors.INVALID_INPUT(translatedMessage);
     }
 
     const result: UpdateUserProfileRequest = {};
@@ -59,6 +68,10 @@ export const validateUpdateUserProfile = (body: unknown): UpdateUserProfileReque
     if (value.photoURL !== undefined) {
         // Convert empty string to null for Firebase Auth
         result.photoURL = value.photoURL === '' ? null : value.photoURL;
+    }
+
+    if (value.preferredLanguage !== undefined) {
+        result.preferredLanguage = value.preferredLanguage;
     }
 
     return result;
