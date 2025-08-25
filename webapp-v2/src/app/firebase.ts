@@ -17,6 +17,7 @@ class FirebaseService {
         const { firebase, firebaseAuthUrl, firebaseFirestoreUrl } = await firebaseConfigManager.getConfig();
 
         // Initialize Firebase with config from API
+        // see https://firebase.google.com/docs/auth/web/start
         this.app = initializeApp(firebase);
         this.auth = getAuth(this.app);
         this.firestore = getFirestore(this.app);
