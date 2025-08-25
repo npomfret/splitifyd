@@ -1,513 +1,421 @@
-# Feature: Group and Expense Comments
+# Feature: Group and Expense Comments - Frontend Implementation
 
-## Overview
+## Backend Status: ✅ COMPLETE
+**Phase 1 completed August 25, 2025** - Full backend infrastructure with comprehensive testing
 
-To facilitate better communication and record-keeping, this feature introduces a real-time commenting system—similar to a mini chat—for both the main group page and individual expense pages. This allows users to discuss group matters or clarify details about specific transactions directly within the app.
+## Phase 2: Frontend Implementation - TODO
 
-## UI/UX Changes
-
-### 1. Group-Level Comments
-
-- A new "Comments" or "Discussion" tab/section will be added to the main group detail page.
-- This area will display a chronological thread of messages related to the group in general.
-- A text input field with a "Send" button will be persistently visible at the bottom of this section, allowing users to add new comments.
-
-### 2. Expense-Level Comments
-
-- A similar "Comments" section will be integrated into the expense detail view (either on the page or within the modal).
-- This allows for focused conversations about a single transaction (e.g., "Is this the right receipt?", "I forgot to add the tip, can you update the total?").
-
-### 3. Comment Interface
-
-- The interface will resemble a modern, simple chat application.
-- Each message will display the author's avatar, their display name, the comment text, and a relative timestamp (e.g., "just now", "2 minutes ago").
-- The list of comments will be scrollable.
-
-## Real-Time Functionality
-
-- Comments must appear in real-time for all users currently viewing the group or expense. A manual page refresh should not be necessary to see new messages.
-- This will be achieved by using Firestore's real-time listeners (`onSnapshot`) on the client-side.
-
-## Backend & Data Model
-
-New sub-collections will be added in Firestore to support this feature.
-
-1.  **Group Comments Data Model:**
-    - A `comments` sub-collection will be created under each `group` document (e.g., `/groups/{groupId}/comments`).
-    - Each document in this sub-collection represents one comment.
-
-2.  **Expense Comments Data Model:**
-    - A `comments` sub-collection will be created under each `expense` document (e.g., `/groups/{groupId}/expenses/{expenseId}/comments`).
-
-3.  **Comment Document Structure:**
-    ```json
-    {
-        "authorId": "string", // UID of the user who wrote the comment
-        "authorName": "string", // Display name of the author
-        "text": "string", // The content of the comment
-        "createdAt": "timestamp" // Server-side timestamp for ordering
-    }
-    ```
-
-## API Requirements
-
-- A new API endpoint (Firebase Function) will be required for **posting** new comments. This endpoint will handle validation (e.g., checking for empty messages, user permissions) and writing the new comment document to the appropriate sub-collection.
-- **Fetching** comments will be handled client-side by listening directly to the relevant Firestore `comments` sub-collection in real-time.
-
-## Future Enhancements
-
-- **Notifications:** Implement push or in-app notifications when a user is mentioned in a comment (e.g., using `@username`).
-- **Editing/Deleting Comments:** Add functionality for users to edit or delete their own comments.
+### Overview
+Implement the frontend UI and real-time functionality to consume the existing comments API. This includes creating React components, state management, real-time subscriptions, and integrating into existing pages.
 
 ---
 
-# Implementation Progress
-
-## ✅ Phase 1: Backend Implementation - COMPLETED
-
-**Date Completed:** August 25, 2025
-
-### Summary
-Successfully implemented a complete backend infrastructure for the comments feature, including API endpoints, database structure, validation, security, and comprehensive testing.
-
-### Files Created/Modified
-
-#### New Files:
-- `firebase/functions/src/comments/validation.ts` - Joi validation schemas with XSS protection
-- `firebase/functions/src/comments/handlers.ts` - API handlers for create/list comments
-- `firebase/functions/src/__tests__/unit/comments-validation.test.ts` - 29 comprehensive unit tests
-
-#### Modified Files:
-- `firebase/functions/src/shared/shared-types.ts` - Added comment types and interfaces
-- `firebase/functions/src/index.ts` - Added comment API routes  
-- `firebase/firestore.rules` - Added security rules for comment subcollections
-
-### Technical Achievements
-
-#### 🗄️ **Database & Types**
-- Added `COMMENTS` collection to `FirestoreCollections`
-- Created `Comment`, `CommentApiResponse`, `CreateCommentRequest` interfaces
-- Defined `CommentTargetTypes` for 'group' and 'expense' comments
-- Structured for subcollection pattern: `/groups/{id}/comments` and `/expenses/{id}/comments`
-
-#### 🛡️ **Validation & Security**  
-- Comprehensive Joi validation (1-500 character limit, XSS protection)
-- Group membership verification for comment access
-- Authentication required for all endpoints
-- Input sanitization using existing `sanitizeString` utility
-
-#### 🚀 **API Endpoints**
-- `POST /groups/:groupId/comments` - Create group comment
-- `GET /groups/:groupId/comments` - List group comments (paginated)
-- `POST /expenses/:expenseId/comments` - Create expense comment  
-- `GET /expenses/:expenseId/comments` - List expense comments (paginated)
-
-#### ⚡ **Performance Features**
-- Cursor-based pagination (20 comments per page, max 100)
-- Efficient Firestore queries ordered by `createdAt DESC`
-- Automatic user display name resolution from Firebase Auth
-- Server-side timestamp generation for consistency
-
-#### 🧪 **Testing**
-- **29 unit tests** covering all validation scenarios
-- Edge cases: empty text, oversized text, invalid target types
-- XSS protection verification
-- Query parameter validation
-- Error handling and sanitization
-- **All tests passing ✅**
-
-### API Response Structure
-
-**Create Comment Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "comment123",
-    "authorId": "user456", 
-    "authorName": "John Doe",
-    "authorAvatar": "https://...",
-    "text": "This is a comment",
-    "createdAt": "2025-08-25T18:30:00.000Z",
-    "updatedAt": "2025-08-25T18:30:00.000Z"
-  }
-}
-```
-
-**List Comments Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "comments": [...],
-    "hasMore": true,
-    "nextCursor": "comment789"
-  }
-}
-```
-
-### Database Structure
-```
-/groups/{groupId}/comments/{commentId}
-  - authorId: string
-  - authorName: string  
-  - authorAvatar?: string
-  - text: string (1-500 chars)
-  - createdAt: Timestamp
-  - updatedAt: Timestamp
-
-/expenses/{expenseId}/comments/{commentId}
-  - (same structure)
-```
-
-### Next Steps
-✅ Backend infrastructure complete and tested
-🔄 **Ready for Phase 2: Frontend Implementation**
-
----
-
-# Implementation Plan
-
-## Architecture Analysis
-
-Based on the existing codebase analysis, the comments feature will integrate seamlessly with the current architecture:
-
-- **Backend**: Firebase Functions with Express.js routing (follows existing pattern)
-- **Frontend**: Preact with Signals for state management (follows existing store patterns)
-- **Real-time**: Firestore listeners with `onSnapshot()` (consistent with existing real-time features)
-- **Validation**: Joi schemas on backend, Zod schemas on frontend (follows existing validation patterns)
-- **Type Safety**: Shared types via `@shared` alias (consistent with existing type sharing)
-
-## Phase 1: Backend Implementation
-
-### 1.1 Data Model & Types
-
-**File: `firebase/functions/src/shared/shared-types.ts`**
-- Add comment-related interfaces:
-```typescript
-export interface Comment {
-    id: string;
-    authorId: string;
-    authorName: string;
-    authorAvatar?: string;
-    text: string;
-    createdAt: admin.firestore.Timestamp;
-    updatedAt: admin.firestore.Timestamp;
-}
-
-export interface CreateCommentRequest {
-    text: string;
-    targetType: 'group' | 'expense';
-    targetId: string;
-    groupId?: string; // Required for expense comments
-}
-
-export interface ListCommentsResponse {
-    comments: Comment[];
-    hasMore: boolean;
-    nextCursor?: string;
-}
-```
-
-**File: `firebase/functions/src/shared/shared-types.ts` - Update collections**
-```typescript
-export const FirestoreCollections = {
-    // ... existing
-    COMMENTS: 'comments',
-} as const;
-```
-
-### 1.2 Validation Layer
-
-**File: `firebase/functions/src/comments/validation.ts` (NEW)**
-- Joi validation schemas for comment creation
-- Text sanitization and length validation (1-500 characters)
-- XSS protection using existing `sanitizeString` utility
-- Target validation (group/expense exists and user has access)
-
-### 1.3 API Handlers
-
-**File: `firebase/functions/src/comments/handlers.ts` (NEW)**
-- `createComment`: POST endpoint for creating comments
-- `listComments`: GET endpoint for fetching comment history (with pagination)
-- Authentication middleware integration
-- Permission validation (user must be group member)
-
-### 1.4 API Routes
-
-**File: `firebase/functions/src/index.ts` - Add routes**
-```typescript
-// Comments endpoints (requires auth)
-app.post('/groups/:groupId/comments', authenticate, asyncHandler(createComment));
-app.get('/groups/:groupId/comments', authenticate, asyncHandler(listComments));
-app.post('/expenses/:expenseId/comments', authenticate, asyncHandler(createComment));
-app.get('/expenses/:expenseId/comments', authenticate, asyncHandler(listComments));
-```
-
-### 1.5 Security Rules
-
-**File: `firebase/firestore.rules` - Add comment rules**
-```javascript
-// Group comments subcollection
-match /groups/{groupId}/comments/{commentId} {
-  allow read: if request.auth != null; // Simplified for emulator
-  allow write: if false; // Only via Functions
-}
-
-// Expense comments subcollection
-match /expenses/{expenseId}/comments/{commentId} {
-  allow read: if request.auth != null; // Simplified for emulator
-  allow write: if false; // Only via Functions
-}
-```
-
-### 1.6 Database Operations
-
-**Firestore Structure:**
-```
-/groups/{groupId}/comments/{commentId}
-/expenses/{expenseId}/comments/{commentId}
-```
-
-**Operations:**
-- Create: Server-side timestamp generation
-- Read: Query with pagination and ordering by `createdAt`
-- No update/delete initially (future enhancement)
-
-## Phase 2: Frontend Implementation
+## Task Breakdown
 
 ### 2.1 API Client Integration
+**Priority: High | Estimated: 2-3 hours**
 
-**File: `webapp-v2/src/api/apiSchemas.ts`**
-- Add Zod schemas for comment validation:
+#### Files to Create/Modify:
+- `webapp-v2/src/api/apiSchemas.ts` - Add Zod validation schemas
+- `webapp-v2/src/app/apiClient.ts` - Add comment API methods
+
+#### Implementation Details:
 ```typescript
+// apiSchemas.ts additions
 export const CommentSchema = z.object({
-    id: z.string(),
-    authorId: z.string(),
-    authorName: z.string(),
-    authorAvatar: z.string().optional(),
-    text: z.string(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+  id: z.string(),
+  authorId: z.string(), 
+  authorName: z.string(),
+  authorAvatar: z.string().optional(),
+  text: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 export const CreateCommentRequestSchema = z.object({
-    text: z.string().min(1).max(500),
-    targetType: z.enum(['group', 'expense']),
-    targetId: z.string(),
-    groupId: z.string().optional(),
+  text: z.string().min(1).max(500),
+});
+
+export const ListCommentsResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.object({
+    comments: z.array(CommentSchema),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
+  }),
 });
 ```
 
-**File: `webapp-v2/src/app/apiClient.ts`**
-- Add comment-related API methods:
 ```typescript
-async createComment(request: CreateCommentRequest): Promise<Comment>
-async listComments(targetType: string, targetId: string, cursor?: string): Promise<ListCommentsResponse>
+// apiClient.ts additions  
+async createGroupComment(groupId: string, text: string): Promise<CommentApiResponse>
+async createExpenseComment(expenseId: string, text: string): Promise<CommentApiResponse>  
+async listGroupComments(groupId: string, cursor?: string, limit?: number): Promise<ListCommentsApiResponse>
+async listExpenseComments(expenseId: string, cursor?: string, limit?: number): Promise<ListCommentsApiResponse>
 ```
 
-### 2.2 Comments Store
+#### Acceptance Criteria:
+- [ ] Zod schemas match backend types exactly
+- [ ] API methods handle authentication tokens  
+- [ ] Error handling follows existing patterns
+- [ ] Runtime validation on all responses
 
-**File: `webapp-v2/src/app/stores/comments-store.ts` (NEW)**
+---
+
+### 2.2 Comments Store Implementation  
+**Priority: High | Estimated: 4-5 hours**
+
+#### Files to Create:
+- `webapp-v2/src/app/stores/comments-store.ts` - Main store implementation
+- `webapp-v2/src/app/stores/index.ts` - Export new store
+
+#### Implementation Details:
 ```typescript
-class CommentsStoreImpl {
-    private commentsSignal = signal<Comment[]>([]);
-    private loadingSignal = signal(false);
-    private unsubscribe: (() => void) | null = null;
-
-    // Real-time subscription to Firestore
-    subscribeToComments(targetType: 'group' | 'expense', targetId: string, groupId?: string)
-    
-    // Add new comment
-    async addComment(text: string, targetType: 'group' | 'expense', targetId: string, groupId?: string)
-    
-    // Cleanup
-    dispose()
+interface CommentsStore {
+  // State
+  comments: CommentApiResponse[];
+  loading: boolean;
+  hasMore: boolean;
+  nextCursor?: string;
+  
+  // Actions  
+  subscribeToComments(targetType: 'group' | 'expense', targetId: string): void;
+  addComment(text: string): Promise<void>;
+  loadMoreComments(): Promise<void>;
+  dispose(): void;
 }
 ```
 
-**Real-time Integration:**
-- Use Firestore `onSnapshot()` for real-time updates
-- Follow existing pattern from `group-detail-store-enhanced.ts`
-- Automatic state updates when new comments arrive
+#### Key Features:
+- **Real-time subscriptions** using Firestore `onSnapshot()`
+- **Preact Signals** for reactive state management
+- **Pagination support** with cursor-based loading
+- **Optimistic updates** for better UX
+- **Connection management** with proper cleanup
 
-### 2.3 UI Components
+#### Acceptance Criteria:
+- [ ] Real-time updates work across browser tabs
+- [ ] Pagination loads correctly with "Load More" functionality
+- [ ] Optimistic updates show immediately, rollback on error
+- [ ] Memory leaks prevented with proper disposal
+- [ ] Follows existing store patterns (auth-store, groups-store)
 
-**File: `webapp-v2/src/components/comments/CommentsSection.tsx` (NEW)**
+---
+
+### 2.3 Core UI Components
+**Priority: High | Estimated: 6-8 hours**
+
+#### Files to Create:
+- `webapp-v2/src/components/comments/CommentsSection.tsx` - Main container
+- `webapp-v2/src/components/comments/CommentItem.tsx` - Individual comment  
+- `webapp-v2/src/components/comments/CommentInput.tsx` - Text input with send
+- `webapp-v2/src/components/comments/CommentsList.tsx` - Scrollable list
+- `webapp-v2/src/components/comments/LoadMoreButton.tsx` - Pagination control
+- `webapp-v2/src/components/comments/index.ts` - Component exports
+
+#### Component Specifications:
+
+**CommentsSection.tsx**
 ```typescript
 interface CommentsSectionProps {
-    targetType: 'group' | 'expense';
-    targetId: string;
-    groupId?: string;
-    maxHeight?: string;
+  targetType: 'group' | 'expense';
+  targetId: string;
+  maxHeight?: string;
+  className?: string;
 }
 ```
+- Manages store subscription lifecycle
+- Handles loading states
+- Container for all comment functionality
 
-**File: `webapp-v2/src/components/comments/CommentItem.tsx` (NEW)**
-- Individual comment display
-- Avatar, name, timestamp, text
-- Relative time formatting using existing `dateUtils.ts`
+**CommentItem.tsx**  
+```typescript
+interface CommentItemProps {
+  comment: CommentApiResponse;
+  showAvatar?: boolean;
+}
+```
+- User avatar with fallback initials
+- Relative timestamps (e.g., "2 minutes ago")
+- Text with proper line breaks
+- Author name styling
 
-**File: `webapp-v2/src/components/comments/CommentInput.tsx` (NEW)**
-- Text input with send button
-- Character limit indicator (500 chars)
-- Auto-resize textarea
-- Loading state during submit
+**CommentInput.tsx**
+```typescript
+interface CommentInputProps {
+  onSubmit: (text: string) => Promise<void>;
+  disabled?: boolean;
+  placeholder?: string;
+}
+```
+- Auto-resizing textarea
+- Character counter (500 max)
+- Send button with loading state
+- Enter to send, Shift+Enter for new line
+- Input validation and error display
 
-**File: `webapp-v2/src/components/comments/index.ts` (NEW)**
-- Export all comment components
+#### Design Requirements:
+- **Mobile-first responsive design**
+- **Accessibility** - proper ARIA labels, keyboard navigation
+- **Tailwind CSS** following existing design patterns
+- **Loading states** for all async operations
+- **Error handling** with user-friendly messages
+
+#### Acceptance Criteria:
+- [ ] Components render correctly on mobile and desktop
+- [ ] Real-time updates appear immediately
+- [ ] Character limit enforced with visual feedback
+- [ ] Send button disabled during submission
+- [ ] Proper loading and error states
+- [ ] Accessibility requirements met (ARIA, keyboard nav)
+
+---
 
 ### 2.4 Page Integration
+**Priority: Medium | Estimated: 3-4 hours**
 
-**File: `webapp-v2/src/pages/GroupDetailPage.tsx`**
-- Add Comments section to right sidebar:
+#### Files to Modify:
+- `webapp-v2/src/pages/GroupDetailPage.tsx` - Add group comments
+- `webapp-v2/src/pages/ExpenseDetailPage.tsx` - Add expense comments
+
+#### Integration Approach:
+
+**GroupDetailPage.tsx**
 ```typescript
-<SidebarCard title="Comments">
-    <CommentsSection 
-        targetType="group" 
-        targetId={groupId!} 
-        maxHeight="400px" 
-    />
+// Add to right sidebar
+<SidebarCard title="Comments" className="flex-1">
+  <CommentsSection 
+    targetType="group" 
+    targetId={groupId!} 
+    maxHeight="400px"
+  />
 </SidebarCard>
 ```
 
-**File: `webapp-v2/src/pages/ExpenseDetailPage.tsx`**
-- Add Comments section to expense detail view
-- Integration with existing expense layout
+**ExpenseDetailPage.tsx**  
+```typescript
+// Add below expense details
+<div className="mt-6">
+  <h3 className="text-lg font-medium mb-3">Discussion</h3>
+  <CommentsSection 
+    targetType="expense" 
+    targetId={expenseId!}
+    maxHeight="300px"
+  />
+</div>
+```
 
-### 2.5 Mobile Responsiveness
+#### Acceptance Criteria:
+- [ ] Comments integrate seamlessly with existing layouts
+- [ ] No layout shifts when comments load
+- [ ] Consistent styling with existing design system
+- [ ] Mobile responsive integration
 
-- Comments section collapses appropriately on mobile
-- Touch-friendly input controls
-- Optimized scrolling for comment history
+---
 
-## Phase 3: Testing & Quality Assurance
+### 2.5 Real-time Infrastructure  
+**Priority: High | Estimated: 2-3 hours**
 
-### 3.1 Backend Tests
+#### Files to Create/Modify:
+- `webapp-v2/src/utils/firestore.ts` - Firestore client setup (if not exists)
+- Comments store real-time subscriptions
 
-**File: `firebase/functions/src/__tests__/integration/normal-flow/comments.test.ts` (NEW)**
-- Create comment integration tests
-- Permission validation tests
-- Comment listing and pagination tests
+#### Implementation Details:
+```typescript
+// Real-time subscription pattern
+const unsubscribe = onSnapshot(
+  collection(db, `groups/${groupId}/comments`)
+    .orderBy('createdAt', 'desc')
+    .limit(20),
+  (snapshot) => {
+    const newComments = snapshot.docs.map(transformComment);
+    commentsSignal.value = newComments;
+  },
+  (error) => {
+    logger.error('Comments subscription error', error);
+    // Handle connection errors gracefully  
+  }
+);
+```
 
-**File: `firebase/functions/src/__tests__/unit/comments-validation.test.ts` (NEW)**
-- Joi validation unit tests
-- Text sanitization tests
-- XSS protection tests
+#### Key Requirements:
+- **Connection resilience** - handle network drops
+- **Error recovery** - retry failed connections  
+- **Performance** - efficient query limits
+- **Memory management** - proper unsubscribe cleanup
 
-### 3.2 Frontend Tests
+#### Acceptance Criteria:
+- [ ] Comments appear in real-time across browser tabs
+- [ ] Connection errors handled gracefully with retry
+- [ ] No memory leaks from uncleaned subscriptions
+- [ ] Works reliably on poor network connections
 
-**File: `webapp-v2/src/__tests__/unit/components/comments/CommentsSection.test.tsx` (NEW)**
-- Component rendering tests
-- Real-time update tests
-- User interaction tests
+---
 
-**File: `webapp-v2/src/__tests__/unit/stores/comments-store.test.ts` (NEW)**
-- Store state management tests
-- API integration tests
-- Real-time subscription tests
+### 2.6 Testing Implementation
+**Priority: Medium | Estimated: 4-5 hours**
 
-### 3.3 E2E Tests
+#### Files to Create:
+- `webapp-v2/src/__tests__/unit/stores/comments-store.test.ts` - Store tests
+- `webapp-v2/src/__tests__/unit/components/comments/CommentsSection.test.tsx` - Component tests
+- `webapp-v2/src/__tests__/unit/components/comments/CommentInput.test.tsx` - Input tests
 
-**File: `e2e-tests/src/tests/normal-flow/comments.test.ts` (NEW)**
-- End-to-end comment creation flow
-- Real-time update verification
-- Multi-user comment scenarios
+#### Test Coverage Requirements:
+```typescript
+// Store tests
+- ✅ Real-time subscription handling
+- ✅ Optimistic updates and rollback
+- ✅ Pagination with cursor management  
+- ✅ Error handling and recovery
+- ✅ Memory leak prevention
 
-**Page Object Updates:**
-- Add comment-related actions to `group-detail.page.ts`
-- Add comment-related actions to `expense-detail.page.ts`
+// Component tests  
+- ✅ Rendering with mock data
+- ✅ User interactions (typing, sending)
+- ✅ Loading and error states
+- ✅ Accessibility features
+- ✅ Mobile responsive behavior
+```
 
-## Phase 4: Performance & Optimization
+#### Acceptance Criteria:
+- [ ] Store has 90%+ test coverage
+- [ ] Components have comprehensive interaction tests
+- [ ] Real-time functionality mocked and tested
+- [ ] Error scenarios covered
+- [ ] All tests pass in CI
 
-### 4.1 Real-time Optimization
+---
 
-- Implement comment pagination for large comment threads
-- Efficient Firestore query ordering by `createdAt DESC`
-- Connection management following existing patterns
+### 2.7 Mobile Optimization
+**Priority: Medium | Estimated: 2-3 hours**
 
-### 4.2 UI Optimization
+#### Implementation Areas:
+- **Touch-friendly interfaces** - larger tap targets
+- **Keyboard handling** - mobile keyboard optimization
+- **Scroll behavior** - smooth scrolling, proper viewport
+- **Performance** - minimize re-renders on mobile
+- **Offline resilience** - handle connection drops gracefully
 
-- Virtual scrolling for large comment lists
-- Optimistic UI updates for better perceived performance
-- Debounced input for auto-resize textarea
+#### Files to Optimize:
+- All comment components for touch interfaces
+- CSS media queries for mobile breakpoints
+- Input handling for mobile keyboards
+
+#### Acceptance Criteria:
+- [ ] Comments section works smoothly on iOS Safari
+- [ ] Android Chrome compatibility verified  
+- [ ] Touch interactions feel responsive
+- [ ] Mobile keyboard doesn't break layout
+- [ ] Performance acceptable on slower devices
+
+---
+
+### 2.8 E2E Testing Integration
+**Priority: Low | Estimated: 3-4 hours**
+
+#### Files to Create/Modify:
+- `e2e-tests/src/tests/normal-flow/comments.test.ts` - E2E comment flows
+- `e2e-tests/src/support/page-objects/group-detail.page.ts` - Add comment actions
+- `e2e-tests/src/support/page-objects/expense-detail.page.ts` - Add comment actions
+
+#### Test Scenarios:
+```typescript
+// Multi-user real-time scenarios
+test('comments appear in real-time for all group members', async ({ 
+  authenticatedPage, 
+  secondUser 
+}) => {
+  // User 1 adds comment
+  // User 2 sees it immediately
+  // Both users can reply
+});
+
+// Cross-page functionality  
+test('expense comments visible from group and expense pages', async ({
+  authenticatedPage
+}) => {
+  // Add comment on expense detail page  
+  // Verify visible from group page
+});
+```
+
+#### Acceptance Criteria:
+- [ ] Real-time updates work in E2E environment
+- [ ] Multi-user scenarios pass consistently  
+- [ ] Comments persist across page refreshes
+- [ ] All error states handled in E2E tests
+
+---
 
 ## Implementation Timeline
 
-### Week 1: Backend Foundation ✅ **COMPLETED**
-- [x] Data model and types definition
-- [x] Validation layer implementation
-- [x] API handlers and routing
-- [x] Security rules update
-- [x] Unit tests for backend
+### Week 1: Core Infrastructure (16-20 hours)
+- **Day 1-2:** API Client Integration (2.1) + Comments Store (2.2)  
+- **Day 3-5:** Core UI Components (2.3)
 
-### Week 2: Frontend Foundation
-- [ ] API client integration
-- [ ] Comments store implementation
-- [ ] Basic UI components
-- [ ] Real-time subscription setup
+### Week 2: Integration & Polish (12-15 hours)  
+- **Day 1-2:** Page Integration (2.4) + Real-time Infrastructure (2.5)
+- **Day 3-4:** Testing Implementation (2.6)
+- **Day 5:** Mobile Optimization (2.7)
 
-### Week 3: UI Integration & Polish
-- [ ] Page integration (Group & Expense)
-- [ ] Mobile responsiveness
-- [ ] UI polish and accessibility
-- [ ] Frontend unit tests
+### Week 3: Quality & Deployment (8-10 hours)
+- **Day 1-2:** E2E Testing (2.8) 
+- **Day 3:** Bug fixes and polish
+- **Day 4-5:** Production deployment and monitoring
 
-### Week 4: Testing & Deployment
-- [ ] Integration tests
-- [ ] E2E tests
-- [ ] Performance testing
-- [ ] Production deployment
+**Total Estimated Effort: 36-45 hours**
 
-## Technical Considerations
+---
 
-### Security
-- All comment text sanitized on server-side
-- Permission validation ensures only group members can comment
-- XSS protection using existing security utilities
-- Rate limiting to prevent spam (future enhancement)
+## Success Criteria
 
-### Performance
-- Pagination for comment history (20 comments per page)
-- Efficient Firestore queries with proper indexing
-- Real-time listeners optimized for minimal data transfer
-- Connection pooling follows existing patterns
+### Technical Requirements
+- [ ] Real-time updates work reliably across all browsers
+- [ ] Comments load in < 500ms on average connection
+- [ ] Mobile interface passes accessibility audit (WCAG 2.1 AA)
+- [ ] Zero memory leaks in real-time subscriptions
+- [ ] All tests pass with >90% coverage
 
-### Scalability
-- Sub-collection structure scales well with document growth
-- Firestore automatically handles indexing for timestamp queries
-- Future horizontal scaling via comment archiving
+### User Experience Requirements  
+- [ ] Intuitive chat-like interface
+- [ ] Responsive design works on all screen sizes
+- [ ] Loading states provide clear feedback
+- [ ] Error messages are user-friendly and actionable
+- [ ] Keyboard navigation fully functional
 
-### Consistency with Existing Patterns
-- ✅ Joi validation on backend (matches expenses/groups)
-- ✅ Zod validation on frontend (matches API schemas)
-- ✅ Preact Signals for state (matches existing stores)
-- ✅ Real-time listeners (matches existing real-time features)
-- ✅ Express routing (matches existing API structure)
-- ✅ Type sharing via `@shared` alias (matches existing types)
+### Integration Requirements
+- [ ] Seamless integration with existing group/expense pages
+- [ ] Consistent with existing design system
+- [ ] No breaking changes to existing functionality
+- [ ] Backend API consumed correctly with all edge cases handled
+
+---
 
 ## Risk Mitigation
 
 ### Technical Risks
-- **Real-time performance**: Implement pagination and connection limits
-- **Comment spam**: Server-side rate limiting and text validation
-- **Database costs**: Efficient queries and proper indexing
+- **Real-time performance degradation:** Implement pagination and connection limits
+- **Memory leaks:** Comprehensive testing of subscription cleanup  
+- **Mobile performance:** Profile and optimize re-renders
 
-### User Experience Risks
-- **Mobile usability**: Thorough responsive testing
-- **Performance on slow connections**: Optimistic updates and loading states
-- **Accessibility**: Proper ARIA labels and keyboard navigation
+### UX Risks
+- **Overwhelming interface:** Consider collapsible/tabbed design
+- **Mobile keyboard issues:** Thorough testing on various devices
+- **Network reliability:** Implement offline-friendly patterns
 
-## Success Metrics
+---
 
-### Technical Metrics
-- Comment creation API latency < 200ms
-- Real-time update propagation < 1 second
-- Zero XSS vulnerabilities in security audit
-- 100% test coverage for critical paths
+## Next Steps After Completion
 
-### User Experience Metrics
-- Comments load in < 500ms
-- Mobile interface passes accessibility audit
-- Real-time updates work reliably across all browsers
-- Zero data loss during concurrent comment scenarios
+### Future Enhancements (Phase 3)
+- **@mention notifications** - Tag users in comments
+- **Comment editing/deletion** - CRUD operations
+- **Rich text formatting** - Bold, italic, links
+- **File attachments** - Image/document sharing
+- **Comment threading** - Replies to specific comments
+
+### Monitoring & Analytics
+- Track comment engagement metrics
+- Monitor real-time performance
+- A/B test different UI approaches
+- Gather user feedback on UX improvements
