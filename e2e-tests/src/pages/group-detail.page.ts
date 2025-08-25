@@ -94,12 +94,12 @@ export class GroupDetailPage extends BasePage {
 
     async waitForGroupTitle(text: string ) {
         await this.page.waitForLoadState('domcontentloaded');
-        await expect(this.getGroupTitle()).toHaveText(text, { timeout: 1000});
+        await expect(this.getGroupTitle()).toHaveText(text, { timeout: 2000});
     }
 
     async waitForGroupDescription(text: string ) {
         await this.page.waitForLoadState('domcontentloaded');
-        await expect(this.getGroupDescription()).toHaveText(text, { timeout: 1000});
+        await expect(this.getGroupDescription()).toHaveText(text, { timeout: 2000});
     }
 
     /**

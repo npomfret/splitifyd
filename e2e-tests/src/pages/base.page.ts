@@ -152,6 +152,10 @@ export abstract class BasePage {
                     await input.pressSequentially(value);
                 }
 
+                // Manually trigger input event to ensure Preact onChange handlers are called
+                // This is crucial for Preact components that rely on onChange events to update their state
+                await input.dispatchEvent('input');
+
                 // Blur to trigger Preact validation
                 await input.blur();
 
