@@ -341,3 +341,40 @@ export const NAVIGATION_TEXTS = {
     LOGO_ALT: translation.header.logoAlt,
     GROUP_SETTINGS_ARIA: translation.groupHeader.groupSettingsAriaLabel,
 } as const;
+
+// Error Handling Components Selectors
+export const ERROR_HANDLING_SELECTORS = {
+    ERROR_TITLE: '[data-testid="error-title"]',
+    ERROR_MESSAGE: '[data-testid="error-message"]',
+    ERROR_RETRY_BUTTON: '[data-testid="error-retry-button"]',
+    NOT_FOUND_TITLE: '[data-testid="not-found-title"]',
+    NOT_FOUND_SUBTITLE: '[data-testid="not-found-subtitle"]',
+    NOT_FOUND_DESCRIPTION: '[data-testid="not-found-description"]',
+    GO_TO_DASHBOARD_LINK: '[data-testid="go-to-dashboard-link"]',
+    GO_HOME_LINK: '[data-testid="go-home-link"]',
+    LOADING_MESSAGE: '[data-testid="loading-message"]',
+} as const;
+
+// Error Handling Text Constants
+export const ERROR_HANDLING_TEXTS = {
+    // Error State
+    ERROR_DEFAULT_TITLE: translation.errorState.defaultTitle,
+    ERROR_UNEXPECTED: translation.errorState.unexpectedError,
+    ERROR_TRY_AGAIN: translation.errorState.tryAgainButton,
+    
+    // Error Boundary
+    ERROR_BOUNDARY_TITLE: translation.errorBoundary.title,
+    ERROR_BOUNDARY_UNEXPECTED: translation.errorBoundary.unexpectedError,
+    
+    // Not Found Page
+    NOT_FOUND_TITLE: translation.notFoundPage.title,
+    NOT_FOUND_PAGE: translation.notFoundPage.pageNotFound,
+    NOT_FOUND_PAGE_DESC: translation.notFoundPage.pageNotFoundDescription,
+    NOT_FOUND_GROUP: translation.notFoundPage.groupNotFound,
+    NOT_FOUND_GROUP_DESC: translation.notFoundPage.groupNotFoundDescription,
+    GO_TO_DASHBOARD: translation.notFoundPage.goToDashboard,
+    GO_HOME: translation.notFoundPage.goHome,
+    
+    // Loading State
+    LOADING_DEFAULT: translation.loadingState.defaultMessage,
+} as const;
