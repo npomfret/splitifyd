@@ -18,6 +18,7 @@ export const FirestoreCollections = {
     SETTLEMENTS: 'settlements',
     USERS: 'users',
     POLICIES: 'policies',
+    COMMENTS: 'comments',
     // Change tracking collections
     GROUP_CHANGES: 'group-changes',
     TRANSACTION_CHANGES: 'transaction-changes',
@@ -645,4 +646,58 @@ export interface GroupBalances {
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: string; // ISO string
     balancesByCurrency: Record<string, Record<string, UserBalance>>;
+}
+
+// ========================================================================
+// Comments types
+// ========================================================================
+
+export const CommentTargetTypes = {
+    GROUP: 'group',
+    EXPENSE: 'expense',
+} as const;
+
+export type CommentTargetType = typeof CommentTargetTypes[keyof typeof CommentTargetTypes];
+
+export interface Comment {
+    id: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    text: string;
+    createdAt: admin.firestore.Timestamp;
+    updatedAt: admin.firestore.Timestamp;
+}
+
+export interface CommentApiResponse {
+    id: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    text: string;
+    createdAt: string; // ISO string for API responses
+    updatedAt: string; // ISO string for API responses
+}
+
+export interface CreateCommentRequest {
+    text: string;
+    targetType: CommentTargetType;
+    targetId: string;
+    groupId?: string; // Required for expense comments
+}
+
+export interface ListCommentsResponse {
+    comments: CommentApiResponse[];
+    hasMore: boolean;
+    nextCursor?: string;
+}
+
+export interface CreateCommentResponse {
+    success: boolean;
+    data: CommentApiResponse;
+}
+
+export interface ListCommentsApiResponse {
+    success: boolean;
+    data: ListCommentsResponse;
 }

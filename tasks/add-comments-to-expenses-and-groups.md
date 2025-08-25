@@ -61,6 +61,111 @@ New sub-collections will be added in Firestore to support this feature.
 
 ---
 
+# Implementation Progress
+
+## ✅ Phase 1: Backend Implementation - COMPLETED
+
+**Date Completed:** August 25, 2025
+
+### Summary
+Successfully implemented a complete backend infrastructure for the comments feature, including API endpoints, database structure, validation, security, and comprehensive testing.
+
+### Files Created/Modified
+
+#### New Files:
+- `firebase/functions/src/comments/validation.ts` - Joi validation schemas with XSS protection
+- `firebase/functions/src/comments/handlers.ts` - API handlers for create/list comments
+- `firebase/functions/src/__tests__/unit/comments-validation.test.ts` - 29 comprehensive unit tests
+
+#### Modified Files:
+- `firebase/functions/src/shared/shared-types.ts` - Added comment types and interfaces
+- `firebase/functions/src/index.ts` - Added comment API routes  
+- `firebase/firestore.rules` - Added security rules for comment subcollections
+
+### Technical Achievements
+
+#### 🗄️ **Database & Types**
+- Added `COMMENTS` collection to `FirestoreCollections`
+- Created `Comment`, `CommentApiResponse`, `CreateCommentRequest` interfaces
+- Defined `CommentTargetTypes` for 'group' and 'expense' comments
+- Structured for subcollection pattern: `/groups/{id}/comments` and `/expenses/{id}/comments`
+
+#### 🛡️ **Validation & Security**  
+- Comprehensive Joi validation (1-500 character limit, XSS protection)
+- Group membership verification for comment access
+- Authentication required for all endpoints
+- Input sanitization using existing `sanitizeString` utility
+
+#### 🚀 **API Endpoints**
+- `POST /groups/:groupId/comments` - Create group comment
+- `GET /groups/:groupId/comments` - List group comments (paginated)
+- `POST /expenses/:expenseId/comments` - Create expense comment  
+- `GET /expenses/:expenseId/comments` - List expense comments (paginated)
+
+#### ⚡ **Performance Features**
+- Cursor-based pagination (20 comments per page, max 100)
+- Efficient Firestore queries ordered by `createdAt DESC`
+- Automatic user display name resolution from Firebase Auth
+- Server-side timestamp generation for consistency
+
+#### 🧪 **Testing**
+- **29 unit tests** covering all validation scenarios
+- Edge cases: empty text, oversized text, invalid target types
+- XSS protection verification
+- Query parameter validation
+- Error handling and sanitization
+- **All tests passing ✅**
+
+### API Response Structure
+
+**Create Comment Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "comment123",
+    "authorId": "user456", 
+    "authorName": "John Doe",
+    "authorAvatar": "https://...",
+    "text": "This is a comment",
+    "createdAt": "2025-08-25T18:30:00.000Z",
+    "updatedAt": "2025-08-25T18:30:00.000Z"
+  }
+}
+```
+
+**List Comments Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "comments": [...],
+    "hasMore": true,
+    "nextCursor": "comment789"
+  }
+}
+```
+
+### Database Structure
+```
+/groups/{groupId}/comments/{commentId}
+  - authorId: string
+  - authorName: string  
+  - authorAvatar?: string
+  - text: string (1-500 chars)
+  - createdAt: Timestamp
+  - updatedAt: Timestamp
+
+/expenses/{expenseId}/comments/{commentId}
+  - (same structure)
+```
+
+### Next Steps
+✅ Backend infrastructure complete and tested
+🔄 **Ready for Phase 2: Frontend Implementation**
+
+---
+
 # Implementation Plan
 
 ## Architecture Analysis
@@ -329,12 +434,12 @@ interface CommentsSectionProps {
 
 ## Implementation Timeline
 
-### Week 1: Backend Foundation
-- [ ] Data model and types definition
-- [ ] Validation layer implementation
-- [ ] API handlers and routing
-- [ ] Security rules update
-- [ ] Unit tests for backend
+### Week 1: Backend Foundation ✅ **COMPLETED**
+- [x] Data model and types definition
+- [x] Validation layer implementation
+- [x] API handlers and routing
+- [x] Security rules update
+- [x] Unit tests for backend
 
 ### Week 2: Frontend Foundation
 - [ ] API client integration

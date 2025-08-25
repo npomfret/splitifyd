@@ -18,6 +18,7 @@ import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberH
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, getGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
 import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
+import { createComment, listComments } from './comments/handlers';
 import { admin, firestoreDb } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
@@ -297,6 +298,12 @@ function setupRoutes(app: express.Application): void {
     app.get(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(getSettlement));
     app.put(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(updateSettlement));
     app.delete(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(deleteSettlement));
+
+    // Comment endpoints (requires auth)
+    app.post(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
+    app.get(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listComments));
+    app.post(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
+    app.get(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listComments));
 
     // Admin Policy endpoints (requires admin auth)
     app.post(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(createPolicy));
