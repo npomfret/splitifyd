@@ -2,15 +2,117 @@
 
 This document outlines specific, actionable tasks based on the Firebase codebase code review.
 
+## Executive Summary
+
+**Current State**: The Firebase Functions codebase has critical technical debt in the balance calculation system that blocks most other improvements.
+
+**Immediate Priority**: Task 1.1 (Balance Calculator Unit Tests) must be completed first to enable safe refactoring and type safety improvements.
+
+**Key Insight**: The `calculateGroupBalances()` function is 265 lines of critical business logic with no tests and heavy `any` type usage. This represents significant business risk and blocks architectural improvements.
+
 ## High Priority Tasks
 
 ### 1. Unit Testing for Balance Calculator
+
+**STATUS: READY FOR IMPLEMENTATION** 
+**PRIORITY: IMMEDIATE** - This blocks all refactoring and type safety improvements
+
+#### Analysis Summary
+
+**Current State:**
+- `calculateGroupBalances()` is a 265-line monolithic function in `firebase/functions/src/services/balanceCalculator.ts`
+- Contains critical business logic for expense splitting, settlement processing, and debt optimization
+- Heavy use of `any` types (8 instances) making it error-prone and hard to refactor safely
+- No unit tests exist - this is **HIGH RISK** for such critical business logic
+- Function performs multiple complex operations: data fetching, expense processing, settlement reconciliation, balance calculation, and debt simplification
+- Multi-currency support with complex nested data structures
+
+**Why This Must Be First:**
+- **Refactoring blocker**: Cannot safely break down this function without tests
+- **Type safety blocker**: Cannot remove `any` types without tests to catch regressions  
+- **High business risk**: Balance calculations affect money - bugs here are critical
+- **Code complexity**: 265 lines with nested loops, state mutations, and complex logic
+
+**Testing Infrastructure Status:**
+- ✅ Jest configured and working (`firebase/functions/package.json`)
+- ✅ Existing test structure in `src/__tests__/unit/`
+- ✅ Good test examples in `debtSimplifier.test.ts` showing proper patterns
+- ✅ Builder pattern examples available (follows project guidelines)
+
 - [ ] **Task 1.1**: Create comprehensive unit tests for `balanceCalculator.ts`
-  - Test `calculateGroupBalances` function with various scenarios
-  - Test edge cases: empty groups, single user, no expenses
-  - Test complex scenarios: multiple users, multiple expenses, settlements
-  - Mock Firestore dependencies to isolate business logic
-  - Achieve >95% code coverage for balance calculation logic
+
+**Detailed Implementation Plan:**
+
+1. **Test Infrastructure Setup** (Est: 2-3 hours)
+   - Create `src/__tests__/unit/balanceCalculator.test.ts`
+   - Set up Firestore mocking utilities for `db.collection()` calls
+   - Create builder pattern classes for test data:
+     - `ExpenseBuilder` - for creating test expense data
+     - `SettlementBuilder` - for creating test settlement data  
+     - `GroupBuilder` - for creating test group data with members
+     - `UserProfileBuilder` - for creating test user profiles
+
+2. **Core Function Testing** (Est: 4-5 hours)
+   - **Empty/Edge Cases:**
+     - Empty group (no members)
+     - Group with members but no expenses
+     - Group with members but no settlements
+     - Invalid group ID (group not found)
+     - Malformed group data (missing `data.members`)
+   
+   - **Single Currency Scenarios:**
+     - Two users, one expense, equal split
+     - Two users, one expense, unequal split  
+     - Multiple users, single expense
+     - Multiple users, multiple expenses
+     - Complex scenario with expenses and settlements
+   
+   - **Multi-Currency Scenarios:**
+     - Expenses in different currencies (USD, EUR)
+     - Settlements in different currencies
+     - Mixed currency transactions
+
+3. **Settlement Logic Testing** (Est: 3-4 hours)
+   - Settlement reduces existing debt correctly
+   - Settlement overpayment creates reverse debt
+   - Settlement between users with no prior debt
+   - Settlement amount precision (0.01 threshold handling)
+   - Multiple settlements between same users
+
+4. **Data Structure Validation** (Est: 2-3 hours)
+   - Required fields validation (currency, paidBy, splits)
+   - Response structure matches `GroupBalance` interface
+   - `balancesByCurrency` structure correctness
+   - `userBalances` population from first currency
+   - `simplifiedDebts` integration with debt simplifier
+
+5. **Integration Points** (Est: 2-3 hours)
+   - Mock `userService.getUsers()` calls
+   - Mock Firestore query results
+   - Verify proper error handling and propagation
+   - Test interaction with `simplifyDebts()` utility
+
+**Expected Test Coverage:**
+- Target: >95% line coverage
+- Focus: All branches, error conditions, edge cases
+- Mock Strategy: Full Firestore isolation, real business logic
+- Test Count Estimate: 25-30 comprehensive test cases
+
+**Dependencies to Mock:**
+- `db.collection(FirestoreCollections.EXPENSES).where().get()`
+- `db.collection(FirestoreCollections.SETTLEMENTS).where().get()`  
+- `db.collection(FirestoreCollections.GROUPS).doc().get()`
+- `userService.getUsers(memberIds)`
+- `simplifyDebts()` utility (spy/verify calls)
+
+**Success Criteria:**
+- [ ] All edge cases covered with clear test names
+- [ ] >95% code coverage achieved
+- [ ] All `any` types have corresponding test assertions
+- [ ] Test data uses builder pattern (per project guidelines)
+- [ ] Tests run in <5 seconds (per project performance standards)
+- [ ] No Firestore dependencies - fully mocked
+- [ ] Tests pass consistently (no flaky behavior)
 
 - [ ] **Task 1.2**: Add unit tests for expense calculation logic
   - Test expense splitting algorithms
@@ -23,26 +125,116 @@ This document outlines specific, actionable tasks based on the Firebase codebase
   - Test settlement reversal scenarios
 
 ### 2. Balance Calculator Refactoring
+
+**STATUS: BLOCKED BY TASK 1.1** 
+**PRIORITY: HIGH** - Should follow immediately after unit tests are complete
+
+#### Current Issues Identified:
+
+**Type Safety Problems:**
+- 8 instances of `any` type usage at lines: 18, 31, 42, 71, 87, 248, 252
+- Most critical: `expenses` and `settlements` arrays typed as `any[]`
+- Complex nested structures lack proper TypeScript interfaces
+- Return type `GroupBalance` exists but internal structures are untyped
+
+**Architectural Problems:**
+- Single 265-line function doing too many things:
+  - Database querying (3 separate collections)
+  - Data validation and transformation  
+  - Multi-currency expense processing
+  - Settlement reconciliation logic
+  - Balance calculation and aggregation
+  - Debt simplification integration
+- Nested loops with complex state mutations
+- Mixed concerns: data access, business logic, and formatting
+
+**Refactoring Strategy (MUST wait for tests):**
+
 - [ ] **Task 2.1**: Break down `calculateGroupBalances` into smaller functions
-  - Extract expense processing logic
-  - Extract settlement processing logic
-  - Extract balance calculation logic
-  - Extract debt optimization logic
-  - Each function should have single responsibility
+  
+  **Proposed Function Extraction:**
+  ```typescript
+  // 1. Data fetching layer
+  async fetchGroupData(groupId: string): Promise<GroupData>
+  async fetchExpensesForGroup(groupId: string): Promise<Expense[]>  
+  async fetchSettlementsForGroup(groupId: string): Promise<Settlement[]>
+  
+  // 2. Processing layer
+  processExpensesByUser(expenses: Expense[]): UserBalanceMap
+  applySettlementsToBalances(balances: UserBalanceMap, settlements: Settlement[]): void
+  calculateNetBalances(balances: UserBalanceMap): UserBalanceMap
+  
+  // 3. Formatting layer  
+  formatBalanceResponse(data: ProcessedData): GroupBalance
+  ```
 
 - [ ] **Task 2.2**: Remove all `any` types from `balanceCalculator.ts`
-  - Create proper interfaces for balance data structures
-  - Define types for expense objects
-  - Define types for settlement objects
-  - Define types for user balance objects
-  - Define types for calculation intermediate results
+
+  **Required Type Definitions:**
+  ```typescript
+  interface Expense {
+    id: string;
+    groupId: string;
+    paidBy: string;
+    currency: string;
+    splits: ExpenseSplit[];
+    deletedAt?: Timestamp;
+  }
+  
+  interface Settlement {
+    id: string;
+    groupId: string;
+    payerId: string;
+    payeeId: string; 
+    amount: number;
+    currency: string;
+  }
+  
+  interface ExpenseSplit {
+    userId: string;
+    amount: number;
+  }
+  
+  interface GroupData {
+    id: string;
+    data: {
+      members: Record<string, GroupMember>;
+    };
+  }
+  ```
 
 - [ ] **Task 2.3**: Create proper interfaces for balance calculation
-  - `BalanceCalculationInput` interface
-  - `BalanceCalculationResult` interface
-  - `UserBalance` interface
-  - `DebtRelationship` interface
-  - `CalculationContext` interface
+  
+  **Additional Interfaces Needed:**
+  ```typescript
+  interface BalanceCalculationInput {
+    groupId: string;
+    expenses: Expense[];
+    settlements: Settlement[];
+    memberProfiles: Map<string, UserProfile>;
+  }
+  
+  interface BalanceCalculationResult extends GroupBalance {
+    // Inherits from existing GroupBalance interface
+  }
+  
+  interface UserBalanceMap {
+    [currency: string]: Record<string, UserBalance>;
+  }
+  
+  interface ProcessingContext {
+    groupId: string;
+    currencies: Set<string>;
+    memberIds: string[];
+  }
+  ```
+
+**Benefits of Refactoring:**
+- **Testability**: Each function can be unit tested independently  
+- **Maintainability**: Single responsibility functions are easier to debug
+- **Type Safety**: Proper interfaces prevent runtime errors
+- **Performance**: Smaller functions enable better optimization
+- **Readability**: Clear function names document business logic
 
 ### 3. Performance Issues
 - [ ] **Task 3.1**: Fix N+1 problem in `listGroups` handler
