@@ -3,6 +3,10 @@ import assert from "node:assert";
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+if(!process.env.GCLOUD_PROJECT) {// hack for convenience when running the tests
+    process.env.GCLOUD_PROJECT = "splitifyd";
+}
+
 if (!admin.apps || admin.apps.length === 0) {
 
     // see https://firebase.google.com/docs/emulator-suite/connect_firestore#web
