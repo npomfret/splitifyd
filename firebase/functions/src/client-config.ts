@@ -5,7 +5,7 @@ import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
 
 // Cache for lazy-loaded configurations
-let cachedConfig: Config | null = null;
+let cachedConfig: ClientConfig | null = null;
 let cachedAppConfig: AppConfiguration | null = null;
 let cachedEnv: z.infer<typeof envSchema> | null = null;
 
@@ -27,7 +27,7 @@ const envSchema = z.object({
 });
 
 // Type for the CONFIG object
-export interface Config {
+export interface ClientConfig {
     isProduction: boolean;
     isDevelopment: boolean;
     requestBodyLimit: string;
@@ -75,14 +75,22 @@ function getEnv(): z.infer<typeof envSchema> {
 }
 
 // Build the CONFIG object lazily
-function buildConfig(): Config {
+function buildConfig(): ClientConfig {
     const env = getEnv();
     const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
     const isProduction = !isEmulator;
 
     // Validate required production variables
     if (isProduction) {
-        const requiredVars = ['GCLOUD_PROJECT', 'CLIENT_API_KEY', 'CLIENT_AUTH_DOMAIN', 'CLIENT_STORAGE_BUCKET', 'CLIENT_MESSAGING_SENDER_ID', 'CLIENT_APP_ID'];
+        const requiredVars = [
+            'GCLOUD_PROJECT',
+            'CLIENT_API_KEY',
+            'CLIENT_AUTH_DOMAIN',
+            'CLIENT_STORAGE_BUCKET',
+            'CLIENT_MESSAGING_SENDER_ID',
+            'CLIENT_APP_ID'
+        ];
+
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
         if (missing.length > 0) {
             throw new Error(`Missing required environment variables in production: ${missing.join(', ')}`);
@@ -119,7 +127,7 @@ function buildConfig(): Config {
 }
 
 // Export lazy getter for CONFIG
-export function getConfig(): Config {
+export function getConfig(): ClientConfig {
     if (!cachedConfig) {
         cachedConfig = buildConfig();
     }
@@ -127,7 +135,7 @@ export function getConfig(): Config {
 }
 
 // Helper functions for building AppConfiguration
-function getFirebaseAuthUrl(config: Config, env: z.infer<typeof envSchema>): string | undefined {
+function getFirebaseAuthUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
     if (config.isProduction) {
         return undefined;
     }
@@ -141,7 +149,7 @@ function getFirebaseAuthUrl(config: Config, env: z.infer<typeof envSchema>): str
     return `http://${authHost}`;
 }
 
-function getFirebaseFirestoreUrl(config: Config, env: z.infer<typeof envSchema>): string | undefined {
+function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
     if (config.isProduction) {
         return undefined;
     }
@@ -159,7 +167,7 @@ function getFirebaseFirestoreUrl(config: Config, env: z.infer<typeof envSchema>)
     return `http://${firestoreHost}`;
 }
 
-function getWarningBanner(config: Config): WarningBanner | undefined {
+function getWarningBanner(config: ClientConfig): WarningBanner | undefined {
     if (!config.warningBanner) return undefined;
 
     return {
@@ -175,26 +183,26 @@ function buildAppConfiguration(): AppConfiguration {
     const projectId = env.GCLOUD_PROJECT!;
 
     // Build firebase config based on environment
-    const firebase: FirebaseConfig = config.isProduction
-        ? {
+    const MINIMAL_EMULATOR_CLIENT_CONFIG = {
+        // Minimal config for development - these values are not used by the emulator
+        apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+        authDomain: '',
+        projectId,
+        storageBucket: '',
+        messagingSenderId: '',
+        appId: '',
+        measurementId: '',
+    };
+
+    const firebase: FirebaseConfig = config.isProduction ? {
               apiKey: env.CLIENT_API_KEY!,
               authDomain: env.CLIENT_AUTH_DOMAIN!,
-              projectId: projectId,
+              projectId,
               storageBucket: env.CLIENT_STORAGE_BUCKET!,
               messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
               appId: env.CLIENT_APP_ID!,
               measurementId: env.CLIENT_MEASUREMENT_ID,
-          }
-        : {
-              // Minimal config for development - these values are not used by the emulator
-              apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
-              authDomain: '',
-              projectId,
-              storageBucket: '',
-              messagingSenderId: '',
-              appId: '',
-              measurementId: '',
-          };
+          } : MINIMAL_EMULATOR_CLIENT_CONFIG;
 
     // Validate required fields in production
     if (config.isProduction && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {

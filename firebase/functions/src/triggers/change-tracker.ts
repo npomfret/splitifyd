@@ -1,5 +1,5 @@
 import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { 
     getChangedFields, 
@@ -62,7 +62,7 @@ export const trackGroupChanges = onDocumentWritten(
 
 
             // Write to group-changes collection
-            await db.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
+            await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
 
             logger.info('group-changed', { id: groupId });
         } catch (error) {
@@ -126,7 +126,7 @@ export const trackExpenseChanges = onDocumentWritten(
             );
 
             // Write to transaction-changes collection (expenses use transaction-changes)
-            await db.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
+            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
 
             // Also create a minimal balance change document since expenses affect balances
             const balanceChangeDoc = createMinimalBalanceChangeDocument(
@@ -134,7 +134,7 @@ export const trackExpenseChanges = onDocumentWritten(
                 Array.from(affectedUsers)
             );
 
-            await db.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
+            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
 
             logger.info('expense-changed', { id: expenseId, groupId });
         } catch (error) {
@@ -202,7 +202,7 @@ export const trackSettlementChanges = onDocumentWritten(
             );
 
             // Write to transaction-changes collection (settlements are a type of transaction)
-            await db.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
+            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
 
             // Also create a minimal balance change document since settlements affect balances
             const balanceChangeDoc = createMinimalBalanceChangeDocument(
@@ -210,7 +210,7 @@ export const trackSettlementChanges = onDocumentWritten(
                 Array.from(affectedUsers)
             );
 
-            await db.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
+            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
 
             logger.info('settlement-changed', { id: settlementId, groupId });
         } catch (error) {

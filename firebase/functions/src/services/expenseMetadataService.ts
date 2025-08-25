@@ -1,6 +1,6 @@
 import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 
 export interface ExpenseMetadata {
     expenseCount: number;
@@ -20,7 +20,7 @@ export const calculateExpenseMetadata = async (groupId: string): Promise<Expense
         throw new Error('Group ID is required');
     }
 
-    const expensesQuery = db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).orderBy('createdAt', 'desc');
+    const expensesQuery = firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).orderBy('createdAt', 'desc');
 
     const snapshot = await expensesQuery.get();
 

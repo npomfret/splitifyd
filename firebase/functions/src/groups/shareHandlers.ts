@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { randomBytes } from 'crypto';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -22,7 +22,7 @@ const generateShareToken = (): string => {
  * Find ShareLink by token in the shareLinks subcollection
  */
 const findShareLinkByToken = async (token: string): Promise<{ groupId: string; shareLink: ShareLink }> => {
-    const groupsSnapshot = await db.collectionGroup('shareLinks')
+    const groupsSnapshot = await firestoreDb.collectionGroup('shareLinks')
         .where('token', '==', token)
         .where('isActive', '==', true)
         .limit(1)
@@ -97,7 +97,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
     const userId = req.user!.uid;
 
     try {
-        const groupRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
+        const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
         const groupDoc = await groupRef.get();
 
         if (!groupDoc.exists) {
@@ -115,14 +115,14 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         const shareToken = generateShareToken();
 
         // Create ShareLink document in subcollection
-        await db.runTransaction(async (transaction) => {
+        await firestoreDb.runTransaction(async (transaction) => {
             const freshGroupDoc = await transaction.get(groupRef);
             if (!freshGroupDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
             // Create ShareLink document in subcollection
-            const shareLinksRef = db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
+            const shareLinksRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
             const shareLinkDoc = shareLinksRef.doc();
             
             const shareLinkData: Omit<ShareLink, 'id'> = {
@@ -173,7 +173,7 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
     try {
         const { groupId } = await findShareLinkByToken(linkId);
         
-        const groupDoc = await db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
+        const groupDoc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).get();
         if (!groupDoc.exists) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
@@ -226,8 +226,8 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     try {
         const { groupId, shareLink } = await findShareLinkByToken(linkId);
 
-        const result = await db.runTransaction(async (transaction) => {
-            const groupRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
+        const result = await firestoreDb.runTransaction(async (transaction) => {
+            const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
             const groupSnapshot = await transaction.get(groupRef);
 
             if (!groupSnapshot.exists) {

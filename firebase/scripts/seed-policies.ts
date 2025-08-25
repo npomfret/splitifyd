@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {PolicyIds, FirestoreCollections} from '../functions/src/shared/shared-types';
 import {createPolicyInternal, publishPolicyInternal} from '../functions/src/policies/handlers';
-import {db} from '../functions/src/firebase';
+import {firestoreDb} from '../functions/src/firebase';
 import {ApiDriver} from '../functions/src/__tests__/support/ApiDriver';
 import assert from "node:assert";
 
@@ -30,7 +30,7 @@ function readPolicyFile(filename: string): string {
 async function seedPolicy(policyId: string, policyName: string, filename: string): Promise<void> {
     try {
         // Check if policy already exists
-        const existingDoc = await db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
+        const existingDoc = await firestoreDb.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
         if (existingDoc.exists) {
             console.log(`⏭️  Policy ${policyId} already exists, skipping...`);
@@ -132,7 +132,7 @@ export async function seedPolicies(emulatorConfig: EmulatorConfig) {
         console.log('✅ Successfully seeded all policies');
 
         // Verify policies were created by querying Firestore directly
-        const docs = await db.collection(FirestoreCollections.POLICIES).get();
+        const docs = await firestoreDb.collection(FirestoreCollections.POLICIES).get();
         console.log(`Total documents in policies collection: ${docs.size}`);
 
         docs.forEach((doc) => {

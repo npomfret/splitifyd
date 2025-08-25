@@ -1,5 +1,5 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { admin, db } from '../firebase';
+import { admin, firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { FirestoreCollections } from '../shared/shared-types';
 
@@ -27,7 +27,7 @@ export const cleanupChanges = onSchedule(
                 logger.info('cleanup-started', { collection: collectionName });
 
                 // Query for old documents
-                const snapshot = await db
+                const snapshot = await firestoreDb
                     .collection(collectionName)
                     .where('timestamp', '<', cutoffDate)
                     .limit(500) // Process in batches to avoid timeouts
@@ -38,7 +38,7 @@ export const cleanupChanges = onSchedule(
                 }
 
                 // Delete in batches
-                const batch = db.batch();
+                const batch = firestoreDb.batch();
                 let deleteCount = 0;
 
                 snapshot.docs.forEach((doc) => {
@@ -73,7 +73,7 @@ async function logCleanupMetrics(metrics: {
 }): Promise<void> {
     try {
         // Store metrics for monitoring (could be sent to external service)
-        await db.collection('system-metrics').add({
+        await firestoreDb.collection('system-metrics').add({
             type: 'cleanup',
             ...metrics,
             createdAt: admin.firestore.FieldValue.serverTimestamp()

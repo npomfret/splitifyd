@@ -18,10 +18,10 @@ import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberH
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, getGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
 import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
-import { admin, db } from './firebase';
+import { admin, firestoreDb } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
-import { getUserProfile, updateUserProfile, changePassword, sendPasswordResetEmail, deleteUserAccount } from './user/handlers';
+import { getUserProfile, updateUserProfile, changePassword, deleteUserAccount } from './user/handlers';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -87,7 +87,7 @@ function setupRoutes(app: express.Application): void {
         const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> = {};
 
         const firestoreStart = Date.now();
-        const testRef = db.collection('_health_check').doc('test');
+        const testRef = firestoreDb.collection('_health_check').doc('test');
         await testRef.set({ timestamp: createServerTimestamp() }, { merge: true });
         await testRef.get();
         checks.firestore = {
@@ -257,7 +257,6 @@ function setupRoutes(app: express.Application): void {
     app.get('/user/profile', authenticate, asyncHandler(getUserProfile));
     app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
     app.post('/user/change-password', authenticate, asyncHandler(changePassword));
-    app.post('/user/reset-password', asyncHandler(sendPasswordResetEmail)); // No auth required
     app.delete('/user/account', authenticate, asyncHandler(deleteUserAccount));
 
     // Auth endpoints (no auth required)

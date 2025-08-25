@@ -21,7 +21,7 @@ Our project supports multiple local Firebase instances to prevent configuration 
 - In the client-side code, the base API URL is injected into `window.API_BASE_URL` during the build step.
 - To determine the correct ports for the running instance, inspect the generated `firebase/firebase.json` file.
 - You can get the webapp's base URL for the active instance using: `npm run get-webapp-url`.
-- In a test, use `test-support/firebase-emulator-config.ts` to get the local URL.
+- In a test, use `test-support/firebase-emulator-client-config.ts` to get the local URL.
 
 ## Development Workflow
 

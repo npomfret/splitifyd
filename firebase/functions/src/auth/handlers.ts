@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
 import { logger } from '../logger';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
 import { getCurrentPolicyVersions } from './policy-helpers';
@@ -28,7 +28,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         const themeColor = await assignThemeColor(userRecord.uid);
 
         // Create user document in Firestore
-        const firestore = db;
+        const firestore = firestoreDb;
         const userDoc: any = {
             email,
             displayName,

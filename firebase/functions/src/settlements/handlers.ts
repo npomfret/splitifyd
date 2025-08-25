@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { db } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -26,15 +26,15 @@ import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-
 import { verifyGroupMembership } from '../utils/groupHelpers';
 
 const getSettlementsCollection = () => {
-    return db.collection(FirestoreCollections.SETTLEMENTS);
+    return firestoreDb.collection(FirestoreCollections.SETTLEMENTS);
 };
 
 const getGroupsCollection = () => {
-    return db.collection(FirestoreCollections.GROUPS);
+    return firestoreDb.collection(FirestoreCollections.GROUPS);
 };
 
 const getUsersCollection = () => {
-    return db.collection(FirestoreCollections.USERS);
+    return firestoreDb.collection(FirestoreCollections.USERS);
 };
 
 
@@ -233,7 +233,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
         }
 
         // Update with optimistic locking
-        await db.runTransaction(async (transaction) => {
+        await firestoreDb.runTransaction(async (transaction) => {
             const freshDoc = await transaction.get(settlementRef);
             if (!freshDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
@@ -322,7 +322,7 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
         }
 
         // Delete with optimistic locking to prevent concurrent modifications
-        await db.runTransaction(async (transaction) => {
+        await firestoreDb.runTransaction(async (transaction) => {
             // Step 1: Do ALL reads first
             const freshDoc = await transaction.get(settlementRef);
             if (!freshDoc.exists) {
