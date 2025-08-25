@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { UserBalance } from '../../shared/shared-types';
-import { BalanceCalculationResult, CurrencyBalances } from './types';
+import { BalanceCalculationResult, CurrencyBalances, BalanceCalculationInput } from './types';
 import { DataFetcher } from './DataFetcher';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
@@ -23,24 +23,31 @@ export class BalanceCalculationService {
         // 1. Fetch all required data
         const input = await this.dataFetcher.fetchBalanceCalculationData(groupId);
         
-        // 2. Extract member IDs for initialization
+        return this.calculateGroupBalancesWithData(input);
+    }
+
+    /**
+     * Calculate group balances using pre-fetched data (optimized for batch operations)
+     */
+    calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
+        // 1. Extract member IDs for initialization
         const memberIds = Object.keys(input.groupData.data.members);
         
-        // 3. Process expenses to calculate initial balances by currency
+        // 2. Process expenses to calculate initial balances by currency
         const balancesByCurrency = this.expenseProcessor.processExpenses(input.expenses, memberIds);
         
-        // 4. Apply settlements to modify balances
+        // 3. Apply settlements to modify balances
         this.settlementProcessor.processSettlements(input.settlements, balancesByCurrency);
         
-        // 5. Simplify debts for all currencies
+        // 4. Simplify debts for all currencies
         const simplifiedDebts = this.debtSimplificationService.simplifyDebtsForAllCurrencies(balancesByCurrency);
         
-        // 6. Create legacy userBalances field from first currency (for backward compatibility)
+        // 5. Create legacy userBalances field from first currency (for backward compatibility)
         const userBalances = this.createLegacyUserBalances(balancesByCurrency);
         
-        // 7. Return consolidated result
+        // 6. Return consolidated result
         return {
-            groupId,
+            groupId: input.groupId,
             userBalances,
             simplifiedDebts,
             lastUpdated: Timestamp.now(),
