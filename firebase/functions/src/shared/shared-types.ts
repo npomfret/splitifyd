@@ -172,6 +172,7 @@ export interface User {
     cookiePolicyAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
     themeColor?: UserThemeColor; // Automatic theme color assignment
+    preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
 }
 
 // ========================================================================
@@ -543,6 +544,7 @@ export interface UserProfileResponse {
     createdAt?: string;
     photoURL?: string | null;
     themeColor?: UserThemeColor;
+    preferredLanguage?: string;
 }
 
 export interface AcceptPolicyResponse {

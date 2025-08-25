@@ -5,6 +5,7 @@ import { validateRequestStructure, validateContentType, rateLimitByIP } from '..
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
 import { LoggerContext } from '../logger';
+import { i18nMiddleware } from './i18n';
 
 export interface MiddlewareOptions {
     functionName?: string;
@@ -45,6 +46,9 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
 
     // Parse JSON with size limit
     app.use(express.json({ limit: getConfig().requestBodyLimit }));
+
+    // Add i18n middleware to detect language and add translation function to requests
+    app.use(i18nMiddleware());
 
     // Validate request structure and prevent malicious payloads
     app.use(validateRequestStructure);
