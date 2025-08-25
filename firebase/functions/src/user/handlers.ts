@@ -8,6 +8,7 @@ import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword, validateSendPasswordReset } from './validation';
+import assert from "node:assert";
 
 /**
  * Get current user's profile
@@ -147,6 +148,9 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
     }
 };
 
+// todo
+// assert(process.env.FRONTEND_URL, `FRONTEND_URL env var not set`);
+
 /**
  * Send password reset email
  * Note: This endpoint doesn't require authentication
@@ -159,12 +163,14 @@ export const sendPasswordResetEmail = async (req: any, res: Response): Promise<v
         try {
             // Check if user exists first
             await admin.auth().getUserByEmail(validatedData.email);
-            
+
+            assert(process.env.FRONTEND_URL, `FRONTEND_URL env var not set`);
+
             // Generate password reset link
             // Note: This would typically be done on the client side using Firebase Auth SDK
             // For server-side, we can generate a password reset link
             const actionCodeSettings = {
-                url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password`,
+                url: `${process.env.FRONTEND_URL!}/reset-password`,
                 handleCodeInApp: true,
             };
 

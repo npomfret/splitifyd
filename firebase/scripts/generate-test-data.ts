@@ -707,13 +707,7 @@ interface EmulatorConfig {
     authPort: string;
 }
 
-export async function generateTestData(emulatorConfig?: EmulatorConfig): Promise<void> {
-    // Set up environment variables if config is provided
-    if (emulatorConfig) {
-        process.env.GCLOUD_PROJECT = emulatorConfig.projectId;
-        process.env.FIRESTORE_EMULATOR_HOST = `localhost:${emulatorConfig.firestorePort}`;
-        process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${emulatorConfig.authPort}`;
-    }
+export async function generateTestData(): Promise<void> {
     const testConfig = getTestConfig();
     const startTime = Date.now();
     const timings: Record<string, number> = {};

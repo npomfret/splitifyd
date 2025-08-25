@@ -8,8 +8,8 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import {db} from "../../support/firebase-emulator";
 import { FirestoreCollections } from '../../../shared/shared-types';
+import {db} from "../../../firebase";
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let userPool: FirebaseIntegrationTestUserPool;
