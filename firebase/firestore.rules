@@ -60,27 +60,6 @@ service cloud.firestore {
       }
     }
     
-    // Documents collection (groups) - legacy name support
-    match /documents/{documentId} {
-      // Allow read if user owns the document OR is a group member
-      allow read: if request.auth != null && (
-        request.auth.uid == resource.data.userId ||
-        request.auth.uid in resource.data.data.memberIds
-      );
-      
-      // Allow write only if user owns the document and data is valid
-      allow write: if request.auth != null && 
-        request.auth.uid == resource.data.userId &&
-        isValidGroupData(request.resource.data);
-      
-      // Allow create if user is authenticated, sets themselves as owner, and data is valid
-      allow create: if request.auth != null && 
-        isValidGroupData(request.resource.data);
-        
-      // Allow delete only if user owns the document
-      allow delete: if request.auth != null && 
-        request.auth.uid == resource.data.userId;
-    }
     
     // Expenses collection - simplified for emulator streaming compatibility
     match /expenses/{expenseId} {

@@ -7,11 +7,6 @@ jest.mock('../../client-config', () => ({
         isDevelopment: false,
         isProduction: true,
         requestBodyLimit: '1mb',
-        rateLimiting: {
-            windowMs: 60000,
-            maxRequests: 100,
-            cleanupIntervalMs: 300000,
-        },
         validation: {
             maxRequestSizeBytes: 1048576,
             maxObjectDepth: 10,

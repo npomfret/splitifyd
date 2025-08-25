@@ -100,9 +100,6 @@ export const Errors = {
     ALREADY_EXISTS: (resource: string) => new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_EXISTS', `${resource} already exists`),
     CONCURRENT_UPDATE: () => new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified by another user. Please retry with fresh data.'),
 
-    // Rate limiting
-    RATE_LIMIT_EXCEEDED: () => new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, 'RATE_LIMIT_EXCEEDED', 'Too many requests, please try again later'),
-
     // Server errors
     INTERNAL_ERROR: () => new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INTERNAL_ERROR', 'An internal error occurred'),
     DATABASE_ERROR: () => new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'DATABASE_ERROR', 'Database operation failed'),

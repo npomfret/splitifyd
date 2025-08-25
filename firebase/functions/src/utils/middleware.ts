@@ -1,7 +1,7 @@
 import express from 'express';
 import { getConfig } from '../client-config';
 import { randomUUID } from 'crypto';
-import { validateRequestStructure, validateContentType, rateLimitByIP } from '../middleware/validation';
+import { validateRequestStructure, validateContentType } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
 import { LoggerContext } from '../logger';
@@ -37,9 +37,6 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
             next();
         });
     });
-
-    // Apply IP-based rate limiting for all requests
-    app.use(rateLimitByIP);
 
     // Validate content type for non-GET requests
     app.use(validateContentType);
