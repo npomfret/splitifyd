@@ -22,6 +22,7 @@ const FIREBASE_AUTH_URL = `http://${FIREBASE_AUTH_EMULATOR_HOST}`;
 if (!admin.apps || admin.apps.length === 0) {
     // If FIRESTORE_EMULATOR_HOST is set, we're connecting to the emulator
     // Otherwise, we're using default credentials (for production or testing)
+    // see https://firebase.google.com/docs/emulator-suite/connect_firestore#web
     admin.initializeApp({projectId: 'splitifyd'});
 }
 
