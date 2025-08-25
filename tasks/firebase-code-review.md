@@ -172,3 +172,30 @@ This document outlines specific, actionable tasks based on the Firebase codebase
 - [ ] API responses consistently structured
 - [ ] Large files properly modularized
 - [ ] All existing tests continue to pass
+
+---
+
+## Additional Work Items from AI Code Review
+
+The following items were identified during an automated code review and should be integrated into the task list above.
+
+### New High Priority Task: Fix Ineffective Rate Limiter
+- [ ] **Task**: Replace the in-memory rate limiter with a distributed solution.
+  - **Justification**: The current `InMemoryRateLimiter` is ineffective in a serverless environment as state is not shared between function instances.
+  - **Action**: Implement rate limiting using Firestore to track request counts and timestamps per user.
+  - **Testing**: Create unit tests for the new distributed rate limiter logic.
+
+### New High Priority Task: Implement Denormalization for Performance
+- [ ] **Task**: Implement denormalization for group summary data to fix N+1 query problem.
+  - **Justification**: The `listGroups` endpoint is highly inefficient, making numerous database calls per group.
+  - **Action**: Use existing Firestore triggers (`trackGroupChanges`, `trackExpenseChanges`) to pre-calculate and store summary data (like balances and last activity) directly on the group documents.
+  - **Action**: Refactor the `listGroups` handler to read this pre-calculated data, removing the on-demand calculations.
+
+### New Medium Priority Task: Data Access & Schema Refactoring
+- [ ] **Task**: Implement a Repository Pattern for Firestore access.
+  - **Justification**: Data access logic is currently scattered in handlers, making it hard to maintain.
+  - **Action**: Create repositories (e.g., `GroupsRepository`) responsible for all read/write operations for each collection.
+  - **Action**: Refactor handlers and services to use repositories instead of accessing `db.collection(...)` directly.
+- [ ] **Task**: Flatten the Firestore document schema for groups.
+  - **Justification**: The nested `data` object in group documents is awkward and adds unnecessary complexity.
+  - **Action**: Remove the nested `data` object and update the data access layer to reflect the new, simpler schema.
