@@ -52,6 +52,8 @@ logger.info('🚀 Starting Firebase emulator with test data generation...', {
     functionsPort: FUNCTIONS_PORT,
 });
 
+// todo: export JAVA_TOOL_OPTIONS="-Xmx4g"
+// read this: https://firebase.google.com/docs/emulator-suite/install_and_configure
 // here we mimic the firebase runtime which injects env vars
 const emulatorProcess = spawn('firebase', ['emulators:start'], {
     stdio: 'pipe',
