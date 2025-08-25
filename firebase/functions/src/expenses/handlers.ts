@@ -11,7 +11,7 @@ import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calcul
 import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
-import { isGroupOwner as checkIsGroupOwner } from '../utils/groupHelpers';
+import { isGroupOwner as checkIsGroupOwner, verifyGroupMembership } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 
 const getExpensesCollection = () => {
@@ -35,27 +35,6 @@ const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> =
     return checkIsGroupOwner(group, userId);
 };
 
-const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
-    const groupDoc = await getGroupsCollection().doc(groupId).get();
-
-    if (!groupDoc.exists) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    const groupData = groupDoc.data();
-
-    // Check if this is a group document (has data.members)
-    if (!groupData || !groupData.data || !groupData.data.name) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    // Check if user is a member (including owner)
-    if (userId in groupData.data.members) {
-        return;
-    }
-
-    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
-};
 
 const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference; expense: Expense }> => {
     const docRef = getExpensesCollection().doc(expenseId);

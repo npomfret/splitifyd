@@ -23,6 +23,7 @@ import {
 } from '../shared/shared-types';
 import { GroupData } from '../types/group-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { verifyGroupMembership } from '../utils/groupHelpers';
 
 const getSettlementsCollection = () => {
     return db.collection(FirestoreCollections.SETTLEMENTS);
@@ -36,25 +37,6 @@ const getUsersCollection = () => {
     return db.collection(FirestoreCollections.USERS);
 };
 
-const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
-    const groupDoc = await getGroupsCollection().doc(groupId).get();
-
-    if (!groupDoc.exists) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    const groupData = groupDoc.data();
-
-    if (!groupData || !groupData.data || !groupData.data.name) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    if (userId in groupData.data.members) {
-        return;
-    }
-
-    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
-};
 
 const verifyUsersInGroup = async (groupId: string, userIds: string[]): Promise<void> => {
     const groupDoc = await getGroupsCollection().doc(groupId).get();
