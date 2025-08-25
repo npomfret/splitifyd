@@ -7,8 +7,7 @@ import { FirestoreCollections } from '../shared/shared-types';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
-import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword, validateSendPasswordReset } from './validation';
-import assert from "node:assert";
+import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword } from './validation';
 
 /**
  * Get current user's profile
@@ -144,59 +143,6 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
         });
     } catch (error) {
         logger.error('Failed to change password', { error: error as Error, userId: req.user?.uid });
-        throw error;
-    }
-};
-
-// todo
-// assert(process.env.FRONTEND_URL, `FRONTEND_URL env var not set`);
-
-/**
- * Send password reset email
- * Note: This endpoint doesn't require authentication
- */
-export const sendPasswordResetEmail = async (req: any, res: Response): Promise<void> => {
-    try {
-        // Validate request body using Joi
-        const validatedData = validateSendPasswordReset(req.body);
-
-        try {
-            // Check if user exists first
-            await admin.auth().getUserByEmail(validatedData.email);
-
-            assert(process.env.FRONTEND_URL, `FRONTEND_URL env var not set`);
-
-            // Generate password reset link
-            // Note: This would typically be done on the client side using Firebase Auth SDK
-            // For server-side, we can generate a password reset link
-            const actionCodeSettings = {
-                url: `${process.env.FRONTEND_URL!}/reset-password`,
-                handleCodeInApp: true,
-            };
-
-            const resetLink = await admin.auth().generatePasswordResetLink(validatedData.email, actionCodeSettings);
-
-            // In production, you would send this link via email
-            // For now, we'll return a success message
-            logger.info('password-reset-requested', { email: validatedData.email });
-
-            res.status(HTTP_STATUS.OK).json({
-                message: 'Password reset email sent successfully',
-                // In development, you might include the link for testing
-                ...(process.env.NODE_ENV === 'development' && { resetLink }),
-            });
-        } catch (authError: any) {
-            // For security, don't reveal whether email exists or not
-            if (authError.code === 'auth/user-not-found' || authError.code === 'auth/email-not-found') {
-                res.status(HTTP_STATUS.OK).json({
-                    message: 'If the email exists, a password reset link has been sent',
-                });
-            } else {
-                throw authError;
-            }
-        }
-    } catch (error: any) {
-        logger.error('Failed to send password reset email', { error });
         throw error;
     }
 };

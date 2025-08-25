@@ -231,51 +231,6 @@ describe('User Profile Management API Tests', () => {
         });
     });
 
-    describe('POST /user/reset-password', () => {
-        it('should send password reset email', async () => {
-            const response = await driver.sendPasswordResetEmail(testUser.email);
-
-            expect(response.message).toContain('Password reset email sent');
-
-            // In development, the reset link might be included
-            if (process.env.NODE_ENV === 'development') {
-                expect(response.resetLink).toBeDefined();
-            }
-        });
-
-        it('should reject invalid email format', async () => {
-            try {
-                await driver.sendPasswordResetEmail('not-an-email');
-                throw new Error('Should have thrown an error');
-            } catch (error: any) {
-                expect(error.message).toContain('Invalid email format');
-            }
-        });
-
-        it('should reject missing email', async () => {
-            try {
-                // This test specifically needs to send empty data to test validation
-                await driver['apiRequest']('/user/reset-password', 'POST', {});
-                throw new Error('Should have thrown an error');
-            } catch (error: any) {
-                expect(error.message).toContain('Missing required field: email');
-            }
-        });
-
-        it('should not reveal if email exists', async () => {
-            const response = await driver.sendPasswordResetEmail('nonexistent@example.com');
-
-            // Should return success even for non-existent emails (security)
-            expect(response.message).toContain('If the email exists');
-        });
-
-        it('should not require authentication', async () => {
-            // This endpoint should work without a token
-            const response = await driver.sendPasswordResetEmail(testUser.email);
-
-            expect(response.message).toBeDefined();
-        });
-    });
 
     describe('DELETE /user/account', () => {
         it('should delete account when user has no groups', async () => {
