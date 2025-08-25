@@ -13,10 +13,12 @@ import {
     GroupFullDetails,
     ListGroupsResponse,
     MessageResponse,
+    DELETED_AT_FIELD,
 } from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
-import { calculateGroupBalances } from '../services/balanceCalculator';
+import { calculateGroupBalances, calculateGroupBalancesWithData } from '../services/balance';
+import { userService } from '../services/userService';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from './memberHandlers';
@@ -389,7 +391,110 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
 };
 
 /**
+ * Batch fetch all expenses and settlements for multiple groups
+ */
+const batchFetchGroupData = async (groupIds: string[]): Promise<{
+    expensesByGroup: Map<string, any[]>,
+    settlementsByGroup: Map<string, any[]>,
+    expenseMetadataByGroup: Map<string, { count: number, lastExpenseTime?: Date }>
+}> => {
+    if (groupIds.length === 0) {
+        return {
+            expensesByGroup: new Map(),
+            settlementsByGroup: new Map(),
+            expenseMetadataByGroup: new Map()
+        };
+    }
+
+    // Firestore 'in' query supports max 10 items - chunk if needed
+    const chunks: string[][] = [];
+    for (let i = 0; i < groupIds.length; i += 10) {
+        chunks.push(groupIds.slice(i, i + 10));
+    }
+
+    // Batch fetch all expenses and settlements for all groups
+    const expenseQueries = chunks.map(chunk =>
+        db.collection(FirestoreCollections.EXPENSES)
+            .where('groupId', 'in', chunk)
+            .get()
+    );
+
+    const settlementQueries = chunks.map(chunk =>
+        db.collection(FirestoreCollections.SETTLEMENTS)
+            .where('groupId', 'in', chunk)
+            .get()
+    );
+
+    // Execute all queries in parallel
+    const [expenseResults, settlementResults] = await Promise.all([
+        Promise.all(expenseQueries),
+        Promise.all(settlementQueries)
+    ]);
+
+    // Organize expenses by group ID
+    const expensesByGroup = new Map<string, any[]>();
+    const expenseMetadataByGroup = new Map<string, { count: number, lastExpenseTime?: Date }>();
+
+    for (const snapshot of expenseResults) {
+        for (const doc of snapshot.docs) {
+            const expenseData = doc.data();
+            const expense = { id: doc.id, groupId: expenseData.groupId, ...expenseData };
+            const groupId = expense.groupId;
+
+            if (!expensesByGroup.has(groupId)) {
+                expensesByGroup.set(groupId, []);
+            }
+            expensesByGroup.get(groupId)!.push(expense);
+        }
+    }
+
+    // Calculate metadata for each group
+    for (const [groupId, expenses] of expensesByGroup.entries()) {
+        const nonDeletedExpenses = expenses.filter(expense => !expense[DELETED_AT_FIELD]);
+        const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
+            const aTime = a.createdAt?.toMillis() || 0;
+            const bTime = b.createdAt?.toMillis() || 0;
+            return bTime - aTime; // DESC order
+        });
+
+        expenseMetadataByGroup.set(groupId, {
+            count: nonDeletedExpenses.length,
+            lastExpenseTime: sortedExpenses.length > 0 ? sortedExpenses[0].createdAt?.toDate() : undefined
+        });
+    }
+
+    // Set empty metadata for groups with no expenses
+    for (const groupId of groupIds) {
+        if (!expenseMetadataByGroup.has(groupId)) {
+            expenseMetadataByGroup.set(groupId, { count: 0 });
+        }
+    }
+
+    // Organize settlements by group ID
+    const settlementsByGroup = new Map<string, any[]>();
+    for (const snapshot of settlementResults) {
+        for (const doc of snapshot.docs) {
+            const settlementData = doc.data();
+            const settlement = { id: doc.id, groupId: settlementData.groupId, ...settlementData };
+            const groupId = settlement.groupId;
+
+            if (!settlementsByGroup.has(groupId)) {
+                settlementsByGroup.set(groupId, []);
+            }
+            settlementsByGroup.get(groupId)!.push(settlement);
+        }
+    }
+
+    return {
+        expensesByGroup,
+        settlementsByGroup,
+        expenseMetadataByGroup
+    };
+};
+
+/**
  * List all groups for the authenticated user
+ * PERFORMANCE OPTIMIZED: Fixes N+1 query problem by batching all database calls
  */
 export const listGroups = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = req.user?.uid;
@@ -437,13 +542,71 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const hasMore = documents.length > limit;
     const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
-    // Transform documents to groups
-    const groups: Group[] = await Promise.all(
-        returnedDocs.map(async (doc: admin.firestore.QueryDocumentSnapshot) => {
-            const group = transformGroupDocument(doc);
+    // Transform documents to groups and extract group IDs
+    const groups: Group[] = returnedDocs.map((doc: admin.firestore.QueryDocumentSnapshot) => 
+        transformGroupDocument(doc)
+    );
+    const groupIds = groups.map(group => group.id);
 
-            // Calculate balance for each group on-demand
-            const groupBalances = await calculateGroupBalances(group.id);
+    // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
+    const { expensesByGroup, settlementsByGroup, expenseMetadataByGroup } = await batchFetchGroupData(groupIds);
+
+    // Batch fetch user profiles for all members across all groups
+    const allMemberIds = new Set<string>();
+    for (const group of groups) {
+        Object.keys(group.members).forEach(memberId => allMemberIds.add(memberId));
+    }
+    const allMemberProfiles = await userService.getUsers(Array.from(allMemberIds));
+
+    // Process each group using batched data - no more database calls!
+    const groupsWithBalances: Group[] = groups.map((group) => {
+        // Get pre-fetched data for this group (no database calls)
+        const expenses = expensesByGroup.get(group.id) || [];
+        const settlements = settlementsByGroup.get(group.id) || [];
+        const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
+
+        // Get member profiles for this group
+        const memberIds = Object.keys(group.members);
+        const memberProfiles = new Map<string, any>();
+        for (const memberId of memberIds) {
+            const profile = allMemberProfiles.get(memberId);
+            if (profile) {
+                memberProfiles.set(memberId, profile);
+            }
+        }
+
+        // 🚀 OPTIMIZED: Use pre-fetched data instead of making database calls
+        let groupBalances;
+        try {
+            // Create the input structure expected by the balance service
+            const balanceInput = {
+                groupId: group.id,
+                expenses,
+                settlements,
+                groupData: {
+                    id: group.id,
+                    data: {
+                        members: group.members,
+                        name: group.name,
+                        description: group.description,
+                        createdBy: group.createdBy
+                    }
+                },
+                memberProfiles
+            };
+
+            // Use optimized balance calculation with pre-fetched data
+            groupBalances = calculateGroupBalancesWithData(balanceInput);
+        } catch (error) {
+            logger.error('Error calculating balances', error, { groupId: group.id });
+            // Provide fallback empty balances
+            groupBalances = {
+                balancesByCurrency: {},
+                userBalances: {},
+                simplifiedDebts: {}
+            };
+        }
+
             // Calculate currency-specific balances
             const balancesByCurrency: Record<string, any> = {};
             if (groupBalances.balancesByCurrency) {
@@ -460,10 +623,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
                 }
             }
 
-            // Calculate expense metadata for each group
-            const expenseMetadata = await calculateExpenseMetadata(group.id);
-
-            // Format last activity
+            // Format last activity using pre-fetched metadata
             const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
             const lastActivity = formatRelativeTime(lastActivityDate.toISOString());
 
@@ -491,8 +651,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
                 lastActivity,
                 lastActivityRaw: lastActivityDate.toISOString(),
             };
-        }),
-    );
+        });
 
     // Generate nextCursor if there are more results
     let nextCursor: string | undefined;
@@ -506,8 +665,8 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     }
 
     const response: ListGroupsResponse = {
-        groups,
-        count: groups.length,
+        groups: groupsWithBalances,
+        count: groupsWithBalances.length,
         hasMore,
         ...(nextCursor && { nextCursor }),
         pagination: {
