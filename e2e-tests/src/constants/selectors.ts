@@ -213,6 +213,25 @@ export const SETTINGS_SELECTORS = {
     CANCEL_PASSWORD_BUTTON: '[data-testid="cancel-password-button"]',
 } as const;
 
+export const EDIT_GROUP_SELECTORS = {
+    MODAL_TITLE: '[data-testid="edit-group-modal-title"]',
+    GROUP_NAME_INPUT: '[data-testid="group-name-input"]',
+    GROUP_DESCRIPTION_INPUT: '[data-testid="group-description-input"]',
+    SAVE_CHANGES_BUTTON: '[data-testid="save-changes-button"]',
+    DELETE_GROUP_BUTTON: '[data-testid="delete-group-button"]',
+    CANCEL_BUTTON: '[data-testid="cancel-edit-group-button"]',
+    DELETE_DIALOG: '[data-testid="delete-group-dialog"]',
+} as const;
+
+export const MEMBERS_LIST_SELECTORS = {
+    INVITE_OTHERS_BUTTON: '[data-testid="invite-others-button"]',
+    MEMBER_ITEM: '[data-testid="member-item"]',
+    REMOVE_MEMBER_BUTTON: '[data-testid="remove-member-button"]',
+    LEAVE_GROUP_BUTTON: '[data-testid="leave-group-button"]',
+    LEAVE_GROUP_DIALOG: '[data-testid="leave-group-dialog"]',
+    REMOVE_MEMBER_DIALOG: '[data-testid="remove-member-dialog"]',
+} as const;
+
 export const SETTINGS_TEXTS = {
     ACCOUNT_SETTINGS_HEADER: translation.settingsPage.accountSettingsHeader,
     ACCOUNT_SETTINGS_SUBHEADER: translation.settingsPage.accountSettingsSubheader,
@@ -285,6 +304,19 @@ export const GROUP_MANAGEMENT_TEXTS = {
     REMOVE_MEMBER_CONFIRM_TEXT: translation.membersList.removeMemberDialog.confirmText,
     REMOVE_MEMBER_CANCEL_TEXT: translation.membersList.removeMemberDialog.cancelText,
     
+    // Edit Group Modal
+    EDIT_GROUP_TITLE: translation.editGroupModal.title,
+    GROUP_NAME_LABEL: translation.editGroupModal.groupNameLabel,
+    GROUP_NAME_PLACEHOLDER: translation.editGroupModal.groupNamePlaceholder,
+    DESCRIPTION_LABEL: translation.editGroupModal.descriptionLabel,
+    DESCRIPTION_PLACEHOLDER: translation.editGroupModal.descriptionPlaceholder,
+    SAVE_CHANGES_BUTTON: translation.editGroupModal.saveChangesButton,
+    DELETE_GROUP_BUTTON: translation.editGroupModal.deleteGroupButton,
+    CANCEL_EDIT_BUTTON: translation.editGroupModal.cancelButton,
+    DELETE_CONFIRM_DIALOG_TITLE: translation.editGroupModal.deleteConfirmDialog.title,
+    DELETE_CONFIRM_TEXT: translation.editGroupModal.deleteConfirmDialog.confirmText,
+    DELETE_CANCEL_TEXT: translation.editGroupModal.deleteConfirmDialog.cancelText,
+    
     // Share Group Modal
     SHARE_GROUP_TITLE: translation.shareGroupModal.title,
     SHARE_GROUP_DESCRIPTION: translation.shareGroupModal.description,
@@ -308,4 +340,41 @@ export const NAVIGATION_TEXTS = {
     SETTINGS: translation.userMenu.settings,
     LOGO_ALT: translation.header.logoAlt,
     GROUP_SETTINGS_ARIA: translation.groupHeader.groupSettingsAriaLabel,
+} as const;
+
+// Error Handling Components Selectors
+export const ERROR_HANDLING_SELECTORS = {
+    ERROR_TITLE: '[data-testid="error-title"]',
+    ERROR_MESSAGE: '[data-testid="error-message"]',
+    ERROR_RETRY_BUTTON: '[data-testid="error-retry-button"]',
+    NOT_FOUND_TITLE: '[data-testid="not-found-title"]',
+    NOT_FOUND_SUBTITLE: '[data-testid="not-found-subtitle"]',
+    NOT_FOUND_DESCRIPTION: '[data-testid="not-found-description"]',
+    GO_TO_DASHBOARD_LINK: '[data-testid="go-to-dashboard-link"]',
+    GO_HOME_LINK: '[data-testid="go-home-link"]',
+    LOADING_MESSAGE: '[data-testid="loading-message"]',
+} as const;
+
+// Error Handling Text Constants
+export const ERROR_HANDLING_TEXTS = {
+    // Error State
+    ERROR_DEFAULT_TITLE: translation.errorState.defaultTitle,
+    ERROR_UNEXPECTED: translation.errorState.unexpectedError,
+    ERROR_TRY_AGAIN: translation.errorState.tryAgainButton,
+    
+    // Error Boundary
+    ERROR_BOUNDARY_TITLE: translation.errorBoundary.title,
+    ERROR_BOUNDARY_UNEXPECTED: translation.errorBoundary.unexpectedError,
+    
+    // Not Found Page
+    NOT_FOUND_TITLE: translation.notFoundPage.title,
+    NOT_FOUND_PAGE: translation.notFoundPage.pageNotFound,
+    NOT_FOUND_PAGE_DESC: translation.notFoundPage.pageNotFoundDescription,
+    NOT_FOUND_GROUP: translation.notFoundPage.groupNotFound,
+    NOT_FOUND_GROUP_DESC: translation.notFoundPage.groupNotFoundDescription,
+    GO_TO_DASHBOARD: translation.notFoundPage.goToDashboard,
+    GO_HOME: translation.notFoundPage.goHome,
+    
+    // Loading State
+    LOADING_DEFAULT: translation.loadingState.defaultMessage,
 } as const;

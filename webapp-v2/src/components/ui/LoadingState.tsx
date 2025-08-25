@@ -1,4 +1,5 @@
 import { LoadingSpinner } from './LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 interface LoadingStateProps {
     message?: string;
@@ -7,11 +8,13 @@ interface LoadingStateProps {
     className?: string;
 }
 
-export function LoadingState({ message = 'Loading...', fullPage = false, size = 'md', className = '' }: LoadingStateProps) {
+export function LoadingState({ message, fullPage = false, size = 'md', className = '' }: LoadingStateProps) {
+    const { t } = useTranslation();
+    const displayMessage = message || t('loadingState.defaultMessage');
     const content = (
         <div className={`flex flex-col items-center justify-center ${className}`}>
             <LoadingSpinner size={size} />
-            {message && <p className="mt-3 text-sm text-gray-600">{message}</p>}
+            {displayMessage && <p className="mt-3 text-sm text-gray-600" data-testid="loading-message">{displayMessage}</p>}
         </div>
     );
 

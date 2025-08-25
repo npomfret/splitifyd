@@ -280,6 +280,30 @@
             "displayNameTooLong": "Display name must be 100 characters or less"
         }
     },
+    "editGroupModal": {
+        "title": "Edit Group",
+        "groupNameLabel": "Group Name",
+        "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+        "descriptionLabel": "Description (optional)",
+        "descriptionPlaceholder": "Add any details about this group...",
+        "cancelButton": "Cancel",
+        "saveChangesButton": "Save Changes",
+        "deleteGroupButton": "Delete Group",
+        "validation": {
+            "nameRequired": "Group name is required.",
+            "nameTooShort": "Group name must be at least 2 characters long.",
+            "nameTooLong": "Group name must be less than 50 characters.",
+            "updateFailed": "Failed to update group"
+        },
+        "deleteConfirmDialog": {
+            "title": "Delete Group",
+            "message": "Are you sure you want to delete \"{{groupName}}\"? This action cannot be undone.",
+            "messageWithExpenses": "Cannot delete group with expenses. Delete all expenses first.",
+            "confirmText": "Delete",
+            "cancelText": "Cancel",
+            "deleteFailed": "Failed to delete group"
+        }
+    },
     "groupActions": {
         "title": "Group Actions",
         "addExpense": "Add Expense",
@@ -289,7 +313,7 @@
     },
     "membersList": {
         "title": "Members",
-        "admin": "Admin",
+        "admin": "Admin", 
         "member": "member",
         "thisMember": "This member",
         "leaveGroup": "Leave Group",
@@ -322,5 +346,26 @@
         "errors": {
             "generateLinkFailed": "Failed to generate share link. Please try again."
         }
+    },
+    "errorState": {
+        "defaultTitle": "Something went wrong",
+        "unexpectedError": "An unexpected error occurred",
+        "tryAgainButton": "Try Again"
+    },
+    "errorBoundary": {
+        "title": "Something went wrong",
+        "unexpectedError": "An unexpected error occurred"
+    },
+    "notFoundPage": {
+        "title": "404",
+        "pageNotFound": "Page not found",
+        "pageNotFoundDescription": "The page you're looking for doesn't exist.",
+        "groupNotFound": "Group not found or you don't have access",
+        "groupNotFoundDescription": "The group you're looking for doesn't exist or you need to be invited to access it.",
+        "goToDashboard": "Go to Dashboard",
+        "goHome": "Go Home"
+    },
+    "loadingState": {
+        "defaultMessage": "Loading..."
     }
 }
