@@ -22,7 +22,7 @@ Also...
 
 When running the app, the code paths used MUST be identical to when it's running in a deployed environment. So...
 
-- NO hard-coded port numbers or URLs, EVER. There is always a mechanism for getting the right one, USE IT (see `firebase-emulator-config.ts` for example)
+- NO hard-coded port numbers or URLs, EVER. There is always a mechanism for getting the right one, USE IT (see `firebase-emulator-client-config.ts` for example)
 - NO `if (dev) {...`
 
 **note** We have multiple instances configured to run on a dev workstation - hard coding ports will NEVER work.

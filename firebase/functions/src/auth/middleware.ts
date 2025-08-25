@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
 import { db } from '../firebase';
-import { getConfig } from '../config';
+import { getConfig } from '../client-config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { FirestoreCollections, UserRoles } from '../shared/shared-types';

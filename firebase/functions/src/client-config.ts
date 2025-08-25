@@ -5,7 +5,7 @@ import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
 
 // Cache for lazy-loaded configurations
-let cachedConfig: Config | null = null;
+let cachedConfig: ClientConfig | null = null;
 let cachedAppConfig: AppConfiguration | null = null;
 let cachedEnv: z.infer<typeof envSchema> | null = null;
 
@@ -27,7 +27,7 @@ const envSchema = z.object({
 });
 
 // Type for the CONFIG object
-export interface Config {
+export interface ClientConfig {
     isProduction: boolean;
     isDevelopment: boolean;
     requestBodyLimit: string;
@@ -75,7 +75,7 @@ function getEnv(): z.infer<typeof envSchema> {
 }
 
 // Build the CONFIG object lazily
-function buildConfig(): Config {
+function buildConfig(): ClientConfig {
     const env = getEnv();
     const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
     const isProduction = !isEmulator;
@@ -119,7 +119,7 @@ function buildConfig(): Config {
 }
 
 // Export lazy getter for CONFIG
-export function getConfig(): Config {
+export function getConfig(): ClientConfig {
     if (!cachedConfig) {
         cachedConfig = buildConfig();
     }
@@ -127,7 +127,7 @@ export function getConfig(): Config {
 }
 
 // Helper functions for building AppConfiguration
-function getFirebaseAuthUrl(config: Config, env: z.infer<typeof envSchema>): string | undefined {
+function getFirebaseAuthUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
     if (config.isProduction) {
         return undefined;
     }
@@ -141,7 +141,7 @@ function getFirebaseAuthUrl(config: Config, env: z.infer<typeof envSchema>): str
     return `http://${authHost}`;
 }
 
-function getFirebaseFirestoreUrl(config: Config, env: z.infer<typeof envSchema>): string | undefined {
+function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSchema>): string | undefined {
     if (config.isProduction) {
         return undefined;
     }
@@ -159,7 +159,7 @@ function getFirebaseFirestoreUrl(config: Config, env: z.infer<typeof envSchema>)
     return `http://${firestoreHost}`;
 }
 
-function getWarningBanner(config: Config): WarningBanner | undefined {
+function getWarningBanner(config: ClientConfig): WarningBanner | undefined {
     if (!config.warningBanner) return undefined;
 
     return {
