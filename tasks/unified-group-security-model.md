@@ -447,6 +447,155 @@ class PermissionSync {
 - **Real-time**: Permission changes propagate instantly to all users
 - **Extensible**: Easy to add new presets and permission types
 
+## Implementation Plan
+
+### Phase 1: Core Permission Framework (Week 1-2)
+**Goal**: Establish foundation with Open Collaboration preset
+
+**Backend Tasks**:
+1. **Database Schema Migration** (`firebase/functions/src/migrations/`)
+   - Create migration script for existing groups → Open Collaboration preset
+   - Add new fields to Group interface in `types/webapp-shared-types.ts`
+   - Update group validation schemas in `groups/validation.ts`
+
+2. **Permission System Core** (`firebase/functions/src/permissions/`)
+   - Create `PermissionEngine` class with role/permission checking logic
+   - Implement `checkPermission()` function for expense operations
+   - Add `PermissionCache` class with TTL-based caching
+   - Create permission constants and types
+
+3. **Update Expense Handlers** (`firebase/functions/src/expenses/handlers.ts`)
+   - Integrate permission checks in `updateExpense` (lines ~248-252)
+   - Integrate permission checks in `deleteExpense` (lines ~369-372)
+   - Add permission validation to `createExpense`
+
+**Frontend Tasks**:
+4. **Shared Types** (`firebase/functions/src/types/webapp-shared-types.ts`)
+   - Add Group security interfaces
+   - Add Permission enums and types
+   - Export for frontend consumption via `@shared`
+
+5. **Permission Store** (`webapp-v2/src/stores/permissions-store.ts`)
+   - Create reactive store for user permissions
+   - Implement real-time permission sync
+   - Cache permissions with invalidation
+
+**Testing**:
+6. **Unit Tests** (`firebase/functions/src/__tests__/unit/`)
+   - Permission engine logic tests
+   - Cache behavior tests
+   - Migration script tests
+
+7. **Integration Tests** (`firebase/functions/src/__tests__/integration/`)
+   - Expense CRUD with permission checks
+   - Group creation with default permissions
+   - Permission inheritance tests
+
+### Phase 2: Managed Group Preset (Week 3-4)
+**Goal**: Add role-based permissions and admin approval
+
+**Backend Tasks**:
+8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`)
+   - `applySecurityPreset(groupId, preset)` endpoint
+   - `setMemberRole(groupId, targetUserId, role)` with last admin protection
+   - `approveMember(groupId, userId)` and `rejectMember(groupId, userId)`
+   - `getPendingMembers(groupId)` endpoint
+
+9. **Invite System** (`firebase/functions/src/invites/`)
+   - `createInviteLink(groupId, options)` with expiry/usage limits
+   - Update join flow to handle pending status
+   - Auto-cleanup of expired pending members (7-day job)
+
+**Frontend Tasks**:
+10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettings.tsx`)
+    - Preset selection buttons with descriptions
+    - Custom permission toggles
+    - Member role management interface
+    - Pending members approval interface
+
+11. **Permission-Aware Components** 
+    - Update expense list/forms to show/hide edit/delete based on permissions
+    - Add permission tooltips explaining restrictions
+    - Update member invitation flow for managed groups
+
+**Testing**:
+12. **Role-based Permission Tests**
+    - Admin vs member permission boundaries
+    - Last admin protection scenarios
+    - Pending member approval workflow
+    - Invite link expiry and usage limits
+
+### Phase 3: Advanced Features (Week 5-6)
+**Goal**: Complete the full feature set
+
+**Backend Tasks**:
+13. **Audit System** (`firebase/functions/src/audit/`)
+    - `getPermissionHistory(groupId)` endpoint
+    - Permission change logging middleware
+    - Audit log retention policies (90 days)
+
+14. **Rate Limiting** (`firebase/functions/src/middleware/`)
+    - Permission change rate limiting (10/minute per group)
+    - Optimistic locking for concurrent changes
+
+**Frontend Tasks**:
+15. **Advanced UI Features**
+    - Permission history viewer
+    - Permission simulator showing role capabilities  
+    - Batch member role changes
+    - Real-time permission change notifications
+
+16. **UX Enhancements**
+    - Confirmation dialogs for permission downgrades
+    - Visual indicators when permissions deviate from preset
+    - Progressive disclosure of advanced options
+
+**Testing**:
+17. **E2E Tests** (`e2e-tests/src/tests/`)
+    - Complete user journeys for both presets
+    - Multi-user permission scenarios
+    - Real-time permission updates across sessions
+    - Edge cases and error conditions
+
+### Phase 4: Production Readiness (Week 7)
+**Goal**: Deploy-ready with monitoring and documentation
+
+18. **Feature Flags** (`firebase/functions/src/config/`)
+    - `enableManagedGroups`, `enableCustomPermissions` flags
+    - Gradual rollout configuration
+
+19. **Performance Optimization**
+    - Permission cache performance testing
+    - Database query optimization for role lookups
+    - Real-time sync performance tuning
+
+20. **Documentation & Migration**
+    - User-facing documentation for new features
+    - Admin guide for permission management
+    - Deployment runbook and rollback procedures
+
+### Critical Path Dependencies
+
+1. **Phase 1 → Phase 2**: Core permission system must be solid before adding roles
+2. **Database Schema → All Backend**: Migration must complete before handler updates
+3. **Backend APIs → Frontend**: Core endpoints needed before UI development
+4. **Permission Store → UI Components**: Reactive state needed for real-time updates
+
+### Risk Mitigation
+
+- **Backward Compatibility**: All existing groups default to Open Collaboration (no behavior change)
+- **Feature Flags**: Managed Groups behind flag for safe rollout
+- **Migration Safety**: Preview mode shows changes before applying
+- **Performance**: Permission caching prevents API slowdown
+- **Testing Coverage**: Comprehensive tests at unit, integration, and E2E levels
+
+### Success Metrics
+
+- **Zero Breaking Changes**: Existing functionality unchanged
+- **Performance**: <100ms added latency for permission checks
+- **Adoption**: 20% of groups use Managed preset within 30 days
+- **Reliability**: <0.1% error rate on permission operations
+
 ## Future Enhancements
 
 1. **Permission Templates**: Allow organizations to save and share custom permission configurations
