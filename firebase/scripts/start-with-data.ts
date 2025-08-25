@@ -1,5 +1,8 @@
 #!/usr/bin/env npx tsx
 
+assert(process.env.GCLOUD_PROJECT, "GCLOUD_PROJECT must be set");
+assert(process.env.NODE_ENV === undefined);// todo
+
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
@@ -38,7 +41,7 @@ async function runSeedPoliciesStep(config: PolicyConfig): Promise<void> {
             firestorePort: config.firestorePort,
             authPort: config.authPort,
         });
-        
+
         logger.info('');
         logger.info('✅ Policy seeding completed successfully!');
         logger.info('📋 Privacy policy, terms, and cookie policy are now available');
@@ -52,7 +55,7 @@ async function runSeedPoliciesStep(config: PolicyConfig): Promise<void> {
     }
 }
 
-async function runGenerateTestDataStep(config: TestDataConfig): Promise<void> {
+async function runGenerateTestDataStep(): Promise<void> {
     try {
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
@@ -60,13 +63,8 @@ async function runGenerateTestDataStep(config: TestDataConfig): Promise<void> {
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
 
-        await generateTestData({
-            projectId: config.projectId,
-            functionsPort: config.functionsPort,
-            firestorePort: config.firestorePort,
-            authPort: config.authPort,
-        });
-        
+        await generateTestData();
+
         logger.info('');
         logger.info('✅ Test data generation completed successfully!');
         logger.info('🎲 Groups now contain expenses and payments for testing');
@@ -107,6 +105,9 @@ const firebaseRc: any = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
 const PROJECT_ID = firebaseRc.projects.default!;
 assert(PROJECT_ID);
 
+// sanity check
+assert(PROJECT_ID === process.env.GCLOUD_PROJECT, `PROJECT_ID=${PROJECT_ID} but GCLOUD_PROJECT=${process.env.GCLOUD_PROJECT}`);
+
 const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
 const UI_PORT: string = firebaseConfig.emulators.ui.port!;
 const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port!;
@@ -125,7 +126,6 @@ const main = async () => {
     try {
         // Step 1: Start emulator
         emulatorProcess = await startEmulator({
-            projectId: PROJECT_ID,
             uiPort: UI_PORT,
             functionsPort: FUNCTIONS_PORT,
             firestorePort: FIRESTORE_PORT,
@@ -143,13 +143,8 @@ const main = async () => {
         });
 
         // Step 3: Generate test data
-        await runGenerateTestDataStep({
-            projectId: PROJECT_ID,
-            functionsPort: FUNCTIONS_PORT,
-            firestorePort: FIRESTORE_PORT,
-            authPort: AUTH_PORT,
-        });
-        
+        await runGenerateTestDataStep();
+
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('✨ EMULATOR IS READY FOR USE ✨');

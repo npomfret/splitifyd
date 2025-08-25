@@ -1,10 +1,11 @@
 #!/usr/bin/env npx tsx
 import * as path from 'path';
 import * as fs from 'fs';
-import { PolicyIds, FirestoreCollections } from '../functions/src/shared/shared-types';
-import { createPolicyInternal, publishPolicyInternal } from '../functions/src/policies/handlers';
-import { db } from '../functions/src/firebase';
-import { ApiDriver } from '../functions/src/__tests__/support/ApiDriver';
+import {PolicyIds, FirestoreCollections} from '../functions/src/shared/shared-types';
+import {createPolicyInternal, publishPolicyInternal} from '../functions/src/policies/handlers';
+import {db} from '../functions/src/firebase';
+import {ApiDriver} from '../functions/src/__tests__/support/ApiDriver';
+import assert from "node:assert";
 
 /*
  * this script only seeds policy files to the emulator
@@ -62,23 +63,23 @@ async function verifyPoliciesViaApi(): Promise<void> {
     console.log('\n═══════════════════════════════════════════════════════');
     console.log('🔍 VERIFYING POLICIES VIA API...');
     console.log('═══════════════════════════════════════════════════════');
-    
+
     const apiDriver = new ApiDriver();
-    
+
     try {
         // Test 1: Get all current policies
         console.log('\n📋 Fetching all current policies via API...');
         const allPolicies = await apiDriver.getAllPolicies();
-        
+
         console.log(`✅ Successfully fetched ${allPolicies.count} policies via API`);
         console.log('Policies available:', Object.keys(allPolicies.policies));
-        
+
         // Test 2: Fetch each individual policy
         const policyIds = [PolicyIds.TERMS_OF_SERVICE, PolicyIds.COOKIE_POLICY, PolicyIds.PRIVACY_POLICY];
-        
+
         for (const policyId of policyIds) {
             console.log(`\n📄 Fetching policy ${policyId} via API...`);
-            
+
             try {
                 const policy = await apiDriver.getPolicy(policyId);
                 console.log(`✅ Successfully fetched policy: ${policy.policyName}`);
@@ -89,9 +90,9 @@ async function verifyPoliciesViaApi(): Promise<void> {
                 throw new Error(`Failed to fetch policy ${policyId}: ${error instanceof Error ? error.message : error}`);
             }
         }
-        
+
         console.log('\n✅ API VERIFICATION COMPLETE - All policies are accessible!');
-        
+
     } catch (error) {
         throw error;
     }
@@ -106,14 +107,11 @@ interface EmulatorConfig {
 /**
  * Seed initial policies using admin API
  */
-export async function seedPolicies(emulatorConfig?: EmulatorConfig) {
-    // Set up environment variables if config is provided
-    if (emulatorConfig) {
-        process.env.GCLOUD_PROJECT = emulatorConfig.projectId;
-        process.env.FIRESTORE_EMULATOR_HOST = `localhost:${emulatorConfig.firestorePort}`;
-        process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${emulatorConfig.authPort}`;
-    }
+export async function seedPolicies(emulatorConfig: EmulatorConfig) {
     console.log('Reading policy documents from docs/policies...');
+
+    // Set up environment variables if config is provided
+    assert(process.env.GCLOUD_PROJECT, "GCLOUD_PROJECT must be set");
 
     try {
         // Verify all policy files exist first
@@ -145,10 +143,10 @@ export async function seedPolicies(emulatorConfig?: EmulatorConfig) {
                 hasVersions: !!data.versions,
             });
         });
-        
+
         // Verify policies are accessible via API
         await verifyPoliciesViaApi();
-        
+
     } catch (error) {
         throw error;
     }

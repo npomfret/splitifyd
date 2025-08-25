@@ -24,9 +24,10 @@ import {
     UserPoliciesResponse,
     UserProfileResponse,
 } from '../../shared/shared-types';
-import {API_BASE_URL, db, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
+import {API_BASE_URL, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
 import type {DocumentData} from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
+import {db} from "../../firebase";
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {

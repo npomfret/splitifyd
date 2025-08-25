@@ -17,7 +17,13 @@ if (!fs.existsSync(templatePath)) {
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-const requiredVars: readonly string[] = ['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_UI_PORT'] as const;
+const requiredVars: readonly string[] = [
+    'EMULATOR_AUTH_PORT',
+    'EMULATOR_FUNCTIONS_PORT',
+    'EMULATOR_FIRESTORE_PORT',
+    'EMULATOR_HOSTING_PORT',
+    'EMULATOR_UI_PORT'
+] as const;
 
 const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {
