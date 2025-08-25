@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DOCUMENT_CONFIG, RATE_LIMITS, SYSTEM, VALIDATION_LIMITS } from './constants';
+import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { AppConfiguration, EnvironmentConfig, FirebaseConfig, WarningBanner } from './shared/shared-types';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
@@ -31,11 +31,6 @@ export interface Config {
     isProduction: boolean;
     isDevelopment: boolean;
     requestBodyLimit: string;
-    rateLimiting: {
-        windowMs: number;
-        maxRequests: number;
-        cleanupIntervalMs: number;
-    };
     validation: {
         maxRequestSizeBytes: number;
         maxObjectDepth: number;
@@ -93,11 +88,6 @@ function buildConfig(): Config {
         isProduction,
         isDevelopment: isEmulator,
         requestBodyLimit: '1mb',
-        rateLimiting: {
-            windowMs: RATE_LIMITS.WINDOW_MS,
-            maxRequests: isProduction ? RATE_LIMITS.PROD_MAX_REQUESTS : RATE_LIMITS.DEV_MAX_REQUESTS,
-            cleanupIntervalMs: RATE_LIMITS.CLEANUP_INTERVAL_MS,
-        },
         validation: {
             maxRequestSizeBytes: SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB,
             maxObjectDepth: VALIDATION_LIMITS.MAX_DOCUMENT_DEPTH,

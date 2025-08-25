@@ -32,18 +32,6 @@ export const VALIDATION_LIMITS = {
     MAX_GROUP_MEMBERS: 50,
 } as const;
 
-// Rate Limiting & Performance
-export const RATE_LIMITS = {
-    WINDOW_MS: 60000,
-    PROD_MAX_REQUESTS: 10,
-    DEV_MAX_REQUESTS: 10000,
-    CLEANUP_INTERVAL_MS: 60000,
-    CLEANUP_MULTIPLIER: 2,
-    CLEANUP_BATCH_SIZE: 100,
-    PROD_SLOW_REQUEST_MS: 1000,
-    DEV_SLOW_REQUEST_MS: 5000,
-    HEALTH_CHECK_TIMEOUT_MS: 5000,
-} as const;
 
 // Document Configuration
 export const DOCUMENT_CONFIG = {

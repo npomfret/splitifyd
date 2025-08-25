@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
 import { db } from '../firebase';
-import { getConfig } from '../config';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { FirestoreCollections, UserRoles } from '../shared/shared-types';
@@ -18,78 +17,6 @@ export interface AuthenticatedRequest extends Request {
         displayName: string;
         role?: typeof UserRoles.ADMIN | typeof UserRoles.USER;
     };
-}
-/**
- * Simple in-memory rate limiter
- */
-class InMemoryRateLimiter {
-    private readonly windowMs: number;
-    private readonly maxRequests: number;
-    private readonly requests = new Map<string, number[]>();
-    private cleanupTimer: NodeJS.Timeout | null = null;
-
-    constructor(windowMs?: number, maxRequests?: number) {
-        const config = getConfig();
-        this.windowMs = windowMs ?? config.rateLimiting.windowMs;
-        this.maxRequests = maxRequests ?? config.rateLimiting.maxRequests;
-
-        // Periodic cleanup
-        this.cleanupTimer = setInterval(() => this.cleanup(), config.rateLimiting.cleanupIntervalMs);
-    }
-
-    isAllowed(userId: string): boolean {
-        const now = Date.now();
-        const windowStart = now - this.windowMs;
-
-        const userRequests = this.requests.get(userId) ?? [];
-        const recentRequests = userRequests.filter((time) => time > windowStart);
-
-        if (recentRequests.length >= this.maxRequests) {
-            return false;
-        }
-
-        recentRequests.push(now);
-        this.requests.set(userId, recentRequests);
-
-        return true;
-    }
-
-    private cleanup(): void {
-        const now = Date.now();
-        const windowStart = now - this.windowMs;
-        let cleaned = 0;
-
-        for (const [userId, timestamps] of this.requests.entries()) {
-            const recentRequests = timestamps.filter((time) => time > windowStart);
-
-            if (recentRequests.length === 0) {
-                this.requests.delete(userId);
-                cleaned++;
-            } else if (recentRequests.length < timestamps.length) {
-                this.requests.set(userId, recentRequests);
-            }
-        }
-
-        // Rate limit cleanup is routine, no need to log
-    }
-
-    destroy(): void {
-        if (this.cleanupTimer) {
-            clearInterval(this.cleanupTimer);
-            this.cleanupTimer = null;
-        }
-        this.requests.clear();
-    }
-}
-
-// Lazy-initialize rate limiter
-let rateLimiter: InMemoryRateLimiter | null = null;
-
-function getRateLimiter(): InMemoryRateLimiter {
-    if (!rateLimiter) {
-        rateLimiter = new InMemoryRateLimiter();
-    }
-    return rateLimiter;
 }
 
 /**
@@ -143,13 +70,6 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         
         // Add user context to logging context
         LoggerContext.setUser(userRecord.uid, userRecord.email, userRole);
-        
-        // Check rate limit
-        const isAllowed = getRateLimiter().isAllowed(decodedToken.uid);
-        if (!isAllowed) {
-            sendError(res, Errors.RATE_LIMIT_EXCEEDED(), correlationId);
-            return;
-        }
 
         next();
     } catch (error) {
