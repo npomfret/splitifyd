@@ -140,7 +140,7 @@ function getFirebaseAuthUrl(config: ClientConfig, env: z.infer<typeof envSchema>
         return undefined;
     }
 
-    // Get auth URL from Firebase environment variable - required in development
+    // Get auth URL from Firebase environment variable - required in development, and provided by the emulator at runtime
     const authHost = env.FIREBASE_AUTH_EMULATOR_HOST;
     if (!authHost) {
         throw new Error('FIREBASE_AUTH_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
@@ -154,7 +154,7 @@ function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSc
         return undefined;
     }
 
-    // Get Firestore URL from Firebase environment variable - required in development
+    // Get Firestore URL from Firebase environment variable - required in development - provided by the emulator at runtime
     const firestoreHost = env.FIRESTORE_EMULATOR_HOST;
     if (!firestoreHost) {
         throw new Error('FIRESTORE_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
