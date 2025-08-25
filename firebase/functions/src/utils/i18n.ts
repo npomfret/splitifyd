@@ -44,8 +44,8 @@ export async function initializeI18n(): Promise<void> {
                 // Preload languages
                 preload: ['en'],
 
-                // Debugging in development
-                debug: process.env.NODE_ENV === 'development',
+                // Debugging disabled - too verbose for development
+                debug: false,
             });
 
         isInitialized = true;
