@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Determine environment - we're always in dev when running locally
-const isDev = true; // Since this runs via watch mode locally
+// Determine environment based on NODE_ENV
+const isDev = process.env.NODE_ENV !== 'production';
 
 // Read Firebase configuration files if in development
 let firebaseConfig, firebaseRc;
