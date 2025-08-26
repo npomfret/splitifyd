@@ -11,7 +11,7 @@ Analyse the current changeset...
 - [ ] is there any code that confuses optional v's mandatory parameters? 
 - [ ] is there any uncalled-for "backward compatible" code? (there is **no** production data to migrate)
 - [ ] is there any duplication? 
-- [ ] have new files (that are needed) been added to git?
+- [ ] have new files been staged to git?
 - [ ] has anything been added that wasn't called for?
 - [ ] have any relevant any task docs been updated? 
 

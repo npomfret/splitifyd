@@ -51,12 +51,19 @@
 
 **Goal**: Extract read-only group operations into a new `GroupService`.
 
-1.  **Task 2.1: Create `GroupService` with `getGroup`**:
-    *   Create `src/services/GroupService.ts`.
-    *   Implement a `getGroup` method that fetches a group and its members.
-    *   Write unit tests for `GroupService.getGroup`.
-    *   Refactor the `getGroup` handler to use `GroupService.getGroup`.
-    *   Update and run all relevant integration tests.
+1.  **Task 2.1: Create `GroupService` with `getGroup`**: ✅ **COMPLETED** (2025-08-26)
+    *   ✅ Created `src/services/GroupService.ts`
+    *   ✅ Implemented a `getGroup` method that fetches group data with permissions and balance calculations
+    *   ✅ Wrote comprehensive unit tests for `GroupService.getGroup` (9 tests total)
+    *   ✅ Refactored the `getGroup` handler to use `GroupService.getGroup`
+    *   ✅ Updated and ran all relevant integration tests (24 tests passed)
+    *   **Key improvements:**
+        - Extracted complex balance calculation logic into service layer
+        - Maintained proper access control (owner/member permissions)
+        - Clean separation of concerns between handler and service
+        - Reduced handler from ~50 lines to 8 lines
+        - Proper error handling with security-conscious 404 responses
+    *   **All tests passing, build successful**
 
 2.  **Task 2.2: Move `listGroups` to `GroupService`**:
     *   Implement a `listGroups` method in `GroupService`.

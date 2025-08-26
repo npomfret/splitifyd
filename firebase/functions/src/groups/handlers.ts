@@ -6,7 +6,7 @@ import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { createOptimisticTimestamp, createTrueServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
-import { Group, GroupWithBalance } from '../types/group-types';
+import { Group } from '../types/group-types';
 import {
     FirestoreCollections,
     UserThemeColor,
@@ -22,6 +22,7 @@ import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from '../services/balance';
 import { userService } from '../services/UserService2';
+import { groupService } from '../services/GroupService';
 import { PermissionEngine } from '../permissions';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
@@ -269,50 +270,7 @@ export const getGroup = async (req: AuthenticatedRequest, res: Response): Promis
     }
     const groupId = validateGroupId(req.params.id);
 
-    const { group } = await fetchGroupWithAccess(groupId, userId);
-
-    // Calculate balance information on-demand
-    const groupBalances = await calculateGroupBalances(groupId);
-
-    // Calculate currency-specific balances
-    const balancesByCurrency: Record<string, any> = {};
-    if (groupBalances.balancesByCurrency) {
-        for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
-            const currencyUserBalance = currencyBalances[userId];
-            if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                balancesByCurrency[currency] = {
-                    currency,
-                    netBalance: currencyUserBalance.netBalance,
-                    totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
-                    totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
-                };
-            }
-        }
-    }
-
-    // Get user's balance from first available currency
-    let userBalance: any = null;
-    if (groupBalances.balancesByCurrency) {
-        const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0];
-
-        if (currencyBalances && currencyBalances[userId]) {
-            const balance = currencyBalances[userId];
-            userBalance = {
-                netBalance: balance.netBalance,
-                totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
-                totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
-            };
-        }
-    }
-
-    const groupWithBalance: GroupWithBalance = {
-        ...group,
-        balance: {
-            userBalance,
-            balancesByCurrency,
-        },
-    };
-
+    const groupWithBalance = await groupService.getGroup(groupId, userId);
     res.json(groupWithBalance);
 };
 
