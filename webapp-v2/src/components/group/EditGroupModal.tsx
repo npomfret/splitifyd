@@ -17,6 +17,10 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     const { t } = useTranslation();
     const [groupName, setGroupName] = useState(group.name);
     const [groupDescription, setGroupDescription] = useState(group.description || '');
+    
+    // Track initial values when modal opens to properly detect changes
+    const [initialName, setInitialName] = useState(group.name);
+    const [initialDescription, setInitialDescription] = useState(group.description || '');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -25,17 +29,23 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
-    const hasChanges = groupName !== group.name || groupDescription !== (group.description || '');
+    // Compare against initial values, not current group prop (which might change due to real-time updates)
+    const hasChanges = groupName !== initialName || groupDescription !== initialDescription;
 
-    // Reset form when modal opens/closes or group changes
+    // Only reset form when modal opens, NOT when group prop changes while open
+    // This prevents user input from being wiped out by real-time updates
     useEffect(() => {
         if (isOpen) {
+            // Capture the group values at the moment the modal opens
+            setInitialName(group.name);
+            setInitialDescription(group.description || '');
+            // Initialize form fields with these values
             setGroupName(group.name);
             setGroupDescription(group.description || '');
             setValidationError(null);
             setDeleteError(null);
         }
-    }, [isOpen, group]);
+    }, [isOpen]); // Removed 'group' dependency to prevent reset on updates
 
     // Handle escape key to close modal
     useEffect(() => {

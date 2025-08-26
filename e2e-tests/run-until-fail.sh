@@ -10,8 +10,8 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="e2e-tests/src/tests/normal-flow/balance-visualization-multi-user.e2e.test.ts"
-TEST_FILTER="should show settled up when both users pay equal amounts"
+TEST_FILE="e2e-tests/src/tests/normal-flow/group-management.e2e.test.ts"
+TEST_FILTER="should allow group owner to edit group name"
 
 # Make max runs configurable, default to 25
 MAX_SUCCESSES=${1:-25}

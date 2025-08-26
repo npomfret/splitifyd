@@ -849,6 +849,14 @@ export class GroupDetailPage extends BasePage {
                 const nameInput = modal.locator('input[type="text"]').first();
                 // Use Preact-aware input filling
                 await this.fillPreactInput(nameInput, name);
+                
+                // Defensive check: verify the value persisted (catches real-time update bug)
+                // Brief wait to allow any potential real-time updates to arrive
+                await this._page.waitForTimeout(100);
+                const currentValue = await nameInput.inputValue();
+                if (currentValue !== name) {
+                    throw new Error(`Form field was reset! Expected name "${name}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
+                }
             },
             clearGroupName: async () => {
                 const nameInput = modal.locator('input[type="text"]').first();
@@ -861,10 +869,36 @@ export class GroupDetailPage extends BasePage {
                 const descriptionTextarea = modal.locator('textarea').first();
                 // Use fillPreactInput for proper Preact signal updates
                 await this.fillPreactInput(descriptionTextarea, description);
+                
+                // Defensive check: verify the value persisted
+                await this._page.waitForTimeout(100);
+                const currentValue = await descriptionTextarea.inputValue();
+                if (currentValue !== description) {
+                    throw new Error(`Form field was reset! Expected description "${description}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
+                }
             },
             saveChanges: async () => {
-                // Ensure button is enabled before clicking
-                await expect(saveButton).toBeEnabled();
+                // Double-check form values right before save to ensure they haven't been reset
+                const nameInput = modal.locator('input[type="text"]').first();
+                const descTextarea = modal.locator('textarea').first();
+                const finalName = await nameInput.inputValue();
+                const finalDesc = await descTextarea.inputValue();
+                
+                // Validate the form state
+                if (!finalName || finalName.trim().length < 2) {
+                    throw new Error(`Invalid form state before save: name="${finalName}" (minimum 2 characters required). The form may have been reset by a real-time update.`);
+                }
+                
+                // Wait for button to stabilize in enabled state
+                await expect(saveButton).toBeEnabled({ timeout: 2000 });
+                
+                // Brief stability check - if button becomes disabled, we caught a race condition
+                await this._page.waitForTimeout(50);
+                const isStillEnabled = await saveButton.isEnabled();
+                if (!isStillEnabled) {
+                    throw new Error(`Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`);
+                }
+                
                 await saveButton.click();
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
