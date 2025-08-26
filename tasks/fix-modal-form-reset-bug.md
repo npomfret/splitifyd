@@ -133,8 +133,25 @@ For each fixed component:
 
 ## Success Criteria
 
-- [ ] All modal/form components audited
-- [ ] Similar bugs identified and documented
-- [ ] Fixes applied following the pattern established
-- [ ] Tests added to prevent regression
-- [ ] No flaky tests related to form resets
+- [x] All modal/form components audited
+- [x] Similar bugs identified and documented  
+- [x] Fixes applied following the pattern established
+- [x] Tests added to prevent regression (defensive checks added to SettlementFormPage)
+- [ ] No flaky tests related to form resets (need to monitor over time)
+
+## Completed Fixes
+
+### Components Fixed:
+1. **EditGroupModal** - Already fixed in previous commit
+2. **ShareGroupModal** - Fixed: Removed `groupId` from useEffect dependencies to prevent regenerating link on prop updates
+3. **SettlementForm** - Fixed: Removed entity props from useEffect dependencies to prevent form reset on real-time updates
+
+### Components Verified Safe:
+1. **CreateGroupModal** - Only watches `isOpen`, correct pattern
+2. **PolicyAcceptanceModal** - Uses local state, no prop-watching issues  
+3. **useExpenseForm** - Initializes once on mount, no prop-watching issues
+4. **SettingsPage** - Only watches `user` to set initial values once
+
+### E2E Test Improvements:
+- Added defensive checks to `SettlementFormPage` to detect form field resets
+- Similar defensive pattern already added to `GroupDetailPage` for EditGroupModal
