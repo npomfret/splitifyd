@@ -1,13 +1,13 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { ChangeDetector } from '@/utils/change-detector';
-import { FirestoreCollections } from '@shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 // Create mock functions that will be used in the tests
-const mockCollection = vi.fn();
-const mockQuery = vi.fn();
-const mockWhere = vi.fn();
-const mockOnSnapshot = vi.fn();
-const mockGetDb = vi.fn();
+// const mockCollection = vi.fn();
+// const mockQuery = vi.fn();
+// const mockWhere = vi.fn();
+// const mockOnSnapshot = vi.fn();
+// const mockGetDb = vi.fn();
 
 // Mock Firebase with factory functions to avoid hoisting issues
 vi.mock('firebase/firestore', () => ({

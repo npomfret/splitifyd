@@ -266,7 +266,7 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
             // Get the mock changeDetector and capture the callback
             let expenseCallback: (() => void) | undefined;
             const mockChangeDetector = (enhancedGroupDetailStore as any).changeDetector;
-            mockChangeDetector.subscribeToExpenseChanges.mockImplementation((_, callback: () => void) => {
+            mockChangeDetector.subscribeToExpenseChanges.mockImplementation((_: string, callback: () => void) => {
                 expenseCallback = callback;
                 return vi.fn();
             });

@@ -1,5 +1,5 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
-import type { CreateGroupRequest, Group, ListGroupsResponse } from '@shared/shared-types';
+import type { CreateGroupRequest, Group, ListGroupsResponse } from '@splitifyd/shared';
 
 // Create a mock factory that will provide access to the instance
 const mockChangeDetectorModule = {
@@ -62,7 +62,6 @@ vi.mock('@/utils/change-detector', () => ({
 // Import after mocks are set up
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import { ChangeDetector } from '@/utils/change-detector';
 
 // Get the mock instance created by the store
 const mockChangeDetectorInstance = (enhancedGroupsStore as any).changeDetector;
