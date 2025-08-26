@@ -1,4 +1,4 @@
-import type { GroupMember, UserThemeColor } from '../../../shared/shared-types';
+import { GroupMember, UserThemeColor, MemberRoles, MemberStatuses } from '../../../shared/shared-types';
 import type { ColorPattern } from '../../../constants/user-colors';
 
 export class GroupMemberBuilder {
@@ -8,7 +8,8 @@ export class GroupMemberBuilder {
         // Default member with sensible defaults
         this.member = {
             joinedAt: new Date().toISOString(),
-            role: 'member',
+            role: MemberRoles.MEMBER,
+            status: MemberStatuses.ACTIVE,
             theme: {
                 light: '#1f5582',
                 dark: '#4a9eff', 
@@ -25,8 +26,13 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withRole(role: 'owner' | 'member'): this {
-        this.member.role = role;
+    withRole(role: 'admin' | 'member' | 'viewer'): this {
+        this.member.role = role as any;
+        return this;
+    }
+
+    withStatus(status: 'active' | 'pending'): this {
+        this.member.status = status as any;
         return this;
     }
 
@@ -52,13 +58,23 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    asOwner(): this {
-        this.member.role = 'owner';
+    asAdmin(): this {
+        this.member.role = MemberRoles.ADMIN;
         return this;
     }
 
     asMember(): this {
-        this.member.role = 'member';
+        this.member.role = MemberRoles.MEMBER;
+        return this;
+    }
+
+    asViewer(): this {
+        this.member.role = MemberRoles.VIEWER;
+        return this;
+    }
+
+    asPending(): this {
+        this.member.status = MemberStatuses.PENDING;
         return this;
     }
 

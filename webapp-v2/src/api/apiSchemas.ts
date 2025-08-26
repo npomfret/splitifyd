@@ -25,7 +25,8 @@ export const GroupMemberSchema = z.object({
     joinedAt: z.string(), // ISO string, following pattern of createdAt/updatedAt
     isCreator: z.boolean().optional(), // New field from backend
     themeIndex: z.number().optional(), // New field from backend
-    role: z.enum(['owner', 'member']).optional(), // Made optional for backward compatibility
+    role: z.enum(['admin', 'member', 'viewer']).optional(), // Updated to new permission system roles
+    status: z.enum(['active', 'inactive', 'pending']).optional(), // New status field
     theme: UserThemeColorSchema.optional(), // Made optional for backward compatibility
 });
 
@@ -91,6 +92,16 @@ export const GroupSchema = z.object({
             date: z.string(),
         })
         .optional(),
+
+    // Security configuration for permission system
+    securityPreset: z.enum(['open', 'managed']).optional(),
+    permissions: z.object({
+        expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+        expenseDeletion: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+        memberInvitation: z.enum(['anyone', 'admin-only']).optional(),
+        memberApproval: z.enum(['automatic', 'admin-required']).optional(),
+        settingsManagement: z.enum(['anyone', 'admin-only']).optional(),
+    }).optional(),
 
     // Optional fields for detail view
     createdBy: z.string().optional(),

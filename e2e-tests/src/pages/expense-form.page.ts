@@ -286,14 +286,47 @@ export class ExpenseFormPage extends BasePage {
         // Save the expense
         await this.clickSaveExpenseButton();
 
-        // Wait for navigation back to group page
-        await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+        // Check for permission error messages first
+        const permissionErrorMessages = [
+            'You do not have permission to create expenses in this group',
+            'Something went wrong',
+            'Permission denied',
+            'Not authorized'
+        ];
 
-        // Verify expense was created by checking it appears in the list
-        await expect(this.page.getByText(expense.description)).toBeVisible();
+        // Wait a moment for any error messages to appear
+        await this.page.waitForTimeout(1000);
 
-        // Wait for page to stabilize after expense creation
-        await this.page.waitForLoadState('domcontentloaded');
+        // Check if any error message is visible
+        for (const errorMessage of permissionErrorMessages) {
+            const errorElement = this.page.getByText(errorMessage, { exact: false });
+            if (await errorElement.isVisible().catch(() => false)) {
+                throw new Error(`Permission error detected: "${errorMessage}"`);
+            }
+        }
+
+        // If no error messages, proceed with normal flow
+        try {
+            // Wait for navigation back to group page with a reasonable timeout
+            await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
+
+            // Verify expense was created by checking it appears in the list
+            await expect(this.page.getByText(expense.description)).toBeVisible({ timeout: 3000 });
+
+            // Wait for page to stabilize after expense creation
+            await this.page.waitForLoadState('domcontentloaded');
+        } catch (navigationError) {
+            // Check again for error messages that might have appeared during the wait
+            for (const errorMessage of permissionErrorMessages) {
+                const errorElement = this.page.getByText(errorMessage, { exact: false });
+                if (await errorElement.isVisible().catch(() => false)) {
+                    throw new Error(`Permission error detected after navigation timeout: "${errorMessage}"`);
+                }
+            }
+            
+            // If still no error message found, re-throw the navigation error
+            throw navigationError;
+        }
     }
 
     /**

@@ -95,6 +95,11 @@ describe('Edit Expense Integration Tests', () => {
         });
 
         test('should prevent non-creator/non-owner from editing expense', async () => {
+            // Switch group to MANAGED preset to enforce strict permissions
+            await driver.apiRequest(`/groups/${testGroup.id}/security/preset`, 'POST', {
+                preset: 'managed'
+            }, users[0].token);
+            
             // Create expense by user 0
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
@@ -113,7 +118,7 @@ describe('Edit Expense Integration Tests', () => {
                     new ExpenseUpdateBuilder().withAmount(200).build(), 
                     users[1].token
                 )
-            ).rejects.toThrow();
+            ).rejects.toThrow(/failed with status 403/);
         });
 
         test('should track edit history when expense is updated', async () => {

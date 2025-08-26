@@ -49,6 +49,64 @@ export const PolicyIds = {
 export const DELETED_AT_FIELD = 'deletedAt';
 
 // ========================================================================
+// Permission and Security Types
+// ========================================================================
+
+export const SecurityPresets = {
+    OPEN: 'open',
+    MANAGED: 'managed',
+    CUSTOM: 'custom',
+} as const;
+
+export type SecurityPreset = typeof SecurityPresets[keyof typeof SecurityPresets];
+
+export const MemberRoles = {
+    ADMIN: 'admin',
+    MEMBER: 'member',
+    VIEWER: 'viewer',
+} as const;
+
+export type MemberRole = typeof MemberRoles[keyof typeof MemberRoles];
+
+export const PermissionLevels = {
+    ANYONE: 'anyone',
+    OWNER_AND_ADMIN: 'owner-and-admin',
+    ADMIN_ONLY: 'admin-only',
+} as const;
+
+export type PermissionLevel = typeof PermissionLevels[keyof typeof PermissionLevels];
+
+export const MemberStatuses = {
+    ACTIVE: 'active',
+    PENDING: 'pending',
+} as const;
+
+export type MemberStatus = typeof MemberStatuses[keyof typeof MemberStatuses];
+
+export interface GroupPermissions {
+    expenseEditing: PermissionLevel;
+    expenseDeletion: PermissionLevel;
+    memberInvitation: PermissionLevel;
+    memberApproval: 'automatic' | 'admin-required';
+    settingsManagement: PermissionLevel;
+}
+
+export interface PermissionChangeLog {
+    timestamp: string; // ISO string
+    changedBy: string;
+    changeType: 'preset' | 'custom' | 'role';
+    changes: Record<string, any>;
+}
+
+export interface InviteLink {
+    createdAt: string; // ISO string
+    createdBy: string;
+    expiresAt?: string; // Optional expiry for managed groups (ISO string)
+    maxUses?: number; // Optional usage limit
+    usedCount: number;
+}
+
+// ========================================================================
 // Expense Category Types and Constants
 // ========================================================================
 
@@ -243,9 +301,11 @@ export interface GroupBalance {
 
 export interface GroupMember {
     joinedAt: string; // ISO string
-    role: 'owner' | 'member';
+    role: MemberRole;
     theme: UserThemeColor;
     invitedBy?: string; // UID of the user who created the share link that was used to join
+    status: MemberStatus;
+    lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
 export interface ShareLink {
@@ -270,6 +330,20 @@ export interface Group {
     createdBy: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
+    
+    // Security Configuration
+    securityPreset: SecurityPreset; // default: 'open'
+    presetAppliedAt?: string; // ISO string - Track when preset was last applied
+    
+    // Individual permission settings (customizable after preset selection)
+    permissions: GroupPermissions;
+    
+    // Permission change history
+    permissionHistory?: PermissionChangeLog[];
+    
+    // Invite link configuration
+    inviteLinks?: Record<string, InviteLink>;
+    
     // Computed fields (only in API responses)
     balance?: {
         balancesByCurrency: Record<string, CurrencyBalance>;
@@ -283,6 +357,45 @@ export interface CreateGroupRequest {
     name: string;
     description?: string;
     members?: User[];
+}
+
+// Permission-related request/response types
+export interface ApplySecurityPresetRequest {
+    preset: SecurityPreset;
+}
+
+export interface UpdateGroupPermissionsRequest {
+    permissions: Partial<GroupPermissions>;
+}
+
+export interface SetMemberRoleRequest {
+    targetUserId: string;
+    role: MemberRole;
+}
+
+export interface CreateInviteLinkRequest {
+    expiresAt?: string; // ISO string
+    maxUses?: number;
+}
+
+export interface PermissionCheckResult {
+    allowed: boolean;
+    reason?: string;
+    userRole?: MemberRole;
+}
+
+export interface PendingMembersResponse {
+    pendingMembers: Array<{
+        user: User;
+        requestedAt: string;
+        invitedBy?: string;
+    }>;
+    count: number;
+}
+
+export interface PermissionHistoryResponse {
+    history: PermissionChangeLog[];
+    count: number;
 }
 
 // Metadata for real-time change tracking

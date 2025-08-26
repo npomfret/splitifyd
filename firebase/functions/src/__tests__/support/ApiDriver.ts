@@ -158,8 +158,8 @@ export class ApiDriver {
         return response as ExpenseData;
     }
 
-    async updateExpense(expenseId: string, updateData: Partial<ExpenseData>, token: string): Promise<void> {
-        await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
+    async updateExpense(expenseId: string, updateData: Partial<ExpenseData>, token: string): Promise<ExpenseData> {
+        return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
     }
 
     async deleteExpense(expenseId: string, token: string): Promise<MessageResponse> {
@@ -433,7 +433,7 @@ export class ApiDriver {
         throw new Error(`${errorMsg} after ${timeout}ms (${attempts} attempts). ` + `Last error: ${lastError?.message || 'None'}`);
     }
 
-    private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
+    async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
         const url = `${this.baseUrl}${endpoint}`;
         const options: RequestInit = {
             method,
@@ -457,7 +457,11 @@ export class ApiDriver {
                     throw new Error(`Emulator appears to be restarting. Please wait and try again.`);
                 }
 
-                throw new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+                // Create an error object with status and message properties for better testing
+                const error = new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+                (error as any).status = response.status;
+                (error as any).response = errorText;
+                throw error;
             }
             // Handle cases where the response might be empty
             const responseText = await response.text();

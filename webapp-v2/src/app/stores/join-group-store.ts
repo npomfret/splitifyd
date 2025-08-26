@@ -55,6 +55,14 @@ class JoinGroupStore {
                 createdBy: '', // Will be populated from server
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
+                securityPreset: 'open' as const,
+                permissions: {
+                    expenseEditing: 'anyone' as const,
+                    expenseDeletion: 'anyone' as const,
+                    memberInvitation: 'anyone' as const,
+                    memberApproval: 'automatic' as const,
+                    settingsManagement: 'anyone' as const,
+                },
                 balance: {
                     balancesByCurrency: {},
                 },

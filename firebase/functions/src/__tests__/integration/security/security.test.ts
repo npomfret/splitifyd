@@ -8,6 +8,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
+import { SecurityPresets } from '../../../shared/shared-types';
 
 describe('Comprehensive Security Test Suite', () => {
     const driver = new ApiDriver();
@@ -80,6 +81,11 @@ describe('Comprehensive Security Test Suite', () => {
         beforeEach(async () => {
             // Create a fresh test group for each authorization test
             testGroup = await driver.createGroupWithMembers(`Auth Test Group ${uuidv4()}`, users, users[0].token);
+            
+            // Apply MANAGED preset for proper security testing (users shouldn't modify each other's data)
+            await driver.apiRequest(`/groups/${testGroup.id}/security/preset`, 'POST', {
+                preset: SecurityPresets.MANAGED
+            }, users[0].token);
         });
 
         describe('Cross-User Data Access', () => {

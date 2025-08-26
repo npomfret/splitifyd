@@ -33,6 +33,11 @@ export class UserBuilder {
         return this;
     }
 
+    withName(name: string): this {
+        this.user.displayName = name;
+        return this;
+    }
+
     build(): TestUser {
         return { ...this.user };
     }

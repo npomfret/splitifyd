@@ -17,6 +17,7 @@ import { getGroupBalances } from './groups/balanceHandlers';
 import { getGroupMembers, leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, getGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
+import { applySecurityPreset, updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
 import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { createComment, listComments } from './comments/handlers';
 import { admin, firestoreDb } from './firebase';
@@ -291,6 +292,12 @@ function setupRoutes(app: express.Application): void {
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
+    
+    // Permission management routes
+    app.post(`/${FirestoreCollections.GROUPS}/:id/security/preset`, authenticate, asyncHandler(applySecurityPreset));
+    app.put(`/${FirestoreCollections.GROUPS}/:id/permissions`, authenticate, asyncHandler(updateGroupPermissions));
+    app.put(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/role`, authenticate, asyncHandler(setMemberRole));
+    app.get(`/${FirestoreCollections.GROUPS}/:id/permissions/user`, authenticate, asyncHandler(getUserPermissions));
 
     // Settlement endpoints (requires auth)
     app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));

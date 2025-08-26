@@ -1,26 +1,37 @@
-import { Group, FirestoreCollections } from '../shared/shared-types';
+import { Group, FirestoreCollections, MemberRoles } from '../shared/shared-types';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';
 
 /**
  * Get the group owner's user ID from the members map
+ * In the new permission system, we look for the creator or any admin
  */
 export const getGroupOwner = (group: Group): string | null => {
+    // First check if the creator is still an admin
+    const creator = group.members[group.createdBy];
+    if (creator && creator.role === MemberRoles.ADMIN) {
+        return group.createdBy;
+    }
+
+    // Otherwise, find any admin
     for (const [userId, member] of Object.entries(group.members)) {
-        if (member.role === 'owner') {
+        if (member.role === MemberRoles.ADMIN) {
             return userId;
         }
     }
-    return null;
+    
+    // Fallback to creator if no admins (for legacy groups)
+    return group.createdBy;
 };
 
 /**
  * Check if a user is the owner of a group
+ * Updated to work with new permission system - checks if user is admin or creator
  */
 export const isGroupOwner = (group: Group, userId: string): boolean => {
     const member = group.members[userId];
-    return member?.role === 'owner' || false;
+    return member?.role === MemberRoles.ADMIN || userId === group.createdBy || false;
 };
 
 /**

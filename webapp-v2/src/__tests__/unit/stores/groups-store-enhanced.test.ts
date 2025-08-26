@@ -37,7 +37,8 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
         members: {
             'test-user': {
                 joinedAt: new Date().toISOString(),
-                role: 'owner' as const,
+                role: 'admin' as const,
+                status: 'active' as const,
                 theme: {
                     light: '#ff0000',
                     dark: '#cc0000',
@@ -47,6 +48,14 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
                     colorIndex: 0,
                 },
             },
+        },
+        securityPreset: 'open' as const,
+        permissions: {
+            expenseEditing: 'anyone' as const,
+            expenseDeletion: 'anyone' as const,
+            memberInvitation: 'anyone' as const,
+            memberApproval: 'automatic' as const,
+            settingsManagement: 'anyone' as const,
         },
         createdBy: 'test-user',
         createdAt: new Date().toISOString(),

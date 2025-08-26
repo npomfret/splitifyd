@@ -21,7 +21,8 @@ describe('EnhancedGroupDetailStore', () => {
         members: {
             user1: {
                 joinedAt: new Date().toISOString(),
-                role: 'owner' as const,
+                role: 'admin' as const,
+                status: 'active' as const,
                 theme: {
                     light: '#ff0000',
                     dark: '#cc0000',
@@ -34,6 +35,7 @@ describe('EnhancedGroupDetailStore', () => {
             user2: {
                 joinedAt: new Date().toISOString(),
                 role: 'member' as const,
+                status: 'active' as const,
                 theme: {
                     light: '#00ff00',
                     dark: '#00cc00',
@@ -46,6 +48,7 @@ describe('EnhancedGroupDetailStore', () => {
             user3: {
                 joinedAt: new Date().toISOString(),
                 role: 'member' as const,
+                status: 'active' as const,
                 theme: {
                     light: '#0000ff',
                     dark: '#0000cc',
@@ -71,6 +74,14 @@ describe('EnhancedGroupDetailStore', () => {
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
         createdBy: 'user1',
+        securityPreset: 'open' as const,
+        permissions: {
+            expenseEditing: 'anyone' as const,
+            expenseDeletion: 'anyone' as const,
+            memberInvitation: 'anyone' as const,
+            memberApproval: 'automatic' as const,
+            settingsManagement: 'anyone' as const,
+        },
     };
 
     const mockMembers: User[] = [

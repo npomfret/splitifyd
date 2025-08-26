@@ -1,5 +1,5 @@
 import { getGroupOwner, isGroupOwner, isGroupMember } from '../../utils/groupHelpers';
-import { Group } from '../../shared/shared-types';
+import { Group, MemberRoles, MemberStatuses } from '../../shared/shared-types';
 
 describe('Group Helpers', () => {
     const mockGroup: Group = {
@@ -8,9 +8,19 @@ describe('Group Helpers', () => {
         createdBy: 'user-alice',
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
+        securityPreset: 'open',
+        presetAppliedAt: '2024-01-01T00:00:00Z',
+        permissions: {
+            expenseEditing: 'anyone',
+            expenseDeletion: 'anyone',
+            memberInvitation: 'anyone',
+            memberApproval: 'automatic',
+            settingsManagement: 'anyone',
+        },
         members: {
             'user-alice': {
-                role: 'owner',
+                role: MemberRoles.ADMIN,
+                status: MemberStatuses.ACTIVE,
                 joinedAt: '2024-01-01T00:00:00Z',
                 theme: {
                     light: '#FF0000',
@@ -22,7 +32,8 @@ describe('Group Helpers', () => {
                 },
             },
             'user-bob': {
-                role: 'member',
+                role: MemberRoles.MEMBER,
+                status: MemberStatuses.ACTIVE,
                 joinedAt: '2024-01-02T00:00:00Z',
                 theme: {
                     light: '#00FF00',
@@ -47,7 +58,8 @@ describe('Group Helpers', () => {
                 ...mockGroup,
                 members: {
                     'user-bob': {
-                        role: 'member',
+                        role: MemberRoles.MEMBER,
+                        status: MemberStatuses.ACTIVE,
                         joinedAt: '2024-01-02T00:00:00Z',
                         theme: mockGroup.members['user-bob'].theme,
                     },

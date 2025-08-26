@@ -8,11 +8,12 @@ import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../u
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calculateSplits, Expense } from './validation';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '../shared/shared-types';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
-import { isGroupOwner as checkIsGroupOwner, verifyGroupMembership } from '../utils/groupHelpers';
+import { verifyGroupMembership } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
+import { PermissionEngine, permissionCache, PermissionCache } from '../permissions';
 
 const getExpensesCollection = () => {
     return firestoreDb.collection(FirestoreCollections.EXPENSES);
@@ -22,17 +23,62 @@ const getGroupsCollection = () => {
     return firestoreDb.collection(FirestoreCollections.GROUPS);
 };
 
-const isGroupOwner = async (groupId: string, userId: string): Promise<boolean> => {
+
+/**
+ * Get group data for permission checking
+ */
+const getGroupForPermissionCheck = async (groupId: string): Promise<Group> => {
     const groupDoc = await getGroupsCollection().doc(groupId).get();
     if (!groupDoc.exists) {
-        return false;
+        throw Errors.NOT_FOUND('Group');
     }
     
-    // Use the proper group document transformation from groups/handlers
-    const group = transformGroupDocument(groupDoc);
+    return transformGroupDocument(groupDoc);
+};
+
+/**
+ * Check if user has permission to perform an action with caching
+ */
+const checkPermissionCached = (
+    group: Group,
+    userId: string,
+    action: 'expenseEditing' | 'expenseDeletion',
+    expense?: Expense
+): boolean => {
+    const cacheKey = PermissionCache.generateKey(group.id, userId, action, expense?.id);
     
-    // Use the proper group ownership logic from utils/groupHelpers
-    return checkIsGroupOwner(group, userId);
+    return permissionCache.check(cacheKey, () => {
+        // Convert Expense to ExpenseData-like object for permission checking
+        const expenseData = expense ? {
+            ...expense,
+            date: typeof expense.date === 'string' 
+                ? expense.date 
+                : expense.date instanceof Date 
+                    ? expense.date.toISOString() 
+                    : (expense.date as any).toDate().toISOString(),
+            createdAt: typeof expense.createdAt === 'string'
+                ? expense.createdAt
+                : expense.createdAt instanceof Date
+                    ? expense.createdAt.toISOString()
+                    : (expense.createdAt as any)?.toDate().toISOString() || new Date().toISOString(),
+            updatedAt: typeof expense.updatedAt === 'string'
+                ? expense.updatedAt
+                : expense.updatedAt instanceof Date
+                    ? expense.updatedAt.toISOString()
+                    : (expense.updatedAt as any)?.toDate().toISOString() || new Date().toISOString(),
+            deletedAt: expense.deletedAt === null || expense.deletedAt === undefined
+                ? null
+                : typeof expense.deletedAt === 'string'
+                    ? expense.deletedAt
+                    : expense.deletedAt instanceof Date
+                        ? expense.deletedAt.toISOString()
+                        : (expense.deletedAt as any).toDate().toISOString(),
+            createdBy: expense.createdBy,
+            id: expense.id
+        } : undefined;
+        
+        return PermissionEngine.checkPermission(group, userId, action, { expense: expenseData });
+    });
 };
 
 
@@ -65,16 +111,7 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
     }
 
-    // Check if user is group owner (creator)
-    const group = { id: expense.groupId, ...groupData.data };
-    if (checkIsGroupOwner(group, userId)) {
-        return { docRef, expense };
-    }
-
-    // Check if user is a participant in this expense
-    if (!expense.participants || !expense.participants.includes(userId)) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
-    }
+    // Participant check is now handled by the permission system in individual handlers
 
     return { docRef, expense };
 };
@@ -85,6 +122,14 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
     const expenseData = validateCreateExpense(req.body);
 
     await verifyGroupMembership(expenseData.groupId, userId);
+
+    // Get group data and verify user can create expenses
+    const group = await getGroupForPermissionCheck(expenseData.groupId);
+    const canCreateExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing');
+    
+    if (!canCreateExpense) {
+        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
+    }
 
     const groupDoc = await getGroupsCollection().doc(expenseData.groupId).get();
     const groupData = groupDoc.data();
@@ -182,6 +227,11 @@ export const getExpense = async (req: AuthenticatedRequest, res: Response): Prom
 
     const { expense } = await fetchExpense(expenseId, userId);
 
+    // Check if user is a participant in this expense (basic access control for viewing)
+    if (!expense.participants || !expense.participants.includes(userId)) {
+        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
+    }
+
     res.json({
         id: expense.id,
         groupId: expense.groupId,
@@ -210,10 +260,12 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
 
     const { docRef, expense } = await fetchExpense(expenseId, userId);
 
-    // Check if user is either the expense creator or the group owner
-    const isOwner = await isGroupOwner(expense.groupId, userId);
-    if (expense.createdBy !== userId && !isOwner) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'Only the expense creator or group owner can edit this expense');
+    // Get group data and check permissions using the new permission system
+    const group = await getGroupForPermissionCheck(expense.groupId);
+    const canEdit = checkPermissionCached(group, userId, 'expenseEditing', expense);
+    
+    if (!canEdit) {
+        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
     }
 
     // If updating paidBy or participants, validate they are group members
@@ -390,10 +442,12 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
 
     const { docRef, expense } = await fetchExpense(expenseId, userId);
 
-    // Check if user is either the expense creator or the group owner
-    const isOwner = await isGroupOwner(expense.groupId, userId);
-    if (expense.createdBy !== userId && !isOwner) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'Only the expense creator or group owner can delete this expense');
+    // Get group data and check permissions using the new permission system
+    const group = await getGroupForPermissionCheck(expense.groupId);
+    const canDelete = checkPermissionCached(group, userId, 'expenseDeletion', expense);
+    
+    if (!canDelete) {
+        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
     }
 
     try {
@@ -726,10 +780,19 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
         // Reuse existing tested functions for each data type
         const { expense } = await fetchExpense(expenseId, userId);
         
-        // Get group document (access already verified by fetchExpense)
+        // Get group document for permission check and data
         const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
         if (!groupDoc.exists) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+        
+        // Check if user is a participant in this expense or a group member (access control for viewing)
+        if (!expense.participants || !expense.participants.includes(userId)) {
+            // Additional check: allow group members to view expenses they're not participants in
+            const groupData = groupDoc.data();
+            if (!groupData?.data?.members?.[userId]) {
+                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
+            }
         }
         
         const groupData = groupDoc.data();

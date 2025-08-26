@@ -4,10 +4,11 @@ import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import type { Group, User } from '@shared/shared-types';
 
 // Helper to create a test group member
-function createTestGroupMember(role: 'owner' | 'member' = 'member', colorIndex = 0) {
+function createTestGroupMember(role: 'admin' | 'member' | 'viewer' = 'member', colorIndex = 0) {
     return {
         joinedAt: new Date().toISOString(),
         role,
+        status: 'active' as const,
         theme: {
             light: '#ff0000',
             dark: '#cc0000',
@@ -25,7 +26,15 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
         id: `group-${Math.random().toString(36).substring(2, 11)}`,
         name: 'Test Group',
         members: {
-            'test-user': createTestGroupMember('owner'),
+            'test-user': createTestGroupMember('admin'),
+        },
+        securityPreset: 'open' as const,
+        permissions: {
+            expenseEditing: 'anyone' as const,
+            expenseDeletion: 'anyone' as const,
+            memberInvitation: 'anyone' as const,
+            memberApproval: 'automatic' as const,
+            settingsManagement: 'anyone' as const,
         },
         createdBy: 'test-user',
         createdAt: new Date().toISOString(),
@@ -205,7 +214,7 @@ describe('GroupCard', () => {
         const group = createTestGroup({
             name: 'Solo Trip',
             members: {
-                'test-user': createTestGroupMember('owner', 0),
+                'test-user': createTestGroupMember('admin', 0),
             },
         });
 

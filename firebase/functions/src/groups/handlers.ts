@@ -14,11 +14,15 @@ import {
     ListGroupsResponse,
     MessageResponse,
     DELETED_AT_FIELD,
+    SecurityPresets,
+    MemberRoles,
+    MemberStatuses,
 } from '../shared/shared-types';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from '../services/balance';
 import { userService } from '../services/userService';
+import { PermissionEngine } from '../permissions';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from './memberHandlers';
@@ -77,6 +81,10 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
         };
     }
 
+    // Ensure required permission fields are always present
+    const securityPreset = groupData.securityPreset || SecurityPresets.OPEN;
+    const permissions = groupData.permissions || PermissionEngine.getDefaultPermissions(securityPreset);
+
     return {
         id: doc.id,
         name: groupData.name!,
@@ -85,7 +93,12 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
         members: transformedMembers,
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
-    } as Group;
+        
+        // Permission system fields - guaranteed to be present
+        securityPreset,
+        permissions,
+        presetAppliedAt: groupData.presetAppliedAt
+    };
 };
 
 /**
@@ -187,9 +200,10 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
         const initialMemberIds = sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId];
         const members: Record<string, any> = {};
         
-        // Ensure creator is always first with theme index 0
+        // Ensure creator is always first with theme index 0 and gets admin role
         members[userId] = {
-            role: 'owner' as const,
+            role: MemberRoles.ADMIN,
+            status: MemberStatuses.ACTIVE,
             theme: getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
         };
@@ -199,7 +213,8 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
         for (const memberId of initialMemberIds) {
             if (memberId !== userId) {
                 members[memberId] = {
-                    role: 'member' as const,
+                    role: MemberRoles.MEMBER,
+                    status: MemberStatuses.ACTIVE,
                     theme: getThemeColorForMember(memberIndex),
                     joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
                 };
@@ -215,6 +230,9 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
             members: members,
             createdAt: timestampToISO(now),
             updatedAt: timestampToISO(now),
+            securityPreset: SecurityPresets.OPEN,
+            presetAppliedAt: timestampToISO(now),
+            permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
         };
 
         // Store in Firestore with true server timestamps for the document-level timestamps

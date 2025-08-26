@@ -5,7 +5,7 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { FirestoreCollections, ShareLink } from '../shared/shared-types';
+import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '../shared/shared-types';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import type { UserThemeColor } from '../shared/shared-types';
@@ -253,7 +253,8 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             
             // Create new member with theme assignment and invite attribution
             const newMember = {
-                role: 'member' as const,
+                role: MemberRoles.MEMBER,
+                status: MemberStatuses.ACTIVE,
                 theme: getThemeColorForMember(memberIndex),
                 joinedAt: new Date().toISOString(),
                 invitedBy: shareLink.createdBy,
