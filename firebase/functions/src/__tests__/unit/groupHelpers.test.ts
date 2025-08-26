@@ -1,5 +1,5 @@
 import { getGroupOwner, isGroupOwner, isGroupMember } from '../../utils/groupHelpers';
-import { Group, MemberRoles, MemberStatuses } from '../../shared/shared-types';
+import { Group, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 
 describe('Group Helpers', () => {
     const mockGroup: Group = {

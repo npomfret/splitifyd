@@ -1,7 +1,7 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {TIMEOUT_CONTEXTS} from '../config/timeouts';
-import type {User as BaseUser} from '@shared/shared-types';
+import type {User as BaseUser} from '@splitifyd/shared';
 
 /**
  * Page object for join group functionality via share links.

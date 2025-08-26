@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { FORM_LABELS, SPLIT_TYPES, SPLIT_INSTRUCTIONS, BUTTON_TEXTS } from '../constants/selectors';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {

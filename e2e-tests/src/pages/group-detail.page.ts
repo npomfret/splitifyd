@@ -5,7 +5,7 @@ import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 interface ExpenseData {
     description: string;

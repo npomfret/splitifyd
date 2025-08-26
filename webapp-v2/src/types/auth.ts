@@ -1,5 +1,5 @@
 import type { User as FirebaseUser } from 'firebase/auth';
-import type { UserThemeColor } from '@shared/shared-types';
+import type { UserThemeColor } from '@splitifyd/shared';
 
 export interface User {
     uid: string;

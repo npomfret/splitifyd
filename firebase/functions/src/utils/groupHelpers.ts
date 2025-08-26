@@ -1,4 +1,4 @@
-import { Group, FirestoreCollections, MemberRoles } from '../shared/shared-types';
+import { Group, FirestoreCollections, MemberRoles } from '@splitifyd/shared';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';

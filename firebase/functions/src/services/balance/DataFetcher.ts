@@ -1,6 +1,6 @@
 import { firestoreDb } from '../../firebase';
 import { userService } from '../UserService';
-import { FirestoreCollections, DELETED_AT_FIELD } from '../../shared/shared-types';
+import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
 
 export class DataFetcher {

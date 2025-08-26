@@ -1,5 +1,5 @@
 import { TIMEOUTS } from '../config/timeouts';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 import {generateNewUserDetails, generateShortId} from '../utils/test-helpers';
 import {LoginPage, RegisterPage} from '../pages';
 import { expect } from '@playwright/test';

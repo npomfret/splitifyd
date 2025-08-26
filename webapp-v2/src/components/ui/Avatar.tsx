@@ -1,6 +1,6 @@
 import { getInitials, getAvatarSize, getContrastColor, type AvatarProps } from '@/utils/avatar.ts';
 import { themeStore } from '@/app/stores/theme-store.ts';
-import type { UserThemeColor } from '@shared/shared-types';
+import type { UserThemeColor } from '@splitifyd/shared';
 
 interface EnhancedAvatarProps extends AvatarProps {
     themeColor?: UserThemeColor;

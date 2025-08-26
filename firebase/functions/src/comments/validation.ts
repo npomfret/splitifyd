@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { sanitizeString } from '../utils/security';
-import { CreateCommentRequest, CommentTargetTypes, CommentTargetType } from '../shared/shared-types';
+import { CreateCommentRequest, CommentTargetTypes, CommentTargetType } from '@splitifyd/shared';
 
 // Joi validation schema for creating comments
 const createCommentSchema = Joi.object({

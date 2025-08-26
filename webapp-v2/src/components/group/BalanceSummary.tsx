@@ -2,7 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { Card } from '../ui/Card';
 import { SidebarCard } from '@/components/ui';
 import { formatCurrency } from '@/utils/currency';
-import type { GroupBalances, User, SimplifiedDebt } from '@shared/shared-types.ts';
+import type { GroupBalances, User, SimplifiedDebt } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 
 interface BalanceSummaryProps {

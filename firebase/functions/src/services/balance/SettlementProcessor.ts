@@ -1,4 +1,4 @@
-import { UserBalance } from '../../shared/shared-types';
+import { UserBalance } from '@splitifyd/shared';
 import { Settlement, CurrencyBalances } from './types';
 
 export class SettlementProcessor {

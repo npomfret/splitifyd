@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { Errors } from '../utils/errors';
 

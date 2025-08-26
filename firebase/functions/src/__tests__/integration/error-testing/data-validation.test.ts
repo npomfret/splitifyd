@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
 import { CreateGroupRequestBuilder } from '../../support/builders';
-import {Group} from "../../../shared/shared-types";
+import {Group} from "@splitifyd/shared";
 
 describe('API Validation Smoke Tests', () => {
     let driver: ApiDriver;

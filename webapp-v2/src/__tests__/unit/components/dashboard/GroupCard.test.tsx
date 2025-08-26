@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
-import type { Group, User } from '@shared/shared-types';
+import type { Group, User } from '@splitifyd/shared';
 
 // Helper to create a test group member
 function createTestGroupMember(role: 'admin' | 'member' | 'viewer' = 'member', colorIndex = 0) {

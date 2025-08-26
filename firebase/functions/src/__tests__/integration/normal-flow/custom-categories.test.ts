@@ -5,7 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { PREDEFINED_EXPENSE_CATEGORIES } from '../../../shared/shared-types';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 
 describe('Custom Categories Feature Tests', () => {
     let driver: ApiDriver;

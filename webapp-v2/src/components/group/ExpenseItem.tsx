@@ -1,7 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
-import type { ExpenseData, User } from '@shared/shared-types.ts';
-import { DELETED_AT_FIELD } from '@shared/shared-types.ts';
+import type { ExpenseData, User } from '@splitifyd/shared';
+import { DELETED_AT_FIELD } from '@splitifyd/shared';
 import { formatCurrency } from '@/utils/currency';
 import { Avatar } from '../ui/Avatar';
 import { themeStore } from '@/app/stores/theme-store.ts';

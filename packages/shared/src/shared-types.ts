@@ -1,7 +1,14 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
-import * as admin from 'firebase-admin';
-import type { ColorPattern } from '../constants/user-colors';
+import type { ColorPattern } from './user-colors';
+
+// ========================================================================
+// Type aliases for Firebase types (browser-safe)
+// ========================================================================
+
+// Browser-safe type for Firestore Timestamp
+// In runtime, this will be either Date or firebase.firestore.Timestamp
+export type FirestoreTimestamp = Date | { toDate(): Date; seconds: number; nanoseconds: number };
 
 // ========================================================================
 // Constants
@@ -222,8 +229,8 @@ export interface User {
     email: string;
     displayName: string;
     role?: typeof UserRoles.ADMIN | typeof UserRoles.USER; // Role field for admin access control
-    termsAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
-    cookiePolicyAcceptedAt?: Date | admin.firestore.Timestamp; // Legacy timestamp field
+    termsAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
+    cookiePolicyAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
     themeColor?: UserThemeColor; // Automatic theme color assignment
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
@@ -778,8 +785,8 @@ export interface Comment {
     authorName: string;
     authorAvatar?: string;
     text: string;
-    createdAt: admin.firestore.Timestamp;
-    updatedAt: admin.firestore.Timestamp;
+    createdAt: FirestoreTimestamp;
+    updatedAt: FirestoreTimestamp;
 }
 
 export interface CommentApiResponse {

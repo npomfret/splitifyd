@@ -1,4 +1,4 @@
-import { SimplifiedDebt } from '../shared/shared-types';
+import { SimplifiedDebt } from '@splitifyd/shared';
 
 export interface UserBalance {
     userId: string;

@@ -5,10 +5,10 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '../shared/shared-types';
+import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
-import type { UserThemeColor } from '../shared/shared-types';
+import type { UserThemeColor } from '@splitifyd/shared';
 import { isGroupOwner as checkIsGroupOwner, isGroupMember } from '../utils/groupHelpers';
 
 const generateShareToken = (): string => {

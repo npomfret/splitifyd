@@ -7,7 +7,7 @@ import {Errors} from '../utils/errors';
 import {userService} from '../services/UserService';
 import {validateGroupId} from './validation';
 import {logger, LoggerContext} from '../logger';
-import {FirestoreCollections, Group, GroupMembersResponse, User} from '../shared/shared-types';
+import {FirestoreCollections, Group, GroupMembersResponse, User} from '@splitifyd/shared';
 import {calculateGroupBalances} from '../services/balanceCalculator';
 
 /**

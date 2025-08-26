@@ -9,7 +9,7 @@ import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
 import { formatCurrency } from '@/utils/currency';
-import type { ExpenseData, Group, User } from '@shared/shared-types';
+import type { ExpenseData, Group, User } from '@splitifyd/shared';
 import { logError } from '../utils/browser-logger';
 
 interface ExpenseDetailPageProps {

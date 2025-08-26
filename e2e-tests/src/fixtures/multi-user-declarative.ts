@@ -2,7 +2,7 @@ import { test as base, Page, BrowserContext } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 export interface PageObjects {
     login: LoginPage;

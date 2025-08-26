@@ -1,4 +1,4 @@
-import { GroupMember, UserThemeColor, MemberRoles, MemberStatuses } from '../../../shared/shared-types';
+import { GroupMember, UserThemeColor, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import type { ColorPattern } from '../../../constants/user-colors';
 
 export class GroupMemberBuilder {

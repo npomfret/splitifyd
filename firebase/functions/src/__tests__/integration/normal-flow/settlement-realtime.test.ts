@@ -6,7 +6,7 @@
 // This test documents a bug where the frontend doesn't refresh settlements
 
 import * as admin from 'firebase-admin';
-import { FirestoreCollections } from '../../../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { randomUUID } from 'crypto';

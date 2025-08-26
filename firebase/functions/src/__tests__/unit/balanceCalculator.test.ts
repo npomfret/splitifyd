@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
-import { SimplifiedDebt } from '../../shared/shared-types';
+import { SimplifiedDebt } from '@splitifyd/shared';
 import { UserProfile } from '../../services/UserService';
 import { ExpenseBuilder, SettlementBuilder } from '../support/builders';
 

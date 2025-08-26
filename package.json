@@ -5,7 +5,8 @@
         "firebase/functions",
         "webapp-v2",
         "test-support",
-        "e2e-tests"
+        "e2e-tests",
+        "packages/shared"
     ],
     "scripts": {
         "clean": "npm run clean -ws --if-present",

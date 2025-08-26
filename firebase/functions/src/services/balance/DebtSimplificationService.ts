@@ -1,5 +1,5 @@
 import { simplifyDebts } from '../../utils/debtSimplifier';
-import { SimplifiedDebt, UserBalance } from '../../shared/shared-types';
+import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { CurrencyBalances } from './types';
 
 export class DebtSimplificationService {

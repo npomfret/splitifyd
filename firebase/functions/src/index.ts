@@ -27,7 +27,7 @@ import { getUserProfile, updateUserProfile, changePassword, deleteUserAccount } 
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FirestoreCollections } from './shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';

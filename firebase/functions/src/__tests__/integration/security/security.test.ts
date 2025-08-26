@@ -8,7 +8,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { SecurityPresets } from '../../../shared/shared-types';
+import { SecurityPresets } from '@splitifyd/shared';
 
 describe('Comprehensive Security Test Suite', () => {
     const driver = new ApiDriver();

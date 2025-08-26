@@ -17,7 +17,7 @@ import {
     SecurityPresets,
     MemberRoles,
     MemberStatuses,
-} from '../shared/shared-types';
+} from '@splitifyd/shared';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from '../services/balance';

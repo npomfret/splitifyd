@@ -7,7 +7,7 @@ import {
     MemberRoles, 
     MemberStatuses,
     PermissionLevels 
-} from '../../shared/shared-types';
+} from '@splitifyd/shared';
 
 describe('PermissionEngine', () => {
     // Test data builders

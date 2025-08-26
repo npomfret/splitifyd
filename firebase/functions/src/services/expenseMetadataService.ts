@@ -1,4 +1,4 @@
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { firestoreDb } from '../firebase';
 

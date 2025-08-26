@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { firestoreDb } from '../../../firebase';
-import { FirestoreCollections } from '../../../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
 
 describe('Trigger Debug Tests', () => {

@@ -1,5 +1,5 @@
 import { signal, batch } from '@preact/signals';
-import type { Group, CreateGroupRequest } from '@shared/shared-types.ts';
+import type { Group, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { ChangeDetector } from '@/utils/change-detector.ts';

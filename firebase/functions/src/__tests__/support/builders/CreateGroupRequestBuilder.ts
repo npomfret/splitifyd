@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { User, CreateGroupRequest } from '../../../shared/shared-types';
+import type { User, CreateGroupRequest } from '@splitifyd/shared';
 
 export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;

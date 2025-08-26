@@ -2,7 +2,7 @@ import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
 import { Button } from '../ui/Button';
 import { ExpenseItem } from './ExpenseItem';
-import type { ExpenseData, User } from '@shared/shared-types.ts';
+import type { ExpenseData, User } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 
 interface ExpensesListProps {

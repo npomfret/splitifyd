@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { PolicyDocument, PolicyVersion, FirestoreCollections } from '../shared/shared-types';
+import { PolicyDocument, PolicyVersion, FirestoreCollections } from '@splitifyd/shared';
 import { validateCreatePolicy, validateUpdatePolicy, validatePublishPolicy } from './validation';
 
 /**

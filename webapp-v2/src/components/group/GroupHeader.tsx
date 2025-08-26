@@ -2,7 +2,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
-import { Group, groupSize } from '@shared/shared-types.ts';
+import { Group, groupSize } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 
 interface GroupHeaderProps {

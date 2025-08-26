@@ -23,7 +23,7 @@ import {
     User as BaseUser,
     UserPoliciesResponse,
     UserProfileResponse,
-} from '../../shared/shared-types';
+} from '@splitifyd/shared';
 import {API_BASE_URL, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
 import type {DocumentData} from "firebase-admin/firestore";
 import * as admin from "firebase-admin";

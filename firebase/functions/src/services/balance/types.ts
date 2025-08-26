@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { UserBalance, SimplifiedDebt } from '../../shared/shared-types';
+import { UserBalance, SimplifiedDebt } from '@splitifyd/shared';
 
 // Core entity interfaces - properly typed versions of data from Firestore
 export interface Expense {

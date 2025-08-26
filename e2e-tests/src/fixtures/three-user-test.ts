@@ -2,7 +2,7 @@ import { multiUserTest } from './multi-user-test';
 import type { MultiUserFixtures } from './multi-user-test';
 import type { Page } from '@playwright/test';
 import type { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage } from '../pages';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 export interface ThreeUserFixtures extends MultiUserFixtures {
     thirdUser: {

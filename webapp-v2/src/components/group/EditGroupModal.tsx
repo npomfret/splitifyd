@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
 import { Input, Button, Form } from '../ui';
 import { ConfirmDialog } from '@/components/ui';
-import type { Group } from '@shared/shared-types.ts';
+import type { Group } from '@splitifyd/shared';
 
 interface EditGroupModalProps {
     isOpen: boolean;

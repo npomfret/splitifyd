@@ -1,7 +1,7 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { admin, firestoreDb } from '../firebase';
 import { logger } from '../logger';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 /**
  * Clean up old change documents to prevent storage bloat

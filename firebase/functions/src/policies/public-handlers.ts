@@ -3,7 +3,7 @@ import { logger } from '../logger';
 import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 /**
  * GET /policies/current - List all current policy versions (public endpoint)

@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '@shared/shared-types.ts';
+import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';

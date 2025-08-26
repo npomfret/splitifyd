@@ -15,4 +15,4 @@ export {
     type PermissionChangeLog,
     type InviteLink,
     type PermissionCheckResult,
-} from '../shared/shared-types';
+} from '@splitifyd/shared';

@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { Button, ConfirmDialog, Alert } from '../ui';
-import type { ExpenseData } from '@shared/shared-types.ts';
+import type { ExpenseData } from '@splitifyd/shared';
 import { logError } from '@/utils/browser-logger.ts';
 
 interface ExpenseActionsProps {

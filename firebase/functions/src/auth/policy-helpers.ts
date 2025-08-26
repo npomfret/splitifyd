@@ -2,7 +2,7 @@ import { logger } from '../logger';
 import { ApiError } from '../utils/errors';
 import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 /**
  * Get current version hashes for all policies

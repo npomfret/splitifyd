@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'preact/hooks';
-import type { ExpenseCategory } from '@shared/shared-types.ts';
+import type { ExpenseCategory } from '@splitifyd/shared';
 
 interface CategorySuggestionInputProps {
     value: string;

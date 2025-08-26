@@ -5,7 +5,7 @@ import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
 import { validateRegisterRequest } from './validation';
 import { getCurrentPolicyVersions } from './policy-helpers';
-import { FirestoreCollections, UserRoles, AuthErrors } from '../shared/shared-types';
+import { FirestoreCollections, UserRoles, AuthErrors } from '@splitifyd/shared';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 

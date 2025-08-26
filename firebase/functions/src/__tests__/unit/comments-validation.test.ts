@@ -1,6 +1,6 @@
 import { validateCreateComment, validateListCommentsQuery, validateTargetId, validateCommentId } from '../../comments/validation';
 import { ApiError } from '../../utils/errors';
-import { CommentTargetTypes } from '../../shared/shared-types';
+import { CommentTargetTypes } from '@splitifyd/shared';
 
 describe('Comments Validation', () => {
     describe('validateCreateComment', () => {

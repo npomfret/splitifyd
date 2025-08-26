@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { logger } from '../logger';
 import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { LocalizedRequest } from '../utils/i18n';

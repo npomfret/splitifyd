@@ -12,7 +12,7 @@ import {v4 as uuidv4} from 'uuid';
 import {ApiDriver, User} from '../../support/ApiDriver';
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '../../support/builders';
 import {FirebaseIntegrationTestUserPool} from '../../support/FirebaseIntegrationTestUserPool';
-import {groupSize} from "../../../shared/shared-types";
+import {groupSize} from "@splitifyd/shared";
 
 describe('Comprehensive API Test Suite', () => {
     let driver: ApiDriver;

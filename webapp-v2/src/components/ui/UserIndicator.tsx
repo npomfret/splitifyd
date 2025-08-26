@@ -1,5 +1,5 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import type { User, UserThemeColor } from '@shared/shared-types';
+import type { User, UserThemeColor } from '@splitifyd/shared';
 
 interface UserIndicatorProps {
     user?: User;
