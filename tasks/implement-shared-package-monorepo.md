@@ -2,6 +2,7 @@
 
 **Status:** ✅ COMPLETED  
 **Updated:** 2025-08-26  
+**Commit:** `4fac5630` - refactor: migrate to @splitifyd/shared npm workspace package  
 **Progress:** All phases complete
 
 ## Implementation Summary
@@ -9,13 +10,17 @@
 Successfully migrated from TypeScript path aliases to a proper npm workspace package `@splitifyd/shared`. The implementation:
 
 1. **Created browser-safe shared package** with dual ESM/CJS builds using tsup
-2. **Migrated all imports** across Firebase functions, webapp, and e2e-tests to use `@splitifyd/shared`
+2. **Migrated all imports** across 145 files in Firebase functions, webapp, and e2e-tests to use `@splitifyd/shared`
 3. **Resolved key challenges**:
    - Replaced `firebase-admin.firestore.Timestamp` with browser-safe `FirestoreTimestamp` type
    - Fixed Vite build issues by configuring proper file extensions (.mjs/.cjs)
-   - Used `"*"` dependency version since npm doesn't support `"workspace:*"` protocol
-4. **Clean architecture**: Removed all path aliases and deleted the old shared directory
-5. **Production-ready**: Created staging deployment script for Firebase compatibility
+   - Used `"*"` dependency version (not `"workspace:*"` as npm doesn't support it)
+   - Replaced rimraf with `rm -rf` for better compatibility (commits `8b995282`, `55a89c9e`)
+4. **Clean architecture**: 
+   - Removed all path aliases from tsconfig.json files
+   - Deleted the old shared directory at `firebase/functions/src/shared`
+   - Removed `@shared` alias from vite.config.ts and vitest.config.ts
+5. **Production-ready**: Created staging deployment script at `firebase/scripts/prepare-functions-deploy.js`
 
 All tests pass, builds succeed, and the project structure is now cleaner and more maintainable.
 
