@@ -3,6 +3,30 @@ import { vi } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import type { Group, User } from '@splitifyd/shared';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, values?: any) => {
+            // Return appropriate test strings based on the key
+            const translations: Record<string, string | ((vals: any) => string)> = {
+                'groupCard.settledUp': 'Settled up',
+                'groupCard.youreOwed': (vals: any) => `You're owed ${vals.amount}`,
+                'groupCard.youOwe': (vals: any) => `You owe ${vals.amount}`,
+                'groupCard.members': 'members',
+                'groupCard.member': 'member',
+                'groupCard.noRecentActivity': 'No recent activity',
+                'groupCard.addExpenseTooltip': (vals: any) => `Add expense to ${vals.groupName}`,
+                'groupCard.inviteTooltip': (vals: any) => `Invite to ${vals.groupName}`,
+            };
+            const translation = translations[key];
+            if (typeof translation === 'function' && values) {
+                return translation(values);
+            }
+            return translation || key;
+        },
+    }),
+}));
+
 // Helper to create a test group member
 function createTestGroupMember(role: 'admin' | 'member' | 'viewer' = 'member', colorIndex = 0) {
     return {
