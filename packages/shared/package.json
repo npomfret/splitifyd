@@ -17,14 +17,13 @@
   "scripts": {
     "build": "tsup",
     "watch": "tsup --watch",
-    "clean": "rimraf dist",
+    "clean": "rm -rf dist",
     "test:unit": "echo 'No unit tests for shared package'",
     "test:integration": "echo 'No integration tests for shared package'"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
-    "typescript": "^5.8.3",
-    "rimraf": "^5.0.0"
+    "typescript": "^5.8.3"
   },
   "publishConfig": {
     "access": "public"
