@@ -1,4 +1,4 @@
-import {getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 
 const config = getFirebaseEmulatorConfig();
 
