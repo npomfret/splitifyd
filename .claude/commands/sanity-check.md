@@ -1,5 +1,7 @@
 # Sanity check
 
+First, read all md files in docs/guides/ from the project root - study them, they are extremely important.
+
 Analyse the current changeset...
 
 - [ ] is it sufficiently tested? 
