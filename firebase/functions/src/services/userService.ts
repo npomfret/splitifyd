@@ -1,4 +1,9 @@
 import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
+import { firestoreDb } from '../firebase';
+import { FirestoreCollections } from '../shared/shared-types';
+import { logger } from '../logger';
+import { Errors } from '../utils/errors';
 
 /**
  * User profile interface for consistent user data across the application
@@ -7,6 +12,12 @@ export interface UserProfile {
     uid: string;
     email: string;
     displayName: string;
+    photoURL: string | null;
+    emailVerified: boolean;
+    themeColor?: string;
+    preferredLanguage?: string;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
 }
 
 /**
@@ -14,6 +25,75 @@ export interface UserProfile {
  */
 export class UserService {
     private cache = new Map<string, UserProfile>();
+
+    /**
+     * Validates that a user record has all required fields
+     * @throws Error if required fields are missing
+     */
+    private validateUserRecord(userRecord: admin.auth.UserRecord): asserts userRecord is admin.auth.UserRecord & { email: string; displayName: string } {
+        if (!userRecord.email || !userRecord.displayName) {
+            throw new Error(`User ${userRecord.uid} missing required fields: email and displayName are mandatory`);
+        }
+    }
+
+    /**
+     * Creates a UserProfile from Firebase Auth record and Firestore data
+     */
+    private createUserProfile(userRecord: admin.auth.UserRecord & { email: string; displayName: string }, firestoreData: any): UserProfile {
+        return {
+            uid: userRecord.uid,
+            email: userRecord.email,
+            displayName: userRecord.displayName,
+            photoURL: userRecord.photoURL || null,
+            emailVerified: userRecord.emailVerified,
+            themeColor: firestoreData?.themeColor,
+            preferredLanguage: firestoreData?.preferredLanguage,
+            createdAt: firestoreData?.createdAt,
+            updatedAt: firestoreData?.updatedAt,
+        };
+    }
+
+    /**
+     * Get a single user's profile by their ID
+     * @param userId - The Firebase UID of the user
+     * @returns The user's profile data
+     * @throws If user is not found or an error occurs
+     */
+    async getUser(userId: string): Promise<UserProfile> {
+        // Check cache first
+        if (this.cache.has(userId)) {
+            return this.cache.get(userId)!;
+        }
+
+        try {
+            // Get user from Firebase Auth
+            const userRecord = await admin.auth().getUser(userId);
+
+            // Ensure required fields are present
+            this.validateUserRecord(userRecord);
+
+            // Get additional user data from Firestore
+            const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
+            const userData = userDoc.data();
+
+            const profile = this.createUserProfile(userRecord, userData);
+
+            // Cache the result
+            this.cache.set(userId, profile);
+
+            return profile;
+        } catch (error) {
+            // Check if error is from Firebase Auth (user not found)
+            if ((error as any).code === 'auth/user-not-found') {
+                logger.error('User not found in Firebase Auth', { userId });
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            logger.error('Failed to get user profile', { error, userId });
+            throw error;
+        }
+    }
+
     /**
      * Get multiple user profiles by UIDs (batch operation)
      */
@@ -50,15 +130,14 @@ export class UserService {
 
         // Process found users
         for (const userRecord of getUsersResult.users) {
-            if (!userRecord.email || !userRecord.displayName) {
-                throw new Error(`User ${userRecord.uid} missing required fields: email and displayName are mandatory`);
-            }
+            // Ensure required fields are present
+            this.validateUserRecord(userRecord);
 
-            const profile: UserProfile = {
-                uid: userRecord.uid,
-                email: userRecord.email,
-                displayName: userRecord.displayName,
-            };
+            // Fetch Firestore data for this user
+            const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).get();
+            const userData = userDoc.data();
+
+            const profile = this.createUserProfile(userRecord, userData);
 
             // Cache and add to result
             this.cache.set(userRecord.uid, profile);

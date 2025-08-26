@@ -1,17 +1,17 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
 import { SimplifiedDebt } from '../../shared/shared-types';
-import { UserProfile } from '../../services/userService';
+import { UserProfile } from '../../services/UserService';
 import { ExpenseBuilder, SettlementBuilder } from '../support/builders';
 
 // Mock dependencies
 jest.mock('../../firebase', () => ({
-    db: {
+    firestoreDb: {
         collection: jest.fn(),
     },
 }));
 
-jest.mock('../../services/userService', () => ({
+jest.mock('../../services/UserService', () => ({
     userService: {
         getUsers: jest.fn(),
     },
@@ -23,7 +23,7 @@ jest.mock('../../utils/debtSimplifier', () => ({
 
 // Import mocked dependencies
 import { firestoreDb } from '../../firebase';
-import { userService } from '../../services/userService';
+import { userService } from '../../services/UserService';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
 // Type the mocked functions
@@ -45,7 +45,7 @@ function createFirestoreExpense(overrides: Partial<any> = {}) {
 function createFirestoreSettlement(overrides: Partial<any> = {}) {
     const testSettlement = new SettlementBuilder().build();
     return {
-        id: 'settlement-1', 
+        id: 'settlement-1',
         createdAt: Timestamp.now(),
         ...testSettlement,
         ...overrides
@@ -89,8 +89,20 @@ const mockGroup = {
 
 // Mock user profiles
 const mockUsers: UserProfile[] = [
-    { uid: 'user-1', displayName: 'User One', email: 'user1@test.com' },
-    { uid: 'user-2', displayName: 'User Two', email: 'user2@test.com' }
+    {
+        uid: 'user-1',
+        displayName: 'User One',
+        email: 'user1@test.com',
+        photoURL: null,
+        emailVerified: true
+    },
+    {
+        uid: 'user-2',
+        displayName: 'User Two',
+        email: 'user2@test.com',
+        photoURL: null,
+        emailVerified: true
+    }
 ];
 
 describe('calculateGroupBalances', () => {
@@ -98,14 +110,14 @@ describe('calculateGroupBalances', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        
+
         mockGet = jest.fn();
         mockDb.collection.mockReturnValue({
             where: jest.fn().mockReturnThis(),
             get: mockGet,
             doc: jest.fn().mockReturnThis()
         } as any);
-        
+
         const userMap = new Map<string, UserProfile>();
         mockUsers.forEach(user => userMap.set(user.uid, user));
         mockUserService.getUsers.mockResolvedValue(userMap);
@@ -406,7 +418,7 @@ describe('calculateGroupBalances', () => {
 
     describe('data structure validation', () => {
         it('should include all required fields in response', async () => {
-            const expense = createFirestoreExpense({ 
+            const expense = createFirestoreExpense({
                 amount: 100,
                 splits: [
                     { userId: 'user-1', amount: 50 },
@@ -454,11 +466,11 @@ describe('calculateGroupBalances', () => {
     describe('integration with external services', () => {
         it('should call simplifyDebts with correct debt array', async () => {
             const mockSimplifiedDebts: SimplifiedDebt[] = [
-                { 
-                    from: { userId: 'user-2' }, 
-                    to: { userId: 'user-1' }, 
-                    amount: 50, 
-                    currency: 'USD' 
+                {
+                    from: { userId: 'user-2' },
+                    to: { userId: 'user-1' },
+                    amount: 50,
+                    currency: 'USD'
                 }
             ];
             mockSimplifyDebts.mockReturnValue(mockSimplifiedDebts);
@@ -485,7 +497,7 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should fetch user profiles correctly', async () => {
-            const expense = createFirestoreExpense({ 
+            const expense = createFirestoreExpense({
                 amount: 100,
                 splits: [
                     { userId: 'user-1', amount: 50 },
