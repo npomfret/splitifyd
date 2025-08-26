@@ -63,7 +63,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             }
             setValidationError(null);
         }
-    }, [isOpen, preselectedDebt, currentUser]);
+    }, [isOpen]); // Only watch isOpen to prevent form reset on prop updates
 
     useEffect(() => {
         if (!isOpen) return;

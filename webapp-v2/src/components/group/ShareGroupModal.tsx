@@ -25,7 +25,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
             // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
             generateLink();
         }
-    }, [isOpen, groupId]);
+    }, [isOpen]); // Only watch isOpen to prevent regenerating link on groupId updates
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {

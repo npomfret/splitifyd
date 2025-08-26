@@ -198,6 +198,27 @@ export class SettlementFormPage extends BasePage {
         // Fill amount and note
         await this.fillPreactInput(amountInput, settlement.amount);
         await this.fillPreactInput(noteInput, settlement.note);
+        
+        // Defensive check: verify the values persisted (catches real-time update bug)
+        // Brief wait to allow any potential real-time updates to arrive
+        await this.page.waitForTimeout(100);
+        const currentAmount = await amountInput.inputValue();
+        const currentNote = await noteInput.inputValue();
+        const currentPayer = await payerSelect.inputValue();
+        const currentPayee = await payeeSelect.inputValue();
+        
+        if (currentAmount !== settlement.amount) {
+            throw new Error(`Form field was reset! Expected amount "${settlement.amount}" but got "${currentAmount}". This indicates a real-time update bug where the modal resets user input.`);
+        }
+        if (currentNote !== settlement.note) {
+            throw new Error(`Form field was reset! Expected note "${settlement.note}" but got "${currentNote}". This indicates a real-time update bug where the modal resets user input.`);
+        }
+        if (currentPayer !== payerValue) {
+            throw new Error(`Form field was reset! Expected payer value "${payerValue}" but got "${currentPayer}". This indicates a real-time update bug where the modal resets user input.`);
+        }
+        if (currentPayee !== payeeValue) {
+            throw new Error(`Form field was reset! Expected payee value "${payeeValue}" but got "${currentPayee}". This indicates a real-time update bug where the modal resets user input.`);
+        }
 
         // Submit the form
         const submitButton = this.getRecordPaymentButton();
