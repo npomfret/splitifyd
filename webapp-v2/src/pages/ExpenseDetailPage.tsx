@@ -7,6 +7,7 @@ import { LoadingSpinner, Card, Button, Avatar } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { SplitBreakdown } from '../components/expense/SplitBreakdown';
 import { ExpenseActions } from '../components/expense/ExpenseActions';
+import { CommentsSection } from '@/components/comments';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
 import { formatCurrency } from '@/utils/currency';
 import type { ExpenseData, Group, User } from '@splitifyd/shared';
@@ -252,6 +253,18 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         {/* Split Information - Kept Separate */}
                         <Card>
                             <SplitBreakdown expense={expense.value} members={members.value} />
+                        </Card>
+
+                        {/* Comments Section */}
+                        <Card>
+                            <Stack spacing="md">
+                                <h3 className="font-semibold text-gray-900 dark:text-white">Discussion</h3>
+                                <CommentsSection 
+                                    targetType="expense" 
+                                    targetId={expenseId!}
+                                    maxHeight="300px"
+                                />
+                            </Stack>
                         </Card>
 
                         {/* Receipt - Kept Separate */}

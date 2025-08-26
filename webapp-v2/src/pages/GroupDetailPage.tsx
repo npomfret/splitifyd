@@ -10,6 +10,7 @@ import { Stack } from '@/components/ui';
 import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
+import { CommentsSection } from '@/components/comments';
 import { logError, logInfo } from '../utils/browser-logger';
 import type { SettlementListItem } from '@splitifyd/shared';
 
@@ -245,6 +246,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 rightSidebar={
                     <>
                         <BalanceSummary balances={balances.value} members={members.value} variant="sidebar" />
+
+                        {/* Comments Section */}
+                        <SidebarCard title="Comments" className="flex-1">
+                            <CommentsSection 
+                                targetType="group" 
+                                targetId={groupId!} 
+                                maxHeight="300px"
+                            />
+                        </SidebarCard>
 
                         {/* Settlement History Section */}
                         <SidebarCard title="Payment History">

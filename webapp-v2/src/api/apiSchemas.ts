@@ -299,6 +299,37 @@ export const ListSettlementsResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
+// Comment schemas
+export const CommentSchema = z.object({
+    id: z.string().min(1),
+    authorId: z.string().min(1),
+    authorName: z.string().min(1),
+    authorAvatar: z.string().optional(),
+    text: z.string().min(1).max(500),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+});
+
+export const CreateCommentRequestSchema = z.object({
+    text: z.string().min(1).max(500),
+});
+
+export const ListCommentsResponseSchema = z.object({
+    comments: z.array(CommentSchema),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
+});
+
+export const CreateCommentResponseSchema = z.object({
+    success: z.boolean(),
+    data: CommentSchema,
+});
+
+export const ListCommentsApiResponseSchema = z.object({
+    success: z.boolean(),
+    data: ListCommentsResponseSchema,
+});
+
 // User profile schemas
 export const UserProfileResponseSchema = z.object({
     uid: z.string().min(1),
@@ -342,6 +373,11 @@ export const responseSchemas = {
         data: ListSettlementsResponseSchema,
     }),
     '/settlements/:settlementId': SettlementListItemSchema,
+    // Comment endpoints
+    'POST /groups/:groupId/comments': CreateCommentResponseSchema,
+    'GET /groups/:groupId/comments': ListCommentsApiResponseSchema,
+    'POST /expenses/:expenseId/comments': CreateCommentResponseSchema,
+    'GET /expenses/:expenseId/comments': ListCommentsApiResponseSchema,
     // User profile endpoints
     'GET /user/profile': UserProfileResponseSchema,
     'PUT /user/profile': UserProfileResponseSchema,

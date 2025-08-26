@@ -42,6 +42,9 @@ import type {
     AcceptPolicyRequest,
     CreateSettlementResponse,
     ListSettlementsApiResponse,
+    CommentApiResponse,
+    CreateCommentResponse,
+    ListCommentsApiResponse,
 } from '@splitifyd/shared';
 
 // All types are now imported from shared-types
@@ -897,6 +900,53 @@ export class ApiClient {
         return this.request({
             endpoint: '/user/account',
             method: 'DELETE',
+        });
+    }
+
+    // Comment methods
+    async createGroupComment(groupId: string, text: string): Promise<CommentApiResponse> {
+        const response = await this.request<CreateCommentResponse>({
+            endpoint: '/groups/:groupId/comments',
+            method: 'POST',
+            params: { groupId },
+            body: { text },
+        });
+        return response.data;
+    }
+
+    async createExpenseComment(expenseId: string, text: string): Promise<CommentApiResponse> {
+        const response = await this.request<CreateCommentResponse>({
+            endpoint: '/expenses/:expenseId/comments',
+            method: 'POST',
+            params: { expenseId },
+            body: { text },
+        });
+        return response.data;
+    }
+
+    async listGroupComments(groupId: string, options?: { cursor?: string; limit?: number }): Promise<ListCommentsApiResponse> {
+        const query: Record<string, string> = {};
+        if (options?.cursor) query.cursor = options.cursor;
+        if (options?.limit) query.limit = options.limit.toString();
+        
+        return this.request({
+            endpoint: '/groups/:groupId/comments',
+            method: 'GET',
+            params: { groupId },
+            query: Object.keys(query).length > 0 ? query : undefined,
+        });
+    }
+
+    async listExpenseComments(expenseId: string, options?: { cursor?: string; limit?: number }): Promise<ListCommentsApiResponse> {
+        const query: Record<string, string> = {};
+        if (options?.cursor) query.cursor = options.cursor;
+        if (options?.limit) query.limit = options.limit.toString();
+        
+        return this.request({
+            endpoint: '/expenses/:expenseId/comments',
+            method: 'GET',
+            params: { expenseId },
+            query: Object.keys(query).length > 0 ? query : undefined,
         });
     }
 }

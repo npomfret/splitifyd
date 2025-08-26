@@ -39,7 +39,7 @@ export function usePolicyAcceptance(): PolicyAcceptanceState {
             const response = await apiClient.getUserPolicyStatus();
 
             setNeedsAcceptance(response.needsAcceptance);
-            setPendingPolicies(response.policies.filter((p) => p.needsAcceptance));
+            setPendingPolicies(response.policies.filter((p: PolicyAcceptanceStatus) => p.needsAcceptance));
             setTotalPending(response.totalPending);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error';
