@@ -1,25 +1,36 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { ChangeDetector } from '@/utils/change-detector';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { getDb } from '@/app/firebase';
-import { FirestoreCollections } from '@splitifyd/shared';
+import { FirestoreCollections } from '@shared/shared-types';
 
-// Mock Firebase
-vi.mock('firebase/firestore');
-vi.mock('../../app/firebase');
+// Create mock functions that will be used in the tests
+const mockCollection = vi.fn();
+const mockQuery = vi.fn();
+const mockWhere = vi.fn();
+const mockOnSnapshot = vi.fn();
+const mockGetDb = vi.fn();
 
-const mockCollection = vi.mocked(collection);
-const mockQuery = vi.mocked(query);
-const mockWhere = vi.mocked(where);
-const mockOnSnapshot = vi.mocked(onSnapshot);
-const mockGetDb = vi.mocked(getDb);
+// Mock Firebase with factory functions to avoid hoisting issues
+vi.mock('firebase/firestore', () => ({
+    collection: vi.fn(),
+    query: vi.fn(),
+    where: vi.fn(),
+    onSnapshot: vi.fn(),
+}));
+
+vi.mock('@/app/firebase', () => ({
+    getDb: vi.fn(),
+}));
 
 // Mock browser logger
-vi.mock('../../utils/browser-logger', () => ({
+vi.mock('@/utils/browser-logger', () => ({
     logInfo: vi.fn(),
     logWarning: vi.fn(),
     logError: vi.fn(),
 }));
+
+// Import after mocking to get the mocked versions
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getDb } from '@/app/firebase';
 
 describe('ChangeDetector', () => {
     let changeDetector: ChangeDetector;
@@ -35,13 +46,13 @@ describe('ChangeDetector', () => {
         mockQueryRef = { id: 'mock-query' };
         mockUnsubscribe = vi.fn();
 
-        mockGetDb.mockReturnValue({} as any);
-        mockCollection.mockReturnValue(mockCollectionRef);
-        mockQuery.mockReturnValue(mockQueryRef);
-        mockWhere.mockReturnValue({} as any);
+        vi.mocked(getDb).mockReturnValue({} as any);
+        vi.mocked(collection).mockReturnValue(mockCollectionRef);
+        vi.mocked(query).mockReturnValue(mockQueryRef);
+        vi.mocked(where).mockReturnValue({} as any);
 
         // Default mock implementation that can be overridden in individual tests
-        mockOnSnapshot.mockImplementation((_, _callback, _errorCallback) => {
+        vi.mocked(onSnapshot).mockImplementation((_, _callback, _errorCallback) => {
             return mockUnsubscribe;
         });
 
@@ -55,10 +66,10 @@ describe('ChangeDetector', () => {
 
             const unsubscribe = changeDetector.subscribeToGroupChanges(userId, callback);
 
-            expect(mockCollection).toHaveBeenCalledWith({}, FirestoreCollections.GROUP_CHANGES);
-            expect(mockQuery).toHaveBeenCalledWith(mockCollectionRef, {});
-            expect(mockWhere).toHaveBeenCalledWith('users', 'array-contains', userId);
-            expect(mockOnSnapshot).toHaveBeenCalled();
+            expect(collection).toHaveBeenCalledWith({}, FirestoreCollections.GROUP_CHANGES);
+            expect(query).toHaveBeenCalledWith(mockCollectionRef, {});
+            expect(where).toHaveBeenCalledWith('users', 'array-contains', userId);
+            expect(onSnapshot).toHaveBeenCalled();
             expect(typeof unsubscribe).toBe('function');
         });
 
@@ -68,7 +79,7 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
@@ -96,7 +107,7 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
@@ -124,7 +135,7 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the error handler
             let capturedErrorHandler: ((error: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedErrorHandler = _errorCallback;
                 return mockUnsubscribe;
             });
@@ -146,8 +157,8 @@ describe('ChangeDetector', () => {
 
             changeDetector.subscribeToExpenseChanges(groupId, callback);
 
-            expect(mockCollection).toHaveBeenCalledWith({}, FirestoreCollections.TRANSACTION_CHANGES);
-            expect(mockWhere).toHaveBeenCalledWith('groupId', '==', groupId);
+            expect(collection).toHaveBeenCalledWith({}, FirestoreCollections.TRANSACTION_CHANGES);
+            expect(where).toHaveBeenCalledWith('groupId', '==', groupId);
         });
     });
 
@@ -158,8 +169,8 @@ describe('ChangeDetector', () => {
 
             changeDetector.subscribeToBalanceChanges(groupId, callback);
 
-            expect(mockCollection).toHaveBeenCalledWith({}, FirestoreCollections.BALANCE_CHANGES);
-            expect(mockWhere).toHaveBeenCalledWith('groupId', '==', groupId);
+            expect(collection).toHaveBeenCalledWith({}, FirestoreCollections.BALANCE_CHANGES);
+            expect(where).toHaveBeenCalledWith('groupId', '==', groupId);
         });
     });
 
@@ -171,7 +182,7 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
@@ -180,7 +191,7 @@ describe('ChangeDetector', () => {
             changeDetector.subscribeToGroupChanges(userId, callback2);
 
             // Should only create one listener
-            expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
+            expect(onSnapshot).toHaveBeenCalledTimes(1);
 
             // Trigger snapshot to test both callbacks are called
             const mockSnapshot = {
@@ -224,7 +235,7 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
@@ -256,7 +267,7 @@ describe('ChangeDetector', () => {
             changeDetector.subscribeToGroupChanges(userId2, callback2);
 
             // Should create two separate listeners
-            expect(mockOnSnapshot).toHaveBeenCalledTimes(2);
+            expect(onSnapshot).toHaveBeenCalledTimes(2);
         });
     });
 
@@ -274,7 +285,7 @@ describe('ChangeDetector', () => {
             changeDetector.subscribeToGroupChanges(userId2, callback2);
             changeDetector.subscribeToExpenseChanges(groupId, callback3);
 
-            expect(mockOnSnapshot).toHaveBeenCalledTimes(3);
+            expect(onSnapshot).toHaveBeenCalledTimes(3);
 
             changeDetector.dispose();
 
@@ -299,7 +310,7 @@ describe('ChangeDetector', () => {
 
             // Mock onSnapshot to capture the success callback
             let capturedCallback: ((snapshot: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedCallback = _successCallback as any;
                 return mockUnsubscribe;
             });
@@ -358,7 +369,7 @@ describe('ChangeDetector', () => {
 
             // Mock an error in the listener
             let capturedErrorHandler: ((error: any) => void) | undefined;
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 capturedErrorHandler = _errorCallback;
                 return mockUnsubscribe;
             });
@@ -386,7 +397,7 @@ describe('ChangeDetector', () => {
             let attemptCount = 0;
 
             // Mock onSnapshot to fail first 2 times, succeed on 3rd
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 attemptCount++;
                 if (attemptCount <= 2) {
                     // Simulate immediate error
@@ -424,7 +435,7 @@ describe('ChangeDetector', () => {
 
             let failureCount = 0;
             // Mock onSnapshot to always fail
-            mockOnSnapshot.mockImplementation((_, _successCallback, _errorCallback) => {
+            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
                 failureCount++;
                 // Immediately trigger the error
                 if (errorCallback) {
@@ -472,7 +483,7 @@ describe('ChangeDetector', () => {
             const unsubscribeBalance = changeDetector.subscribeToBalanceChanges(groupId, balanceCallback);
 
             // Should create 3 separate listeners
-            expect(mockOnSnapshot).toHaveBeenCalledTimes(3);
+            expect(onSnapshot).toHaveBeenCalledTimes(3);
 
             // All should return unsubscribe functions
             expect(typeof unsubscribeGroup).toBe('function');
@@ -490,7 +501,7 @@ describe('ChangeDetector', () => {
                 unsubscribes.push(unsubscribe);
             });
 
-            expect(mockOnSnapshot).toHaveBeenCalledTimes(10);
+            expect(onSnapshot).toHaveBeenCalledTimes(10);
 
             // Unsubscribe half of them
             unsubscribes.slice(0, 5).forEach((unsub) => unsub());

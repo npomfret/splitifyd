@@ -1,15 +1,19 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
-import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
-import { apiClient } from '@/app/apiClient';
-import { ChangeDetector } from '@/utils/change-detector';
 import type { CreateGroupRequest, Group, ListGroupsResponse } from '@shared/shared-types';
 
-// Create mock instance that will be returned by ChangeDetector constructor
-const mockChangeDetectorInstance = {
-    subscribeToGroupChanges: vi.fn(() => vi.fn()),
-    subscribeToExpenseChanges: vi.fn(() => vi.fn()),
-    subscribeToBalanceChanges: vi.fn(() => vi.fn()),
-    dispose: vi.fn(),
+// Create a mock factory that will provide access to the instance
+const mockChangeDetectorModule = {
+    instance: null as any,
+    createInstance: () => {
+        const instance = {
+            subscribeToGroupChanges: vi.fn(() => vi.fn()),
+            subscribeToExpenseChanges: vi.fn(() => vi.fn()),
+            subscribeToBalanceChanges: vi.fn(() => vi.fn()),
+            dispose: vi.fn(),
+        };
+        mockChangeDetectorModule.instance = instance;
+        return instance;
+    },
 };
 
 // Mock the API client
@@ -37,11 +41,31 @@ vi.mock('@/utils/browser-logger', () => ({
     logInfo: vi.fn(),
 }));
 
-// Mock the ChangeDetector
-vi.mock('@/utils/change-detector');
+// Mock streaming-metrics
+vi.mock('@/utils/streaming-metrics', () => ({
+    streamingMetrics: {
+        trackRestRefresh: vi.fn(),
+        trackStreamUpdate: vi.fn(),
+    },
+}));
 
-// Set up the ChangeDetector mock implementation
-vi.mocked(ChangeDetector).mockImplementation(() => mockChangeDetectorInstance as any);
+// Mock the ChangeDetector before importing the store
+vi.mock('@/utils/change-detector', () => ({
+    ChangeDetector: class {
+        subscribeToGroupChanges = vi.fn(() => vi.fn());
+        subscribeToExpenseChanges = vi.fn(() => vi.fn());
+        subscribeToBalanceChanges = vi.fn(() => vi.fn());
+        dispose = vi.fn();
+    },
+}));
+
+// Import after mocks are set up
+import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
+import { apiClient } from '@/app/apiClient';
+import { ChangeDetector } from '@/utils/change-detector';
+
+// Get the mock instance created by the store
+const mockChangeDetectorInstance = (enhancedGroupsStore as any).changeDetector;
 
 // Helper to create test groups
 function createTestGroup(overrides: Partial<Group> = {}): Group {
@@ -355,6 +379,10 @@ describe('EnhancedGroupsStore', () => {
             });
 
             vi.mocked(apiClient).createGroup.mockResolvedValueOnce(mockCreatedGroup);
+            
+            // Mock the subsequent fetchGroups call to include the new group
+            const responseWithNewGroup = createTestResponseWithMetadata([mockCreatedGroup]);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(responseWithNewGroup);
 
             const result = await enhancedGroupsStore.createGroup(groupRequest);
 
@@ -373,6 +401,10 @@ describe('EnhancedGroupsStore', () => {
             // Create new group
             const newGroup = createTestGroup({ id: 'new-group' });
             vi.mocked(apiClient).createGroup.mockResolvedValueOnce(newGroup);
+            
+            // Mock the subsequent fetchGroups call to include both groups
+            const responseWithBothGroups = createTestResponseWithMetadata([newGroup, existingGroup]);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(responseWithBothGroups);
 
             await enhancedGroupsStore.createGroup({ name: 'New Group' });
 
