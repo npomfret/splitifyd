@@ -17,13 +17,13 @@
 
 ### Phase 1: Refactor User Management
 
-**Goal**: Extract all user-related business logic into a new `UserService`.
+**Goal**: Extract all user-related business logic into a new `UserService2`.
 
-1.  **Task 1.1: Create `UserService` with `getUser`**: ✅ **COMPLETED** (2025-08-26)
-    *   ✅ Created `src/services/UserService.ts` (renamed from existing `userService.ts`)
+1.  **Task 1.1: Create `UserService2` with `getUser`**: ✅ **COMPLETED** (2025-08-26)
+    *   ✅ Created `src/services/UserService2.ts` (renamed from existing `UserService2.ts`)
     *   ✅ Implemented a `getUser` method that fetches a user's profile from Firebase Auth + Firestore
-    *   ✅ Wrote comprehensive unit tests for `UserService.getUser` (8 tests total)
-    *   ✅ Refactored the `getUserProfile` handler to use `UserService.getUser`
+    *   ✅ Wrote comprehensive unit tests for `UserService2.getUser` (8 tests total)
+    *   ✅ Refactored the `getUserProfile` handler to use `UserService2.getUser`
     *   ✅ Fixed all import paths across the codebase
     *   **Improvements made during review:**
         - Added missing test cases for users without email/displayName
@@ -32,20 +32,20 @@
         - Used TypeScript assertion signature for proper type narrowing
     *   **All tests passing, build successful**
 
-2.  **Task 1.2: Move User Registration to `UserService`**: ✅ **COMPLETED** (2025-08-26)
-    *   ✅ Implemented a `registerUser` method in `UserService`
-    *   ✅ Wrote comprehensive unit tests for `UserService.registerUser` (9 test cases covering all scenarios)
-    *   ✅ Refactored the `/register` handler to use `UserService.registerUser`
+2.  **Task 1.2: Move User Registration to `UserService2`**: ✅ **COMPLETED** (2025-08-26)
+    *   ✅ Implemented a `registerUser` method in `UserService2`
+    *   ✅ Wrote comprehensive unit tests for `UserService2.registerUser` (9 test cases covering all scenarios)
+    *   ✅ Refactored the `/register` handler to use `UserService2.registerUser`
     *   ✅ Updated and ran all relevant integration tests (all registration tests passing)
     *   **Key improvements:**
-        - Centralized registration logic in UserService
+        - Centralized registration logic in UserService2
         - Maintained all existing functionality (validation, policy acceptance, theme color assignment)
         - Proper error handling including orphaned user cleanup
         - Clean separation of concerns between handler and service layer
     *   **All tests passing, build successful**
 
-3.  **Task 1.3: Move other user operations to `UserService`**:
-    *   Incrementally move the remaining user operations (update profile, change password, etc.) into `UserService`, following the same pattern of unit tests, refactoring, and integration tests for each.
+3.  **Task 1.3: Move other user operations to `UserService2`**:
+    *   Incrementally move the remaining user operations (update profile, change password, etc.) into `UserService2`, following the same pattern of unit tests, refactoring, and integration tests for each.
 
 ### Phase 2: Refactor Group Management (Read Operations)
 

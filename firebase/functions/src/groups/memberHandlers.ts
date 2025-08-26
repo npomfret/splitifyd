@@ -4,7 +4,7 @@ import {FieldValue} from 'firebase-admin/firestore';
 import {firestoreDb} from '../firebase';
 import {AuthenticatedRequest} from '../auth/middleware';
 import {Errors} from '../utils/errors';
-import {userService} from '../services/userService';
+import {userService} from '../services/UserService2';
 import {validateGroupId} from './validation';
 import {logger, LoggerContext} from '../logger';
 import {FirestoreCollections, Group, GroupMembersResponse, User} from '@splitifyd/shared';

@@ -21,7 +21,7 @@ import {
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from '../services/balance';
-import { userService } from '../services/userService';
+import { userService } from '../services/UserService2';
 import { PermissionEngine } from '../permissions';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
