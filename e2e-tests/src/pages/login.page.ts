@@ -47,7 +47,7 @@ export class LoginPage extends BasePage {
 
         // Simple approach: just wait for the form submission to complete
         // The AuthenticationWorkflow will handle waiting for dashboard
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async clickSignUp() {

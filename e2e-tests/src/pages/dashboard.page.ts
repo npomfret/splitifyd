@@ -15,7 +15,7 @@ export class DashboardPage extends BasePage {
 
     async navigate() {
         await this.page.goto(this.url);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async isLoggedIn(): Promise<boolean> {
@@ -62,7 +62,7 @@ export class DashboardPage extends BasePage {
 
     async waitForUserMenu(): Promise<void> {
         // Wait for authentication state to be fully loaded first
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
 
         // Ensure we're logged in by checking for either welcome message (new users) or groups heading
         // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
@@ -100,7 +100,7 @@ export class DashboardPage extends BasePage {
         await this.page.waitForURL(/\/dashboard\/?$/);
 
         // Wait for the dashboard to be fully loaded
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
 
         // Wait for the main dashboard content to appear
         await this.page.locator('h3:has-text("Your Groups")').waitFor();

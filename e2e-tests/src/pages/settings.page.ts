@@ -161,7 +161,7 @@ export class SettingsPage extends BasePage {
         const updateButton = this.getUpdatePasswordButton();
         await this.clickButton(updateButton, { buttonName: this.updatePasswordButtonText });
         
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async changePassword(currentPassword: string, newPassword: string, confirmPassword?: string): Promise<void> {

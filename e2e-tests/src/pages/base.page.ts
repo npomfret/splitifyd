@@ -204,7 +204,7 @@ export abstract class BasePage {
         await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
     }
 
-    async waitForNetworkIdle() {
+    async waitForDomContentLoaded() {
         await this._page.waitForLoadState('domcontentloaded');
     }
 
@@ -331,7 +331,7 @@ export abstract class BasePage {
      */
     async navigateToHomepage(): Promise<void> {
         await this._page.goto(EMULATOR_URL);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToRoot(): Promise<void> {
@@ -341,17 +341,17 @@ export abstract class BasePage {
 
     async navigateToLogin(): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}/login`);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToRegister(): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}/register`);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToPricing(): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}/pricing`);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToDashboard(): Promise<void> {
@@ -361,11 +361,11 @@ export abstract class BasePage {
 
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this._page.goto(shareLink);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToStaticPath(path: string): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}${path}`);
-        await this.waitForNetworkIdle();
+        await this.waitForDomContentLoaded();
     }
 }
