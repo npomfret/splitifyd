@@ -1,90 +1,308 @@
 # Task: Implement Shared Package for Monorepo
 
-**Ticket:** [TICKET-NUMBER]
 **Status:** To Do
 
 ## 1. Problem Statement
 
-Currently, the project shares code between the `firebase` functions and the `webapp-v2` client by using deep, relative paths (e.g., `../../firebase/functions/src/types/webapp-shared-types.ts`). This approach has proven to be a significant source of friction and errors:
+Currently, the project shares code between the `firebase` functions and the `webapp-v2` client using a TypeScript path alias (`@shared`) that points to `../firebase/functions/src/shared/*`. While this works, it has several limitations:
 
-- **Brittle Imports:** The paths are fragile and prone to breaking if files are moved.
-- **Poor Tooling Support:** Test runners like `vitest` and even IDEs struggle to resolve these paths correctly, leading to `Failed to resolve import` errors and requiring complex, unreliable path alias configurations in `tsconfig.json`.
-- **Lack of Clarity:** It creates a "leaky" abstraction where the frontend is tightly coupled to the backend's internal directory structure.
-- **Unscalable:** As the amount of shared code grows, this method will become increasingly unmanageable.
-- **Improper Dev Dependencies:** The `@splitifyd/test-support` package is currently a regular dependency, which causes production deployments to fail. It should be a `devDependency`.
+- **Complex Path Configuration:** Requires maintaining path aliases in multiple `tsconfig.json` files
+- **Build Complexity:** Firebase deployment needs special handling for shared code
+- **Test Support Issues:** The `@splitifyd/test-support` package already exists but may need better integration
+- **Limited Scalability:** As shared code grows, the current approach becomes harder to maintain
 
-The recent effort to refactor magic strings highlighted this problem, forcing the use of relative paths as a workaround for failing tests, which is not a sustainable solution.
+## 2. Current State Analysis
 
-## 2. Proposed Solution
+The project already has:
+- A monorepo structure with npm workspaces configured
+- Existing workspaces: `firebase/functions`, `webapp-v2`, `test-support`, `e2e-tests`
+- Shared types at `firebase/functions/src/shared/shared-types.ts`
+- Path alias `@shared/*` configured in `webapp-v2/tsconfig.json`
+- 44+ files in webapp-v2 importing from `@shared/shared-types`
 
-The standard, industry-best-practice solution is to treat our project as a proper monorepo and create dedicated, internal packages. This involves:
+## 3. Proposed Solution
 
-1.  **Creating new packages:**
-    - A new directory, `packages/shared`, will house all code meant to be used by both the client and server.
-    - The existing `test-support` directory will be moved to `packages/test-support` and configured as its own package.
-2.  **Configuring Workspaces:** The root `package.json` will be configured to recognize the monorepo structure (using npm or pnpm workspaces).
-3.  **Fixing Dev Dependencies:** The `@splitifyd/test-support` package will be converted to a `devDependency` in the `package.json` files of the projects that use it, ensuring it is not included in production builds.
-4.  **Handling the Firebase Build Process:** The primary challenge is that the Firebase deployment process only bundles the `functions` directory, ignoring any external local packages. We will solve this by creating a `predeploy` script that:
-    a. Builds the `shared` package.
-    b. Packs the built code into a tarball (`.tgz`).
-    c. Copies the tarball into the `functions` directory.
-    d. Temporarily updates `functions/package.json` to use the local tarball as its dependency.
-5.  **Adding a `predeploy` hook:** The `firebase.json` configuration will be updated to run this script automatically before any deployment or emulator startup, ensuring the shared code is always available.
+Create a proper `@splitifyd/shared` package within the existing monorepo structure to house all shared code, ensuring clean imports and better tooling support.
 
-## 3. Benefits
+## 4. Implementation Plan (Incremental Steps)
 
-This approach provides substantial long-term benefits that justify the initial setup cost:
+### Phase 1: Package Setup (Non-Breaking)
+**Goal:** Create the shared package structure without breaking existing code
 
-- **Clean, Robust Imports:** Code will be imported using a clear, package-based syntax (e.g., `import { ... } from '@splitifyd/shared'`).
-- **Excellent Tooling Support:** It resolves all path resolution issues with IDEs, TypeScript, and test runners, eliminating the root cause of our current test failures.
-- **Correct Dependency Scopes:** Production builds will be leaner and more reliable by correctly scoping test-related code to `devDependencies`.
-- **Explicit Dependency Management:** It establishes a clear, well-defined API for the shared code, improving modularity and reducing coupling.
-- **Improved Maintainability & Scalability:** The structure is clean, easy to understand, and scales effortlessly as the project grows.
+#### Step 1.1: Create Package Structure
+```bash
+packages/
+└── shared/
+    ├── package.json
+    ├── tsconfig.json
+    ├── src/
+    │   └── index.ts
+    └── dist/           # Built output
+```
 
-## 4. Implementation Plan
+#### Step 1.2: Configure Package
+Create `packages/shared/package.json`:
+```json
+{
+  "name": "@splitifyd/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "firebase-admin": "^13.0.0"
+  }
+}
+```
 
-1.  **Create `packages/shared` Directory Structure:**
-    - `packages/shared/`
-    - `packages/shared/src/`
+Create `packages/shared/tsconfig.json`:
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020"],
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"]
+}
+```
 
-2.  **Create `package.json` for the Shared Package:**
-    - Create `packages/shared/package.json` with the name `@splitifyd/shared`, a `main` entry point, and a `types` entry point.
+#### Step 1.3: Update Root Workspace Configuration
+Modify root `package.json` to include the new package:
+```json
+{
+  "workspaces": [
+    "firebase/functions",
+    "webapp-v2",
+    "test-support",
+    "e2e-tests",
+    "packages/shared"
+  ]
+}
+```
 
-3.  **Create `tsconfig.json` for the Shared Package:**
-    - Create `packages/shared/tsconfig.json` to configure the TypeScript build for this package.
+### Phase 2: Code Migration (Parallel Structure)
+**Goal:** Copy shared code to new package while maintaining existing structure
 
-4.  **Move Shared Code:**
-    - Move `firebase/functions/src/types/webapp-shared-types.ts` to `packages/shared/src/index.ts`.
-    - Export all constants from this new `index.ts` file.
+#### Step 2.1: Copy Shared Types
+1. Copy `firebase/functions/src/shared/shared-types.ts` to `packages/shared/src/shared-types.ts`
+2. Create `packages/shared/src/index.ts` that re-exports everything:
+```typescript
+export * from './shared-types';
+```
 
-5.  **Create and Configure `test-support` Package:**
-    - Create a `packages/test-support` directory.
-    - Move the existing `test-support` directory's contents into `packages/test-support`.
-    - Create a `package.json` in the new directory with the name `@splitifyd/test-support`.
+#### Step 2.2: Handle Dependencies
+1. Copy any imported constants/types that shared-types depends on
+2. Ensure all imports within the shared package are self-contained
 
-6.  **Configure Monorepo Workspaces:**
-    - Update the root `package.json` to define the `workspaces`, including `packages/*`, `firebase`, and `webapp-v2`.
+#### Step 2.3: Build the Package
+```bash
+cd packages/shared
+npm run build
+```
 
-7.  **Update Package Dependencies:**
-    - In `firebase/package.json` and `webapp-v2/package.json`, add `"@splitifyd/shared": "workspace:*"`.
-    - In any package that uses the test support library, add `@splitifyd/test-support` as a `devDependency`: `"@splitifyd/test-support": "workspace:*"`.
-    - Run `npm install` from the root to link the workspaces.
+### Phase 3: Firebase Integration
+**Goal:** Enable Firebase to use the shared package during deployment
 
-8.  **Create the `predeploy` Script:**
-    - Create a new script in `firebase/scripts/pack-shared.ts` (or similar).
-    - This script will perform the build, pack, copy, and `package.json` modification steps for the `@splitifyd/shared` package.
+#### Step 3.1: Create Pack Script
+Create `firebase/scripts/pack-shared.js`:
+```javascript
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
-9.  **Update `firebase.json`:**
-    - Add a `predeploy` hook to the `functions` section to execute the new packing script.
+const rootDir = path.join(__dirname, '../..');
+const sharedDir = path.join(rootDir, 'packages/shared');
+const functionsDir = path.join(rootDir, 'firebase/functions');
 
-10. **Refactor All Imports:**
-    - Search the entire codebase (`firebase/` and `webapp-v2/`) and replace all relative-path imports of the shared types with the new package import: `@splitifyd/shared`.
-    - Replace all imports of test-support files with the new package import: `@splitifyd/test-support`.
+// Build the shared package
+console.log('Building @splitifyd/shared...');
+execSync('npm run build', { cwd: sharedDir, stdio: 'inherit' });
 
-11. **Cleanup Configuration:**
-    - Remove the now-unnecessary `paths` aliases (`@shared`, `@test-support`) from all `tsconfig.json` files (`webapp-v2/tsconfig.json`, etc.).
+// Pack the package
+console.log('Packing @splitifyd/shared...');
+execSync('npm pack', { cwd: sharedDir, stdio: 'inherit' });
 
-12. **Verification:**
-    - Run `npm test` to confirm that all client-side and server-side tests now pass without any import resolution errors.
-    - Run the app locally using the emulator to ensure everything works end-to-end.
-    - Run a production build/deployment to confirm the `test-support` dependency is no longer causing failures.
+// Move the tarball to functions directory
+const tarballName = 'splitifyd-shared-1.0.0.tgz';
+const sourcePath = path.join(sharedDir, tarballName);
+const targetPath = path.join(functionsDir, tarballName);
+
+if (fs.existsSync(sourcePath)) {
+  fs.renameSync(sourcePath, targetPath);
+  console.log(`Moved ${tarballName} to functions directory`);
+}
+
+// Update functions package.json to use the local tarball for production
+const packageJsonPath = path.join(functionsDir, 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+
+// Store the original dependency
+if (!packageJson.dependencies['@splitifyd/shared-original']) {
+  packageJson.dependencies['@splitifyd/shared-original'] = packageJson.dependencies['@splitifyd/shared'];
+}
+
+// Use tarball for deployment
+packageJson.dependencies['@splitifyd/shared'] = `file:${tarballName}`;
+
+fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+console.log('Updated functions/package.json for deployment');
+```
+
+#### Step 3.2: Add Firebase Hooks
+Update `firebase/firebase.template.json`:
+```json
+{
+  "functions": {
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run build",
+      "node ./scripts/pack-shared.js"
+    ]
+  }
+}
+```
+
+### Phase 4: Gradual Migration
+**Goal:** Update imports incrementally to minimize risk
+
+#### Step 4.1: Update Firebase Functions
+1. Add `@splitifyd/shared` as dependency in `firebase/functions/package.json`:
+```json
+{
+  "dependencies": {
+    "@splitifyd/shared": "workspace:*"
+  }
+}
+```
+
+Update imports in Firebase functions one file at a time:
+```typescript
+// Old: import from local file
+import { Group } from './shared/shared-types';
+
+// New: import from package
+import { Group } from '@splitifyd/shared';
+```
+
+#### Step 4.2: Update Webapp
+1. Add `@splitifyd/shared` as dependency in `webapp-v2/package.json`:
+```json
+{
+  "dependencies": {
+    "@splitifyd/shared": "workspace:*"
+  }
+}
+```
+
+Update imports in webapp files gradually:
+```typescript
+// Old: import via path alias
+import { Group } from '@shared/shared-types';
+
+// New: import from package
+import { Group } from '@splitifyd/shared';
+```
+
+#### Step 4.3: Update Test Files
+Update any test files that import shared types to use the new package.
+
+### Phase 5: Cleanup
+**Goal:** Remove old code and configurations
+
+#### Step 5.1: Remove Path Aliases
+Remove `@shared/*` path alias from:
+- `webapp-v2/tsconfig.json`
+- `webapp-v2/vite.config.ts`
+- `webapp-v2/vitest.config.ts`
+- `webapp-v2/jest.config.js`
+
+#### Step 5.2: Remove Old Shared Directory
+Once all imports are updated and tested:
+```bash
+rm -rf firebase/functions/src/shared
+```
+
+#### Step 5.3: Update Test Support
+Ensure `@splitifyd/test-support` is properly configured as `devDependency` where used.
+
+## 5. Testing Strategy
+
+### After Each Phase:
+1. Run all unit tests: `npm test`
+2. Run integration tests: `npm run test:integration`
+3. Start emulator and test locally: `npm run dev`
+4. Verify webapp builds: `npm run build`
+
+### Final Validation:
+1. Clean install: `npm run super-clean && npm install`
+2. Full test suite: `npm test`
+3. Emulator test: Full app functionality
+4. Production build test: `cd firebase && npm run deploy:prod --dry-run`
+
+## 6. Rollback Plan
+
+If issues arise at any phase:
+
+### Phase 1-2 Rollback:
+- Simply delete `packages/shared` directory
+- Remove from workspaces in root `package.json`
+
+### Phase 3 Rollback:
+- Revert firebase.template.json changes
+- Delete pack-shared.js script
+
+### Phase 4 Rollback:
+- Revert import changes (git revert commits)
+- Keep both import styles working temporarily
+
+### Phase 5 Rollback:
+- Restore path aliases
+- Restore `firebase/functions/src/shared` from git
+
+## 7. Benefits
+
+- **Clean Imports:** `import { Group } from '@splitifyd/shared'`
+- **Better Tooling:** IDEs and test runners understand package imports
+- **Clear Dependencies:** Explicit versioning and dependency management
+- **Firebase Compatibility:** Works with Firebase's deployment constraints
+- **Future-Proof:** Easy to add more shared packages
+
+## 8. Timeline Estimate
+
+- Phase 1: 30 minutes (setup)
+- Phase 2: 1 hour (migration and testing)
+- Phase 3: 1 hour (Firebase integration)
+- Phase 4: 2-3 hours (gradual migration and testing)
+- Phase 5: 30 minutes (cleanup)
+
+**Total:** 5-6 hours with careful testing between phases
+
+## 9. Success Criteria
+
+- [ ] All tests pass
+- [ ] Emulator runs without errors
+- [ ] Webapp builds successfully
+- [ ] Firebase functions deploy successfully
+- [ ] No import resolution errors in IDE
+- [ ] Clean npm install works
