@@ -2,6 +2,27 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi } from 'vitest';
 import { EmptyGroupsState } from '@/components/dashboard/EmptyGroupsState.tsx';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'emptyGroupsState.title': 'No groups yet',
+                'emptyGroupsState.description': 'Create your first group to start splitting expenses with friends and family.',
+                'emptyGroupsState.createFirstGroup': 'Create Your First Group',
+                'emptyGroupsState.gettingStartedTitle': 'Getting started with Splitifyd:',
+                'emptyGroupsState.step1Title': '1. Create a group',
+                'emptyGroupsState.step1Description': 'Add friends, roommates, or travel companions',
+                'emptyGroupsState.step2Title': '2. Add expenses',
+                'emptyGroupsState.step2Description': 'Track who paid and how to split costs',
+                'emptyGroupsState.step3Title': '3. Settle up',
+                'emptyGroupsState.step3Description': 'See who owes what and settle balances',
+            };
+            return translations[key] || key;
+        },
+    }),
+}));
+
 describe('EmptyGroupsState', () => {
     const mockOnCreateGroup = vi.fn();
 
